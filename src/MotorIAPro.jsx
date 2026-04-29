@@ -376,7 +376,7 @@ export default function MotorIAPro() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [freeUses, setFreeUses] = useState(3);
+  const [freeUses, setFreeUses] = useState(999);
   const [showModal, setShowModal] = useState(false);
   const [showOutput, setShowOutput] = useState(false);
   const [copied, setCopied] = useState(false);
