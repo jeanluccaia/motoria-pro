@@ -27,7 +27,9 @@ export default async function handler(req, res) {
       return res.status(response.status).json(data);
     }
 
-    return res.status(200).json(data);
+    return res.status(200).json({
+  content: data.content || []
+});
   } catch (error) {
     return res.status(500).json({
       error: "Erro interno na API",
