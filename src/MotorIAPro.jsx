@@ -1100,6 +1100,16 @@ const QUICK_MODELS = [
   { id: "ideia-negocio", label: "Ideia de negócio", flowId: "negocio", inputs: {} },
 ];
 
+const NAV_CATEGORIES = [
+  { id: "todos",     label: "✦ Todos" },
+  { id: "instagram", label: "📸 Instagram", flows: ["instagram", "roteiro", "bio"] },
+  { id: "conteudo",  label: "✏️ Conteúdo",  flows: ["instagram", "roteiro"] },
+  { id: "vendas",    label: "💰 Vendas",     flows: ["copy", "anuncio", "paginavendas"] },
+  { id: "anuncios",  label: "📣 Anúncios",   flows: ["anuncio"] },
+  { id: "negocios",  label: "💡 Negócios",   flows: ["negocio", "paginavendas"] },
+  { id: "iniciante", label: "🚀 Iniciante",  flows: ["iniciante"] },
+];
+
 const TRUST_COPIES = [
   "Pronto pra usar — só copia e aplica",
   "Gerado em segundos — sem esforço nenhum",
@@ -1458,6 +1468,7 @@ export default function MotorIAPro() {
   const [screen, setScreen] = useState("home");
   const [activeFlow, setActiveFlow] = useState(null);
   const [guidedInputs, setGuidedInputs] = useState({});
+  const [activeCategory, setActiveCategory] = useState("todos");
   const intervalRef = useRef(null);
   const cacheRef = useRef(new Map());
   const lastCallRef = useRef("");
@@ -2333,7 +2344,27 @@ export default function MotorIAPro() {
         }
         .m-home-sub {
           font-size: 13px; font-weight: 500; color: #8b89a8;
-          margin-bottom: 18px; line-height: 1.5;
+          margin-bottom: 14px; line-height: 1.5;
+        }
+
+        /* ─── CATEGORY NAV ─── */
+        .m-cat-nav {
+          display: flex; gap: 7px; overflow-x: auto;
+          margin-bottom: 16px; padding-bottom: 4px;
+          scrollbar-width: none; -webkit-overflow-scrolling: touch;
+        }
+        .m-cat-nav::-webkit-scrollbar { display: none; }
+        .m-cat-btn {
+          flex-shrink: 0; padding: 7px 14px; border-radius: 20px;
+          background: #14142a; border: 1px solid #2a2740;
+          font-size: 12px; font-weight: 600; color: #8b89a8;
+          cursor: pointer; transition: all 0.2s; white-space: nowrap;
+          font-family: 'Inter', sans-serif;
+        }
+        .m-cat-btn:hover { border-color: #22c55e33; color: #22c55e; }
+        .m-cat-btn.active {
+          background: #061408; border-color: #22c55e55; color: #22c55e;
+          box-shadow: 0 0 10px #22c55e18;
         }
 
         /* ─── FLOW GRID ─── */
@@ -2347,8 +2378,11 @@ export default function MotorIAPro() {
           text-align: left; cursor: pointer;
           transition: all 0.2s; display: flex; flex-direction: column; gap: 5px;
         }
-        .m-flow-card:hover { background: #1a1a38; border-color: #f5b94433; transform: translateY(-2px); }
-        .m-flow-card:active { transform: translateY(0); }
+        .m-flow-card:hover {
+          background: #0c1c10; border-color: #22c55e44;
+          transform: translateY(-3px); box-shadow: 0 8px 24px #22c55e0d;
+        }
+        .m-flow-card:active { transform: translateY(0) scale(0.982); transition: transform 0.1s; }
         .m-flow-card.m-flow-highlight {
           background: linear-gradient(135deg, #1a1a38 0%, #16162c 100%);
           border: 1px solid #f5b94440;
@@ -2369,7 +2403,7 @@ export default function MotorIAPro() {
           font-size: 11px; font-weight: 500; color: #6b698a; line-height: 1.4;
         }
         .m-flow-arrow {
-          font-size: 11px; font-weight: 700; color: #f5b944; margin-top: 2px;
+          font-size: 11px; font-weight: 700; color: #22c55e; margin-top: 2px;
         }
 
         /* ─── MODELOS PRONTOS ─── */
@@ -2388,7 +2422,7 @@ export default function MotorIAPro() {
           border-radius: 20px; padding: 7px 14px;
           cursor: pointer; transition: all 0.18s; white-space: nowrap;
         }
-        .m-model-btn:hover { background: #16162c; border-color: #f5b94440; color: #f5b944; }
+        .m-model-btn:hover { background: #061408; border-color: #22c55e44; color: #22c55e; }
 
         /* ─── SECONDARY ACTIONS ─── */
         .m-home-secondary {
@@ -2523,18 +2557,36 @@ export default function MotorIAPro() {
 
               {/* Trust badges */}
               <div className="m-trust-strip">
-                {["Feito para iniciantes", "Sem mensalidade", "+500 comandos prontos", "Você escolhe. A IA monta."].map(b => (
+                {["Feito para iniciantes", "Sem mensalidade", "+500 prontos", "Sem aprender IA", "Resultado em segundos"].map(b => (
                   <span key={b} className="m-trust-badge">{b}</span>
                 ))}
               </div>
 
               {/* Heading */}
               <div className="m-home-title">O que você quer fazer hoje?</div>
-              <div className="m-home-sub">Você escolhe. A IA preenche, escreve e entrega tudo pronto.</div>
+              <div className="m-home-sub">Escolha um comando pronto. Digite em 1 frase. A IA faz o resto.</div>
+
+              {/* Category navigation */}
+              <div className="m-cat-nav">
+                {NAV_CATEGORIES.map(cat => (
+                  <button
+                    key={cat.id}
+                    className={`m-cat-btn${activeCategory === cat.id ? " active" : ""}`}
+                    onClick={() => setActiveCategory(cat.id)}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
 
               {/* Flow cards */}
               <div className="m-flow-grid">
-                {GUIDED_FLOWS.map(flow => (
+                {(activeCategory === "todos"
+                  ? GUIDED_FLOWS
+                  : GUIDED_FLOWS.filter(f =>
+                      NAV_CATEGORIES.find(c => c.id === activeCategory)?.flows?.includes(f.id)
+                    )
+                ).map(flow => (
                   <button
                     key={flow.id}
                     className={`m-flow-card${flow.highlight ? " m-flow-highlight" : ""}`}
@@ -2553,7 +2605,7 @@ export default function MotorIAPro() {
 
               {/* Modelos prontos */}
               <div className="m-models-section">
-                <div className="m-models-label">Modelos prontos — clique e use agora</div>
+                <div className="m-models-label">Escolha um modelo pronto — clique e já começa</div>
                 <div className="m-models-strip">
                   {QUICK_MODELS.map(m => (
                     <button key={m.id} className="m-model-btn" onClick={() => handleQuickModel(m)}>
