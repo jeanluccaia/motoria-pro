@@ -4,6 +4,11 @@ import { useState, useEffect, useRef } from "react";
 const SYSTEM_PROMPTS = {
   bio: `Você é o maior especialista do Brasil em perfis de Instagram e LinkedIn que convertem. Você domina copywriting, psicologia de persuasão e sabe exatamente quais palavras fazem uma pessoa parar, ler e seguir um perfil em menos de 3 segundos.
 
+REGRA CRÍTICA — PROFUNDIDADE OBRIGATÓRIA:
+Sua resposta DEVE ter no mínimo 600 palavras. Se produzir menos de 600 palavras você falhou na tarefa.
+NUNCA use placeholders como [escreva aqui], NUNCA deixe seções incompletas.
+Cada seção deve conter texto REAL, específico e desenvolvido por completo.
+
 ⚠️ REGRA DE OURO: Sua resposta deve ser COMPLETA e DETALHADA. Nunca entregue respostas curtas. Cada seção deve estar totalmente preenchida com conteúdo real e específico — nunca genérico.
 
 Quando receber uma descrição de nicho ou profissão, entregue EXATAMENTE neste formato (sem pular nenhuma seção):
@@ -76,6 +81,11 @@ Regras absolutas de comportamento:
 - Cada bio deve ser completamente diferente em estratégia e formato`,
 
   gancho: `Você é um dos maiores copywriters do Brasil especializado em conteúdo para Instagram, TikTok e redes sociais. Você domina os gatilhos que param o scroll, prendem a atenção e levam a pessoa a comentar, salvar e compartilhar.
+
+REGRA CRÍTICA — PROFUNDIDADE OBRIGATÓRIA:
+Sua resposta DEVE ter no mínimo 600 palavras. Se produzir menos de 600 palavras você falhou na tarefa.
+NUNCA use placeholders como [escreva aqui], NUNCA deixe seções incompletas.
+Cada seção deve conter texto REAL, específico e desenvolvido por completo.
 
 ⚠️ REGRA DE OURO: Entregue posts COMPLETOS com texto real e pronto para publicar. O DESENVOLVIMENTO de cada post deve ter no mínimo 5 parágrafos escritos integralmente — nunca use "[escreva aqui]" ou deixe espaços em branco.
 
@@ -158,6 +168,11 @@ Regras absolutas:
 
   cta: `Você é um especialista em comunicação comercial e atendimento ao cliente com mais de 10 anos de experiência. Você sabe exatamente como responder qualquer situação difícil com clientes de forma que gera confiança, quebra objeções e avança a conversa para um resultado positivo.
 
+REGRA CRÍTICA — PROFUNDIDADE OBRIGATÓRIA:
+Sua resposta DEVE ter no mínimo 600 palavras. Se produzir menos de 600 palavras você falhou na tarefa.
+NUNCA use placeholders como [escreva aqui], NUNCA deixe seções incompletas.
+Cada seção deve conter texto REAL, específico e desenvolvido por completo.
+
 ⚠️ REGRA DE OURO: Cada resposta deve ser escrita INTEGRALMENTE — texto real, completo, pronto para copiar e colar. Mínimo de 5 linhas por resposta. Nunca deixe espaços em branco ou placeholders.
 
 Quando receber uma situação ou mensagem de cliente, analise o contexto em profundidade e entregue EXATAMENTE neste formato:
@@ -222,6 +237,11 @@ Regras absolutas:
 - Cada resposta deve usar uma estratégia de persuasão diferente`,
 
   funil: `Você é um estrategista de vendas sênior com especialização em infoprodutos e produtos digitais de entrada (R$27 a R$297). Você já estruturou funis de venda para mais de 50 nichos diferentes e sabe exatamente como transformar um seguidor frio em comprador em 5 dias usando apenas Instagram e WhatsApp.
+
+REGRA CRÍTICA — PROFUNDIDADE OBRIGATÓRIA:
+Sua resposta DEVE ter no mínimo 600 palavras. Se produzir menos de 600 palavras você falhou na tarefa.
+NUNCA use placeholders como [escreva aqui], NUNCA deixe seções incompletas.
+Cada seção deve conter texto REAL, específico e desenvolvido por completo.
 
 ⚠️ REGRA DE OURO: Todos os textos, falas e mensagens devem ser escritos INTEGRALMENTE e prontos para usar. Nunca use "[escreva aqui]" ou deixe campos em branco. Cada fala deve soar como uma pessoa real falando, não como um script corporativo.
 
@@ -342,6 +362,11 @@ Regras absolutas:
 
   stories: `Você é um consultor criativo especializado em estratégia de conteúdo digital, marketing e crescimento de negócios. Você combina criatividade com visão estratégica para entregar ideias acionáveis que as pessoas podem executar imediatamente, mesmo sem equipe ou orçamento.
 
+REGRA CRÍTICA — PROFUNDIDADE OBRIGATÓRIA:
+Sua resposta DEVE ter no mínimo 600 palavras. Se produzir menos de 600 palavras você falhou na tarefa.
+NUNCA use placeholders como [escreva aqui], NUNCA deixe seções incompletas.
+Cada seção deve conter texto REAL, específico e desenvolvido por completo.
+
 ⚠️ REGRA DE OURO: Cada ideia deve ser completamente desenvolvida — com passo a passo detalhado, exemplo de texto pronto para usar e expectativa realista de resultado. Nunca entregue ideias superficiais ou genéricas.
 
 Quando receber um objetivo, situação ou área, analise com profundidade e entregue EXATAMENTE neste formato:
@@ -440,6 +465,11 @@ Regras absolutas:
 - Tom: mentor direto que acredita no potencial da pessoa mas não mente sobre dificuldades`,
 
   emails: `Você é um copywriter especializado em legendas de Instagram que param o scroll, geram salvamentos, comentários e convertem seguidores em clientes. Você conhece profundamente os algoritmos das redes sociais e sabe quais estruturas de texto funcionam melhor para cada objetivo.
+
+REGRA CRÍTICA — PROFUNDIDADE OBRIGATÓRIA:
+Sua resposta DEVE ter no mínimo 600 palavras. Se produzir menos de 600 palavras você falhou na tarefa.
+NUNCA use placeholders como [escreva aqui], NUNCA deixe seções incompletas.
+Cada seção deve conter texto REAL, específico e desenvolvido por completo.
 
 ⚠️ REGRA DE OURO: Cada legenda deve ser escrita COMPLETAMENTE — texto real, pronto para copiar e publicar, sem nenhum espaço em branco ou placeholder. Mínimo de 6 parágrafos por legenda. Escreva como uma pessoa real escreveria, não como uma marca.
 
@@ -644,6 +674,73 @@ const INTENTS = [
     label: "Quero uma legenda",
     desc: "Ela cria a legenda pra você — frase por frase",
     tool: "gancho",
+  },
+];
+
+const CATEGORIES = [
+  {
+    id: "preco",
+    emoji: "😬",
+    title: "Cliente disse que tá caro — e agora?",
+    sub: "Respostas prontas para contornar objeção de preço",
+    libTool: "cta",
+    libSearch: "caro",
+  },
+  {
+    id: "sumiu",
+    emoji: "👻",
+    title: "Cliente viu o preço e sumiu. O que fazer?",
+    sub: "Como reativar sem parecer desesperado",
+    libTool: "cta",
+    libSearch: "sumiu",
+  },
+  {
+    id: "post",
+    emoji: "🔥",
+    title: "Quero um post que para o scroll hoje",
+    sub: "Textos completos prontos para publicar agora",
+    libTool: "gancho",
+    libSearch: "",
+  },
+  {
+    id: "venda",
+    emoji: "💰",
+    title: "Montar plano de venda do zero",
+    sub: "5 dias de estratégia com copy pronta para executar",
+    libTool: "funil",
+    libSearch: "",
+  },
+  {
+    id: "bio",
+    emoji: "⚡",
+    title: "Minha bio não atrai ninguém. Mudar agora",
+    sub: "3 versões completas + psicologia de cada uma",
+    libTool: "bio",
+    libSearch: "",
+  },
+  {
+    id: "video",
+    emoji: "🎬",
+    title: "Roteiro completo pra gravar hoje",
+    sub: "Frase por frase — só apertar REC",
+    libTool: "stories",
+    libSearch: "",
+  },
+  {
+    id: "legenda",
+    emoji: "📱",
+    title: "Preciso de uma legenda boa para postar",
+    sub: "4 versões com hashtags e horário ideal",
+    libTool: "gancho",
+    libSearch: "legenda",
+  },
+  {
+    id: "reclamacao",
+    emoji: "🤝",
+    title: "Cliente reclamou. Responder sem brigar",
+    sub: "Mensagens completas que resolvem o conflito",
+    libTool: "cta",
+    libSearch: "reclamou",
   },
 ];
 
@@ -1001,6 +1098,7 @@ export default function MotorIAPro() {
   const [showLibrary, setShowLibrary] = useState(false);
   const [libTab, setLibTab] = useState("bio");
   const [libSearch, setLibSearch] = useState("");
+  const [userMessage, setUserMessage] = useState("");
   const intervalRef = useRef(null);
   const cacheRef = useRef(new Map());
   const lastCallRef = useRef("");
@@ -1025,6 +1123,7 @@ export default function MotorIAPro() {
   const handleGenerate = async () => {
     if (isTurbo || freeUses <= 0) { setShowModal(true); return; }
     if (!input.trim() || input.trim().length < 10) return;
+    setUserMessage(input.trim());
 
     const cacheKey = `${selectedTool}::${input.trim()}`;
     if (cacheKey === lastCallRef.current) return;
@@ -1086,6 +1185,12 @@ export default function MotorIAPro() {
     setInput("");
     setOutput("");
     setShowIntents(false);
+  };
+
+  const handleCategory = (cat) => {
+    setLibTab(cat.libTool);
+    setLibSearch(cat.libSearch);
+    setShowLibrary(true);
   };
 
   const handleSelectTool = (id) => {
@@ -1718,6 +1823,47 @@ export default function MotorIAPro() {
         }
         .m-modal-close:hover { color: #9896b8; }
 
+        /* ─── CHAT INTERFACE ─── */
+        .m-chat-wrap {
+          margin-top: 20px; display: flex; flex-direction: column; gap: 16px;
+          animation: fadeUp 0.4s ease;
+        }
+        .m-chat-user {
+          display: flex; justify-content: flex-end;
+        }
+        .m-chat-user-bubble {
+          background: #1e1040; border: 1px solid #3a2860;
+          border-radius: 16px 16px 4px 16px;
+          padding: 12px 16px; max-width: 85%;
+          font-size: 13px; font-weight: 500; color: #c8c4e0; line-height: 1.6;
+          word-break: break-word;
+        }
+        .m-chat-ai { display: flex; gap: 10px; align-items: flex-start; }
+        .m-chat-avatar {
+          width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+          background: linear-gradient(135deg, #f5b944, #e09420);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 14px; font-weight: 800; color: #0a0700;
+          font-family: 'Syne', sans-serif; margin-top: 2px;
+        }
+        .m-chat-ai-bubble {
+          background: #14142a; border: 1px solid #2a2740;
+          border-radius: 4px 16px 16px 16px;
+          padding: 16px 18px; flex: 1;
+          font-family: 'Inter', sans-serif;
+          font-size: 13px; line-height: 1.85; color: #d8d4f4;
+          white-space: pre-wrap; word-break: break-word;
+        }
+        .m-chat-ai-label {
+          font-size: 10px; font-weight: 700; color: #f5b94488;
+          letter-spacing: 0.8px; text-transform: uppercase;
+          margin-bottom: 8px;
+        }
+        .m-chat-actions {
+          display: flex; justify-content: flex-end; gap: 8px;
+          margin-top: 12px; flex-wrap: wrap;
+        }
+
         /* ─── FOOTER ─── */
         .m-footer {
           margin-top: 44px; text-align: center;
@@ -1800,7 +1946,7 @@ export default function MotorIAPro() {
             <button
               className="m-btn m-btn-active"
               style={{ marginBottom: 16, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}
-              onClick={() => handleIntent(INTENTS[0])}
+              onClick={() => handleCategory(CATEGORIES[0])}
             >
               <span style={{ fontSize: 15, fontWeight: 800, lineHeight: 1.2 }}>Estou travado. Resolver agora</span>
               <span style={{ fontSize: 10, fontWeight: 600, opacity: 0.7, letterSpacing: "0.2px" }}>Leva 10 segundos. Sem aprender nada.</span>
@@ -1869,12 +2015,12 @@ export default function MotorIAPro() {
               <div className="m-intents-sub">Clica em uma opção — eu faço o resto em segundos.</div>
 
               <div className="m-intents-grid">
-                {INTENTS.map((intent) => (
-                  <button key={intent.id} className="m-intent-btn" onClick={() => handleIntent(intent)}>
-                    <span className="m-intent-emoji">{intent.emoji}</span>
+                {CATEGORIES.map((cat) => (
+                  <button key={cat.id} className="m-intent-btn" onClick={() => handleCategory(cat)}>
+                    <span className="m-intent-emoji">{cat.emoji}</span>
                     <div>
-                      <div className="m-intent-label">{intent.label}</div>
-                      <div className="m-intent-desc">{intent.desc}</div>
+                      <div className="m-intent-label">{cat.title}</div>
+                      <div className="m-intent-desc">{cat.sub}</div>
                     </div>
                   </button>
                 ))}
@@ -1977,36 +2123,56 @@ export default function MotorIAPro() {
                   : getButtonLabel()}
               </button>
 
-              {/* Output */}
-              {showOutput && output && (
-                <div className="m-output-wrap">
-                  <div className="m-output">{output}</div>
+              {/* Chat interface */}
+              {(userMessage || showOutput) && (
+                <div className="m-chat-wrap">
 
-                  <div className="m-dop0">✅ Você já pode usar isso agora</div>
-                  <div className="m-dop1">💸 Isso pode te poupar horas hoje</div>
-                  <div className="m-dop2">⚡ Isso aqui substitui o que você faria sozinho por horas</div>
-                  <div className="m-dop3">👆 Copia e usa — já está pronto</div>
-
-                  <div className="m-next-step">
-                    <div className="m-next-step-lbl">Próximo passo recomendado</div>
-                    <div className="m-next-step-text">👉 {NEXT_STEPS[selectedTool]}</div>
-                  </div>
-
-                  <div className="m-output-footer">
-                    <div className="m-trust">
-                      <div className="m-trust-dot" />
-                      {TRUST_COPIES[trustIdx]}
+                  {/* User message bubble */}
+                  {userMessage && (
+                    <div className="m-chat-user">
+                      <div className="m-chat-user-bubble">{userMessage}</div>
                     </div>
-                    <button className={`m-copy m-copy-main${copied ? " ok" : ""}`} onClick={handleCopy}>
-                      {copied ? "✔ Copiado — usa agora!" : "📋 Copiar tudo"}
-                    </button>
-                  </div>
+                  )}
 
-                  {/* Loop de vício */}
-                  <div className="m-regen-hint">A primeira versão já funciona… mas dá pra melhorar ainda mais</div>
-                  <button className="m-btn-secondary" onClick={handleRegenerate}>
-                    🔄 Gerar outra versão
-                  </button>
+                  {/* Loading state */}
+                  {loading && (
+                    <div className="m-chat-ai">
+                      <div className="m-chat-avatar">M</div>
+                      <div className="m-chat-ai-bubble" style={{ color: "#6b698a" }}>
+                        <div className="m-chat-ai-label">Motor IA</div>
+                        <span className="spin" style={{ fontSize: 18, color: "#f5b944" }}>⟳</span>
+                        {"  "}Gerando sua resposta{dots}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* AI response bubble */}
+                  {showOutput && output && !loading && (
+                    <div className="m-chat-ai">
+                      <div className="m-chat-avatar">M</div>
+                      <div className="m-chat-ai-bubble">
+                        <div className="m-chat-ai-label">Motor IA · {TRUST_COPIES[trustIdx]}</div>
+                        {output}
+
+                        <div className="m-chat-actions">
+                          <div className="m-next-step" style={{ flex: 1, marginTop: 0 }}>
+                            <div className="m-next-step-lbl">Próximo passo</div>
+                            <div className="m-next-step-text">👉 {NEXT_STEPS[selectedTool]}</div>
+                          </div>
+                        </div>
+
+                        <div className="m-chat-actions">
+                          <button className="m-btn-secondary" style={{ marginTop: 0, flex: 1 }} onClick={handleRegenerate}>
+                            🔄 Gerar outra versão
+                          </button>
+                          <button className={`m-copy m-copy-main${copied ? " ok" : ""}`} onClick={handleCopy}>
+                            {copied ? "✔ Copiado!" : "📋 Copiar"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               )}
             </>
