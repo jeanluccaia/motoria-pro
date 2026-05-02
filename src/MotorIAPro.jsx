@@ -246,58 +246,58 @@ const TOOLS = [
   {
     id: "bio",
     icon: "◈",
-    label: "Melhorar como você se apresenta",
+    label: "Quero melhorar minha bio",
     sub: "Relaxa — a IA reescreve pra você em segundos",
     free: true,
-    buttonLabel: "Faz isso pra mim agora",
+    buttonLabel: "Gerar resposta agora",
   },
   {
     id: "gancho",
     icon: "◉",
-    label: "Escrever um texto, legenda ou mensagem",
+    label: "Quero criar um post",
     sub: "É só contar o que você quer — ela cria pra você",
     free: true,
-    buttonLabel: "Quero isso pronto agora",
+    buttonLabel: "Gerar resposta agora",
   },
   {
     id: "cta",
     icon: "◎",
-    label: "Responder alguém sem travar",
+    label: "Quero responder um cliente",
     sub: "Não precisa pensar — só copiar e enviar",
     free: true,
-    buttonLabel: "Resolve isso pra mim agora",
+    buttonLabel: "Gerar resposta agora",
   },
   {
     id: "funil",
     icon: "◆",
-    label: "Montar um plano ou ter uma boa ideia",
+    label: "Quero vender um produto",
     sub: "Do começo ao fim — organizado e pronto",
     free: false,
-    buttonLabel: "🔒 Quero isso pronto agora",
+    buttonLabel: "🔒 Gerar resposta agora",
   },
   {
     id: "stories",
     icon: "◇",
-    label: "Criar roteiro pra gravar um vídeo",
+    label: "Quero ideias prontas",
     sub: "O que falar, como falar — só apertar REC",
     free: false,
-    buttonLabel: "🔒 Faz esse roteiro pra mim",
+    buttonLabel: "🔒 Gerar resposta agora",
   },
   {
     id: "emails",
     icon: "◻",
-    label: "Escrever mensagens em sequência",
+    label: "Quero uma legenda",
     sub: "5 mensagens em ordem — prontas, só enviar",
     free: false,
-    buttonLabel: "🔒 Escreve isso pra mim agora",
+    buttonLabel: "🔒 Gerar resposta agora",
   },
 ];
 
 const PLACEHOLDERS = {
-  bio: "Ex: Sou professora e quero me apresentar melhor nas redes sociais",
+  bio: "Descreva seu negócio em poucas palavras",
   gancho: "Ex: Quero escrever sobre como economizei tempo usando IA no trabalho",
-  cta: "Ex: Quero convencer alguém a agendar uma reunião comigo",
-  funil: "Ex: Quero organizar um plano pra lançar um produto digital de R$27",
+  cta: "Cole a mensagem do cliente aqui",
+  funil: "Escreva o que você vende em uma frase",
   stories: "Ex: Quero gravar um vídeo mostrando como uso IA no meu dia a dia",
   emails: "Ex: Quero mandar mensagens pra reconquistar clientes antigos",
 };
@@ -324,37 +324,44 @@ const INTENTS = [
   {
     id: "reply",
     emoji: "💬",
-    label: "Responder alguém sem travar",
-    desc: "Não sabe o que falar? Descreve e sai pronto",
+    label: "Quero responder um cliente",
+    desc: "Não sabe o que falar? Cola a mensagem e sai pronto",
     tool: "cta",
   },
   {
-    id: "income",
-    emoji: "💡",
-    label: "Ter uma ideia ou montar um plano",
-    desc: "Você descreve o objetivo — a IA organiza tudo",
+    id: "sell",
+    emoji: "💰",
+    label: "Quero vender um produto",
+    desc: "Você descreve o que vende — a IA monta o plano",
     tool: "funil",
   },
   {
     id: "write",
     emoji: "✍️",
-    label: "Escrever um texto, legenda ou mensagem",
+    label: "Quero criar um post",
     desc: "Sem travar, sem pensar muito — pronto em segundos",
     tool: "gancho",
   },
   {
     id: "improve",
     emoji: "⚡",
-    label: "Melhorar como você se apresenta",
+    label: "Quero melhorar minha bio",
     desc: "Bio, descrição, apresentação — reescrita na hora",
     tool: "bio",
   },
   {
-    id: "post",
-    emoji: "📱",
-    label: "Criar um roteiro pra gravar um vídeo",
-    desc: "Ela escreve o que você vai falar — frase por frase",
+    id: "ideas",
+    emoji: "💡",
+    label: "Quero ideias prontas",
+    desc: "Você descreve o objetivo — a IA organiza tudo",
     tool: "stories",
+  },
+  {
+    id: "caption",
+    emoji: "📱",
+    label: "Quero uma legenda",
+    desc: "Ela cria a legenda pra você — frase por frase",
+    tool: "gancho",
   },
 ];
 
@@ -811,7 +818,7 @@ export default function MotorIAPro() {
     if (isTurbo) return currentTool.buttonLabel;
     if (freeUses <= 0) return "🔒 Ver acesso completo";
     if (input.trim().length > 0 && input.trim().length < 10) return "Escreve mais um pouquinho...";
-    return currentTool.buttonLabel;
+    return "Gerar resposta agora";
   };
 
   return (
@@ -1484,8 +1491,8 @@ export default function MotorIAPro() {
                 Motor<em>IA</em>
                 <span className="m-logo-badge">PRO</span>
               </div>
-              <div className="m-tagline">Pare de travar. A IA resolve por você em segundos.</div>
-              <div className="m-positioning">Sem saber nada. Sem esforço. Sem perder tempo.</div>
+              <div className="m-tagline">Pare de travar sem saber o que escrever.</div>
+              <div className="m-positioning">Me diga o que você precisa. Eu faço por você em segundos.</div>
             </div>
             <div className="m-stats">
               <div className="m-stat">
@@ -1502,9 +1509,21 @@ export default function MotorIAPro() {
           {/* ── STATUS ── */}
           <div className="m-status">
             <div className="m-dot" />
-            <span className="m-status-text">Sua IA está pronta para trabalhar</span>
+            <span className="m-status-text">Use grátis agora (3 vezes por dia). Sem login.</span>
             <span className="m-status-right">resposta em segundos</span>
           </div>
+
+          {/* ── HERO CTA ── */}
+          {showIntents && (
+            <button
+              className="m-btn m-btn-active"
+              style={{ marginBottom: 16, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}
+              onClick={() => handleIntent(INTENTS[0])}
+            >
+              <span style={{ fontSize: 15, fontWeight: 800, lineHeight: 1.2 }}>Estou travado. Resolver agora</span>
+              <span style={{ fontSize: 10, fontWeight: 600, opacity: 0.7, letterSpacing: "0.2px" }}>Leva 10 segundos. Sem aprender nada.</span>
+            </button>
+          )}
 
           {/* ── PROGRESS STEPS (fora dos intents) ── */}
           {!showIntents && (
@@ -1522,8 +1541,41 @@ export default function MotorIAPro() {
           {showIntents ? (
             <div className="m-intents-wrap">
 
-              <div className="m-intents-title">Com o que posso te ajudar agora?</div>
-              <div className="m-intents-sub">Escolhe uma opção — eu faço o resto em segundos.</div>
+              {/* Identificação */}
+              <div style={{
+                background: "#14142a", border: "1px solid #2a2740", borderRadius: 12,
+                padding: "14px 16px", marginBottom: 14,
+                fontSize: 13, fontWeight: 600, color: "#c8c4e0", lineHeight: 1.7
+              }}>
+                <span style={{ color: "#f5b944", fontWeight: 700 }}>Perfeito para quem:</span>
+                <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 4 }}>
+                  <span>✗ &nbsp;não sabe usar IA</span>
+                  <span>✗ &nbsp;perde tempo escrevendo</span>
+                  <span>✗ &nbsp;trava na hora de responder ou criar</span>
+                </div>
+              </div>
+
+              {/* Bloco WOW */}
+              <div style={{
+                background: "#0e0e1c", border: "1px solid #2a2740", borderRadius: 12,
+                padding: "14px 16px", marginBottom: 14
+              }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: "#6b698a", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 10 }}>Sem IA vs. Com IA</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#ef444488", flexShrink: 0, minWidth: 56, paddingTop: 2 }}>ANTES</span>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: "#6b698a", fontStyle: "italic" }}>"quanto custa?"</span>
+                  </div>
+                  <div style={{ height: 1, background: "#2a2740" }} />
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#4ade80", flexShrink: 0, minWidth: 56, paddingTop: 2 }}>DEPOIS</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#d8d4f4", lineHeight: 1.45 }}>"Oi! Claro 😊 Vou te explicar certinho como funciona…"</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="m-intents-title">Escolha um problema abaixo e eu resolvo pra você</div>
+              <div className="m-intents-sub">Clica em uma opção — eu faço o resto em segundos.</div>
 
               <div className="m-intents-grid">
                 {INTENTS.map((intent) => (
@@ -1575,7 +1627,7 @@ export default function MotorIAPro() {
               <div className="m-input-label">
                 Escreve do seu jeito — <span>não precisa saber nada</span>
               </div>
-              <div className="m-input-hint">É só descrever o que você quer. Relaxa, eu faço o resto.</div>
+              <div className="m-input-hint">Para quem não sabe usar IA — e não quer aprender.</div>
 
               <textarea
                 className="m-textarea"
@@ -1675,7 +1727,7 @@ export default function MotorIAPro() {
           {/* ── FOOTER ── */}
           <div className="m-footer">
             MOTOR IA PRO · JEAN LUCCA · RENDA COM IA
-            <div className="m-footer-tagline">Criado pra quem quer resultado rápido usando IA</div>
+            <div className="m-footer-tagline">Para quem não sabe usar IA — e não quer aprender.</div>
           </div>
 
         </div>
@@ -1767,11 +1819,11 @@ export default function MotorIAPro() {
             <div className="m-modal-icon">⚡</div>
             <div className="m-modal-title">Acesso Completo — R$27</div>
             <div className="m-modal-narrative">
-              Agora imagina não travar nunca mais<br />
-              pra escrever, responder ou criar qualquer coisa.<br /><br />
-              <span style={{ color: "#d8d4f4" }}>Você resolve em segundos.<br />Sem esforço. Sem pensar muito.</span><br /><br />
-              <strong style={{ color: "#f5b944", fontSize: 15 }}>R$27 uma vez.</strong><br />
-              <span style={{ color: "#6b698a", fontSize: 13 }}>Ou continuar perdendo tempo todo dia.</span>
+              Teste grátis agora.<br />
+              <span style={{ color: "#d8d4f4" }}>Em segundos você já vê o resultado.</span><br /><br />
+              Se fizer sentido pra você, desbloqueie tudo por{" "}
+              <strong style={{ color: "#f5b944" }}>R$27 (pagamento único).</strong><br /><br />
+              <span style={{ color: "#6b698a", fontSize: 13 }}>Menos de R$1 por dia pra nunca mais perder tempo escrevendo.</span>
             </div>
 
             <div className="m-modal-tiers">
