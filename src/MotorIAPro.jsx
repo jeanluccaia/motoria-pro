@@ -1825,13 +1825,12 @@ export default function MotorIAPro() {
           font-size: 12.5px; font-weight: 600;
           color: #f5c56b; margin-top: 2px;
         }
-        .m-stats { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
-        .m-stat {
-          background: #18182e; border: 1px solid #2a2740;
-          border-radius: 8px; padding: 7px 11px; text-align: center; min-width: 52px;
+        .m-header-pill {
+          display: flex; align-items: center; gap: 6px;
+          background: #0e1a0e; border: 1px solid #22c55e22;
+          border-radius: 20px; padding: 6px 13px;
+          font-size: 12px; font-weight: 700; flex-shrink: 0;
         }
-        .m-stat-val { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 800; color: #f5b944; line-height: 1.1; }
-        .m-stat-key { font-size: 9px; font-weight: 600; color: #6b698a; letter-spacing: 0.8px; text-transform: uppercase; margin-top: 3px; }
 
         /* ─── STATUS BAR ─── */
         .m-status {
@@ -1844,8 +1843,7 @@ export default function MotorIAPro() {
           background: #4ade80; box-shadow: 0 0 8px #4ade8066;
           animation: pulse 2s infinite;
         }
-        .m-status-text { font-size: 12px; font-weight: 500; color: #b8b4d4; }
-        .m-status-right { margin-left: auto; font-size: 10px; color: #45436a; font-family: 'DM Mono', monospace; }
+        .m-status-text { font-size: 12px; font-weight: 500; color: #8b89a8; }
 
         /* ─── PROMISE BAR ─── */
         .m-promise {
@@ -2454,12 +2452,12 @@ export default function MotorIAPro() {
         }
         .m-home-title {
           font-family: 'Syne', sans-serif;
-          font-size: 22px; font-weight: 800; color: #f4f2ff;
-          letter-spacing: -0.6px; line-height: 1.2; margin-bottom: 6px;
+          font-size: 28px; font-weight: 800; color: #f4f2ff;
+          letter-spacing: -1px; line-height: 1.15; margin-bottom: 8px;
         }
         .m-home-sub {
-          font-size: 13px; font-weight: 500; color: #8b89a8;
-          margin-bottom: 14px; line-height: 1.5;
+          font-size: 13.5px; font-weight: 500; color: #6b698a;
+          margin-bottom: 18px; line-height: 1.5;
         }
 
         /* ─── CATEGORY NAV ─── */
@@ -2511,16 +2509,17 @@ export default function MotorIAPro() {
         }
         .m-flow-card:active { transform: translateY(0) scale(0.982); transition: transform 0.1s; }
         .m-flow-card.m-flow-highlight {
-          background: linear-gradient(135deg, #1a1a38 0%, #16162c 100%);
-          border: 1px solid #f5b94440;
-          grid-column: span 2;
+          background: linear-gradient(135deg, #061a0d 0%, #0a1a10 100%);
+          border: 1px solid #22c55e40;
+          box-shadow: 0 0 16px #22c55e0a;
         }
-        .m-flow-card.m-flow-highlight:hover { border-color: #f5b944; }
+        .m-flow-card.m-flow-highlight .m-flow-arrow { color: #22c55e; }
+        .m-flow-card.m-flow-highlight:hover { border-color: #22c55e88; box-shadow: 0 8px 24px #22c55e15; }
         .m-flow-card-top { display: flex; align-items: center; justify-content: space-between; }
         .m-flow-emoji { font-size: 22px; line-height: 1; }
         .m-flow-badge {
-          font-size: 9px; font-weight: 800; letter-spacing: 1px;
-          background: #f5b944; color: #0a0700;
+          font-size: 9px; font-weight: 800; letter-spacing: 0.8px;
+          background: #22c55e; color: #051a08;
           padding: 2px 7px; border-radius: 4px;
         }
         .m-flow-title {
@@ -2622,8 +2621,7 @@ export default function MotorIAPro() {
         /* ─── RESPONSIVE ─── */
         @media (max-width: 480px) {
           .m-root { padding: 18px 14px 80px; }
-          .m-header { flex-direction: column; gap: 10px; }
-          .m-stats { flex-direction: row; }
+          .m-header { flex-direction: row; align-items: center; }
           .m-hero-title { font-size: 20px; letter-spacing: -0.3px; line-height: 1.25; }
           .m-hero-sub { font-size: 13px; }
           .m-modal { padding: 22px 16px; border-radius: 16px; }
@@ -2655,25 +2653,17 @@ export default function MotorIAPro() {
                 <span className="m-logo-badge">PRO</span>
               </div>
               <div className="m-tagline">Preenche pouco. Recebe pronto.</div>
-              <div className="m-positioning">Não precisa saber prompt. Não precisa aprender IA.</div>
             </div>
-            <div className="m-stats">
-              <div className="m-stat">
-                <div className="m-stat-val">+8</div>
-                <div className="m-stat-key">fluxos</div>
-              </div>
-              <div className="m-stat">
-                <div className="m-stat-val" style={{ color: freeUses > 0 ? "#4ade80" : "#ef4444" }}>{freeUses}</div>
-                <div className="m-stat-key">grátis</div>
-              </div>
+            <div className="m-header-pill" style={{ color: freeUses > 0 ? "#4ade80" : "#ef4444" }}>
+              <div className="m-dot" style={{ background: freeUses > 0 ? "#4ade80" : "#ef4444", boxShadow: freeUses > 0 ? "0 0 6px #4ade8066" : "none", animation: "none" }} />
+              {freeUses > 0 ? `${freeUses} grátis restante${freeUses > 1 ? "s" : ""}` : "Grátis esgotado"}
             </div>
           </div>
 
           {/* ── STATUS ── */}
           <div className="m-status">
             <div className="m-dot" />
-            <span className="m-status-text">Use grátis agora (3 vezes por dia). Sem login.</span>
-            <span className="m-status-right">resposta em segundos</span>
+            <span className="m-status-text">Sem login · Sem mensalidade · Resposta em segundos</span>
           </div>
 
           {/* ══════════════════════════════════════ */}
@@ -2682,16 +2672,9 @@ export default function MotorIAPro() {
           {screen === "home" && (
             <div className="m-home-wrap">
 
-              {/* Trust badges */}
-              <div className="m-trust-strip">
-                {["Feito para iniciantes", "Sem mensalidade", "+500 prontos", "Sem aprender IA", "Resultado em segundos"].map(b => (
-                  <span key={b} className="m-trust-badge">{b}</span>
-                ))}
-              </div>
-
               {/* Heading */}
-              <div className="m-home-title">O que você quer fazer hoje?</div>
-              <div className="m-home-sub">Escolha um comando pronto. Digite em 1 frase. A IA faz o resto.</div>
+              <div className="m-home-title">O que você quer<br/>fazer hoje?</div>
+              <div className="m-home-sub">Escolha abaixo. Preenche em 1 frase. A IA entrega pronto.</div>
 
               {/* Category navigation */}
               <div className="m-cat-nav-wrap">
@@ -2723,7 +2706,7 @@ export default function MotorIAPro() {
                   >
                     <div className="m-flow-card-top">
                       <span className="m-flow-emoji">{flow.emoji}</span>
-                      {flow.highlight && <span className="m-flow-badge">NOVO</span>}
+                      {flow.highlight && <span className="m-flow-badge">MAIS FÁCIL</span>}
                     </div>
                     <div className="m-flow-title">{flow.title}</div>
                     <div className="m-flow-sub">{flow.sub}</div>
