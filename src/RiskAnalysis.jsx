@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+
+// ─── Constantes ───────────────────────────────────────────────────────────────
 
 const RISK_SECTIONS = [
   "PROBABILIDADE IMPLÍCITA",
@@ -19,9 +21,29 @@ const SECTION_META = {
 const LOADING_MESSAGES = [
   "Analisando cenário...",
   "Calculando probabilidade...",
-  "Processando dados...",
-  "Avaliando fatores de risco...",
+  "Processando fatores de risco...",
+  "Gerando Score proprietário...",
 ];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function calcProb(oddStr) {
+  const n = parseFloat(String(oddStr).replace(",", "."));
+  if (!n || n <= 0) return null;
+  return n;
+}
+
+function parseScoreData(text) {
+  const ajusteMatch = text.match(/SCORE_AJUSTE:\s*([-+]?\d+\.?\d*)/);
+  const fraseMatch  = text.match(/FRASE:\s*(.+)/);
+  const ajuste = ajusteMatch ? parseFloat(ajusteMatch[1]) : 0;
+  const frase  = fraseMatch  ? fraseMatch[1].trim() : null;
+  const cleanText = text
+    .replace(/SCORE_AJUSTE:\s*[-+]?\d+\.?\d*\r?\n?/, "")
+    .replace(/FRASE:\s*.+\r?\n?/, "")
+    .trimStart();
+  return { ajuste, frase, cleanText };
+}
 
 function parseRiskOutput(text) {
   const sections = [];
@@ -43,30 +65,48 @@ function getRiskLevel(content) {
   return null;
 }
 
-function calcProb(oddStr) {
-  const n = parseFloat(String(oddStr).replace(",", "."));
-  if (!n || n <= 0) return null;
-  return (1 / n * 100).toFixed(1);
+function getScoreColor(score) {
+  if (score >= 7) return "#00dc64";
+  if (score >= 4) return "#fbbf24";
+  return "#ef4444";
 }
 
+function getScoreLabel(score) {
+  if (score >= 7) return "BAIXO RISCO";
+  if (score >= 4) return "MÉDIO RISCO";
+  return "ALTO RISCO";
+}
+
+function getScoreClass(score) {
+  if (score >= 7) return "baixo";
+  if (score >= 4) return "medio";
+  return "alto";
+}
+
+// ─── Componente ───────────────────────────────────────────────────────────────
+
 export default function RiskAnalysis() {
-  const [jogo, setJogo]       = useState("");
-  const [aposta, setAposta]   = useState("");
-  const [odd, setOdd]         = useState("");
-  const [output, setOutput]   = useState("");
-  const [loading, setLoading] = useState(false);
+  const [jogo,   setJogo]   = useState("");
+  const [aposta, setAposta] = useState("");
+  const [odd,    setOdd]    = useState("");
+  const [output, setOutput] = useState("");
+  const [loading, setLoading]   = useState(false);
   const [loadingMsg, setLoadingMsg] = useState(0);
-  const [error, setError]     = useState("");
-  const [copied, setCopied]   = useState(false);
+  const [error,  setError]  = useState("");
+  const [copied, setCopied] = useState(false);
+  const [barReady, setBarReady] = useState(false);
 
   const msgRef    = useRef(null);
   const resultRef = useRef(null);
 
+  // Ciclo de mensagens de loading
   useEffect(() => {
     if (loading) {
-      msgRef.current = setInterval(() => {
-        setLoadingMsg((i) => (i + 1) % LOADING_MESSAGES.length);
-      }, 1400);
+      setBarReady(false);
+      msgRef.current = setInterval(
+        () => setLoadingMsg((i) => (i + 1) % LOADING_MESSAGES.length),
+        1400
+      );
     } else {
       clearInterval(msgRef.current);
       setLoadingMsg(0);
@@ -74,14 +114,40 @@ export default function RiskAnalysis() {
     return () => clearInterval(msgRef.current);
   }, [loading]);
 
+  // Scroll para o resultado
   useEffect(() => {
     if (output && resultRef.current) {
       resultRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [output]);
 
-  const impliedProb = calcProb(odd);
-  const canSubmit   = jogo.trim().length > 1 && aposta.trim().length > 1 && !!impliedProb;
+  // Trigger animação da barra com pequeno delay
+  useEffect(() => {
+    if (output) {
+      const t = setTimeout(() => setBarReady(true), 120);
+      return () => clearTimeout(t);
+    } else {
+      setBarReady(false);
+    }
+  }, [output]);
+
+  // Probabilidade calculada no front
+  const oddNum     = calcProb(odd);
+  const impliedProb = oddNum ? (1 / oddNum * 100).toFixed(1) : null;
+  const canSubmit   = jogo.trim().length > 1 && aposta.trim().length > 1 && !!oddNum;
+
+  // Score e dados da IA (derivados do output)
+  const scoreInfo = useMemo(() => {
+    if (!output || !oddNum) return null;
+    const { ajuste, frase, cleanText } = parseScoreData(output);
+    const base  = (1 / oddNum) * 10;
+    const final = parseFloat(Math.min(10, Math.max(0, base + ajuste)).toFixed(1));
+    return { ajuste, frase, final, cleanText };
+  }, [output, oddNum]);
+
+  const sections = scoreInfo ? parseRiskOutput(scoreInfo.cleanText) : null;
+
+  // ─── Handlers ───────────────────────────────────────────────────────────────
 
   const handleAnalyze = async () => {
     if (!canSubmit || loading) return;
@@ -132,9 +198,13 @@ export default function RiskAnalysis() {
     setJogo("");
     setAposta("");
     setOdd("");
+    setBarReady(false);
   };
 
-  const sections = output ? parseRiskOutput(output) : null;
+  // ─── Render ─────────────────────────────────────────────────────────────────
+
+  const scoreColor = scoreInfo ? getScoreColor(scoreInfo.final) : "#00dc64";
+  const scoreClass = scoreInfo ? getScoreClass(scoreInfo.final) : "";
 
   return (
     <>
@@ -149,7 +219,7 @@ export default function RiskAnalysis() {
           -webkit-text-size-adjust: 100%;
         }
 
-        /* ─── Root ─── */
+        /* ── Root ── */
         .ra-root {
           min-height: 100vh;
           background:
@@ -159,12 +229,9 @@ export default function RiskAnalysis() {
           color: #e2e8f0;
           padding: 0 20px 120px;
         }
-        .ra-inner {
-          max-width: 520px;
-          margin: 0 auto;
-        }
+        .ra-inner { max-width: 520px; margin: 0 auto; }
 
-        /* ─── Nav ─── */
+        /* ── Nav ── */
         .ra-nav {
           display: flex; align-items: center;
           justify-content: space-between;
@@ -185,9 +252,8 @@ export default function RiskAnalysis() {
         }
         .ra-back:hover { color: #64748b; background: rgba(255,255,255,0.04); }
 
-        /* ─── Header ─── */
+        /* ── Header ── */
         .ra-header { padding: 52px 0 44px; }
-
         .ra-live-badge {
           display: inline-flex; align-items: center; gap: 7px;
           background: rgba(0,220,100,0.08);
@@ -202,15 +268,13 @@ export default function RiskAnalysis() {
         .ra-live-dot {
           width: 6px; height: 6px; border-radius: 50%;
           background: #00dc64;
-          box-shadow: 0 0 0 0 rgba(0,220,100,0.6);
           animation: ra-ping 1.4s ease-in-out infinite;
         }
         @keyframes ra-ping {
-          0%   { box-shadow: 0 0 0 0 rgba(0,220,100,0.6); }
+          0%   { box-shadow: 0 0 0 0   rgba(0,220,100,0.7); }
           70%  { box-shadow: 0 0 0 7px rgba(0,220,100,0); }
-          100% { box-shadow: 0 0 0 0 rgba(0,220,100,0); }
+          100% { box-shadow: 0 0 0 0   rgba(0,220,100,0); }
         }
-
         .ra-title {
           font-family: 'Syne', sans-serif;
           font-size: 34px; font-weight: 800;
@@ -221,20 +285,14 @@ export default function RiskAnalysis() {
           -webkit-text-fill-color: transparent;
           background-clip: text;
         }
-        .ra-sub {
-          font-size: 15px; color: #334155;
-          line-height: 1.6;
-        }
-
-        /* ─── Divider ─── */
+        .ra-sub { font-size: 15px; color: #334155; line-height: 1.6; }
         .ra-divider {
           width: 40px; height: 2px;
           background: linear-gradient(90deg, #00dc64, transparent);
-          border-radius: 2px;
-          margin-bottom: 32px;
+          border-radius: 2px; margin-bottom: 32px;
         }
 
-        /* ─── Fields ─── */
+        /* ── Fields ── */
         .ra-fields { display: flex; flex-direction: column; gap: 18px; }
         .ra-field  { display: flex; flex-direction: column; gap: 7px; }
         .ra-label {
@@ -256,9 +314,7 @@ export default function RiskAnalysis() {
         .ra-input:focus {
           border-color: rgba(0,220,100,0.5);
           background: rgba(0,220,100,0.03);
-          box-shadow:
-            0 0 0 3px rgba(0,220,100,0.08),
-            0 0 24px rgba(0,220,100,0.07);
+          box-shadow: 0 0 0 3px rgba(0,220,100,0.08), 0 0 24px rgba(0,220,100,0.07);
         }
         .ra-input::placeholder { color: #1e293b; }
 
@@ -269,40 +325,30 @@ export default function RiskAnalysis() {
           border: 1px solid rgba(0,220,100,0.18);
           border-radius: 8px;
           padding: 6px 12px;
-          font-size: 13px; font-weight: 700;
-          color: #00dc64;
-          transition: all 0.2s;
           width: fit-content;
         }
-        .ra-prob-chip-icon { font-size: 12px; opacity: 0.8; }
         .ra-prob-val {
-          font-size: 18px; font-weight: 800;
-          color: #00dc64;
+          font-size: 18px; font-weight: 800; color: #00dc64;
           font-variant-numeric: tabular-nums;
         }
-        .ra-prob-label { font-size: 11px; color: #16a34a; font-weight: 500; }
+        .ra-prob-label { font-size: 11px; color: #166534; font-weight: 500; }
 
-        /* ─── Button ─── */
+        /* ── Button ── */
         .ra-btn-wrap { margin-top: 10px; }
         .ra-btn {
           width: 100%;
           background: linear-gradient(135deg, #00dc64 0%, #00b34f 100%);
           color: #022c16;
           font-size: 16px; font-weight: 800;
-          padding: 19px;
-          border-radius: 14px; border: none;
-          cursor: pointer;
-          font-family: 'Inter', sans-serif;
+          padding: 19px; border-radius: 14px; border: none;
+          cursor: pointer; font-family: 'Inter', sans-serif;
           letter-spacing: -0.2px;
           transition: transform 0.15s, box-shadow 0.2s, opacity 0.15s;
-          box-shadow:
-            0 4px 20px rgba(0,220,100,0.25),
-            0 1px 0 rgba(255,255,255,0.1) inset;
+          box-shadow: 0 4px 20px rgba(0,220,100,0.25), 0 1px 0 rgba(255,255,255,0.1) inset;
           position: relative; overflow: hidden;
         }
         .ra-btn::before {
-          content: '';
-          position: absolute; top: 0; left: -100%;
+          content: ''; position: absolute; top: 0; left: -100%;
           width: 60%; height: 100%;
           background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
           transition: left 0.5s ease;
@@ -311,72 +357,157 @@ export default function RiskAnalysis() {
         .ra-btn:disabled { opacity: 0.2; cursor: default; box-shadow: none; }
         .ra-btn:not(:disabled):hover {
           transform: translateY(-2px);
-          box-shadow:
-            0 10px 40px rgba(0,220,100,0.4),
-            0 1px 0 rgba(255,255,255,0.1) inset;
+          box-shadow: 0 10px 40px rgba(0,220,100,0.4), 0 1px 0 rgba(255,255,255,0.1) inset;
         }
         .ra-btn:not(:disabled):active { transform: translateY(0); }
 
-        /* ─── Error ─── */
+        /* ── Error ── */
         .ra-error {
           background: rgba(239,68,68,0.07);
           border: 1px solid rgba(239,68,68,0.2);
           border-radius: 12px; padding: 14px 16px;
-          font-size: 13px; color: #f87171;
-          margin-top: 20px;
+          font-size: 13px; color: #f87171; margin-top: 20px;
         }
 
-        /* ─── Loading ─── */
+        /* ── Loading ── */
         .ra-loading {
           display: flex; flex-direction: column;
-          align-items: center; gap: 20px;
-          padding: 60px 0;
+          align-items: center; gap: 20px; padding: 60px 0;
         }
         .ra-spinner-wrap { position: relative; width: 52px; height: 52px; }
         .ra-spinner-ring {
-          position: absolute; inset: 0;
-          border-radius: 50%;
-          border: 2px solid transparent;
-          border-top-color: #00dc64;
+          position: absolute; inset: 0; border-radius: 50%;
+          border: 2px solid transparent; border-top-color: #00dc64;
           animation: ra-spin 0.9s linear infinite;
         }
         .ra-spinner-ring2 {
-          position: absolute; inset: 6px;
-          border-radius: 50%;
-          border: 2px solid transparent;
-          border-top-color: rgba(0,220,100,0.3);
+          position: absolute; inset: 6px; border-radius: 50%;
+          border: 2px solid transparent; border-top-color: rgba(0,220,100,0.3);
           animation: ra-spin 1.4s linear infinite reverse;
         }
         .ra-spinner-glow {
-          position: absolute; inset: -8px;
-          border-radius: 50%;
+          position: absolute; inset: -8px; border-radius: 50%;
           background: radial-gradient(circle, rgba(0,220,100,0.15) 0%, transparent 70%);
           animation: ra-pulse 1.6s ease-in-out infinite;
         }
         @keyframes ra-spin  { to { transform: rotate(360deg); } }
-        @keyframes ra-pulse { 0%,100% { opacity: 0.4; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } }
-        .ra-loading-msg {
-          font-size: 14px; color: #334155;
-          font-weight: 500; text-align: center;
+        @keyframes ra-pulse { 0%,100% { opacity:0.4; transform:scale(0.95); } 50% { opacity:1; transform:scale(1.05); } }
+        .ra-loading-msg { font-size: 14px; color: #334155; font-weight: 500; text-align: center; }
+
+        /* ── Result ── */
+        .ra-result {
+          margin-top: 40px;
+          animation: ra-fadeup 0.5s ease-out both;
+        }
+        @keyframes ra-fadeup {
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* ─── Result ─── */
-        .ra-result { margin-top: 40px; }
+        /* ── Score Card ── */
+        .ra-score-card {
+          border-radius: 18px;
+          padding: 28px 24px;
+          margin-bottom: 16px;
+          position: relative; overflow: hidden;
+          border: 1px solid;
+        }
+        .ra-score-card--baixo {
+          background: rgba(0,220,100,0.05);
+          border-color: rgba(0,220,100,0.2);
+          box-shadow: 0 0 40px rgba(0,220,100,0.08) inset, 0 4px 24px rgba(0,220,100,0.06);
+        }
+        .ra-score-card--medio {
+          background: rgba(251,191,36,0.05);
+          border-color: rgba(251,191,36,0.2);
+          box-shadow: 0 0 40px rgba(251,191,36,0.07) inset, 0 4px 24px rgba(251,191,36,0.05);
+        }
+        .ra-score-card--alto {
+          background: rgba(239,68,68,0.05);
+          border-color: rgba(239,68,68,0.2);
+          box-shadow: 0 0 40px rgba(239,68,68,0.07) inset, 0 4px 24px rgba(239,68,68,0.05);
+        }
+
+        .ra-score-brand {
+          font-size: 10px; font-weight: 800;
+          letter-spacing: 1.5px; text-transform: uppercase;
+          color: #334155; margin-bottom: 18px;
+          display: flex; align-items: center; gap: 6px;
+        }
+        .ra-score-brand-dot {
+          width: 4px; height: 4px; border-radius: 50%;
+          background: currentColor;
+        }
+
+        .ra-score-main {
+          display: flex; align-items: flex-end;
+          gap: 0; margin-bottom: 20px;
+        }
+        .ra-score-number {
+          font-family: 'Syne', sans-serif;
+          font-size: 72px; font-weight: 800;
+          line-height: 1; letter-spacing: -3px;
+          font-variant-numeric: tabular-nums;
+        }
+        .ra-score-denom {
+          font-size: 22px; font-weight: 600;
+          color: #334155; margin-bottom: 10px; margin-left: 4px;
+        }
+        .ra-score-badge {
+          margin-left: auto; align-self: center;
+          font-size: 11px; font-weight: 800;
+          letter-spacing: 1px; text-transform: uppercase;
+          padding: 6px 14px; border-radius: 99px; border: 1px solid;
+        }
+        .ra-score-badge--baixo {
+          color: #00dc64; background: rgba(0,220,100,0.12);
+          border-color: rgba(0,220,100,0.3);
+        }
+        .ra-score-badge--medio {
+          color: #fbbf24; background: rgba(251,191,36,0.12);
+          border-color: rgba(251,191,36,0.3);
+        }
+        .ra-score-badge--alto {
+          color: #f87171; background: rgba(239,68,68,0.12);
+          border-color: rgba(239,68,68,0.3);
+        }
+
+        /* Bar */
+        .ra-bar-track {
+          width: 100%; height: 6px;
+          background: rgba(255,255,255,0.06);
+          border-radius: 99px; overflow: hidden;
+          margin-bottom: 16px;
+        }
+        .ra-bar-fill {
+          height: 100%; border-radius: 99px;
+          transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+          width: 0;
+        }
+        .ra-bar-fill.ready { /* width set via inline style */ }
+
+        /* IA phrase */
+        .ra-score-phrase {
+          font-size: 14px; color: #64748b;
+          font-style: italic; line-height: 1.5;
+          border-top: 1px solid rgba(255,255,255,0.05);
+          padding-top: 14px;
+        }
+
+        /* ── Result header ── */
         .ra-result-header {
           display: flex; align-items: center;
           justify-content: space-between;
-          margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
+          margin-bottom: 16px; flex-wrap: wrap; gap: 10px;
         }
         .ra-result-tag {
           display: flex; align-items: center; gap: 8px;
           font-size: 12px; font-weight: 700;
-          color: #00dc64; letter-spacing: 0.4px;
-          text-transform: uppercase;
+          color: #00dc64; letter-spacing: 0.4px; text-transform: uppercase;
         }
         .ra-result-dot {
           width: 7px; height: 7px; border-radius: 50%;
-          background: #00dc64;
-          box-shadow: 0 0 10px rgba(0,220,100,0.8);
+          background: #00dc64; box-shadow: 0 0 10px rgba(0,220,100,0.8);
         }
         .ra-actions { display: flex; gap: 8px; }
         .ra-action {
@@ -390,41 +521,24 @@ export default function RiskAnalysis() {
         .ra-action--green {
           background: linear-gradient(135deg, #00dc64, #00b34f);
           color: #022c16;
-          box-shadow: 0 2px 10px rgba(0,220,100,0.2);
         }
         .ra-action--green:hover { box-shadow: 0 4px 20px rgba(0,220,100,0.35); }
         .ra-action--ghost {
-          background: rgba(255,255,255,0.04);
-          color: #334155;
+          background: rgba(255,255,255,0.04); color: #334155;
           border: 1px solid #1e293b;
         }
         .ra-action--ghost:hover { color: #64748b; }
 
-        /* ─── Section cards ─── */
+        /* ── Section cards ── */
         .ra-sections { display: flex; flex-direction: column; gap: 10px; }
-
         .ra-section {
           background: rgba(15,23,42,0.9);
           border: 1px solid #1e293b;
-          border-radius: 14px;
-          overflow: hidden;
+          border-radius: 14px; overflow: hidden;
         }
-        .ra-section--alto {
-          border-color: rgba(239,68,68,0.35);
-          background: rgba(239,68,68,0.04);
-          box-shadow: 0 0 20px rgba(239,68,68,0.06) inset;
-        }
-        .ra-section--medio {
-          border-color: rgba(251,191,36,0.35);
-          background: rgba(251,191,36,0.04);
-          box-shadow: 0 0 20px rgba(251,191,36,0.05) inset;
-        }
-        .ra-section--baixo {
-          border-color: rgba(0,220,100,0.35);
-          background: rgba(0,220,100,0.04);
-          box-shadow: 0 0 20px rgba(0,220,100,0.07) inset;
-        }
-
+        .ra-section--alto  { border-color: rgba(239,68,68,0.3);  background: rgba(239,68,68,0.04);  box-shadow: 0 0 20px rgba(239,68,68,0.05) inset; }
+        .ra-section--medio { border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.03); box-shadow: 0 0 20px rgba(251,191,36,0.04) inset; }
+        .ra-section--baixo { border-color: rgba(0,220,100,0.3);  background: rgba(0,220,100,0.03);  box-shadow: 0 0 20px rgba(0,220,100,0.05) inset; }
         .ra-section__head {
           display: flex; align-items: center; gap: 8px;
           padding: 14px 16px 0;
@@ -438,41 +552,26 @@ export default function RiskAnalysis() {
         .ra-section__badge {
           font-size: 10px; font-weight: 800;
           letter-spacing: 0.8px; text-transform: uppercase;
-          padding: 3px 10px; border-radius: 6px;
+          padding: 3px 10px; border-radius: 6px; border: 1px solid;
         }
-        .ra-badge--alto  {
-          background: rgba(239,68,68,0.15);
-          color: #f87171;
-          border: 1px solid rgba(239,68,68,0.25);
-        }
-        .ra-badge--medio {
-          background: rgba(251,191,36,0.12);
-          color: #fbbf24;
-          border: 1px solid rgba(251,191,36,0.25);
-        }
-        .ra-badge--baixo {
-          background: rgba(0,220,100,0.12);
-          color: #00dc64;
-          border: 1px solid rgba(0,220,100,0.25);
-        }
-
+        .ra-badge--alto  { background: rgba(239,68,68,0.15);  color: #f87171; border-color: rgba(239,68,68,0.25); }
+        .ra-badge--medio { background: rgba(251,191,36,0.12); color: #fbbf24; border-color: rgba(251,191,36,0.25); }
+        .ra-badge--baixo { background: rgba(0,220,100,0.12);  color: #00dc64; border-color: rgba(0,220,100,0.25); }
         .ra-section__content {
           font-size: 14px; color: #64748b;
           line-height: 1.8; padding: 8px 16px 16px;
           white-space: pre-wrap;
         }
         .ra-raw {
-          background: rgba(15,23,42,0.9);
-          border: 1px solid #1e293b;
+          background: rgba(15,23,42,0.9); border: 1px solid #1e293b;
           border-radius: 14px; padding: 20px;
           font-size: 14px; color: #64748b;
           line-height: 1.8; white-space: pre-wrap;
         }
 
-        /* ─── Disclaimer ─── */
+        /* ── Disclaimer ── */
         .ra-disclaimer {
-          margin-top: 20px;
-          padding: 12px 16px;
+          margin-top: 20px; padding: 12px 16px;
           background: rgba(251,191,36,0.04);
           border: 1px solid rgba(251,191,36,0.1);
           border-radius: 10px;
@@ -482,6 +581,7 @@ export default function RiskAnalysis() {
 
         @media (max-width: 420px) {
           .ra-title { font-size: 26px; }
+          .ra-score-number { font-size: 56px; }
           .ra-actions { flex-direction: column; }
           .ra-action { text-align: center; }
         }
@@ -553,7 +653,6 @@ export default function RiskAnalysis() {
               />
               {impliedProb && (
                 <div className="ra-prob-chip">
-                  <span className="ra-prob-chip-icon">📊</span>
                   <span className="ra-prob-val">{impliedProb}%</span>
                   <span className="ra-prob-label">probabilidade implícita</span>
                 </div>
@@ -587,12 +686,54 @@ export default function RiskAnalysis() {
           )}
 
           {/* Result */}
-          {output && !loading && (
+          {scoreInfo && !loading && (
             <div className="ra-result" ref={resultRef}>
+
+              {/* MotorIA Risk Score™ */}
+              <div className={`ra-score-card ra-score-card--${scoreClass}`}>
+                <div className="ra-score-brand">
+                  <span className="ra-score-brand-dot" />
+                  MotorIA Risk Score™
+                </div>
+
+                <div className="ra-score-main">
+                  <span
+                    className="ra-score-number"
+                    style={{ color: scoreColor }}
+                  >
+                    {scoreInfo.final}
+                  </span>
+                  <span className="ra-score-denom">&nbsp;/ 10</span>
+                  <span className={`ra-score-badge ra-score-badge--${scoreClass}`}>
+                    {getScoreLabel(scoreInfo.final)}
+                  </span>
+                </div>
+
+                {/* Barra animada */}
+                <div className="ra-bar-track">
+                  <div
+                    className="ra-bar-fill"
+                    style={{
+                      background: scoreColor,
+                      boxShadow: `0 0 12px ${scoreColor}80`,
+                      width: barReady ? `${(scoreInfo.final / 10) * 100}%` : "0%",
+                    }}
+                  />
+                </div>
+
+                {/* Frase da IA */}
+                {scoreInfo.frase && (
+                  <div className="ra-score-phrase">
+                    "{scoreInfo.frase}"
+                  </div>
+                )}
+              </div>
+
+              {/* Header de resultado */}
               <div className="ra-result-header">
                 <div className="ra-result-tag">
                   <span className="ra-result-dot" />
-                  Análise concluída
+                  Análise detalhada
                 </div>
                 <div className="ra-actions">
                   <button className="ra-action ra-action--green" onClick={handleCopy}>
@@ -604,10 +745,11 @@ export default function RiskAnalysis() {
                 </div>
               </div>
 
+              {/* Seções de análise */}
               {sections ? (
                 <div className="ra-sections">
                   {sections.map(({ label, content }) => {
-                    const meta  = SECTION_META[label] || { icon: "•", label };
+                    const meta   = SECTION_META[label] || { icon: "•", label };
                     const isRisk = label === "NÍVEL DE RISCO";
                     const level  = isRisk ? getRiskLevel(content) : null;
 
@@ -628,7 +770,7 @@ export default function RiskAnalysis() {
                   })}
                 </div>
               ) : (
-                <div className="ra-raw">{output}</div>
+                <div className="ra-raw">{scoreInfo.cleanText}</div>
               )}
 
               <div className="ra-disclaimer">
