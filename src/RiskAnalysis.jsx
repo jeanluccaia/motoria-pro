@@ -408,7 +408,7 @@ export default function RiskAnalysis() {
                     {copied ? "✓ Copiado!" : "Copiar análise"}
                   </button>
                   <button className="ra-action ra-action--ghost" onClick={handleReset}>
-                    Analisar outra aposta
+                    Analisar outra
                   </button>
                 </div>
               </div>
