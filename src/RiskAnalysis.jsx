@@ -43,14 +43,6 @@ function RiskLevelBadge({ content }) {
   );
 }
 
-const EXAMPLE = [
-  { label: "PROBABILIDADE IMPLÍCITA", content: "54% — a odd de 1.85 indica que o mercado estima pouco mais de 50% de chance." },
-  { label: "NÍVEL DE RISCO", content: "Médio — odd intermediária, resultado incerto.", isRisk: true, riskValue: "medio" },
-  { label: "CENÁRIO NECESSÁRIO", content: "O time mandante precisa vencer dentro do tempo regulamentar, sem prorrogação." },
-  { label: "PONTOS DE ATENÇÃO", content: "* Histórico recente do time em casa\n* Desfalques por lesão ou suspensão\n* Motivação (posição na tabela, mata-mata)" },
-  { label: "LEITURA FINAL", content: "A odd reflete equilíbrio entre os times. O risco é proporcional — não há vantagem clara do mercado para nenhum dos lados." },
-];
-
 export default function RiskAnalysis() {
   const [jogo, setJogo] = useState("");
   const [aposta, setAposta] = useState("");
@@ -145,13 +137,14 @@ export default function RiskAnalysis() {
           -webkit-font-smoothing: antialiased;
           -webkit-text-size-adjust: 100%;
         }
+
         .ra-root {
           min-height: 100vh;
           background: #0d0d1a;
           color: #e8e6f4;
-          padding: 0 16px 100px;
+          padding: 0 20px 100px;
         }
-        .ra-inner { max-width: 540px; margin: 0 auto; }
+        .ra-inner { max-width: 520px; margin: 0 auto; }
 
         /* Nav */
         .ra-nav {
@@ -175,149 +168,69 @@ export default function RiskAnalysis() {
         }
         .ra-back:hover { color: #e8e6f4; background: rgba(255,255,255,0.05); }
 
-        /* Hero */
-        .ra-hero {
-          padding: 40px 0 0;
-          text-align: center;
+        /* Header */
+        .ra-header {
+          padding: 48px 0 36px;
         }
-        .ra-hero-tag {
-          display: inline-flex; align-items: center; gap: 6px;
-          background: rgba(34,197,94,0.1);
-          border: 1px solid rgba(34,197,94,0.2);
-          border-radius: 20px;
-          padding: 4px 12px;
-          font-size: 11px; font-weight: 600;
-          color: #22c55e; letter-spacing: 0.5px;
-          text-transform: uppercase;
-          margin-bottom: 16px;
-        }
-        .ra-hero-tag-dot {
-          width: 5px; height: 5px; border-radius: 50%;
-          background: #22c55e;
-        }
-        .ra-hero-title {
+        .ra-title {
           font-family: 'Syne', sans-serif;
-          font-size: 26px; font-weight: 800;
-          letter-spacing: -0.5px; color: #f4f2ff;
-          line-height: 1.2;
+          font-size: 28px; font-weight: 800;
+          letter-spacing: -0.6px; color: #f4f2ff;
+          line-height: 1.15;
           margin-bottom: 10px;
         }
-        .ra-hero-sub {
-          font-size: 14px; color: #6b7280;
-          line-height: 1.6; max-width: 380px; margin: 0 auto;
+        .ra-sub {
+          font-size: 15px; color: #4b5563;
+          line-height: 1.5;
         }
 
-        /* Example preview */
-        .ra-example {
-          margin-top: 32px;
-          background: rgba(255,255,255,0.02);
-          border: 1px solid rgba(255,255,255,0.06);
-          border-radius: 14px;
-          overflow: hidden;
-          position: relative;
-        }
-        .ra-example::after {
-          content: '';
-          position: absolute;
-          bottom: 0; left: 0; right: 0;
-          height: 60px;
-          background: linear-gradient(to bottom, transparent, #0d0d1a);
-          pointer-events: none;
-        }
-        .ra-example-label {
-          display: flex; align-items: center; gap: 8px;
-          padding: 12px 16px 8px;
-          font-size: 10px; font-weight: 700;
-          letter-spacing: 1px; text-transform: uppercase;
-          color: #374151;
-        }
-        .ra-example-label span {
-          background: rgba(255,255,255,0.04);
-          border-radius: 4px; padding: 2px 6px;
-          color: #4b5563; font-size: 9px;
-        }
-        .ra-example-rows { padding: 0 16px 32px; display: flex; flex-direction: column; gap: 8px; }
-        .ra-example-row {
-          display: flex; gap: 10px; align-items: flex-start;
-        }
-        .ra-example-key {
-          font-size: 9px; font-weight: 700;
-          letter-spacing: 0.8px; text-transform: uppercase;
-          color: #22c55e; opacity: 0.4;
-          min-width: 110px; padding-top: 2px;
-          flex-shrink: 0;
-        }
-        .ra-example-val {
-          font-size: 12px; color: #374151;
-          line-height: 1.5; white-space: pre-wrap;
-        }
-        .ra-example-badge {
-          display: inline-block;
-          background: rgba(234,179,8,0.15);
-          color: #ca8a04;
-          font-size: 9px; font-weight: 700;
-          letter-spacing: 0.8px; text-transform: uppercase;
-          padding: 1px 7px; border-radius: 4px; margin-left: 6px;
-        }
-
-        /* Form card */
-        .ra-card {
-          background: rgba(255,255,255,0.035);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 18px;
-          padding: 28px 24px 24px;
-          margin-top: 24px;
-        }
-
-        .ra-field { margin-bottom: 14px; }
+        /* Fields */
+        .ra-field { margin-bottom: 18px; }
         .ra-label {
           display: block; font-size: 11px; font-weight: 600;
-          color: #6b7280; letter-spacing: 0.3px;
-          margin-bottom: 6px; text-transform: uppercase;
+          color: #6b7280; letter-spacing: 0.4px;
+          margin-bottom: 7px; text-transform: uppercase;
         }
         .ra-input {
           width: 100%;
-          background: rgba(0,0,0,0.3);
-          border: 1px solid rgba(255,255,255,0.07);
-          border-radius: 10px;
-          padding: 13px 14px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 12px;
+          padding: 14px 16px;
           font-size: 15px; color: #e8e6f4;
           outline: none;
           font-family: 'Inter', sans-serif;
           transition: border-color 0.15s, background 0.15s;
         }
         .ra-input:focus {
-          border-color: rgba(34,197,94,0.35);
-          background: rgba(34,197,94,0.03);
+          border-color: rgba(34,197,94,0.4);
+          background: rgba(34,197,94,0.04);
         }
         .ra-input::placeholder { color: #2d3748; }
 
+        /* Button */
         .ra-btn {
-          width: 100%; margin-top: 6px;
-          background: linear-gradient(135deg, #22c55e, #16a34a);
+          width: 100%; margin-top: 8px;
+          background: #22c55e;
           color: #051a08; font-size: 16px; font-weight: 700;
-          padding: 17px; border-radius: 12px; border: none;
+          padding: 18px; border-radius: 14px; border: none;
           cursor: pointer; font-family: 'Inter', sans-serif;
           letter-spacing: -0.2px;
-          transition: opacity 0.15s, transform 0.12s, box-shadow 0.15s;
-          box-shadow: 0 4px 20px rgba(34,197,94,0.2);
+          transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
+          box-shadow: 0 0 0 0 rgba(34,197,94,0);
         }
-        .ra-btn:disabled { opacity: 0.3; cursor: default; transform: none; box-shadow: none; }
+        .ra-btn:disabled { opacity: 0.25; cursor: default; transform: none; }
         .ra-btn:not(:disabled):hover {
+          background: #16a34a;
           transform: translateY(-1px);
-          box-shadow: 0 6px 24px rgba(34,197,94,0.3);
-        }
-
-        .ra-disclaimer {
-          font-size: 11px; color: #374151;
-          text-align: center; margin-top: 10px; line-height: 1.6;
+          box-shadow: 0 8px 28px rgba(34,197,94,0.28);
         }
 
         /* Error */
         .ra-error {
           background: rgba(239,68,68,0.07);
           border: 1px solid rgba(239,68,68,0.18);
-          border-radius: 10px; padding: 12px 14px;
+          border-radius: 10px; padding: 12px 16px;
           font-size: 13px; color: #f87171;
           margin-top: 16px;
         }
@@ -326,11 +239,11 @@ export default function RiskAnalysis() {
         .ra-loading {
           display: flex; flex-direction: column;
           align-items: center; justify-content: center;
-          gap: 12px; padding: 48px 0;
+          gap: 12px; padding: 52px 0;
         }
         .ra-spinner {
-          width: 32px; height: 32px;
-          border: 2.5px solid rgba(34,197,94,0.12);
+          width: 30px; height: 30px;
+          border: 2px solid rgba(34,197,94,0.12);
           border-top-color: #22c55e;
           border-radius: 50%;
           animation: ra-spin 0.7s linear infinite;
@@ -339,15 +252,16 @@ export default function RiskAnalysis() {
         .ra-loading-text { font-size: 13px; color: #4b5563; }
 
         /* Result */
-        .ra-result { margin-top: 28px; }
+        .ra-result { margin-top: 32px; }
         .ra-result-header {
           display: flex; align-items: center;
           justify-content: space-between;
-          margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
+          margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
         }
         .ra-result-title {
           display: flex; align-items: center; gap: 7px;
           font-size: 12px; font-weight: 600; color: #22c55e;
+          letter-spacing: 0.3px;
         }
         .ra-dot {
           width: 6px; height: 6px; border-radius: 50%;
@@ -363,9 +277,10 @@ export default function RiskAnalysis() {
         }
         .ra-action:hover { transform: translateY(-1px); }
         .ra-action--primary {
-          background: linear-gradient(135deg, #22c55e, #16a34a);
+          background: #22c55e;
           color: #051a08;
         }
+        .ra-action--primary:hover { background: #16a34a; }
         .ra-action--ghost {
           background: transparent; color: #6b7280;
           border: 1px solid rgba(255,255,255,0.08);
@@ -386,11 +301,11 @@ export default function RiskAnalysis() {
           font-size: 9px; font-weight: 700;
           letter-spacing: 1px; text-transform: uppercase;
           color: #22c55e; opacity: 0.7;
-          padding: 10px 14px 0;
+          padding: 12px 16px 0;
         }
         .ra-section__content {
           font-size: 14px; color: #c9c7d8;
-          line-height: 1.75; padding: 5px 14px 14px;
+          line-height: 1.75; padding: 6px 16px 14px;
           white-space: pre-wrap;
         }
         .ra-raw {
@@ -402,18 +317,15 @@ export default function RiskAnalysis() {
         }
 
         @media (max-width: 420px) {
-          .ra-hero-title { font-size: 22px; }
-          .ra-card { padding: 20px 16px; }
+          .ra-title { font-size: 24px; }
           .ra-actions { flex-direction: column; }
           .ra-action { text-align: center; }
-          .ra-example-key { min-width: 90px; font-size: 8px; }
         }
       `}</style>
 
       <div className="ra-root">
         <div className="ra-inner">
 
-          {/* Nav */}
           <nav className="ra-nav">
             <div className="ra-logo">Motor<em>IA</em></div>
             <button className="ra-back" onClick={() => { window.location.hash = ""; }}>
@@ -421,92 +333,58 @@ export default function RiskAnalysis() {
             </button>
           </nav>
 
-          {/* Hero */}
-          <div className="ra-hero">
-            <div className="ra-hero-tag">
-              <span className="ra-hero-tag-dot" />
-              Análise de risco
-            </div>
-            <div className="ra-hero-title">Entenda o risco antes de decidir</div>
-            <div className="ra-hero-sub">
-              Veja probabilidade, cenário e pontos de atenção em segundos
-            </div>
+          <div className="ra-header">
+            <div className="ra-title">Análise de risco de aposta</div>
+            <div className="ra-sub">Digite os dados e receba a análise em segundos</div>
           </div>
 
-          {/* Example preview */}
-          <div className="ra-example">
-            <div className="ra-example-label">
-              Exemplo de análise <span>prévia</span>
-            </div>
-            <div className="ra-example-rows">
-              {EXAMPLE.map(({ label, content, isRisk, riskValue }) => (
-                <div className="ra-example-row" key={label}>
-                  <div className="ra-example-key">{label}</div>
-                  <div className="ra-example-val">
-                    {content}
-                    {isRisk && <span className="ra-example-badge">MÉDIO</span>}
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="ra-field">
+            <label className="ra-label">Jogo ou evento</label>
+            <input
+              className="ra-input"
+              type="text"
+              placeholder="Digite o jogo ou evento"
+              value={jogo}
+              onChange={(e) => setJogo(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
           </div>
 
-          {/* Form */}
-          <div className="ra-card">
-            <div className="ra-field">
-              <label className="ra-label">Jogo ou evento</label>
-              <input
-                className="ra-input"
-                type="text"
-                placeholder="Digite o jogo ou evento"
-                value={jogo}
-                onChange={(e) => setJogo(e.target.value)}
-                onKeyDown={handleKeyDown}
-              />
-            </div>
-
-            <div className="ra-field">
-              <label className="ra-label">Aposta</label>
-              <input
-                className="ra-input"
-                type="text"
-                placeholder="Qual cenário você está considerando?"
-                value={aposta}
-                onChange={(e) => setAposta(e.target.value)}
-                onKeyDown={handleKeyDown}
-              />
-            </div>
-
-            <div className="ra-field">
-              <label className="ra-label">Odd</label>
-              <input
-                className="ra-input"
-                type="text"
-                inputMode="decimal"
-                placeholder="Odd (ex: 1.85)"
-                value={odd}
-                onChange={(e) => setOdd(e.target.value)}
-                onKeyDown={handleKeyDown}
-              />
-            </div>
-
-            <button
-              className="ra-btn"
-              disabled={!canSubmit || loading}
-              onClick={handleAnalyze}
-            >
-              {loading ? `Analisando${dots}` : "Analisar risco agora"}
-            </button>
-
-            <p className="ra-disclaimer">
-              Análise baseada em probabilidade. Sem previsão, sem recomendação.
-            </p>
+          <div className="ra-field">
+            <label className="ra-label">Aposta</label>
+            <input
+              className="ra-input"
+              type="text"
+              placeholder="Qual cenário você está considerando?"
+              value={aposta}
+              onChange={(e) => setAposta(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
           </div>
 
-          {/* Error */}
+          <div className="ra-field">
+            <label className="ra-label">Odd</label>
+            <input
+              className="ra-input"
+              type="text"
+              inputMode="decimal"
+              placeholder="Odd (ex: 1.85)"
+              value={odd}
+              onChange={(e) => setOdd(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
+          </div>
+
+          <button
+            className="ra-btn"
+            disabled={!canSubmit || loading}
+            onClick={handleAnalyze}
+          >
+            {loading ? `Analisando${dots}` : "Analisar risco agora"}
+          </button>
+
           {error && <div className="ra-error">{error}</div>}
 
-          {/* Loading */}
           {loading && (
             <div className="ra-loading">
               <div className="ra-spinner" />
@@ -514,7 +392,6 @@ export default function RiskAnalysis() {
             </div>
           )}
 
-          {/* Result */}
           {output && !loading && (
             <div className="ra-result" ref={resultRef}>
               <div className="ra-result-header">
@@ -537,12 +414,9 @@ export default function RiskAnalysis() {
                   {sections.map(({ label, content }) => {
                     const isRiscoLabel = label === "NÍVEL DE RISCO";
                     const riskClass = isRiscoLabel
-                      ? /alto/i.test(content)
-                        ? " ra-section--alto"
-                        : /médio|medio/i.test(content)
-                        ? " ra-section--medio"
-                        : /baixo/i.test(content)
-                        ? " ra-section--baixo"
+                      ? /alto/i.test(content) ? " ra-section--alto"
+                        : /médio|medio/i.test(content) ? " ra-section--medio"
+                        : /baixo/i.test(content) ? " ra-section--baixo"
                         : ""
                       : "";
                     return (
