@@ -405,10 +405,10 @@ export default function RiskAnalysis() {
                 </div>
                 <div className="ra-actions">
                   <button className="ra-action ra-action--primary" onClick={handleCopy}>
-                    {copied ? "✓ Copiado!" : "⎘ Copiar"}
+                    {copied ? "✓ Copiado!" : "Copiar análise"}
                   </button>
                   <button className="ra-action ra-action--ghost" onClick={handleReset}>
-                    Nova análise
+                    Analisar outra aposta
                   </button>
                 </div>
               </div>
