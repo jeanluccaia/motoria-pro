@@ -3,15 +3,19 @@ import React, { useState, useRef } from "react";
 // ─── Constantes ────────────────────────────────────────────────────────────────
 
 const LOADING_MSGS = [
-  "Analisando sua aposta...",
-  "Calculando chance de perder...",
-  "Verificando sinais de impulso...",
-  "Preparando sua leitura...",
+  "Calculando probabilidade implícita...",
+  "Identificando fatores de risco...",
+  "Avaliando cenários de perda...",
+  "Preparando análise conservadora...",
 ];
 
-const SENTIMENTOS = ["Tranquilo", "Ansioso", "Irritado", "Confiante demais", "Desesperado"];
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-// ─── Parse helpers ─────────────────────────────────────────────────────────────
+function calcProb(odd) {
+  const n = parseFloat(String(odd).replace(",", "."));
+  if (!n || n <= 1) return null;
+  return ((1 / n) * 100).toFixed(1);
+}
 
 function matchLine(text, key) {
   const m = text.match(new RegExp(`^${key}:\\s*(.+)`, "m"));
@@ -25,101 +29,58 @@ function matchBlock(text, key) {
 
 function parseOutput(text) {
   return {
-    chancePerder:    matchLine(text, "CHANCE_PERDER"),
-    perigoScore:     Math.min(100, Math.max(0, parseInt(matchLine(text, "PERIGO_SCORE") || "50", 10))),
-    alertaEmocao:    matchBlock(text, "ALERTA_EMOCAO"),
-    impactoSePerder: matchBlock(text, "IMPACTO_SE_PERDER"),
-    oQueObservar:    matchBlock(text, "O_QUE_OBSERVAR"),
-    melhorDecisao:   matchLine(text, "MELHOR_DECISAO"),
-    leituraFinal:    matchBlock(text, "LEITURA_FINAL"),
+    nivelRisco:          matchLine(text,  "NIVEL_RISCO"),
+    cenarioNecessario:   matchBlock(text, "CENARIO_NECESSARIO"),
+    oQuePodeDarErrado:   matchBlock(text, "O_QUE_PODE_DAR_ERRADO"),
+    leituraConservadora: matchBlock(text, "LEITURA_CONSERVADORA"),
+    alertaFinal:         matchBlock(text, "ALERTA_FINAL"),
   };
 }
-
-// ─── Helpers de cor ────────────────────────────────────────────────────────────
 
 function norm(s) {
   return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 }
 
-function chanceColor(chance) {
-  const n = norm(chance);
-  if (n === "critica")  return "#ef4444";
-  if (n === "alta")     return "#f97316";
-  if (n === "moderada") return "#fbbf24";
-  if (n === "baixa")    return "#22c55e";
-  return "#fbbf24";
+function riskColor(risk) {
+  const n = norm(risk);
+  if (n === "critico") return "#dc2626";
+  if (n === "alto")    return "#ef4444";
+  if (n === "medio")   return "#f97316";
+  return "#f59e0b";
 }
 
-function chanceBg(chance) {
-  const n = norm(chance);
-  if (n === "critica")  return "rgba(239,68,68,0.08)";
-  if (n === "alta")     return "rgba(249,115,22,0.08)";
-  if (n === "moderada") return "rgba(251,191,36,0.08)";
-  if (n === "baixa")    return "rgba(34,197,94,0.08)";
-  return "rgba(251,191,36,0.08)";
+function riskBorder(risk) {
+  const n = norm(risk);
+  if (n === "critico") return "rgba(220,38,38,0.25)";
+  if (n === "alto")    return "rgba(239,68,68,0.25)";
+  if (n === "medio")   return "rgba(249,115,22,0.25)";
+  return "rgba(245,158,11,0.25)";
 }
 
-function scoreColor(score) {
-  if (score >= 70) return "#ef4444";
-  if (score >= 40) return "#f97316";
-  return "#22c55e";
+function riskBg(risk) {
+  const n = norm(risk);
+  if (n === "critico") return "rgba(220,38,38,0.06)";
+  if (n === "alto")    return "rgba(239,68,68,0.06)";
+  if (n === "medio")   return "rgba(249,115,22,0.06)";
+  return "rgba(245,158,11,0.06)";
 }
 
-function scoreLabel(score) {
-  if (score >= 70) return "Perigo alto — cuidado";
-  if (score >= 40) return "Perigo moderado";
-  return "Perigo baixo";
+function riskPct(risk) {
+  const n = norm(risk);
+  if (n === "critico") return "100%";
+  if (n === "alto")    return "75%";
+  if (n === "medio")   return "48%";
+  return "22%";
 }
 
-// ─── Sub-componentes ──────────────────────────────────────────────────────────
-
-function Field({ label, children }) {
-  return (
-    <div className="cdp-field">
-      <label className="cdp-label">{label}</label>
-      {children}
-    </div>
-  );
-}
-
-function Opts({ options, value, onChange, wrap }) {
-  return (
-    <div className={`cdp-opts${wrap ? " cdp-opts-wrap" : ""}`}>
-      {options.map((o) => (
-        <button
-          key={o}
-          type="button"
-          className={`cdp-opt${value === o ? " cdp-opt-on" : ""}`}
-          onClick={() => onChange(o)}
-        >
-          {o}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function Card({ children, warn, decision, highlight, style }) {
-  const cls = [
-    "cdp-card",
-    warn      ? "cdp-card-warn" : "",
-    decision  ? "cdp-card-dec"  : "",
-    highlight ? "cdp-card-hl"   : "",
-  ].filter(Boolean).join(" ");
-  return <div className={cls} style={style}>{children}</div>;
-}
-
-function CardLabel({ children }) {
-  return <div className="cdp-clabel">{children}</div>;
-}
-
-// ─── Componente principal ─────────────────────────────────────────────────────
+// ─── Componente ───────────────────────────────────────────────────────────────
 
 export default function ChanceDePerde() {
-  const [form, setForm] = useState({
-    jogo: "", aposta: "", odd: "", valor: "", apostas7: "",
-    recuperar: "", sentimento: "", fazFalta: "",
-  });
+  const [jogo,   setJogo]   = useState("");
+  const [aposta, setAposta] = useState("");
+  const [odd,    setOdd]    = useState("");
+  const [valor,  setValor]  = useState("");
+
   const [loading,  setLoading]  = useState(false);
   const [loadMsg,  setLoadMsg]  = useState(0);
   const [error,    setError]    = useState("");
@@ -129,9 +90,6 @@ export default function ChanceDePerde() {
   const resultRef = useRef(null);
   const timerRef  = useRef(null);
 
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
-  const pick = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-
   function startCycle() {
     let i = 0;
     timerRef.current = setInterval(() => {
@@ -140,9 +98,7 @@ export default function ChanceDePerde() {
     }, 1800);
   }
 
-  function stopCycle() {
-    clearInterval(timerRef.current);
-  }
+  function stopCycle() { clearInterval(timerRef.current); }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -150,24 +106,27 @@ export default function ChanceDePerde() {
     setResult(null);
     setBarReady(false);
 
-    if (!form.jogo.trim() || !form.aposta.trim() || !form.odd.trim()) {
-      setError("Preencha o jogo, a aposta e a odd para continuar.");
+    if (!jogo.trim()) {
+      setError("Informe o jogo ou evento.");
       return;
     }
-    if (!form.recuperar || !form.sentimento || !form.fazFalta) {
-      setError("Responda todas as perguntas para continuar.");
+    if (!aposta.trim()) {
+      setError("Informe o tipo de aposta.");
+      return;
+    }
+    const oddNum = parseFloat(odd.replace(",", "."));
+    if (!odd.trim() || isNaN(oddNum) || oddNum <= 1) {
+      setError("Informe uma odd válida — número maior que 1, ex: 1.80.");
       return;
     }
 
+    const prob = calcProb(odd);
     const userMessage = [
-      `Jogo: ${form.jogo.trim()}`,
-      `Aposta: ${form.aposta.trim()}`,
-      `Odd: ${form.odd.trim()}`,
-      `Valor: ${form.valor.trim() ? "R$" + form.valor.trim() : "não informado"}`,
-      `Apostas nos últimos 7 dias: ${form.apostas7.trim() || "não informado"}`,
-      `Tentando recuperar dinheiro: ${form.recuperar}`,
-      `Sentimento agora: ${form.sentimento}`,
-      `Se perder, vai fazer falta: ${form.fazFalta}`,
+      `Jogo: ${jogo.trim()}`,
+      `Aposta: ${aposta.trim()}`,
+      `Odd: ${odd.trim()}`,
+      `Probabilidade implícita: ${prob}%`,
+      valor.trim() ? `Valor considerado: R$${valor.trim()}` : "Valor: não informado",
     ].join("\n");
 
     setLoading(true);
@@ -182,7 +141,7 @@ export default function ChanceDePerde() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao processar. Tente novamente.");
       const text = data.content?.[0]?.text || "";
-      setResult(parseOutput(text));
+      setResult({ ...parseOutput(text), prob, odd: odd.trim(), valor: valor.trim() });
       setTimeout(() => {
         setBarReady(true);
         resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -201,39 +160,47 @@ export default function ChanceDePerde() {
     setError("");
   }
 
-  const cc  = result ? chanceColor(result.chancePerder) : "#22c55e";
-  const cbg = result ? chanceBg(result.chancePerder)    : "rgba(34,197,94,0.08)";
-  const sc  = result ? scoreColor(result.perigoScore)   : "#22c55e";
-  const pct = barReady ? `${result?.perigoScore ?? 0}%` : "0%";
+  const rc  = result ? riskColor(result.nivelRisco)  : "#f59e0b";
+  const rbg = result ? riskBg(result.nivelRisco)     : "";
+  const rbd = result ? riskBorder(result.nivelRisco) : "";
+  const pct = barReady ? riskPct(result?.nivelRisco) : "0%";
 
-  const bullets = (result?.oQueObservar || "")
-    .split("\n")
-    .filter((l) => l.trim())
-    .map((l) => l.replace(/^[-•*]\s*/, ""));
+  const erradoBullets = (result?.oQuePodeDarErrado || "")
+    .split("\n").filter((l) => l.trim()).map((l) => l.replace(/^[-•*]\s*/, ""));
 
   return (
     <>
       <style>{CSS}</style>
       <div className="cdp-root">
 
+        {/* ── Aviso legal ── */}
+        <div className="cdp-legal-bar">
+          <span className="cdp-legal-icon">⚠</span>
+          <span>
+            Ferramenta educativa. Não é recomendação de aposta. Apostas envolvem
+            risco financeiro e podem causar prejuízo.{" "}
+            <strong>Proibido para menores de 18 anos.</strong>
+          </span>
+        </div>
+
         {/* ── Nav ── */}
         <nav className="cdp-nav">
           <a href="#" className="cdp-back">← Voltar</a>
           <span className="cdp-brand">MotorIA Pro</span>
-          <span className="cdp-pill">BETA</span>
+          <span className="cdp-pill">Análise de Risco</span>
         </nav>
 
         <div className="cdp-wrap">
 
           {/* ── Header ── */}
           <header className="cdp-header">
-            <div className="cdp-icon">⚠️</div>
+            <div className="cdp-header-tag">FERRAMENTA EDUCATIVA DE RISCO</div>
             <h1 className="cdp-h1">
-              Antes de apostar,<br />veja sua chance de perder.
+              O que as plataformas<br />de aposta não te explicam.
             </h1>
             <p className="cdp-sub">
-              Responda rápido e descubra se essa aposta<br />
-              está vindo da lógica ou da emoção.
+              Antes de pensar em ganhar, entenda primeiro<br />
+              o quanto você pode perder.
             </p>
           </header>
 
@@ -241,85 +208,67 @@ export default function ChanceDePerde() {
           {!result && !loading && (
             <form className="cdp-form" onSubmit={handleSubmit} noValidate>
 
-              <Field label="Qual é o jogo ou evento?">
+              <div className="cdp-field">
+                <label className="cdp-label">Jogo ou evento</label>
                 <input
                   className="cdp-input"
-                  value={form.jogo}
-                  onChange={set("jogo")}
+                  value={jogo}
+                  onChange={(e) => setJogo(e.target.value)}
                   placeholder="Ex: Flamengo x Palmeiras"
                 />
-              </Field>
+              </div>
 
-              <Field label="Qual é a aposta?">
+              <div className="cdp-field">
+                <label className="cdp-label">Tipo de aposta</label>
                 <input
                   className="cdp-input"
-                  value={form.aposta}
-                  onChange={set("aposta")}
-                  placeholder="Ex: Flamengo vence, mais de 2.5 gols…"
+                  value={aposta}
+                  onChange={(e) => setAposta(e.target.value)}
+                  placeholder="Ex: Vitória do mandante, Mais de 2.5 gols..."
                 />
-              </Field>
+              </div>
 
               <div className="cdp-row">
-                <Field label="Qual é a odd?">
+                <div className="cdp-field">
+                  <label className="cdp-label">Odd</label>
                   <input
                     className="cdp-input"
-                    value={form.odd}
-                    onChange={set("odd")}
+                    value={odd}
+                    onChange={(e) => setOdd(e.target.value)}
                     placeholder="Ex: 1.80"
                     inputMode="decimal"
                   />
-                </Field>
-                <Field label="Quanto vai apostar?">
+                </div>
+                <div className="cdp-field">
+                  <label className="cdp-label">
+                    Valor considerado
+                    <span className="cdp-optional"> (opcional)</span>
+                  </label>
                   <input
                     className="cdp-input"
-                    value={form.valor}
-                    onChange={set("valor")}
+                    value={valor}
+                    onChange={(e) => setValor(e.target.value)}
                     placeholder="Ex: R$50"
                     inputMode="decimal"
                   />
-                </Field>
+                </div>
               </div>
 
-              <Field label="Quantas apostas nos últimos 7 dias?">
-                <input
-                  className="cdp-input"
-                  value={form.apostas7}
-                  onChange={set("apostas7")}
-                  placeholder="Ex: 8"
-                  inputMode="numeric"
-                />
-              </Field>
-
-              <Field label="Está tentando recuperar dinheiro perdido?">
-                <Opts
-                  options={["Sim", "Não"]}
-                  value={form.recuperar}
-                  onChange={(v) => pick("recuperar", v)}
-                />
-              </Field>
-
-              <Field label="Como você está se sentindo agora?">
-                <Opts
-                  options={SENTIMENTOS}
-                  value={form.sentimento}
-                  onChange={(v) => pick("sentimento", v)}
-                  wrap
-                />
-              </Field>
-
-              <Field label="Se perder essa aposta, vai fazer falta?">
-                <Opts
-                  options={["Sim", "Não"]}
-                  value={form.fazFalta}
-                  onChange={(v) => pick("fazFalta", v)}
-                />
-              </Field>
-
-              {error && <div className="cdp-err">{error}</div>}
+              {error && (
+                <div className="cdp-err">
+                  <span className="cdp-err-dot" />
+                  {error}
+                </div>
+              )}
 
               <button className="cdp-btn" type="submit">
-                Ver minha chance de perder
+                Analisar risco de perda
               </button>
+
+              <p className="cdp-form-note">
+                Esta análise calcula a probabilidade de perda com base na odd
+                informada e no contexto do mercado. Não é palpite nem previsão.
+              </p>
 
             </form>
           )}
@@ -336,83 +285,92 @@ export default function ChanceDePerde() {
           {result && !loading && (
             <div className="cdp-results" ref={resultRef}>
 
-              <button className="cdp-reset" onClick={reset}>
-                ← Analisar outra aposta
-              </button>
+              <button className="cdp-reset" onClick={reset}>← Nova análise</button>
 
-              {/* Card 1: Chance de perder */}
-              <Card style={{ background: cbg, borderColor: cc + "44" }}>
-                <CardLabel>Chance de perder</CardLabel>
-                <div
-                  className="cdp-badge"
-                  style={{ color: cc, borderColor: cc + "55", background: cc + "18" }}
-                >
-                  {result.chancePerder || "—"}
+              {/* Card 1 — Probabilidade implícita */}
+              <div className="cdp-card">
+                <div className="cdp-clabel">PROBABILIDADE IMPLÍCITA DA ODD</div>
+                <div className="cdp-prob-row">
+                  <span className="cdp-prob-num">{result.prob}%</span>
+                  <span className="cdp-prob-caption">
+                    é o que a casa estima de chance para esse resultado
+                  </span>
                 </div>
-              </Card>
+                <p className="cdp-text cdp-text-muted">
+                  A margem da casa (vig) reduz ainda mais a rentabilidade real.
+                  Na prática, a probabilidade de perda é superior ao que a odd sugere.
+                </p>
+              </div>
 
-              {/* Card 2: Nível de perigo */}
-              <Card>
-                <CardLabel>Nível de perigo</CardLabel>
-                <div className="cdp-score" style={{ color: sc }}>
-                  {result.perigoScore}
-                  <span className="cdp-unit">/100</span>
+              {/* Card 2 — Nível de risco */}
+              <div
+                className="cdp-card"
+                style={{ background: rbg, borderColor: rbd }}
+              >
+                <div className="cdp-clabel">NÍVEL DE RISCO</div>
+                <div className="cdp-risk-badge" style={{ color: rc }}>
+                  {result.nivelRisco || "—"}
                 </div>
                 <div className="cdp-track">
-                  <div className="cdp-fill" style={{ width: pct, background: sc }} />
+                  <div
+                    className="cdp-fill"
+                    style={{
+                      width: pct,
+                      background: `linear-gradient(90deg, #f59e0b, ${rc})`,
+                    }}
+                  />
                 </div>
-                <div className="cdp-score-label" style={{ color: sc }}>
-                  {scoreLabel(result.perigoScore)}
-                </div>
-              </Card>
+              </div>
 
-              {/* Card 3: Alerta de impulso */}
-              {result.alertaEmocao && (
-                <Card warn>
-                  <CardLabel>⚡ Alerta de impulso</CardLabel>
-                  <p className="cdp-text">{result.alertaEmocao}</p>
-                </Card>
+              {/* Card 3 — Cenário necessário */}
+              {result.cenarioNecessario && (
+                <div className="cdp-card">
+                  <div className="cdp-clabel">
+                    O QUE PRECISA ACONTECER PARA ESSA APOSTA DAR CERTO
+                  </div>
+                  <p className="cdp-text">{result.cenarioNecessario}</p>
+                </div>
               )}
 
-              {/* Card 4: Impacto se perder */}
-              {result.impactoSePerder && (
-                <Card>
-                  <CardLabel>💸 Se você perder</CardLabel>
-                  <p className="cdp-text">{result.impactoSePerder}</p>
-                </Card>
-              )}
-
-              {/* Card 5: O que observar */}
-              {bullets.length > 0 && (
-                <Card>
-                  <CardLabel>👁 O que observar antes de apostar</CardLabel>
+              {/* Card 4 — O que pode dar errado */}
+              {erradoBullets.length > 0 && (
+                <div className="cdp-card cdp-card-danger">
+                  <div className="cdp-clabel">O QUE PODE DAR ERRADO</div>
                   <ul className="cdp-list">
-                    {bullets.map((b, i) => (
+                    {erradoBullets.map((b, i) => (
                       <li key={i} className="cdp-li">{b}</li>
                     ))}
                   </ul>
-                </Card>
+                </div>
               )}
 
-              {/* Card 6: Melhor decisão */}
-              {result.melhorDecisao && (
-                <Card decision>
-                  <CardLabel>Melhor decisão agora</CardLabel>
-                  <div className="cdp-decision">{result.melhorDecisao}</div>
-                </Card>
+              {/* Card 5 — Leitura conservadora */}
+              {result.leituraConservadora && (
+                <div className="cdp-card">
+                  <div className="cdp-clabel">LEITURA CONSERVADORA</div>
+                  <p className="cdp-text">{result.leituraConservadora}</p>
+                </div>
               )}
 
-              {/* Card 7: Leitura final */}
-              {result.leituraFinal && (
-                <Card>
-                  <CardLabel>🧠 Leitura final</CardLabel>
-                  <p className="cdp-text">{result.leituraFinal}</p>
-                </Card>
-              )}
+              {/* Card 6 — Alerta final (sempre visível) */}
+              <div className="cdp-card cdp-card-alert">
+                <div className="cdp-clabel">⚠ ALERTA FINAL</div>
+                {result.alertaFinal && (
+                  <p className="cdp-text" style={{ marginBottom: "16px" }}>
+                    {result.alertaFinal}
+                  </p>
+                )}
+                <blockquote className="cdp-quote">
+                  "Se você não aceita perder esse valor, a decisão mais segura é não apostar."
+                </blockquote>
+              </div>
 
               <p className="cdp-disclaimer">
-                Ferramenta educativa. Não prevê resultados e não incentiva apostas.
+                Análise gerada por IA com base em probabilidade matemática e contexto
+                de mercado. Não é recomendação de aposta. Todo resultado esportivo é
+                imprevisível. Jogue com responsabilidade — ou não jogue.
               </p>
+
             </div>
           )}
 
@@ -422,7 +380,7 @@ export default function ChanceDePerde() {
   );
 }
 
-// ─── CSS ───────────────────────────────────────────────────────────────────────
+// ─── CSS ──────────────────────────────────────────────────────────────────────
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@700;800&display=swap');
@@ -431,32 +389,51 @@ const CSS = `
 
 .cdp-root {
   min-height: 100vh;
-  background: #10101d;
-  color: #e8e6f4;
+  background: #0f0f0f;
+  color: #f0eeea;
   font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Nav */
+/* ── Aviso legal ────────────────────────────────────── */
+.cdp-legal-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 20px;
+  background: rgba(245,158,11,0.07);
+  border-bottom: 1px solid rgba(245,158,11,0.18);
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(245,158,11,0.82);
+}
+.cdp-legal-icon {
+  font-size: 13px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── Nav ─────────────────────────────────────────────── */
 .cdp-nav {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  padding: 15px 20px;
+  border-bottom: 1px solid #1c1c1c;
   position: sticky;
   top: 0;
-  background: #10101d;
+  background: #0f0f0f;
   z-index: 10;
 }
 
 .cdp-back {
-  color: #22c55e;
+  color: #666;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  transition: opacity 0.15s;
+  transition: color 0.15s;
 }
-.cdp-back:hover { opacity: 0.7; }
+.cdp-back:hover { color: #f0eeea; }
 
 .cdp-brand {
   flex: 1;
@@ -464,78 +441,90 @@ const CSS = `
   font-family: 'Syne', sans-serif;
   font-size: 15px;
   font-weight: 800;
-  color: #22c55e;
+  color: #f0eeea;
   letter-spacing: 0.02em;
 }
 
 .cdp-pill {
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  padding: 3px 8px;
-  border: 1px solid rgba(34,197,94,0.4);
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border: 1px solid #2a2a2a;
   border-radius: 20px;
-  color: rgba(34,197,94,0.8);
+  color: #666;
 }
 
-/* Container */
+/* ── Container ───────────────────────────────────────── */
 .cdp-wrap {
   max-width: 520px;
   margin: 0 auto;
-  padding: 32px 20px 72px;
+  padding: 36px 20px 80px;
 }
 
-/* Header */
+/* ── Header ──────────────────────────────────────────── */
 .cdp-header {
-  text-align: center;
-  margin-bottom: 36px;
+  margin-bottom: 40px;
 }
 
-.cdp-icon {
-  font-size: 38px;
+.cdp-header-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #f59e0b;
   margin-bottom: 14px;
+  text-transform: uppercase;
 }
 
 .cdp-h1 {
   font-family: 'Syne', sans-serif;
-  font-size: clamp(22px, 5.5vw, 28px);
+  font-size: clamp(24px, 6vw, 32px);
   font-weight: 800;
-  line-height: 1.22;
+  line-height: 1.18;
   color: #fff;
-  margin: 0 0 12px;
+  margin: 0 0 14px;
+  letter-spacing: -0.01em;
 }
 
 .cdp-sub {
   font-size: 15px;
-  color: rgba(232,230,244,0.55);
+  color: #777;
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
-/* Form */
+/* ── Form ────────────────────────────────────────────── */
 .cdp-form {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 20px;
 }
 
 .cdp-field {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 8px;
 }
 
 .cdp-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  color: rgba(232,230,244,0.8);
+  color: #aaa;
+  letter-spacing: 0.02em;
+}
+
+.cdp-optional {
+  font-weight: 400;
+  color: #555;
+  font-size: 12px;
 }
 
 .cdp-input {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.11);
+  background: #141414;
+  border: 1px solid #222;
   border-radius: 10px;
-  color: #e8e6f4;
+  color: #f0eeea;
   font-size: 15px;
   font-family: inherit;
   padding: 13px 14px;
@@ -543,8 +532,8 @@ const CSS = `
   transition: border-color 0.18s;
   width: 100%;
 }
-.cdp-input::placeholder { color: rgba(232,230,244,0.3); }
-.cdp-input:focus { border-color: rgba(34,197,94,0.5); }
+.cdp-input::placeholder { color: #3a3a3a; }
+.cdp-input:focus { border-color: #444; }
 
 .cdp-row {
   display: grid;
@@ -552,42 +541,13 @@ const CSS = `
   gap: 12px;
 }
 
-/* Opções */
-.cdp-opts {
-  display: flex;
-  gap: 10px;
-}
-.cdp-opts-wrap { flex-wrap: wrap; }
-
-.cdp-opt {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.11);
-  border-radius: 9px;
-  color: rgba(232,230,244,0.65);
-  font-size: 14px;
-  font-weight: 500;
-  font-family: inherit;
-  padding: 10px 16px;
-  cursor: pointer;
-  transition: all 0.16s;
-  flex: 1;
-  min-width: 80px;
-}
-.cdp-opt:hover {
-  border-color: rgba(34,197,94,0.35);
-  color: #e8e6f4;
-}
-.cdp-opt-on {
-  background: rgba(34,197,94,0.14);
-  border-color: rgba(34,197,94,0.65);
-  color: #4ade80;
-  font-weight: 600;
-}
-
-/* Erro */
+/* ── Erro ────────────────────────────────────────────── */
 .cdp-err {
-  background: rgba(239,68,68,0.1);
-  border: 1px solid rgba(239,68,68,0.3);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.22);
   border-radius: 10px;
   color: #f87171;
   font-size: 14px;
@@ -595,199 +555,227 @@ const CSS = `
   line-height: 1.5;
 }
 
-/* Botão submit */
-.cdp-btn {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-  border: none;
-  border-radius: 12px;
-  color: #071510;
-  font-size: 16px;
-  font-weight: 800;
-  font-family: 'Syne', sans-serif;
-  padding: 17px;
-  cursor: pointer;
-  transition: opacity 0.18s, transform 0.12s;
-  margin-top: 4px;
-  box-shadow: 0 4px 24px rgba(34,197,94,0.25);
+.cdp-err-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  flex-shrink: 0;
 }
-.cdp-btn:hover  { opacity: 0.88; transform: translateY(-1px); }
+
+/* ── Botão ───────────────────────────────────────────── */
+.cdp-btn {
+  background: #f0eeea;
+  border: none;
+  border-radius: 10px;
+  color: #0f0f0f;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  padding: 16px;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.12s;
+  margin-top: 4px;
+  letter-spacing: 0.01em;
+}
+.cdp-btn:hover  { background: #d8d6d2; transform: translateY(-1px); }
 .cdp-btn:active { transform: translateY(0); }
 
-/* Loading */
+.cdp-form-note {
+  font-size: 12px;
+  color: #444;
+  text-align: center;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Loading ─────────────────────────────────────────── */
 .cdp-loading {
   text-align: center;
-  padding: 70px 20px;
+  padding: 80px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 22px;
+  gap: 20px;
 }
 
 .cdp-spinner {
-  width: 46px;
-  height: 46px;
-  border: 3px solid rgba(34,197,94,0.18);
-  border-top-color: #22c55e;
+  width: 44px;
+  height: 44px;
+  border: 2px solid #222;
+  border-top-color: #f59e0b;
   border-radius: 50%;
-  animation: cdp-spin 0.75s linear infinite;
+  animation: cdp-spin 0.8s linear infinite;
 }
 
 @keyframes cdp-spin { to { transform: rotate(360deg); } }
 
 .cdp-load-text {
-  font-size: 15px;
-  color: rgba(232,230,244,0.6);
+  font-size: 14px;
+  color: #555;
   margin: 0;
 }
 
-/* Resultados */
+/* ── Resultados ──────────────────────────────────────── */
 .cdp-results {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .cdp-reset {
   background: none;
-  border: 1px solid rgba(255,255,255,0.11);
+  border: 1px solid #222;
   border-radius: 8px;
-  color: rgba(232,230,244,0.5);
+  color: #555;
   font-size: 13px;
   font-family: inherit;
   padding: 9px 14px;
   cursor: pointer;
-  margin-bottom: 4px;
-  transition: all 0.16s;
+  margin-bottom: 6px;
+  transition: all 0.15s;
   align-self: flex-start;
 }
-.cdp-reset:hover {
-  border-color: rgba(34,197,94,0.4);
-  color: #22c55e;
-}
+.cdp-reset:hover { border-color: #444; color: #aaa; }
 
-/* Cards */
+/* ── Cards ───────────────────────────────────────────── */
 .cdp-card {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px;
+  background: #141414;
+  border: 1px solid #1e1e1e;
+  border-radius: 12px;
   padding: 20px;
 }
 
-.cdp-card-warn {
-  border-color: rgba(249,115,22,0.28);
-  background: rgba(249,115,22,0.06);
+.cdp-card-danger {
+  border-color: rgba(239,68,68,0.2);
+  background: rgba(239,68,68,0.04);
 }
 
-.cdp-card-dec {
-  border-color: rgba(34,197,94,0.28);
-  background: rgba(34,197,94,0.06);
+.cdp-card-alert {
+  border-color: rgba(245,158,11,0.22);
+  background: rgba(245,158,11,0.04);
 }
 
 .cdp-clabel {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(232,230,244,0.42);
-  margin-bottom: 14px;
+  color: #444;
+  margin-bottom: 16px;
 }
 
-/* Badge de chance */
-.cdp-badge {
-  display: inline-block;
-  font-family: 'Syne', sans-serif;
-  font-size: 26px;
-  font-weight: 800;
-  padding: 10px 22px;
-  border: 2px solid;
-  border-radius: 10px;
-  letter-spacing: 0.02em;
+/* ── Probabilidade ───────────────────────────────────── */
+.cdp-prob-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
-/* Score */
-.cdp-score {
+.cdp-prob-num {
   font-family: 'Syne', sans-serif;
-  font-size: 44px;
+  font-size: 42px;
   font-weight: 800;
+  color: #f0eeea;
   line-height: 1;
-  margin-bottom: 14px;
 }
 
-.cdp-unit {
-  font-size: 20px;
-  font-weight: 600;
-  opacity: 0.5;
-  margin-left: 2px;
+.cdp-prob-caption {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
+  max-width: 180px;
+}
+
+/* ── Nível de risco ──────────────────────────────────── */
+.cdp-risk-badge {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  letter-spacing: 0.01em;
 }
 
 .cdp-track {
-  height: 8px;
-  background: rgba(255,255,255,0.07);
+  height: 4px;
+  background: #1e1e1e;
   border-radius: 99px;
   overflow: hidden;
-  margin-bottom: 10px;
 }
 
 .cdp-fill {
   height: 100%;
   border-radius: 99px;
-  transition: width 1.3s cubic-bezier(0.34, 1.4, 0.64, 1);
+  transition: width 1.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.cdp-score-label {
-  font-size: 13px;
-  font-weight: 600;
-}
-
-/* Texto de card */
+/* ── Texto ───────────────────────────────────────────── */
 .cdp-text {
   font-size: 15px;
   line-height: 1.7;
-  color: rgba(232,230,244,0.82);
+  color: #bbb;
   margin: 0;
   white-space: pre-line;
 }
 
-/* Lista */
+.cdp-text-muted {
+  color: #666;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+/* ── Lista ───────────────────────────────────────────── */
 .cdp-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 11px;
 }
 
 .cdp-li {
-  font-size: 15px;
-  color: rgba(232,230,244,0.82);
-  padding-left: 22px;
+  font-size: 14px;
+  color: #bbb;
+  padding-left: 20px;
   position: relative;
-  line-height: 1.55;
+  line-height: 1.6;
 }
 .cdp-li::before {
   content: "—";
   position: absolute;
   left: 0;
-  color: #22c55e;
+  color: #ef4444;
   font-weight: 700;
 }
 
-/* Decisão */
-.cdp-decision {
-  font-family: 'Syne', sans-serif;
-  font-size: 20px;
-  font-weight: 800;
-  color: #4ade80;
-  line-height: 1.3;
+/* ── Quote ───────────────────────────────────────────── */
+.cdp-quote {
+  font-size: 14px;
+  font-style: italic;
+  color: #f59e0b;
+  border-left: 2px solid rgba(245,158,11,0.4);
+  margin: 0;
+  padding: 10px 16px;
+  line-height: 1.6;
+  background: rgba(245,158,11,0.04);
+  border-radius: 0 6px 6px 0;
 }
 
-/* Disclaimer */
+/* ── Disclaimer ──────────────────────────────────────── */
 .cdp-disclaimer {
+  font-size: 11px;
+  color: #333;
   text-align: center;
-  font-size: 12px;
-  color: rgba(232,230,244,0.28);
-  margin-top: 6px;
-  line-height: 1.5;
+  line-height: 1.65;
+  margin-top: 8px;
+}
+
+/* ── Responsivo ──────────────────────────────────────── */
+@media (max-width: 380px) {
+  .cdp-row { grid-template-columns: 1fr; }
+  .cdp-prob-num { font-size: 36px; }
 }
 `;
