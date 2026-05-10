@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import MotorIAPro from "./MotorIAPro";
 import RiskAnalysis from "./RiskAnalysis";
+import ChanceDePerde from "./ChanceDePerde";
 
 function App() {
   const [hash, setHash] = useState(window.location.hash);
@@ -12,7 +13,8 @@ function App() {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  if (hash === "#risk") return <RiskAnalysis />;
+  if (hash === "#risk")             return <RiskAnalysis />;
+  if (hash === "#chance-de-perder") return <ChanceDePerde />;
   return <MotorIAPro />;
 }
 
