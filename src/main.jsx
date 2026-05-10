@@ -1,25 +1,31 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { createRoot } from "react-dom/client";
-import MotorIAPro from "./MotorIAPro";
-import RiskAnalysis from "./RiskAnalysis";
-import ChanceDePerde from "./ChanceDePerde";
+import { Router, useRouter } from "./router";
+import { GLOBAL_CSS } from "./Layout";
+import Landing    from "./Landing";
+import Analisar   from "./Analisar";
+import Obrigado   from "./Obrigado";
+import AppMembro  from "./AppMembro";
 
 function App() {
-  const [hash, setHash] = useState(window.location.hash);
+  const { path } = useRouter();
 
-  useEffect(() => {
-    const onHashChange = () => setHash(window.location.hash);
-    window.addEventListener("hashchange", onHashChange);
-    return () => window.removeEventListener("hashchange", onHashChange);
-  }, []);
-
-  if (hash === "#risk")             return <RiskAnalysis />;
-  if (hash === "#chance-de-perder") return <ChanceDePerde />;
-  return <MotorIAPro />;
+  if (path === "/analisar")  return <Analisar />;
+  if (path === "/obrigado")  return <Obrigado />;
+  if (path === "/app")       return <AppMembro />;
+  if (path === "/pagar") {
+    // Redireciona para checkout externo — substitua pela URL real
+    window.location.replace("https://pay.kiwify.com.br/SUBSTITUA_AQUI");
+    return null;
+  }
+  return <Landing />;
 }
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <App />
+    <style>{GLOBAL_CSS}</style>
+    <Router>
+      <App />
+    </Router>
   </React.StrictMode>
 );
