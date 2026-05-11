@@ -5,6 +5,7 @@
   "framework": "vite",
   "rewrites": [
     { "source": "/analisar", "destination": "/index.html" },
+    { "source": "/venda",    "destination": "/index.html" },
     { "source": "/app",      "destination": "/index.html" },
     { "source": "/obrigado", "destination": "/index.html" },
     { "source": "/pagar",    "destination": "/index.html" }
