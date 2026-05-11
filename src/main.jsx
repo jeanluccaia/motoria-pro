@@ -17,7 +17,7 @@ function App() {
   if (path === "/obrigado")  return <Obrigado />;
   if (path === "/app")       return <AppMembro />;
   if (path === "/pagar") {
-    window.location.replace("https://pay.kiwify.com.br/SUBSTITUA_AQUI");
+    window.location.replace("https://pay.kiwify.com.br/DIVD8zl");
     return null;
   }
   return <Tool />;
