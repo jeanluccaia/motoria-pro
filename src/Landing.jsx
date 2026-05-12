@@ -90,7 +90,7 @@ export default function Landing() {
             <a href="#como-funciona" className="lp-nav-link">Como funciona</a>
             <a href="#exemplo"       className="lp-nav-link">Exemplo</a>
             <a href="#preco"         className="lp-nav-link">Preço</a>
-            <Link to="/" className="lp-nav-cta">Testar grátis</Link>
+            <Link to="/ferramenta" className="lp-nav-cta">Testar grátis</Link>
           </nav>
         </div>
       </header>
@@ -114,7 +114,7 @@ export default function Landing() {
                 implícita, exposição ao risco e chance de perda antes de qualquer decisão.
               </p>
               <div className="lp-hero-btns">
-                <Link to="/" className="lp-btn-primary">Testar análise →</Link>
+                <Link to="/ferramenta" className="lp-btn-primary">Testar análise →</Link>
                 <a href="#exemplo" className="lp-btn-ghost">Ver exemplo</a>
               </div>
               <div className="lp-trust-row">
@@ -280,7 +280,7 @@ export default function Landing() {
           </div>
 
           <div className="lp-steps-cta">
-            <Link to="/" className="lp-btn-primary">Testar análise gratuitamente →</Link>
+            <Link to="/ferramenta" className="lp-btn-primary">Testar análise gratuitamente →</Link>
           </div>
         </div>
       </section>
@@ -388,7 +388,7 @@ export default function Landing() {
             </div>
 
             <div className="lp-ex-cta">
-              <Link to="/" className="lp-btn-primary">Analisar minha aposta →</Link>
+              <Link to="/ferramenta" className="lp-btn-primary">Analisar minha aposta →</Link>
               <span className="lp-ex-cta-note">Grátis. Sem cadastro. Sem cartão.</span>
             </div>
           </div>
@@ -473,7 +473,7 @@ export default function Landing() {
           </p>
           <div className="lp-final-btns">
             <Link to="/pagar" className="lp-btn-buy">Garantir acesso por R$27 →</Link>
-            <Link to="/"      className="lp-btn-ghost-sm">Testar grátis primeiro</Link>
+            <Link to="/ferramenta"      className="lp-btn-ghost-sm">Testar grátis primeiro</Link>
           </div>
         </div>
       </section>

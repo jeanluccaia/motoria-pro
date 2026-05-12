@@ -11,8 +11,9 @@ import AppMembro  from "./AppMembro";
 function App() {
   const { path } = useRouter();
 
-  if (path === "/")          return <Tool />;
-  if (path === "/venda")     return <Landing />;
+  if (path === "/")            return <Landing />;
+  if (path === "/ferramenta")  return <Tool />;
+  if (path === "/venda")       return <Landing />;
   if (path === "/analisar")  return <Analisar />;
   if (path === "/obrigado")  return <Obrigado />;
   if (path === "/app")       return <AppMembro />;
@@ -20,7 +21,7 @@ function App() {
     window.location.replace("https://pay.kiwify.com.br/DIVD8zl");
     return null;
   }
-  return <Tool />;
+  return <Landing />;
 }
 
 createRoot(document.getElementById("root")).render(
