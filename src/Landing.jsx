@@ -77,11 +77,24 @@ function FaqItem({ q, a }) {
   );
 }
 
-function Avatar({ name }) {
+const AVATAR_PALETTES = [
+  { bg: "rgba(31,203,122,0.12)",  border: "rgba(31,203,122,0.3)",  color: "#1FCB7A" },
+  { bg: "rgba(99,102,241,0.12)",  border: "rgba(99,102,241,0.3)",  color: "#818cf8" },
+  { bg: "rgba(255,176,32,0.12)",  border: "rgba(255,176,32,0.3)",  color: "#FFB020" },
+  { bg: "rgba(244,114,182,0.12)", border: "rgba(244,114,182,0.3)", color: "#f472b6" },
+  { bg: "rgba(45,212,191,0.12)",  border: "rgba(45,212,191,0.3)",  color: "#2dd4bf" },
+  { bg: "rgba(251,146,60,0.12)",  border: "rgba(251,146,60,0.3)",  color: "#fb923c" },
+];
+
+function Avatar({ name, index }) {
+  const p = AVATAR_PALETTES[index % AVATAR_PALETTES.length];
+  const initials = (name.split(" ")[0][0] + (name.split(" ")[1]?.[0] ?? "")).toUpperCase();
   return (
-    <div className="lp-avatar">
-      {name.split(" ")[0][0]}
-      {name.split(" ")[1]?.[0] ?? ""}
+    <div
+      className="lp-avatar"
+      style={{ background: p.bg, border: `1px solid ${p.border}`, color: p.color }}
+    >
+      {initials}
     </div>
   );
 }
@@ -245,12 +258,15 @@ export default function Landing() {
           <div className="lp-testimonials">
             {TESTIMONIALS.map((t, i) => (
               <div key={i} className="lp-testimonial">
+                <div className="lp-test-stars">★★★★★</div>
                 <p className="lp-test-text">"{t.text}"</p>
                 <div className="lp-test-author">
-                  <Avatar name={t.name} />
+                  <Avatar name={t.name} index={i} />
                   <div>
-                    <strong>{t.name}</strong>, {t.age} anos
-                    <br />
+                    <div className="lp-test-name-row">
+                      <strong>{t.name}</strong>, {t.age} anos
+                      <span className="lp-test-verified">✓ verificado</span>
+                    </div>
                     <span className="lp-test-city">{t.city}</span>
                   </div>
                 </div>
@@ -581,21 +597,42 @@ const CSS = `
   align-items: center;
   gap: 12px;
 }
+.lp-test-stars {
+  font-size: 13px;
+  color: #FFB020;
+  letter-spacing: 1px;
+  margin-bottom: 2px;
+}
 .lp-avatar {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: #1E1E1F;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
   flex-shrink: 0;
   text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
-.lp-test-author strong { font-size: 13px; color: var(--text); }
+.lp-test-name-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.lp-test-name-row strong { font-size: 13px; color: var(--text); }
+.lp-test-verified {
+  font-size: 10px;
+  font-weight: 600;
+  color: #1FCB7A;
+  background: rgba(31,203,122,0.1);
+  border: 1px solid rgba(31,203,122,0.2);
+  padding: 1px 6px;
+  border-radius: 99px;
+  letter-spacing: 0.02em;
+}
 .lp-test-city { font-size: 12px; color: var(--muted); }
 
 /* ── Preço ────────────────────────────────────────── */

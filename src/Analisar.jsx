@@ -259,11 +259,26 @@ export default function Analisar() {
           {/* ── WIZARD ───────────────────────────────────────── */}
           {!result && !loading && (
             <>
-              {/* Barra de progresso */}
-              <div className="an-progress-bar">
-                <div className="an-progress-fill" style={{ width: `${(step / 3) * 100}%` }} />
+              {/* Barra de progresso com etapas numeradas */}
+              <div className="an-progress-wrap">
+                <div className="an-step-nums">
+                  {[
+                    { n: 1, title: "Aposta" },
+                    { n: 2, title: "Números" },
+                    { n: 3, title: "Contexto" },
+                  ].map(({ n, title }, i, arr) => (
+                    <div key={n} className="an-step-item">
+                      <div className={`an-step-dot${n < step ? " an-step-done" : n === step ? " an-step-active" : ""}`}>
+                        {n < step ? "✓" : n}
+                      </div>
+                      <span className={`an-step-title${n === step ? " an-step-title-active" : ""}`}>{title}</span>
+                      {i < arr.length - 1 && (
+                        <div className={`an-step-line${n < step ? " an-step-line-done" : ""}`} />
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="an-step-label">Etapa {step} de 3</div>
 
               {/* Step 1 */}
               {step === 1 && (
@@ -336,7 +351,13 @@ export default function Analisar() {
               {step === 3 && (
                 <div className="an-form">
                   <h1 className="an-form-title">Contexto pessoal <span className="an-opt">(opcional)</span></h1>
-                  <p className="an-step3-note">Essas informações são usadas apenas para personalizar a análise. Nada é salvo fora do seu dispositivo.</p>
+                  <div className="an-local-save">
+                    <span className="an-local-save-icon">🔒</span>
+                    <div>
+                      <span className="an-local-save-title">Dados 100% locais</span>
+                      <span className="an-local-save-sub">Nada é enviado ou salvo fora do seu dispositivo.</span>
+                    </div>
+                  </div>
 
                   {/* Alerta de tilt */}
                   {(s3.sentimento === "tentando_recuperar" || s3.sentimento === "frustrado") && (
@@ -598,24 +619,88 @@ const CSS = `
   padding: 32px 20px;
 }
 
-/* Progress */
-.an-progress-bar {
-  height: 3px;
-  background: #1E1E1F;
-  border-radius: 99px;
-  margin-bottom: 8px;
-  overflow: hidden;
+/* Progress numerado */
+.an-progress-wrap { margin-bottom: 32px; }
+
+.an-step-nums {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  position: relative;
 }
-.an-progress-fill {
-  height: 100%;
-  background: var(--text);
-  border-radius: 99px;
-  transition: width 0.4s ease;
+.an-step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  flex: 1;
 }
-.an-step-label {
-  font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 28px;
+.an-step-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  font-size: 12px; font-weight: 800;
+  color: #2e2e30;
+  border: 1.5px solid #222;
+  background: #0A0A0B;
+  transition: all 0.25s;
+  z-index: 1;
+}
+.an-step-active {
+  color: var(--text);
+  border-color: var(--text);
+  background: rgba(242,242,240,0.07);
+  box-shadow: 0 0 0 4px rgba(242,242,240,0.05);
+}
+.an-step-done {
+  color: #1FCB7A;
+  border-color: rgba(31,203,122,0.5);
+  background: rgba(31,203,122,0.08);
+  font-size: 11px;
+}
+.an-step-title {
+  font-size: 10px;
+  font-weight: 600;
+  color: #2e2e30;
+  letter-spacing: 0.03em;
+  text-align: center;
+  white-space: nowrap;
+  transition: color 0.25s;
+}
+.an-step-title-active { color: var(--muted); }
+.an-step-line {
+  position: absolute;
+  top: 15px;
+  left: calc(50% + 18px);
+  right: calc(-50% + 18px);
+  height: 1px;
+  background: #1a1a1b;
+  transition: background 0.3s;
+}
+.an-step-line-done { background: rgba(31,203,122,0.3); }
+
+/* Local save indicator */
+.an-local-save {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(31,203,122,0.05);
+  border: 1px solid rgba(31,203,122,0.18);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-top: -4px;
+}
+.an-local-save-icon { font-size: 15px; flex-shrink: 0; }
+.an-local-save-title {
+  font-size: 12px; font-weight: 700;
+  color: #1FCB7A; display: block;
+}
+.an-local-save-sub {
+  font-size: 11px; color: #555;
+  display: block; line-height: 1.4; margin-top: 1px;
 }
 
 /* Form */

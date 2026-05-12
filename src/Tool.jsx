@@ -205,7 +205,15 @@ export default function Tool() {
 
             <div className="tl-row-2">
               <div className="tl-field">
-                <label className="tl-label">Odd</label>
+                <label className="tl-label">
+                  Odd
+                  <span className="tl-tooltip-wrap" tabIndex="0" aria-label="O que é odd?">
+                    <span className="tl-info-icon">?</span>
+                    <span className="tl-tooltip" role="tooltip">
+                      A odd é o multiplicador pago pela casa se você ganhar. Odd 2.00 significa que a casa estima 50% de chance de você acertar. Quanto maior a odd, menor essa chance — e maior o risco real.
+                    </span>
+                  </span>
+                </label>
                 <input
                   className="tl-input"
                   value={odd}
@@ -491,12 +499,12 @@ const CSS = `
   gap: 8px; justify-content: center;
 }
 .tl-trust-pill {
-  font-size: 11px; color: #4a4a4c;
-  border: 1px solid #1e1e1f;
+  font-size: 11px; color: #888;
+  border: 1px solid #333;
   border-radius: 99px;
   padding: 4px 10px;
   white-space: nowrap;
-  background: rgba(255,255,255,0.015);
+  background: rgba(255,255,255,0.03);
 }
 
 /* ── Form card ────────────────────────────────────────────── */
@@ -730,10 +738,68 @@ option { background: #111; color: #F2F2F0; }
 }
 .tl-disclaimer a { color: #2e2e30; text-decoration: underline; }
 
+/* ── Tooltip ─────────────────────────────────────────────── */
+.tl-tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  cursor: pointer;
+  vertical-align: middle;
+  outline: none;
+}
+.tl-info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 1px solid #444;
+  font-size: 9px;
+  color: #555;
+  font-weight: 700;
+  line-height: 1;
+  transition: border-color 0.15s, color 0.15s;
+}
+.tl-tooltip-wrap:hover .tl-info-icon,
+.tl-tooltip-wrap:focus .tl-info-icon { border-color: #888; color: #aaa; }
+.tl-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a1c;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #aaa;
+  line-height: 1.6;
+  width: 240px;
+  z-index: 300;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  pointer-events: none;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.tl-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%; left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgba(255,255,255,0.1);
+}
+.tl-tooltip-wrap:hover .tl-tooltip,
+.tl-tooltip-wrap:focus .tl-tooltip { display: block; }
+
 /* ── Mobile ───────────────────────────────────────────────── */
 @media (max-width: 500px) {
   .tl-hero { padding: 36px 0 28px; }
   .tl-hero-title { font-size: 26px; }
+  .tl-hero-title-dim { color: #F2F2F0; }
   .tl-hero-sub { font-size: 14px; }
   .tl-form-card { padding: 20px 16px; border-radius: 16px; gap: 16px; }
   .tl-row-2 { grid-template-columns: 1fr; gap: 16px; }
