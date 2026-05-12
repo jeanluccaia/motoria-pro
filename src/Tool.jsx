@@ -21,9 +21,9 @@ const TIPOS = [
 
 const LOADING_STEPS = [
   "Calculando probabilidade implícita...",
-  "Analisando risco...",
+  "Cruzando odd com exposição ao risco...",
   "Identificando pontos cegos...",
-  "Preparando leitura conservadora...",
+  "Montando leitura conservadora...",
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -36,6 +36,16 @@ function perdaInfo(chancePerda) {
   if (chancePerda > 60) return { label: "ALTA",  color: "#FF4D2E" };
   if (chancePerda > 42) return { label: "MÉDIA", color: "#FFB020" };
   return                       { label: "BAIXA", color: "#1FCB7A" };
+}
+
+function calcScore(oddN) {
+  const score = Math.min(100, Math.round(100 - calcImplicita(oddN)));
+  let label, color;
+  if (score <= 30)      { label = "BAIXO";    color = "#1FCB7A"; }
+  else if (score <= 60) { label = "MODERADO"; color = "#FFB020"; }
+  else if (score <= 80) { label = "ALTO";     color = "#FF6B2E"; }
+  else                  { label = "EXTREMO";  color = "#FF4D2E"; }
+  return { score, label, color };
 }
 
 function matchLine(text, key) {
@@ -129,7 +139,8 @@ export default function Tool() {
     }
   }
 
-  const perda   = result ? perdaInfo(100 - result.prob) : null;
+  const perda     = result ? perdaInfo(100 - result.prob) : null;
+  const scoreData = result ? calcScore(result.oddN) : null;
   const bullets = (result?.ai.oQuePodeDarErrado || "")
     .split("\n").filter((l) => l.trim()).map((l) => l.replace(/^[-•*]\s*/, ""));
 
@@ -159,11 +170,11 @@ export default function Tool() {
             <div className="tl-hero-tag">FERRAMENTA EDUCATIVA DE ANÁLISE DE RISCO</div>
             <h1 className="tl-hero-title">
               Antes de apostar,<br />
-              <span className="tl-hero-title-dim">veja o que pode dar errado.</span>
+              <span className="tl-hero-title-dim">entenda o risco.</span>
             </h1>
             <p className="tl-hero-sub">
-              Uma análise conservadora para entender risco, probabilidade implícita
-              e chance de perda antes de tomar qualquer decisão.
+              Uma ferramenta educativa para analisar probabilidade implícita,
+              chance de perda e pontos cegos antes de qualquer decisão.
             </p>
             <div className="tl-trust-row">
               {[
@@ -277,6 +288,54 @@ export default function Tool() {
                 <span className="tl-result-hdr-odd">odd {result.oddN.toFixed(2)}</span>
               </div>
 
+              {/* SCORE DE RISCO MOTORIA */}
+              <div
+                className="tl-card tl-card-score"
+                style={{ borderColor: scoreData.color + "33", background: scoreData.color + "07" }}
+              >
+                <div className="tl-card-tag" style={{ color: scoreData.color + "88" }}>
+                  SCORE DE RISCO MOTORIA™
+                </div>
+                <div className="tl-score-row">
+                  <div className="tl-score-num" style={{ color: scoreData.color }}>
+                    {scoreData.score}
+                  </div>
+                  <div className="tl-score-right">
+                    <span
+                      className="tl-badge tl-score-badge"
+                      style={{
+                        background: scoreData.color + "18",
+                        color: scoreData.color,
+                        border: `1px solid ${scoreData.color}40`,
+                      }}
+                    >
+                      {scoreData.label}
+                    </span>
+                    <div className="tl-score-bar-wrap">
+                      <div className="tl-score-bar-track">
+                        <div
+                          className="tl-score-bar-fill"
+                          style={{ width: `${scoreData.score}%`, background: scoreData.color }}
+                        />
+                        {[30, 60, 80].map((tick) => (
+                          <div key={tick} className="tl-score-tick" style={{ left: `${tick}%` }} />
+                        ))}
+                      </div>
+                      <div className="tl-score-bar-labels">
+                        <span>Baixo</span>
+                        <span>Moderado</span>
+                        <span>Alto</span>
+                        <span>Extremo</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p className="tl-score-note">
+                  Este score não recomenda aposta. Ele apenas resume a exposição ao risco
+                  com base nas informações fornecidas.
+                </p>
+              </div>
+
               {/* A — Probabilidade implícita */}
               <div className="tl-card tl-card-a">
                 <div className="tl-card-tag">A · PROBABILIDADE IMPLÍCITA</div>
@@ -366,8 +425,8 @@ export default function Tool() {
               </button>
 
               <p className="tl-disclaimer">
-                Ferramenta educativa de análise de risco. Não é recomendação de aposta.
-                Não prevê resultados. Apostas envolvem risco financeiro real.{" "}
+                Esta ferramenta tem finalidade educativa. Não constitui recomendação de aposta,
+                investimento ou garantia de resultado. Apostas envolvem risco financeiro real.{" "}
                 <a href="https://www.jogoresponsavel.com.br" target="_blank" rel="noopener noreferrer">
                   jogoresponsavel.com.br
                 </a>
@@ -794,6 +853,78 @@ option { background: #111; color: #F2F2F0; }
 }
 .tl-tooltip-wrap:hover .tl-tooltip,
 .tl-tooltip-wrap:focus .tl-tooltip { display: block; }
+
+/* ── Score de Risco ──────────────────────────────────────── */
+.tl-score-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.tl-score-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 64px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  flex-shrink: 0;
+  min-width: 80px;
+}
+.tl-score-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 6px;
+}
+.tl-score-badge {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 5px 14px;
+  border-radius: 8px;
+  align-self: flex-start;
+}
+.tl-score-bar-wrap { display: flex; flex-direction: column; gap: 6px; }
+.tl-score-bar-track {
+  position: relative;
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 99px;
+  overflow: visible;
+}
+.tl-score-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+.tl-score-tick {
+  position: absolute;
+  top: -3px;
+  width: 1px;
+  height: 12px;
+  background: rgba(255,255,255,0.1);
+  transform: translateX(-50%);
+}
+.tl-score-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: #2e2e30;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.tl-score-note {
+  font-size: 11px;
+  color: #3a3a3c;
+  font-style: italic;
+  line-height: 1.6;
+  margin: 0;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  padding-top: 12px;
+}
 
 /* ── Mobile ───────────────────────────────────────────────── */
 @media (max-width: 500px) {
