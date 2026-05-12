@@ -967,6 +967,9 @@ Analise os dados enviados e responda EXATAMENTE neste formato (sem texto antes d
 
 NIVEL_RISCO: [use exatamente uma dessas opções: Baixo / Médio / Alto / Crítico]
 
+RISCO_PRINCIPAL:
+[1-2 linhas diretas sobre o maior perigo desta aposta específica, em linguagem acessível. Por que ela é mais frágil do que parece à primeira vista. Evite jargão excessivo — seja claro e objetivo.]
+
 CENARIO_NECESSARIO:
 [2-3 linhas diretas sobre o que precisa acontecer para essa aposta funcionar. Considere o mercado específico (1x2, over/under, BTTS, etc.), o contexto da competição e o perfil dos times. Não romantize — seja técnico e realista.]
 
