@@ -11,12 +11,10 @@ import AppMembro  from "./AppMembro";
 function App() {
   const { path } = useRouter();
 
-  if (path === "/")            return <Landing />;
-  if (path === "/ferramenta")  return <Tool />;
-  if (path === "/venda")       return <Landing />;
-  if (path === "/analisar")  return <Analisar />;
-  if (path === "/obrigado")  return <Obrigado />;
-  if (path === "/app")       return <AppMembro />;
+  if (path === "/ferramenta") return <Tool />;
+  if (path === "/analisar")   return <Analisar />;
+  if (path === "/obrigado")   return <Obrigado />;
+  if (path === "/app")        return <AppMembro />;
   if (path === "/pagar") {
     window.location.replace("https://pay.kiwify.com.br/DIVD8zl");
     return null;
