@@ -103,7 +103,7 @@ export default function Landing() {
             <a href="#como-funciona" className="lp-nav-link">Como funciona</a>
             <a href="#preco"         className="lp-nav-link">Preço</a>
           </nav>
-          <Link to="/ferramenta" className="lp-nav-cta">Acessar ferramenta →</Link>
+          <Link to="/pagar" className="lp-nav-cta">Garantir acesso →</Link>
         </div>
       </header>
 
@@ -136,8 +136,8 @@ export default function Landing() {
             </p>
 
             <div className="lp-hero-actions">
-              <Link to="/ferramenta" className="lp-btn-hero">
-                Entender o risco
+              <Link to="/pagar" className="lp-btn-hero">
+                Garantir acesso — R$27
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                   <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -346,8 +346,8 @@ export default function Landing() {
             ))}
           </div>
           <div className="lp-analisa-cta">
-            <Link to="/ferramenta" className="lp-btn-hero">
-              Conhecer a ferramenta
+            <Link to="/pagar" className="lp-btn-hero">
+              Quero ver o risco das minhas apostas
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                 <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -378,7 +378,7 @@ export default function Landing() {
             ))}
           </div>
           <div style={{ textAlign: "center" }}>
-            <Link to="/ferramenta" className="lp-btn-hero">
+            <Link to="/pagar" className="lp-btn-hero">
               Entender o risco antes de decidir
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                 <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -492,8 +492,7 @@ export default function Landing() {
           </h2>
           <p className="lp-cta-sub">20 análises por R$27. Recarregável quando precisar.</p>
           <div className="lp-cta-actions">
-            <Link to="/pagar"      className="lp-btn-buy lp-btn-buy-lg">Garantir acesso por R$27 →</Link>
-            <Link to="/ferramenta" className="lp-btn-ghost-sm">Testar grátis primeiro</Link>
+            <Link to="/pagar" className="lp-btn-buy lp-btn-buy-lg">Garantir acesso por R$27 →</Link>
           </div>
           <div className="lp-cta-trust">
             <span>Sem cadastro para testar</span>
@@ -766,41 +765,20 @@ const CSS = `
 .lp-photo-img {
   width: 100%; display: block;
   border-radius: 16px;
-  /* No border — photo bleeds into background via overlay */
   object-fit: cover; object-position: top center;
   aspect-ratio: 4/5;
-  /*
-    Multi-stop mask: keeps face/torso sharp, melts gently into dark BG.
-    More cinematic than a single-stop gradient.
-  */
-  mask-image: linear-gradient(
-    to bottom,
-    black 0%,
-    black 48%,
-    rgba(0,0,0,.75) 68%,
-    rgba(0,0,0,.2) 86%,
-    transparent 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    black 0%,
-    black 48%,
-    rgba(0,0,0,.75) 68%,
-    rgba(0,0,0,.2) 86%,
-    transparent 100%
-  );
   box-shadow: 0 28px 72px rgba(0,0,0,.55);
 }
 /*
-  Cinematic overlay: left-edge fade blends photo into the dark gap,
-  bottom fade reinforces the mask. Creates "part of the scene" feel.
+  Cinematic overlay: left-edge fade + bottom fade — sem mask no <img>,
+  o overlay faz todo o trabalho de fundir a foto no fundo escuro.
 */
 .lp-photo-overlay {
   position: absolute; inset: 0; z-index: 2;
   border-radius: 16px;
   background:
-    linear-gradient(100deg, rgba(5,5,5,.5) 0%, rgba(5,5,5,.1) 22%, transparent 40%),
-    linear-gradient(to bottom, transparent 40%, rgba(5,5,5,.55) 72%, rgba(5,5,5,.92) 100%);
+    linear-gradient(100deg, rgba(5,5,5,.55) 0%, rgba(5,5,5,.12) 20%, transparent 38%),
+    linear-gradient(to bottom, transparent 30%, rgba(5,5,5,.25) 52%, rgba(5,5,5,.65) 72%, rgba(5,5,5,.97) 100%);
   pointer-events: none;
 }
 .lp-photo-empty .lp-photo-img { display: none; }
@@ -1237,10 +1215,10 @@ const CSS = `
   .lp-hero-right {
     max-width: 420px; margin: 44px auto 0; width: 100%;
   }
-  /* Photo overlay: reduce left-edge fade (less needed when centered) */
+  /* Photo overlay: remove left-edge fade when centered */
   .lp-photo-overlay {
     background:
-      linear-gradient(to bottom, transparent 38%, rgba(5,5,5,.5) 70%, rgba(5,5,5,.92) 100%);
+      linear-gradient(to bottom, transparent 30%, rgba(5,5,5,.25) 52%, rgba(5,5,5,.65) 72%, rgba(5,5,5,.97) 100%);
   }
   .lp-float-score { left: -12px; bottom: 28px; }
   .lp-float-metrics { right: -12px; top: 20px; }
@@ -1282,9 +1260,8 @@ const CSS = `
   .lp-hero-actions { flex-direction: column; align-items: stretch; }
   .lp-btn-hero { justify-content: center; }
   .lp-analisa-row { padding: 18px 16px; }
-  /* Photo: no left-edge overlay on very small screens */
   .lp-photo-overlay {
-    background: linear-gradient(to bottom, transparent 36%, rgba(5,5,5,.5) 68%, rgba(5,5,5,.9) 100%);
+    background: linear-gradient(to bottom, transparent 30%, rgba(5,5,5,.3) 55%, rgba(5,5,5,.7) 75%, rgba(5,5,5,.97) 100%);
   }
 }
 `;
