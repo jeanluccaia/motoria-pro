@@ -13,30 +13,30 @@ const ANALISA = [
 ];
 
 const TESTIMONIALS = [
-  { name: "Ricardo M.", age: 34, city: "São Paulo",      text: "Finalmente entendi por que perdia toda semana. A margem da casa me engolia e eu nem sabia disso." },
-  { name: "Ana C.",     age: 28, city: "Belo Horizonte", text: "Vi que minha odd 'segura' de 1.50 tinha 66% de chance de dar errado. Nunca mais apostei sem analisar antes." },
-  { name: "Felipe S.",  age: 41, city: "Rio de Janeiro", text: "O alerta de tilt salvou meu mês. Ia dobrar o prejuízo tentando recuperar e nem percebia." },
-  { name: "Mariana T.", age: 25, city: "Curitiba",       text: "Simples, direto, honesto. Não promete nada mas mostra tudo que a casa esconde na odd." },
-  { name: "Gustavo R.", age: 37, city: "Porto Alegre",   text: "Em anos apostando, nunca tinha visto meu prejuízo projetado assim. Assustador e essencial." },
-  { name: "Cássia F.",  age: 44, city: "Salvador",       text: "Meu marido apostava R$200 por semana. Depois da simulação de 30 dias, parou na hora." },
+  { name: "Ricardo M.", age: 34, city: "São Paulo",      text: "Tomei um susto quando vi o número. Achava que só precisava acertar o jogo, mas a casa já come uma parte antes mesmo de começar." },
+  { name: "Ana C.",     age: 28, city: "Belo Horizonte", text: "Fiz a análise de uma aposta que achava certeira, odd 1.50. Deu 66% de chance de perder e eu travei. Não apostei. Perdi mesmo." },
+  { name: "Felipe S.",  age: 41, city: "Rio de Janeiro", text: "Tava em dia horrível, 3 perdas seguidas. Fui analisar uma 'recuperação' e o sistema sinalizou risco alto. Parei. Isso vale mais que qualquer dica." },
+  { name: "Mariana T.", age: 25, city: "Curitiba",       text: "Não é mágica, não promete nada. É uma lupa em cima do que você vai fazer. Simples assim — uso antes de qualquer decisão agora." },
+  { name: "Gustavo R.", age: 37, city: "Porto Alegre",   text: "Coloquei meu padrão de aposta no simulador. Projeção de 30 dias: negativo. Óbvio quando você vê na tela. Impossível de ver sozinho." },
+  { name: "Cássia F.",  age: 44, city: "Salvador",       text: "Mostrei ao meu marido a projeção com o que ele apostava por semana. Ele fechou o computador, ficou quieto um minuto. Semana seguinte havia parado." },
 ];
 
 const FEATURES = [
-  "Análises ilimitadas — sem limite diário",
-  "Score de Risco MotorIA™ (0–100) por aposta",
+  "20 análises incluídas no pacote inicial",
+  "Score de Risco MotorIA™ (0–100) por análise",
   "Probabilidade implícita calculada na hora",
   "Margem da casa (vig) decodificada por mercado",
   "Simulador de bankroll — projeção 30 e 90 dias",
   "Detector de tilt — alerta comportamental de risco",
   "8 indicadores matemáticos por análise completa",
-  "Diário de apostas: resultado real vs esperado",
-  "Acesso vitalício — pague uma vez, use para sempre",
+  "Relatório com pontos cegos e leitura conservadora",
+  "Recarregável — +20 análises por R$27 quando precisar",
 ];
 
 const FAQ_ITEMS = [
   { q: "Funciona para qualquer esporte?",          a: "Sim. A análise se baseia na matemática da odd, que é universal — futebol, basquete, tênis, MMA, eSports e qualquer mercado com odds." },
   { q: "Vocês são uma casa de aposta?",            a: "Não. Somos uma ferramenta educativa independente. Não fazemos apostas, não vendemos odds e não temos nenhuma relação com casas de aposta." },
-  { q: "É assinatura mensal?",                     a: "Não. Você paga R$27 uma vez e tem acesso vitalício. Sem renovações, sem surpresas." },
+  { q: "É assinatura mensal?",                     a: "Não. Você compra um pacote de 20 análises por R$27. Sem renovação automática, sem mensalidade. Quando usar tudo, recarregue por mais R$27 quando precisar." },
   { q: "Vocês dão palpites ou previsões?",         a: "Nunca. Mostramos riscos, probabilidades matemáticas e impacto financeiro. A decisão é sempre sua." },
   { q: "Como recebo o acesso após o pagamento?",   a: "Imediatamente. Após o pagamento confirmado, você recebe o link de acesso no email de confirmação." },
   { q: "Funciona no celular?",                     a: "Sim. A ferramenta é 100% mobile-first, feita para usar antes de qualquer decisão, de onde você estiver." },
@@ -427,12 +427,12 @@ export default function Landing() {
             </ul>
             <div className="lp-price-card">
               <div className="lp-price-card-glow" aria-hidden="true" />
-              <div className="lp-price-eyebrow">Acesso vitalício</div>
+              <div className="lp-price-eyebrow">Pacote de 20 análises</div>
               <div className="lp-price-display">
                 <span className="lp-price-curr">R$</span>
                 <span className="lp-price-int">27</span>
               </div>
-              <p className="lp-price-note">Pague uma vez. Use para sempre.</p>
+              <p className="lp-price-note">20 análises incluídas. Recarregável por R$27 quando quiser.</p>
               <Link to="/pagar" className="lp-btn-buy">
                 Garantir acesso imediato →
               </Link>
@@ -469,7 +469,7 @@ export default function Landing() {
             Entender o risco<br />
             <span className="lp-cta-h2-dim">antes de decidir.</span>
           </h2>
-          <p className="lp-cta-sub">Acesso imediato por R$27. Vitalício, sem mensalidade.</p>
+          <p className="lp-cta-sub">20 análises por R$27. Recarregável quando precisar.</p>
           <div className="lp-cta-actions">
             <Link to="/pagar"      className="lp-btn-buy lp-btn-buy-lg">Garantir acesso por R$27 →</Link>
             <Link to="/ferramenta" className="lp-btn-ghost-sm">Testar grátis primeiro</Link>
@@ -505,9 +505,10 @@ const CSS = `
   --bg-2:      #080809;
   --border:    rgba(255,255,255,0.07);
   --border-md: rgba(255,255,255,0.11);
+  --grid:      rgba(255,255,255,0.025);
   --t1: #EBEBEB;
-  --t2: #737373;
-  --t3: #404040;
+  --t2: #8A8A8A;
+  --t3: #525252;
   --green: #22c55e;
   --red:   #ef4444;
   --amber: #f59e0b;
@@ -611,8 +612,8 @@ const CSS = `
 .lp-hero-grid {
   position: absolute; inset: 0;
   background-image:
-    linear-gradient(var(--border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
   background-size: 64px 64px;
   mask-image: radial-gradient(ellipse 80% 100% at 50% 0%, black 40%, transparent 100%);
   -webkit-mask-image: radial-gradient(ellipse 80% 100% at 50% 0%, black 40%, transparent 100%);
@@ -823,7 +824,10 @@ const CSS = `
 .lp-data-item {
   display: flex; align-items: center; gap: 18px;
   padding: 16px 48px; flex: 1; min-width: 240px;
+  transition: background .18s;
+  cursor: default;
 }
+.lp-data-item:hover { background: rgba(255,255,255,.015); }
 .lp-data-num {
   font-size: 40px; font-weight: 900;
   line-height: 1; flex-shrink: 0;
@@ -872,7 +876,9 @@ const CSS = `
   display: flex; justify-content: space-between; align-items: center;
   padding: 11px 18px;
   border-top: 1px solid var(--border);
+  transition: background .15s;
 }
+.lp-pcard-row:hover { background: rgba(255,255,255,.02); }
 .lp-pcard-row-lbl { font-size: 13px; color: var(--t3); }
 .lp-pcard-row-val {
   font-size: 14px; font-weight: 800;
@@ -893,10 +899,13 @@ const CSS = `
   gap: 0; position: relative;
   padding: 24px 28px;
   border-bottom: 1px solid var(--border);
-  transition: background .15s;
+  transition: background .18s, box-shadow .18s;
 }
 .lp-analisa-row:last-child { border-bottom: none; }
-.lp-analisa-row:hover { background: rgba(255,255,255,.02); }
+.lp-analisa-row:hover {
+  background: rgba(34,197,94,.03);
+  box-shadow: inset 3px 0 0 rgba(34,197,94,.35);
+}
 .lp-analisa-n {
   font-size: 12px; font-weight: 800;
   color: rgba(34,197,94,.4); letter-spacing: .06em;
@@ -995,7 +1004,12 @@ const CSS = `
   list-style: none; display: flex; flex-direction: column; gap: 16px;
   padding: 0; margin: 0;
 }
-.lp-feature-item { display: flex; gap: 12px; font-size: 15px; color: var(--t2); align-items: baseline; }
+.lp-feature-item {
+  display: flex; gap: 12px; font-size: 15px; color: var(--t2); align-items: baseline;
+  padding: 6px 8px; border-radius: 8px; margin: 0 -8px;
+  transition: background .15s, color .15s;
+}
+.lp-feature-item:hover { background: rgba(255,255,255,.025); color: var(--t1); }
 .lp-feature-check { color: var(--green); font-weight: 700; flex-shrink: 0; }
 .lp-price-card {
   position: sticky; top: 72px;
@@ -1092,8 +1106,8 @@ const CSS = `
 .lp-cta-grid {
   position: absolute; inset: 0;
   background-image:
-    linear-gradient(var(--border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
   background-size: 64px 64px;
   mask-image: radial-gradient(ellipse 70% 80% at 50% 100%, black 20%, transparent 80%);
   -webkit-mask-image: radial-gradient(ellipse 70% 80% at 50% 100%, black 20%, transparent 80%);
@@ -1159,6 +1173,14 @@ const CSS = `
   .lp-h1 { font-size: clamp(38px, 10vw, 60px); }
   .lp-cta-final { padding: 80px 0; }
   .lp-cta-h2 { font-size: clamp(32px, 9vw, 48px); }
+  .lp-problem-layout { gap: 28px; }
+  .lp-h2-narrow { margin-bottom: 32px; }
+  .lp-pricing-sub { margin-bottom: 28px; }
+  .lp-features-list { gap: 12px; }
+  .lp-feature-item { font-size: 14px; }
+  .lp-cta-trust { font-size: 11px; gap: 8px; }
+  .lp-faq-q { font-size: 14px; }
+  .lp-author-quote { font-size: 13px; }
 }
 @media (max-width: 480px) {
   .lp-float-score { left: 8px; }
