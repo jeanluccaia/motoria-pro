@@ -6,25 +6,61 @@
     <meta name="description" content="Antes de apostar, descubra o quanto você realmente pode perder. Ferramenta educativa de análise de risco — não somos casa de aposta." />
     <title>MotorIA Pro · Análise de Risco</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <!-- Meta Pixel Code -->
+
+    <!-- ── Fonts: preconnect first, then non-blocking stylesheet ──────────── -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!--
+      Load fonts non-blocking: media="print" tricks browser into downloading
+      without blocking render; onload switches back to "all" so it applies.
+      The noscript tag handles the rare JS-disabled case.
+    -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@700;800;900&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@700;800;900&display=swap" />
+    </noscript>
+
+    <!-- ── Hero image preload: AVIF for modern browsers, WebP fallback ────── -->
+    <link rel="preload" as="image" href="/jean-analise-960.avif" type="image/avif"
+          imagesrcset="/jean-analise-480.avif 480w, /jean-analise-960.avif 960w"
+          imagesizes="(max-width: 960px) 440px, 480px" />
+
+    <!-- ── Meta Pixel: loaded after idle to avoid blocking LCP/TBT ─────────
+         fbq() stub is synchronous (inline, tiny) so events queued before
+         the script loads are not lost. Only the heavy fbevents.js download
+         is deferred via requestIdleCallback / setTimeout fallback.
+    ──────────────────────────────────────────────────────────────────────── -->
     <script>
-    !function(f,b,e,v,n,t,s)
-    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '1525433545926710');
-    fbq('track', 'PageView');
+    // Stub — queues calls until fbevents.js is ready, zero network cost.
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){
+    n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];}(window,document,'script','');
+    fbq('init','1525433545926710');
+    fbq('track','PageView');
+
+    // Deferred load: browser idle (up to 5 s grace) or after first interaction.
+    function _loadPixel(){
+      var t=document.createElement('script');t.async=!0;
+      t.src='https://connect.facebook.net/en_US/fbevents.js';
+      document.head.appendChild(t);
+    }
+    if('requestIdleCallback' in window){
+      requestIdleCallback(_loadPixel,{timeout:5000});
+    } else {
+      setTimeout(_loadPixel,3500);
+    }
     </script>
-    <!-- End Meta Pixel Code -->
   </head>
   <body>
-    <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=1525433545926710&ev=PageView&noscript=1"
-    /></noscript>
+    <noscript>
+      <img height="1" width="1" style="display:none"
+        src="https://www.facebook.com/tr?id=1525433545926710&ev=PageView&noscript=1" />
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

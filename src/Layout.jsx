@@ -65,7 +65,7 @@ export function Footer() {
 }
 
 export const GLOBAL_CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@700;800;900&display=swap');
+/* @import removed — fonts are loaded as non-blocking <link> in index.html. */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -85,7 +85,12 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Inter', sans-serif;
+  /*
+    System-font stack renders instantly (zero CLS before Inter arrives).
+    Inter/Syne declared first — browser swaps in silently once loaded.
+  */
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system,
+               BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   line-height: 1.6;
 }

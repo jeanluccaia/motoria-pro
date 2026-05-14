@@ -1,12 +1,20 @@
-import React from "react";
+import { lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { Router, useRouter } from "./router";
 import { GLOBAL_CSS } from "./Layout";
-import Tool       from "./Tool";
-import Landing    from "./Landing";
-import Analisar   from "./Analisar";
-import Obrigado   from "./Obrigado";
-import AppMembro  from "./AppMembro";
+
+/*
+  Route-level code splitting:
+  Each page is its own chunk — landing visitors never download Tool/Analisar/etc.
+  Tool visitors never download the full Landing CSS blob.
+  The Suspense fallback is intentionally minimal (dark bg only, no spinner)
+  so there is no visible flash or layout shift.
+*/
+const Landing   = lazy(() => import("./Landing"));
+const Tool      = lazy(() => import("./Tool"));
+const Analisar  = lazy(() => import("./Analisar"));
+const Obrigado  = lazy(() => import("./Obrigado"));
+const AppMembro = lazy(() => import("./AppMembro"));
 
 function App() {
   const { path } = useRouter();
@@ -23,10 +31,10 @@ function App() {
 }
 
 createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
+  <Suspense fallback={<div style={{ minHeight: "100vh", background: "#050505" }} />}>
     <style>{GLOBAL_CSS}</style>
     <Router>
       <App />
     </Router>
-  </React.StrictMode>
+  </Suspense>
 );

@@ -168,12 +168,29 @@ export default function Landing() {
           <div className="lp-hero-right">
             <div className="lp-photo-frame">
               <div className="lp-photo-glow" aria-hidden="true" />
-              <img
-                src="/jean-analise.png"
-                alt="Jean Lucca — criador do MotorIA Pro"
-                className="lp-photo-img"
-                onError={(e) => { e.currentTarget.parentElement.classList.add("lp-photo-empty"); }}
-              />
+              {/* AVIF → WebP → PNG fallback; fetchpriority=high = LCP candidate */}
+              <picture>
+                <source
+                  type="image/avif"
+                  srcSet="/jean-analise-480.avif 480w, /jean-analise-960.avif 960w"
+                  sizes="(max-width: 960px) 440px, 480px"
+                />
+                <source
+                  type="image/webp"
+                  srcSet="/jean-analise-480.webp 480w, /jean-analise-960.webp 960w"
+                  sizes="(max-width: 960px) 440px, 480px"
+                />
+                <img
+                  src="/jean-analise-960.webp"
+                  alt="Jean Lucca — criador do MotorIA Pro"
+                  className="lp-photo-img"
+                  width="960"
+                  height="1200"
+                  fetchPriority="high"
+                  decoding="async"
+                  onError={(e) => { e.currentTarget.closest(".lp-photo-frame").classList.add("lp-photo-empty"); }}
+                />
+              </picture>
 
               {/* Floating score card */}
               <div className="lp-float-score">
