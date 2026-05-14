@@ -29,10 +29,14 @@ async function cmd(...args) {
       cache: "no-store",
     });
     const d = await r.json();
-    if (d.error) { console.error("[db] Redis error:", d.error); return null; }
+    if (d.error) {
+      // Truncar mensagem de erro — não expor config interna nos logs
+      console.error("[db] Redis error:", String(d.error).slice(0, 120));
+      return null;
+    }
     return d.result ?? null;
   } catch (err) {
-    console.error("[db] Fetch error:", err.message);
+    console.error("[db] Fetch error:", String(err.message).slice(0, 120));
     return null;
   }
 }

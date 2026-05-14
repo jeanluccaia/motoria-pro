@@ -116,7 +116,12 @@ export default function Tool() {
         setTokenError("");
         return true;
       } else {
-        if (showErrorOnFail) setTokenError("Token inválido ou não encontrado.");
+        // Diferenciar token expirado de token inválido
+        const msg =
+          data.code === "TOKEN_EXPIRED"
+            ? "Seu token expirou. Adquira um novo pacote para continuar."
+            : "Token inválido ou não encontrado.";
+        if (showErrorOnFail) setTokenError(msg);
         localStorage.removeItem(TOKEN_KEY);
         setToken("");
         return false;
@@ -204,11 +209,15 @@ export default function Tool() {
         stopCycle();
         return;
       }
-      if (res.status === 401 && data.code === "INVALID_TOKEN") {
+      if (res.status === 401) {
         localStorage.removeItem(TOKEN_KEY);
         setToken("");
         setCredits(null);
-        throw new Error("Sessão expirada. Insira seu token novamente.");
+        const msg =
+          data.code === "TOKEN_EXPIRED"
+            ? "Seu token expirou. Adquira um novo pacote para continuar."
+            : "Sessão inválida. Insira seu token novamente.";
+        throw new Error(msg);
       }
       if (!res.ok) throw new Error(data.error || "Erro ao processar. Tente novamente.");
 
