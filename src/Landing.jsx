@@ -763,22 +763,42 @@ const CSS = `
   animation: glowPulse 7s ease-in-out infinite;
 }
 .lp-photo-img {
-  width: 100%; display: block;
-  border-radius: 16px;
+  width: 100%;
+  height: auto;       /* Override HTML height="1200" attr — let aspect-ratio drive height */
+  display: block;
+  border-radius: 20px;
   object-fit: cover; object-position: top center;
   aspect-ratio: 4/5;
-  box-shadow: 0 28px 72px rgba(0,0,0,.55);
+  /*
+    Radial vignette centred on face (~50% x, ~30% y in 4:5 frame).
+    Fades all edges naturally — no linear cutoff visible anywhere.
+  */
+  mask-image: radial-gradient(
+    ellipse 82% 88% at 50% 30%,
+    black 28%,
+    rgba(0,0,0,.85) 50%,
+    rgba(0,0,0,.35) 70%,
+    transparent 90%
+  );
+  -webkit-mask-image: radial-gradient(
+    ellipse 82% 88% at 50% 30%,
+    black 28%,
+    rgba(0,0,0,.85) 50%,
+    rgba(0,0,0,.35) 70%,
+    transparent 90%
+  );
+  box-shadow: 0 32px 80px rgba(0,0,0,.6);
 }
 /*
-  Cinematic overlay: left-edge fade + bottom fade — sem mask no <img>,
-  o overlay faz todo o trabalho de fundir a foto no fundo escuro.
+  Overlay subtil — a máscara radial já funde as bordas da foto.
+  O overlay apenas reforça a integração com o fundo à esquerda.
 */
 .lp-photo-overlay {
   position: absolute; inset: 0; z-index: 2;
-  border-radius: 16px;
+  border-radius: 20px;
   background:
-    linear-gradient(100deg, rgba(5,5,5,.55) 0%, rgba(5,5,5,.12) 20%, transparent 38%),
-    linear-gradient(to bottom, transparent 30%, rgba(5,5,5,.25) 52%, rgba(5,5,5,.65) 72%, rgba(5,5,5,.97) 100%);
+    linear-gradient(100deg, rgba(5,5,5,.45) 0%, rgba(5,5,5,.08) 18%, transparent 35%),
+    linear-gradient(to bottom, transparent 50%, rgba(5,5,5,.4) 78%, rgba(5,5,5,.82) 100%);
   pointer-events: none;
 }
 .lp-photo-empty .lp-photo-img { display: none; }
