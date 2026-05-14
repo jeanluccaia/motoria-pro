@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { LegalBar, Footer } from "./Layout";
 import { Link } from "./router";
 
@@ -70,6 +70,8 @@ function parseAI(text) {
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
+const TOKEN_KEY = "motoria_token";
+
 export default function Tool() {
   const [jogo,  setJogo]  = useState("");
   const [tipo,  setTipo]  = useState("Resultado final (1X2)");
@@ -82,8 +84,66 @@ export default function Tool() {
   const [error,   setError]   = useState("");
   const [result,  setResult]  = useState(null);
 
+  // ── Sistema de créditos ───────────────────────────────────────────────────────
+  const [token,    setToken]    = useState(() => localStorage.getItem(TOKEN_KEY) || "");
+  const [credits,  setCredits]  = useState(null);   // null = desconhecido
+  const [freeUsed, setFreeUsed] = useState(0);
+  const [gateMode, setGateMode] = useState(null);   // null | "free_limit" | "no_credits"
+  const [tokenInput,   setTokenInput]   = useState("");
+  const [tokenLoading, setTokenLoading] = useState(false);
+  const [tokenError,   setTokenError]   = useState("");
+
   const resultRef = useRef(null);
   const timerRef  = useRef(null);
+
+  // Valida token salvo ao carregar
+  useEffect(() => {
+    const saved = localStorage.getItem(TOKEN_KEY);
+    if (saved) validateToken(saved, false);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function validateToken(t, showErrorOnFail = true) {
+    try {
+      const res = await fetch("/api/validate-token", {
+        headers: { Authorization: `Bearer ${t}` },
+      });
+      const data = await res.json();
+      if (res.ok && data.valid) {
+        setToken(t);
+        setCredits(data.credits);
+        localStorage.setItem(TOKEN_KEY, t);
+        setGateMode(null);
+        setTokenError("");
+        return true;
+      } else {
+        if (showErrorOnFail) setTokenError("Token inválido ou não encontrado.");
+        localStorage.removeItem(TOKEN_KEY);
+        setToken("");
+        return false;
+      }
+    } catch {
+      if (showErrorOnFail) setTokenError("Erro de conexão ao validar token.");
+      return false;
+    }
+  }
+
+  async function handleActivateToken(e) {
+    e.preventDefault();
+    const t = tokenInput.trim();
+    if (!t) { setTokenError("Digite seu código de acesso."); return; }
+    setTokenLoading(true);
+    setTokenError("");
+    const ok = await validateToken(t, true);
+    setTokenLoading(false);
+    if (!ok && !tokenError) setTokenError("Token inválido ou não encontrado.");
+  }
+
+  function handleLogout() {
+    localStorage.removeItem(TOKEN_KEY);
+    setToken("");
+    setCredits(null);
+    setGateMode(null);
+  }
 
   function startCycle() {
     let i = 0;
@@ -121,13 +181,41 @@ export default function Tool() {
     startCycle();
 
     try {
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res  = await fetch("/api/chat", {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body:    JSON.stringify({ tool: "chance_de_perder", userMessage: parts.join("\n") }),
       });
       const data = await res.json();
+
+      // ── Tratamento de erros de crédito ─────────────────────────────────────
+      if (res.status === 402) {
+        if (data.code === "NO_CREDITS") {
+          setCredits(0);
+          setGateMode("no_credits");
+        } else if (data.code === "FREE_LIMIT") {
+          setFreeUsed(data.freeUsed ?? 2);
+          setGateMode("free_limit");
+        }
+        setLoading(false);
+        stopCycle();
+        return;
+      }
+      if (res.status === 401 && data.code === "INVALID_TOKEN") {
+        localStorage.removeItem(TOKEN_KEY);
+        setToken("");
+        setCredits(null);
+        throw new Error("Sessão expirada. Insira seu token novamente.");
+      }
       if (!res.ok) throw new Error(data.error || "Erro ao processar. Tente novamente.");
+
+      // ── Atualizar créditos na UI ────────────────────────────────────────────
+      if (data.credits != null)   setCredits(data.credits);
+      if (data.freeUsed != null)  setFreeUsed(data.freeUsed);
+
       const text = data.content?.[0]?.text || "";
       setResult({ ai: parseAI(text), oddN, prob });
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 200);
@@ -157,7 +245,22 @@ export default function Tool() {
         </div>
         <nav className="tl-nav">
           <Link to="/analisar" className="tl-nav-link">Análise completa</Link>
-          <Link to="/venda"    className="tl-nav-cta">Acesso vitalício</Link>
+          {token && credits !== null ? (
+            <div className="tl-credits-pill">
+              <span className="tl-credits-dot" />
+              <span className="tl-credits-count">{credits}</span>
+              <span className="tl-credits-label">análise{credits !== 1 ? "s" : ""} restante{credits !== 1 ? "s" : ""}</span>
+            </div>
+          ) : !token ? (
+            <div className="tl-credits-pill tl-credits-free">
+              <span className="tl-credits-label">{Math.max(0, 2 - freeUsed)} grátis restante{(2 - freeUsed) !== 1 ? "s" : ""}</span>
+            </div>
+          ) : null}
+          {token ? (
+            <button className="tl-nav-logout" onClick={handleLogout}>Sair</button>
+          ) : (
+            <Link to="/" className="tl-nav-cta">Acesso completo</Link>
+          )}
         </nav>
       </header>
 
@@ -188,8 +291,50 @@ export default function Tool() {
             </div>
           </div>
 
+          {/* ── Gate de créditos ───────────────────────────────── */}
+          {gateMode && (
+            <div className="tl-gate">
+              <div className="tl-gate-icon">
+                {gateMode === "no_credits" ? "◎" : "↑"}
+              </div>
+              <h2 className="tl-gate-title">
+                {gateMode === "no_credits"
+                  ? "Seus créditos acabaram."
+                  : "Você utilizou as análises gratuitas."}
+              </h2>
+              <p className="tl-gate-sub">
+                {gateMode === "no_credits"
+                  ? "Adquira mais 20 análises por R$27 para continuar."
+                  : "Para continuar analisando, desbloqueie o acesso completo."}
+              </p>
+              <a href="https://pay.kiwify.com.br/DIVD8zl" className="tl-gate-btn">
+                {gateMode === "no_credits"
+                  ? "Comprar mais 20 análises — R$27 →"
+                  : "Desbloquear acesso completo — R$27 →"}
+              </a>
+              <div className="tl-gate-divider">
+                <span>Já tem um código de acesso?</span>
+              </div>
+              <form onSubmit={handleActivateToken} className="tl-token-form">
+                <input
+                  className="tl-input tl-token-input"
+                  placeholder="Cole seu código de acesso aqui"
+                  value={tokenInput}
+                  onChange={(e) => setTokenInput(e.target.value)}
+                  disabled={tokenLoading}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                {tokenError && <p className="tl-token-err">{tokenError}</p>}
+                <button className="tl-token-btn" type="submit" disabled={tokenLoading}>
+                  {tokenLoading ? "Validando..." : "Ativar acesso"}
+                </button>
+              </form>
+            </div>
+          )}
+
           {/* ── Formulário ─────────────────────────────────────── */}
-          <form className="tl-form-card" onSubmit={handleSubmit} noValidate>
+          {!gateMode && <form className="tl-form-card" onSubmit={handleSubmit} noValidate>
 
             <div className="tl-field">
               <label className="tl-label">Jogo ou evento</label>
@@ -277,7 +422,7 @@ export default function Tool() {
                 </>
               ) : "Analisar risco agora →"}
             </button>
-          </form>
+          </form>}
 
           {/* ── Resultado ──────────────────────────────────────── */}
           {result && !loading && (
@@ -925,6 +1070,105 @@ option { background: #111; color: #F2F2F0; }
   border-top: 1px solid rgba(255,255,255,0.04);
   padding-top: 12px;
 }
+
+/* ── Credits pill ────────────────────────────────────────── */
+.tl-credits-pill {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11px; font-weight: 600;
+  background: rgba(31,203,122,0.07);
+  border: 1px solid rgba(31,203,122,0.18);
+  border-radius: 99px; padding: 5px 12px;
+  white-space: nowrap;
+}
+.tl-credits-pill.tl-credits-free {
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(255,255,255,0.07);
+}
+.tl-credits-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #1FCB7A; box-shadow: 0 0 6px rgba(31,203,122,0.6);
+  flex-shrink: 0;
+}
+.tl-credits-count {
+  font-size: 13px; font-weight: 800;
+  color: #1FCB7A; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.tl-credits-label { color: #4b5563; }
+.tl-nav-logout {
+  font-size: 11px; color: #374151;
+  background: none; border: none; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px;
+  transition: color .15s; padding: 0;
+}
+.tl-nav-logout:hover { color: #6b7280; }
+
+/* ── Gate card ────────────────────────────────────────────── */
+.tl-gate {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px; padding: 36px 28px;
+  display: flex; flex-direction: column;
+  align-items: center; text-align: center;
+  gap: 16px;
+}
+.tl-gate-icon {
+  font-size: 28px; color: #1FCB7A;
+  width: 52px; height: 52px;
+  background: rgba(31,203,122,0.08);
+  border: 1px solid rgba(31,203,122,0.2);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900;
+}
+.tl-gate-title {
+  font-size: 20px; font-weight: 800;
+  color: #f2f2f0; letter-spacing: -0.02em;
+  margin: 0;
+}
+.tl-gate-sub {
+  font-size: 14px; color: #6b7280;
+  line-height: 1.65; max-width: 360px;
+  margin: 0;
+}
+.tl-gate-btn {
+  display: inline-flex; align-items: center;
+  background: #f2f2f0; color: #050505;
+  font-size: 14px; font-weight: 700;
+  padding: 13px 24px; border-radius: 10px;
+  text-decoration: none; transition: opacity .15s, transform .12s;
+  margin-top: 4px;
+}
+.tl-gate-btn:hover { opacity: .88; transform: translateY(-1px); }
+.tl-gate-divider {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; margin: 4px 0;
+}
+.tl-gate-divider::before,
+.tl-gate-divider::after {
+  content: ""; flex: 1; height: 1px;
+  background: rgba(255,255,255,0.06);
+}
+.tl-gate-divider span { font-size: 12px; color: #374151; white-space: nowrap; }
+.tl-token-form { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+.tl-token-input {
+  font-size: 13px; text-align: center;
+  letter-spacing: 0.02em;
+}
+.tl-token-err { font-size: 12px; color: #ef4444; margin: 0; }
+.tl-token-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px; color: #9ca3af;
+  font-size: 13px; font-weight: 600;
+  font-family: inherit; padding: 11px;
+  cursor: pointer; transition: all .15s;
+}
+.tl-token-btn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.08);
+  color: #f2f2f0; border-color: rgba(255,255,255,0.14);
+}
+.tl-token-btn:disabled { opacity: .5; cursor: default; }
 
 /* ── Mobile ───────────────────────────────────────────────── */
 @media (max-width: 500px) {
