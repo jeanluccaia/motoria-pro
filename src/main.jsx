@@ -11,7 +11,7 @@ import AppMembro  from "./AppMembro";
 function App() {
   const { path } = useRouter();
 
-  if (path === "/ferramenta") return <Tool />;
+  if (path === "/ferramenta" || path === "/app") return <Tool />;
   if (path === "/analisar")   return <Analisar />;
   if (path === "/obrigado")   return <Obrigado />;
   if (path === "/app")        return <AppMembro />;

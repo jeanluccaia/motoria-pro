@@ -4,6 +4,14 @@ import { Link } from "./router";
 
 // ─── Dados ─────────────────────────────────────────────────────────────────────
 
+const ANALISA = [
+  { icon: "⟳", title: "Probabilidade implícita",  desc: "Quanto a odd revela sobre a chance real do evento acontecer — calculado na hora." },
+  { icon: "▼", title: "Margem da casa (vig)",       desc: "A taxa invisível embutida em toda odd. Você nunca vê, mas sempre paga." },
+  { icon: "◎", title: "Exposição ao risco",         desc: "Score 0–100 que resume o nível de risco real da aposta de forma objetiva." },
+  { icon: "✕", title: "Chance de perda",            desc: "Estimativa educativa da probabilidade de perder baseada nos dados da odd." },
+  { icon: "AI", title: "Leitura preventiva com IA", desc: "Análise contextual com pontos cegos, cenário necessário e leitura conservadora." },
+];
+
 const TESTIMONIALS = [
   { name: "Ricardo M.", age: 34, city: "São Paulo",      text: "Finalmente entendi por que perdia toda semana. A margem da casa me engolia e eu nem sabia disso." },
   { name: "Ana C.",     age: 28, city: "Belo Horizonte", text: "Vi que minha odd 'segura' de 1.50 tinha 66% de chance de dar errado. Nunca mais apostei sem analisar antes." },
@@ -31,7 +39,7 @@ const FAQ_ITEMS = [
   { q: "É assinatura mensal?",                      a: "Não. Você paga R$27 uma vez e tem acesso vitalício. Sem renovações, sem surpresas." },
   { q: "Vocês dão palpites ou previsões?",          a: "Nunca. Mostramos riscos, probabilidades matemáticas e impacto financeiro. A decisão é sempre sua." },
   { q: "Como recebo o acesso após o pagamento?",    a: "Imediatamente. Após o pagamento confirmado, você recebe o link de acesso no email de confirmação." },
-  { q: "Funciona no celular?",                      a: "Sim. A ferramenta é 100% mobile-first, feita para usar antes de apostar, de onde você estiver." },
+  { q: "Funciona no celular?",                      a: "Sim. A ferramenta é 100% mobile-first, feita para usar antes de qualquer decisão, de onde você estiver." },
   { q: "E se eu já estou com problemas com jogo?", a: "Procure ajuda imediatamente. Acesse jogoresponsavel.com.br ou ligue para o CVV: 188. Problema com jogo é sério e tem tratamento." },
   { q: "Como funciona a garantia?",                 a: "7 dias corridos a partir da compra. Não achou útil? Basta enviar um email e devolvemos 100% sem perguntas." },
 ];
@@ -78,7 +86,7 @@ export default function Landing() {
       <style>{CSS}</style>
       <LegalBar />
 
-      {/* ── HEADER ─────────────────────────────────────── */}
+      {/* ── HEADER ───────────────────────────────────────────────────────────── */}
       <header className="lp-header">
         <div className="lp-header-inner">
           <div className="lp-logo">
@@ -86,111 +94,57 @@ export default function Landing() {
             <span className="lp-logo-name">MotorIA Pro</span>
           </div>
           <nav className="lp-nav">
+            <a href="#problema"      className="lp-nav-link">O problema</a>
             <a href="#como-funciona" className="lp-nav-link">Como funciona</a>
-            <a href="#exemplo"       className="lp-nav-link">Exemplo</a>
             <a href="#preco"         className="lp-nav-link">Preço</a>
-            <Link to="/ferramenta"   className="lp-nav-cta">Testar grátis</Link>
+            <Link to="/ferramenta"   className="lp-nav-cta">Acessar ferramenta</Link>
           </nav>
         </div>
       </header>
 
-      {/* ── HERO ───────────────────────────────────────── */}
+      {/* ── HERO ─────────────────────────────────────────────────────────────── */}
       <section className="lp-hero">
-        <div className="lp-hero-glow"   aria-hidden="true" />
-        <div className="lp-grid-bg"     aria-hidden="true" />
-        <div className="lp-container">
-          <div className="lp-hero-layout">
-
-            <div className="lp-hero-text">
-              <div className="lp-tag-pill">FERRAMENTA EDUCATIVA DE ANÁLISE DE RISCO</div>
-              <h1 className="lp-h1">
-                Antes de apostar,<br />
-                <span className="lp-h1-accent">entenda o risco.</span>
-              </h1>
-              <p className="lp-hero-sub">
-                Ferramenta educativa que calcula probabilidade implícita,
-                margem da casa e chance de perda em segundos —
-                antes de qualquer decisão.
-              </p>
-              <div className="lp-hero-btns">
-                <Link to="/ferramenta" className="lp-btn-primary">Analisar minha aposta →</Link>
-                <a href="#exemplo"     className="lp-btn-ghost">Ver exemplo real</a>
-              </div>
-              <div className="lp-trust-row">
-                {["Não é casa de aposta","Não vende previsões","Não promete lucro","Grátis para testar"].map((t) => (
-                  <span className="lp-trust-pill" key={t}>{t}</span>
-                ))}
-              </div>
-              {/* Stats bar */}
-              <div className="lp-stats-bar">
-                <div className="lp-stat">
-                  <span className="lp-stat-num">8</span>
-                  <span className="lp-stat-label">indicadores por análise</span>
-                </div>
-                <div className="lp-stat-div" />
-                <div className="lp-stat">
-                  <span className="lp-stat-num">&lt;60s</span>
-                  <span className="lp-stat-label">resultado em segundos</span>
-                </div>
-                <div className="lp-stat-div" />
-                <div className="lp-stat">
-                  <span className="lp-stat-num">0</span>
-                  <span className="lp-stat-label">cadastro necessário</span>
-                </div>
-              </div>
+        <div className="lp-hero-glow"  aria-hidden="true" />
+        <div className="lp-grid-bg"    aria-hidden="true" />
+        <div className="lp-container lp-hero-inner">
+          <div className="lp-tag-pill">FERRAMENTA EDUCATIVA DE ANÁLISE PREVENTIVA</div>
+          <h1 className="lp-h1">
+            O que as plataformas<br />
+            <span className="lp-h1-accent">de aposta não te explicam.</span>
+          </h1>
+          <p className="lp-hero-sub">
+            Antes de tomar qualquer decisão, entenda a chance de perder,
+            a margem implícita e o risco real por trás dos números.
+          </p>
+          <div className="lp-hero-btns">
+            <Link to="/ferramenta" className="lp-btn-primary">Acessar análise preventiva →</Link>
+            <a href="#como-funciona" className="lp-btn-ghost">Ver como funciona</a>
+          </div>
+          <div className="lp-trust-row">
+            {["Não é casa de aposta", "Não vende previsões", "Não promete lucro", "Grátis para testar"].map((t) => (
+              <span className="lp-trust-pill" key={t}>{t}</span>
+            ))}
+          </div>
+          <div className="lp-stats-bar">
+            <div className="lp-stat">
+              <span className="lp-stat-num">8</span>
+              <span className="lp-stat-label">indicadores por análise</span>
             </div>
-
-            {/* Mock da ferramenta */}
-            <div className="lp-hero-visual">
-              <div className="lp-mock">
-                <div className="lp-mock-hdr">
-                  <span className="lp-mock-hdr-title">Relatório de risco</span>
-                  <span className="lp-mock-hdr-odd">odd 2.80</span>
-                </div>
-
-                <div className="lp-mock-score-card">
-                  <div className="lp-mock-score-tag">SCORE DE RISCO MOTORIA™</div>
-                  <div className="lp-mock-score-row">
-                    <div className="lp-mock-score-num">64</div>
-                    <div className="lp-mock-score-right">
-                      <span className="lp-mock-badge">ALTO</span>
-                      <div className="lp-mock-bar-wrap">
-                        <div className="lp-mock-bar-track">
-                          <div className="lp-mock-bar-fill" />
-                        </div>
-                        <div className="lp-mock-bar-labels">
-                          <span>Baixo</span><span>Mod.</span><span>Alto</span><span>Extr.</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="lp-mock-grid">
-                  {[
-                    { label: "PROB. IMPLÍCITA",  val: "35.7%",    cls: "lp-num-green" },
-                    { label: "CHANCE DE PERDA",  val: "64.3%",    cls: "lp-num-red"   },
-                    { label: "MARGEM DA CASA",   val: "5.5%",     cls: "lp-num-amber" },
-                    { label: "EV POR APOSTA",    val: "−R$14,50", cls: "lp-num-red"   },
-                  ].map((ind) => (
-                    <div className="lp-mock-ind" key={ind.label}>
-                      <div className="lp-mock-ind-label">{ind.label}</div>
-                      <div className={`lp-mock-ind-val ${ind.cls}`}>{ind.val}</div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="lp-mock-footer">
-                  Análise educativa — não recomenda aposta.
-                </div>
-              </div>
+            <div className="lp-stat-div" />
+            <div className="lp-stat">
+              <span className="lp-stat-num">&lt;60s</span>
+              <span className="lp-stat-label">resultado em segundos</span>
             </div>
-
+            <div className="lp-stat-div" />
+            <div className="lp-stat">
+              <span className="lp-stat-num">0</span>
+              <span className="lp-stat-label">cadastro necessário</span>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── ALERTA MATEMÁTICO ──────────────────────────── */}
+      {/* ── ALERTA MATEMÁTICO ────────────────────────────────────────────────── */}
       <div className="lp-alert-strip">
         <div className="lp-container">
           <div className="lp-alert-inner">
@@ -212,75 +166,115 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* ── O QUE VOCÊ VÊ VS O QUE VOCÊ IGNORA ────────── */}
-      <section className="lp-section">
-        <div className="lp-container">
-          <div className="lp-section-label">POR QUE VOCÊ CONTINUA PERDENDO</div>
-          <h2 className="lp-h2">O que você vê — e o que a odd esconde.</h2>
-          <p className="lp-h2-sub">
-            A casa mostra o retorno possível. Esconde tudo o que importa.
-          </p>
-
-          <div className="lp-vs-grid">
-            <div className="lp-vs-card lp-vs-left">
-              <div className="lp-vs-card-hdr lp-vs-hdr-green">
-                <span className="lp-vs-dot lp-vs-dot-green" />
-                O que o apostador vê
-              </div>
+      {/* ── O PROBLEMA ───────────────────────────────────────────────────────── */}
+      <section className="lp-section lp-section-dark" id="problema">
+        <div className="lp-container lp-problema-grid">
+          <div className="lp-problema-text">
+            <div className="lp-section-label">O PROBLEMA</div>
+            <h2 className="lp-h2">
+              A plataforma mostra o retorno.<br />Esconde o risco.
+            </h2>
+            <p className="lp-problema-desc">
+              As plataformas mostram odds, retorno possível e lucro potencial.
+              Mas quase nunca explicam a probabilidade implícita,
+              a margem da casa e a exposição ao risco — os números que realmente importam
+              antes de qualquer decisão.
+            </p>
+            <div className="lp-problema-items">
               {[
-                ["Retorno se ganhar",  "+R$280,00"],
-                ["Lucro possível",     "R$180,00" ],
-                ["Odd do evento",      "2.80"     ],
-                ["Cenário favorável",  "Possível" ],
-              ].map(([label, val]) => (
-                <div className="lp-vs-row" key={label}>
-                  <span className="lp-vs-row-label">{label}</span>
-                  <span className="lp-vs-row-val lp-num-green">{val}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="lp-vs-divider">
-              <div className="lp-vs-div-line" />
-              <div className="lp-vs-div-vs">vs</div>
-              <div className="lp-vs-div-line" />
-            </div>
-
-            <div className="lp-vs-card lp-vs-right">
-              <div className="lp-vs-card-hdr lp-vs-hdr-red">
-                <span className="lp-vs-dot lp-vs-dot-red" />
-                O que a odd esconde
-              </div>
-              {[
-                ["Probabilidade implícita",  "35,7%"    ],
-                ["Margem da casa (vig)",      "5,5%"     ],
-                ["Chance real de perda",     "64,3%"    ],
-                ["EV por aposta",            "−R$14,50" ],
-              ].map(([label, val]) => (
-                <div className="lp-vs-row lp-vs-row-right" key={label}>
-                  <span className="lp-vs-row-label">{label}</span>
-                  <span className="lp-vs-row-val lp-num-red">{val}</span>
+                "Odd 2.80 parece atraente. A casa só te mostra o retorno possível.",
+                "A margem embutida (5,5%) torna o valor esperado estruturalmente negativo.",
+                "64% de chance de perda — nenhuma plataforma calcula isso pra você.",
+              ].map((item, i) => (
+                <div className="lp-problema-item" key={i}>
+                  <span className="lp-problema-dash">—</span>
+                  <span>{item}</span>
                 </div>
               ))}
             </div>
           </div>
-
-          <div className="lp-vs-cta">
-            <Link to="/ferramenta" className="lp-btn-primary">Ver o risco da minha aposta →</Link>
+          <div className="lp-problema-card">
+            <div className="lp-pcard-label">O QUE A PLATAFORMA MOSTRA</div>
+            {[["Retorno se ganhar", "+R$280,00", "green"], ["Lucro possível", "R$180,00", "green"], ["Odd", "2.80", "neutral"]].map(([l, v, c]) => (
+              <div className="lp-pcard-row" key={l}>
+                <span className="lp-pcard-row-label">{l}</span>
+                <span className={`lp-pcard-row-val ${c === "green" ? "lp-num-green" : "lp-num-muted"}`}>{v}</span>
+              </div>
+            ))}
+            <div className="lp-pcard-div" />
+            <div className="lp-pcard-label lp-pcard-label-red">O QUE ELA ESCONDE</div>
+            {[["Probabilidade implícita", "35,7%", "red"], ["Margem da casa", "5,5%", "amber"], ["Chance de perda", "64,3%", "red"], ["Valor esperado", "−R$14,50", "red"]].map(([l, v, c]) => (
+              <div className="lp-pcard-row" key={l}>
+                <span className="lp-pcard-row-label">{l}</span>
+                <span className={`lp-pcard-row-val lp-num-${c}`}>{v}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── COMO FUNCIONA ──────────────────────────────── */}
-      <section className="lp-section lp-section-dark" id="como-funciona">
+      {/* ── O QUE O MOTORIA PRO ANALISA ──────────────────────────────────────── */}
+      <section className="lp-section">
+        <div className="lp-container">
+          <div className="lp-section-label">O QUE O MOTORIA PRO ANALISA</div>
+          <h2 className="lp-h2">5 dimensões de risco. Em menos de 60 segundos.</h2>
+          <p className="lp-h2-sub">
+            Cada análise entrega um relatório completo com os dados que as plataformas omitem.
+          </p>
+          <div className="lp-analisa-grid">
+            {ANALISA.map((item) => (
+              <div className="lp-analisa-card" key={item.title}>
+                <div className="lp-analisa-icon">{item.icon}</div>
+                <h3 className="lp-analisa-title">{item.title}</h3>
+                <p className="lp-analisa-desc">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+          <div className="lp-analisa-cta">
+            <Link to="/ferramenta" className="lp-btn-primary">Conhecer a ferramenta →</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOTO + QUOTE ─────────────────────────────────────────────────────── */}
+      <section className="lp-section lp-section-dark">
+        <div className="lp-container lp-photo-grid">
+          <div className="lp-photo-wrap">
+            <img
+              src="/jean-analise.png"
+              alt="Jean Lucca"
+              className="lp-photo"
+              onError={(e) => { e.currentTarget.style.display = "none"; }}
+            />
+          </div>
+          <div className="lp-photo-text">
+            <div className="lp-section-label">QUEM ESTÁ POR TRÁS</div>
+            <h2 className="lp-h2 lp-photo-h2">
+              Eu comecei a estudar o que quase ninguém mostra.
+            </h2>
+            <p className="lp-photo-quote">
+              "O prejuízo provável antes da aposta acontecer. Não existe forma mais honesta
+              de ajudar alguém a tomar uma decisão consciente do que mostrar o risco real
+              antes — não depois."
+            </p>
+            <div className="lp-photo-name">Jean Lucca · Criador do MotorIA Pro</div>
+            <Link to="/ferramenta" className="lp-btn-primary lp-photo-cta">
+              Acessar análise preventiva →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── COMO FUNCIONA ────────────────────────────────────────────────────── */}
+      <section className="lp-section" id="como-funciona">
         <div className="lp-container">
           <div className="lp-section-label">COMO FUNCIONA</div>
           <h2 className="lp-h2">Três etapas. Menos de um minuto.</h2>
           <div className="lp-steps">
             {[
-              { n:"01", title:"Insira a odd e o contexto",       desc:"Informe o jogo, tipo de aposta, odd e valor pretendido. Quanto mais contexto, mais precisa a leitura.",       tags:["Evento","Odd","Tipo","Valor"] },
-              { n:"02", title:"A IA calcula a exposição ao risco",desc:"Probabilidade implícita, margem da casa, valor esperado e pontos cegos — calculados automaticamente.",         tags:["Score 0–100","Probabilidade","EV","Margem"] },
-              { n:"03", title:"Receba a leitura preventiva",      desc:"Relatório estruturado com cenário necessário, pontos cegos e leitura conservadora — antes de qualquer decisão.",tags:["Pontos cegos","Chance de perda","Leitura final"] },
+              { n: "01", title: "Insira a odd e o contexto",        desc: "Informe o jogo, tipo de aposta, odd e valor pretendido. Quanto mais contexto, mais precisa a leitura.",        tags: ["Evento", "Odd", "Tipo", "Valor"] },
+              { n: "02", title: "A IA calcula a exposição ao risco", desc: "Probabilidade implícita, margem da casa, valor esperado e pontos cegos — calculados automaticamente.",          tags: ["Score 0–100", "Probabilidade", "EV", "Margem"] },
+              { n: "03", title: "Receba a leitura preventiva",       desc: "Relatório estruturado com cenário necessário, pontos cegos e leitura conservadora — antes de qualquer decisão.", tags: ["Pontos cegos", "Chance de perda", "Leitura final"] },
             ].map((s) => (
               <div className="lp-step" key={s.n}>
                 <div className="lp-step-n">{s.n}</div>
@@ -293,115 +287,12 @@ export default function Landing() {
             ))}
           </div>
           <div className="lp-steps-cta">
-            <Link to="/ferramenta" className="lp-btn-primary">Testar gratuitamente →</Link>
+            <Link to="/ferramenta" className="lp-btn-primary">Entender o risco antes de decidir →</Link>
           </div>
         </div>
       </section>
 
-      {/* ── EXEMPLO COMPLETO ───────────────────────────── */}
-      <section className="lp-section" id="exemplo">
-        <div className="lp-container">
-          <div className="lp-section-label">EXEMPLO REAL</div>
-          <h2 className="lp-h2">Veja como a análise funciona.</h2>
-          <p className="lp-h2-sub">
-            Flamengo x Palmeiras · Resultado final · Odd 2.80 · R$100,00
-          </p>
-
-          <div className="lp-exemplo">
-            <div className="lp-ex-ctx">
-              {[["Jogo","Flamengo x Palmeiras — Brasileirão"],["Tipo","Resultado final (1X2)"],["Odd","2.80"],["Valor","R$100,00"]].map(([k,v]) => (
-                <div className="lp-ex-ctx-chip" key={k}>
-                  <span className="lp-ex-ctx-key">{k}</span>
-                  <span className="lp-ex-ctx-val">{v}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Score */}
-            <div className="lp-ex-score">
-              <div className="lp-ex-score-tag">SCORE DE RISCO MOTORIA™</div>
-              <div className="lp-ex-score-body">
-                <div className="lp-ex-score-left">
-                  <div className="lp-ex-score-num">64</div>
-                  <span className="lp-ex-score-badge">ALTO</span>
-                </div>
-                <div className="lp-ex-score-right">
-                  <div className="lp-ex-bar-track">
-                    <div className="lp-ex-bar-fill" />
-                    {[30,60,80].map((t) => <div key={t} className="lp-ex-bar-tick" style={{left:`${t}%`}} />)}
-                  </div>
-                  <div className="lp-ex-bar-labels">
-                    <span>0 — Baixo</span>
-                    <span>Moderado</span>
-                    <span>Alto</span>
-                    <span>Extremo — 100</span>
-                  </div>
-                  <p className="lp-ex-score-note">
-                    Score educativo — resume exposição ao risco. Não recomenda aposta.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Indicadores */}
-            <div className="lp-ex-ind-grid">
-              {[
-                { tag:"A", label:"PROBABILIDADE IMPLÍCITA", val:"35,7%",    note:"de chance segundo a odd 2.80", color:"#1FCB7A" },
-                { tag:"B", label:"CHANCE DE PERDA",         val:"64,3%",    note:"estimativa conservadora",      color:"#FF4D2E" },
-                { tag:"",  label:"MARGEM DA CASA (VIG)",     val:"5,5%",     note:"taxa invisível por aposta",    color:"#FFB020" },
-                { tag:"",  label:"VALOR ESPERADO (EV)",      val:"−R$14,50", note:"resultado esperado longo prazo",color:"#FF4D2E" },
-              ].map((ind) => (
-                <div className="lp-ex-ind" key={ind.label} style={{borderColor: ind.color+"22"}}>
-                  <div className="lp-ex-ind-label">{ind.tag ? `${ind.tag} · ` : ""}{ind.label}</div>
-                  <div className="lp-ex-ind-val" style={{color: ind.color}}>{ind.val}</div>
-                  <div className="lp-ex-ind-note">{ind.note}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Cards */}
-            <div className="lp-ex-card lp-ex-card-red">
-              <div className="lp-ex-card-label">C · RISCO PRINCIPAL</div>
-              <p className="lp-ex-card-text">
-                A odd 2.80 exige que o Flamengo vença, mas a probabilidade implícita de 35,7%
-                está abaixo do que o histórico de confrontos diretos sugere. O mercado
-                está precificando incerteza elevada nesse jogo específico.
-              </p>
-            </div>
-
-            <div className="lp-ex-card lp-ex-card-amber">
-              <div className="lp-ex-card-label">E · PONTOS CEGOS</div>
-              <ul className="lp-ex-bullets">
-                {[
-                  "Confrontos Fla x Pal são historicamente equilibrados.",
-                  "Calendário congestionado aumenta variância em ambos os lados.",
-                  "Margem de 5,5% torna o valor esperado estruturalmente negativo.",
-                  "Resultados de jogos únicos têm alta variância — imprevisíveis por natureza.",
-                ].map((b,i) => <li key={i}>{b}</li>)}
-              </ul>
-            </div>
-
-            <div className="lp-ex-card lp-ex-card-final">
-              <div className="lp-ex-card-label">F · LEITURA CONSERVADORA</div>
-              <p className="lp-ex-card-text">
-                Com probabilidade implícita de 35,7% e margem estrutural da casa de 5,5%,
-                a exposição ao risco é classificada como <strong style={{color:"#FF6B2E"}}>ALTA</strong>. Para apostas
-                com esse perfil, a maioria dos cenários resulta em perda financeira ao longo do tempo.
-              </p>
-              <div className="lp-ex-disclaimer">
-                Esta análise tem finalidade educativa. Não constitui recomendação de aposta ou garantia de resultado.
-              </div>
-            </div>
-
-            <div className="lp-ex-cta-row">
-              <Link to="/ferramenta" className="lp-btn-primary">Analisar minha aposta →</Link>
-              <span className="lp-ex-cta-note">Grátis · Sem cadastro · Sem cartão</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── DEPOIMENTOS ────────────────────────────────── */}
+      {/* ── DEPOIMENTOS ──────────────────────────────────────────────────────── */}
       <section className="lp-section lp-section-dark">
         <div className="lp-container">
           <div className="lp-section-label">O QUE DIZEM OS USUÁRIOS</div>
@@ -427,7 +318,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── PREÇO ──────────────────────────────────────── */}
+      {/* ── PREÇO ────────────────────────────────────────────────────────────── */}
       <section className="lp-section" id="preco">
         <div className="lp-container">
           <div className="lp-section-label">ACESSO COMPLETO</div>
@@ -436,7 +327,6 @@ export default function Landing() {
             Uma análise que custa R$27 pode te fazer entender por que você perde
             muito mais do que isso toda semana.
           </p>
-
           <div className="lp-pricing">
             <div className="lp-features-list">
               {FEATURES.map((f, i) => (
@@ -446,7 +336,6 @@ export default function Landing() {
                 </div>
               ))}
             </div>
-
             <div className="lp-price-box">
               <div className="lp-price-label">ACESSO VITALÍCIO</div>
               <div className="lp-price-display">
@@ -469,7 +358,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── FAQ ────────────────────────────────────────── */}
+      {/* ── FAQ ──────────────────────────────────────────────────────────────── */}
       <section className="lp-section lp-section-dark">
         <div className="lp-container lp-faq-container">
           <div className="lp-section-label">DÚVIDAS</div>
@@ -480,13 +369,13 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── CTA FINAL ──────────────────────────────────── */}
+      {/* ── CTA FINAL ────────────────────────────────────────────────────────── */}
       <section className="lp-section lp-cta-final">
         <div className="lp-cta-glow" aria-hidden="true" />
         <div className="lp-container lp-cta-inner">
           <div className="lp-tag-pill">FERRAMENTA EDUCATIVA</div>
           <h2 className="lp-final-h2">
-            Antes de apostar,<br />entenda o risco.
+            Entender o risco<br />antes de decidir.
           </h2>
           <p className="lp-final-sub">Acesso imediato por R$27. Vitalício, sem mensalidade.</p>
           <div className="lp-final-btns">
@@ -500,6 +389,10 @@ export default function Landing() {
             <span>·</span>
             <span>Não é casa de aposta</span>
           </div>
+          <div className="lp-final-disclaimer">
+            Ferramenta educativa. Não garante resultados. Não incentiva apostas.
+            Uso recomendado apenas para maiores de 18 anos.
+          </div>
         </div>
       </section>
 
@@ -511,44 +404,45 @@ export default function Landing() {
 // ─── CSS ───────────────────────────────────────────────────────────────────────
 
 const CSS = `
-/* ── Reset / base ─────────────────────────────────── */
-.lp-container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+/* ── Reset / base ──────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+.lp-container { max-width: 980px; margin: 0 auto; padding: 0 24px; }
 .lp-section { padding: 88px 0; }
 .lp-section-dark { background: #080809; }
 
-/* Números alinhados globalmente */
-.lp-num-green { color: #1FCB7A; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
-.lp-num-red   { color: #FF4D2E; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
-.lp-num-amber { color: #FFB020; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+/* Números — sempre alinhados */
+.lp-num-green   { color: #22c55e; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+.lp-num-red     { color: #ef4444; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+.lp-num-amber   { color: #f59e0b; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+.lp-num-muted   { color: #6b7280; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
 
 .lp-section-label {
   font-size: 10px; font-weight: 700;
-  letter-spacing: 0.16em; color: #1FCB7A;
+  letter-spacing: 0.16em; color: #22c55e;
   text-transform: uppercase; margin-bottom: 14px;
 }
 .lp-h2 {
-  font-family: 'Syne', sans-serif;
-  font-size: clamp(24px,4vw,38px);
-  font-weight: 900; color: #F2F2F0;
-  line-height: 1.16; letter-spacing: -0.02em;
+  font-size: clamp(22px, 3.5vw, 36px);
+  font-weight: 800; color: #f2f2f0;
+  line-height: 1.18; letter-spacing: -0.025em;
   margin-bottom: 12px;
 }
 .lp-h2-sub {
-  font-size: 15px; color: #555;
-  line-height: 1.75; max-width: 520px;
-  margin-bottom: 40px;
+  font-size: 15px; color: #4b5563;
+  line-height: 1.78; max-width: 520px;
+  margin-bottom: 44px;
 }
 
-/* ── Header ───────────────────────────────────────── */
+/* ── Header ──────────────────────────────────────────────────────────────── */
 .lp-header {
   position: sticky; top: 0; z-index: 100;
-  background: rgba(5,5,5,0.95);
+  background: rgba(5,5,5,0.96);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 .lp-header-inner {
-  max-width: 960px; margin: 0 auto;
+  max-width: 980px; margin: 0 auto;
   padding: 14px 24px;
   display: flex; align-items: center; justify-content: space-between;
 }
@@ -556,465 +450,290 @@ const CSS = `
 .lp-logo-mark {
   display: inline-flex; align-items: center; justify-content: center;
   width: 26px; height: 26px;
-  background: #1FCB7A; color: #050505;
-  font-family: 'Syne', sans-serif;
+  background: #22c55e; color: #050505;
   font-size: 13px; font-weight: 900; border-radius: 6px;
 }
 .lp-logo-name {
-  font-family: 'Syne', sans-serif;
   font-size: 15px; font-weight: 800;
-  color: #F2F2F0; letter-spacing: -0.02em;
+  color: #f2f2f0; letter-spacing: -0.02em;
 }
-.lp-nav { display: flex; align-items: center; gap: 20px; }
-.lp-nav-link { font-size: 13px; color: #555; text-decoration: none; transition: color .15s; }
-.lp-nav-link:hover { color: #F2F2F0; }
+.lp-nav { display: flex; align-items: center; gap: 22px; }
+.lp-nav-link { font-size: 13px; color: #4b5563; text-decoration: none; transition: color .15s; }
+.lp-nav-link:hover { color: #f2f2f0; }
 .lp-nav-cta {
   font-size: 12px; font-weight: 600;
-  color: #1FCB7A; text-decoration: none;
-  border: 1px solid rgba(31,203,122,.3);
-  padding: 7px 14px; border-radius: 7px; transition: all .15s;
+  color: #22c55e; text-decoration: none;
+  border: 1px solid rgba(34,197,94,.3);
+  padding: 7px 15px; border-radius: 8px; transition: all .15s;
+  white-space: nowrap;
 }
-.lp-nav-cta:hover { background: rgba(31,203,122,.08); border-color: rgba(31,203,122,.5); }
+.lp-nav-cta:hover { background: rgba(34,197,94,.07); border-color: rgba(34,197,94,.5); }
 
-/* ── Hero ─────────────────────────────────────────── */
+/* ── Hero ────────────────────────────────────────────────────────────────── */
 .lp-hero {
-  position: relative; padding: 72px 0 80px;
+  position: relative; padding: 100px 0 96px;
   background: #050505; overflow: hidden;
 }
 .lp-hero-glow {
-  position: absolute; top: -80px; left: 50%;
-  transform: translateX(-50%);
-  width: 800px; height: 500px;
-  background: radial-gradient(ellipse, rgba(31,203,122,.08) 0%, transparent 65%);
+  position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
+  width: 900px; height: 600px;
+  background: radial-gradient(ellipse, rgba(34,197,94,.07) 0%, transparent 65%);
   pointer-events: none; z-index: 0;
 }
 .lp-grid-bg {
   position: absolute; inset: 0;
-  background-image: radial-gradient(rgba(255,255,255,.04) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(255,255,255,.035) 1px, transparent 1px);
   background-size: 28px 28px;
   pointer-events: none; z-index: 0;
 }
-.lp-hero-layout {
+.lp-hero-inner {
   position: relative; z-index: 1;
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 56px; align-items: center;
+  display: flex; flex-direction: column;
+  align-items: center; text-align: center;
+  gap: 0;
 }
-.lp-hero-text { display: flex; flex-direction: column; }
 
 .lp-tag-pill {
   display: inline-block;
   font-size: 10px; font-weight: 700;
-  letter-spacing: .14em; color: #1FCB7A;
+  letter-spacing: .14em; color: #22c55e;
   text-transform: uppercase;
-  border: 1px solid rgba(31,203,122,.25);
-  background: rgba(31,203,122,.06);
-  padding: 5px 13px; border-radius: 99px;
-  margin-bottom: 22px; align-self: flex-start;
+  border: 1px solid rgba(34,197,94,.25);
+  background: rgba(34,197,94,.06);
+  padding: 5px 14px; border-radius: 99px;
+  margin-bottom: 28px;
 }
 .lp-h1 {
-  font-family: 'Syne', sans-serif;
-  font-size: clamp(32px,5vw,54px);
-  font-weight: 900; color: #F2F2F0;
-  line-height: 1.08; letter-spacing: -0.03em;
-  margin-bottom: 20px;
+  font-size: clamp(36px, 6vw, 64px);
+  font-weight: 900; color: #f2f2f0;
+  line-height: 1.06; letter-spacing: -0.035em;
+  margin-bottom: 22px;
 }
-.lp-h1-accent { color: rgba(242,242,240,.5); }
+.lp-h1-accent { color: rgba(242,242,240,.38); }
 .lp-hero-sub {
-  font-size: 15px; color: #6B7280;
-  line-height: 1.75; max-width: 400px; margin-bottom: 30px;
+  font-size: 16px; color: #6b7280;
+  line-height: 1.75; max-width: 520px;
+  margin-bottom: 36px;
 }
 
 /* Buttons */
-.lp-hero-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+.lp-hero-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 28px; }
 .lp-btn-primary {
   display: inline-flex; align-items: center;
-  background: #F2F2F0; color: #050505;
+  background: #f2f2f0; color: #050505;
   font-size: 14px; font-weight: 700;
-  padding: 13px 22px; border-radius: 10px;
+  padding: 13px 24px; border-radius: 10px;
   text-decoration: none; white-space: nowrap;
   transition: opacity .15s, transform .12s;
 }
 .lp-btn-primary:hover { opacity: .88; transform: translateY(-1px); }
 .lp-btn-ghost {
   display: inline-flex; align-items: center;
-  background: transparent; color: #555;
+  background: transparent; color: #4b5563;
   font-size: 14px; font-weight: 600;
   padding: 13px 20px; border-radius: 10px;
   border: 1px solid rgba(255,255,255,.07);
   text-decoration: none; transition: all .15s;
 }
-.lp-btn-ghost:hover { border-color: rgba(255,255,255,.15); color: #F2F2F0; }
+.lp-btn-ghost:hover { border-color: rgba(255,255,255,.15); color: #f2f2f0; }
 
 /* Trust pills */
-.lp-trust-row  { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 28px; }
+.lp-trust-row  { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; margin-bottom: 32px; }
 .lp-trust-pill {
-  font-size: 11px; color: #383838;
+  font-size: 11px; color: #374151;
   border: 1px solid #1c1c1e; border-radius: 99px;
-  padding: 4px 10px; background: rgba(255,255,255,.02);
+  padding: 4px 11px; background: rgba(255,255,255,.015);
   white-space: nowrap;
 }
 
 /* Stats bar */
-.lp-stats-bar {
-  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
-}
-.lp-stat { display: flex; flex-direction: column; gap: 2px; }
+.lp-stats-bar { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; justify-content: center; }
+.lp-stat { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .lp-stat-num {
-  font-family: 'Syne', sans-serif;
-  font-size: 20px; font-weight: 900;
-  color: #F2F2F0; line-height: 1;
+  font-size: 22px; font-weight: 900;
+  color: #f2f2f0; line-height: 1;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
 }
-.lp-stat-label { font-size: 11px; color: #3a3a3c; }
-.lp-stat-div { width: 1px; height: 32px; background: rgba(255,255,255,.07); flex-shrink: 0; }
+.lp-stat-label { font-size: 11px; color: #374151; }
+.lp-stat-div { width: 1px; height: 36px; background: rgba(255,255,255,.06); flex-shrink: 0; }
 
-/* ── Mock ferramenta ──────────────────────────────── */
-.lp-hero-visual { position: relative; }
-.lp-mock {
-  background: rgba(255,255,255,.025);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 18px; padding: 20px;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  display: flex; flex-direction: column; gap: 14px;
-  box-shadow: 0 32px 72px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.04);
-}
-.lp-mock-hdr {
-  display: flex; justify-content: space-between; align-items: center;
-  padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,.05);
-}
-.lp-mock-hdr-title {
-  font-size: 10px; font-weight: 700;
-  letter-spacing: .1em; color: #2a2a2c; text-transform: uppercase;
-}
-.lp-mock-hdr-odd {
-  font-size: 10px; color: #333;
-  font-family: 'Syne', sans-serif; font-weight: 700;
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.06);
-  padding: 3px 9px; border-radius: 5px;
-}
-.lp-mock-score-card {
-  background: rgba(255,107,46,.06);
-  border: 1px solid rgba(255,107,46,.2);
-  border-radius: 12px; padding: 14px;
-}
-.lp-mock-score-tag {
-  font-size: 8px; font-weight: 700;
-  letter-spacing: .12em; color: rgba(255,107,46,.5);
-  text-transform: uppercase; margin-bottom: 10px;
-}
-.lp-mock-score-row { display: flex; gap: 14px; align-items: flex-start; }
-.lp-mock-score-num {
-  font-family: 'Syne', sans-serif;
-  font-size: 54px; font-weight: 900;
-  color: #FF6B2E; line-height: 1; flex-shrink: 0;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
-}
-.lp-mock-score-right { flex: 1; padding-top: 4px; display: flex; flex-direction: column; gap: 8px; }
-.lp-mock-badge {
-  font-size: 11px; font-weight: 800; letter-spacing: .06em;
-  background: rgba(255,107,46,.15); color: #FF6B2E;
-  border: 1px solid rgba(255,107,46,.35);
-  padding: 4px 11px; border-radius: 6px; align-self: flex-start;
-}
-.lp-mock-bar-wrap { display: flex; flex-direction: column; gap: 5px; }
-.lp-mock-bar-track {
-  position: relative; height: 5px;
-  background: rgba(255,255,255,.05); border-radius: 99px; overflow: hidden;
-}
-.lp-mock-bar-fill {
-  position: absolute; left: 0; top: 0; bottom: 0;
-  width: 64%; background: #FF6B2E; border-radius: 99px;
-}
-.lp-mock-bar-labels {
-  display: flex; justify-content: space-between;
-  font-size: 8px; color: #1e1e1e; font-weight: 600;
-  letter-spacing: .02em; text-transform: uppercase;
-}
-.lp-mock-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.lp-mock-ind {
-  background: rgba(255,255,255,.02);
-  border: 1px solid rgba(255,255,255,.05);
-  border-radius: 9px; padding: 11px 12px;
-}
-.lp-mock-ind-label {
-  font-size: 8px; font-weight: 700;
-  letter-spacing: .1em; color: #222; text-transform: uppercase; margin-bottom: 6px;
-}
-.lp-mock-ind-val {
-  font-family: 'Syne', sans-serif;
-  font-size: 17px; font-weight: 800; line-height: 1;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
-}
-.lp-mock-footer {
-  font-size: 10px; color: #1a1a1a;
-  text-align: center; font-style: italic; line-height: 1.5;
-}
-
-/* ── Alert strip ──────────────────────────────────── */
+/* ── Alert strip ─────────────────────────────────────────────────────────── */
 .lp-alert-strip {
-  background: #0a0a0b;
+  background: #070708;
   border-top: 1px solid rgba(255,255,255,.04);
   border-bottom: 1px solid rgba(255,255,255,.04);
-  padding: 32px 0;
+  padding: 36px 0;
 }
 .lp-alert-inner {
-  display: flex; align-items: center;
-  justify-content: center; gap: 0; flex-wrap: wrap;
+  display: flex; align-items: stretch;
+  justify-content: center; flex-wrap: wrap;
 }
 .lp-alert-item {
-  display: flex; align-items: center; gap: 14px;
-  padding: 16px 32px; flex: 1; min-width: 220px;
+  display: flex; align-items: center; gap: 16px;
+  padding: 16px 36px; flex: 1; min-width: 220px;
 }
 .lp-alert-num {
-  font-family: 'Syne', sans-serif;
-  font-size: 32px; font-weight: 900;
+  font-size: 36px; font-weight: 900;
   line-height: 1; flex-shrink: 0;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
-.lp-alert-desc { font-size: 13px; color: #555; line-height: 1.5; }
-.lp-alert-sep {
-  width: 1px; height: 48px;
-  background: rgba(255,255,255,.06); flex-shrink: 0;
-}
+.lp-alert-desc { font-size: 13px; color: #4b5563; line-height: 1.55; }
+.lp-alert-sep { width: 1px; background: rgba(255,255,255,.05); flex-shrink: 0; align-self: stretch; }
 
-/* ── VS Section ───────────────────────────────────── */
-.lp-vs-grid {
-  display: grid; grid-template-columns: 1fr auto 1fr;
-  gap: 0; align-items: stretch;
+/* ── O Problema ──────────────────────────────────────────────────────────── */
+.lp-problema-grid {
+  display: grid; grid-template-columns: 1fr 340px;
+  gap: 56px; align-items: start;
 }
-.lp-vs-card {
-  display: flex; flex-direction: column;
-  border-radius: 14px; overflow: hidden;
+.lp-problema-desc {
+  font-size: 15px; color: #4b5563;
+  line-height: 1.8; margin-bottom: 28px;
+}
+.lp-problema-items { display: flex; flex-direction: column; gap: 12px; }
+.lp-problema-item {
+  display: flex; gap: 12px;
+  font-size: 14px; color: #374151; line-height: 1.65;
+}
+.lp-problema-dash { color: #22c55e; font-weight: 700; flex-shrink: 0; }
+
+/* Card do problema */
+.lp-problema-card {
+  background: rgba(255,255,255,.02);
   border: 1px solid rgba(255,255,255,.06);
+  border-radius: 16px; padding: 22px;
+  display: flex; flex-direction: column; gap: 0;
 }
-.lp-vs-left  { border-color: rgba(31,203,122,.15); background: rgba(31,203,122,.025); }
-.lp-vs-right { border-color: rgba(255,77,46,.15);  background: rgba(255,77,46,.025);  }
-.lp-vs-card-hdr {
-  display: flex; align-items: center; gap: 9px;
-  font-size: 12px; font-weight: 700;
-  padding: 15px 18px;
-  border-bottom: 1px solid rgba(255,255,255,.05);
-}
-.lp-vs-hdr-green { color: #1FCB7A; }
-.lp-vs-hdr-red   { color: #FF4D2E; }
-.lp-vs-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.lp-vs-dot-green { background: #1FCB7A; box-shadow: 0 0 8px rgba(31,203,122,.5); }
-.lp-vs-dot-red   { background: #FF4D2E; box-shadow: 0 0 8px rgba(255,77,46,.5); }
-.lp-vs-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 13px 18px;
+.lp-pcard-label {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: .14em; color: #2a2a2c;
+  text-transform: uppercase;
+  padding-bottom: 12px; margin-bottom: 4px;
   border-bottom: 1px solid rgba(255,255,255,.04);
 }
-.lp-vs-row:last-child { border-bottom: none; }
-.lp-vs-row-right { background: rgba(255,77,46,.02); }
-.lp-vs-row-label { font-size: 13px; color: #555; }
-.lp-vs-row-val {
-  font-family: 'Syne', sans-serif;
-  font-size: 16px; font-weight: 800;
+.lp-pcard-label-red { color: rgba(239,68,68,.45); margin-top: 12px; }
+.lp-pcard-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,.03);
+}
+.lp-pcard-row:last-child { border-bottom: none; }
+.lp-pcard-row-label { font-size: 13px; color: #374151; }
+.lp-pcard-row-val {
+  font-size: 15px; font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
-  white-space: nowrap; min-width: 80px; text-align: right;
+  white-space: nowrap; min-width: 72px; text-align: right;
 }
-.lp-vs-divider {
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 10px; width: 52px; flex-shrink: 0;
+.lp-pcard-div {
+  height: 1px; background: rgba(255,255,255,.05);
+  margin: 8px 0;
 }
-.lp-vs-div-line { flex: 1; width: 1px; background: rgba(255,255,255,.05); }
-.lp-vs-div-vs {
-  font-family: 'Syne', sans-serif;
-  font-size: 11px; font-weight: 900; color: #1e1e1e;
-}
-.lp-vs-cta { text-align: center; margin-top: 36px; }
 
-/* ── Steps ────────────────────────────────────────── */
-.lp-steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; margin-bottom: 40px; }
+/* ── O que analisa ───────────────────────────────────────────────────────── */
+.lp-analisa-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px; margin-bottom: 44px;
+}
+.lp-analisa-card {
+  background: rgba(255,255,255,.02);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 14px; padding: 22px 18px;
+  display: flex; flex-direction: column; gap: 10px;
+  transition: border-color .2s, transform .2s;
+}
+.lp-analisa-card:hover {
+  border-color: rgba(34,197,94,.2);
+  transform: translateY(-2px);
+}
+.lp-analisa-icon {
+  font-size: 18px; color: #22c55e;
+  font-weight: 900; line-height: 1;
+}
+.lp-analisa-title {
+  font-size: 14px; font-weight: 700;
+  color: #f2f2f0; line-height: 1.25;
+}
+.lp-analisa-desc { font-size: 12px; color: #4b5563; line-height: 1.65; }
+.lp-analisa-cta { text-align: center; }
+
+/* ── Foto + Quote ────────────────────────────────────────────────────────── */
+.lp-photo-grid {
+  display: grid; grid-template-columns: 340px 1fr;
+  gap: 60px; align-items: center;
+}
+.lp-photo-wrap {
+  position: relative;
+  border-radius: 18px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.02);
+  aspect-ratio: 3/4; min-height: 320px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.4);
+  display: flex; align-items: center; justify-content: center;
+}
+.lp-photo {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center top;
+  display: block;
+}
+.lp-photo-h2 { margin-bottom: 20px; }
+.lp-photo-quote {
+  font-size: 15px; color: #6b7280;
+  line-height: 1.82; font-style: italic;
+  border-left: 2px solid rgba(34,197,94,.3);
+  padding-left: 18px; margin-bottom: 20px;
+}
+.lp-photo-name {
+  font-size: 13px; font-weight: 600; color: #4b5563;
+  margin-bottom: 28px;
+}
+.lp-photo-cta { align-self: flex-start; }
+
+/* ── Steps ───────────────────────────────────────────────────────────────── */
+.lp-steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; margin-bottom: 44px; }
 .lp-step {
-  background: rgba(255,255,255,.025);
+  background: rgba(255,255,255,.02);
   border: 1px solid rgba(255,255,255,.06);
   border-radius: 16px; padding: 28px 22px;
   display: flex; flex-direction: column; gap: 12px;
   transition: border-color .2s;
 }
-.lp-step:hover { border-color: rgba(31,203,122,.2); }
+.lp-step:hover { border-color: rgba(34,197,94,.2); }
 .lp-step-n {
-  font-family: 'Syne', sans-serif;
-  font-size: 13px; font-weight: 900;
-  color: rgba(31,203,122,.45); letter-spacing: .04em;
+  font-size: 12px; font-weight: 900;
+  color: rgba(34,197,94,.45); letter-spacing: .05em;
 }
 .lp-step-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 17px; font-weight: 800;
-  color: #F2F2F0; line-height: 1.22;
+  font-size: 16px; font-weight: 800;
+  color: #f2f2f0; line-height: 1.25;
 }
-.lp-step-desc { font-size: 14px; color: #555; line-height: 1.72; }
+.lp-step-desc { font-size: 14px; color: #4b5563; line-height: 1.72; }
 .lp-step-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .lp-step-tag {
-  font-size: 10px; font-weight: 600; color: #2a2a2a;
-  border: 1px solid #181818; border-radius: 99px;
-  padding: 3px 9px; background: rgba(255,255,255,.02);
+  font-size: 10px; font-weight: 600; color: #1f2937;
+  border: 1px solid #161618; border-radius: 99px;
+  padding: 3px 9px; background: rgba(255,255,255,.015);
 }
 .lp-steps-cta { text-align: center; }
 
-/* ── Exemplo ──────────────────────────────────────── */
-.lp-exemplo {
-  background: rgba(255,255,255,.018);
-  border: 1px solid rgba(255,255,255,.07);
-  border-radius: 20px; padding: 28px;
-  display: flex; flex-direction: column; gap: 14px;
-  box-shadow: 0 32px 80px rgba(0,0,0,.3);
-}
-.lp-ex-ctx {
-  display: flex; flex-wrap: wrap; gap: 8px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255,255,255,.05);
-}
-.lp-ex-ctx-chip {
-  display: flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,.03);
-  border: 1px solid rgba(255,255,255,.06);
-  border-radius: 8px; padding: 6px 12px;
-}
-.lp-ex-ctx-key {
-  font-size: 10px; font-weight: 700;
-  color: #2e2e2e; letter-spacing: .06em; text-transform: uppercase;
-}
-.lp-ex-ctx-val { font-size: 13px; color: #777; }
-
-/* Score exemplo */
-.lp-ex-score {
-  background: rgba(255,107,46,.05);
-  border: 1px solid rgba(255,107,46,.18);
-  border-radius: 14px; padding: 20px;
-}
-.lp-ex-score-tag {
-  font-size: 9px; font-weight: 700;
-  letter-spacing: .12em; color: rgba(255,107,46,.45);
-  text-transform: uppercase; margin-bottom: 14px;
-}
-.lp-ex-score-body { display: flex; gap: 24px; align-items: flex-start; }
-.lp-ex-score-left {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 8px; flex-shrink: 0;
-}
-.lp-ex-score-num {
-  font-family: 'Syne', sans-serif;
-  font-size: 72px; font-weight: 900; color: #FF6B2E;
-  line-height: 1; letter-spacing: -0.04em;
-  font-variant-numeric: tabular-nums;
-}
-.lp-ex-score-badge {
-  font-size: 12px; font-weight: 800; letter-spacing: .06em;
-  background: rgba(255,107,46,.12); color: #FF6B2E;
-  border: 1px solid rgba(255,107,46,.3);
-  padding: 5px 14px; border-radius: 7px;
-}
-.lp-ex-score-right { flex: 1; padding-top: 8px; }
-.lp-ex-bar-track {
-  position: relative; height: 8px;
-  background: rgba(255,255,255,.05);
-  border-radius: 99px; overflow: visible; margin-bottom: 8px;
-}
-.lp-ex-bar-fill {
-  position: absolute; left: 0; top: 0; bottom: 0;
-  width: 64%; background: #FF6B2E; border-radius: 99px;
-}
-.lp-ex-bar-tick {
-  position: absolute; top: -4px;
-  width: 1px; height: 16px;
-  background: rgba(255,255,255,.1);
-  transform: translateX(-50%);
-}
-.lp-ex-bar-labels {
-  display: flex; justify-content: space-between;
-  font-size: 9px; color: #252525;
-  font-weight: 600; letter-spacing: .03em;
-  text-transform: uppercase; margin-bottom: 12px;
-}
-.lp-ex-score-note {
-  font-size: 12px; color: #333;
-  font-style: italic; line-height: 1.55; margin: 0;
-}
-
-/* Indicadores exemplo */
-.lp-ex-ind-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
-.lp-ex-ind {
-  background: rgba(255,255,255,.02);
-  border: 1px solid rgba(255,255,255,.05);
-  border-radius: 11px; padding: 15px 14px;
-}
-.lp-ex-ind-label {
-  font-size: 8px; font-weight: 700;
-  letter-spacing: .1em; color: #2a2a2a;
-  text-transform: uppercase; margin-bottom: 10px;
-}
-.lp-ex-ind-val {
-  font-family: 'Syne', sans-serif;
-  font-size: 22px; font-weight: 900;
-  line-height: 1; margin-bottom: 6px;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.03em;
-}
-.lp-ex-ind-note { font-size: 10px; color: #444; line-height: 1.4; }
-
-/* Cards exemplo */
-.lp-ex-card {
-  border-radius: 12px; padding: 18px;
-  border: 1px solid rgba(255,255,255,.06);
-  background: rgba(255,255,255,.02);
-}
-.lp-ex-card-red   { border-color: rgba(255,77,46,.18);  background: rgba(255,77,46,.03); }
-.lp-ex-card-amber { border-color: rgba(255,176,32,.18); background: rgba(255,176,32,.03); }
-.lp-ex-card-final { border-color: rgba(255,176,32,.1); }
-.lp-ex-card-label {
-  font-size: 9px; font-weight: 700;
-  letter-spacing: .12em; color: #2e2e2e;
-  text-transform: uppercase; margin-bottom: 12px;
-}
-.lp-ex-card-text { font-size: 14px; color: #777; line-height: 1.75; margin: 0; }
-.lp-ex-bullets { list-style: none; display: flex; flex-direction: column; gap: 9px; }
-.lp-ex-bullets li {
-  font-size: 14px; color: #777;
-  padding-left: 20px; position: relative; line-height: 1.65;
-}
-.lp-ex-bullets li::before {
-  content: "—"; position: absolute; left: 0;
-  color: #FFB020; font-weight: 700;
-}
-.lp-ex-disclaimer {
-  font-size: 11px; color: #282828; font-style: italic;
-  line-height: 1.6;
-  border-top: 1px solid rgba(255,255,255,.05);
-  padding-top: 12px; margin-top: 12px;
-}
-.lp-ex-cta-row {
-  display: flex; align-items: center; gap: 16px;
-  flex-wrap: wrap; padding-top: 4px;
-}
-.lp-ex-cta-note { font-size: 12px; color: #2a2a2a; }
-
-/* ── Depoimentos ──────────────────────────────────── */
+/* ── Depoimentos ─────────────────────────────────────────────────────────── */
 .lp-testimonials {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
-  gap: 14px;
+  gap: 14px; margin-top: 8px;
 }
 .lp-testimonial {
   background: rgba(255,255,255,.02);
   border: 1px solid rgba(255,255,255,.06);
-  border-radius: 14px; padding: 20px;
+  border-radius: 14px; padding: 22px;
   display: flex; flex-direction: column; gap: 14px;
   transition: border-color .2s;
 }
 .lp-testimonial:hover { border-color: rgba(255,255,255,.1); }
-.lp-test-stars { font-size: 12px; color: #FFB020; letter-spacing: 2px; }
-.lp-test-text  { font-size: 14px; color: #666; line-height: 1.75; font-style: italic; margin: 0; }
+.lp-test-stars  { font-size: 12px; color: #f59e0b; letter-spacing: 2px; }
+.lp-test-text   { font-size: 14px; color: #6b7280; line-height: 1.75; font-style: italic; margin: 0; }
 .lp-test-author { display: flex; align-items: center; gap: 12px; }
 .lp-avatar {
   width: 38px; height: 38px; border-radius: 50%;
@@ -1022,104 +741,101 @@ const CSS = `
   font-size: 12px; font-weight: 800; flex-shrink: 0;
 }
 .lp-test-name-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-.lp-test-name-row strong { font-size: 13px; color: #F2F2F0; }
+.lp-test-name-row strong { font-size: 13px; color: #f2f2f0; }
 .lp-test-verified {
-  font-size: 9px; font-weight: 700; color: #1FCB7A;
-  background: rgba(31,203,122,.08);
-  border: 1px solid rgba(31,203,122,.2);
+  font-size: 9px; font-weight: 700; color: #22c55e;
+  background: rgba(34,197,94,.08);
+  border: 1px solid rgba(34,197,94,.2);
   padding: 1px 6px; border-radius: 99px;
 }
-.lp-test-city { font-size: 12px; color: #333; }
+.lp-test-city { font-size: 12px; color: #1f2937; }
 
-/* ── Preço ────────────────────────────────────────── */
-.lp-pricing { display: grid; grid-template-columns: 1fr auto; gap: 52px; align-items: start; }
-.lp-features-list { display: flex; flex-direction: column; gap: 14px; }
-.lp-feature-item { display: flex; gap: 12px; font-size: 15px; color: #777; align-items: baseline; }
-.lp-feature-check { color: #1FCB7A; font-weight: 700; flex-shrink: 0; }
-
+/* ── Preço ───────────────────────────────────────────────────────────────── */
+.lp-pricing { display: grid; grid-template-columns: 1fr auto; gap: 56px; align-items: start; }
+.lp-features-list { display: flex; flex-direction: column; gap: 15px; }
+.lp-feature-item { display: flex; gap: 12px; font-size: 15px; color: #6b7280; align-items: baseline; }
+.lp-feature-check { color: #22c55e; font-weight: 700; flex-shrink: 0; }
 .lp-price-box {
-  background: rgba(255,255,255,.025);
+  background: rgba(255,255,255,.02);
   border: 1px solid rgba(255,255,255,.08);
   border-radius: 18px; padding: 30px 26px;
-  min-width: 240px;
-  display: flex; flex-direction: column; gap: 14px;
+  min-width: 250px;
+  display: flex; flex-direction: column; gap: 16px;
   text-align: center;
   position: sticky; top: 80px;
-  box-shadow: 0 24px 64px rgba(0,0,0,.35);
+  box-shadow: 0 24px 64px rgba(0,0,0,.3);
 }
 .lp-price-label {
   font-size: 10px; font-weight: 700;
-  letter-spacing: .14em; color: #1FCB7A; text-transform: uppercase;
+  letter-spacing: .14em; color: #22c55e; text-transform: uppercase;
 }
 .lp-price-display {
   display: flex; align-items: flex-start;
   justify-content: center; gap: 3px;
+  line-height: 1;
 }
 .lp-price-curr {
-  font-family: 'Syne', sans-serif;
   font-size: 22px; font-weight: 700;
-  color: #888; padding-top: 10px; line-height: 1;
+  color: #6b7280; padding-top: 12px; line-height: 1;
 }
 .lp-price-int {
-  font-family: 'Syne', sans-serif;
-  font-size: 76px; font-weight: 900;
-  color: #F2F2F0; line-height: 1;
-  letter-spacing: -0.04em;
+  font-size: 80px; font-weight: 900;
+  color: #f2f2f0; line-height: 1;
+  letter-spacing: -0.045em;
   font-variant-numeric: tabular-nums;
 }
-.lp-price-sub { font-size: 13px; color: #444; }
+.lp-price-sub { font-size: 13px; color: #374151; }
 .lp-btn-buy {
   display: block;
-  background: #F2F2F0; color: #050505;
+  background: #f2f2f0; color: #050505;
   font-size: 14px; font-weight: 700;
   padding: 15px 20px; border-radius: 10px;
   text-decoration: none; text-align: center;
   transition: opacity .15s, transform .12s;
 }
 .lp-btn-buy:hover { opacity: .88; transform: translateY(-1px); }
-.lp-btn-buy-lg { font-size: 15px; padding: 16px 28px; }
+.lp-btn-buy-lg { font-size: 15px; padding: 16px 30px; }
 .lp-guarantee-card {
   display: flex; align-items: flex-start; gap: 12px;
-  background: rgba(31,203,122,.05);
-  border: 1px solid rgba(31,203,122,.15);
-  border-radius: 10px; padding: 12px 14px;
+  background: rgba(34,197,94,.04);
+  border: 1px solid rgba(34,197,94,.15);
+  border-radius: 10px; padding: 13px 14px;
   text-align: left;
 }
 .lp-guarantee-icon {
   width: 22px; height: 22px; border-radius: 50%;
-  background: rgba(31,203,122,.15); color: #1FCB7A;
+  background: rgba(34,197,94,.12); color: #22c55e;
   font-size: 11px; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; margin-top: 1px;
 }
-.lp-guarantee-title { font-size: 13px; font-weight: 700; color: #F2F2F0; margin-bottom: 2px; }
-.lp-guarantee-sub   { font-size: 11px; color: #555; line-height: 1.5; }
+.lp-guarantee-title { font-size: 13px; font-weight: 700; color: #f2f2f0; margin-bottom: 3px; }
+.lp-guarantee-sub   { font-size: 11px; color: #4b5563; line-height: 1.5; }
 
-/* ── FAQ ──────────────────────────────────────────── */
+/* ── FAQ ─────────────────────────────────────────────────────────────────── */
 .lp-faq-container { max-width: 640px; }
 .lp-faq { display: flex; flex-direction: column; margin-top: 4px; }
 .lp-faq-item {
   border-bottom: 1px solid rgba(255,255,255,.05);
-  padding: 17px 0; cursor: pointer; user-select: none;
+  padding: 18px 0; cursor: pointer; user-select: none;
 }
 .lp-faq-q {
   display: flex; justify-content: space-between;
   align-items: center; gap: 16px;
-  font-size: 15px; font-weight: 600; color: #F2F2F0;
+  font-size: 15px; font-weight: 600; color: #f2f2f0;
 }
-.lp-faq-icon { font-size: 18px; color: #555; flex-shrink: 0; }
-.lp-faq-a { font-size: 14px; color: #555; line-height: 1.72; margin-top: 12px; }
+.lp-faq-icon { font-size: 18px; color: #4b5563; flex-shrink: 0; }
+.lp-faq-a { font-size: 14px; color: #4b5563; line-height: 1.72; margin-top: 12px; }
 
-/* ── CTA Final ────────────────────────────────────── */
+/* ── CTA Final ───────────────────────────────────────────────────────────── */
 .lp-cta-final {
   position: relative; text-align: center;
   overflow: hidden; background: #050505;
 }
 .lp-cta-glow {
-  position: absolute; bottom: -120px; left: 50%;
-  transform: translateX(-50%);
+  position: absolute; bottom: -100px; left: 50%; transform: translateX(-50%);
   width: 700px; height: 400px;
-  background: radial-gradient(ellipse, rgba(31,203,122,.07) 0%, transparent 65%);
+  background: radial-gradient(ellipse, rgba(34,197,94,.06) 0%, transparent 65%);
   pointer-events: none;
 }
 .lp-cta-inner {
@@ -1128,55 +844,52 @@ const CSS = `
   flex-direction: column; align-items: center; gap: 20px;
 }
 .lp-final-h2 {
-  font-family: 'Syne', sans-serif;
-  font-size: clamp(28px,5vw,46px); font-weight: 900;
-  color: #F2F2F0; line-height: 1.1; letter-spacing: -0.03em;
+  font-size: clamp(28px,5vw,48px); font-weight: 900;
+  color: #f2f2f0; line-height: 1.1; letter-spacing: -0.03em;
 }
-.lp-final-sub { font-size: 15px; color: #555; }
+.lp-final-sub { font-size: 15px; color: #4b5563; }
 .lp-final-btns { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .lp-btn-ghost-sm {
-  font-size: 13px; color: #333;
-  text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+  font-size: 13px; color: #374151;
+  text-decoration: underline; text-underline-offset: 3px;
+  cursor: pointer; background: none; border: none;
 }
-.lp-btn-ghost-sm:hover { color: #777; }
+.lp-btn-ghost-sm:hover { color: #6b7280; }
 .lp-final-trust {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  justify-content: center;
-  font-size: 12px; color: #282828;
+  justify-content: center; font-size: 12px; color: #1f2937;
+}
+.lp-final-disclaimer {
+  font-size: 11px; color: #1f2937;
+  line-height: 1.6; text-align: center;
+  border-top: 1px solid rgba(255,255,255,.04);
+  padding-top: 20px; max-width: 420px;
 }
 
-/* ── Mobile ───────────────────────────────────────── */
-@media (max-width: 820px) {
-  .lp-hero-layout { grid-template-columns: 1fr; gap: 40px; }
-  .lp-hero-text { align-items: center; text-align: center; }
-  .lp-tag-pill, .lp-hero-sub { align-self: center; text-align: center; }
-  .lp-trust-row, .lp-hero-btns, .lp-stats-bar { justify-content: center; }
-  .lp-steps { grid-template-columns: 1fr; }
+/* ── Mobile ──────────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .lp-analisa-grid { grid-template-columns: repeat(3, 1fr); }
+  .lp-problema-grid { grid-template-columns: 1fr; gap: 36px; }
+  .lp-photo-grid { grid-template-columns: 1fr; gap: 36px; }
+  .lp-photo-wrap { max-width: 320px; margin: 0 auto; aspect-ratio: 3/4; }
   .lp-pricing { grid-template-columns: 1fr; }
   .lp-price-box { position: static; min-width: 0; }
-  .lp-ex-ind-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 700px) {
+  .lp-section { padding: 64px 0; }
+  .lp-hero { padding: 72px 0 72px; }
+  .lp-steps { grid-template-columns: 1fr; }
+  .lp-analisa-grid { grid-template-columns: 1fr 1fr; }
   .lp-nav-link { display: none; }
-  .lp-alert-inner { flex-direction: column; gap: 0; }
-  .lp-alert-sep { width: 80px; height: 1px; }
-  .lp-alert-item { justify-content: center; text-align: left; padding: 16px 24px; }
-}
-@media (max-width: 620px) {
-  .lp-section { padding: 60px 0; }
-  .lp-vs-grid { grid-template-columns: 1fr; gap: 14px; }
-  .lp-vs-divider { flex-direction: row; width: auto; height: 28px; }
-  .lp-vs-div-line { flex: none; width: 60px; height: 1px; }
-  .lp-ex-ind-grid { grid-template-columns: 1fr 1fr; }
-  .lp-exemplo { padding: 18px 16px; }
-  .lp-ex-score-body { flex-direction: column; gap: 16px; }
-  .lp-ex-score-left { flex-direction: row; align-items: center; }
-  .lp-ex-score-num { font-size: 56px; }
-  .lp-mock { padding: 16px; }
-  .lp-mock-score-num { font-size: 44px; }
+  .lp-alert-inner { flex-direction: column; }
+  .lp-alert-sep { width: 80%; height: 1px; align-self: center; }
+  .lp-alert-item { justify-content: flex-start; padding: 18px 24px; min-width: 0; }
   .lp-testimonials { grid-template-columns: 1fr; }
-  .lp-price-int { font-size: 60px; }
 }
-@media (max-width: 400px) {
-  .lp-ex-ind-grid { grid-template-columns: 1fr; }
-  .lp-mock-grid { grid-template-columns: 1fr; }
+@media (max-width: 480px) {
+  .lp-analisa-grid { grid-template-columns: 1fr; }
+  .lp-price-int { font-size: 64px; }
+  .lp-h1 { font-size: clamp(30px, 8vw, 48px); }
+  .lp-hero-btns { flex-direction: column; align-items: center; }
 }
 `;
