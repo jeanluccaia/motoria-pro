@@ -186,7 +186,7 @@ export default function Landing() {
                   className="lp-photo-img"
                   width="960"
                   height="1200"
-                  fetchPriority="high"
+                  fetchpriority="high"
                   decoding="async"
                   onError={(e) => { e.currentTarget.closest(".lp-photo-frame").classList.add("lp-photo-empty"); }}
                 />
@@ -743,6 +743,13 @@ const CSS = `
   border-radius: 20px;
   overflow: visible;
 }
+/* <picture> is inline by default — must be block to give <img> a proper containing block */
+.lp-photo-frame picture {
+  display: block;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
 .lp-photo-glow {
   position: absolute; top: 5%; left: 50%;
   transform: translate(-50%, -50%);
@@ -753,16 +760,14 @@ const CSS = `
   animation: glowPulse 6s ease-in-out infinite;
 }
 .lp-photo-img {
-  position: relative; z-index: 1;
   width: 100%; display: block;
   border-radius: 20px;
   border: 1px solid var(--border-md);
   object-fit: cover; object-position: top center;
   aspect-ratio: 4/5;
-  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
   box-shadow: 0 40px 100px rgba(0,0,0,.72), 0 0 0 1px rgba(34,197,94,.06);
-  filter: contrast(1.06) saturate(0.88);
 }
 .lp-photo-empty .lp-photo-img { display: none; }
 .lp-photo-empty {
