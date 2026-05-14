@@ -109,9 +109,11 @@ export default function Landing() {
 
       {/* ── HERO ─────────────────────────────────────────────────────────────── */}
       <section className="lp-hero">
-        <div className="lp-hero-noise" aria-hidden="true" />
-        <div className="lp-hero-grid"  aria-hidden="true" />
-        <div className="lp-hero-glow"  aria-hidden="true" />
+        <div className="lp-hero-noise"   aria-hidden="true" />
+        <div className="lp-hero-grid"    aria-hidden="true" />
+        <div className="lp-hero-glow"    aria-hidden="true" />
+        <div className="lp-hero-glow-2"  aria-hidden="true" />
+        <div className="lp-hero-vignette" aria-hidden="true" />
 
         <div className="lp-container lp-hero-layout">
 
@@ -119,24 +121,24 @@ export default function Landing() {
           <div className="lp-hero-left">
             <div className="lp-tag-pill">
               <span className="lp-tag-dot" />
-              Ferramenta educativa de análise preventiva
+              Análise matemática de risco em odds
             </div>
 
             <h1 className="lp-h1">
-              O que as<br />
-              plataformas<br />
-              <em className="lp-h1-em">não te explicam.</em>
+              As plataformas<br />
+              mostram o retorno.<br />
+              <em className="lp-h1-em">Nunca o risco real.</em>
             </h1>
 
             <p className="lp-hero-sub">
-              Antes de qualquer decisão, entenda o risco real
-              por trás das odds — probabilidade implícita,
-              margem da casa e exposição ao risco.
+              Calculamos a probabilidade implícita, a margem
+              oculta da casa e o valor esperado real de cada
+              odd — para decidir com matemática, não instinto.
             </p>
 
             <div className="lp-hero-actions">
               <Link to="/ferramenta" className="lp-btn-hero">
-                Acessar análise preventiva
+                Entender o risco
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                   <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -206,8 +208,8 @@ export default function Landing() {
               <div className="lp-author-line" />
               <div className="lp-author-content">
                 <p className="lp-author-quote">
-                  "As plataformas mostram o lucro.<br />
-                  Eu comecei a estudar o prejuízo."
+                  "Parei de perguntar qual era a melhor odd.<br />
+                  Comecei a perguntar qual era o risco real."
                 </p>
                 <div className="lp-author-id">Jean Lucca · Criador do MotorIA Pro</div>
               </div>
@@ -615,16 +617,30 @@ const CSS = `
     linear-gradient(var(--grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid) 1px, transparent 1px);
   background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse 80% 100% at 50% 0%, black 40%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 80% 100% at 50% 0%, black 40%, transparent 100%);
+  mask-image: radial-gradient(ellipse 90% 100% at 50% 0%, black 55%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 100% at 50% 0%, black 55%, transparent 100%);
   pointer-events: none; z-index: 0;
 }
 .lp-hero-glow {
-  position: absolute; top: -10%; right: 10%;
-  width: 600px; height: 600px;
-  background: radial-gradient(circle, rgba(34,197,94,.1) 0%, transparent 65%);
+  position: absolute; top: -15%; right: 5%;
+  width: 760px; height: 760px;
+  background: radial-gradient(circle, rgba(34,197,94,.14) 0%, rgba(34,197,94,.04) 45%, transparent 70%);
   pointer-events: none; z-index: 0;
   animation: glowPulse 5s ease-in-out infinite;
+  filter: blur(2px);
+}
+.lp-hero-glow-2 {
+  position: absolute; bottom: -20%; left: -8%;
+  width: 560px; height: 560px;
+  background: radial-gradient(circle, rgba(99,102,241,.07) 0%, rgba(99,102,241,.02) 50%, transparent 70%);
+  pointer-events: none; z-index: 0;
+  animation: glowPulse 7s 1.5s ease-in-out infinite;
+  filter: blur(4px);
+}
+.lp-hero-vignette {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 100% 100% at 50% 50%, transparent 40%, rgba(5,5,5,.55) 100%);
+  pointer-events: none; z-index: 0;
 }
 .lp-hero-noise {
   position: absolute; inset: 0;
@@ -659,12 +675,13 @@ const CSS = `
 .lp-h1 {
   font-size: clamp(44px, 6.5vw, 80px);
   font-weight: 900; color: var(--t1);
-  line-height: 1.0; letter-spacing: -0.045em;
+  line-height: 1.0; letter-spacing: -0.048em;
   margin-bottom: 24px;
+  text-shadow: 0 2px 40px rgba(0,0,0,.4);
 }
 .lp-h1-em {
   font-style: normal;
-  color: rgba(235,235,235,.35);
+  color: rgba(235,235,235,.28);
 }
 
 /* Sub */
@@ -710,11 +727,11 @@ const CSS = `
   overflow: visible;
 }
 .lp-photo-glow {
-  position: absolute; top: 10%; left: 50%;
+  position: absolute; top: 5%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 360px; height: 360px;
-  background: radial-gradient(circle, rgba(34,197,94,.18) 0%, transparent 65%);
-  filter: blur(40px);
+  width: 440px; height: 440px;
+  background: radial-gradient(circle, rgba(34,197,94,.22) 0%, rgba(34,197,94,.06) 50%, transparent 70%);
+  filter: blur(48px);
   pointer-events: none; z-index: 0;
   animation: glowPulse 6s ease-in-out infinite;
 }
@@ -725,9 +742,10 @@ const CSS = `
   border: 1px solid var(--border-md);
   object-fit: cover; object-position: top center;
   aspect-ratio: 4/5;
-  mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
-  box-shadow: 0 32px 80px rgba(0,0,0,.6);
+  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  box-shadow: 0 40px 100px rgba(0,0,0,.72), 0 0 0 1px rgba(34,197,94,.06);
+  filter: contrast(1.06) saturate(0.88);
 }
 .lp-photo-empty .lp-photo-img { display: none; }
 .lp-photo-empty {
