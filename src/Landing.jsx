@@ -5,11 +5,11 @@ import { Link } from "./router";
 // ─── Dados ─────────────────────────────────────────────────────────────────────
 
 const ANALISA = [
-  { icon: "⟳", title: "Probabilidade implícita",  desc: "Quanto a odd revela sobre a chance real do evento acontecer — calculado na hora." },
-  { icon: "▼", title: "Margem da casa (vig)",       desc: "A taxa invisível embutida em toda odd. Você nunca vê, mas sempre paga." },
-  { icon: "◎", title: "Exposição ao risco",         desc: "Score 0–100 que resume o nível de risco real da aposta de forma objetiva." },
-  { icon: "✕", title: "Chance de perda",            desc: "Estimativa educativa da probabilidade de perder baseada nos dados da odd." },
-  { icon: "AI", title: "Leitura preventiva com IA", desc: "Análise contextual com pontos cegos, cenário necessário e leitura conservadora." },
+  { n: "01", title: "Probabilidade implícita",  desc: "Quanto a odd revela sobre a chance real do evento acontecer — calculado instantaneamente." },
+  { n: "02", title: "Margem da casa (vig)",      desc: "A taxa invisível embutida em toda odd. Você nunca vê, mas sempre paga." },
+  { n: "03", title: "Exposição ao risco",        desc: "Score 0–100 que resume o nível de risco real da aposta com base na matemática da odd." },
+  { n: "04", title: "Chance de perda",           desc: "Estimativa educativa da probabilidade de perder calculada a partir dos dados da odd." },
+  { n: "05", title: "Leitura preventiva com IA", desc: "Análise contextual: pontos cegos, cenário necessário e leitura conservadora antes de qualquer decisão." },
 ];
 
 const TESTIMONIALS = [
@@ -17,7 +17,7 @@ const TESTIMONIALS = [
   { name: "Ana C.",     age: 28, city: "Belo Horizonte", text: "Vi que minha odd 'segura' de 1.50 tinha 66% de chance de dar errado. Nunca mais apostei sem analisar antes." },
   { name: "Felipe S.",  age: 41, city: "Rio de Janeiro", text: "O alerta de tilt salvou meu mês. Ia dobrar o prejuízo tentando recuperar e nem percebia." },
   { name: "Mariana T.", age: 25, city: "Curitiba",       text: "Simples, direto, honesto. Não promete nada mas mostra tudo que a casa esconde na odd." },
-  { name: "Gustavo R.", age: 37, city: "Porto Alegre",   text: "Em anos apostando, nunca tinha visto meu prejuízo projetado calculado assim. Assustador e essencial." },
+  { name: "Gustavo R.", age: 37, city: "Porto Alegre",   text: "Em anos apostando, nunca tinha visto meu prejuízo projetado assim. Assustador e essencial." },
   { name: "Cássia F.",  age: 44, city: "Salvador",       text: "Meu marido apostava R$200 por semana. Depois da simulação de 30 dias, parou na hora." },
 ];
 
@@ -34,23 +34,23 @@ const FEATURES = [
 ];
 
 const FAQ_ITEMS = [
-  { q: "Funciona para qualquer esporte?",           a: "Sim. A análise se baseia na matemática da odd, que é universal — futebol, basquete, tênis, MMA, eSports e qualquer mercado com odds." },
-  { q: "Vocês são uma casa de aposta?",             a: "Não. Somos uma ferramenta educativa independente. Não fazemos apostas, não vendemos odds e não temos nenhuma relação com casas de aposta." },
-  { q: "É assinatura mensal?",                      a: "Não. Você paga R$27 uma vez e tem acesso vitalício. Sem renovações, sem surpresas." },
-  { q: "Vocês dão palpites ou previsões?",          a: "Nunca. Mostramos riscos, probabilidades matemáticas e impacto financeiro. A decisão é sempre sua." },
-  { q: "Como recebo o acesso após o pagamento?",    a: "Imediatamente. Após o pagamento confirmado, você recebe o link de acesso no email de confirmação." },
-  { q: "Funciona no celular?",                      a: "Sim. A ferramenta é 100% mobile-first, feita para usar antes de qualquer decisão, de onde você estiver." },
-  { q: "E se eu já estou com problemas com jogo?", a: "Procure ajuda imediatamente. Acesse jogoresponsavel.com.br ou ligue para o CVV: 188. Problema com jogo é sério e tem tratamento." },
-  { q: "Como funciona a garantia?",                 a: "7 dias corridos a partir da compra. Não achou útil? Basta enviar um email e devolvemos 100% sem perguntas." },
+  { q: "Funciona para qualquer esporte?",          a: "Sim. A análise se baseia na matemática da odd, que é universal — futebol, basquete, tênis, MMA, eSports e qualquer mercado com odds." },
+  { q: "Vocês são uma casa de aposta?",            a: "Não. Somos uma ferramenta educativa independente. Não fazemos apostas, não vendemos odds e não temos nenhuma relação com casas de aposta." },
+  { q: "É assinatura mensal?",                     a: "Não. Você paga R$27 uma vez e tem acesso vitalício. Sem renovações, sem surpresas." },
+  { q: "Vocês dão palpites ou previsões?",         a: "Nunca. Mostramos riscos, probabilidades matemáticas e impacto financeiro. A decisão é sempre sua." },
+  { q: "Como recebo o acesso após o pagamento?",   a: "Imediatamente. Após o pagamento confirmado, você recebe o link de acesso no email de confirmação." },
+  { q: "Funciona no celular?",                     a: "Sim. A ferramenta é 100% mobile-first, feita para usar antes de qualquer decisão, de onde você estiver." },
+  { q: "E se eu já tenho problemas com jogo?",     a: "Procure ajuda imediatamente. Acesse jogoresponsavel.com.br ou ligue para o CVV: 188. Problema com jogo é sério e tem tratamento." },
+  { q: "Como funciona a garantia?",                a: "7 dias corridos a partir da compra. Não achou útil? Basta enviar um email e devolvemos 100% sem perguntas." },
 ];
 
 const AVATAR_PALETTES = [
-  { bg: "rgba(31,203,122,0.12)",  border: "rgba(31,203,122,0.3)",  color: "#1FCB7A" },
-  { bg: "rgba(99,102,241,0.12)",  border: "rgba(99,102,241,0.3)",  color: "#818cf8" },
-  { bg: "rgba(255,176,32,0.12)",  border: "rgba(255,176,32,0.3)",  color: "#FFB020" },
-  { bg: "rgba(244,114,182,0.12)", border: "rgba(244,114,182,0.3)", color: "#f472b6" },
-  { bg: "rgba(45,212,191,0.12)",  border: "rgba(45,212,191,0.3)",  color: "#2dd4bf" },
-  { bg: "rgba(251,146,60,0.12)",  border: "rgba(251,146,60,0.3)",  color: "#fb923c" },
+  { bg: "rgba(34,197,94,0.1)",   border: "rgba(34,197,94,0.25)",   color: "#22c55e" },
+  { bg: "rgba(99,102,241,0.1)",  border: "rgba(99,102,241,0.25)",  color: "#818cf8" },
+  { bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.25)",  color: "#f59e0b" },
+  { bg: "rgba(244,114,182,0.1)", border: "rgba(244,114,182,0.25)", color: "#f472b6" },
+  { bg: "rgba(45,212,191,0.1)",  border: "rgba(45,212,191,0.25)",  color: "#2dd4bf" },
+  { bg: "rgba(251,146,60,0.1)",  border: "rgba(251,146,60,0.25)",  color: "#fb923c" },
 ];
 
 // ─── Componentes ───────────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ function Avatar({ name, index }) {
 function FaqItem({ q, a }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="lp-faq-item" onClick={() => setOpen(!open)}>
+    <div className={`lp-faq-item${open ? " lp-faq-open" : ""}`} onClick={() => setOpen(!open)}>
       <div className="lp-faq-q">
         <span>{q}</span>
         <span className="lp-faq-icon">{open ? "−" : "+"}</span>
@@ -90,176 +90,246 @@ export default function Landing() {
       <header className="lp-header">
         <div className="lp-header-inner">
           <div className="lp-logo">
-            <span className="lp-logo-mark">M</span>
+            <div className="lp-logo-mark">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M7 1L13 4V10L7 13L1 10V4L7 1Z" fill="#050505" stroke="none"/>
+                <path d="M7 1L13 4V10L7 13L1 10V4L7 1Z" fill="currentColor" fillOpacity=".9"/>
+              </svg>
+            </div>
             <span className="lp-logo-name">MotorIA Pro</span>
           </div>
           <nav className="lp-nav">
             <a href="#problema"      className="lp-nav-link">O problema</a>
             <a href="#como-funciona" className="lp-nav-link">Como funciona</a>
             <a href="#preco"         className="lp-nav-link">Preço</a>
-            <Link to="/ferramenta"   className="lp-nav-cta">Acessar ferramenta</Link>
           </nav>
+          <Link to="/ferramenta" className="lp-nav-cta">Acessar ferramenta →</Link>
         </div>
       </header>
 
       {/* ── HERO ─────────────────────────────────────────────────────────────── */}
       <section className="lp-hero">
+        <div className="lp-hero-noise" aria-hidden="true" />
+        <div className="lp-hero-grid"  aria-hidden="true" />
         <div className="lp-hero-glow"  aria-hidden="true" />
-        <div className="lp-grid-bg"    aria-hidden="true" />
-        <div className="lp-container lp-hero-inner">
-          <div className="lp-tag-pill">FERRAMENTA EDUCATIVA DE ANÁLISE PREVENTIVA</div>
-          <h1 className="lp-h1">
-            O que as plataformas<br />
-            <span className="lp-h1-accent">de aposta não te explicam.</span>
-          </h1>
-          <p className="lp-hero-sub">
-            Antes de tomar qualquer decisão, entenda a chance de perder,
-            a margem implícita e o risco real por trás dos números.
-          </p>
-          <div className="lp-hero-btns">
-            <Link to="/ferramenta" className="lp-btn-primary">Acessar análise preventiva →</Link>
-            <a href="#como-funciona" className="lp-btn-ghost">Ver como funciona</a>
-          </div>
-          <div className="lp-trust-row">
-            {["Não é casa de aposta", "Não vende previsões", "Não promete lucro", "Grátis para testar"].map((t) => (
-              <span className="lp-trust-pill" key={t}>{t}</span>
-            ))}
-          </div>
-          <div className="lp-stats-bar">
-            <div className="lp-stat">
-              <span className="lp-stat-num">8</span>
-              <span className="lp-stat-label">indicadores por análise</span>
+
+        <div className="lp-container lp-hero-layout">
+
+          {/* LEFT */}
+          <div className="lp-hero-left">
+            <div className="lp-tag-pill">
+              <span className="lp-tag-dot" />
+              Ferramenta educativa de análise preventiva
             </div>
-            <div className="lp-stat-div" />
-            <div className="lp-stat">
-              <span className="lp-stat-num">&lt;60s</span>
-              <span className="lp-stat-label">resultado em segundos</span>
+
+            <h1 className="lp-h1">
+              O que as<br />
+              plataformas<br />
+              <em className="lp-h1-em">não te explicam.</em>
+            </h1>
+
+            <p className="lp-hero-sub">
+              Antes de qualquer decisão, entenda o risco real
+              por trás das odds — probabilidade implícita,
+              margem da casa e exposição ao risco.
+            </p>
+
+            <div className="lp-hero-actions">
+              <Link to="/ferramenta" className="lp-btn-hero">
+                Acessar análise preventiva
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </Link>
+              <a href="#como-funciona" className="lp-btn-text">Ver como funciona</a>
             </div>
-            <div className="lp-stat-div" />
-            <div className="lp-stat">
-              <span className="lp-stat-num">0</span>
-              <span className="lp-stat-label">cadastro necessário</span>
+
+            <div className="lp-hero-stats">
+              <div className="lp-hstat">
+                <div className="lp-hstat-val">8</div>
+                <div className="lp-hstat-key">indicadores por análise</div>
+              </div>
+              <div className="lp-hstat-sep" />
+              <div className="lp-hstat">
+                <div className="lp-hstat-val">&lt;60s</div>
+                <div className="lp-hstat-key">resultado completo</div>
+              </div>
+              <div className="lp-hstat-sep" />
+              <div className="lp-hstat">
+                <div className="lp-hstat-val">0</div>
+                <div className="lp-hstat-key">cadastro necessário</div>
+              </div>
             </div>
           </div>
+
+          {/* RIGHT — photo */}
+          <div className="lp-hero-right">
+            <div className="lp-photo-frame">
+              <div className="lp-photo-glow" aria-hidden="true" />
+              <img
+                src="/jean-analise.png"
+                alt="Jean Lucca — criador do MotorIA Pro"
+                className="lp-photo-img"
+                onError={(e) => { e.currentTarget.parentElement.classList.add("lp-photo-empty"); }}
+              />
+
+              {/* Floating score card */}
+              <div className="lp-float-score">
+                <div className="lp-float-label">SCORE DE RISCO</div>
+                <div className="lp-float-score-row">
+                  <div className="lp-float-num">64</div>
+                  <div className="lp-float-right">
+                    <div className="lp-float-badge">ALTO</div>
+                    <div className="lp-float-bar">
+                      <div className="lp-float-bar-fill" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating metrics */}
+              <div className="lp-float-metrics">
+                <div className="lp-float-metric">
+                  <div className="lp-float-metric-val lp-c-amber">5,5%</div>
+                  <div className="lp-float-metric-key">margem</div>
+                </div>
+                <div className="lp-float-metric-sep" />
+                <div className="lp-float-metric">
+                  <div className="lp-float-metric-val lp-c-red">64%</div>
+                  <div className="lp-float-metric-key">perda</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Author quote */}
+            <div className="lp-author">
+              <div className="lp-author-line" />
+              <div className="lp-author-content">
+                <p className="lp-author-quote">
+                  "As plataformas mostram o lucro.<br />
+                  Eu comecei a estudar o prejuízo."
+                </p>
+                <div className="lp-author-id">Jean Lucca · Criador do MotorIA Pro</div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
-      {/* ── ALERTA MATEMÁTICO ────────────────────────────────────────────────── */}
-      <div className="lp-alert-strip">
-        <div className="lp-container">
-          <div className="lp-alert-inner">
-            <div className="lp-alert-item">
-              <span className="lp-alert-num lp-num-amber">5,5%</span>
-              <span className="lp-alert-desc">da sua aposta vai para a casa — invisível, em toda odd</span>
-            </div>
-            <div className="lp-alert-sep" />
-            <div className="lp-alert-item">
-              <span className="lp-alert-num lp-num-red">64%</span>
-              <span className="lp-alert-desc">de chance de perda numa odd 2.80 que parece "atraente"</span>
-            </div>
-            <div className="lp-alert-sep" />
-            <div className="lp-alert-item">
-              <span className="lp-alert-num lp-num-red">−R$412</span>
-              <span className="lp-alert-desc">projeção de 30 dias apostando 5× por semana nesse perfil</span>
-            </div>
+      {/* ── DATA STRIP ───────────────────────────────────────────────────────── */}
+      <div className="lp-data-strip">
+        <div className="lp-container lp-data-inner">
+          <div className="lp-data-item">
+            <span className="lp-data-num lp-c-amber">5,5%</span>
+            <span className="lp-data-desc">da aposta vai para a casa — invisível, em toda odd</span>
+          </div>
+          <div className="lp-data-sep" />
+          <div className="lp-data-item">
+            <span className="lp-data-num lp-c-red">64%</span>
+            <span className="lp-data-desc">de chance de perda em odds 2.80 que parecem "atraentes"</span>
+          </div>
+          <div className="lp-data-sep" />
+          <div className="lp-data-item">
+            <span className="lp-data-num lp-c-red">−R$412</span>
+            <span className="lp-data-desc">projeção em 30 dias apostando 5× por semana nesse perfil</span>
           </div>
         </div>
       </div>
 
       {/* ── O PROBLEMA ───────────────────────────────────────────────────────── */}
-      <section className="lp-section lp-section-dark" id="problema">
-        <div className="lp-container lp-problema-grid">
-          <div className="lp-problema-text">
-            <div className="lp-section-label">O PROBLEMA</div>
-            <h2 className="lp-h2">
-              A plataforma mostra o retorno.<br />Esconde o risco.
-            </h2>
-            <p className="lp-problema-desc">
-              As plataformas mostram odds, retorno possível e lucro potencial.
-              Mas quase nunca explicam a probabilidade implícita,
-              a margem da casa e a exposição ao risco — os números que realmente importam
-              antes de qualquer decisão.
-            </p>
-            <div className="lp-problema-items">
-              {[
-                "Odd 2.80 parece atraente. A casa só te mostra o retorno possível.",
-                "A margem embutida (5,5%) torna o valor esperado estruturalmente negativo.",
-                "64% de chance de perda — nenhuma plataforma calcula isso pra você.",
-              ].map((item, i) => (
-                <div className="lp-problema-item" key={i}>
-                  <span className="lp-problema-dash">—</span>
-                  <span>{item}</span>
-                </div>
-              ))}
+      <section className="lp-section" id="problema">
+        <div className="lp-container">
+          <div className="lp-section-eyebrow">O problema</div>
+          <div className="lp-problem-layout">
+            <div className="lp-problem-left">
+              <h2 className="lp-h2">
+                Você vê o retorno.<br />
+                Nunca a chance real<br />
+                de perder.
+              </h2>
+              <p className="lp-problem-body">
+                As plataformas mostram odds, retorno possível e lucro potencial.
+                Mas nunca explicam a probabilidade implícita, a margem da casa
+                e a exposição ao risco — os números que realmente importam
+                antes de qualquer decisão.
+              </p>
+              <div className="lp-problem-points">
+                {[
+                  "Odd 2.80 parece atraente. A plataforma só mostra o retorno.",
+                  "A margem embutida torna o valor esperado estruturalmente negativo.",
+                  "64% de chance de perda — nenhuma plataforma calcula isso.",
+                ].map((pt, i) => (
+                  <div className="lp-problem-pt" key={i}>
+                    <span className="lp-problem-pt-icon">—</span>
+                    <span>{pt}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-          <div className="lp-problema-card">
-            <div className="lp-pcard-label">O QUE A PLATAFORMA MOSTRA</div>
-            {[["Retorno se ganhar", "+R$280,00", "green"], ["Lucro possível", "R$180,00", "green"], ["Odd", "2.80", "neutral"]].map(([l, v, c]) => (
-              <div className="lp-pcard-row" key={l}>
-                <span className="lp-pcard-row-label">{l}</span>
-                <span className={`lp-pcard-row-val ${c === "green" ? "lp-num-green" : "lp-num-muted"}`}>{v}</span>
+            <div className="lp-problem-right">
+              <div className="lp-pcard">
+                <div className="lp-pcard-hdr">
+                  <div className="lp-pcard-hdr-dot lp-pcard-dot-green" />
+                  <span className="lp-pcard-hdr-label lp-c-green">O que a plataforma mostra</span>
+                </div>
+                {[
+                  ["Retorno se ganhar",  "+R$280,00", "green"],
+                  ["Lucro possível",     "R$180,00",  "green"],
+                  ["Odd do evento",      "2.80",      "muted"],
+                ].map(([l, v, c]) => (
+                  <div className="lp-pcard-row" key={l}>
+                    <span className="lp-pcard-row-lbl">{l}</span>
+                    <span className={`lp-pcard-row-val lp-c-${c}`}>{v}</span>
+                  </div>
+                ))}
+                <div className="lp-pcard-divider" />
+                <div className="lp-pcard-hdr">
+                  <div className="lp-pcard-hdr-dot lp-pcard-dot-red" />
+                  <span className="lp-pcard-hdr-label lp-c-red">O que ela esconde</span>
+                </div>
+                {[
+                  ["Probabilidade implícita", "35,7%",    "red"  ],
+                  ["Margem da casa (vig)",    "5,5%",     "amber"],
+                  ["Chance de perda",         "64,3%",    "red"  ],
+                  ["Valor esperado (EV)",     "−R$14,50", "red"  ],
+                ].map(([l, v, c]) => (
+                  <div className="lp-pcard-row" key={l}>
+                    <span className="lp-pcard-row-lbl">{l}</span>
+                    <span className={`lp-pcard-row-val lp-c-${c}`}>{v}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-            <div className="lp-pcard-div" />
-            <div className="lp-pcard-label lp-pcard-label-red">O QUE ELA ESCONDE</div>
-            {[["Probabilidade implícita", "35,7%", "red"], ["Margem da casa", "5,5%", "amber"], ["Chance de perda", "64,3%", "red"], ["Valor esperado", "−R$14,50", "red"]].map(([l, v, c]) => (
-              <div className="lp-pcard-row" key={l}>
-                <span className="lp-pcard-row-label">{l}</span>
-                <span className={`lp-pcard-row-val lp-num-${c}`}>{v}</span>
-              </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── O QUE O MOTORIA PRO ANALISA ──────────────────────────────────────── */}
-      <section className="lp-section">
+      {/* ── O QUE ANALISA ────────────────────────────────────────────────────── */}
+      <section className="lp-section lp-section-dark">
         <div className="lp-container">
-          <div className="lp-section-label">O QUE O MOTORIA PRO ANALISA</div>
-          <h2 className="lp-h2">5 dimensões de risco. Em menos de 60 segundos.</h2>
-          <p className="lp-h2-sub">
-            Cada análise entrega um relatório completo com os dados que as plataformas omitem.
-          </p>
-          <div className="lp-analisa-grid">
-            {ANALISA.map((item) => (
-              <div className="lp-analisa-card" key={item.title}>
-                <div className="lp-analisa-icon">{item.icon}</div>
-                <h3 className="lp-analisa-title">{item.title}</h3>
-                <p className="lp-analisa-desc">{item.desc}</p>
+          <div className="lp-section-eyebrow">O que o MotorIA Pro analisa</div>
+          <h2 className="lp-h2 lp-h2-narrow">
+            5 dimensões de risco.<br />Em menos de 60 segundos.
+          </h2>
+          <div className="lp-analisa-list">
+            {ANALISA.map((item, i) => (
+              <div className="lp-analisa-row" key={item.n}>
+                <div className="lp-analisa-n">{item.n}</div>
+                <div className="lp-analisa-content">
+                  <div className="lp-analisa-title">{item.title}</div>
+                  <div className="lp-analisa-desc">{item.desc}</div>
+                </div>
+                {i < ANALISA.length - 1 && <div className="lp-analisa-sep" />}
               </div>
             ))}
           </div>
           <div className="lp-analisa-cta">
-            <Link to="/ferramenta" className="lp-btn-primary">Conhecer a ferramenta →</Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── FOTO + QUOTE ─────────────────────────────────────────────────────── */}
-      <section className="lp-section lp-section-dark">
-        <div className="lp-container lp-photo-grid">
-          <div className="lp-photo-wrap">
-            <img
-              src="/jean-analise.png"
-              alt="Jean Lucca"
-              className="lp-photo"
-              onError={(e) => { e.currentTarget.style.display = "none"; }}
-            />
-          </div>
-          <div className="lp-photo-text">
-            <div className="lp-section-label">QUEM ESTÁ POR TRÁS</div>
-            <h2 className="lp-h2 lp-photo-h2">
-              Eu comecei a estudar o que quase ninguém mostra.
-            </h2>
-            <p className="lp-photo-quote">
-              "O prejuízo provável antes da aposta acontecer. Não existe forma mais honesta
-              de ajudar alguém a tomar uma decisão consciente do que mostrar o risco real
-              antes — não depois."
-            </p>
-            <div className="lp-photo-name">Jean Lucca · Criador do MotorIA Pro</div>
-            <Link to="/ferramenta" className="lp-btn-primary lp-photo-cta">
-              Acessar análise preventiva →
+            <Link to="/ferramenta" className="lp-btn-hero">
+              Conhecer a ferramenta
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </Link>
           </div>
         </div>
@@ -268,13 +338,13 @@ export default function Landing() {
       {/* ── COMO FUNCIONA ────────────────────────────────────────────────────── */}
       <section className="lp-section" id="como-funciona">
         <div className="lp-container">
-          <div className="lp-section-label">COMO FUNCIONA</div>
-          <h2 className="lp-h2">Três etapas. Menos de um minuto.</h2>
+          <div className="lp-section-eyebrow">Como funciona</div>
+          <h2 className="lp-h2 lp-h2-narrow">Três etapas.<br />Menos de um minuto.</h2>
           <div className="lp-steps">
             {[
-              { n: "01", title: "Insira a odd e o contexto",        desc: "Informe o jogo, tipo de aposta, odd e valor pretendido. Quanto mais contexto, mais precisa a leitura.",        tags: ["Evento", "Odd", "Tipo", "Valor"] },
-              { n: "02", title: "A IA calcula a exposição ao risco", desc: "Probabilidade implícita, margem da casa, valor esperado e pontos cegos — calculados automaticamente.",          tags: ["Score 0–100", "Probabilidade", "EV", "Margem"] },
-              { n: "03", title: "Receba a leitura preventiva",       desc: "Relatório estruturado com cenário necessário, pontos cegos e leitura conservadora — antes de qualquer decisão.", tags: ["Pontos cegos", "Chance de perda", "Leitura final"] },
+              { n: "01", title: "Insira a odd e o contexto",         desc: "Informe o jogo, tipo de aposta, odd e valor pretendido. Quanto mais contexto, mais precisa a leitura.",         tags: ["Evento", "Odd", "Tipo", "Valor"] },
+              { n: "02", title: "A IA calcula a exposição ao risco",  desc: "Probabilidade implícita, margem da casa, valor esperado e pontos cegos — calculados automaticamente.",           tags: ["Score 0–100", "Probabilidade", "EV", "Margem"] },
+              { n: "03", title: "Receba a leitura preventiva",        desc: "Relatório estruturado com cenário necessário, pontos cegos e leitura conservadora — antes de qualquer decisão.", tags: ["Pontos cegos", "Chance de perda", "Leitura final"] },
             ].map((s) => (
               <div className="lp-step" key={s.n}>
                 <div className="lp-step-n">{s.n}</div>
@@ -286,8 +356,13 @@ export default function Landing() {
               </div>
             ))}
           </div>
-          <div className="lp-steps-cta">
-            <Link to="/ferramenta" className="lp-btn-primary">Entender o risco antes de decidir →</Link>
+          <div style={{ textAlign: "center" }}>
+            <Link to="/ferramenta" className="lp-btn-hero">
+              Entender o risco antes de decidir
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </Link>
           </div>
         </div>
       </section>
@@ -295,10 +370,24 @@ export default function Landing() {
       {/* ── DEPOIMENTOS ──────────────────────────────────────────────────────── */}
       <section className="lp-section lp-section-dark">
         <div className="lp-container">
-          <div className="lp-section-label">O QUE DIZEM OS USUÁRIOS</div>
-          <h2 className="lp-h2">Decisões mais conscientes.</h2>
+          <div className="lp-section-eyebrow">Usuários</div>
+          <h2 className="lp-h2 lp-h2-narrow">Decisões mais conscientes.</h2>
+          {/* Featured */}
+          <div className="lp-test-featured">
+            <div className="lp-test-featured-quote">
+              "{TESTIMONIALS[4].text}"
+            </div>
+            <div className="lp-test-featured-author">
+              <Avatar name={TESTIMONIALS[4].name} index={4} />
+              <div>
+                <div className="lp-test-featured-name">{TESTIMONIALS[4].name}, {TESTIMONIALS[4].age} anos</div>
+                <div className="lp-test-featured-city">{TESTIMONIALS[4].city}</div>
+              </div>
+            </div>
+          </div>
+          {/* Grid */}
           <div className="lp-testimonials">
-            {TESTIMONIALS.map((t, i) => (
+            {TESTIMONIALS.filter((_, i) => i !== 4).map((t, i) => (
               <div className="lp-testimonial" key={i}>
                 <div className="lp-test-stars">★★★★★</div>
                 <p className="lp-test-text">"{t.text}"</p>
@@ -307,7 +396,7 @@ export default function Landing() {
                   <div>
                     <div className="lp-test-name-row">
                       <strong>{t.name}</strong>, {t.age} anos
-                      <span className="lp-test-verified">verificado</span>
+                      <span className="lp-test-verified">✓ verificado</span>
                     </div>
                     <span className="lp-test-city">{t.city}</span>
                   </div>
@@ -321,32 +410,33 @@ export default function Landing() {
       {/* ── PREÇO ────────────────────────────────────────────────────────────── */}
       <section className="lp-section" id="preco">
         <div className="lp-container">
-          <div className="lp-section-label">ACESSO COMPLETO</div>
-          <h2 className="lp-h2">Menos do que uma aposta perdida.</h2>
-          <p className="lp-h2-sub">
+          <div className="lp-section-eyebrow">Acesso completo</div>
+          <h2 className="lp-h2 lp-h2-narrow">Menos do que uma aposta perdida.</h2>
+          <p className="lp-pricing-sub">
             Uma análise que custa R$27 pode te fazer entender por que você perde
             muito mais do que isso toda semana.
           </p>
           <div className="lp-pricing">
-            <div className="lp-features-list">
+            <ul className="lp-features-list">
               {FEATURES.map((f, i) => (
-                <div className="lp-feature-item" key={i}>
+                <li className="lp-feature-item" key={i}>
                   <span className="lp-feature-check">✓</span>
                   <span>{f}</span>
-                </div>
+                </li>
               ))}
-            </div>
-            <div className="lp-price-box">
-              <div className="lp-price-label">ACESSO VITALÍCIO</div>
+            </ul>
+            <div className="lp-price-card">
+              <div className="lp-price-card-glow" aria-hidden="true" />
+              <div className="lp-price-eyebrow">Acesso vitalício</div>
               <div className="lp-price-display">
                 <span className="lp-price-curr">R$</span>
                 <span className="lp-price-int">27</span>
               </div>
-              <div className="lp-price-sub">Pague uma vez. Use para sempre.</div>
+              <p className="lp-price-note">Pague uma vez. Use para sempre.</p>
               <Link to="/pagar" className="lp-btn-buy">
                 Garantir acesso imediato →
               </Link>
-              <div className="lp-guarantee-card">
+              <div className="lp-guarantee">
                 <div className="lp-guarantee-icon">✓</div>
                 <div>
                   <div className="lp-guarantee-title">Garantia de 7 dias</div>
@@ -360,9 +450,9 @@ export default function Landing() {
 
       {/* ── FAQ ──────────────────────────────────────────────────────────────── */}
       <section className="lp-section lp-section-dark">
-        <div className="lp-container lp-faq-container">
-          <div className="lp-section-label">DÚVIDAS</div>
-          <h2 className="lp-h2">Perguntas frequentes.</h2>
+        <div className="lp-container" style={{ maxWidth: 680 }}>
+          <div className="lp-section-eyebrow">Dúvidas</div>
+          <h2 className="lp-h2 lp-h2-narrow">Perguntas frequentes.</h2>
           <div className="lp-faq">
             {FAQ_ITEMS.map((item, i) => <FaqItem key={i} q={item.q} a={item.a} />)}
           </div>
@@ -370,29 +460,31 @@ export default function Landing() {
       </section>
 
       {/* ── CTA FINAL ────────────────────────────────────────────────────────── */}
-      <section className="lp-section lp-cta-final">
-        <div className="lp-cta-glow" aria-hidden="true" />
+      <section className="lp-cta-final">
+        <div className="lp-cta-glow"  aria-hidden="true" />
+        <div className="lp-cta-grid"  aria-hidden="true" />
         <div className="lp-container lp-cta-inner">
-          <div className="lp-tag-pill">FERRAMENTA EDUCATIVA</div>
-          <h2 className="lp-final-h2">
-            Entender o risco<br />antes de decidir.
+          <div className="lp-tag-pill" style={{ marginBottom: 32 }}>Ferramenta educativa · +18</div>
+          <h2 className="lp-cta-h2">
+            Entender o risco<br />
+            <span className="lp-cta-h2-dim">antes de decidir.</span>
           </h2>
-          <p className="lp-final-sub">Acesso imediato por R$27. Vitalício, sem mensalidade.</p>
-          <div className="lp-final-btns">
+          <p className="lp-cta-sub">Acesso imediato por R$27. Vitalício, sem mensalidade.</p>
+          <div className="lp-cta-actions">
             <Link to="/pagar"      className="lp-btn-buy lp-btn-buy-lg">Garantir acesso por R$27 →</Link>
             <Link to="/ferramenta" className="lp-btn-ghost-sm">Testar grátis primeiro</Link>
           </div>
-          <div className="lp-final-trust">
+          <div className="lp-cta-trust">
             <span>Sem cadastro para testar</span>
-            <span>·</span>
+            <span className="lp-cta-dot">·</span>
             <span>Garantia de 7 dias</span>
-            <span>·</span>
+            <span className="lp-cta-dot">·</span>
             <span>Não é casa de aposta</span>
           </div>
-          <div className="lp-final-disclaimer">
+          <p className="lp-cta-disclaimer">
             Ferramenta educativa. Não garante resultados. Não incentiva apostas.
             Uso recomendado apenas para maiores de 18 anos.
-          </div>
+          </p>
         </div>
       </section>
 
@@ -404,492 +496,677 @@ export default function Landing() {
 // ─── CSS ───────────────────────────────────────────────────────────────────────
 
 const CSS = `
-/* ── Reset / base ──────────────────────────────────────────────────────────── */
+/* ── Reset ─────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
-.lp-container { max-width: 980px; margin: 0 auto; padding: 0 24px; }
-.lp-section { padding: 88px 0; }
-.lp-section-dark { background: #080809; }
 
-/* Números — sempre alinhados */
-.lp-num-green   { color: #22c55e; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
-.lp-num-red     { color: #ef4444; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
-.lp-num-amber   { color: #f59e0b; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
-.lp-num-muted   { color: #6b7280; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+/* ── Tokens ─────────────────────────────────────────────────────────────────── */
+:root {
+  --bg:        #050505;
+  --bg-2:      #080809;
+  --border:    rgba(255,255,255,0.07);
+  --border-md: rgba(255,255,255,0.11);
+  --t1: #EBEBEB;
+  --t2: #737373;
+  --t3: #404040;
+  --green: #22c55e;
+  --red:   #ef4444;
+  --amber: #f59e0b;
+}
 
-.lp-section-label {
+/* Colour utilities */
+.lp-c-green { color: var(--green); }
+.lp-c-red   { color: var(--red);   }
+.lp-c-amber { color: var(--amber); }
+.lp-c-muted { color: var(--t2);    }
+
+/* Number rendering */
+[class*="lp-c-green"],
+[class*="lp-c-red"],
+[class*="lp-c-amber"],
+[class*="lp-data-num"],
+[class*="lp-float-num"],
+[class*="lp-price-int"],
+[class*="lp-hstat-val"] {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+/* ── Layout ──────────────────────────────────────────────────────────────────── */
+.lp-container { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
+.lp-section   { padding: 112px 0; }
+.lp-section-dark { background: var(--bg-2); }
+
+/* Section eyebrow */
+.lp-section-eyebrow {
   font-size: 10px; font-weight: 700;
-  letter-spacing: 0.16em; color: #22c55e;
-  text-transform: uppercase; margin-bottom: 14px;
-}
-.lp-h2 {
-  font-size: clamp(22px, 3.5vw, 36px);
-  font-weight: 800; color: #f2f2f0;
-  line-height: 1.18; letter-spacing: -0.025em;
-  margin-bottom: 12px;
-}
-.lp-h2-sub {
-  font-size: 15px; color: #4b5563;
-  line-height: 1.78; max-width: 520px;
-  margin-bottom: 44px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--green); margin-bottom: 18px;
 }
 
-/* ── Header ──────────────────────────────────────────────────────────────── */
+/* Headline scale */
+.lp-h2 {
+  font-size: clamp(26px, 4vw, 44px);
+  font-weight: 900; color: var(--t1);
+  line-height: 1.12; letter-spacing: -0.035em;
+  margin-bottom: 16px;
+}
+.lp-h2-narrow { max-width: 520px; margin-bottom: 48px; }
+
+/* ── Keyframes ───────────────────────────────────────────────────────────────── */
+@keyframes glowPulse {
+  0%, 100% { opacity: .6; }
+  50%       { opacity: 1; }
+}
+@keyframes floatIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────────── */
 .lp-header {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(5,5,5,0.96);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  position: sticky; top: 0; z-index: 200;
+  background: rgba(5,5,5,.94);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border);
 }
 .lp-header-inner {
-  max-width: 980px; margin: 0 auto;
-  padding: 14px 24px;
-  display: flex; align-items: center; justify-content: space-between;
+  max-width: 1080px; margin: 0 auto; padding: 0 28px;
+  height: 56px;
+  display: flex; align-items: center; justify-content: space-between; gap: 32px;
 }
-.lp-logo { display: flex; align-items: center; gap: 9px; }
+.lp-logo { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
 .lp-logo-mark {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 26px; height: 26px;
-  background: #22c55e; color: #050505;
-  font-size: 13px; font-weight: 900; border-radius: 6px;
+  width: 26px; height: 26px; border-radius: 7px;
+  background: var(--green); color: #050505;
+  display: flex; align-items: center; justify-content: center;
 }
 .lp-logo-name {
-  font-size: 15px; font-weight: 800;
-  color: #f2f2f0; letter-spacing: -0.02em;
+  font-size: 14px; font-weight: 800;
+  color: var(--t1); letter-spacing: -0.025em;
 }
-.lp-nav { display: flex; align-items: center; gap: 22px; }
-.lp-nav-link { font-size: 13px; color: #4b5563; text-decoration: none; transition: color .15s; }
-.lp-nav-link:hover { color: #f2f2f0; }
+.lp-nav { display: flex; align-items: center; gap: 28px; }
+.lp-nav-link {
+  font-size: 13px; color: var(--t3); text-decoration: none;
+  transition: color .15s; white-space: nowrap;
+}
+.lp-nav-link:hover { color: var(--t1); }
 .lp-nav-cta {
-  font-size: 12px; font-weight: 600;
-  color: #22c55e; text-decoration: none;
-  border: 1px solid rgba(34,197,94,.3);
-  padding: 7px 15px; border-radius: 8px; transition: all .15s;
-  white-space: nowrap;
+  font-size: 12px; font-weight: 700; white-space: nowrap;
+  color: var(--t1); text-decoration: none;
+  border: 1px solid var(--border-md);
+  padding: 7px 16px; border-radius: 8px;
+  transition: all .15s; background: rgba(255,255,255,.03);
+  flex-shrink: 0;
 }
-.lp-nav-cta:hover { background: rgba(34,197,94,.07); border-color: rgba(34,197,94,.5); }
+.lp-nav-cta:hover { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.18); }
 
-/* ── Hero ────────────────────────────────────────────────────────────────── */
+/* ── Hero ────────────────────────────────────────────────────────────────────── */
 .lp-hero {
-  position: relative; padding: 100px 0 96px;
-  background: #050505; overflow: hidden;
+  position: relative; overflow: hidden;
+  background: var(--bg);
+  padding: 0;
+  min-height: calc(100vh - 56px);
+  display: flex; align-items: center;
+}
+.lp-hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 100% at 50% 0%, black 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 100% at 50% 0%, black 40%, transparent 100%);
+  pointer-events: none; z-index: 0;
 }
 .lp-hero-glow {
-  position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
-  width: 900px; height: 600px;
-  background: radial-gradient(ellipse, rgba(34,197,94,.07) 0%, transparent 65%);
+  position: absolute; top: -10%; right: 10%;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(34,197,94,.1) 0%, transparent 65%);
   pointer-events: none; z-index: 0;
+  animation: glowPulse 5s ease-in-out infinite;
 }
-.lp-grid-bg {
+.lp-hero-noise {
   position: absolute; inset: 0;
-  background-image: radial-gradient(rgba(255,255,255,.035) 1px, transparent 1px);
-  background-size: 28px 28px;
-  pointer-events: none; z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0; opacity: .4;
 }
-.lp-hero-inner {
+.lp-hero-layout {
   position: relative; z-index: 1;
-  display: flex; flex-direction: column;
-  align-items: center; text-align: center;
-  gap: 0;
+  display: grid; grid-template-columns: 1fr 480px;
+  gap: 64px; align-items: center;
+  padding-top: 72px; padding-bottom: 72px;
 }
+.lp-hero-left { display: flex; flex-direction: column; }
 
+/* Tag pill */
 .lp-tag-pill {
-  display: inline-block;
-  font-size: 10px; font-weight: 700;
-  letter-spacing: .14em; color: #22c55e;
-  text-transform: uppercase;
-  border: 1px solid rgba(34,197,94,.25);
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 10px; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--green);
+  border: 1px solid rgba(34,197,94,.22);
   background: rgba(34,197,94,.06);
   padding: 5px 14px; border-radius: 99px;
-  margin-bottom: 28px;
+  margin-bottom: 32px; align-self: flex-start;
 }
+.lp-tag-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+}
+
+/* H1 */
 .lp-h1 {
-  font-size: clamp(36px, 6vw, 64px);
-  font-weight: 900; color: #f2f2f0;
-  line-height: 1.06; letter-spacing: -0.035em;
-  margin-bottom: 22px;
+  font-size: clamp(44px, 6.5vw, 80px);
+  font-weight: 900; color: var(--t1);
+  line-height: 1.0; letter-spacing: -0.045em;
+  margin-bottom: 24px;
 }
-.lp-h1-accent { color: rgba(242,242,240,.38); }
+.lp-h1-em {
+  font-style: normal;
+  color: rgba(235,235,235,.35);
+}
+
+/* Sub */
 .lp-hero-sub {
-  font-size: 16px; color: #6b7280;
-  line-height: 1.75; max-width: 520px;
+  font-size: 16px; color: var(--t2);
+  line-height: 1.78; max-width: 440px;
   margin-bottom: 36px;
 }
 
-/* Buttons */
-.lp-hero-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 28px; }
-.lp-btn-primary {
-  display: inline-flex; align-items: center;
-  background: #f2f2f0; color: #050505;
-  font-size: 14px; font-weight: 700;
-  padding: 13px 24px; border-radius: 10px;
+/* Actions */
+.lp-hero-actions { display: flex; align-items: center; gap: 16px; margin-bottom: 48px; flex-wrap: wrap; }
+.lp-btn-hero {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--t1); color: #050505;
+  font-size: 13px; font-weight: 700;
+  padding: 12px 22px; border-radius: 10px;
   text-decoration: none; white-space: nowrap;
   transition: opacity .15s, transform .12s;
+  box-shadow: 0 1px 0 rgba(255,255,255,.15) inset;
 }
-.lp-btn-primary:hover { opacity: .88; transform: translateY(-1px); }
-.lp-btn-ghost {
-  display: inline-flex; align-items: center;
-  background: transparent; color: #4b5563;
-  font-size: 14px; font-weight: 600;
-  padding: 13px 20px; border-radius: 10px;
-  border: 1px solid rgba(255,255,255,.07);
-  text-decoration: none; transition: all .15s;
+.lp-btn-hero:hover { opacity: .88; transform: translateY(-1px); }
+.lp-btn-text {
+  font-size: 13px; color: var(--t3); text-decoration: none;
+  transition: color .15s;
 }
-.lp-btn-ghost:hover { border-color: rgba(255,255,255,.15); color: #f2f2f0; }
+.lp-btn-text:hover { color: var(--t1); }
 
-/* Trust pills */
-.lp-trust-row  { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; margin-bottom: 32px; }
-.lp-trust-pill {
-  font-size: 11px; color: #374151;
-  border: 1px solid #1c1c1e; border-radius: 99px;
-  padding: 4px 11px; background: rgba(255,255,255,.015);
-  white-space: nowrap;
+/* Stats */
+.lp-hero-stats { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.lp-hstat { display: flex; flex-direction: column; gap: 4px; }
+.lp-hstat-val {
+  font-size: 20px; font-weight: 900; color: var(--t1);
+  letter-spacing: -0.03em; line-height: 1;
 }
+.lp-hstat-key { font-size: 11px; color: var(--t3); }
+.lp-hstat-sep { width: 1px; height: 32px; background: var(--border); flex-shrink: 0; }
 
-/* Stats bar */
-.lp-stats-bar { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; justify-content: center; }
-.lp-stat { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.lp-stat-num {
-  font-size: 22px; font-weight: 900;
-  color: #f2f2f0; line-height: 1;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.025em;
+/* ── Photo frame ─────────────────────────────────────────────────────────────── */
+.lp-hero-right { display: flex; flex-direction: column; gap: 24px; }
+.lp-photo-frame {
+  position: relative;
+  border-radius: 20px;
+  overflow: visible;
 }
-.lp-stat-label { font-size: 11px; color: #374151; }
-.lp-stat-div { width: 1px; height: 36px; background: rgba(255,255,255,.06); flex-shrink: 0; }
-
-/* ── Alert strip ─────────────────────────────────────────────────────────── */
-.lp-alert-strip {
-  background: #070708;
-  border-top: 1px solid rgba(255,255,255,.04);
-  border-bottom: 1px solid rgba(255,255,255,.04);
-  padding: 36px 0;
+.lp-photo-glow {
+  position: absolute; top: 10%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 360px; height: 360px;
+  background: radial-gradient(circle, rgba(34,197,94,.18) 0%, transparent 65%);
+  filter: blur(40px);
+  pointer-events: none; z-index: 0;
+  animation: glowPulse 6s ease-in-out infinite;
 }
-.lp-alert-inner {
-  display: flex; align-items: stretch;
-  justify-content: center; flex-wrap: wrap;
+.lp-photo-img {
+  position: relative; z-index: 1;
+  width: 100%; display: block;
+  border-radius: 20px;
+  border: 1px solid var(--border-md);
+  object-fit: cover; object-position: top center;
+  aspect-ratio: 4/5;
+  mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
+  box-shadow: 0 32px 80px rgba(0,0,0,.6);
 }
-.lp-alert-item {
-  display: flex; align-items: center; gap: 16px;
-  padding: 16px 36px; flex: 1; min-width: 220px;
-}
-.lp-alert-num {
-  font-size: 36px; font-weight: 900;
-  line-height: 1; flex-shrink: 0;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
-}
-.lp-alert-desc { font-size: 13px; color: #4b5563; line-height: 1.55; }
-.lp-alert-sep { width: 1px; background: rgba(255,255,255,.05); flex-shrink: 0; align-self: stretch; }
-
-/* ── O Problema ──────────────────────────────────────────────────────────── */
-.lp-problema-grid {
-  display: grid; grid-template-columns: 1fr 340px;
-  gap: 56px; align-items: start;
-}
-.lp-problema-desc {
-  font-size: 15px; color: #4b5563;
-  line-height: 1.8; margin-bottom: 28px;
-}
-.lp-problema-items { display: flex; flex-direction: column; gap: 12px; }
-.lp-problema-item {
-  display: flex; gap: 12px;
-  font-size: 14px; color: #374151; line-height: 1.65;
-}
-.lp-problema-dash { color: #22c55e; font-weight: 700; flex-shrink: 0; }
-
-/* Card do problema */
-.lp-problema-card {
+.lp-photo-empty .lp-photo-img { display: none; }
+.lp-photo-empty {
+  min-height: 300px;
   background: rgba(255,255,255,.02);
-  border: 1px solid rgba(255,255,255,.06);
-  border-radius: 16px; padding: 22px;
-  display: flex; flex-direction: column; gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 20px;
 }
-.lp-pcard-label {
-  font-size: 9px; font-weight: 700;
-  letter-spacing: .14em; color: #2a2a2c;
-  text-transform: uppercase;
-  padding-bottom: 12px; margin-bottom: 4px;
-  border-bottom: 1px solid rgba(255,255,255,.04);
+
+/* Floating score card */
+.lp-float-score {
+  position: absolute; z-index: 10;
+  bottom: 32px; left: -32px;
+  background: rgba(5,5,5,.9);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-md);
+  border-radius: 14px; padding: 16px 18px;
+  min-width: 170px;
+  box-shadow: 0 24px 48px rgba(0,0,0,.5);
+  animation: floatIn .6s ease both;
 }
-.lp-pcard-label-red { color: rgba(239,68,68,.45); margin-top: 12px; }
+.lp-float-label {
+  font-size: 8px; font-weight: 700; letter-spacing: .14em;
+  color: var(--t3); text-transform: uppercase; margin-bottom: 10px;
+}
+.lp-float-score-row { display: flex; align-items: center; gap: 12px; }
+.lp-float-num {
+  font-size: 44px; font-weight: 900; color: #FF6B2E;
+  line-height: 1; letter-spacing: -0.04em;
+}
+.lp-float-right { display: flex; flex-direction: column; gap: 6px; }
+.lp-float-badge {
+  font-size: 9px; font-weight: 800; letter-spacing: .06em;
+  color: #FF6B2E; background: rgba(255,107,46,.12);
+  border: 1px solid rgba(255,107,46,.25);
+  padding: 3px 9px; border-radius: 5px; align-self: flex-start;
+}
+.lp-float-bar {
+  width: 90px; height: 4px;
+  background: rgba(255,255,255,.07);
+  border-radius: 99px; overflow: hidden;
+}
+.lp-float-bar-fill {
+  height: 100%; width: 64%;
+  background: linear-gradient(90deg, #f59e0b 0%, #FF6B2E 100%);
+  border-radius: 99px;
+}
+
+/* Floating metrics card */
+.lp-float-metrics {
+  position: absolute; z-index: 10;
+  top: 28px; right: -28px;
+  background: rgba(5,5,5,.9);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-md);
+  border-radius: 12px; padding: 14px 18px;
+  display: flex; align-items: center; gap: 16px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.5);
+  animation: floatIn .6s .2s ease both;
+}
+.lp-float-metric { display: flex; flex-direction: column; gap: 3px; align-items: center; }
+.lp-float-metric-val {
+  font-size: 18px; font-weight: 900;
+  line-height: 1; letter-spacing: -0.025em;
+}
+.lp-float-metric-key { font-size: 9px; color: var(--t3); font-weight: 600; }
+.lp-float-metric-sep { width: 1px; height: 28px; background: var(--border); }
+
+/* Author quote */
+.lp-author { display: flex; gap: 16px; align-items: flex-start; }
+.lp-author-line {
+  width: 2px; flex-shrink: 0; border-radius: 99px;
+  background: linear-gradient(to bottom, var(--green), transparent);
+  min-height: 60px;
+}
+.lp-author-content { display: flex; flex-direction: column; gap: 8px; }
+.lp-author-quote {
+  font-size: 14px; color: var(--t2);
+  line-height: 1.7; font-style: italic; margin: 0;
+}
+.lp-author-id { font-size: 11px; color: var(--t3); font-weight: 600; }
+
+/* ── Data strip ───────────────────────────────────────────────────────────────── */
+.lp-data-strip {
+  background: var(--bg-2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 40px 0;
+}
+.lp-data-inner {
+  display: flex; align-items: stretch; justify-content: center;
+  flex-wrap: wrap;
+}
+.lp-data-item {
+  display: flex; align-items: center; gap: 18px;
+  padding: 16px 48px; flex: 1; min-width: 240px;
+}
+.lp-data-num {
+  font-size: 40px; font-weight: 900;
+  line-height: 1; flex-shrink: 0;
+  letter-spacing: -0.04em;
+}
+.lp-data-desc { font-size: 13px; color: var(--t2); line-height: 1.55; }
+.lp-data-sep {
+  width: 1px; background: var(--border);
+  flex-shrink: 0; align-self: stretch;
+}
+
+/* ── Problem ─────────────────────────────────────────────────────────────────── */
+.lp-problem-layout {
+  display: grid; grid-template-columns: 1fr 380px;
+  gap: 64px; align-items: start;
+}
+.lp-problem-body {
+  font-size: 15px; color: var(--t2);
+  line-height: 1.82; margin-bottom: 28px; max-width: 480px;
+}
+.lp-problem-points { display: flex; flex-direction: column; gap: 14px; }
+.lp-problem-pt {
+  display: flex; gap: 12px;
+  font-size: 14px; color: var(--t3); line-height: 1.65;
+}
+.lp-problem-pt-icon { color: var(--green); font-weight: 700; flex-shrink: 0; }
+
+/* Problem card */
+.lp-pcard {
+  background: rgba(255,255,255,.02);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 0;
+  overflow: hidden;
+}
+.lp-pcard-hdr {
+  display: flex; align-items: center; gap: 9px;
+  padding: 14px 18px;
+}
+.lp-pcard-hdr-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.lp-pcard-dot-green { background: var(--green); box-shadow: 0 0 8px rgba(34,197,94,.5); }
+.lp-pcard-dot-red   { background: var(--red);   box-shadow: 0 0 8px rgba(239,68,68,.5); }
+.lp-pcard-hdr-label { font-size: 11px; font-weight: 700; letter-spacing: .04em; }
 .lp-pcard-row {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(255,255,255,.03);
+  padding: 11px 18px;
+  border-top: 1px solid var(--border);
 }
-.lp-pcard-row:last-child { border-bottom: none; }
-.lp-pcard-row-label { font-size: 13px; color: #374151; }
+.lp-pcard-row-lbl { font-size: 13px; color: var(--t3); }
 .lp-pcard-row-val {
-  font-size: 15px; font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
-  white-space: nowrap; min-width: 72px; text-align: right;
+  font-size: 14px; font-weight: 800;
+  letter-spacing: -0.02em; white-space: nowrap;
+  min-width: 70px; text-align: right;
 }
-.lp-pcard-div {
-  height: 1px; background: rgba(255,255,255,.05);
-  margin: 8px 0;
-}
+.lp-pcard-divider { height: 1px; background: var(--border-md); margin: 4px 0; }
 
-/* ── O que analisa ───────────────────────────────────────────────────────── */
-.lp-analisa-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 14px; margin-bottom: 44px;
+/* ── Analisa list ─────────────────────────────────────────────────────────────── */
+.lp-analisa-list {
+  display: flex; flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 16px; overflow: hidden;
+  margin-bottom: 48px;
 }
-.lp-analisa-card {
-  background: rgba(255,255,255,.02);
-  border: 1px solid rgba(255,255,255,.06);
-  border-radius: 14px; padding: 22px 18px;
-  display: flex; flex-direction: column; gap: 10px;
-  transition: border-color .2s, transform .2s;
+.lp-analisa-row {
+  display: grid; grid-template-columns: 56px 1fr;
+  gap: 0; position: relative;
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--border);
+  transition: background .15s;
 }
-.lp-analisa-card:hover {
-  border-color: rgba(34,197,94,.2);
-  transform: translateY(-2px);
+.lp-analisa-row:last-child { border-bottom: none; }
+.lp-analisa-row:hover { background: rgba(255,255,255,.02); }
+.lp-analisa-n {
+  font-size: 12px; font-weight: 800;
+  color: rgba(34,197,94,.4); letter-spacing: .06em;
+  padding-top: 2px;
 }
-.lp-analisa-icon {
-  font-size: 18px; color: #22c55e;
-  font-weight: 900; line-height: 1;
-}
+.lp-analisa-content { display: flex; flex-direction: column; gap: 5px; }
 .lp-analisa-title {
-  font-size: 14px; font-weight: 700;
-  color: #f2f2f0; line-height: 1.25;
+  font-size: 15px; font-weight: 700;
+  color: var(--t1); letter-spacing: -0.015em;
 }
-.lp-analisa-desc { font-size: 12px; color: #4b5563; line-height: 1.65; }
+.lp-analisa-desc { font-size: 13px; color: var(--t2); line-height: 1.65; }
 .lp-analisa-cta { text-align: center; }
 
-/* ── Foto + Quote ────────────────────────────────────────────────────────── */
-.lp-photo-grid {
-  display: grid; grid-template-columns: 340px 1fr;
-  gap: 60px; align-items: center;
+/* ── Steps ───────────────────────────────────────────────────────────────────── */
+.lp-steps {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 16px; margin-bottom: 48px;
 }
-.lp-photo-wrap {
-  position: relative;
-  border-radius: 18px; overflow: hidden;
-  border: 1px solid rgba(255,255,255,.08);
-  background: rgba(255,255,255,.02);
-  aspect-ratio: 3/4; min-height: 320px;
-  box-shadow: 0 24px 64px rgba(0,0,0,.4);
-  display: flex; align-items: center; justify-content: center;
-}
-.lp-photo {
-  width: 100%; height: 100%;
-  object-fit: cover; object-position: center top;
-  display: block;
-}
-.lp-photo-h2 { margin-bottom: 20px; }
-.lp-photo-quote {
-  font-size: 15px; color: #6b7280;
-  line-height: 1.82; font-style: italic;
-  border-left: 2px solid rgba(34,197,94,.3);
-  padding-left: 18px; margin-bottom: 20px;
-}
-.lp-photo-name {
-  font-size: 13px; font-weight: 600; color: #4b5563;
-  margin-bottom: 28px;
-}
-.lp-photo-cta { align-self: flex-start; }
-
-/* ── Steps ───────────────────────────────────────────────────────────────── */
-.lp-steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; margin-bottom: 44px; }
 .lp-step {
   background: rgba(255,255,255,.02);
-  border: 1px solid rgba(255,255,255,.06);
-  border-radius: 16px; padding: 28px 22px;
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 28px 24px;
   display: flex; flex-direction: column; gap: 12px;
-  transition: border-color .2s;
+  transition: border-color .2s, transform .2s;
 }
-.lp-step:hover { border-color: rgba(34,197,94,.2); }
+.lp-step:hover { border-color: rgba(34,197,94,.2); transform: translateY(-2px); }
 .lp-step-n {
-  font-size: 12px; font-weight: 900;
-  color: rgba(34,197,94,.45); letter-spacing: .05em;
+  font-size: 11px; font-weight: 900;
+  color: rgba(34,197,94,.4); letter-spacing: .06em;
 }
 .lp-step-title {
   font-size: 16px; font-weight: 800;
-  color: #f2f2f0; line-height: 1.25;
+  color: var(--t1); line-height: 1.25; letter-spacing: -0.02em;
 }
-.lp-step-desc { font-size: 14px; color: #4b5563; line-height: 1.72; }
+.lp-step-desc { font-size: 13px; color: var(--t2); line-height: 1.72; }
 .lp-step-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .lp-step-tag {
-  font-size: 10px; font-weight: 600; color: #1f2937;
-  border: 1px solid #161618; border-radius: 99px;
-  padding: 3px 9px; background: rgba(255,255,255,.015);
+  font-size: 10px; font-weight: 600; color: var(--t3);
+  border: 1px solid rgba(255,255,255,.06); border-radius: 99px;
+  padding: 3px 9px; background: rgba(255,255,255,.02);
 }
-.lp-steps-cta { text-align: center; }
 
-/* ── Depoimentos ─────────────────────────────────────────────────────────── */
+/* ── Testimonials ─────────────────────────────────────────────────────────────── */
+.lp-test-featured {
+  background: rgba(255,255,255,.025);
+  border: 1px solid var(--border-md);
+  border-radius: 16px; padding: 32px 36px;
+  margin-bottom: 20px;
+}
+.lp-test-featured-quote {
+  font-size: clamp(16px, 2.5vw, 20px); font-weight: 500;
+  color: var(--t1); line-height: 1.65;
+  font-style: italic; margin-bottom: 24px;
+  letter-spacing: -0.01em;
+}
+.lp-test-featured-author { display: flex; align-items: center; gap: 14px; }
+.lp-test-featured-name { font-size: 14px; font-weight: 700; color: var(--t1); }
+.lp-test-featured-city { font-size: 12px; color: var(--t3); }
 .lp-testimonials {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
-  gap: 14px; margin-top: 8px;
+  gap: 12px; margin-top: 0;
 }
 .lp-testimonial {
-  background: rgba(255,255,255,.02);
-  border: 1px solid rgba(255,255,255,.06);
+  background: rgba(255,255,255,.018);
+  border: 1px solid var(--border);
   border-radius: 14px; padding: 22px;
   display: flex; flex-direction: column; gap: 14px;
   transition: border-color .2s;
 }
-.lp-testimonial:hover { border-color: rgba(255,255,255,.1); }
-.lp-test-stars  { font-size: 12px; color: #f59e0b; letter-spacing: 2px; }
-.lp-test-text   { font-size: 14px; color: #6b7280; line-height: 1.75; font-style: italic; margin: 0; }
-.lp-test-author { display: flex; align-items: center; gap: 12px; }
+.lp-testimonial:hover { border-color: var(--border-md); }
+.lp-test-stars  { font-size: 11px; color: var(--amber); letter-spacing: 2px; }
+.lp-test-text   { font-size: 13px; color: var(--t2); line-height: 1.72; font-style: italic; margin: 0; }
+.lp-test-author { display: flex; align-items: center; gap: 11px; }
 .lp-avatar {
-  width: 38px; height: 38px; border-radius: 50%;
+  width: 36px; height: 36px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 800; flex-shrink: 0;
+  font-size: 11px; font-weight: 800; flex-shrink: 0;
 }
 .lp-test-name-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-.lp-test-name-row strong { font-size: 13px; color: #f2f2f0; }
+.lp-test-name-row strong { font-size: 13px; color: var(--t1); }
 .lp-test-verified {
-  font-size: 9px; font-weight: 700; color: #22c55e;
-  background: rgba(34,197,94,.08);
-  border: 1px solid rgba(34,197,94,.2);
-  padding: 1px 6px; border-radius: 99px;
+  font-size: 9px; font-weight: 700; color: var(--green);
+  background: rgba(34,197,94,.07); border: 1px solid rgba(34,197,94,.18);
+  padding: 1px 7px; border-radius: 99px;
 }
-.lp-test-city { font-size: 12px; color: #1f2937; }
+.lp-test-city { font-size: 11px; color: var(--t3); }
 
-/* ── Preço ───────────────────────────────────────────────────────────────── */
-.lp-pricing { display: grid; grid-template-columns: 1fr auto; gap: 56px; align-items: start; }
-.lp-features-list { display: flex; flex-direction: column; gap: 15px; }
-.lp-feature-item { display: flex; gap: 12px; font-size: 15px; color: #6b7280; align-items: baseline; }
-.lp-feature-check { color: #22c55e; font-weight: 700; flex-shrink: 0; }
-.lp-price-box {
-  background: rgba(255,255,255,.02);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 18px; padding: 30px 26px;
-  min-width: 250px;
+/* ── Pricing ─────────────────────────────────────────────────────────────────── */
+.lp-pricing-sub {
+  font-size: 15px; color: var(--t2);
+  line-height: 1.78; max-width: 480px; margin-bottom: 48px;
+}
+.lp-pricing { display: grid; grid-template-columns: 1fr 300px; gap: 64px; align-items: start; }
+.lp-features-list {
+  list-style: none; display: flex; flex-direction: column; gap: 16px;
+  padding: 0; margin: 0;
+}
+.lp-feature-item { display: flex; gap: 12px; font-size: 15px; color: var(--t2); align-items: baseline; }
+.lp-feature-check { color: var(--green); font-weight: 700; flex-shrink: 0; }
+.lp-price-card {
+  position: sticky; top: 72px;
+  background: rgba(255,255,255,.025);
+  border: 1px solid var(--border-md);
+  border-radius: 20px; padding: 32px 28px;
   display: flex; flex-direction: column; gap: 16px;
   text-align: center;
-  position: sticky; top: 80px;
-  box-shadow: 0 24px 64px rgba(0,0,0,.3);
+  box-shadow: 0 32px 80px rgba(0,0,0,.3);
+  overflow: hidden;
 }
-.lp-price-label {
-  font-size: 10px; font-weight: 700;
-  letter-spacing: .14em; color: #22c55e; text-transform: uppercase;
+.lp-price-card-glow {
+  position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+  width: 240px; height: 160px;
+  background: radial-gradient(ellipse, rgba(34,197,94,.12) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+.lp-price-eyebrow {
+  position: relative; z-index: 1;
+  font-size: 10px; font-weight: 700; letter-spacing: .16em;
+  color: var(--green); text-transform: uppercase;
 }
 .lp-price-display {
-  display: flex; align-items: flex-start;
-  justify-content: center; gap: 3px;
-  line-height: 1;
+  position: relative; z-index: 1;
+  display: flex; align-items: flex-start; justify-content: center;
+  gap: 3px; line-height: 1;
 }
 .lp-price-curr {
-  font-size: 22px; font-weight: 700;
-  color: #6b7280; padding-top: 12px; line-height: 1;
+  font-size: 20px; font-weight: 700;
+  color: var(--t2); padding-top: 14px; line-height: 1;
 }
 .lp-price-int {
-  font-size: 80px; font-weight: 900;
-  color: #f2f2f0; line-height: 1;
-  letter-spacing: -0.045em;
-  font-variant-numeric: tabular-nums;
+  font-size: 84px; font-weight: 900;
+  color: var(--t1); line-height: 1;
+  letter-spacing: -0.05em;
 }
-.lp-price-sub { font-size: 13px; color: #374151; }
+.lp-price-note { position: relative; z-index: 1; font-size: 12px; color: var(--t3); }
 .lp-btn-buy {
+  position: relative; z-index: 1;
   display: block;
-  background: #f2f2f0; color: #050505;
-  font-size: 14px; font-weight: 700;
-  padding: 15px 20px; border-radius: 10px;
+  background: var(--t1); color: #050505;
+  font-size: 13px; font-weight: 700;
+  padding: 14px 20px; border-radius: 10px;
   text-decoration: none; text-align: center;
   transition: opacity .15s, transform .12s;
+  box-shadow: 0 1px 0 rgba(255,255,255,.15) inset;
 }
 .lp-btn-buy:hover { opacity: .88; transform: translateY(-1px); }
-.lp-btn-buy-lg { font-size: 15px; padding: 16px 30px; }
-.lp-guarantee-card {
+.lp-btn-buy-lg { font-size: 14px; padding: 16px 28px; }
+.lp-guarantee {
+  position: relative; z-index: 1;
   display: flex; align-items: flex-start; gap: 12px;
-  background: rgba(34,197,94,.04);
-  border: 1px solid rgba(34,197,94,.15);
-  border-radius: 10px; padding: 13px 14px;
-  text-align: left;
+  background: rgba(34,197,94,.04); border: 1px solid rgba(34,197,94,.14);
+  border-radius: 10px; padding: 13px 14px; text-align: left;
 }
 .lp-guarantee-icon {
-  width: 22px; height: 22px; border-radius: 50%;
-  background: rgba(34,197,94,.12); color: #22c55e;
-  font-size: 11px; font-weight: 700;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(34,197,94,.12); color: var(--green);
+  font-size: 10px; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; margin-top: 1px;
 }
-.lp-guarantee-title { font-size: 13px; font-weight: 700; color: #f2f2f0; margin-bottom: 3px; }
-.lp-guarantee-sub   { font-size: 11px; color: #4b5563; line-height: 1.5; }
+.lp-guarantee-title { font-size: 12px; font-weight: 700; color: var(--t1); margin-bottom: 3px; }
+.lp-guarantee-sub   { font-size: 11px; color: var(--t2); line-height: 1.5; }
 
-/* ── FAQ ─────────────────────────────────────────────────────────────────── */
-.lp-faq-container { max-width: 640px; }
-.lp-faq { display: flex; flex-direction: column; margin-top: 4px; }
+/* ── FAQ ─────────────────────────────────────────────────────────────────────── */
+.lp-faq { display: flex; flex-direction: column; margin-top: 8px; }
 .lp-faq-item {
-  border-bottom: 1px solid rgba(255,255,255,.05);
+  border-bottom: 1px solid var(--border);
   padding: 18px 0; cursor: pointer; user-select: none;
 }
 .lp-faq-q {
   display: flex; justify-content: space-between;
   align-items: center; gap: 16px;
-  font-size: 15px; font-weight: 600; color: #f2f2f0;
+  font-size: 15px; font-weight: 600; color: var(--t1);
+  transition: color .15s;
 }
-.lp-faq-icon { font-size: 18px; color: #4b5563; flex-shrink: 0; }
-.lp-faq-a { font-size: 14px; color: #4b5563; line-height: 1.72; margin-top: 12px; }
+.lp-faq-open .lp-faq-q { color: var(--green); }
+.lp-faq-icon { font-size: 18px; color: var(--t3); flex-shrink: 0; }
+.lp-faq-a { font-size: 14px; color: var(--t2); line-height: 1.75; margin-top: 12px; }
 
-/* ── CTA Final ───────────────────────────────────────────────────────────── */
+/* ── CTA Final ───────────────────────────────────────────────────────────────── */
 .lp-cta-final {
   position: relative; text-align: center;
-  overflow: hidden; background: #050505;
+  overflow: hidden; background: var(--bg);
+  padding: 120px 0;
 }
 .lp-cta-glow {
-  position: absolute; bottom: -100px; left: 50%; transform: translateX(-50%);
-  width: 700px; height: 400px;
-  background: radial-gradient(ellipse, rgba(34,197,94,.06) 0%, transparent 65%);
+  position: absolute; bottom: -80px; left: 50%; transform: translateX(-50%);
+  width: 800px; height: 500px;
+  background: radial-gradient(ellipse, rgba(34,197,94,.08) 0%, transparent 65%);
+  pointer-events: none;
+}
+.lp-cta-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 70% 80% at 50% 100%, black 20%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 80% at 50% 100%, black 20%, transparent 80%);
   pointer-events: none;
 }
 .lp-cta-inner {
   position: relative; z-index: 1;
-  max-width: 560px; display: flex;
+  max-width: 600px; display: flex;
   flex-direction: column; align-items: center; gap: 20px;
 }
-.lp-final-h2 {
-  font-size: clamp(28px,5vw,48px); font-weight: 900;
-  color: #f2f2f0; line-height: 1.1; letter-spacing: -0.03em;
+.lp-cta-h2 {
+  font-size: clamp(36px, 6vw, 60px); font-weight: 900;
+  color: var(--t1); line-height: 1.05; letter-spacing: -0.04em;
 }
-.lp-final-sub { font-size: 15px; color: #4b5563; }
-.lp-final-btns { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.lp-cta-h2-dim { color: rgba(235,235,235,.3); }
+.lp-cta-sub { font-size: 15px; color: var(--t2); }
+.lp-cta-actions { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .lp-btn-ghost-sm {
-  font-size: 13px; color: #374151;
+  font-size: 13px; color: var(--t3);
   text-decoration: underline; text-underline-offset: 3px;
   cursor: pointer; background: none; border: none;
+  text-decoration-color: rgba(255,255,255,.15);
+  transition: color .15s;
 }
-.lp-btn-ghost-sm:hover { color: #6b7280; }
-.lp-final-trust {
+.lp-btn-ghost-sm:hover { color: var(--t2); }
+.lp-cta-trust {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  justify-content: center; font-size: 12px; color: #1f2937;
+  justify-content: center; font-size: 12px; color: var(--t3);
 }
-.lp-final-disclaimer {
-  font-size: 11px; color: #1f2937;
-  line-height: 1.6; text-align: center;
-  border-top: 1px solid rgba(255,255,255,.04);
-  padding-top: 20px; max-width: 420px;
+.lp-cta-dot { color: rgba(255,255,255,.1); }
+.lp-cta-disclaimer {
+  font-size: 11px; color: var(--t3); line-height: 1.65;
+  border-top: 1px solid var(--border);
+  padding-top: 20px; max-width: 440px;
 }
 
-/* ── Mobile ──────────────────────────────────────────────────────────────── */
-@media (max-width: 900px) {
-  .lp-analisa-grid { grid-template-columns: repeat(3, 1fr); }
-  .lp-problema-grid { grid-template-columns: 1fr; gap: 36px; }
-  .lp-photo-grid { grid-template-columns: 1fr; gap: 36px; }
-  .lp-photo-wrap { max-width: 320px; margin: 0 auto; aspect-ratio: 3/4; }
-  .lp-pricing { grid-template-columns: 1fr; }
-  .lp-price-box { position: static; min-width: 0; }
+/* ── Mobile ──────────────────────────────────────────────────────────────────── */
+@media (max-width: 960px) {
+  .lp-hero-layout { grid-template-columns: 1fr; gap: 56px; padding-top: 64px; padding-bottom: 64px; }
+  .lp-hero-left { align-items: center; text-align: center; }
+  .lp-tag-pill { align-self: center; }
+  .lp-hero-sub { max-width: none; }
+  .lp-hero-actions { justify-content: center; }
+  .lp-hero-stats { justify-content: center; }
+  .lp-hero-right { max-width: 440px; margin: 0 auto; width: 100%; }
+  .lp-float-score { left: -16px; bottom: 24px; }
+  .lp-float-metrics { right: -16px; }
+  .lp-problem-layout { grid-template-columns: 1fr; gap: 40px; }
+  .lp-pricing { grid-template-columns: 1fr; gap: 40px; }
+  .lp-price-card { position: static; }
 }
 @media (max-width: 700px) {
-  .lp-section { padding: 64px 0; }
-  .lp-hero { padding: 72px 0 72px; }
+  .lp-section { padding: 72px 0; }
+  .lp-container { padding: 0 20px; }
   .lp-steps { grid-template-columns: 1fr; }
-  .lp-analisa-grid { grid-template-columns: 1fr 1fr; }
-  .lp-nav-link { display: none; }
-  .lp-alert-inner { flex-direction: column; }
-  .lp-alert-sep { width: 80%; height: 1px; align-self: center; }
-  .lp-alert-item { justify-content: flex-start; padding: 18px 24px; min-width: 0; }
+  .lp-nav { display: none; }
+  .lp-data-inner { flex-direction: column; gap: 0; }
+  .lp-data-sep { width: 80%; height: 1px; align-self: center; }
+  .lp-data-item { justify-content: flex-start; padding: 20px 20px; min-width: 0; }
   .lp-testimonials { grid-template-columns: 1fr; }
+  .lp-test-featured { padding: 22px 20px; }
+  .lp-hero { min-height: unset; }
+  .lp-h1 { font-size: clamp(38px, 10vw, 60px); }
+  .lp-cta-final { padding: 80px 0; }
+  .lp-cta-h2 { font-size: clamp(32px, 9vw, 48px); }
 }
 @media (max-width: 480px) {
-  .lp-analisa-grid { grid-template-columns: 1fr; }
-  .lp-price-int { font-size: 64px; }
-  .lp-h1 { font-size: clamp(30px, 8vw, 48px); }
-  .lp-hero-btns { flex-direction: column; align-items: center; }
+  .lp-float-score { left: 8px; }
+  .lp-float-metrics { right: 8px; }
+  .lp-price-int { font-size: 68px; }
+  .lp-data-num { font-size: 32px; }
+  .lp-hero-actions { flex-direction: column; align-items: stretch; }
+  .lp-btn-hero { justify-content: center; }
+  .lp-analisa-row { padding: 18px 16px; }
 }
 `;
