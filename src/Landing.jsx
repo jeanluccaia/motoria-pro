@@ -131,9 +131,8 @@ export default function Landing() {
             </h1>
 
             <p className="lp-hero-sub">
-              Calculamos a probabilidade implícita, a margem
-              oculta da casa e o valor esperado real de cada
-              odd — para decidir com matemática, não instinto.
+              Probabilidade implícita, margem oculta e chance
+              real de perda — calculadas antes de qualquer decisão.
             </p>
 
             <div className="lp-hero-actions">
@@ -191,6 +190,9 @@ export default function Landing() {
                   onError={(e) => { e.currentTarget.closest(".lp-photo-frame").classList.add("lp-photo-empty"); }}
                 />
               </picture>
+
+              {/* Cinematic overlay — blends photo edges into dark background */}
+              <div className="lp-photo-overlay" aria-hidden="true" />
 
               {/* Floating score card */}
               <div className="lp-float-score">
@@ -630,33 +632,33 @@ const CSS = `
 }
 .lp-hero-grid {
   position: absolute; inset: 0;
-  background-image:
-    linear-gradient(var(--grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse 90% 100% at 50% 0%, black 55%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 90% 100% at 50% 0%, black 55%, transparent 100%);
+  /* Dot grid — more editorial, less "AI template" than line grids */
+  background-image: radial-gradient(circle, rgba(255,255,255,.06) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 80% 85% at 50% 0%, black 45%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 85% at 50% 0%, black 45%, transparent 100%);
   pointer-events: none; z-index: 0;
 }
 .lp-hero-glow {
-  position: absolute; top: -15%; right: 5%;
-  width: 760px; height: 760px;
-  background: radial-gradient(circle, rgba(34,197,94,.14) 0%, rgba(34,197,94,.04) 45%, transparent 70%);
+  /* Centered on photo column — creates "halo" behind the founder's photo */
+  position: absolute; top: -8%; right: 0%;
+  width: 640px; height: 640px;
+  background: radial-gradient(circle, rgba(34,197,94,.11) 0%, rgba(34,197,94,.03) 48%, transparent 68%);
   pointer-events: none; z-index: 0;
-  animation: glowPulse 5s ease-in-out infinite;
-  filter: blur(2px);
+  animation: glowPulse 6s ease-in-out infinite;
+  filter: blur(1px);
 }
 .lp-hero-glow-2 {
-  position: absolute; bottom: -20%; left: -8%;
-  width: 560px; height: 560px;
-  background: radial-gradient(circle, rgba(99,102,241,.07) 0%, rgba(99,102,241,.02) 50%, transparent 70%);
+  position: absolute; bottom: -15%; left: -4%;
+  width: 480px; height: 480px;
+  background: radial-gradient(circle, rgba(99,102,241,.05) 0%, transparent 65%);
   pointer-events: none; z-index: 0;
-  animation: glowPulse 7s 1.5s ease-in-out infinite;
-  filter: blur(4px);
+  animation: glowPulse 8s 2s ease-in-out infinite;
+  filter: blur(6px);
 }
 .lp-hero-vignette {
   position: absolute; inset: 0;
-  background: radial-gradient(ellipse 100% 100% at 50% 50%, transparent 40%, rgba(5,5,5,.55) 100%);
+  background: radial-gradient(ellipse 110% 100% at 50% 50%, transparent 35%, rgba(5,5,5,.5) 100%);
   pointer-events: none; z-index: 0;
 }
 .lp-hero-noise {
@@ -666,46 +668,48 @@ const CSS = `
 }
 .lp-hero-layout {
   position: relative; z-index: 1;
-  display: grid; grid-template-columns: 1fr 480px;
-  gap: 64px; align-items: center;
-  padding-top: 72px; padding-bottom: 72px;
+  display: grid; grid-template-columns: 1fr 440px;
+  gap: 88px; align-items: center;
+  padding-top: 80px; padding-bottom: 80px;
 }
 .lp-hero-left { display: flex; flex-direction: column; }
 
 /* Tag pill */
 .lp-tag-pill {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-size: 10px; font-weight: 700; letter-spacing: .14em;
-  text-transform: uppercase; color: var(--green);
-  border: 1px solid rgba(34,197,94,.22);
-  background: rgba(34,197,94,.06);
-  padding: 5px 14px; border-radius: 99px;
-  margin-bottom: 32px; align-self: flex-start;
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 9px; font-weight: 700; letter-spacing: .17em;
+  text-transform: uppercase; color: rgba(34,197,94,.75);
+  border: 1px solid rgba(34,197,94,.16);
+  background: rgba(34,197,94,.04);
+  padding: 5px 12px; border-radius: 99px;
+  margin-bottom: 28px; align-self: flex-start;
 }
 .lp-tag-dot {
-  width: 6px; height: 6px; border-radius: 50%;
+  width: 5px; height: 5px; border-radius: 50%;
   background: var(--green);
-  box-shadow: 0 0 8px var(--green);
+  box-shadow: 0 0 6px rgba(34,197,94,.8);
 }
 
 /* H1 */
 .lp-h1 {
-  font-size: clamp(44px, 6.5vw, 80px);
+  font-size: clamp(46px, 7vw, 90px);
   font-weight: 900; color: var(--t1);
-  line-height: 1.0; letter-spacing: -0.048em;
-  margin-bottom: 24px;
-  text-shadow: 0 2px 40px rgba(0,0,0,.4);
+  line-height: 0.97; letter-spacing: -0.052em;
+  margin-bottom: 28px;
 }
 .lp-h1-em {
   font-style: normal;
-  color: rgba(235,235,235,.28);
+  color: rgba(235,235,235,.3);
+  display: block;
+  margin-top: 4px; /* slight detach from lines 1-2 — creates tension */
 }
 
 /* Sub */
 .lp-hero-sub {
-  font-size: 16px; color: var(--t2);
-  line-height: 1.78; max-width: 440px;
-  margin-bottom: 36px;
+  font-size: 15px; color: var(--t3);
+  line-height: 1.72; max-width: 400px;
+  margin-bottom: 40px;
+  letter-spacing: 0.006em;
 }
 
 /* Actions */
@@ -727,14 +731,14 @@ const CSS = `
 .lp-btn-text:hover { color: var(--t1); }
 
 /* Stats */
-.lp-hero-stats { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-.lp-hstat { display: flex; flex-direction: column; gap: 4px; }
+.lp-hero-stats { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.lp-hstat { display: flex; flex-direction: column; gap: 3px; }
 .lp-hstat-val {
-  font-size: 20px; font-weight: 900; color: var(--t1);
-  letter-spacing: -0.03em; line-height: 1;
+  font-size: 18px; font-weight: 900; color: var(--t1);
+  letter-spacing: -0.035em; line-height: 1;
 }
-.lp-hstat-key { font-size: 11px; color: var(--t3); }
-.lp-hstat-sep { width: 1px; height: 32px; background: var(--border); flex-shrink: 0; }
+.lp-hstat-key { font-size: 10px; color: var(--t3); letter-spacing: 0.01em; }
+.lp-hstat-sep { width: 1px; height: 28px; background: rgba(255,255,255,.06); flex-shrink: 0; }
 
 /* ── Photo frame ─────────────────────────────────────────────────────────────── */
 .lp-hero-right { display: flex; flex-direction: column; gap: 24px; }
@@ -751,63 +755,94 @@ const CSS = `
   z-index: 1;
 }
 .lp-photo-glow {
-  position: absolute; top: 5%; left: 50%;
+  position: absolute; top: 18%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 440px; height: 440px;
-  background: radial-gradient(circle, rgba(34,197,94,.22) 0%, rgba(34,197,94,.06) 50%, transparent 70%);
-  filter: blur(48px);
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(34,197,94,.2) 0%, rgba(34,197,94,.06) 48%, transparent 70%);
+  filter: blur(64px);
   pointer-events: none; z-index: 0;
-  animation: glowPulse 6s ease-in-out infinite;
+  animation: glowPulse 7s ease-in-out infinite;
 }
 .lp-photo-img {
   width: 100%; display: block;
-  border-radius: 20px;
-  border: 1px solid var(--border-md);
+  border-radius: 16px;
+  /* No border — photo bleeds into background via overlay */
   object-fit: cover; object-position: top center;
   aspect-ratio: 4/5;
-  mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
-  box-shadow: 0 40px 100px rgba(0,0,0,.72), 0 0 0 1px rgba(34,197,94,.06);
+  /*
+    Multi-stop mask: keeps face/torso sharp, melts gently into dark BG.
+    More cinematic than a single-stop gradient.
+  */
+  mask-image: linear-gradient(
+    to bottom,
+    black 0%,
+    black 48%,
+    rgba(0,0,0,.75) 68%,
+    rgba(0,0,0,.2) 86%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black 0%,
+    black 48%,
+    rgba(0,0,0,.75) 68%,
+    rgba(0,0,0,.2) 86%,
+    transparent 100%
+  );
+  box-shadow: 0 28px 72px rgba(0,0,0,.55);
+}
+/*
+  Cinematic overlay: left-edge fade blends photo into the dark gap,
+  bottom fade reinforces the mask. Creates "part of the scene" feel.
+*/
+.lp-photo-overlay {
+  position: absolute; inset: 0; z-index: 2;
+  border-radius: 16px;
+  background:
+    linear-gradient(100deg, rgba(5,5,5,.5) 0%, rgba(5,5,5,.1) 22%, transparent 40%),
+    linear-gradient(to bottom, transparent 40%, rgba(5,5,5,.55) 72%, rgba(5,5,5,.92) 100%);
+  pointer-events: none;
 }
 .lp-photo-empty .lp-photo-img { display: none; }
 .lp-photo-empty {
   min-height: 300px;
   background: rgba(255,255,255,.02);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 16px;
 }
 
 /* Floating score card */
 .lp-float-score {
   position: absolute; z-index: 10;
-  bottom: 32px; left: -32px;
-  background: rgba(5,5,5,.9);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-md);
-  border-radius: 14px; padding: 16px 18px;
-  min-width: 170px;
-  box-shadow: 0 24px 48px rgba(0,0,0,.5);
-  animation: floatIn .6s ease both;
+  bottom: 36px; left: -28px;
+  background: rgba(7,7,9,.88);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 14px; padding: 14px 16px;
+  min-width: 162px;
+  box-shadow: 0 20px 56px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.06);
+  animation: floatIn .7s .1s ease both;
 }
 .lp-float-label {
-  font-size: 8px; font-weight: 700; letter-spacing: .14em;
+  font-size: 8px; font-weight: 700; letter-spacing: .18em;
   color: var(--t3); text-transform: uppercase; margin-bottom: 10px;
 }
-.lp-float-score-row { display: flex; align-items: center; gap: 12px; }
+.lp-float-score-row { display: flex; align-items: center; gap: 10px; }
 .lp-float-num {
-  font-size: 44px; font-weight: 900; color: #FF6B2E;
-  line-height: 1; letter-spacing: -0.04em;
+  font-size: 40px; font-weight: 900; color: #FF6B2E;
+  line-height: 1; letter-spacing: -0.045em;
 }
-.lp-float-right { display: flex; flex-direction: column; gap: 6px; }
+.lp-float-right { display: flex; flex-direction: column; gap: 7px; }
 .lp-float-badge {
-  font-size: 9px; font-weight: 800; letter-spacing: .06em;
-  color: #FF6B2E; background: rgba(255,107,46,.12);
-  border: 1px solid rgba(255,107,46,.25);
-  padding: 3px 9px; border-radius: 5px; align-self: flex-start;
+  font-size: 8px; font-weight: 800; letter-spacing: .08em;
+  color: #FF6B2E; background: rgba(255,107,46,.1);
+  border: 1px solid rgba(255,107,46,.22);
+  padding: 3px 8px; border-radius: 4px; align-self: flex-start;
 }
 .lp-float-bar {
-  width: 90px; height: 4px;
-  background: rgba(255,255,255,.07);
+  width: 84px; height: 3px;
+  background: rgba(255,255,255,.06);
   border-radius: 99px; overflow: hidden;
 }
 .lp-float-bar-fill {
@@ -819,36 +854,39 @@ const CSS = `
 /* Floating metrics card */
 .lp-float-metrics {
   position: absolute; z-index: 10;
-  top: 28px; right: -28px;
-  background: rgba(5,5,5,.9);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-md);
-  border-radius: 12px; padding: 14px 18px;
-  display: flex; align-items: center; gap: 16px;
-  box-shadow: 0 16px 40px rgba(0,0,0,.5);
-  animation: floatIn .6s .2s ease both;
+  top: 24px; right: -24px;
+  background: rgba(7,7,9,.88);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid rgba(255,255,255,.09);
+  border-left: 1px solid rgba(34,197,94,.14); /* green accent edge */
+  border-radius: 12px; padding: 12px 16px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: 0 12px 36px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05);
+  animation: floatIn .7s .25s ease both;
 }
 .lp-float-metric { display: flex; flex-direction: column; gap: 3px; align-items: center; }
 .lp-float-metric-val {
-  font-size: 18px; font-weight: 900;
-  line-height: 1; letter-spacing: -0.025em;
+  font-size: 17px; font-weight: 900;
+  line-height: 1; letter-spacing: -0.03em;
 }
-.lp-float-metric-key { font-size: 9px; color: var(--t3); font-weight: 600; }
-.lp-float-metric-sep { width: 1px; height: 28px; background: var(--border); }
+.lp-float-metric-key { font-size: 8px; color: var(--t3); font-weight: 600; letter-spacing: .04em; }
+.lp-float-metric-sep { width: 1px; height: 26px; background: rgba(255,255,255,.07); }
 
 /* Author quote */
-.lp-author { display: flex; gap: 16px; align-items: flex-start; }
+.lp-author { display: flex; gap: 14px; align-items: flex-start; }
 .lp-author-line {
-  width: 2px; flex-shrink: 0; border-radius: 99px;
-  background: linear-gradient(to bottom, var(--green), transparent);
-  min-height: 60px;
+  width: 1px; flex-shrink: 0; border-radius: 99px;
+  background: linear-gradient(to bottom, rgba(34,197,94,.7), transparent);
+  min-height: 56px;
 }
-.lp-author-content { display: flex; flex-direction: column; gap: 8px; }
+.lp-author-content { display: flex; flex-direction: column; gap: 7px; }
 .lp-author-quote {
-  font-size: 14px; color: var(--t2);
-  line-height: 1.7; font-style: italic; margin: 0;
+  font-size: 13px; color: var(--t2);
+  line-height: 1.75; font-style: italic; margin: 0;
+  letter-spacing: 0.01em;
 }
-.lp-author-id { font-size: 11px; color: var(--t3); font-weight: 600; }
+.lp-author-id { font-size: 10px; color: var(--t3); font-weight: 600; letter-spacing: .03em; }
 
 /* ── Data strip ───────────────────────────────────────────────────────────────── */
 .lp-data-strip {
@@ -1186,15 +1224,26 @@ const CSS = `
 
 /* ── Mobile ──────────────────────────────────────────────────────────────────── */
 @media (max-width: 960px) {
-  .lp-hero-layout { grid-template-columns: 1fr; gap: 56px; padding-top: 64px; padding-bottom: 64px; }
+  .lp-hero-layout {
+    grid-template-columns: 1fr;
+    gap: 0; /* controlled by margin on hero-right below */
+    padding-top: 56px; padding-bottom: 48px;
+  }
   .lp-hero-left { align-items: center; text-align: center; }
   .lp-tag-pill { align-self: center; }
   .lp-hero-sub { max-width: none; }
   .lp-hero-actions { justify-content: center; }
   .lp-hero-stats { justify-content: center; }
-  .lp-hero-right { max-width: 440px; margin: 0 auto; width: 100%; }
-  .lp-float-score { left: -16px; bottom: 24px; }
-  .lp-float-metrics { right: -16px; }
+  .lp-hero-right {
+    max-width: 420px; margin: 44px auto 0; width: 100%;
+  }
+  /* Photo overlay: reduce left-edge fade (less needed when centered) */
+  .lp-photo-overlay {
+    background:
+      linear-gradient(to bottom, transparent 38%, rgba(5,5,5,.5) 70%, rgba(5,5,5,.92) 100%);
+  }
+  .lp-float-score { left: -12px; bottom: 28px; }
+  .lp-float-metrics { right: -12px; top: 20px; }
   .lp-problem-layout { grid-template-columns: 1fr; gap: 40px; }
   .lp-pricing { grid-template-columns: 1fr; gap: 40px; }
   .lp-price-card { position: static; }
@@ -1210,7 +1259,8 @@ const CSS = `
   .lp-testimonials { grid-template-columns: 1fr; }
   .lp-test-featured { padding: 22px 20px; }
   .lp-hero { min-height: unset; }
-  .lp-h1 { font-size: clamp(38px, 10vw, 60px); }
+  /* Keep headline strong on mobile — don't shrink too much */
+  .lp-h1 { font-size: clamp(40px, 11vw, 64px); letter-spacing: -0.048em; }
   .lp-cta-final { padding: 80px 0; }
   .lp-cta-h2 { font-size: clamp(32px, 9vw, 48px); }
   .lp-problem-layout { gap: 28px; }
@@ -1220,15 +1270,21 @@ const CSS = `
   .lp-feature-item { font-size: 14px; }
   .lp-cta-trust { font-size: 11px; gap: 8px; }
   .lp-faq-q { font-size: 14px; }
-  .lp-author-quote { font-size: 13px; }
+  .lp-hero-right { max-width: 360px; }
 }
 @media (max-width: 480px) {
-  .lp-float-score { left: 8px; }
-  .lp-float-metrics { right: 8px; }
+  .lp-float-score { left: 6px; bottom: 22px; min-width: 148px; }
+  .lp-float-metrics { right: 6px; top: 16px; }
+  .lp-float-num { font-size: 34px; }
+  .lp-float-metric-val { font-size: 15px; }
   .lp-price-int { font-size: 68px; }
   .lp-data-num { font-size: 32px; }
   .lp-hero-actions { flex-direction: column; align-items: stretch; }
   .lp-btn-hero { justify-content: center; }
   .lp-analisa-row { padding: 18px 16px; }
+  /* Photo: no left-edge overlay on very small screens */
+  .lp-photo-overlay {
+    background: linear-gradient(to bottom, transparent 36%, rgba(5,5,5,.5) 68%, rgba(5,5,5,.9) 100%);
+  }
 }
 `;
