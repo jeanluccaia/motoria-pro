@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import { LegalBar } from "./Layout";
 import { Link } from "./router";
 
 // ─── Constantes ────────────────────────────────────────────────────────────────
@@ -20,11 +19,11 @@ const TIPOS = [
 ];
 
 const LOAD_STEPS = [
-  { label: "Calculando probabilidade implícita…",  pct: 18 },
-  { label: "Detectando margem da casa…",            pct: 36 },
-  { label: "Estimando exposição ao risco…",          pct: 56 },
-  { label: "Mapeando pontos cegos…",                 pct: 76 },
-  { label: "Gerando leitura preventiva…",            pct: 92 },
+  { label: "Calculando a chance real de ganhar…",        pct: 18 },
+  { label: "Detectando o corte da casa…",                pct: 36 },
+  { label: "Medindo o nível de perigo da aposta…",       pct: 56 },
+  { label: "Encontrando o que a plataforma esconde…",    pct: 76 },
+  { label: "Preparando sua análise completa…",           pct: 92 },
 ];
 
 const TOKEN_KEY     = "motoria_token";
@@ -307,7 +306,6 @@ export default function Tool() {
   return (
     <>
       <style>{CSS}</style>
-      <LegalBar />
 
       {/* ── HEADER ───────────────────────────────────────────────────────────── */}
       <header className="tl-header">
@@ -364,17 +362,18 @@ export default function Tool() {
           {!result && !loading && (
             <div className="tl-hero">
               <div className="tl-hero-glow" aria-hidden="true" />
-              <div className="tl-hero-eyebrow">ANÁLISE PREVENTIVA DE RISCO</div>
+              <div className="tl-hero-eyebrow">MotorIA Pro · Ferramenta educativa</div>
               <h1 className="tl-hero-title">
-                Leitura preventiva<br />
-                <span className="tl-hero-dim">de risco em tempo real.</span>
+                Veja o risco <em className="tl-hero-em">REAL</em><br />
+                <span className="tl-hero-dim">antes de apostar.</span>
               </h1>
               <p className="tl-hero-sub">
-                Probabilidade implícita, margem da casa, chance de perda
-                e pontos cegos — antes de qualquer decisão.
+                A ferramenta mostra o que a plataforma não mostra:
+                chance de perda, nível de perigo e o que você tende
+                a perder no longo prazo.
               </p>
               <div className="tl-trust-row">
-                {["Ferramenta educativa", "Não é casa de aposta", "Não vende previsões", "Não promete lucro", "+18"].map(t => (
+                {["Ferramenta educativa", "Não vende previsões", "Não promete lucro", "+18"].map(t => (
                   <span className="tl-trust-pill" key={t}>{t}</span>
                 ))}
               </div>
@@ -406,14 +405,14 @@ export default function Tool() {
                 </h2>
                 <p className="tl-gate-sub">
                   {gateMode === "no_credits"
-                    ? "Recarregue 20 novas análises por R$27 e continue usando a leitura preventiva."
-                    : "Para continuar analisando, desbloqueie o acesso completo — 20 análises por R$27."}
+                    ? "Recarregue 20 novas análises por R$27 e continue vendo o risco real antes de apostar."
+                    : "Para continuar vendo o risco real das suas apostas, desbloqueie o acesso completo — 20 análises por R$27."}
                 </p>
                 <a href={KIWIFY_URL} className="tl-gate-btn" target="_blank" rel="noopener noreferrer">
                   Comprar 20 análises — R$27 →
                 </a>
                 <ul className="tl-gate-feats">
-                  {["20 análises incluídas", "Score MotorIA™ por análise", "Leitura preventiva completa", "Recarregável quando precisar"].map(f => (
+                  {["20 análises incluídas", "Nível de risco por aposta", "O que pode dar errado em cada uma", "Recarregável quando precisar"].map(f => (
                     <li key={f}><span className="tl-gate-check">✓</span> {f}</li>
                   ))}
                 </ul>
@@ -449,7 +448,7 @@ export default function Tool() {
                       <circle cx="7" cy="7" r="2" fill="currentColor"/>
                     </svg>
                   </div>
-                  <span className="tl-form-title">Nova análise de risco</span>
+                  <span className="tl-form-title">Analisar minha aposta</span>
                 </div>
                 <span className="tl-form-badge">engine v2</span>
               </div>
@@ -527,13 +526,13 @@ export default function Tool() {
               </div>
 
               <p className="tl-microcopy">
-                Quanto mais contexto você inserir, mais precisa será a leitura de risco.
+                Quanto mais informação você der, mais precisa será a análise.
               </p>
 
               {error && <div className="tl-err">{error}</div>}
 
               <button className="tl-btn" type="submit" disabled={loading}>
-                Gerar leitura preventiva
+                Ver o risco dessa aposta
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                   <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -605,7 +604,10 @@ export default function Tool() {
                 style={{ borderColor: scoreData.color + "30", background: scoreData.color + "07" }}
               >
                 <div className="tl-card-tag" style={{ color: scoreData.color + "80" }}>
-                  SCORE DE RISCO MOTORIA™
+                  NÍVEL DE RISCO · MOTORIA™
+                </div>
+                <div className="tl-score-risk-banner" style={{ color: scoreData.color }}>
+                  RISCO {scoreData.label}
                 </div>
                 <div className="tl-score-row">
                   <div className="tl-score-num" style={{ color: scoreData.color }}>
@@ -616,7 +618,7 @@ export default function Tool() {
                       className="tl-score-badge"
                       style={{ background: scoreData.color + "18", color: scoreData.color, border: `1px solid ${scoreData.color}40` }}
                     >
-                      {scoreData.label}
+                      {scoreData.score <= 30 ? "Risco baixo — mais segura" : scoreData.score <= 60 ? "Risco moderado — atenção" : scoreData.score <= 80 ? "Risco alto — cuidado" : "Risco crítico — perigo real"}
                     </span>
                     <div className="tl-score-bar-wrap">
                       <div className="tl-score-bar-track">
@@ -635,21 +637,21 @@ export default function Tool() {
                   </div>
                 </div>
                 <p className="tl-score-note">
-                  Score gerado a partir da odd e do contexto fornecido. Não recomenda entrada — apenas quantifica exposição ao risco.
+                  Calculado a partir da odd e do contexto fornecido. Não recomenda nenhuma entrada — apenas mostra o nível de perigo dessa aposta.
                 </p>
               </div>
 
               {/* MÉTRICAS — grid 2×2 */}
               <div className="tl-metrics-grid">
                 <div className="tl-metric-card">
-                  <div className="tl-metric-label">Probabilidade implícita</div>
+                  <div className="tl-metric-label">Chance que a casa dá pra você ganhar</div>
                   <div className="tl-metric-val" style={{ color: "#1FCB7A" }}>
                     {result.prob.toFixed(1)}%
                   </div>
-                  <div className="tl-metric-hint">chance mínima para equilibrio</div>
+                  <div className="tl-metric-hint">o mínimo pra aposta valer a pena</div>
                 </div>
                 <div className="tl-metric-card">
-                  <div className="tl-metric-label">Chance estimada de perda</div>
+                  <div className="tl-metric-label">Chance de perder</div>
                   <div className="tl-metric-val" style={{ color: perda.color }}>
                     ~{(100 - result.prob).toFixed(1)}%
                     <span className="tl-metric-badge" style={{ background: perda.color + "18", color: perda.color }}>
@@ -659,19 +661,19 @@ export default function Tool() {
                   <div className="tl-metric-hint">estimativa conservadora</div>
                 </div>
                 <div className="tl-metric-card">
-                  <div className="tl-metric-label">Margem da casa (vig)</div>
+                  <div className="tl-metric-label">O que a casa retém de cada aposta</div>
                   <div className="tl-metric-val" style={{ color: "#FFB020" }}>
                     ~{result.vig.toFixed(1)}%
                   </div>
-                  <div className="tl-metric-hint">retirada estrutural por aposta</div>
+                  <div className="tl-metric-hint">antes mesmo do resultado</div>
                 </div>
                 <div className="tl-metric-card">
-                  <div className="tl-metric-label">Valor esperado / R$100</div>
+                  <div className="tl-metric-label">O que você tende a perder por R$100</div>
                   <div className="tl-metric-val" style={{ color: result.ev >= 0 ? "#1FCB7A" : "#FF4D2E" }}>
-                    {result.ev >= 0 ? "+" : ""}{result.ev.toFixed(2)}
+                    {result.ev >= 0 ? "+R$" : "-R$"}{Math.abs(result.ev).toFixed(2)}
                   </div>
                   <div className="tl-metric-hint">
-                    {result.ev < -10 ? "resultado esperado desfavorável" : result.ev < 0 ? "margem negativa" : "dentro da variância"}
+                    {result.ev < -10 ? "perda esperada alta no longo prazo" : result.ev < 0 ? "desfavorável no longo prazo" : "dentro da variância normal"}
                   </div>
                 </div>
               </div>
@@ -679,21 +681,21 @@ export default function Tool() {
               {/* ANÁLISE IA */}
               {result.ai.riscoPrincipal && (
                 <div className="tl-card tl-card-risk">
-                  <div className="tl-card-tag">① RISCO PRINCIPAL</div>
+                  <div className="tl-card-tag">① O PRINCIPAL RISCO DESSA APOSTA</div>
                   <p className="tl-card-text">{result.ai.riscoPrincipal}</p>
                 </div>
               )}
 
               {result.ai.cenarioNecessario && (
                 <div className="tl-card tl-card-scenario">
-                  <div className="tl-card-tag">② CENÁRIO NECESSÁRIO PARA DAR CERTO</div>
+                  <div className="tl-card-tag">② O QUE PRECISA ACONTECER PRA VOCÊ GANHAR</div>
                   <p className="tl-card-text">{result.ai.cenarioNecessario}</p>
                 </div>
               )}
 
               {bullets.length > 0 && (
                 <div className="tl-card tl-card-blind">
-                  <div className="tl-card-tag">③ PONTOS CEGOS</div>
+                  <div className="tl-card-tag">③ O QUE PODE DAR ERRADO</div>
                   <ul className="tl-bullets">
                     {bullets.map((b, i) => (
                       <li key={i} className="tl-bullet">{b}</li>
@@ -704,7 +706,7 @@ export default function Tool() {
 
               {(result.ai.leituraConservadora || result.ai.alertaFinal) && (
                 <div className="tl-card tl-card-final">
-                  <div className="tl-card-tag">④ LEITURA CONSERVADORA FINAL</div>
+                  <div className="tl-card-tag">④ O QUE VOCÊ DEVERIA CONSIDERAR ANTES DE APOSTAR</div>
                   {result.ai.leituraConservadora && (
                     <p className="tl-card-text">{result.ai.leituraConservadora}</p>
                   )}
@@ -712,7 +714,7 @@ export default function Tool() {
                     <blockquote className="tl-quote">{result.ai.alertaFinal}</blockquote>
                   )}
                   <p className="tl-final-note">
-                    Esta análise tem finalidade exclusivamente educativa. Não constitui recomendação de aposta. Apostas envolvem risco financeiro real.
+                    Esta análise tem finalidade exclusivamente educativa. Não é recomendação de aposta. Apostas envolvem risco financeiro real.
                   </p>
                 </div>
               )}
@@ -909,7 +911,10 @@ const CSS = `
   position: absolute; top: 40%; left: 50%;
   transform: translate(-50%, -50%);
   width: 480px; height: 280px;
-  background: radial-gradient(ellipse, rgba(31,203,122,0.08) 0%, transparent 68%);
+  background: radial-gradient(ellipse,
+    rgba(255,77,46,0.07) 0%,
+    rgba(31,203,122,0.05) 50%,
+    transparent 70%);
   pointer-events: none;
   animation: tl-glow 6s ease-in-out infinite;
 }
@@ -930,6 +935,11 @@ const CSS = `
   margin: 0 0 16px;
 }
 .tl-hero-dim { color: rgba(235,235,235,.35); }
+.tl-hero-em {
+  font-style: normal;
+  color: #FF4D2E;
+  text-shadow: 0 0 40px rgba(255,77,46,.35);
+}
 .tl-hero-sub {
   position: relative; z-index: 1;
   font-size: 15px; color: var(--t2); line-height: 1.72;
@@ -1157,6 +1167,15 @@ option { background: #111; color: var(--t1); }
 
 /* Score card */
 .tl-card-score {}
+.tl-score-risk-banner {
+  font-size: clamp(28px, 6vw, 40px);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin-bottom: 18px;
+  text-shadow: 0 0 32px currentColor;
+  opacity: 0.92;
+}
 .tl-score-row {
   display: flex; align-items: flex-start; gap: 20px;
   margin-bottom: 14px; flex-wrap: wrap;
@@ -1500,6 +1519,7 @@ option { background: #111; color: var(--t1); }
   .tl-metric-card  { padding: 13px; }
 
   .tl-score-num { font-size: 56px; }
+  .tl-score-risk-banner { font-size: 26px; margin-bottom: 14px; }
   .tl-card { padding: 16px; }
 
   .tl-gate { padding: 28px 20px 22px; }
