@@ -35,7 +35,6 @@ const KIWIFY_URL  = "https://pay.kiwify.com.br/DIVD8zl";
 // ─── Math helpers ─────────────────────────────────────────────────────────────
 
 function calcImplicita(odd) { return (1 / odd) * 100; }
-
 function calcVig(oddN) {
   if (oddN <= 1.4) return 4.0;
   if (oddN <= 1.7) return 4.8;
@@ -43,11 +42,9 @@ function calcVig(oddN) {
   if (oddN <= 3.0) return 6.5;
   return 8.0;
 }
-
 function calcEV(prob, oddN) {
   return (prob / 100) * (oddN - 1) * 100 - (1 - prob / 100) * 100;
 }
-
 function calcScore(oddN) {
   const impl  = calcImplicita(oddN);
   const score = Math.min(100, Math.round(100 - impl));
@@ -58,13 +55,11 @@ function calcScore(oddN) {
   else                  { label = "CRÍTICO";  color = "#EF4444"; verdict = "DESFAVORÁVEL"; }
   return { score, label, color, verdict };
 }
-
 function matchBlock(text, key) {
   const m  = text.match(new RegExp(`^${key}:[^\\n]*\\n([\\s\\S]*?)(?=\\n[A-Z_]{3,}:|$)`, "m"));
   const m2 = text.match(new RegExp(`^${key}:\\s*(.+)`, "m"));
   return (m ? m[1].trim() : null) || (m2 ? m2[1].trim() : null);
 }
-
 function parseAI(text) {
   return {
     riscoPrincipal:      matchBlock(text, "RISCO_PRINCIPAL"),
@@ -74,7 +69,6 @@ function parseAI(text) {
     alertaFinal:         matchBlock(text, "ALERTA_FINAL"),
   };
 }
-
 function loadHistory() {
   try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]"); }
   catch { return []; }
@@ -91,19 +85,48 @@ function fmtTime() {
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
+const IconOverview = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <rect x="1.5" y="1.5" width="4.5" height="4.5" rx="1.2" stroke="currentColor" strokeWidth="1.3"/>
+    <rect x="8" y="1.5" width="4.5" height="4.5" rx="1.2" stroke="currentColor" strokeWidth="1.3"/>
+    <rect x="1.5" y="8" width="4.5" height="4.5" rx="1.2" stroke="currentColor" strokeWidth="1.3"/>
+    <rect x="8" y="8" width="4.5" height="4.5" rx="1.2" stroke="currentColor" strokeWidth="1.3"/>
+  </svg>
+);
+
 const IconAnalyze = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-    <path d="M2 12L5 8L8 10L12 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-    <circle cx="5" cy="8" r="1" fill="currentColor"/>
-    <circle cx="8" cy="10" r="1" fill="currentColor"/>
-    <circle cx="12" cy="4" r="1" fill="currentColor"/>
+    <path d="M2 11L5 7.5L8 9.5L12 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+    <circle cx="5" cy="7.5" r="1" fill="currentColor"/>
+    <circle cx="8" cy="9.5" r="1" fill="currentColor"/>
+    <circle cx="12" cy="3.5" r="1" fill="currentColor"/>
+  </svg>
+);
+
+const IconCompare = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <path d="M2 10V6M5 10V4M8 10V7M11 10V3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+    <path d="M1 12.5h12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity=".4"/>
+  </svg>
+);
+
+const IconLive = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <circle cx="7" cy="7" r="2" fill="currentColor" fillOpacity=".9"/>
+    <path d="M3.5 3.5a5 5 0 0 0 0 7M10.5 3.5a5 5 0 0 1 0 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+  </svg>
+);
+
+const IconStar = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <path d="M7 1.5l1.5 3.2L12 5.3l-2.5 2.4.6 3.4L7 9.5l-3.1 1.6.6-3.4L2 5.3l3.5-.6L7 1.5z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
   </svg>
 );
 
 const IconHistory = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
     <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.3"/>
-    <path d="M7 4.5V7L9 8.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+    <path d="M7 4.5V7L8.8 8.8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
   </svg>
 );
 
@@ -120,9 +143,7 @@ function MetricCard({ label, value, color, sub, tm }) {
   return (
     <div className="ap-metric-card">
       <div className="ap-metric-val" style={{ color }}>{value}</div>
-      <div className="ap-metric-label">
-        {label}{tm && <span className="ap-tm">™</span>}
-      </div>
+      <div className="ap-metric-label">{label}{tm && <span className="ap-tm">™</span>}</div>
       {sub && <div className="ap-metric-sub">{sub}</div>}
     </div>
   );
@@ -139,6 +160,29 @@ function ModuleCard({ mod, title, children }) {
   );
 }
 
+function ComingSoon({ mod, title, desc }) {
+  return (
+    <div className="ap-content">
+      <div className="ap-panel-hdr">
+        <div className="ap-panel-hdr-left">
+          <div className="ap-panel-mod">{mod}</div>
+          <div className="ap-panel-title">{title}</div>
+        </div>
+      </div>
+      <div className="ap-coming-panel">
+        <div className="ap-coming-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <rect x="1.5" y="1.5" width="19" height="19" rx="5" stroke="rgba(255,255,255,.1)" strokeWidth="1.5"/>
+            <path d="M8 11h6M11 8v6" stroke="rgba(255,255,255,.15)" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </div>
+        <p className="ap-coming-desc">{desc}</p>
+        <div className="ap-coming-tag">Em desenvolvimento · Próxima versão</div>
+      </div>
+    </div>
+  );
+}
+
 // ─── AppDashboard ─────────────────────────────────────────────────────────────
 
 export default function AppDashboard() {
@@ -148,7 +192,15 @@ export default function AppDashboard() {
     return () => { document.title = prev; };
   }, []);
 
-  // Auto-leitura de token via URL ?t=<uuid> (link do email de compra)
+  // Live clock
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  // Auto-leitura de token via URL ?t=<uuid>
+  const [accessBanner, setAccessBanner] = useState(false);
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -157,21 +209,11 @@ export default function AppDashboard() {
         localStorage.setItem(TOKEN_KEY, urlToken);
         setToken(urlToken);
         setAccessBanner(true);
-        // Limpa o token da URL sem recarregar a página
-        const clean = window.location.pathname;
-        window.history.replaceState(null, "", clean);
-        // Esconde o banner após 4 segundos
-        const t = setTimeout(() => setAccessBanner(false), 4000);
+        window.history.replaceState(null, "", window.location.pathname);
+        const t = setTimeout(() => setAccessBanner(false), 4200);
         return () => clearTimeout(t);
       }
     } catch {}
-  }, []);
-
-  // Live clock
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
   }, []);
 
   // Sidebar
@@ -198,10 +240,15 @@ export default function AppDashboard() {
   const [token,      setToken]      = useState(() => localStorage.getItem(TOKEN_KEY) || "");
   const [credits,    setCredits]    = useState(null);
   const [analysisId, setAnalysisId] = useState(null);
-  const [accessBanner, setAccessBanner] = useState(false);
 
-  const oddNum = parseFloat((odd || "").replace(",", "."));
+  const oddNum    = parseFloat((odd || "").replace(",", "."));
   const oddPreview = odd && !isNaN(oddNum) && oddNum >= 1.01 ? calcScore(oddNum) : null;
+
+  // Computed stats for Visão Geral
+  const avgScore = history.length
+    ? Math.round(history.reduce((s, h) => s + (h.score || 0), 0) / history.length)
+    : null;
+  const lastItem = history[0] || null;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -254,16 +301,16 @@ export default function AppDashboard() {
       const exposure = Math.min(100, Math.round((100 - justa) * 1.1));
 
       const r = {
-        id:     Math.floor(Math.random() * 8000) + 2000,
-        ts:     fmtTime(),
-        jogo:   jogo || "Aposta",
+        id: Math.floor(Math.random() * 8000) + 2000,
+        ts: fmtTime(),
+        jogo: jogo || "Aposta",
         tipo,
-        odd:    oddNum,
-        impl:   impl.toFixed(2),
-        justa:  justa.toFixed(2),
-        vig:    vig.toFixed(2),
-        ev:     ev.toFixed(2),
-        perda:  (100 - impl).toFixed(1),
+        odd: oddNum,
+        impl:     impl.toFixed(2),
+        justa:    justa.toFixed(2),
+        vig:      vig.toFixed(2),
+        ev:       ev.toFixed(2),
+        perda:    (100 - impl).toFixed(1),
         exposure,
         ...scoreObj,
         ai: parseAI(rawText),
@@ -285,6 +332,37 @@ export default function AppDashboard() {
   function loadFromHistory(item) { setResult(item); setJogo(item.jogo || ""); setOdd(String(item.odd)); setView("nova"); }
   function resetForm() { setResult(null); setError(""); }
 
+  // ─── Sidebar nav structure ──────────────────────────────────────────────────
+  const NAV = [
+    {
+      group: "ANÁLISE",
+      items: [
+        { id: "geral",   label: "Visão Geral",  Icon: IconOverview },
+        { id: "nova",    label: "Nova Análise", Icon: IconAnalyze },
+        { id: "comparador", label: "Comparador", Icon: IconCompare, dim: true },
+      ],
+    },
+    {
+      group: "MERCADOS",
+      items: [
+        { id: "aovivo",    label: "Ao Vivo",   Icon: IconLive, live: true, dim: true },
+        { id: "favoritos", label: "Favoritos", Icon: IconStar, dim: true },
+      ],
+    },
+    {
+      group: "ARQUIVO",
+      items: [
+        { id: "historico", label: "Histórico", Icon: IconHistory, badge: history.length || null },
+      ],
+    },
+    {
+      group: "SISTEMA",
+      items: [
+        { id: "config", label: "Configurações", Icon: IconConfig },
+      ],
+    },
+  ];
+
   return (
     <>
       <style>{CSS}</style>
@@ -293,15 +371,14 @@ export default function AppDashboard() {
         <div className="ap-overlay" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
       )}
 
-      <div className="ap-shell">
+      {accessBanner && (
+        <div className="ap-access-banner" role="status" aria-live="polite">
+          <span className="ap-access-banner-dot" aria-hidden="true" />
+          Acesso ativado — plataforma pronta para uso
+        </div>
+      )}
 
-        {/* ── ACCESS BANNER ───────────────────────────────────────────────── */}
-        {accessBanner && (
-          <div className="ap-access-banner" role="status" aria-live="polite">
-            <span className="ap-access-banner-dot" aria-hidden="true" />
-            Acesso ativado — plataforma pronta para uso
-          </div>
-        )}
+      <div className="ap-shell">
 
         {/* ── TOPBAR ──────────────────────────────────────────────────────── */}
         <header className="ap-topbar">
@@ -329,14 +406,12 @@ export default function AppDashboard() {
 
           <div className="ap-topbar-center">
             <span className="ap-topbar-clock">{fmtClock(now)}</span>
-            {analysisId && (
-              <span className="ap-topbar-aid"> · #{analysisId}</span>
-            )}
+            {analysisId && <span className="ap-topbar-aid"> · #{analysisId}</span>}
           </div>
 
           <div className="ap-topbar-right">
             {credits !== null && (
-              <div className="ap-credits-bar-wrap" title={`${credits} análises restantes`}>
+              <div className="ap-credits-wrap" title="Créditos restantes">
                 <div className="ap-credits-bar">
                   <div className="ap-credits-fill" style={{ width: `${Math.max(0, (credits / 20) * 100)}%` }} />
                 </div>
@@ -354,31 +429,49 @@ export default function AppDashboard() {
           {/* ── SIDEBAR ─────────────────────────────────────────────────── */}
           <nav className={`ap-sidebar${sidebarOpen ? " ap-sidebar-open" : ""}`} aria-label="Navegação">
 
-            <div className="ap-sidebar-group">
-              <div className="ap-sidebar-group-lbl">MÓDULOS</div>
-              <button className={`ap-nav-item${view === "nova" ? " ap-nav-active" : ""}`} onClick={() => navigate("nova")} aria-current={view === "nova" ? "page" : undefined}>
-                <span className="ap-nav-icon"><IconAnalyze /></span>
-                <span className="ap-nav-label">Nova análise</span>
-              </button>
-              <button className={`ap-nav-item${view === "historico" ? " ap-nav-active" : ""}`} onClick={() => navigate("historico")} aria-current={view === "historico" ? "page" : undefined}>
-                <span className="ap-nav-icon"><IconHistory /></span>
-                <span className="ap-nav-label">Histórico</span>
-                {history.length > 0 && (
-                  <span className="ap-nav-badge">{history.length}</span>
-                )}
-              </button>
+            {/* Brand mark dentro da sidebar */}
+            <div className="ap-sidebar-brand">
+              <div className="ap-sidebar-brand-mark" aria-hidden="true">
+                <svg width="9" height="9" viewBox="0 0 14 14" fill="none">
+                  <path d="M7 1L13 4V10L7 13L1 10V4L7 1Z" fill="#22C55E"/>
+                </svg>
+              </div>
+              <span className="ap-sidebar-brand-name">MotorIA Pro</span>
             </div>
 
-            <div className="ap-sidebar-sep" role="separator" />
+            <div className="ap-sidebar-divider" role="separator" />
 
-            <div className="ap-sidebar-group">
-              <div className="ap-sidebar-group-lbl">SISTEMA</div>
-              <button className={`ap-nav-item${view === "config" ? " ap-nav-active" : ""}`} onClick={() => navigate("config")} aria-current={view === "config" ? "page" : undefined}>
-                <span className="ap-nav-icon"><IconConfig /></span>
-                <span className="ap-nav-label">Configurações</span>
-              </button>
-            </div>
+            {/* Nav groups */}
+            {NAV.map(({ group, items }) => (
+              <div className="ap-sidebar-group" key={group}>
+                <div className="ap-sidebar-group-lbl">{group}</div>
+                {items.map(({ id, label, Icon, badge, live, dim }) => (
+                  <button
+                    key={id}
+                    className={`ap-nav-item${view === id ? " ap-nav-active" : ""}${dim ? " ap-nav-dim" : ""}`}
+                    onClick={() => navigate(id)}
+                    aria-current={view === id ? "page" : undefined}
+                  >
+                    <span className="ap-nav-icon"><Icon /></span>
+                    <span className="ap-nav-label">{label}</span>
+                    {live && <span className="ap-nav-live-dot" aria-label="ao vivo" />}
+                    {badge > 0 && !live && (
+                      <span className="ap-nav-badge" aria-label={`${badge} itens`}>{badge}</span>
+                    )}
+                    {dim && !live && (
+                      <span className="ap-nav-soon" aria-label="em breve">
+                        <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
+                          <path d="M5 2v3.5M5 7v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                          <circle cx="5" cy="5" r="4" stroke="currentColor" strokeWidth="1.2" opacity=".5"/>
+                        </svg>
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            ))}
 
+            {/* Engine status */}
             <div className="ap-sidebar-engine">
               <div className="ap-sidebar-engine-dot" aria-hidden="true" />
               <div className="ap-sidebar-engine-info">
@@ -391,15 +484,95 @@ export default function AppDashboard() {
           {/* ── MAIN ────────────────────────────────────────────────────── */}
           <main className="ap-main">
 
+            {/* ════ VISÃO GERAL ═════════════════════════════════════════ */}
+            {view === "geral" && (
+              <div className="ap-content" key="geral">
+                <div className="ap-panel-hdr">
+                  <div className="ap-panel-hdr-left">
+                    <div className="ap-panel-mod">MÓDULO I</div>
+                    <div className="ap-panel-title">Visão Geral</div>
+                  </div>
+                  <div className="ap-panel-online">
+                    <span className="ap-status-dot" aria-hidden="true" />
+                    SISTEMA ONLINE
+                  </div>
+                </div>
+
+                {/* Stat row */}
+                <div className="ap-geral-stats">
+                  <div className="ap-geral-stat">
+                    <div className="ap-geral-stat-val">{history.length}</div>
+                    <div className="ap-geral-stat-lbl">ANÁLISES</div>
+                  </div>
+                  <div className="ap-geral-stat">
+                    <div className="ap-geral-stat-val" style={{ color: avgScore !== null ? (avgScore > 60 ? "#EF4444" : avgScore > 40 ? "#F59E0B" : "#22C55E") : "var(--t3)" }}>
+                      {avgScore !== null ? avgScore : "—"}
+                    </div>
+                    <div className="ap-geral-stat-lbl">SCORE MÉDIO</div>
+                  </div>
+                  <div className="ap-geral-stat">
+                    <div className="ap-geral-stat-val">{lastItem ? lastItem.odd.toFixed(2) : "—"}</div>
+                    <div className="ap-geral-stat-lbl">ÚLTIMA ODD</div>
+                  </div>
+                  <div className="ap-geral-stat">
+                    <div className="ap-geral-stat-val ap-geral-stat-val-sm">v2.4</div>
+                    <div className="ap-geral-stat-lbl">ENGINE</div>
+                  </div>
+                </div>
+
+                {/* Quick action */}
+                <div className="ap-geral-action">
+                  <div className="ap-geral-action-left">
+                    <div className="ap-geral-action-title">Iniciar nova análise quantitativa</div>
+                    <div className="ap-geral-action-sub">MOTORIA RISK INDEX™ · Probabilidade · EV · Exposição</div>
+                  </div>
+                  <button className="ap-geral-btn" onClick={() => navigate("nova")}>
+                    Analisar
+                    <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                      <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Recent mini list */}
+                {history.length > 0 && (
+                  <div className="ap-geral-recent">
+                    <div className="ap-geral-recent-hdr">ANÁLISES RECENTES</div>
+                    <div className="ap-geral-recent-list">
+                      {history.slice(0, 4).map((item, i) => (
+                        <button key={i} className="ap-geral-recent-row" onClick={() => loadFromHistory(item)}>
+                          <span className="ap-geral-recent-id">#{item.id}</span>
+                          <span className="ap-geral-recent-event">{item.jogo || "Aposta"}</span>
+                          <span className="ap-geral-recent-odd">Odd {item.odd}</span>
+                          <div className="ap-geral-recent-bar">
+                            <div style={{ width: `${item.score}%`, background: item.color, height: "100%", borderRadius: 99 }} />
+                          </div>
+                          <span className="ap-geral-recent-score" style={{ color: item.color }}>{item.score}</span>
+                          <span className="ap-geral-recent-tag" style={{ color: item.color }}>{item.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {history.length === 0 && (
+                  <div className="ap-geral-empty">
+                    <p>Nenhuma análise registrada ainda.</p>
+                    <button className="ap-geral-btn" onClick={() => navigate("nova")}>Iniciar primeira análise →</button>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* ════ NOVA ANÁLISE ════════════════════════════════════════ */}
             {view === "nova" && (
-              <div className="ap-content">
+              <div className="ap-content" key="nova">
 
                 {!result && !loading && (
                   <section className="ap-input-panel">
                     <div className="ap-panel-hdr">
                       <div className="ap-panel-hdr-left">
-                        <div className="ap-panel-mod">MÓDULO I</div>
+                        <div className="ap-panel-mod">MÓDULO II</div>
                         <div className="ap-panel-title">Parâmetros de entrada</div>
                       </div>
                       <div className="ap-panel-online">
@@ -407,7 +580,6 @@ export default function AppDashboard() {
                         SISTEMA ONLINE
                       </div>
                     </div>
-
                     <form className="ap-form" onSubmit={handleSubmit} noValidate>
                       <div className="ap-row-2">
                         <div className="ap-field">
@@ -488,7 +660,7 @@ export default function AppDashboard() {
                   </section>
                 )}
 
-                {/* ── Loading ─────────────────────────────────────────── */}
+                {/* Loading */}
                 {loading && (
                   <div className="ap-loading" role="status" aria-live="polite">
                     <div className="ap-loading-hdr">
@@ -518,10 +690,9 @@ export default function AppDashboard() {
                   </div>
                 )}
 
-                {/* ── Output ──────────────────────────────────────────── */}
+                {/* Output */}
                 {result && !loading && (
                   <div className="ap-output">
-
                     <div className="ap-output-topbar">
                       <div className="ap-output-meta">
                         <span className="ap-output-id">#{result.id}</span>
@@ -552,9 +723,7 @@ export default function AppDashboard() {
                           </div>
                         </div>
                         <span className="ap-gauge-name">MOTORIA RISK INDEX™</span>
-                        <span className="ap-gauge-ci">
-                          IC 95% · [{Math.max(0, result.score - 6)} — {Math.min(100, result.score + 6)}]
-                        </span>
+                        <span className="ap-gauge-ci">IC 95% · [{Math.max(0, result.score - 6)} — {Math.min(100, result.score + 6)}]</span>
                       </div>
 
                       <div className="ap-score-side">
@@ -562,7 +731,6 @@ export default function AppDashboard() {
                           {result.label}
                         </div>
                         <div className="ap-verdict" style={{ color: result.color }}>{result.verdict}</div>
-
                         <div className="ap-score-data">
                           <div className="ap-score-data-row">
                             <span className="ap-score-data-lbl">ODD</span>
@@ -603,17 +771,17 @@ export default function AppDashboard() {
 
                     {/* Metrics grid */}
                     <div className="ap-metrics-grid">
-                      <MetricCard label="PROB. IMPLÍCITA"    value={`${result.impl}%`}  color="#22C55E"               sub="Chance atribuída pela casa" />
-                      <MetricCard label="PROB. JUSTA"        value={`${result.justa}%`} color="rgba(232,232,230,.38)" sub="Sem margem da casa" />
-                      <MetricCard label="HOUSE MARGIN"       value={`${result.vig}%`}   color="#F59E0B"               sub="Distorção embutida" tm />
+                      <MetricCard label="PROB. IMPLÍCITA"   value={`${result.impl}%`}  color="#22C55E" sub="Chance atribuída pela casa" />
+                      <MetricCard label="PROB. JUSTA"       value={`${result.justa}%`} color="rgba(232,232,230,.38)" sub="Sem margem da casa" />
+                      <MetricCard label="HOUSE MARGIN"      value={`${result.vig}%`}   color="#F59E0B" sub="Distorção embutida" tm />
                       <MetricCard
                         label="EV / R$100"
                         value={`${parseFloat(result.ev) >= 0 ? "+" : ""}R$${Math.abs(parseFloat(result.ev)).toFixed(2)}`}
                         color={parseFloat(result.ev) >= 0 ? "#22C55E" : "#EF4444"}
                         sub="Retorno esperado"
                       />
-                      <MetricCard label="RISK EXPOSURE"      value={`${result.perda}%`} color="#EF4444"               sub="Probabilidade de derrota" tm />
-                      <MetricCard label="SIGNAL CONFIDENCE"  value="94,2%"              color="rgba(232,232,230,.22)" sub="Confiança do modelo" tm />
+                      <MetricCard label="RISK EXPOSURE"     value={`${result.perda}%`} color="#EF4444" sub="Probabilidade de derrota" tm />
+                      <MetricCard label="SIGNAL CONFIDENCE" value="94,2%"              color="rgba(232,232,230,.22)" sub="Confiança do modelo" tm />
                     </div>
 
                     {/* AI Modules */}
@@ -650,12 +818,35 @@ export default function AppDashboard() {
               </div>
             )}
 
+            {/* ════ PLACEHOLDERS ════════════════════════════════════════ */}
+            {view === "comparador" && (
+              <ComingSoon
+                mod="MÓDULO III"
+                title="Comparador de Odds"
+                desc="Compare múltiplas odds simultaneamente e identifique distorções entre casas de apostas. O Comparador cruza probabilidades implícitas em tempo real."
+              />
+            )}
+            {view === "aovivo" && (
+              <ComingSoon
+                mod="MERCADOS"
+                title="Ao Vivo"
+                desc="Feed de análises em tempo real com atualizações automáticas de probabilidade para eventos em andamento. Integração com dados de mercado ao vivo."
+              />
+            )}
+            {view === "favoritos" && (
+              <ComingSoon
+                mod="ARQUIVO"
+                title="Favoritos"
+                desc="Salve e organize suas análises mais relevantes. Crie coleções por campeonato, mercado ou período para consulta rápida."
+              />
+            )}
+
             {/* ════ HISTÓRICO ══════════════════════════════════════════ */}
             {view === "historico" && (
-              <div className="ap-content">
+              <div className="ap-content" key="historico">
                 <div className="ap-panel-hdr">
                   <div className="ap-panel-hdr-left">
-                    <div className="ap-panel-mod">MÓDULO II</div>
+                    <div className="ap-panel-mod">ARQUIVO</div>
                     <div className="ap-panel-title">Histórico de análises</div>
                   </div>
                   <div className="ap-panel-online">
@@ -687,7 +878,7 @@ export default function AppDashboard() {
 
             {/* ════ CONFIGURAÇÕES ══════════════════════════════════════ */}
             {view === "config" && (
-              <div className="ap-content">
+              <div className="ap-content" key="config">
                 <div className="ap-panel-hdr">
                   <div className="ap-panel-hdr-left">
                     <div className="ap-panel-mod">SISTEMA</div>
@@ -707,9 +898,7 @@ export default function AppDashboard() {
                       autoComplete="off"
                       spellCheck={false}
                     />
-                    <p className="ap-config-hint">
-                      Token recebido por email após a confirmação de acesso.
-                    </p>
+                    <p className="ap-config-hint">Token recebido por email após a confirmação de acesso.</p>
                   </div>
                   <div className="ap-config-info">
                     <div className="ap-config-row"><span>Engine</span><span>MotorIA Risk Engine™ v2.4</span></div>
@@ -735,13 +924,13 @@ const CSS = `
 
 :root {
   --bg:     #060608;
-  --bg2:    #08080C;
+  --bg2:    #07070A;
   --panel:  #0B0B0F;
   --border: rgba(255,255,255,0.065);
-  --bmd:    rgba(255,255,255,0.12);
+  --bmd:    rgba(255,255,255,0.11);
   --t1: #DDDDE0;
-  --t2: #72727A;
-  --t3: #38383E;
+  --t2: #6E6E76;
+  --t3: #36363C;
   --green:  #22C55E;
   --amber:  #F59E0B;
   --red:    #EF4444;
@@ -752,21 +941,25 @@ body { overflow: hidden; }
 
 @keyframes ap-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: .45; transform: scale(1.5); }
+  50%       { opacity: .4; transform: scale(1.55); }
 }
 @keyframes ap-blink {
   0%, 100% { opacity: 1; }
-  50%       { opacity: .2; }
+  50%       { opacity: .18; }
 }
 @keyframes ap-bar-in {
   from { width: 0; }
 }
 @keyframes ap-fade-up {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ap-banner-in {
+  from { opacity: 0; transform: translateY(-100%); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ─ Shell ─────────────────────────────────────────────────────────────────── */
+/* ─ Shell ──────────────────────────────────────────────────────────────────── */
 .ap-shell {
   display: flex; flex-direction: column;
   height: 100dvh; min-height: 100vh;
@@ -775,26 +968,40 @@ body { overflow: hidden; }
   overflow: hidden; font-size: 14px;
 }
 
-/* ─ Overlay (mobile) ──────────────────────────────────────────────────────── */
+/* ─ Overlay ────────────────────────────────────────────────────────────────── */
 .ap-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,.6);
-  z-index: 40; backdrop-filter: blur(2px);
+  position: fixed; inset: 0; background: rgba(0,0,0,.65);
+  z-index: 40; backdrop-filter: blur(3px);
 }
 
-/* ─ Topbar ────────────────────────────────────────────────────────────────── */
+/* ─ Access banner ──────────────────────────────────────────────────────────── */
+.ap-access-banner {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: var(--green); color: #050507;
+  font-size: 11px; font-weight: 800; letter-spacing: .1em;
+  padding: 10px 20px;
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  animation: ap-banner-in .3s ease both;
+}
+.ap-access-banner-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #050507; opacity: .55;
+  animation: ap-pulse 1.5s ease-in-out infinite;
+}
+
+/* ─ Topbar ─────────────────────────────────────────────────────────────────── */
 .ap-topbar {
   display: flex; align-items: center; justify-content: space-between;
   height: 46px; padding: 0 14px; gap: 12px;
   background: var(--bg2); border-bottom: 1px solid var(--border);
   flex-shrink: 0; z-index: 30; position: relative;
 }
-.ap-topbar-left  { display: flex; align-items: center; gap: 10px; flex-shrink: 0; min-width: 0; }
+.ap-topbar-left  { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .ap-topbar-right { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
 
 .ap-hamburger {
-  display: none; flex-direction: column; gap: 4px;
-  background: none; border: none; cursor: pointer;
-  padding: 4px 3px; flex-shrink: 0;
+  display: none; flex-direction: column; gap: 4.5px;
+  background: none; border: none; cursor: pointer; padding: 4px 3px; flex-shrink: 0;
 }
 .ap-hamburger span {
   display: block; width: 16px; height: 1.5px;
@@ -804,28 +1011,26 @@ body { overflow: hidden; }
 
 .ap-topbar-brand { display: flex; align-items: center; gap: 7px; }
 .ap-logo-mark {
-  width: 22px; height: 22px; border-radius: 5px;
-  background: var(--green); color: #050507;
+  width: 22px; height: 22px; border-radius: 5px; background: var(--green); color: #050507;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .ap-topbar-name { font-size: 13px; font-weight: 800; color: var(--t1); letter-spacing: -0.03em; }
 .ap-topbar-sep  { color: var(--t3); font-size: 13px; }
-.ap-topbar-tag  { font-size: 11px; font-weight: 600; color: var(--t3); letter-spacing: .02em; }
+.ap-topbar-tag  { font-size: 11px; font-weight: 600; color: var(--t3); letter-spacing: .025em; }
 
-.ap-topbar-center { flex: 1; display: flex; align-items: center; justify-content: center; gap: 0; min-width: 0; }
+.ap-topbar-center { flex: 1; display: flex; align-items: center; justify-content: center; }
 .ap-topbar-clock {
-  font-size: 11px; font-weight: 700; letter-spacing: .06em;
-  color: var(--t3); font-variant-numeric: tabular-nums;
-  font-family: 'Courier New', monospace;
+  font-size: 11px; font-weight: 700; letter-spacing: .06em; color: var(--t3);
+  font-variant-numeric: tabular-nums; font-family: 'Courier New', monospace;
 }
 .ap-topbar-aid {
   font-size: 10px; font-weight: 700; letter-spacing: .1em;
-  color: rgba(34,197,94,.5); font-family: 'Courier New', monospace;
+  color: rgba(34,197,94,.45); font-family: 'Courier New', monospace;
 }
 
-.ap-credits-bar-wrap { display: flex; align-items: center; }
+.ap-credits-wrap { display: flex; align-items: center; }
 .ap-credits-bar {
-  width: 60px; height: 2px;
+  width: 56px; height: 2px;
   background: rgba(255,255,255,.07); border-radius: 99px; overflow: hidden;
 }
 .ap-credits-fill { height: 100%; border-radius: 99px; background: var(--green); transition: width .4s ease; }
@@ -840,55 +1045,99 @@ body { overflow: hidden; }
 }
 .ap-live-lbl { letter-spacing: .1em; }
 
-/* ─ Body ──────────────────────────────────────────────────────────────────── */
+/* ─ Body ───────────────────────────────────────────────────────────────────── */
 .ap-body { display: flex; flex: 1; overflow: hidden; }
 
-/* ─ Sidebar ───────────────────────────────────────────────────────────────── */
+/* ─ Sidebar ────────────────────────────────────────────────────────────────── */
 .ap-sidebar {
-  width: 188px; flex-shrink: 0;
-  background: var(--bg2); border-right: 1px solid var(--border);
+  width: 210px; flex-shrink: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
   display: flex; flex-direction: column;
-  padding: 12px 8px 10px; overflow-y: auto; gap: 0;
+  padding: 0 0 12px; overflow-y: auto;
   transition: transform .22s ease;
 }
-.ap-sidebar-group { display: flex; flex-direction: column; gap: 1px; }
-.ap-sidebar-group-lbl {
-  font-size: 8px; font-weight: 800; letter-spacing: .18em;
-  color: var(--t3); padding: 6px 10px 5px; text-transform: uppercase;
+
+/* Sidebar brand mark */
+.ap-sidebar-brand {
+  display: flex; align-items: center; gap: 8px;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--border);
 }
+.ap-sidebar-brand-mark {
+  width: 20px; height: 20px; border-radius: 5px;
+  background: rgba(34,197,94,.12);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.ap-sidebar-brand-name {
+  font-size: 11px; font-weight: 800; color: var(--t2);
+  letter-spacing: -0.01em;
+}
+
+.ap-sidebar-divider { height: 1px; background: var(--border); }
+
+/* Sidebar groups */
+.ap-sidebar-group {
+  display: flex; flex-direction: column; gap: 1px;
+  padding: 10px 8px 4px;
+}
+.ap-sidebar-group-lbl {
+  font-size: 8px; font-weight: 800; letter-spacing: .2em;
+  color: var(--t3); padding: 0 6px 5px; text-transform: uppercase;
+}
+
+/* Nav items */
 .ap-nav-item {
   display: flex; align-items: center; gap: 9px;
-  padding: 8px 10px; border-radius: 7px;
+  padding: 7.5px 10px; border-radius: 7px;
   border: none; background: transparent; cursor: pointer;
   width: 100%; text-align: left; color: var(--t2);
   transition: background .12s, color .12s; font-family: inherit;
   position: relative;
 }
-.ap-nav-item:hover { background: rgba(255,255,255,.04); color: var(--t1); }
+.ap-nav-item:hover:not(.ap-nav-dim) {
+  background: rgba(255,255,255,.045); color: var(--t1);
+}
 .ap-nav-active {
-  background: rgba(255,255,255,.055) !important;
+  background: rgba(255,255,255,.06) !important;
   color: var(--t1) !important;
 }
 .ap-nav-active::before {
   content: '';
-  position: absolute; left: 0; top: 20%; bottom: 20%;
-  width: 2px; border-radius: 99px;
-  background: var(--green);
+  position: absolute; left: 0; top: 22%; bottom: 22%;
+  width: 2px; border-radius: 99px; background: var(--green);
 }
-.ap-nav-icon  { display: flex; align-items: center; justify-content: center; width: 16px; flex-shrink: 0; opacity: .7; }
+
+.ap-nav-dim { opacity: .42; cursor: default; }
+.ap-nav-dim:hover { background: transparent !important; color: var(--t2) !important; }
+
+.ap-nav-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 16px; flex-shrink: 0; opacity: .7; color: inherit;
+}
 .ap-nav-active .ap-nav-icon { opacity: 1; }
-.ap-nav-label { font-size: 12px; font-weight: 600; letter-spacing: -0.01em; }
+
+.ap-nav-label { font-size: 12px; font-weight: 600; letter-spacing: -0.01em; flex: 1; }
+
 .ap-nav-badge {
-  margin-left: auto; font-size: 9px; font-weight: 700; color: var(--t3);
+  font-size: 9px; font-weight: 700; color: var(--t3);
   background: rgba(255,255,255,.055); border-radius: 99px;
   padding: 1px 6px; min-width: 18px; text-align: center;
 }
-.ap-sidebar-sep { height: 1px; background: var(--border); margin: 10px 0; }
+.ap-nav-live-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--green); flex-shrink: 0;
+  animation: ap-pulse 2s ease-in-out infinite;
+}
+.ap-nav-soon {
+  color: var(--t3); display: flex; align-items: center;
+  opacity: .6;
+}
 
+/* Sidebar engine block */
 .ap-sidebar-engine {
-  margin-top: auto; padding-top: 14px;
+  margin-top: auto; padding: 14px 14px 4px;
+  border-top: 1px solid var(--border);
   display: flex; align-items: center; gap: 9px;
-  padding-left: 10px; padding-bottom: 4px;
 }
 .ap-sidebar-engine-dot {
   width: 5px; height: 5px; border-radius: 50%;
@@ -901,64 +1150,144 @@ body { overflow: hidden; }
   color: var(--t3); font-family: 'Courier New', monospace;
 }
 .ap-sidebar-engine-status {
-  font-size: 8px; font-weight: 700; letter-spacing: .08em;
-  color: rgba(34,197,94,.55);
+  font-size: 8px; font-weight: 700; letter-spacing: .08em; color: rgba(34,197,94,.5);
 }
 
-/* ─ Main ──────────────────────────────────────────────────────────────────── */
+/* ─ Main ───────────────────────────────────────────────────────────────────── */
 .ap-main { flex: 1; overflow-y: auto; background: var(--bg); }
 .ap-content {
-  max-width: 800px; margin: 0 auto; padding: 26px 22px;
-  display: flex; flex-direction: column; gap: 12px;
+  max-width: 800px; margin: 0 auto; padding: 24px 22px;
+  display: flex; flex-direction: column; gap: 11px;
   animation: ap-fade-up .2s ease both;
 }
 
-/* ─ Panel header ──────────────────────────────────────────────────────────── */
+/* ─ Panel header ───────────────────────────────────────────────────────────── */
 .ap-panel-hdr {
   display: flex; justify-content: space-between; align-items: flex-end;
-  padding-bottom: 14px; border-bottom: 1px solid var(--border);
-  margin-bottom: 4px;
+  padding-bottom: 13px; border-bottom: 1px solid var(--border); margin-bottom: 4px;
 }
 .ap-panel-hdr-left { display: flex; flex-direction: column; gap: 2px; }
 .ap-panel-mod {
   font-size: 8px; font-weight: 800; letter-spacing: .2em;
   color: var(--t3); font-family: 'Courier New', monospace;
 }
-.ap-panel-title {
-  font-size: 16px; font-weight: 700; color: var(--t1); letter-spacing: -0.03em;
-}
+.ap-panel-title { font-size: 16px; font-weight: 700; color: var(--t1); letter-spacing: -0.03em; }
 .ap-panel-online {
   display: flex; align-items: center; gap: 6px;
   font-size: 8px; font-weight: 800; letter-spacing: .14em; color: var(--t3);
 }
 .ap-status-dot {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: var(--green); animation: ap-pulse 2.8s ease-in-out infinite;
+  width: 5px; height: 5px; border-radius: 50%; background: var(--green);
+  animation: ap-pulse 2.8s ease-in-out infinite;
 }
 
-/* ─ Input panel ───────────────────────────────────────────────────────────── */
+/* ─ Visão Geral ────────────────────────────────────────────────────────────── */
+.ap-geral-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+}
+.ap-geral-stat {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 14px 12px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.ap-geral-stat-val {
+  font-size: 26px; font-weight: 900; color: var(--t1);
+  letter-spacing: -0.05em; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ap-geral-stat-val-sm { font-size: 18px; }
+.ap-geral-stat-lbl {
+  font-size: 8px; font-weight: 800; letter-spacing: .14em;
+  color: var(--t3); text-transform: uppercase;
+}
+
+.ap-geral-action {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px 18px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.ap-geral-action-left { display: flex; flex-direction: column; gap: 4px; }
+.ap-geral-action-title { font-size: 13px; font-weight: 700; color: var(--t1); letter-spacing: -0.02em; }
+.ap-geral-action-sub { font-size: 10px; color: var(--t3); letter-spacing: .02em; }
+.ap-geral-btn {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--t1); color: #060608;
+  font-size: 11px; font-weight: 900; letter-spacing: .12em;
+  padding: 9px 18px; border-radius: 7px; border: none; cursor: pointer;
+  font-family: inherit; white-space: nowrap; flex-shrink: 0;
+  transition: opacity .14s;
+}
+.ap-geral-btn:hover { opacity: .88; }
+
+.ap-geral-recent {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.ap-geral-recent-hdr {
+  font-size: 8px; font-weight: 800; letter-spacing: .16em; color: var(--t3);
+}
+.ap-geral-recent-list { display: flex; flex-direction: column; gap: 3px; }
+.ap-geral-recent-row {
+  display: grid; grid-template-columns: 52px 1fr 56px 64px 28px 60px;
+  align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 7px;
+  background: transparent; border: none; cursor: pointer;
+  width: 100%; text-align: left; font-family: inherit; color: inherit;
+  transition: background .1s;
+}
+.ap-geral-recent-row:hover { background: rgba(255,255,255,.035); }
+.ap-geral-recent-id    { font-family: 'Courier New', monospace; font-size: 9px; color: var(--t3); }
+.ap-geral-recent-event { font-size: 11px; color: var(--t2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ap-geral-recent-odd   { font-size: 10px; color: var(--t3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ap-geral-recent-bar   { height: 3px; background: rgba(255,255,255,.05); border-radius: 99px; overflow: hidden; }
+.ap-geral-recent-score { font-size: 12px; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+.ap-geral-recent-tag   { font-size: 8px; font-weight: 800; letter-spacing: .04em; }
+
+.ap-geral-empty {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 32px 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  text-align: center;
+}
+.ap-geral-empty p { font-size: 13px; color: var(--t3); }
+
+/* ─ Coming soon ────────────────────────────────────────────────────────────── */
+.ap-coming-panel {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; padding: 40px 32px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 14px;
+  margin-top: 6px;
+}
+.ap-coming-icon { opacity: .6; margin-bottom: 4px; }
+.ap-coming-desc { font-size: 13px; color: var(--t2); line-height: 1.75; max-width: 440px; }
+.ap-coming-tag {
+  font-size: 9px; font-weight: 800; letter-spacing: .12em;
+  color: var(--t3); font-family: 'Courier New', monospace;
+  border: 1px solid var(--border); border-radius: 5px; padding: 5px 10px;
+}
+
+/* ─ Input panel ────────────────────────────────────────────────────────────── */
 .ap-input-panel {
   background: var(--panel); border: 1px solid var(--border);
   border-radius: 12px; padding: 20px 20px;
 }
-.ap-form { display: flex; flex-direction: column; gap: 13px; margin-top: 16px; }
+.ap-form { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
 .ap-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
 .ap-field { display: flex; flex-direction: column; gap: 6px; }
-
 .ap-label {
   font-size: 8.5px; font-weight: 800; letter-spacing: .15em;
   color: var(--t3); text-transform: uppercase;
 }
 .ap-label-opt { font-weight: 500; letter-spacing: 0; text-transform: none; font-size: 8px; opacity: .7; }
-
 .ap-input {
-  background: rgba(255,255,255,.022); border: 1px solid var(--border);
+  background: rgba(255,255,255,.02); border: 1px solid var(--border);
   border-radius: 8px; padding: 10px 12px;
   font-size: 14px; font-weight: 500; color: var(--t1);
   outline: none; font-family: inherit; width: 100%;
   transition: border-color .14s, background .14s;
 }
-.ap-input:focus { border-color: rgba(34,197,94,.28); background: rgba(255,255,255,.028); }
+.ap-input:focus { border-color: rgba(34,197,94,.26); background: rgba(255,255,255,.026); }
 .ap-input::placeholder { color: var(--t3); }
 .ap-input-odd {
   font-size: 20px; font-weight: 700; letter-spacing: -0.03em;
@@ -973,7 +1302,6 @@ body { overflow: hidden; }
   font-size: 9px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
 }
 .ap-odd-preview-sep { color: var(--t3); }
-
 .ap-error {
   font-size: 12px; color: var(--red);
   background: rgba(239,68,68,.06); border: 1px solid rgba(239,68,68,.18);
@@ -990,25 +1318,17 @@ body { overflow: hidden; }
 .ap-submit:hover { opacity: .87; transform: translateY(-1px); }
 .ap-submit:active { transform: translateY(0); opacity: .95; }
 
-/* ─ Loading ───────────────────────────────────────────────────────────────── */
+/* ─ Loading ────────────────────────────────────────────────────────────────── */
 .ap-loading {
   background: var(--panel); border: 1px solid var(--border);
   border-radius: 12px; padding: 26px 22px;
   display: flex; flex-direction: column; gap: 20px;
 }
 .ap-loading-hdr { display: flex; justify-content: space-between; align-items: flex-start; }
-.ap-loading-engine {
-  font-size: 10px; font-weight: 800; letter-spacing: .16em;
-  color: var(--t2); font-family: 'Courier New', monospace;
-}
+.ap-loading-engine { font-size: 10px; font-weight: 800; letter-spacing: .16em; color: var(--t2); font-family: 'Courier New', monospace; }
 .ap-loading-sub { font-size: 11px; color: var(--t3); margin-top: 3px; }
-.ap-loading-status {
-  font-size: 9px; font-weight: 800; letter-spacing: .12em; color: var(--green);
-  animation: ap-blink 1.3s ease-in-out infinite;
-}
-.ap-loading-bar-wrap {
-  height: 2px; background: rgba(255,255,255,.06); border-radius: 99px; overflow: hidden;
-}
+.ap-loading-status { font-size: 9px; font-weight: 800; letter-spacing: .12em; color: var(--green); animation: ap-blink 1.3s ease-in-out infinite; }
+.ap-loading-bar-wrap { height: 2px; background: rgba(255,255,255,.06); border-radius: 99px; overflow: hidden; }
 .ap-loading-bar {
   height: 100%; border-radius: 99px;
   background: linear-gradient(90deg, var(--green) 0%, var(--amber) 55%, var(--red) 100%);
@@ -1020,38 +1340,21 @@ body { overflow: hidden; }
   font-variant-numeric: tabular-nums; font-feature-settings: 'tnum';
 }
 .ap-loading-pct-sym { font-size: 26px; color: var(--t3); }
-
 .ap-loading-steps { display: flex; flex-direction: column; gap: 9px; }
-.ap-lstep {
-  display: flex; align-items: center; gap: 10px;
-  font-size: 11.5px; color: var(--t3); transition: color .3s;
-}
+.ap-lstep { display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: var(--t3); transition: color .3s; }
 .ap-lstep-done   { color: var(--t3); }
 .ap-lstep-active { color: var(--t1); }
-.ap-lstep-icon {
-  font-size: 9px; width: 14px; flex-shrink: 0;
-  font-family: 'Courier New', monospace; color: inherit;
-}
+.ap-lstep-icon { font-size: 9px; width: 14px; flex-shrink: 0; font-family: 'Courier New', monospace; color: inherit; }
 .ap-lstep-active .ap-lstep-icon { animation: ap-blink .7s ease-in-out infinite; }
-.ap-lstep-done-tag {
-  margin-left: auto; font-size: 8px; font-weight: 800;
-  letter-spacing: .08em; color: rgba(34,197,94,.4);
-  font-family: 'Courier New', monospace;
-}
+.ap-lstep-done-tag { margin-left: auto; font-size: 8px; font-weight: 800; letter-spacing: .08em; color: rgba(34,197,94,.4); font-family: 'Courier New', monospace; }
 
-/* ─ Output ────────────────────────────────────────────────────────────────── */
+/* ─ Output ─────────────────────────────────────────────────────────────────── */
 .ap-output { display: flex; flex-direction: column; gap: 10px; animation: ap-fade-up .25s ease both; }
-
-.ap-output-topbar {
-  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
-}
+.ap-output-topbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
 .ap-output-meta { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-.ap-output-id {
-  font-size: 9px; font-weight: 800; letter-spacing: .14em;
-  color: rgba(34,197,94,.55); font-family: 'Courier New', monospace;
-}
-.ap-output-dot { color: var(--t3); font-size: 10px; }
-.ap-output-ts  { font-size: 10px; color: var(--t3); font-variant-numeric: tabular-nums; font-family: 'Courier New', monospace; }
+.ap-output-id   { font-size: 9px; font-weight: 800; letter-spacing: .14em; color: rgba(34,197,94,.5); font-family: 'Courier New', monospace; }
+.ap-output-dot  { color: var(--t3); font-size: 10px; }
+.ap-output-ts   { font-size: 10px; color: var(--t3); font-variant-numeric: tabular-nums; font-family: 'Courier New', monospace; }
 .ap-output-event { font-size: 11px; color: var(--t2); }
 .ap-btn-nova {
   font-size: 10px; font-weight: 700; color: var(--t2);
@@ -1076,54 +1379,27 @@ body { overflow: hidden; }
 .ap-gauge-inner {
   width: 88px; height: 88px; border-radius: 50%;
   background: var(--panel); border: 1px solid var(--border);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 1px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
 }
-.ap-gauge-num {
-  font-size: 30px; font-weight: 900; color: var(--t1); line-height: 1;
-  letter-spacing: -0.05em; font-variant-numeric: tabular-nums;
-}
+.ap-gauge-num   { font-size: 30px; font-weight: 900; color: var(--t1); line-height: 1; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
 .ap-gauge-denom { font-size: 11px; font-weight: 600; color: var(--t3); }
-.ap-gauge-name {
-  font-size: 7.5px; font-weight: 800; letter-spacing: .1em;
-  color: var(--t3); text-transform: uppercase; text-align: center; max-width: 110px;
-}
-.ap-gauge-ci {
-  font-size: 8px; color: rgba(255,255,255,.15);
-  letter-spacing: .04em; font-variant-numeric: tabular-nums; text-align: center;
-}
+.ap-gauge-name  { font-size: 7.5px; font-weight: 800; letter-spacing: .1em; color: var(--t3); text-transform: uppercase; text-align: center; max-width: 110px; }
+.ap-gauge-ci    { font-size: 8px; color: rgba(255,255,255,.14); letter-spacing: .04em; font-variant-numeric: tabular-nums; text-align: center; }
 
 .ap-score-side { display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 0; }
 .ap-risk-badge {
   display: inline-flex; align-items: center;
   font-size: 10px; font-weight: 800; letter-spacing: .1em;
-  padding: 4px 11px; border-radius: 5px; border: 1px solid;
-  align-self: flex-start;
+  padding: 4px 11px; border-radius: 5px; border: 1px solid; align-self: flex-start;
 }
-.ap-verdict {
-  font-size: 26px; font-weight: 900; line-height: 1; letter-spacing: -0.04em;
-}
-
+.ap-verdict { font-size: 26px; font-weight: 900; line-height: 1; letter-spacing: -0.04em; }
 .ap-score-data { display: flex; flex-direction: column; gap: 8px; margin-top: 2px; }
 .ap-score-data-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.ap-score-data-lbl {
-  font-size: 8px; font-weight: 800; letter-spacing: .12em;
-  color: var(--t3); text-transform: uppercase; min-width: 88px; flex-shrink: 0;
-}
-.ap-score-data-val {
-  font-size: 12px; font-weight: 700; color: var(--t2);
-  font-variant-numeric: tabular-nums;
-}
-.ap-score-data-val-lg {
-  font-size: 18px; font-weight: 800; color: var(--t1);
-  letter-spacing: -0.03em;
-}
-
+.ap-score-data-lbl { font-size: 8px; font-weight: 800; letter-spacing: .12em; color: var(--t3); text-transform: uppercase; min-width: 88px; flex-shrink: 0; }
+.ap-score-data-val { font-size: 12px; font-weight: 700; color: var(--t2); font-variant-numeric: tabular-nums; }
+.ap-score-data-val-lg { font-size: 18px; font-weight: 800; color: var(--t1); letter-spacing: -0.03em; }
 .ap-exposure-row { display: flex; align-items: center; gap: 8px; flex: 1; }
-.ap-exposure-track {
-  flex: 1; height: 3px; background: rgba(255,255,255,.07);
-  border-radius: 99px; overflow: hidden; max-width: 100px;
-}
+.ap-exposure-track { flex: 1; height: 3px; background: rgba(255,255,255,.07); border-radius: 99px; overflow: hidden; max-width: 100px; }
 .ap-exposure-fill { height: 100%; border-radius: 99px; transition: width .6s ease; animation: ap-bar-in .6s ease both; }
 .ap-exposure-val { font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums; }
 
@@ -1134,27 +1410,17 @@ body { overflow: hidden; }
   display: flex; flex-direction: column; gap: 8px;
 }
 .ap-prob-hdr { display: flex; justify-content: space-between; align-items: center; }
-.ap-prob-title {
-  font-size: 8px; font-weight: 800; letter-spacing: .14em;
-  color: var(--t3); text-transform: uppercase;
-}
-.ap-prob-vig {
-  font-size: 8px; font-weight: 700; letter-spacing: .06em;
-  color: rgba(245,158,11,.5); font-family: 'Courier New', monospace;
-}
-.ap-prob-bar {
-  display: flex; height: 5px; border-radius: 99px; overflow: hidden; gap: 2px;
-}
-.ap-prob-win  { background: var(--green); border-radius: 99px 0 0 99px; animation: ap-bar-in .65s ease-out both; }
-.ap-prob-lose { flex: 1; background: var(--red); border-radius: 0 99px 99px 0; }
+.ap-prob-title { font-size: 8px; font-weight: 800; letter-spacing: .14em; color: var(--t3); text-transform: uppercase; }
+.ap-prob-vig   { font-size: 8px; font-weight: 700; letter-spacing: .06em; color: rgba(245,158,11,.5); font-family: 'Courier New', monospace; }
+.ap-prob-bar   { display: flex; height: 5px; border-radius: 99px; overflow: hidden; gap: 2px; }
+.ap-prob-win   { background: var(--green); border-radius: 99px 0 0 99px; animation: ap-bar-in .65s ease-out both; }
+.ap-prob-lose  { flex: 1; background: var(--red); border-radius: 0 99px 99px 0; }
 .ap-prob-labels { display: flex; justify-content: space-between; }
 .ap-prob-w { font-size: 9px; font-weight: 800; color: var(--green); letter-spacing: .05em; }
 .ap-prob-l { font-size: 9px; font-weight: 800; color: var(--red);   letter-spacing: .05em; }
 
 /* Metrics grid */
-.ap-metrics-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px;
-}
+.ap-metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
 .ap-metric-card {
   background: var(--panel); border: 1px solid var(--border);
   border-radius: 10px; padding: 13px 12px;
@@ -1162,16 +1428,10 @@ body { overflow: hidden; }
   transition: border-color .14s;
 }
 .ap-metric-card:hover { border-color: var(--bmd); }
-.ap-metric-val {
-  font-size: clamp(16px, 2.2vw, 21px); font-weight: 900; line-height: 1;
-  letter-spacing: -0.04em; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum';
-}
-.ap-metric-label {
-  font-size: 7.5px; font-weight: 800; letter-spacing: .12em;
-  color: var(--t3); text-transform: uppercase;
-}
-.ap-tm { font-size: 7px; vertical-align: super; opacity: .7; }
-.ap-metric-sub { font-size: 10px; color: var(--t3); line-height: 1.4; }
+.ap-metric-val   { font-size: clamp(16px, 2.2vw, 21px); font-weight: 900; line-height: 1; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+.ap-metric-label { font-size: 7.5px; font-weight: 800; letter-spacing: .12em; color: var(--t3); text-transform: uppercase; }
+.ap-tm           { font-size: 7px; vertical-align: super; opacity: .7; }
+.ap-metric-sub   { font-size: 10px; color: var(--t3); line-height: 1.4; }
 
 /* AI Modules */
 .ap-ai-section { display: flex; flex-direction: column; gap: 9px; }
@@ -1179,13 +1439,8 @@ body { overflow: hidden; }
   display: flex; justify-content: space-between; align-items: center;
   padding-bottom: 9px; border-bottom: 1px solid var(--border);
 }
-.ap-ai-hdr-title {
-  font-size: 8px; font-weight: 800; letter-spacing: .18em; color: var(--t3);
-}
-.ap-ai-hdr-tag {
-  font-size: 8px; font-weight: 700; letter-spacing: .06em;
-  color: rgba(34,197,94,.4);
-}
+.ap-ai-hdr-title { font-size: 8px; font-weight: 800; letter-spacing: .18em; color: var(--t3); }
+.ap-ai-hdr-tag   { font-size: 8px; font-weight: 700; letter-spacing: .06em; color: rgba(34,197,94,.38); }
 .ap-ai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
 .ap-ai-card {
   background: var(--panel); border: 1px solid var(--border);
@@ -1194,27 +1449,18 @@ body { overflow: hidden; }
   transition: border-color .14s;
 }
 .ap-ai-card:hover { border-color: var(--bmd); }
-.ap-ai-card-mod {
-  font-size: 7.5px; font-weight: 800; letter-spacing: .12em;
-  color: rgba(34,197,94,.45); font-family: 'Courier New', monospace;
-}
-.ap-ai-card-title {
-  font-size: 9px; font-weight: 800; letter-spacing: .1em;
-  color: var(--t3); text-transform: uppercase; margin-bottom: 2px;
-}
-.ap-ai-card-text { font-size: 12px; color: var(--t2); line-height: 1.8; }
+.ap-ai-card-mod   { font-size: 7.5px; font-weight: 800; letter-spacing: .12em; color: rgba(34,197,94,.42); font-family: 'Courier New', monospace; }
+.ap-ai-card-title { font-size: 9px; font-weight: 800; letter-spacing: .1em; color: var(--t3); text-transform: uppercase; margin-bottom: 2px; }
+.ap-ai-card-text  { font-size: 12px; color: var(--t2); line-height: 1.8; }
 
 .ap-alerta {
   display: flex; flex-direction: column; gap: 8px;
   background: rgba(239,68,68,.04); border: 1px solid rgba(239,68,68,.16);
   border-radius: 10px; padding: 14px 16px;
 }
-.ap-alerta-hdr { display: flex; align-items: center; gap: 8px; }
+.ap-alerta-hdr  { display: flex; align-items: center; gap: 8px; }
 .ap-alerta-icon { font-size: 9px; color: var(--red); }
-.ap-alerta-tag {
-  font-size: 8px; font-weight: 800; letter-spacing: .12em; color: var(--red);
-  opacity: .7;
-}
+.ap-alerta-tag  { font-size: 8px; font-weight: 800; letter-spacing: .12em; color: var(--red); opacity: .7; }
 .ap-alerta-text { font-size: 12px; color: var(--t2); line-height: 1.8; }
 
 .ap-disclaimer {
@@ -1222,11 +1468,10 @@ body { overflow: hidden; }
   padding-top: 8px; border-top: 1px solid var(--border); line-height: 1.6;
 }
 
-/* ─ History ───────────────────────────────────────────────────────────────── */
+/* ─ History ────────────────────────────────────────────────────────────────── */
 .ap-hist-list { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
 .ap-hist-row {
-  display: grid;
-  grid-template-columns: 52px 1fr 58px 70px 30px 64px 46px;
+  display: grid; grid-template-columns: 52px 1fr 58px 70px 30px 64px 46px;
   align-items: center; gap: 10px;
   padding: 10px 14px; border-radius: 9px;
   background: var(--panel); border: 1px solid var(--border);
@@ -1242,7 +1487,7 @@ body { overflow: hidden; }
 .ap-hist-tag   { font-size: 8px; font-weight: 800; letter-spacing: .05em; padding: 2px 6px; border-radius: 4px; border: 1px solid; }
 .ap-hist-ts    { font-size: 9px; color: var(--t3); white-space: nowrap; font-variant-numeric: tabular-nums; font-family: 'Courier New', monospace; }
 
-/* ─ Config ────────────────────────────────────────────────────────────────── */
+/* ─ Config ─────────────────────────────────────────────────────────────────── */
 .ap-empty { font-size: 13px; color: var(--t3); text-align: center; padding: 52px 0; }
 .ap-config-panel {
   background: var(--panel); border: 1px solid var(--border);
@@ -1252,7 +1497,7 @@ body { overflow: hidden; }
 .ap-config-field { display: flex; flex-direction: column; gap: 8px; }
 .ap-config-hint  { font-size: 11px; color: var(--t3); line-height: 1.65; }
 .ap-config-info  { display: flex; flex-direction: column; border-top: 1px solid var(--border); padding-top: 14px; }
-.ap-config-row   {
+.ap-config-row {
   display: flex; justify-content: space-between;
   font-size: 12px; color: var(--t2); padding: 9px 0;
   border-bottom: 1px solid rgba(255,255,255,.04);
@@ -1260,32 +1505,13 @@ body { overflow: hidden; }
 .ap-config-row span:last-child { color: var(--t3); font-variant-numeric: tabular-nums; font-family: 'Courier New', monospace; font-size: 11px; }
 .ap-config-online { color: rgba(34,197,94,.6) !important; }
 
-/* ─ Access banner ────────────────────────────────────────────────────────── */
-@keyframes ap-banner-in {
-  from { opacity: 0; transform: translateY(-100%); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.ap-access-banner {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  background: var(--green); color: #050507;
-  font-size: 11px; font-weight: 800; letter-spacing: .1em;
-  padding: 10px 20px;
-  display: flex; align-items: center; justify-content: center; gap: 9px;
-  animation: ap-banner-in .3s ease both;
-}
-.ap-access-banner-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: #050507; opacity: .6;
-  animation: ap-pulse 1.5s ease-in-out infinite;
-}
-
-/* ─ Mobile ────────────────────────────────────────────────────────────────── */
+/* ─ Mobile ─────────────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .ap-hamburger { display: flex; }
   .ap-sidebar {
     position: fixed; top: 46px; left: 0; bottom: 0;
     z-index: 50; transform: translateX(-100%);
-    width: 220px; box-shadow: 4px 0 24px rgba(0,0,0,.5);
+    width: 230px; box-shadow: 6px 0 32px rgba(0,0,0,.6);
   }
   .ap-sidebar-open { transform: translateX(0); }
 }
@@ -1295,6 +1521,10 @@ body { overflow: hidden; }
   .ap-live-lbl { display: none; }
   .ap-topbar-tag { display: none; }
   .ap-topbar-aid { display: none; }
+  .ap-geral-stats { grid-template-columns: 1fr 1fr; }
+  .ap-geral-action { flex-direction: column; align-items: flex-start; }
+  .ap-geral-recent-row { grid-template-columns: 1fr 36px 28px 50px; }
+  .ap-geral-recent-id, .ap-geral-recent-odd, .ap-geral-recent-bar { display: none; }
   .ap-metrics-grid { grid-template-columns: 1fr 1fr; }
   .ap-ai-grid { grid-template-columns: 1fr; }
   .ap-row-2 { grid-template-columns: 1fr; }
