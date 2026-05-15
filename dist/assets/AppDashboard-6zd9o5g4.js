@@ -72,8 +72,9 @@ body { overflow: hidden; }
 /* ─ Topbar ─────────────────────────────────────────────────────────────────── */
 .ap-topbar {
   display: flex; align-items: center; justify-content: space-between;
-  height: 46px; padding: 0 14px; gap: 12px;
-  background: var(--bg2); border-bottom: 1px solid var(--border);
+  height: 46px; padding: 0 16px; gap: 12px;
+  background: var(--bg2);
+  border-bottom: 1px solid rgba(255,255,255,.08);
   flex-shrink: 0; z-index: 30; position: relative;
 }
 .ap-topbar-left  { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
@@ -91,16 +92,18 @@ body { overflow: hidden; }
 
 .ap-topbar-brand { display: flex; align-items: center; gap: 7px; }
 .ap-logo-mark {
-  width: 22px; height: 22px; border-radius: 5px; background: var(--green); color: #050507;
+  width: 22px; height: 22px; border-radius: 5px;
+  background: #16a34a; color: #f0fdf4;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(22,163,74,.28), 0 2px 6px rgba(0,0,0,.4);
 }
-.ap-topbar-name { font-size: 13px; font-weight: 800; color: var(--t1); letter-spacing: -0.03em; }
+.ap-topbar-name { font-size: 13px; font-weight: 800; color: #E8E8E6; letter-spacing: -0.03em; }
 .ap-topbar-sep  { color: var(--t3); font-size: 13px; }
-.ap-topbar-tag  { font-size: 11px; font-weight: 600; color: var(--t3); letter-spacing: .025em; }
+.ap-topbar-tag  { font-size: 10.5px; font-weight: 600; color: rgba(255,255,255,.28); letter-spacing: .04em; }
 
 .ap-topbar-center { flex: 1; display: flex; align-items: center; justify-content: center; }
 .ap-topbar-clock {
-  font-size: 11px; font-weight: 700; letter-spacing: .06em; color: var(--t3);
+  font-size: 11px; font-weight: 700; letter-spacing: .06em; color: rgba(255,255,255,.3);
   font-variant-numeric: tabular-nums; font-family: 'Courier New', monospace;
 }
 .ap-topbar-aid {
@@ -117,7 +120,7 @@ body { overflow: hidden; }
 
 .ap-engine-live {
   display: flex; align-items: center; gap: 6px;
-  font-size: 9px; font-weight: 800; letter-spacing: .12em; color: var(--t3);
+  font-size: 9px; font-weight: 800; letter-spacing: .12em; color: rgba(255,255,255,.28);
 }
 .ap-live-dot {
   width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0;
@@ -146,11 +149,12 @@ body { overflow: hidden; }
 }
 .ap-sidebar-brand-mark {
   width: 20px; height: 20px; border-radius: 5px;
-  background: rgba(34,197,94,.12);
+  background: rgba(22,163,74,.14);
+  border: 1px solid rgba(22,163,74,.2);
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .ap-sidebar-brand-name {
-  font-size: 11px; font-weight: 800; color: var(--t2);
+  font-size: 11px; font-weight: 800; color: rgba(255,255,255,.45);
   letter-spacing: -0.01em;
 }
 
@@ -360,30 +364,31 @@ body { overflow: hidden; }
   border-bottom-color: rgba(255,255,255,.07);
 }
 .ap-nova-title {
-  font-size: 18px; font-weight: 900; color: var(--t1);
-  letter-spacing: -0.03em; line-height: 1;
+  font-size: 19px; font-weight: 900; color: #EAEAEC;
+  letter-spacing: -0.04em; line-height: 1;
 }
 .ap-nova-sub {
-  font-size: 11.5px; color: var(--t2); margin-top: 5px; line-height: 1.5;
+  font-size: 11.5px; color: rgba(255,255,255,.38); margin-top: 6px; line-height: 1.55;
 }
 .ap-ia-online {
   display: flex; align-items: center; gap: 6px;
-  font-size: 8px; font-weight: 800; letter-spacing: .14em; color: rgba(34,197,94,.65);
+  font-size: 8px; font-weight: 800; letter-spacing: .14em; color: rgba(34,197,94,.6);
   flex-shrink: 0;
 }
 
 /* Form anchor strip */
 .ap-form-anchor {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 12px;
-  background: rgba(34,197,94,.05);
-  border: 1px solid rgba(34,197,94,.12);
-  border-radius: 8px;
-  font-size: 10px; font-weight: 700; color: rgba(34,197,94,.65);
-  letter-spacing: .05em;
+  display: inline-flex; align-items: center; gap: 7px;
+  align-self: flex-start;
+  padding: 5px 11px;
+  background: rgba(22,163,74,.06);
+  border: 1px solid rgba(22,163,74,.16);
+  border-radius: 99px;
+  font-size: 9.5px; font-weight: 700; color: rgba(34,197,94,.72);
+  letter-spacing: .04em;
 }
 
-.ap-form { display: flex; flex-direction: column; gap: 13px; margin-top: 16px; }
+.ap-form { display: flex; flex-direction: column; gap: 14px; margin-top: 18px; }
 .ap-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
 .ap-field { display: flex; flex-direction: column; gap: 6px; }
 
@@ -394,19 +399,20 @@ body { overflow: hidden; }
 .ap-label-opt { font-weight: 500; letter-spacing: 0; text-transform: none; font-size: 8px; opacity: .7; }
 
 .ap-input {
-  background: rgba(255,255,255,.045);
-  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.048);
+  border: 1px solid rgba(255,255,255,.13);
   border-radius: 8px; padding: 11px 13px;
   font-size: 14px; font-weight: 500; color: #E8E8E6;
   outline: none; font-family: inherit; width: 100%;
-  transition: border-color .15s, background .15s, box-shadow .15s;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04), inset 0 -1px 0 rgba(0,0,0,.15);
+  transition: border-color .18s ease-out, background .18s ease-out, box-shadow .18s ease-out;
 }
 .ap-input:focus {
-  border-color: rgba(34,197,94,.42);
-  background: rgba(34,197,94,.03);
-  box-shadow: 0 0 0 3px rgba(34,197,94,.09);
+  border-color: rgba(34,197,94,.38);
+  background: rgba(22,163,74,.03);
+  box-shadow: 0 0 0 3px rgba(22,163,74,.08), inset 0 1px 0 rgba(255,255,255,.04);
 }
-.ap-input::placeholder { color: rgba(255,255,255,.28); }
+.ap-input::placeholder { color: rgba(255,255,255,.42); }
 .ap-input-odd {
   font-size: 22px; font-weight: 700; letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums; font-feature-settings: 'tnum';
@@ -428,19 +434,19 @@ body { overflow: hidden; }
 
 .ap-submit {
   display: flex; align-items: center; justify-content: center; gap: 9px;
-  background: var(--green); color: #060608;
-  font-size: 11.5px; font-weight: 900; letter-spacing: .14em;
+  background: #16a34a; color: #f0fdf4;
+  font-size: 11.5px; font-weight: 800; letter-spacing: .12em;
   padding: 15px 20px; border-radius: 9px; border: none; cursor: pointer;
   font-family: inherit; margin-top: 4px;
-  box-shadow: 0 4px 20px rgba(34,197,94,.25);
-  transition: background .15s, box-shadow .15s, transform .1s;
+  box-shadow: 0 2px 12px rgba(22,163,74,.18), inset 0 1px 0 rgba(255,255,255,.12);
+  transition: background .18s ease-out, box-shadow .18s ease-out, transform .12s ease-out;
 }
 .ap-submit:hover {
-  background: #1db954;
-  box-shadow: 0 6px 28px rgba(34,197,94,.38);
+  background: #15803d;
+  box-shadow: 0 4px 20px rgba(22,163,74,.26), inset 0 1px 0 rgba(255,255,255,.1);
   transform: translateY(-1px);
 }
-.ap-submit:active { transform: translateY(0); box-shadow: 0 2px 10px rgba(34,197,94,.2); }
+.ap-submit:active { transform: translateY(0); box-shadow: 0 1px 6px rgba(22,163,74,.16); }
 
 /* ─ Loading ────────────────────────────────────────────────────────────────── */
 .ap-loading {
@@ -887,20 +893,21 @@ body { overflow: hidden; }
 .sel-trigger {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   width: 100%; padding: 11px 13px;
-  background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.048); border: 1px solid rgba(255,255,255,.13);
   border-radius: 8px; cursor: pointer; font-family: inherit;
   font-size: 14px; font-weight: 500; color: #E8E8E6;
   outline: none; text-align: left;
-  transition: border-color .15s, background .15s, box-shadow .15s;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04), inset 0 -1px 0 rgba(0,0,0,.15);
+  transition: border-color .18s ease-out, background .18s ease-out, box-shadow .18s ease-out;
   -webkit-appearance: none; appearance: none;
 }
 .sel-trigger:hover {
-  background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.16);
+  background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.18);
 }
 .sel-trigger-open {
-  border-color: rgba(34,197,94,.42) !important;
-  background: rgba(34,197,94,.03) !important;
-  box-shadow: 0 0 0 3px rgba(34,197,94,.09);
+  border-color: rgba(34,197,94,.38) !important;
+  background: rgba(22,163,74,.03) !important;
+  box-shadow: 0 0 0 3px rgba(22,163,74,.08), inset 0 1px 0 rgba(255,255,255,.04);
 }
 
 .sel-val {
