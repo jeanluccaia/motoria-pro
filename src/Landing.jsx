@@ -71,10 +71,10 @@ const FAQ_ITEMS = [
 ];
 
 const RECENT_ANALYSES = [
-  { id: 2847, event: "Flamengo × Palmeiras",       odd: "2.80", score: 67, tag: "ALTO",     tc: "#F97316" },
-  { id: 2844, event: "Corinthians × Santos",        odd: "1.45", score: 82, tag: "CRÍTICO",  tc: "#EF4444" },
-  { id: 2841, event: "Manchester City · Vencer",    odd: "1.25", score: 91, tag: "CRÍTICO",  tc: "#EF4444" },
-  { id: 2838, event: "Djokovic × Alcaraz · Set 1", odd: "3.20", score: 41, tag: "MODERADO", tc: "#F59E0B" },
+  { id: 2847, event: "Flamengo × Palmeiras",       odd: "2.80", score: 67, tag: "ALTO",     tc: "#F97316", ago: "2 min" },
+  { id: 2844, event: "Corinthians × Santos",        odd: "1.45", score: 82, tag: "CRÍTICO",  tc: "#EF4444", ago: "8 min" },
+  { id: 2841, event: "Manchester City · Vencer",    odd: "1.25", score: 91, tag: "CRÍTICO",  tc: "#EF4444", ago: "15 min" },
+  { id: 2838, event: "Djokovic × Alcaraz · Set 1", odd: "3.20", score: 41, tag: "MODERADO", tc: "#F59E0B", ago: "23 min" },
 ];
 
 const PALETTES = [
@@ -195,7 +195,7 @@ export default function Landing() {
                 </div>
                 <span className="lp-mock-title">MotorIA™ · Análise de Risco</span>
                 <span className="lp-mock-version">v2.4</span>
-                <span className="lp-mock-live">● LIVE</span>
+                <span className="lp-mock-live">LIVE</span>
               </div>
               <div className="lp-mock-body">
                 <div className="lp-mock-session">
@@ -204,8 +204,9 @@ export default function Landing() {
                 </div>
                 <div className="lp-mock-input-row">
                   <div className="lp-mock-cell">
-                    <span className="lp-mock-cell-lbl">Evento</span>
+                    <span className="lp-mock-cell-lbl">Evento · Mercado</span>
                     <span className="lp-mock-cell-val">Flamengo × Palmeiras</span>
+                    <span className="lp-mock-cell-sub">Resultado Final — Flamengo</span>
                   </div>
                   <div className="lp-mock-cell lp-mock-cell-sm">
                     <span className="lp-mock-cell-lbl">Odd</span>
@@ -252,6 +253,7 @@ export default function Landing() {
                       </div>
                     </div>
                   </div>
+                  <div className="lp-mock-score-ci">IC 95% · [61 — 73]</div>
                   <div className="lp-mock-verdict">
                     <span className="lp-mock-verdict-badge">DESFAVORÁVEL</span>
                     <span className="lp-mock-verdict-detail">3 alertas críticos identificados</span>
@@ -365,6 +367,7 @@ export default function Landing() {
                   </div>
                   <span className="lp-recent-num" style={{ color: a.tc }}>{a.score}</span>
                   <span className="lp-recent-tag" style={{ color: a.tc, borderColor: `${a.tc}44` }}>{a.tag}</span>
+                  <span className="lp-recent-ago">{a.ago}</span>
                 </div>
               ))}
             </div>
@@ -663,6 +666,14 @@ const CSS = `
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes lp-bar-grow {
+  from { width: 0; opacity: 0; }
+  to   { width: 67%; opacity: 1; }
+}
+@keyframes lp-pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.4); opacity: .7; }
+}
 
 /* ── Header ─────────────────────────────────────────────────────────────────── */
 .lp-header {
@@ -804,7 +815,15 @@ const CSS = `
 }
 .lp-mock-live {
   font-size: 9px; font-weight: 700; letter-spacing: .1em; color: var(--green);
-  animation: lp-blink 2s ease-in-out infinite;
+  animation: lp-blink 1.8s ease-in-out infinite;
+  display: flex; align-items: center; gap: 4px;
+}
+.lp-mock-live::before {
+  content: '';
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--green);
+  animation: lp-pulse-dot 1.8s ease-in-out infinite;
+  flex-shrink: 0;
 }
 .lp-mock-body { padding: 16px; display: flex; flex-direction: column; gap: 0; }
 .lp-mock-input-row {
@@ -857,6 +876,7 @@ const CSS = `
 .lp-mock-bar-fill {
   height: 100%; width: 67%; border-radius: 99px;
   background: linear-gradient(90deg, var(--amber) 0%, var(--red) 100%);
+  animation: lp-bar-grow .9s .4s ease-out both;
 }
 .lp-mock-bar-tick {
   position: absolute; top: -3px; width: 1px; height: 11px;
@@ -950,6 +970,17 @@ const CSS = `
 }
 .lp-mock-verdict-detail {
   font-size: 10px; color: var(--t3);
+}
+
+/* market subtext in input cell */
+.lp-mock-cell-sub {
+  font-size: 9px; color: var(--t3); margin-top: 1px; letter-spacing: .01em;
+}
+
+/* IC 95% confidence interval */
+.lp-mock-score-ci {
+  font-size: 9px; color: rgba(255,255,255,.22); letter-spacing: .06em;
+  margin-top: 5px; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum';
 }
 
 .lp-mock-footer {
@@ -1075,8 +1106,8 @@ const CSS = `
 .lp-recent-list { display: flex; flex-direction: column; }
 .lp-recent-row {
   display: grid;
-  grid-template-columns: 52px 1fr 60px 70px 28px 62px;
-  align-items: center; gap: 12px;
+  grid-template-columns: 52px 1fr 60px 70px 28px 62px 38px;
+  align-items: center; gap: 10px;
   padding: 9px 16px;
   border-bottom: 1px solid rgba(255,255,255,.04);
   transition: background .12s;
@@ -1097,6 +1128,10 @@ const CSS = `
   border: 1px solid; text-align: center; white-space: nowrap;
   background: transparent;
 }
+.lp-recent-ago {
+  font-size: 9px; color: var(--t3); text-align: right; white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
 
 /* ── Steps ──────────────────────────────────────────────────────────────────── */
 .lp-steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 48px; }
@@ -1106,7 +1141,7 @@ const CSS = `
   display: flex; flex-direction: column; gap: 10px; transition: border-color .18s;
 }
 .lp-step:hover { border-color: rgba(34,197,94,.2); }
-.lp-step-n { font-size: 11px; font-weight: 900; color: rgba(34,197,94,.4); letter-spacing: .06em; }
+.lp-step-n { font-size: 11px; font-weight: 900; color: rgba(34,197,94,.4); letter-spacing: .06em; font-family: 'Courier New', Courier, monospace; }
 .lp-step-title { font-size: 15px; font-weight: 800; color: var(--t1); line-height: 1.3; letter-spacing: -0.02em; }
 .lp-step-desc { font-size: 13px; color: var(--t2); line-height: 1.7; }
 .lp-step-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
@@ -1324,6 +1359,8 @@ const CSS = `
   padding-top: 16px;
   margin-top: 16px;
   border-top: 1px solid var(--border);
+  position: relative;
+  z-index: 2;
 }
 .lp-founder-caption-name {
   font-size: 13px;
