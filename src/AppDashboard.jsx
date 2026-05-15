@@ -532,44 +532,46 @@ export default function AppDashboard() {
 
         {/* ── TOPBAR ──────────────────────────────────────────────────────── */}
         <header className="ap-topbar">
-          <div className="ap-topbar-left">
-            <button
-              className="ap-hamburger"
-              onClick={() => setSidebarOpen(s => !s)}
-              aria-label="Menu"
-              aria-expanded={sidebarOpen}
-            >
-              <span /><span /><span />
-            </button>
-            <div className="ap-topbar-brand">
-              <div className="ap-logo-mark" aria-hidden="true">
-                <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
-                  <path d="M7 1L13 4V10L7 13L1 10V4L7 1Z" fill="#060608"/>
-                  <path d="M7 1L13 4V10L7 13L1 10V4L7 1Z" fill="currentColor" fillOpacity=".95"/>
-                </svg>
-              </div>
-              <span className="ap-topbar-name">MotorIA</span>
-              <span className="ap-topbar-sep" aria-hidden="true">·</span>
-              <span className="ap-topbar-tag">Risk Engine™</span>
-            </div>
-          </div>
-
-          <div className="ap-topbar-center">
-            <span className="ap-topbar-clock">{fmtClock(now)}</span>
-            {analysisId && <span className="ap-topbar-aid"> · #{analysisId}</span>}
-          </div>
-
-          <div className="ap-topbar-right">
-            {credits !== null && (
-              <div className="ap-credits-wrap" title="Créditos restantes">
-                <div className="ap-credits-bar">
-                  <div className="ap-credits-fill" style={{ width: `${Math.max(0, (credits / 20) * 100)}%` }} />
+          <div className="ap-topbar-row">
+            <div className="ap-topbar-left">
+              <button
+                className="ap-hamburger"
+                onClick={() => setSidebarOpen(s => !s)}
+                aria-label="Menu"
+                aria-expanded={sidebarOpen}
+              >
+                <span /><span /><span />
+              </button>
+              <div className="ap-topbar-brand">
+                <div className="ap-logo-mark" aria-hidden="true">
+                  <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
+                    <path d="M7 1L13 4V10L7 13L1 10V4L7 1Z" fill="#060608"/>
+                    <path d="M7 1L13 4V10L7 13L1 10V4L7 1Z" fill="currentColor" fillOpacity=".95"/>
+                  </svg>
                 </div>
+                <span className="ap-topbar-name">MotorIA</span>
+                <span className="ap-topbar-sep" aria-hidden="true">·</span>
+                <span className="ap-topbar-tag">Risk Engine™</span>
               </div>
-            )}
-            <div className="ap-engine-live">
-              <span className="ap-live-dot" aria-hidden="true" />
-              <span className="ap-live-lbl">ENGINE ATIVO</span>
+            </div>
+
+            <div className="ap-topbar-center">
+              <span className="ap-topbar-clock">{fmtClock(now)}</span>
+              {analysisId && <span className="ap-topbar-aid"> · #{analysisId}</span>}
+            </div>
+
+            <div className="ap-topbar-right">
+              {credits !== null && (
+                <div className="ap-credits-wrap" title="Créditos restantes">
+                  <div className="ap-credits-bar">
+                    <div className="ap-credits-fill" style={{ width: `${Math.max(0, (credits / 20) * 100)}%` }} />
+                  </div>
+                </div>
+              )}
+              <div className="ap-engine-live">
+                <span className="ap-live-dot" aria-hidden="true" />
+                <span className="ap-live-lbl">ENGINE ATIVO</span>
+              </div>
             </div>
           </div>
         </header>
@@ -720,24 +722,9 @@ export default function AppDashboard() {
 
                 {!result && !loading && (
                   <section className="ap-input-panel">
-                    <div className="ap-panel-hdr ap-form-hdr">
-                      <div className="ap-panel-hdr-left">
-                        <div className="ap-nova-title">NOVA ANÁLISE</div>
-                        <div className="ap-nova-sub">Configure os dados da aposta para gerar uma leitura de risco.</div>
-                      </div>
-                      <div className="ap-ia-online">
-                        <span className="ap-status-dot" aria-hidden="true" />
-                        IA ONLINE
-                      </div>
-                    </div>
                     <form className="ap-form" onSubmit={handleSubmit} noValidate>
-                      <div className="ap-form-anchor" aria-hidden="true">
-                        <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
-                          <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.3"/>
-                          <path d="M6 3.5v2.3L7.5 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-                        </svg>
-                        Análise matemática de risco em tempo real
-                      </div>
+
+                      {/* ── Campos principais ──────────────────────────── */}
                       <div className="ap-row-2">
                         <div className="ap-field">
                           <label className="ap-label" htmlFor="odd-input">ODD DECIMAL</label>
@@ -773,6 +760,7 @@ export default function AppDashboard() {
                           />
                         </div>
                       </div>
+
                       <div className="ap-field">
                         <label className="ap-label" htmlFor="tipo-input">MERCADO</label>
                         <CustomSelect id="tipo-input" options={TIPOS} value={tipo} onChange={setTipo} />
@@ -783,15 +771,11 @@ export default function AppDashboard() {
                           </div>
                         )}
                       </div>
-                      {/* ── Separador: contexto opcional ────────────────── */}
-                      <div className="ap-form-sep" role="separator">
-                        <span className="ap-form-sep-lbl">Contexto opcional</span>
-                      </div>
 
-                      {/* Campeonato + Partida lado a lado */}
-                      <div className="ap-row-2">
+                      {/* ── Campos secundários ─────────────────────────── */}
+                      <div className="ap-row-2 ap-row-secondary">
                         <div className="ap-field">
-                          <label className="ap-label" htmlFor="camp-input">CAMPEONATO</label>
+                          <label className="ap-label ap-label-dim" htmlFor="camp-input">CAMPEONATO</label>
                           <CustomSelect
                             id="camp-input"
                             options={CAMPEONATOS}
@@ -801,7 +785,7 @@ export default function AppDashboard() {
                           />
                         </div>
                         <div className="ap-field">
-                          <label className="ap-label" htmlFor="jogo-input">PARTIDA</label>
+                          <label className="ap-label ap-label-dim" htmlFor="jogo-input">PARTIDA</label>
                           <input
                             id="jogo-input"
                             className="ap-input"
@@ -814,18 +798,6 @@ export default function AppDashboard() {
                         </div>
                       </div>
 
-                      {/* Contexto */}
-                      <div className="ap-field">
-                        <label className="ap-label" htmlFor="obs-input">CONTEXTO</label>
-                        <textarea
-                          id="obs-input"
-                          className="ap-input ap-textarea"
-                          placeholder="Ex: time reserva, clássico, chuva, sequência ruim…"
-                          value={obs}
-                          onChange={e => setObs(e.target.value)}
-                          rows={2}
-                        />
-                      </div>
                       {error && <div className="ap-error" role="alert">{error}</div>}
                       <button className="ap-submit" type="submit">
                         INICIAR ANÁLISE →
@@ -1173,11 +1145,15 @@ body { overflow: hidden; }
 
 /* ─ Topbar ─────────────────────────────────────────────────────────────────── */
 .ap-topbar {
-  display: flex; align-items: center; justify-content: space-between;
-  height: 46px; padding: 0 16px; gap: 12px;
   background: var(--bg2);
   border-bottom: 1px solid rgba(255,255,255,.08);
   flex-shrink: 0; z-index: 30; position: relative;
+  /* Push content below iOS status bar / Dynamic Island */
+  padding-top: env(safe-area-inset-top);
+}
+.ap-topbar-row {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 46px; padding: 0 16px; gap: 12px;
 }
 .ap-topbar-left  { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .ap-topbar-right { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
@@ -1340,7 +1316,11 @@ body { overflow: hidden; }
 }
 
 /* ─ Main ───────────────────────────────────────────────────────────────────── */
-.ap-main { flex: 1; overflow-y: auto; background: var(--bg); }
+.ap-main {
+  flex: 1; overflow-y: auto; background: var(--bg);
+  /* Bottom safe area keeps content above iPhone home indicator */
+  padding-bottom: env(safe-area-inset-bottom);
+}
 .ap-content {
   max-width: 800px; margin: 0 auto; padding: 24px 22px;
   display: flex; flex-direction: column; gap: 11px;
@@ -1457,8 +1437,8 @@ body { overflow: hidden; }
 .ap-input-panel {
   background: #0C0C11;
   border: 1px solid rgba(255,255,255,.09);
-  border-radius: 16px; padding: 26px 24px 24px;
-  box-shadow: 0 0 0 1px rgba(34,197,94,.04), 0 24px 64px rgba(0,0,0,.6);
+  border-radius: 14px; padding: 22px 22px 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.4), 0 12px 40px rgba(0,0,0,.35);
 }
 
 /* Form header */
@@ -1491,9 +1471,14 @@ body { overflow: hidden; }
   letter-spacing: .04em;
 }
 
-.ap-form { display: flex; flex-direction: column; gap: 16px; margin-top: 20px; }
+.ap-form { display: flex; flex-direction: column; gap: 14px; margin-top: 0; }
 .ap-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.ap-field { display: flex; flex-direction: column; gap: 7px; }
+.ap-field { display: flex; flex-direction: column; gap: 6px; }
+
+/* Dim label for secondary fields */
+.ap-label-dim { opacity: .62; }
+/* Secondary row: slightly visually recessed */
+.ap-row-secondary { margin-top: -2px; }
 
 .ap-label {
   font-size: 8.5px; font-weight: 800; letter-spacing: .15em;
@@ -1537,19 +1522,18 @@ body { overflow: hidden; }
 
 .ap-submit {
   display: flex; align-items: center; justify-content: center; gap: 9px;
-  background: #16a34a; color: #f0fdf4;
-  font-size: 11.5px; font-weight: 800; letter-spacing: .12em;
-  padding: 15px 20px; border-radius: 9px; border: none; cursor: pointer;
-  font-family: inherit; margin-top: 4px;
-  box-shadow: 0 2px 12px rgba(22,163,74,.18), inset 0 1px 0 rgba(255,255,255,.12);
-  transition: background .18s ease-out, box-shadow .18s ease-out, transform .12s ease-out;
+  background: #15803d; color: #dcfce7;
+  font-size: 11.5px; font-weight: 700; letter-spacing: .08em;
+  padding: 14px 20px; border-radius: 9px; border: none; cursor: pointer;
+  font-family: inherit; margin-top: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.35);
+  transition: background .15s ease-out, transform .1s ease-out;
 }
 .ap-submit:hover {
-  background: #15803d;
-  box-shadow: 0 4px 20px rgba(22,163,74,.26), inset 0 1px 0 rgba(255,255,255,.1);
+  background: #166534;
   transform: translateY(-1px);
 }
-.ap-submit:active { transform: translateY(0); box-shadow: 0 1px 6px rgba(22,163,74,.16); }
+.ap-submit:active { transform: translateY(0); }
 
 /* ─ Loading ────────────────────────────────────────────────────────────────── */
 .ap-loading {
@@ -2072,15 +2056,18 @@ body { overflow: hidden; }
 @media (max-width: 900px) {
   .ap-hamburger { display: flex; }
   .ap-sidebar {
-    position: fixed; top: 46px; left: 0; bottom: 0;
+    position: fixed;
+    /* Account for topbar height + iOS safe area */
+    top: calc(46px + env(safe-area-inset-top));
+    left: 0; bottom: 0;
     z-index: 50; transform: translateX(-100%);
     width: 230px; box-shadow: 6px 0 32px rgba(0,0,0,.6);
   }
   .ap-sidebar-open { transform: translateX(0); }
 }
 @media (max-width: 640px) {
-  .ap-content { padding: 14px 13px; }
-  .ap-topbar { padding: 0 12px; }
+  .ap-content { padding: 12px 12px; }
+  .ap-topbar-row { padding: 0 12px; }
   .ap-live-lbl { display: none; }
   .ap-topbar-tag { display: none; }
   .ap-topbar-aid { display: none; }
@@ -2097,12 +2084,13 @@ body { overflow: hidden; }
   .ap-hist-id, .ap-hist-odd, .ap-hist-bar, .ap-hist-ts { display: none; }
   .ap-loading-pct { font-size: 44px; }
 
-  /* Form mobile */
-  .ap-input-panel { padding: 16px 15px; }
-  .ap-nova-title { font-size: 16px; }
-  .ap-nova-sub { font-size: 11px; }
-  .ap-submit { padding: 16px 20px; font-size: 12px; }
-  .ap-form-anchor { font-size: 9.5px; }
+  /* Form mobile — compact for first-fold visibility */
+  .ap-input-panel { padding: 16px 14px 18px; border-radius: 12px; }
+  .ap-form { gap: 11px; }
+  .ap-field { gap: 5px; }
+  .ap-input { padding: 9px 11px; font-size: 13.5px; }
+  .ap-input-odd { font-size: 20px; }
+  .ap-submit { padding: 14px 20px; font-size: 11.5px; margin-top: 4px; }
 
   /* Dashboard mobile */
   .db-cards { grid-template-columns: 1fr; }
