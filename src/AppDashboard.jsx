@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "./router";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -179,6 +179,72 @@ function ComingSoon({ mod, title, desc }) {
         <p className="ap-coming-desc">{desc}</p>
         <div className="ap-coming-tag">Em desenvolvimento · Próxima versão</div>
       </div>
+    </div>
+  );
+}
+
+// ─── CustomSelect ─────────────────────────────────────────────────────────────
+
+function CustomSelect({ id, options, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    function onOutside(e) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onOutside);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onOutside);
+    };
+  }, [open]);
+
+  return (
+    <div className="sel-wrap" ref={wrapRef}>
+      <button
+        id={id}
+        type="button"
+        className={`sel-trigger${open ? " sel-trigger-open" : ""}`}
+        onClick={() => setOpen(s => !s)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span className="sel-val">{value}</span>
+        <span className={`sel-chev${open ? " sel-chev-up" : ""}`} aria-hidden="true">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+            <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </span>
+      </button>
+      {open && (
+        <ul className="sel-list" role="listbox" aria-label="Mercado">
+          {options.map(opt => (
+            <li
+              key={opt}
+              role="option"
+              aria-selected={opt === value}
+              className={`sel-opt${opt === value ? " sel-opt-on" : ""}`}
+              onMouseDown={e => e.preventDefault()}
+              onClick={() => { onChange(opt); setOpen(false); }}
+            >
+              <span className="sel-check" aria-hidden="true">
+                {opt === value && (
+                  <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
+                    <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </span>
+              <span className="sel-opt-text">{opt}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -618,9 +684,7 @@ export default function AppDashboard() {
                       </div>
                       <div className="ap-field">
                         <label className="ap-label" htmlFor="tipo-input">MERCADO</label>
-                        <select id="tipo-input" className="ap-input ap-select" value={tipo} onChange={e => setTipo(e.target.value)}>
-                          {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
-                        </select>
+                        <CustomSelect id="tipo-input" options={TIPOS} value={tipo} onChange={setTipo} />
                       </div>
                       <div className="ap-field">
                         <label className="ap-label" htmlFor="jogo-input">
@@ -1504,6 +1568,90 @@ body { overflow: hidden; }
 }
 .ap-config-row span:last-child { color: var(--t3); font-variant-numeric: tabular-nums; font-family: 'Courier New', monospace; font-size: 11px; }
 .ap-config-online { color: rgba(34,197,94,.6) !important; }
+
+/* ─ Custom Select ──────────────────────────────────────────────────────────── */
+@keyframes sel-open {
+  from { opacity: 0; transform: translateY(-5px) scaleY(.96); }
+  to   { opacity: 1; transform: translateY(0)    scaleY(1); }
+}
+
+.sel-wrap {
+  position: relative; width: 100%;
+}
+
+.sel-trigger {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  width: 100%; padding: 10px 12px;
+  background: rgba(255,255,255,.02); border: 1px solid var(--border);
+  border-radius: 8px; cursor: pointer; font-family: inherit;
+  font-size: 14px; font-weight: 500; color: var(--t1);
+  outline: none; text-align: left;
+  transition: border-color .14s, background .14s, box-shadow .14s;
+  -webkit-appearance: none; appearance: none;
+}
+.sel-trigger:hover {
+  background: rgba(255,255,255,.028); border-color: rgba(255,255,255,.1);
+}
+.sel-trigger-open {
+  border-color: rgba(34,197,94,.32) !important;
+  background: rgba(34,197,94,.025) !important;
+  box-shadow: 0 0 0 3px rgba(34,197,94,.06), inset 0 0 18px rgba(34,197,94,.03);
+}
+
+.sel-val {
+  flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 14px; font-weight: 500; color: var(--t1);
+}
+
+.sel-chev {
+  display: flex; align-items: center; justify-content: center;
+  color: var(--t3); flex-shrink: 0;
+  transition: transform .18s ease, color .14s;
+}
+.sel-chev-up { transform: rotate(180deg); color: rgba(34,197,94,.6); }
+
+.sel-list {
+  position: absolute; top: calc(100% + 5px); left: 0; right: 0; z-index: 200;
+  background: #0D0D12; border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px; padding: 5px;
+  max-height: 228px; overflow-y: auto;
+  list-style: none;
+  box-shadow: 0 16px 48px rgba(0,0,0,.7), 0 2px 12px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.04);
+  animation: sel-open .16s cubic-bezier(.22,.68,0,1.2) both;
+  transform-origin: top center;
+
+  /* Custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.08) transparent;
+}
+.sel-list::-webkit-scrollbar { width: 4px; }
+.sel-list::-webkit-scrollbar-track { background: transparent; }
+.sel-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,.08); border-radius: 99px; }
+.sel-list::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.14); }
+
+.sel-opt {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8.5px 10px; border-radius: 7px; cursor: pointer;
+  font-size: 13px; font-weight: 500; color: var(--t2);
+  transition: background .1s, color .1s;
+  user-select: none;
+}
+.sel-opt:hover {
+  background: rgba(255,255,255,.055); color: var(--t1);
+}
+.sel-opt-on {
+  background: rgba(34,197,94,.08) !important;
+  color: #22C55E !important;
+}
+.sel-opt-on:hover { background: rgba(34,197,94,.12) !important; }
+
+.sel-check {
+  width: 16px; height: 16px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #22C55E;
+}
+
+.sel-opt-text { flex: 1; }
 
 /* ─ Mobile ─────────────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
