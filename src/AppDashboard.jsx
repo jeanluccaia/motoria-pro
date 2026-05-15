@@ -29,6 +29,21 @@ const TIPO_DESC = {
   "Múltipla":             "Combinação de múltiplas apostas em um único bilhete.",
 };
 
+const CAMPEONATOS = [
+  "Brasileirão", "Libertadores", "Champions", "Premier League",
+  "La Liga", "Copa do Brasil", "Série B",
+];
+
+const SUGESTOES = {
+  "Brasileirão":    ["Flamengo × Palmeiras", "Corinthians × São Paulo", "Grêmio × Athletico"],
+  "Libertadores":   ["Flamengo × River Plate", "Palmeiras × Boca Juniors", "Atlético × Nacional"],
+  "Champions":      ["Real Madrid × Bayern", "PSG × Arsenal", "Barcelona × Inter"],
+  "Premier League": ["Arsenal × Liverpool", "Man City × Chelsea", "Tottenham × Newcastle"],
+  "La Liga":        ["Real Madrid × Barcelona", "Atlético × Sevilla", "Valencia × Villarreal"],
+  "Copa do Brasil": ["Flamengo × Athletico", "Palmeiras × Fortaleza", "São Paulo × Cruzeiro"],
+  "Série B":        ["Sport × América-MG", "Santos × Avaí", "Novorizontino × Goiás"],
+};
+
 const LOAD_STEPS = [
   { label: "Analisando odd informada",        pct: 16 },
   { label: "Calculando chance estimada",       pct: 32 },
@@ -325,11 +340,12 @@ export default function AppDashboard() {
   function navigate(v) { setView(v); setSidebarOpen(false); }
 
   // Form
-  const [jogo,  setJogo]  = useState("");
-  const [tipo,  setTipo]  = useState("Resultado da partida");
-  const [odd,   setOdd]   = useState("");
-  const [valor, setValor] = useState("");
-  const [obs,   setObs]   = useState("");
+  const [jogo,        setJogo]        = useState("");
+  const [campeonato,  setCampeonato]  = useState("");
+  const [tipo,        setTipo]        = useState("Resultado da partida");
+  const [odd,         setOdd]         = useState("");
+  const [valor,       setValor]       = useState("");
+  const [obs,         setObs]         = useState("");
 
   // Engine
   const [loading,     setLoading]     = useState(false);
@@ -373,7 +389,7 @@ export default function AppDashboard() {
     }, 820);
 
     try {
-      const userMsg = `Aposta: ${jogo || "não informado"} | Tipo: ${tipo} | Odd: ${odd} | Valor: R$${valor || "100"} | Obs: ${obs || "nenhuma"}`;
+      const userMsg = `Aposta: ${jogo || "não informado"} | Campeonato: ${campeonato || "não informado"} | Tipo: ${tipo} | Odd: ${odd} | Valor: R$${valor || "100"} | Obs: ${obs || "nenhuma"}`;
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -436,9 +452,10 @@ export default function AppDashboard() {
   }
 
   function loadFromHistory(item) { setResult(item); setJogo(item.jogo || ""); setOdd(String(item.odd)); setView("nova"); }
-  function resetForm() { setResult(null); setError(""); }
-  function handleCopy(r, bullets) {
+  function resetForm() { setResult(null); setError(""); setJogo(""); setOdd(""); setValor(""); setObs(""); setCampeonato(""); }
+  function handleCopy(r) {
     const riskLbl = r.label === "CRÍTICO" ? "MUITO ALTO" : r.label;
+    const aiSentence = r.ai?.alertaFinal || r.ai?.leituraConservadora || "";
     const lines = [
       `MotorIA Pro · Análise #${r.id}`,
       `${r.jogo} | ${r.tipo} | Odd ${r.odd.toFixed(2)}`,
@@ -446,12 +463,10 @@ export default function AppDashboard() {
       `Risco da Aposta: ${r.score}/100 · ${riskLbl}`,
       `Chance Estimada: ${r.impl}%`,
       r.valorRisco ? `Valor em Risco: R$ ${r.valorRisco}` : null,
-      ``,
-      `Resumo:`,
-      ...bullets.map(b => `• ${b}`),
+      aiSentence ? `Leitura da IA: "${aiSentence}"` : null,
       ``,
       `Análise educativa. Não representa garantia de resultado.`,
-    ].filter(l => l !== null).join("\n");
+    ].filter(Boolean).join("\n");
     navigator.clipboard.writeText(lines).catch(() => {});
   }
 
@@ -756,20 +771,62 @@ export default function AppDashboard() {
                           </div>
                         )}
                       </div>
+                      {/* Campeonato chips */}
+                      <div className="ap-field">
+                        <label className="ap-label">
+                          CAMPEONATO <span className="ap-label-opt">/ opcional</span>
+                        </label>
+                        <div className="ap-chips-wrap" role="group" aria-label="Selecione o campeonato">
+                          {CAMPEONATOS.map(c => (
+                            <button
+                              key={c}
+                              type="button"
+                              className={`ap-chip${campeonato === c ? " ap-chip-on" : ""}`}
+                              onClick={() => setCampeonato(campeonato === c ? "" : c)}
+                              aria-pressed={campeonato === c}
+                            >
+                              {c}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Evento com sugestões inteligentes */}
                       <div className="ap-field">
                         <label className="ap-label" htmlFor="jogo-input">
-                          EVENTO <span className="ap-label-opt">/ opcional</span>
+                          PARTIDA <span className="ap-label-opt">/ opcional</span>
                         </label>
                         <input
                           id="jogo-input"
                           className="ap-input"
                           type="text"
-                          placeholder="Ex: Flamengo × Palmeiras · Brasileirão"
+                          placeholder={
+                            campeonato && SUGESTOES[campeonato]
+                              ? `Ex: ${SUGESTOES[campeonato][0]}`
+                              : "Ex: Flamengo × Palmeiras"
+                          }
                           value={jogo}
                           onChange={e => setJogo(e.target.value)}
                           autoComplete="off"
                         />
+                        {/* Sugestões rápidas quando campeonato selecionado */}
+                        {campeonato && SUGESTOES[campeonato] && !jogo && (
+                          <div className="ap-suggestions" aria-label="Sugestões de partida">
+                            {SUGESTOES[campeonato].map(s => (
+                              <button
+                                key={s}
+                                type="button"
+                                className="ap-sug-item"
+                                onClick={() => setJogo(s)}
+                              >
+                                {s}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
+
+                      {/* Contexto opcional */}
                       <div className="ap-field">
                         <label className="ap-label" htmlFor="obs-input">
                           CONTEXTO <span className="ap-label-opt">/ opcional</span>
@@ -821,12 +878,11 @@ export default function AppDashboard() {
                   </div>
                 )}
 
-                {/* Output — Dashboard Premium */}
+                {/* Output — Card único enxuto */}
                 {result && !loading && (() => {
-                  const leitura = deriveLeituraIA(result.score);
-                  const bullets = deriveBullets(result);
-                  const riskLbl = result.label === "CRÍTICO" ? "MUITO ALTO" : result.label;
-                  const evNum   = parseFloat(result.ev);
+                  const leitura   = deriveLeituraIA(result.score);
+                  const riskLbl   = result.label === "CRÍTICO" ? "MUITO ALTO" : result.label;
+                  const aiSentence = result.ai?.alertaFinal || result.ai?.leituraConservadora || leitura.sub;
                   return (
                   <div className="db-output" role="region" aria-label="Resultado da análise">
 
@@ -839,150 +895,98 @@ export default function AppDashboard() {
                         <span className="db-sep" aria-hidden="true">·</span>
                         <span className="db-ai-badge">
                           <span className="db-ai-dot" aria-hidden="true" />
-                          Análise gerada pela IA
+                          IA ativa
                         </span>
                       </div>
-                      <button className="db-btn-ghost" onClick={resetForm} aria-label="Iniciar nova análise">
-                        <svg width="10" height="10" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                          <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                        Nova análise
+                      <button className="db-btn-ghost" onClick={resetForm} aria-label="Nova análise">
+                        Nova análise →
                       </button>
                     </div>
 
-                    {/* ── Event strip ───────────────────────────────── */}
-                    <div className="db-event-strip">
-                      {result.jogo !== "Aposta" && (
-                        <span className="db-event-name">{result.jogo}</span>
-                      )}
-                      {result.jogo !== "Aposta" && <span className="db-strip-sep" aria-hidden="true" />}
-                      <span className="db-event-tag">{result.tipo}</span>
-                      <span className="db-strip-sep" aria-hidden="true" />
-                      <span className="db-event-odd">Odd <strong>{result.odd.toFixed(2)}</strong></span>
-                      {result.valorAposta && (
-                        <>
-                          <span className="db-strip-sep" aria-hidden="true" />
-                          <span className="db-event-valor">R$ {result.valorAposta.toFixed(0)}</span>
-                        </>
-                      )}
-                    </div>
+                    {/* ── Card único de resultado ────────────────────── */}
+                    <div className="db-result-card">
 
-                    {/* ── 4 Cards ───────────────────────────────────── */}
-                    <div className="db-cards">
-
-                      {/* Card 1 — Risco da Aposta */}
-                      <div className="db-card db-card-risco">
-                        <div className="db-card-label">Risco da Aposta</div>
-                        <div className="db-risco-score" style={{ color: result.color }}>
-                          {result.score}
-                          <span className="db-risco-denom">/100</span>
+                      {/* Cabeçalho do card: evento + mercado + odd */}
+                      <div className="db-rc-header">
+                        <div className="db-rc-event">
+                          {result.jogo !== "Aposta" ? result.jogo : result.tipo}
                         </div>
+                        <div className="db-rc-meta">
+                          {result.jogo !== "Aposta" && (
+                            <span className="db-rc-badge">{result.tipo}</span>
+                          )}
+                          <span className="db-rc-odd">Odd {result.odd.toFixed(2)}</span>
+                          {result.valorAposta && (
+                            <span className="db-rc-valor">R$ {result.valorAposta.toFixed(0)}</span>
+                          )}
+                        </div>
+                      </div>
 
-                        {/* Risk bar com zonas de cor */}
+                      <div className="db-rc-divider" />
+
+                      {/* Seção 1 — Risco da Aposta */}
+                      <div className="db-rc-risk">
+                        <div className="db-rc-risk-top">
+                          <span className="db-rc-label">Risco da Aposta</span>
+                          <span className="db-rc-level" style={{ color: result.color }}>{riskLbl}</span>
+                        </div>
+                        <div className="db-rc-score" style={{ color: result.color }}>
+                          {result.score}
+                          <span className="db-rc-score-denom">/100</span>
+                        </div>
+                        {/* Barra de risco */}
                         <div className="db-rbar-wrap" role="img" aria-label={`Risco ${result.score} de 100`}>
                           <div className="db-rbar-track">
                             <div className="db-rbar-zone db-rbar-z1" />
                             <div className="db-rbar-zone db-rbar-z2" />
                             <div className="db-rbar-zone db-rbar-z3" />
                             <div className="db-rbar-zone db-rbar-z4" />
-                            <div
-                              className="db-rbar-marker"
+                            <div className="db-rbar-marker"
                               style={{ left: `calc(${Math.min(result.score, 98)}% - 5px)` }}
                             />
                           </div>
-                          <div className="db-rbar-labels">
-                            <span>Baixo</span>
-                            <span>Moderado</span>
-                            <span>Alto</span>
-                            <span>Muito Alto</span>
-                          </div>
                         </div>
-
-                        <div className="db-card-level" style={{ color: result.color }}>{riskLbl}</div>
-                        <div className="db-card-sub">{getRiscoFrase(result.score)}</div>
+                        <div className="db-rc-phrase">{getRiscoFrase(result.score)}</div>
                       </div>
 
-                      {/* Card 2 — Chance Estimada */}
-                      <div className="db-card db-card-chance">
-                        <div className="db-card-label">Chance Estimada</div>
-                        <div className="db-big-num db-big-green">
-                          {result.impl}<span className="db-big-sym">%</span>
+                      <div className="db-rc-divider" />
+
+                      {/* Seção 2 — Dados rápidos */}
+                      <div className="db-rc-data">
+                        <div className="db-rc-data-item">
+                          <span className="db-rc-label">Chance estimada</span>
+                          <span className="db-rc-big db-rc-big-green">
+                            {result.impl}<span className="db-rc-sym">%</span>
+                          </span>
+                          <span className="db-rc-sub">{result.perda}% de não converter</span>
                         </div>
-                        <div className="db-card-sub">Baseada na odd {result.odd.toFixed(2)}</div>
-                        <div className="db-mini-table">
-                          <div className="db-mini-row">
-                            <span>Margem da casa</span>
-                            <span className="db-amber">{result.vig}%</span>
-                          </div>
-                          <div className="db-mini-row">
-                            <span>Prob. justa</span>
-                            <span>{result.justa}%</span>
-                          </div>
-                          <div className="db-mini-row">
-                            <span>Chance de perda</span>
-                            <span className="db-red">{result.perda}%</span>
-                          </div>
+                        <div className="db-rc-data-sep" />
+                        <div className="db-rc-data-item">
+                          <span className="db-rc-label">Valor em risco</span>
+                          <span className="db-rc-big" style={{ color: result.color }}>
+                            R$<span>{result.valorRisco || "—"}</span>
+                          </span>
+                          <span className="db-rc-sub">
+                            de R$ {result.valorAposta?.toFixed(0) || "—"} apostados
+                          </span>
                         </div>
                       </div>
 
-                      {/* Card 3 — Valor em Risco */}
-                      <div className="db-card db-card-valor">
-                        <div className="db-card-label">Valor em Risco</div>
-                        <div className="db-big-num db-big-red">
-                          R$ <span>{result.valorRisco || "—"}</span>
-                        </div>
-                        <div className="db-card-sub">
-                          de R$ {result.valorAposta?.toFixed(0) || "—"} apostados
-                        </div>
-                        <div className="db-mini-table">
-                          <div className="db-mini-row">
-                            <span>Retorno esperado</span>
-                            <span className={evNum >= 0 ? "db-green" : "db-red"}>
-                              {evNum >= 0 ? "+" : ""}R$ {Math.abs(evNum).toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="db-mini-row">
-                            <span>Por R$ 100 apostados</span>
-                            <span className="db-muted">referência</span>
-                          </div>
-                        </div>
-                      </div>
+                      <div className="db-rc-divider" />
 
-                      {/* Card 4 — Leitura da IA */}
-                      <div className="db-card db-card-leitura">
-                        <div className="db-card-label">Leitura da IA</div>
-                        <div className="db-leitura-status" style={{ color: leitura.color }}>
-                          <span className="db-leitura-dot" style={{ background: leitura.color }} aria-hidden="true" />
+                      {/* Seção 3 — Leitura da IA */}
+                      <div className="db-rc-ai">
+                        <span className="db-rc-label">Leitura da IA</span>
+                        <div className="db-rc-ai-verdict" style={{ color: leitura.color }}>
+                          <span className="db-rc-ai-dot" style={{ background: leitura.color }} aria-hidden="true" />
                           {leitura.text}
                         </div>
-                        <div className="db-card-sub">{leitura.sub}</div>
-                        {result.ai?.oQuePodeDarErrado && (
-                          <div className="db-leitura-detail">
-                            <span className="db-leitura-detail-lbl">Ponto de atenção</span>
-                            <span className="db-leitura-detail-txt">{result.ai.oQuePodeDarErrado}</span>
-                          </div>
+                        {aiSentence && (
+                          <p className="db-rc-ai-sentence">"{aiSentence}"</p>
                         )}
                       </div>
 
-                    </div>{/* /db-cards */}
-
-                    {/* ── Resumo da análise ─────────────────────────── */}
-                    {bullets.length > 0 && (
-                      <div className="db-summary">
-                        <div className="db-summary-hdr">
-                          <span className="db-summary-title">Resumo da análise</span>
-                          <span className="db-summary-tag">MotorIA Engine™</span>
-                        </div>
-                        <ul className="db-bullets" aria-label="Pontos principais da análise">
-                          {bullets.map((b, i) => (
-                            <li key={i} className="db-bullet">
-                              <span className="db-bullet-dot" aria-hidden="true" />
-                              <span>{b}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    </div>{/* /db-result-card */}
 
                     {/* ── Ações ─────────────────────────────────────── */}
                     <div className="db-actions">
@@ -992,22 +996,17 @@ export default function AppDashboard() {
                         </svg>
                         Nova análise
                       </button>
-                      <button
-                        className="db-btn-copy"
-                        onClick={() => handleCopy(result, bullets)}
-                        title="Copiar resumo da análise"
-                      >
+                      <button className="db-btn-copy" onClick={() => handleCopy(result)} title="Copiar resumo">
                         <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                           <rect x="5" y="5" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
                           <path d="M9 5V3a1 1 0 00-1-1H3a1 1 0 00-1 1v5a1 1 0 001 1h2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
                         </svg>
-                        Copiar resumo
+                        Copiar
                       </button>
                     </div>
 
                     <p className="db-disclaimer">
-                      Análise educativa. Não representa garantia de resultado.
-                      A decisão é sua.
+                      Análise educativa. Não representa garantia de resultado. A decisão é sua.
                     </p>
                   </div>
                   );
@@ -2130,5 +2129,174 @@ body { overflow: hidden; }
   .db-actions { flex-direction: column; align-items: stretch; }
   .db-btn-primary, .db-btn-copy { justify-content: center; padding: 14px 20px; }
   .db-rbar-labels { font-size: 7px; }
+
+  /* Chips + suggestions mobile */
+  .ap-chip { font-size: 10.5px; padding: 4.5px 10px; }
+
+  /* Result card mobile */
+  .db-rc-header { padding: 14px 16px 12px; }
+  .db-rc-event  { font-size: 15px; }
+  .db-rc-risk   { padding: 14px 16px; }
+  .db-rc-score  { font-size: 48px; }
+  .db-rc-data   { padding: 14px 16px; flex-direction: column; gap: 16px; }
+  .db-rc-data-sep { width: 100%; height: 1px; align-self: auto; margin: 0; }
+  .db-rc-big    { font-size: 28px; }
+  .db-rc-ai     { padding: 14px 16px; }
+  .db-rc-ai-verdict { font-size: 15px; }
+}
+
+/* ─ Championship Chips ─────────────────────────────────────────────────────── */
+.ap-chips-wrap {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.ap-chip {
+  padding: 5px 12px; border-radius: 99px;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.10);
+  font-size: 11px; font-weight: 600; color: var(--t2);
+  cursor: pointer; font-family: inherit;
+  transition: all .15s ease; white-space: nowrap;
+}
+.ap-chip:hover {
+  background: rgba(255,255,255,.09); color: var(--t1); border-color: rgba(255,255,255,.18);
+}
+.ap-chip-on {
+  background: rgba(22,163,74,.14) !important;
+  border-color: rgba(34,197,94,.35) !important;
+  color: #4ade80 !important;
+}
+
+/* ─ Event Suggestions ──────────────────────────────────────────────────────── */
+@keyframes ap-sugs-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ap-suggestions {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  animation: ap-sugs-in .16s ease both;
+}
+.ap-sug-item {
+  padding: 4px 10px; border-radius: 6px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09);
+  font-size: 11px; font-weight: 500; color: var(--t3);
+  cursor: pointer; font-family: inherit;
+  transition: all .13s; white-space: nowrap;
+}
+.ap-sug-item:hover {
+  background: rgba(34,197,94,.07); border-color: rgba(34,197,94,.18);
+  color: rgba(74,222,128,.8);
+}
+
+/* ─ Result Card — db-rc-* ──────────────────────────────────────────────────── */
+.db-result-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  animation: db-card-in .28s ease both;
+  transition: border-color .14s;
+}
+.db-result-card:hover { border-color: var(--bmd); }
+
+/* Header */
+.db-rc-header {
+  padding: 16px 20px 14px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.db-rc-event {
+  font-size: 18px; font-weight: 800;
+  color: var(--t1); letter-spacing: -0.03em; line-height: 1.15;
+}
+.db-rc-meta {
+  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+}
+.db-rc-badge {
+  padding: 3px 9px; border-radius: 5px;
+  background: rgba(255,255,255,.06); border: 1px solid var(--border);
+  font-size: 9.5px; font-weight: 700; letter-spacing: .05em;
+  color: var(--t3); text-transform: uppercase;
+}
+.db-rc-odd {
+  font-size: 11px; font-weight: 700;
+  color: var(--t2); font-variant-numeric: tabular-nums;
+}
+.db-rc-valor {
+  font-size: 11px; color: var(--t3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Divider */
+.db-rc-divider { height: 1px; background: var(--border); }
+
+/* Shared section label */
+.db-rc-label {
+  font-size: 8px; font-weight: 800; letter-spacing: .18em;
+  color: var(--t3); text-transform: uppercase; display: block;
+}
+
+/* Risk section */
+.db-rc-risk {
+  padding: 16px 20px; display: flex; flex-direction: column; gap: 10px;
+}
+.db-rc-risk-top {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.db-rc-level {
+  font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+}
+.db-rc-score {
+  font-size: 60px; font-weight: 900; line-height: 1;
+  letter-spacing: -0.06em; font-variant-numeric: tabular-nums;
+  transition: color .4s;
+}
+.db-rc-score-denom {
+  font-size: 22px; font-weight: 600; color: var(--t3); letter-spacing: 0;
+}
+.db-rc-phrase {
+  font-size: 12px; color: var(--t3); line-height: 1.55; margin-top: -2px;
+}
+
+/* Data section */
+.db-rc-data {
+  padding: 16px 20px;
+  display: flex; align-items: flex-start; gap: 0;
+}
+.db-rc-data-item {
+  flex: 1; display: flex; flex-direction: column; gap: 5px;
+}
+.db-rc-data-sep {
+  width: 1px; background: var(--border); flex-shrink: 0;
+  align-self: stretch; margin: 0 20px;
+}
+.db-rc-big {
+  font-size: 34px; font-weight: 900; line-height: 1;
+  letter-spacing: -0.05em; font-variant-numeric: tabular-nums;
+  color: var(--t1);
+}
+.db-rc-big-green { color: #22C55E; }
+.db-rc-sym {
+  font-size: 18px; font-weight: 600; color: var(--t3); letter-spacing: 0;
+}
+.db-rc-sub {
+  font-size: 11px; color: var(--t3); line-height: 1.5;
+}
+
+/* AI section */
+.db-rc-ai {
+  padding: 16px 20px; display: flex; flex-direction: column; gap: 8px;
+}
+.db-rc-ai-verdict {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 18px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2;
+  transition: color .3s;
+}
+.db-rc-ai-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  animation: ap-pulse 2.8s ease-in-out infinite;
+}
+.db-rc-ai-sentence {
+  font-size: 12.5px; color: var(--t2); line-height: 1.7;
+  font-style: italic;
+  background: rgba(255,255,255,.025); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px; margin-top: 2px;
 }
 `;
