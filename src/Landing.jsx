@@ -56,13 +56,13 @@ const FEATURES = [
   "Detector de tilt — alerta comportamental de risco",
   "8 indicadores matemáticos por análise completa",
   "Relatório com pontos cegos e leitura conservadora",
-  "Recarregável — +20 análises por R$27 quando precisar",
+  "Acesso à engine de análise quantitativa completa",
 ];
 
 const FAQ_ITEMS = [
   { q: "Funciona para qualquer esporte?",         a: "Sim. A análise se baseia na matemática da odd, que é universal — futebol, basquete, tênis, MMA, eSports e qualquer mercado com odds." },
   { q: "Vocês são uma casa de aposta?",           a: "Não. Somos uma ferramenta educativa independente. Não fazemos apostas, não vendemos odds e não temos nenhuma relação com casas de aposta." },
-  { q: "É assinatura mensal?",                    a: "Não. Você compra um pacote de 20 análises por R$27. Sem renovação automática, sem mensalidade. Recarregue quando quiser." },
+  { q: "É assinatura mensal?",                    a: "Não. É um acesso único por R$27. Sem renovação automática, sem mensalidade." },
   { q: "Vocês dão palpites ou previsões?",        a: "Nunca. Mostramos riscos, probabilidades matemáticas e impacto financeiro. A decisão é sempre sua." },
   { q: "Como recebo o acesso após o pagamento?",  a: "Imediatamente. Após o pagamento confirmado, você recebe o link de acesso no email de confirmação." },
   { q: "Funciona no celular?",                    a: "Sim. A ferramenta é 100% mobile-first, feita para usar antes de qualquer decisão, de onde você estiver." },
@@ -176,7 +176,7 @@ export default function Landing() {
               <a href="#problema" className="lp-btn-ghost">Ver como funciona</a>
             </div>
             <div className="lp-hero-meta">
-              <span>20 análises · R$27</span>
+              <span>Acesso por R$27</span>
               <span className="lp-meta-sep">·</span>
               <span>Sem cadastro</span>
               <span className="lp-meta-sep">·</span>
@@ -546,12 +546,12 @@ export default function Landing() {
               ))}
             </ul>
             <div className="lp-price-card">
-              <div className="lp-price-eyebrow">Pacote de 20 análises</div>
+              <div className="lp-price-eyebrow">Acesso ao sistema</div>
               <div className="lp-price-display">
                 <span className="lp-price-curr">R$</span>
                 <span className="lp-price-int">27</span>
               </div>
-              <p className="lp-price-note">20 análises incluídas. Recarregável por R$27 quando quiser.</p>
+              <p className="lp-price-note">Acesso completo à plataforma. Ativação imediata após o pagamento.</p>
               <Link to="/pagar" className="lp-btn-buy">Garantir acesso imediato →</Link>
               <div className="lp-guarantee">
                 <div className="lp-guarantee-icon">✓</div>
@@ -588,7 +588,7 @@ export default function Landing() {
             Análise matemática<br />
             <span className="lp-cta-dim">antes de decidir.</span>
           </h2>
-          <p className="lp-cta-sub">20 análises por R$27. Recarregável quando precisar.</p>
+          <p className="lp-cta-sub">Acesso imediato ao MotorIA Risk Engine™ por R$27.</p>
           <Link to="/pagar" className="lp-btn-buy lp-btn-buy-lg">Garantir acesso por R$27 →</Link>
           <div className="lp-cta-trust">
             <span>Sem cadastro</span>
