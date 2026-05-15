@@ -70,6 +70,13 @@ const FAQ_ITEMS = [
   { q: "Como funciona a garantia?",               a: "7 dias corridos a partir da compra. Não achou útil? Basta enviar um email e devolvemos 100% sem perguntas." },
 ];
 
+const RECENT_ANALYSES = [
+  { id: 2847, event: "Flamengo × Palmeiras",       odd: "2.80", score: 67, tag: "ALTO",     tc: "#F97316" },
+  { id: 2844, event: "Corinthians × Santos",        odd: "1.45", score: 82, tag: "CRÍTICO",  tc: "#EF4444" },
+  { id: 2841, event: "Manchester City · Vencer",    odd: "1.25", score: 91, tag: "CRÍTICO",  tc: "#EF4444" },
+  { id: 2838, event: "Djokovic × Alcaraz · Set 1", odd: "3.20", score: 41, tag: "MODERADO", tc: "#F59E0B" },
+];
+
 const PALETTES = [
   { bg: "rgba(34,197,94,0.1)",   border: "rgba(34,197,94,0.25)",   color: "#22c55e" },
   { bg: "rgba(99,102,241,0.1)",  border: "rgba(99,102,241,0.25)",  color: "#818cf8" },
@@ -155,7 +162,7 @@ export default function Landing() {
               Poucos entendem probabilidade.
             </div>
             <div className="lp-hero-pills">
-              {["Probabilidade implícita", "Margem da casa", "Score de risco", "EV por aposta"].map(t => (
+              {["P(ganho) implícita", "VIG embutida", "MRI™ 0–100", "EV / R$100"].map(t => (
                 <span className="lp-hero-pill" key={t}>{t}</span>
               ))}
             </div>
@@ -191,6 +198,10 @@ export default function Landing() {
                 <span className="lp-mock-live">● LIVE</span>
               </div>
               <div className="lp-mock-body">
+                <div className="lp-mock-session">
+                  <span className="lp-mock-session-id">ANÁLISE #2847</span>
+                  <span className="lp-mock-session-ts">15/05 · 14:23:07</span>
+                </div>
                 <div className="lp-mock-input-row">
                   <div className="lp-mock-cell">
                     <span className="lp-mock-cell-lbl">Evento</span>
@@ -210,13 +221,13 @@ export default function Landing() {
                   <span className="lp-mock-prob-lbl lp-mock-prob-l">Derrota 64,3% ▼</span>
                 </div>
                 <div className="lp-mock-rule" />
-                <div className="lp-mock-metrics">
-                  {MOCK_METRICS.map(m => (
-                    <div className="lp-mock-metric-row" key={m.label}>
-                      <span className="lp-mock-metric-lbl">{m.label}</span>
-                      <span className="lp-mock-metric-val" style={{ color: m.color }}>{m.val}</span>
-                    </div>
-                  ))}
+                <div className="lp-mock-data-grid">
+                  <div className="lp-mock-dc"><span className="lp-mock-dk">PROB. IMPL.</span><span className="lp-mock-dv lp-mock-dv-g">35,71%</span></div>
+                  <div className="lp-mock-dc"><span className="lp-mock-dk">PROB. JUSTA ↗</span><span className="lp-mock-dv lp-mock-dv-d">37,83%</span></div>
+                  <div className="lp-mock-dc"><span className="lp-mock-dk">VIG EMBUTIDA</span><span className="lp-mock-dv lp-mock-dv-a">5,47%</span></div>
+                  <div className="lp-mock-dc"><span className="lp-mock-dk">EV / R$100</span><span className="lp-mock-dv lp-mock-dv-r">−R$14,50</span></div>
+                  <div className="lp-mock-dc"><span className="lp-mock-dk">CHANCE PERDA</span><span className="lp-mock-dv lp-mock-dv-r">64,3%</span></div>
+                  <div className="lp-mock-dc"><span className="lp-mock-dk">PRECISÃO ENG.</span><span className="lp-mock-dv lp-mock-dv-d">94,2%</span></div>
                 </div>
                 <div className="lp-mock-rule" />
                 <div className="lp-mock-score-wrap">
@@ -334,6 +345,26 @@ export default function Landing() {
                 <div className={`lp-score-seg ${s.cls}`} key={s.label}>
                   <span className="lp-score-seg-range">{s.range}</span>
                   <span className="lp-score-seg-label">{s.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="lp-recent">
+            <div className="lp-recent-hdr">
+              <span className="lp-recent-title">ANÁLISES RECENTES</span>
+              <span className="lp-recent-live">● AO VIVO</span>
+            </div>
+            <div className="lp-recent-list">
+              {RECENT_ANALYSES.map(a => (
+                <div className="lp-recent-row" key={a.id}>
+                  <span className="lp-recent-id">#{a.id}</span>
+                  <span className="lp-recent-event">{a.event}</span>
+                  <span className="lp-recent-odd">Odd {a.odd}</span>
+                  <div className="lp-recent-bar">
+                    <div style={{ width: `${a.score}%`, background: a.tc, height: "100%", borderRadius: 99 }} />
+                  </div>
+                  <span className="lp-recent-num" style={{ color: a.tc }}>{a.score}</span>
+                  <span className="lp-recent-tag" style={{ color: a.tc, borderColor: `${a.tc}44` }}>{a.tag}</span>
                 </div>
               ))}
             </div>
@@ -836,6 +867,44 @@ const CSS = `
   font-size: 9px; color: rgba(255,255,255,.22);
   font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
 }
+/* session header (analysis ID + timestamp) */
+.lp-mock-session {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-bottom: 10px; margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.lp-mock-session-id {
+  font-size: 9px; font-weight: 800; letter-spacing: .14em;
+  color: rgba(34,197,94,.65); text-transform: uppercase;
+}
+.lp-mock-session-ts {
+  font-size: 9px; color: var(--t3);
+  font-variant-numeric: tabular-nums; font-feature-settings: 'tnum';
+}
+
+/* 2-column data grid */
+.lp-mock-data-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1px; background: rgba(255,255,255,.06);
+  border-radius: 6px; overflow: hidden;
+}
+.lp-mock-dc {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 9px 10px; background: #0B0B0E;
+}
+.lp-mock-dk {
+  font-size: 8px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--t3);
+}
+.lp-mock-dv {
+  font-size: 14px; font-weight: 800; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums; font-feature-settings: 'tnum';
+}
+.lp-mock-dv-g { color: #22C55E; }
+.lp-mock-dv-a { color: #F59E0B; }
+.lp-mock-dv-r { color: #EF4444; }
+.lp-mock-dv-d { color: rgba(232,232,230,.45); }
+
 /* version badge in topbar */
 .lp-mock-version {
   font-size: 9px; font-weight: 700; letter-spacing: .08em;
@@ -983,6 +1052,51 @@ const CSS = `
 .lp-seg-amber  { background: rgba(245,158,11,.09); color: var(--amber); }
 .lp-seg-orange { background: rgba(249,115,22,.09); color: var(--orange); }
 .lp-seg-red    { background: rgba(239,68,68,.09);  color: var(--red); }
+
+/* ── Recent analyses feed ───────────────────────────────────────────────────── */
+.lp-recent {
+  border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+  margin-top: 20px;
+}
+.lp-recent-hdr {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 16px;
+  background: rgba(255,255,255,.018);
+  border-bottom: 1px solid var(--border);
+}
+.lp-recent-title {
+  font-size: 9px; font-weight: 800; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--t3);
+}
+.lp-recent-live {
+  font-size: 9px; font-weight: 700; color: var(--green);
+  animation: lp-blink 2s ease-in-out infinite;
+}
+.lp-recent-list { display: flex; flex-direction: column; }
+.lp-recent-row {
+  display: grid;
+  grid-template-columns: 52px 1fr 60px 70px 28px 62px;
+  align-items: center; gap: 12px;
+  padding: 9px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  transition: background .12s;
+}
+.lp-recent-row:last-child { border-bottom: none; }
+.lp-recent-row:hover { background: rgba(255,255,255,.015); }
+.lp-recent-id   { font-family: monospace; font-size: 10px; color: var(--t3); }
+.lp-recent-event { font-size: 11px; color: var(--t2); font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lp-recent-odd  { font-size: 10px; color: var(--t3); white-space: nowrap;
+  font-variant-numeric: tabular-nums; }
+.lp-recent-bar  { height: 3px; background: rgba(255,255,255,.06); border-radius: 99px; overflow: hidden; }
+.lp-recent-num  { font-size: 12px; font-weight: 800; text-align: right;
+  font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+.lp-recent-tag  {
+  font-size: 8px; font-weight: 800; letter-spacing: .07em;
+  padding: 2px 6px; border-radius: 3px;
+  border: 1px solid; text-align: center; white-space: nowrap;
+  background: transparent;
+}
 
 /* ── Steps ──────────────────────────────────────────────────────────────────── */
 .lp-steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 48px; }
@@ -1174,7 +1288,17 @@ const CSS = `
 }
 
 /* Photo */
-.lp-founder-photo-wrap { display: flex; flex-direction: column; gap: 0; }
+.lp-founder-photo-wrap { display: flex; flex-direction: column; gap: 0; position: relative; }
+.lp-founder-photo-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, transparent 58%, var(--bg) 96%),
+    linear-gradient(to bottom, transparent 72%, var(--bg) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
 .lp-founder-img {
   width: 100%;
   height: auto;
