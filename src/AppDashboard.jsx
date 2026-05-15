@@ -34,15 +34,7 @@ const CAMPEONATOS = [
   "La Liga", "Copa do Brasil", "Série B",
 ];
 
-const SUGESTOES = {
-  "Brasileirão":    ["Flamengo × Palmeiras", "Corinthians × São Paulo", "Grêmio × Athletico"],
-  "Libertadores":   ["Flamengo × River Plate", "Palmeiras × Boca Juniors", "Atlético × Nacional"],
-  "Champions":      ["Real Madrid × Bayern", "PSG × Arsenal", "Barcelona × Inter"],
-  "Premier League": ["Arsenal × Liverpool", "Man City × Chelsea", "Tottenham × Newcastle"],
-  "La Liga":        ["Real Madrid × Barcelona", "Atlético × Sevilla", "Valencia × Villarreal"],
-  "Copa do Brasil": ["Flamengo × Athletico", "Palmeiras × Fortaleza", "São Paulo × Cruzeiro"],
-  "Série B":        ["Sport × América-MG", "Santos × Avaí", "Novorizontino × Goiás"],
-};
+// Autocomplete suggestions intentionally omitted — static fake matches reduce credibility.
 
 const LOAD_STEPS = [
   { label: "Analisando odd informada",        pct: 16 },
@@ -237,7 +229,7 @@ function deriveBullets(r) {
 
 // ─── CustomSelect ─────────────────────────────────────────────────────────────
 
-function CustomSelect({ id, options, value, onChange }) {
+function CustomSelect({ id, options, value, onChange, placeholder }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
 
@@ -267,7 +259,9 @@ function CustomSelect({ id, options, value, onChange }) {
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span className="sel-val">{value}</span>
+        <span className={`sel-val${placeholder && !options.includes(value) ? " sel-placeholder" : ""}`}>
+          {placeholder && !options.includes(value) ? placeholder : value}
+        </span>
         <span className={`sel-chev${open ? " sel-chev-up" : ""}`} aria-hidden="true">
           <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
             <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
@@ -275,7 +269,25 @@ function CustomSelect({ id, options, value, onChange }) {
         </span>
       </button>
       {open && (
-        <ul className="sel-list" role="listbox" aria-label="Mercado">
+        <ul className="sel-list" role="listbox" aria-label={placeholder || "Opções"}>
+          {placeholder && (
+            <li
+              role="option"
+              aria-selected={!options.includes(value)}
+              className={`sel-opt${!options.includes(value) ? " sel-opt-on" : ""}`}
+              onMouseDown={e => e.preventDefault()}
+              onClick={() => { onChange(""); setOpen(false); }}
+            >
+              <span className="sel-check" aria-hidden="true">
+                {!options.includes(value) && (
+                  <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
+                    <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </span>
+              <span className="sel-opt-text sel-opt-dim">{placeholder}</span>
+            </li>
+          )}
           {options.map(opt => (
             <li
               key={opt}
@@ -771,70 +783,44 @@ export default function AppDashboard() {
                           </div>
                         )}
                       </div>
-                      {/* Campeonato chips */}
-                      <div className="ap-field">
-                        <label className="ap-label">
-                          CAMPEONATO <span className="ap-label-opt">/ opcional</span>
-                        </label>
-                        <div className="ap-chips-wrap" role="group" aria-label="Selecione o campeonato">
-                          {CAMPEONATOS.map(c => (
-                            <button
-                              key={c}
-                              type="button"
-                              className={`ap-chip${campeonato === c ? " ap-chip-on" : ""}`}
-                              onClick={() => setCampeonato(campeonato === c ? "" : c)}
-                              aria-pressed={campeonato === c}
-                            >
-                              {c}
-                            </button>
-                          ))}
+                      {/* ── Separador: contexto opcional ────────────────── */}
+                      <div className="ap-form-sep" role="separator">
+                        <span className="ap-form-sep-lbl">Contexto opcional</span>
+                      </div>
+
+                      {/* Campeonato + Partida lado a lado */}
+                      <div className="ap-row-2">
+                        <div className="ap-field">
+                          <label className="ap-label" htmlFor="camp-input">CAMPEONATO</label>
+                          <CustomSelect
+                            id="camp-input"
+                            options={CAMPEONATOS}
+                            value={campeonato}
+                            onChange={setCampeonato}
+                            placeholder="Selecionar"
+                          />
+                        </div>
+                        <div className="ap-field">
+                          <label className="ap-label" htmlFor="jogo-input">PARTIDA</label>
+                          <input
+                            id="jogo-input"
+                            className="ap-input"
+                            type="text"
+                            placeholder="Time A × Time B"
+                            value={jogo}
+                            onChange={e => setJogo(e.target.value)}
+                            autoComplete="off"
+                          />
                         </div>
                       </div>
 
-                      {/* Evento com sugestões inteligentes */}
+                      {/* Contexto */}
                       <div className="ap-field">
-                        <label className="ap-label" htmlFor="jogo-input">
-                          PARTIDA <span className="ap-label-opt">/ opcional</span>
-                        </label>
-                        <input
-                          id="jogo-input"
-                          className="ap-input"
-                          type="text"
-                          placeholder={
-                            campeonato && SUGESTOES[campeonato]
-                              ? `Ex: ${SUGESTOES[campeonato][0]}`
-                              : "Ex: Flamengo × Palmeiras"
-                          }
-                          value={jogo}
-                          onChange={e => setJogo(e.target.value)}
-                          autoComplete="off"
-                        />
-                        {/* Sugestões rápidas quando campeonato selecionado */}
-                        {campeonato && SUGESTOES[campeonato] && !jogo && (
-                          <div className="ap-suggestions" aria-label="Sugestões de partida">
-                            {SUGESTOES[campeonato].map(s => (
-                              <button
-                                key={s}
-                                type="button"
-                                className="ap-sug-item"
-                                onClick={() => setJogo(s)}
-                              >
-                                {s}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Contexto opcional */}
-                      <div className="ap-field">
-                        <label className="ap-label" htmlFor="obs-input">
-                          CONTEXTO <span className="ap-label-opt">/ opcional</span>
-                        </label>
+                        <label className="ap-label" htmlFor="obs-input">CONTEXTO</label>
                         <textarea
                           id="obs-input"
                           className="ap-input ap-textarea"
-                          placeholder="Desfalques, forma recente, condições do jogo…"
+                          placeholder="Ex: time reserva, clássico, chuva, sequência ruim…"
                           value={obs}
                           onChange={e => setObs(e.target.value)}
                           rows={2}
@@ -1469,26 +1455,27 @@ body { overflow: hidden; }
 
 /* ─ Input panel ────────────────────────────────────────────────────────────── */
 .ap-input-panel {
-  background: #0E0E14;
-  border: 1px solid rgba(255,255,255,.10);
-  border-radius: 14px; padding: 22px 22px;
-  box-shadow: 0 0 0 1px rgba(34,197,94,.05), 0 16px 48px rgba(0,0,0,.55);
+  background: #0C0C11;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 16px; padding: 26px 24px 24px;
+  box-shadow: 0 0 0 1px rgba(34,197,94,.04), 0 24px 64px rgba(0,0,0,.6);
 }
 
 /* Form header */
 .ap-form-hdr {
-  border-bottom-color: rgba(255,255,255,.07);
+  border-bottom-color: rgba(255,255,255,.06);
+  padding-bottom: 16px; margin-bottom: 6px;
 }
 .ap-nova-title {
-  font-size: 19px; font-weight: 900; color: #EAEAEC;
-  letter-spacing: -0.04em; line-height: 1;
+  font-size: 18px; font-weight: 800; color: #DDDDE0;
+  letter-spacing: -0.035em; line-height: 1;
 }
 .ap-nova-sub {
-  font-size: 11.5px; color: rgba(255,255,255,.38); margin-top: 6px; line-height: 1.55;
+  font-size: 11.5px; color: rgba(255,255,255,.32); margin-top: 5px; line-height: 1.55;
 }
 .ap-ia-online {
   display: flex; align-items: center; gap: 6px;
-  font-size: 8px; font-weight: 800; letter-spacing: .14em; color: rgba(34,197,94,.6);
+  font-size: 8px; font-weight: 800; letter-spacing: .14em; color: rgba(34,197,94,.5);
   flex-shrink: 0;
 }
 
@@ -1497,16 +1484,16 @@ body { overflow: hidden; }
   display: inline-flex; align-items: center; gap: 7px;
   align-self: flex-start;
   padding: 5px 11px;
-  background: rgba(22,163,74,.06);
-  border: 1px solid rgba(22,163,74,.16);
+  background: rgba(22,163,74,.05);
+  border: 1px solid rgba(22,163,74,.13);
   border-radius: 99px;
-  font-size: 9.5px; font-weight: 700; color: rgba(34,197,94,.72);
+  font-size: 9px; font-weight: 700; color: rgba(34,197,94,.6);
   letter-spacing: .04em;
 }
 
-.ap-form { display: flex; flex-direction: column; gap: 14px; margin-top: 18px; }
-.ap-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
-.ap-field { display: flex; flex-direction: column; gap: 6px; }
+.ap-form { display: flex; flex-direction: column; gap: 16px; margin-top: 20px; }
+.ap-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ap-field { display: flex; flex-direction: column; gap: 7px; }
 
 .ap-label {
   font-size: 8.5px; font-weight: 800; letter-spacing: .15em;
@@ -2130,9 +2117,6 @@ body { overflow: hidden; }
   .db-btn-primary, .db-btn-copy { justify-content: center; padding: 14px 20px; }
   .db-rbar-labels { font-size: 7px; }
 
-  /* Chips + suggestions mobile */
-  .ap-chip { font-size: 10.5px; padding: 4.5px 10px; }
-
   /* Result card mobile */
   .db-rc-header { padding: 14px 16px 12px; }
   .db-rc-event  { font-size: 15px; }
@@ -2145,46 +2129,23 @@ body { overflow: hidden; }
   .db-rc-ai-verdict { font-size: 15px; }
 }
 
-/* ─ Championship Chips ─────────────────────────────────────────────────────── */
-.ap-chips-wrap {
-  display: flex; flex-wrap: wrap; gap: 6px;
+/* ─ Form separator (optional section) ─────────────────────────────────────── */
+.ap-form-sep {
+  display: flex; align-items: center; gap: 12px;
+  padding: 4px 0;
 }
-.ap-chip {
-  padding: 5px 12px; border-radius: 99px;
-  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.10);
-  font-size: 11px; font-weight: 600; color: var(--t2);
-  cursor: pointer; font-family: inherit;
-  transition: all .15s ease; white-space: nowrap;
+.ap-form-sep::before,
+.ap-form-sep::after {
+  content: ''; flex: 1; height: 1px; background: rgba(255,255,255,.06);
 }
-.ap-chip:hover {
-  background: rgba(255,255,255,.09); color: var(--t1); border-color: rgba(255,255,255,.18);
-}
-.ap-chip-on {
-  background: rgba(22,163,74,.14) !important;
-  border-color: rgba(34,197,94,.35) !important;
-  color: #4ade80 !important;
+.ap-form-sep-lbl {
+  font-size: 8px; font-weight: 700; letter-spacing: .16em;
+  color: var(--t3); text-transform: uppercase; flex-shrink: 0;
 }
 
-/* ─ Event Suggestions ──────────────────────────────────────────────────────── */
-@keyframes ap-sugs-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.ap-suggestions {
-  display: flex; flex-wrap: wrap; gap: 6px;
-  animation: ap-sugs-in .16s ease both;
-}
-.ap-sug-item {
-  padding: 4px 10px; border-radius: 6px;
-  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09);
-  font-size: 11px; font-weight: 500; color: var(--t3);
-  cursor: pointer; font-family: inherit;
-  transition: all .13s; white-space: nowrap;
-}
-.ap-sug-item:hover {
-  background: rgba(34,197,94,.07); border-color: rgba(34,197,94,.18);
-  color: rgba(74,222,128,.8);
-}
+/* ─ Select placeholder state ───────────────────────────────────────────────── */
+.sel-placeholder { color: rgba(255,255,255,.32) !important; }
+.sel-opt-dim { color: var(--t3) !important; font-style: italic; }
 
 /* ─ Result Card — db-rc-* ──────────────────────────────────────────────────── */
 .db-result-card {
