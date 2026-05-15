@@ -4,19 +4,30 @@ import { useNavigate } from "./router";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TIPOS = [
-  "Resultado final (1X2)",
-  "Over / Under gols",
-  "Ambas marcam (BTTS)",
-  "Handicap asiático",
-  "Handicap europeu",
+  "Resultado da partida",
+  "Mais ou menos gols",
+  "Ambos marcam",
+  "Handicap",
+  "Empate devolve",
   "Chance dupla",
-  "Draw No Bet",
   "Primeiro gol",
   "Escanteios",
   "Cartões",
   "Múltipla",
-  "Outro",
 ];
+
+const TIPO_DESC = {
+  "Resultado da partida": "Análise baseada no vencedor da partida.",
+  "Mais ou menos gols":   "Análise baseada na quantidade total de gols.",
+  "Ambos marcam":         "Análise baseada na possibilidade dos dois times marcarem.",
+  "Handicap":             "Análise com vantagem ou desvantagem aplicada a um dos times.",
+  "Empate devolve":       "Aposta é devolvida se a partida terminar empatada.",
+  "Chance dupla":         "Cobre dois dos três resultados possíveis da partida.",
+  "Primeiro gol":         "Análise baseada em qual time marca o primeiro gol.",
+  "Escanteios":           "Análise baseada no número total de escanteios da partida.",
+  "Cartões":              "Análise baseada no número de cartões durante a partida.",
+  "Múltipla":             "Combinação de múltiplas apostas em um único bilhete.",
+};
 
 const LOAD_STEPS = [
   { label: "Calibrando modelo probabilístico",   pct: 16 },
@@ -289,7 +300,7 @@ export default function AppDashboard() {
 
   // Form
   const [jogo,  setJogo]  = useState("");
-  const [tipo,  setTipo]  = useState("Resultado final (1X2)");
+  const [tipo,  setTipo]  = useState("Resultado da partida");
   const [odd,   setOdd]   = useState("");
   const [valor, setValor] = useState("");
   const [obs,   setObs]   = useState("");
@@ -685,6 +696,12 @@ export default function AppDashboard() {
                       <div className="ap-field">
                         <label className="ap-label" htmlFor="tipo-input">MERCADO</label>
                         <CustomSelect id="tipo-input" options={TIPOS} value={tipo} onChange={setTipo} />
+                        {TIPO_DESC[tipo] && (
+                          <div className="ap-tipo-desc">
+                            <span className="ap-tipo-desc-dot" aria-hidden="true" />
+                            {TIPO_DESC[tipo]}
+                          </div>
+                        )}
                       </div>
                       <div className="ap-field">
                         <label className="ap-label" htmlFor="jogo-input">
@@ -1568,6 +1585,26 @@ body { overflow: hidden; }
 }
 .ap-config-row span:last-child { color: var(--t3); font-variant-numeric: tabular-nums; font-family: 'Courier New', monospace; font-size: 11px; }
 .ap-config-online { color: rgba(34,197,94,.6) !important; }
+
+/* ─ Tipo description ───────────────────────────────────────────────────────── */
+@keyframes ap-desc-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ap-tipo-desc {
+  display: flex; align-items: flex-start; gap: 7px;
+  font-size: 11.5px; color: var(--t2); line-height: 1.55;
+  padding: 7px 10px 7px 10px;
+  background: rgba(34,197,94,.04);
+  border: 1px solid rgba(34,197,94,.1);
+  border-radius: 7px;
+  animation: ap-desc-in .18s ease both;
+}
+.ap-tipo-desc-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(34,197,94,.45); flex-shrink: 0;
+  margin-top: 4px;
+}
 
 /* ─ Custom Select ──────────────────────────────────────────────────────────── */
 @keyframes sel-open {
