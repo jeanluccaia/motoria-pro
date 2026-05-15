@@ -9,6 +9,7 @@ const MOCK_METRICS = [
   { label: "Margem da casa (vig)",     val: "5,5%",     color: "#F59E0B" },
   { label: "Chance de perda",          val: "64,3%",    color: "#EF4444" },
   { label: "Perda esperada / R$100",   val: "−R$14,50", color: "#EF4444" },
+  { label: "Precisão do engine",       val: "94,2%",    color: "rgba(232,232,230,.36)" },
 ];
 
 const SHOW_ITEMS = [
@@ -25,10 +26,10 @@ const HIDE_ITEMS = [
 ];
 
 const DASH_CARDS = [
-  { num: "35,7%", color: "#22C55E", label: "Probabilidade implícita",  desc: "Chance mínima de ganho para o mercado equilibrar. Odd 2.80 = casa estima 35,7%." },
-  { num: "5,5%",  color: "#F59E0B", label: "Margem da casa (vig)",      desc: "Taxa invisível embutida em toda odd. Você nunca vê — mas sempre paga." },
-  { num: "64,3%", color: "#EF4444", label: "Chance de perda",           desc: "Probabilidade estimada de perder essa aposta. Calculada direto da odd fornecida." },
-  { num: "−R$14", color: "#EF4444", label: "Valor esperado / R$100",    desc: "No longo prazo, quanto você tende a perder por cada R$100 apostado nesse perfil." },
+  { num: "35,7%", color: "#22C55E", label: "Probabilidade implícita",  bar: 35.7, desc: "Chance mínima de ganho para o mercado equilibrar. Odd 2.80 = casa estima 35,7%." },
+  { num: "5,5%",  color: "#F59E0B", label: "Margem da casa (vig)",      bar: 5.5,  desc: "Taxa invisível embutida em toda odd. Você nunca vê — mas sempre paga." },
+  { num: "64,3%", color: "#EF4444", label: "Chance de perda",           bar: 64.3, desc: "Probabilidade estimada de perder essa aposta. Calculada direto da odd fornecida." },
+  { num: "−R$14", color: "#EF4444", label: "Valor esperado / R$100",    bar: 61,   desc: "No longo prazo, quanto você tende a perder por cada R$100 apostado nesse perfil." },
 ];
 
 const STEPS = [
@@ -48,7 +49,7 @@ const TESTIMONIALS = [
 
 const FEATURES = [
   "20 análises incluídas no pacote inicial",
-  "Score de Risco MotorIA™ (0–100) por análise",
+  "MotorIA Risk Index™ (0–100) por análise",
   "Probabilidade implícita calculada na hora",
   "Margem da casa (vig) decodificada por mercado",
   "Simulador de bankroll — projeção 30 e 90 dias",
@@ -149,10 +150,10 @@ export default function Landing() {
               Análise matemática<br />
               de risco em odds.
             </h1>
-            <p className="lp-hero-sub">
-              Antes de apostar, entenda a chance real de perda
-              por trás das odds.
-            </p>
+            <div className="lp-hero-insight">
+              A maioria aposta olhando retorno.<br />
+              Poucos entendem probabilidade.
+            </div>
             <div className="lp-hero-pills">
               {["Probabilidade implícita", "Margem da casa", "Score de risco", "EV por aposta"].map(t => (
                 <span className="lp-hero-pill" key={t}>{t}</span>
@@ -186,6 +187,7 @@ export default function Landing() {
                   <span className="lp-mock-dot-g" />
                 </div>
                 <span className="lp-mock-title">MotorIA™ · Análise de Risco</span>
+                <span className="lp-mock-version">v2.4</span>
                 <span className="lp-mock-live">● LIVE</span>
               </div>
               <div className="lp-mock-body">
@@ -199,6 +201,14 @@ export default function Landing() {
                     <span className="lp-mock-cell-val lp-mock-odd">2.80</span>
                   </div>
                 </div>
+                <div className="lp-mock-prob-split">
+                  <div className="lp-mock-prob-win" />
+                  <div className="lp-mock-prob-lose" />
+                </div>
+                <div className="lp-mock-prob-labels">
+                  <span className="lp-mock-prob-lbl lp-mock-prob-w">▲ Vitória 35,7%</span>
+                  <span className="lp-mock-prob-lbl lp-mock-prob-l">Derrota 64,3% ▼</span>
+                </div>
                 <div className="lp-mock-rule" />
                 <div className="lp-mock-metrics">
                   {MOCK_METRICS.map(m => (
@@ -211,11 +221,14 @@ export default function Landing() {
                 <div className="lp-mock-rule" />
                 <div className="lp-mock-score-wrap">
                   <div className="lp-mock-score-hdr">
-                    <span className="lp-mock-score-lbl">SCORE DE RISCO MOTORIA™</span>
+                    <span className="lp-mock-score-lbl">MOTORIA RISK INDEX™</span>
                     <span className="lp-mock-risk-tag">ALTO</span>
                   </div>
                   <div className="lp-mock-score-row">
-                    <span className="lp-mock-score-num">67</span>
+                    <div className="lp-mock-score-left">
+                      <span className="lp-mock-score-num">67</span>
+                      <span className="lp-mock-score-denom">/100</span>
+                    </div>
                     <div className="lp-mock-bar-wrap">
                       <div className="lp-mock-bar-track">
                         <div className="lp-mock-bar-fill" />
@@ -227,6 +240,10 @@ export default function Landing() {
                         <span>Baixo</span><span>Mod.</span><span>Alto</span><span>Crítico</span>
                       </div>
                     </div>
+                  </div>
+                  <div className="lp-mock-verdict">
+                    <span className="lp-mock-verdict-badge">DESFAVORÁVEL</span>
+                    <span className="lp-mock-verdict-detail">3 alertas críticos identificados</span>
                   </div>
                 </div>
               </div>
@@ -298,12 +315,15 @@ export default function Landing() {
               <div className="lp-dash-card" key={c.label}>
                 <div className="lp-dash-card-num" style={{ color: c.color }}>{c.num}</div>
                 <div className="lp-dash-card-label">{c.label}</div>
+                <div className="lp-dash-mini-bar">
+                  <div className="lp-dash-mini-fill" style={{ width: `${c.bar}%`, background: c.color }} />
+                </div>
                 <div className="lp-dash-card-desc">{c.desc}</div>
               </div>
             ))}
           </div>
           <div className="lp-score-scale">
-            <div className="lp-score-scale-label">Score de Risco MotorIA™ · escala completa</div>
+            <div className="lp-score-scale-label">MotorIA Risk Index™ · escala de classificação</div>
             <div className="lp-score-scale-bar">
               {[
                 { range: "0–30",   label: "BAIXO",    cls: "lp-seg-green"  },
@@ -579,7 +599,7 @@ const CSS = `
 .lp-c-amber { color: var(--amber); }
 
 /* tabular nums on all data */
-.lp-mock-odd, .lp-mock-metric-val, .lp-mock-score-num,
+.lp-mock-odd, .lp-mock-metric-val, .lp-mock-score-num, .lp-mock-score-denom,
 .lp-dash-card-num, .lp-price-int {
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum';
@@ -645,6 +665,17 @@ const CSS = `
   background: rgba(255,255,255,.04); transition: all .15s; flex-shrink: 0; white-space: nowrap;
 }
 .lp-nav-cta:hover { background: rgba(255,255,255,.08); }
+
+/* ── Hero insight (tension line) ────────────────────────────────────────────── */
+.lp-hero-insight {
+  font-size: 15px;
+  color: var(--t2);
+  line-height: 1.75;
+  letter-spacing: -0.01em;
+  padding-left: 13px;
+  border-left: 2px solid rgba(34,197,94,.32);
+  margin-bottom: 28px;
+}
 
 /* ── Hero ───────────────────────────────────────────────────────────────────── */
 .lp-hero {
@@ -805,6 +836,53 @@ const CSS = `
   font-size: 9px; color: rgba(255,255,255,.22);
   font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
 }
+/* version badge in topbar */
+.lp-mock-version {
+  font-size: 9px; font-weight: 700; letter-spacing: .08em;
+  color: var(--t3); background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08); padding: 2px 6px; border-radius: 4px;
+}
+
+/* probability split bar */
+.lp-mock-prob-split {
+  display: flex; height: 4px; border-radius: 99px; overflow: hidden;
+  margin: 12px 0 4px; gap: 1px;
+}
+.lp-mock-prob-win  { width: 35.7%; background: var(--green); border-radius: 99px 0 0 99px; }
+.lp-mock-prob-lose { flex: 1; background: var(--red); border-radius: 0 99px 99px 0; }
+.lp-mock-prob-labels {
+  display: flex; justify-content: space-between; margin-bottom: 8px;
+}
+.lp-mock-prob-lbl {
+  font-size: 9px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+}
+.lp-mock-prob-w { color: var(--green); }
+.lp-mock-prob-l { color: var(--red); }
+
+/* score left — num + denom */
+.lp-mock-score-left {
+  display: flex; align-items: flex-end; gap: 2px; flex-shrink: 0;
+}
+.lp-mock-score-denom {
+  font-size: 16px; font-weight: 700; color: var(--t3);
+  line-height: 1; margin-bottom: 10px; letter-spacing: -0.02em;
+}
+
+/* verdict row */
+.lp-mock-verdict {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.05);
+}
+.lp-mock-verdict-badge {
+  font-size: 8px; font-weight: 800; letter-spacing: .12em;
+  color: var(--red); background: rgba(239,68,68,.08);
+  border: 1px solid rgba(239,68,68,.22); padding: 3px 8px; border-radius: 4px;
+}
+.lp-mock-verdict-detail {
+  font-size: 10px; color: var(--t3);
+}
+
 .lp-mock-footer {
   padding: 8px 16px; font-size: 10px; color: var(--t3); text-align: center;
   background: rgba(255,255,255,.015); border-top: 1px solid rgba(255,255,255,.05);
@@ -874,6 +952,14 @@ const CSS = `
 .lp-dash-card-label {
   font-size: 10px; font-weight: 700; color: var(--t3);
   letter-spacing: .06em; text-transform: uppercase; line-height: 1.3;
+}
+.lp-dash-mini-bar {
+  height: 3px; background: rgba(255,255,255,.06);
+  border-radius: 99px; overflow: hidden;
+}
+.lp-dash-mini-fill {
+  height: 100%; border-radius: 99px; opacity: 0.7;
+  transition: width .3s ease;
 }
 .lp-dash-card-desc { font-size: 12px; color: var(--t3); line-height: 1.65; }
 .lp-score-scale {
@@ -1096,15 +1182,15 @@ const CSS = `
   aspect-ratio: 3/4;
   object-fit: cover;
   object-position: top center;
-  border-radius: 3px;
-  filter: grayscale(100%) contrast(1.22) brightness(0.86);
+  border-radius: 2px;
+  filter: grayscale(100%) contrast(1.35) brightness(0.82) saturate(0);
   mask-image: radial-gradient(
-    ellipse 90% 94% at 50% 22%,
-    black 30%, rgba(0,0,0,.88) 52%, rgba(0,0,0,.42) 76%, transparent 94%
+    ellipse 92% 96% at 50% 20%,
+    black 28%, rgba(0,0,0,.92) 48%, rgba(0,0,0,.48) 72%, transparent 92%
   );
   -webkit-mask-image: radial-gradient(
-    ellipse 90% 94% at 50% 22%,
-    black 30%, rgba(0,0,0,.88) 52%, rgba(0,0,0,.42) 76%, transparent 94%
+    ellipse 92% 96% at 50% 20%,
+    black 28%, rgba(0,0,0,.92) 48%, rgba(0,0,0,.48) 72%, transparent 92%
   );
 }
 .lp-founder-caption {
