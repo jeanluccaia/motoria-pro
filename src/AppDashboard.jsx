@@ -693,17 +693,24 @@ export default function AppDashboard() {
 
                 {!result && !loading && (
                   <section className="ap-input-panel">
-                    <div className="ap-panel-hdr">
+                    <div className="ap-panel-hdr ap-form-hdr">
                       <div className="ap-panel-hdr-left">
-                        <div className="ap-panel-mod">MÓDULO II</div>
-                        <div className="ap-panel-title">Parâmetros de entrada</div>
+                        <div className="ap-nova-title">NOVA ANÁLISE</div>
+                        <div className="ap-nova-sub">Configure os dados da aposta para gerar uma leitura de risco.</div>
                       </div>
-                      <div className="ap-panel-online">
+                      <div className="ap-ia-online">
                         <span className="ap-status-dot" aria-hidden="true" />
-                        SISTEMA ONLINE
+                        IA ONLINE
                       </div>
                     </div>
                     <form className="ap-form" onSubmit={handleSubmit} noValidate>
+                      <div className="ap-form-anchor" aria-hidden="true">
+                        <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
+                          <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.3"/>
+                          <path d="M6 3.5v2.3L7.5 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                        </svg>
+                        Análise matemática de risco em tempo real
+                      </div>
                       <div className="ap-row-2">
                         <div className="ap-field">
                           <label className="ap-label" htmlFor="odd-input">ODD DECIMAL</label>
@@ -778,10 +785,7 @@ export default function AppDashboard() {
                       </div>
                       {error && <div className="ap-error" role="alert">{error}</div>}
                       <button className="ap-submit" type="submit">
-                        INICIAR ANÁLISE
-                        <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                          <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                        INICIAR ANÁLISE →
                       </button>
                     </form>
                   </section>
@@ -1462,28 +1466,66 @@ body { overflow: hidden; }
 
 /* ─ Input panel ────────────────────────────────────────────────────────────── */
 .ap-input-panel {
-  background: var(--panel); border: 1px solid var(--border);
-  border-radius: 12px; padding: 20px 20px;
+  background: #0E0E14;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 14px; padding: 22px 22px;
+  box-shadow: 0 0 0 1px rgba(34,197,94,.05), 0 16px 48px rgba(0,0,0,.55);
 }
-.ap-form { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+
+/* Form header */
+.ap-form-hdr {
+  border-bottom-color: rgba(255,255,255,.07);
+}
+.ap-nova-title {
+  font-size: 18px; font-weight: 900; color: var(--t1);
+  letter-spacing: -0.03em; line-height: 1;
+}
+.ap-nova-sub {
+  font-size: 11.5px; color: var(--t2); margin-top: 5px; line-height: 1.5;
+}
+.ap-ia-online {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 8px; font-weight: 800; letter-spacing: .14em; color: rgba(34,197,94,.65);
+  flex-shrink: 0;
+}
+
+/* Form anchor strip */
+.ap-form-anchor {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  background: rgba(34,197,94,.05);
+  border: 1px solid rgba(34,197,94,.12);
+  border-radius: 8px;
+  font-size: 10px; font-weight: 700; color: rgba(34,197,94,.65);
+  letter-spacing: .05em;
+}
+
+.ap-form { display: flex; flex-direction: column; gap: 13px; margin-top: 16px; }
 .ap-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
 .ap-field { display: flex; flex-direction: column; gap: 6px; }
+
 .ap-label {
   font-size: 8.5px; font-weight: 800; letter-spacing: .15em;
-  color: var(--t3); text-transform: uppercase;
+  color: rgba(255,255,255,.52); text-transform: uppercase;
 }
 .ap-label-opt { font-weight: 500; letter-spacing: 0; text-transform: none; font-size: 8px; opacity: .7; }
+
 .ap-input {
-  background: rgba(255,255,255,.02); border: 1px solid var(--border);
-  border-radius: 8px; padding: 10px 12px;
-  font-size: 14px; font-weight: 500; color: var(--t1);
+  background: rgba(255,255,255,.045);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 8px; padding: 11px 13px;
+  font-size: 14px; font-weight: 500; color: #E8E8E6;
   outline: none; font-family: inherit; width: 100%;
-  transition: border-color .14s, background .14s;
+  transition: border-color .15s, background .15s, box-shadow .15s;
 }
-.ap-input:focus { border-color: rgba(34,197,94,.26); background: rgba(255,255,255,.026); }
-.ap-input::placeholder { color: var(--t3); }
+.ap-input:focus {
+  border-color: rgba(34,197,94,.42);
+  background: rgba(34,197,94,.03);
+  box-shadow: 0 0 0 3px rgba(34,197,94,.09);
+}
+.ap-input::placeholder { color: rgba(255,255,255,.28); }
 .ap-input-odd {
-  font-size: 20px; font-weight: 700; letter-spacing: -0.03em;
+  font-size: 22px; font-weight: 700; letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums; font-feature-settings: 'tnum';
 }
 .ap-select { cursor: pointer; }
@@ -1500,16 +1542,22 @@ body { overflow: hidden; }
   background: rgba(239,68,68,.06); border: 1px solid rgba(239,68,68,.18);
   border-radius: 8px; padding: 10px 12px;
 }
+
 .ap-submit {
   display: flex; align-items: center; justify-content: center; gap: 9px;
-  background: var(--t1); color: #060608;
-  font-size: 11px; font-weight: 900; letter-spacing: .14em;
-  padding: 13px 20px; border-radius: 8px; border: none; cursor: pointer;
-  font-family: inherit; margin-top: 3px;
-  transition: opacity .14s, transform .1s;
+  background: var(--green); color: #060608;
+  font-size: 11.5px; font-weight: 900; letter-spacing: .14em;
+  padding: 15px 20px; border-radius: 9px; border: none; cursor: pointer;
+  font-family: inherit; margin-top: 4px;
+  box-shadow: 0 4px 20px rgba(34,197,94,.25);
+  transition: background .15s, box-shadow .15s, transform .1s;
 }
-.ap-submit:hover { opacity: .87; transform: translateY(-1px); }
-.ap-submit:active { transform: translateY(0); opacity: .95; }
+.ap-submit:hover {
+  background: #1db954;
+  box-shadow: 0 6px 28px rgba(34,197,94,.38);
+  transform: translateY(-1px);
+}
+.ap-submit:active { transform: translateY(0); box-shadow: 0 2px 10px rgba(34,197,94,.2); }
 
 /* ─ Loading ────────────────────────────────────────────────────────────────── */
 .ap-loading {
@@ -1928,18 +1976,19 @@ body { overflow: hidden; }
   to   { opacity: 1; transform: translateY(0); }
 }
 .ap-tipo-desc {
-  display: flex; align-items: flex-start; gap: 7px;
-  font-size: 11.5px; color: var(--t2); line-height: 1.55;
-  padding: 7px 10px 7px 10px;
-  background: rgba(34,197,94,.04);
-  border: 1px solid rgba(34,197,94,.1);
-  border-radius: 7px;
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 11.5px; color: rgba(255,255,255,.55); line-height: 1.6;
+  padding: 9px 12px;
+  background: rgba(34,197,94,.06);
+  border: 1px solid rgba(34,197,94,.14);
+  border-radius: 8px;
   animation: ap-desc-in .18s ease both;
 }
 .ap-tipo-desc-dot {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: rgba(34,197,94,.45); flex-shrink: 0;
-  margin-top: 4px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green); flex-shrink: 0;
+  margin-top: 5px; opacity: .75;
+  animation: ap-pulse 2.4s ease-in-out infinite;
 }
 
 /* ─ Custom Select ──────────────────────────────────────────────────────────── */
@@ -1954,21 +2003,21 @@ body { overflow: hidden; }
 
 .sel-trigger {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  width: 100%; padding: 10px 12px;
-  background: rgba(255,255,255,.02); border: 1px solid var(--border);
+  width: 100%; padding: 11px 13px;
+  background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.10);
   border-radius: 8px; cursor: pointer; font-family: inherit;
-  font-size: 14px; font-weight: 500; color: var(--t1);
+  font-size: 14px; font-weight: 500; color: #E8E8E6;
   outline: none; text-align: left;
-  transition: border-color .14s, background .14s, box-shadow .14s;
+  transition: border-color .15s, background .15s, box-shadow .15s;
   -webkit-appearance: none; appearance: none;
 }
 .sel-trigger:hover {
-  background: rgba(255,255,255,.028); border-color: rgba(255,255,255,.1);
+  background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.16);
 }
 .sel-trigger-open {
-  border-color: rgba(34,197,94,.32) !important;
-  background: rgba(34,197,94,.025) !important;
-  box-shadow: 0 0 0 3px rgba(34,197,94,.06), inset 0 0 18px rgba(34,197,94,.03);
+  border-color: rgba(34,197,94,.42) !important;
+  background: rgba(34,197,94,.03) !important;
+  box-shadow: 0 0 0 3px rgba(34,197,94,.09);
 }
 
 .sel-val {
@@ -2054,6 +2103,13 @@ body { overflow: hidden; }
   .ap-hist-row { grid-template-columns: 1fr 36px 28px 52px; }
   .ap-hist-id, .ap-hist-odd, .ap-hist-bar, .ap-hist-ts { display: none; }
   .ap-loading-pct { font-size: 44px; }
+
+  /* Form mobile */
+  .ap-input-panel { padding: 16px 15px; }
+  .ap-nova-title { font-size: 16px; }
+  .ap-nova-sub { font-size: 11px; }
+  .ap-submit { padding: 16px 20px; font-size: 12px; }
+  .ap-form-anchor { font-size: 9.5px; }
 
   /* Dashboard mobile */
   .db-cards { grid-template-columns: 1fr; }
