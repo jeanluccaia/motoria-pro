@@ -30,12 +30,12 @@ const TIPO_DESC = {
 };
 
 const LOAD_STEPS = [
-  { label: "Calibrando modelo probabilístico",   pct: 16 },
-  { label: "Calculando probabilidade implícita", pct: 32 },
-  { label: "Detectando distorção da casa",       pct: 52 },
-  { label: "Estimando valor esperado",           pct: 70 },
-  { label: "Computando MOTORIA RISK INDEX™",     pct: 86 },
-  { label: "Compilando relatório quantitativo",  pct: 96 },
+  { label: "Analisando odd informada",        pct: 16 },
+  { label: "Calculando chance estimada",       pct: 32 },
+  { label: "Medindo exposição da banca",       pct: 52 },
+  { label: "Avaliando retorno esperado",       pct: 70 },
+  { label: "Gerando leitura da IA",            pct: 86 },
+  { label: "Compilando painel de análise",     pct: 96 },
 ];
 
 const TOKEN_KEY   = "motoria_token";
@@ -192,6 +192,32 @@ function ComingSoon({ mod, title, desc }) {
       </div>
     </div>
   );
+}
+
+// ─── Dashboard helpers ────────────────────────────────────────────────────────
+
+function getRiscoFrase(score) {
+  if (score <= 30) return "Exposição dentro do esperado.";
+  if (score <= 55) return "Cenário exige atenção. Revise antes de confirmar.";
+  if (score <= 75) return "Risco acima do ideal. Melhor rever o valor.";
+  return "Exposição muito alta. Cautela recomendada.";
+}
+
+function deriveLeituraIA(score) {
+  if (score <= 30) return { text: "Cenário equilibrado",  color: "#22C55E", sub: "Exposição dentro do esperado para o perfil." };
+  if (score <= 55) return { text: "Ok com cautela",       color: "#F59E0B", sub: "Revise o valor apostado antes de confirmar." };
+  if (score <= 75) return { text: "Risco elevado",        color: "#F97316", sub: "Cenário menos favorável. Exposição acima do ideal." };
+  return             { text: "Exposição agressiva",  color: "#EF4444", sub: "Risco alto. Melhor revisar banca e odd." };
+}
+
+function deriveBullets(r) {
+  const bullets = [];
+  if (r.ai?.riscoPrincipal)      bullets.push(r.ai.riscoPrincipal);
+  if (r.ai?.cenarioNecessario)   bullets.push(r.ai.cenarioNecessario);
+  if (r.ai?.leituraConservadora) bullets.push(r.ai.leituraConservadora);
+  if (parseFloat(r.ev) < -5)    bullets.push(`Retorno esperado negativo: R$ ${r.ev} por R$ 100 apostados.`);
+  if (r.ai?.alertaFinal && bullets.length < 4) bullets.push(r.ai.alertaFinal);
+  return bullets.slice(0, 5);
 }
 
 // ─── CustomSelect ─────────────────────────────────────────────────────────────
@@ -377,18 +403,21 @@ export default function AppDashboard() {
       const scoreObj = calcScore(oddNum);
       const exposure = Math.min(100, Math.round((100 - justa) * 1.1));
 
+      const valorNum = parseFloat(valor) || 100;
       const r = {
         id: Math.floor(Math.random() * 8000) + 2000,
         ts: fmtTime(),
         jogo: jogo || "Aposta",
         tipo,
         odd: oddNum,
-        impl:     impl.toFixed(2),
-        justa:    justa.toFixed(2),
-        vig:      vig.toFixed(2),
-        ev:       ev.toFixed(2),
-        perda:    (100 - impl).toFixed(1),
+        impl:        impl.toFixed(2),
+        justa:       justa.toFixed(2),
+        vig:         vig.toFixed(2),
+        ev:          ev.toFixed(2),
+        perda:       (100 - impl).toFixed(1),
         exposure,
+        valorAposta: valorNum,
+        valorRisco:  ((valorNum * (100 - impl)) / 100).toFixed(2),
         ...scoreObj,
         ai: parseAI(rawText),
       };
@@ -408,6 +437,23 @@ export default function AppDashboard() {
 
   function loadFromHistory(item) { setResult(item); setJogo(item.jogo || ""); setOdd(String(item.odd)); setView("nova"); }
   function resetForm() { setResult(null); setError(""); }
+  function handleCopy(r, bullets) {
+    const riskLbl = r.label === "CRÍTICO" ? "MUITO ALTO" : r.label;
+    const lines = [
+      `MotorIA Pro · Análise #${r.id}`,
+      `${r.jogo} | ${r.tipo} | Odd ${r.odd.toFixed(2)}`,
+      ``,
+      `Risco da Aposta: ${r.score}/100 · ${riskLbl}`,
+      `Chance Estimada: ${r.impl}%`,
+      r.valorRisco ? `Valor em Risco: R$ ${r.valorRisco}` : null,
+      ``,
+      `Resumo:`,
+      ...bullets.map(b => `• ${b}`),
+      ``,
+      `Análise educativa. Não representa garantia de resultado.`,
+    ].filter(l => l !== null).join("\n");
+    navigator.clipboard.writeText(lines).catch(() => {});
+  }
 
   // ─── Sidebar nav structure ──────────────────────────────────────────────────
   const NAV = [
@@ -771,131 +817,197 @@ export default function AppDashboard() {
                   </div>
                 )}
 
-                {/* Output */}
-                {result && !loading && (
-                  <div className="ap-output">
-                    <div className="ap-output-topbar">
-                      <div className="ap-output-meta">
-                        <span className="ap-output-id">#{result.id}</span>
-                        <span className="ap-output-dot" aria-hidden="true">·</span>
-                        <span className="ap-output-ts">{result.ts}</span>
-                        {result.jogo && result.jogo !== "Aposta" && (
-                          <>
-                            <span className="ap-output-dot" aria-hidden="true">·</span>
-                            <span className="ap-output-event">{result.jogo}</span>
-                          </>
+                {/* Output — Dashboard Premium */}
+                {result && !loading && (() => {
+                  const leitura = deriveLeituraIA(result.score);
+                  const bullets = deriveBullets(result);
+                  const riskLbl = result.label === "CRÍTICO" ? "MUITO ALTO" : result.label;
+                  const evNum   = parseFloat(result.ev);
+                  return (
+                  <div className="db-output" role="region" aria-label="Resultado da análise">
+
+                    {/* ── Topbar ────────────────────────────────────── */}
+                    <div className="db-topbar">
+                      <div className="db-topbar-meta">
+                        <span className="db-id">#{result.id}</span>
+                        <span className="db-sep" aria-hidden="true">·</span>
+                        <span className="db-ts">{result.ts}</span>
+                        <span className="db-sep" aria-hidden="true">·</span>
+                        <span className="db-ai-badge">
+                          <span className="db-ai-dot" aria-hidden="true" />
+                          Análise gerada pela IA
+                        </span>
+                      </div>
+                      <button className="db-btn-ghost" onClick={resetForm} aria-label="Iniciar nova análise">
+                        <svg width="10" height="10" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                          <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        Nova análise
+                      </button>
+                    </div>
+
+                    {/* ── Event strip ───────────────────────────────── */}
+                    <div className="db-event-strip">
+                      {result.jogo !== "Aposta" && (
+                        <span className="db-event-name">{result.jogo}</span>
+                      )}
+                      {result.jogo !== "Aposta" && <span className="db-strip-sep" aria-hidden="true" />}
+                      <span className="db-event-tag">{result.tipo}</span>
+                      <span className="db-strip-sep" aria-hidden="true" />
+                      <span className="db-event-odd">Odd <strong>{result.odd.toFixed(2)}</strong></span>
+                      {result.valorAposta && (
+                        <>
+                          <span className="db-strip-sep" aria-hidden="true" />
+                          <span className="db-event-valor">R$ {result.valorAposta.toFixed(0)}</span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* ── 4 Cards ───────────────────────────────────── */}
+                    <div className="db-cards">
+
+                      {/* Card 1 — Risco da Aposta */}
+                      <div className="db-card db-card-risco">
+                        <div className="db-card-label">Risco da Aposta</div>
+                        <div className="db-risco-score" style={{ color: result.color }}>
+                          {result.score}
+                          <span className="db-risco-denom">/100</span>
+                        </div>
+
+                        {/* Risk bar com zonas de cor */}
+                        <div className="db-rbar-wrap" role="img" aria-label={`Risco ${result.score} de 100`}>
+                          <div className="db-rbar-track">
+                            <div className="db-rbar-zone db-rbar-z1" />
+                            <div className="db-rbar-zone db-rbar-z2" />
+                            <div className="db-rbar-zone db-rbar-z3" />
+                            <div className="db-rbar-zone db-rbar-z4" />
+                            <div
+                              className="db-rbar-marker"
+                              style={{ left: `calc(${Math.min(result.score, 98)}% - 5px)` }}
+                            />
+                          </div>
+                          <div className="db-rbar-labels">
+                            <span>Baixo</span>
+                            <span>Moderado</span>
+                            <span>Alto</span>
+                            <span>Muito Alto</span>
+                          </div>
+                        </div>
+
+                        <div className="db-card-level" style={{ color: result.color }}>{riskLbl}</div>
+                        <div className="db-card-sub">{getRiscoFrase(result.score)}</div>
+                      </div>
+
+                      {/* Card 2 — Chance Estimada */}
+                      <div className="db-card db-card-chance">
+                        <div className="db-card-label">Chance Estimada</div>
+                        <div className="db-big-num db-big-green">
+                          {result.impl}<span className="db-big-sym">%</span>
+                        </div>
+                        <div className="db-card-sub">Baseada na odd {result.odd.toFixed(2)}</div>
+                        <div className="db-mini-table">
+                          <div className="db-mini-row">
+                            <span>Margem da casa</span>
+                            <span className="db-amber">{result.vig}%</span>
+                          </div>
+                          <div className="db-mini-row">
+                            <span>Prob. justa</span>
+                            <span>{result.justa}%</span>
+                          </div>
+                          <div className="db-mini-row">
+                            <span>Chance de perda</span>
+                            <span className="db-red">{result.perda}%</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card 3 — Valor em Risco */}
+                      <div className="db-card db-card-valor">
+                        <div className="db-card-label">Valor em Risco</div>
+                        <div className="db-big-num db-big-red">
+                          R$ <span>{result.valorRisco || "—"}</span>
+                        </div>
+                        <div className="db-card-sub">
+                          de R$ {result.valorAposta?.toFixed(0) || "—"} apostados
+                        </div>
+                        <div className="db-mini-table">
+                          <div className="db-mini-row">
+                            <span>Retorno esperado</span>
+                            <span className={evNum >= 0 ? "db-green" : "db-red"}>
+                              {evNum >= 0 ? "+" : ""}R$ {Math.abs(evNum).toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="db-mini-row">
+                            <span>Por R$ 100 apostados</span>
+                            <span className="db-muted">referência</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card 4 — Leitura da IA */}
+                      <div className="db-card db-card-leitura">
+                        <div className="db-card-label">Leitura da IA</div>
+                        <div className="db-leitura-status" style={{ color: leitura.color }}>
+                          <span className="db-leitura-dot" style={{ background: leitura.color }} aria-hidden="true" />
+                          {leitura.text}
+                        </div>
+                        <div className="db-card-sub">{leitura.sub}</div>
+                        {result.ai?.oQuePodeDarErrado && (
+                          <div className="db-leitura-detail">
+                            <span className="db-leitura-detail-lbl">Ponto de atenção</span>
+                            <span className="db-leitura-detail-txt">{result.ai.oQuePodeDarErrado}</span>
+                          </div>
                         )}
                       </div>
-                      <button className="ap-btn-nova" onClick={resetForm}>Nova análise</button>
-                    </div>
 
-                    {/* Score hero */}
-                    <div className="ap-score-hero">
-                      <div className="ap-gauge-wrap">
-                        <div
-                          className="ap-gauge"
-                          style={{ background: `conic-gradient(${result.color} 0% ${result.score}%, rgba(255,255,255,.05) ${result.score}% 100%)` }}
-                          role="img"
-                          aria-label={`MOTORIA RISK INDEX: ${result.score} de 100`}
-                        >
-                          <div className="ap-gauge-inner">
-                            <span className="ap-gauge-num">{result.score}</span>
-                            <span className="ap-gauge-denom">/100</span>
-                          </div>
-                        </div>
-                        <span className="ap-gauge-name">MOTORIA RISK INDEX™</span>
-                        <span className="ap-gauge-ci">IC 95% · [{Math.max(0, result.score - 6)} — {Math.min(100, result.score + 6)}]</span>
-                      </div>
+                    </div>{/* /db-cards */}
 
-                      <div className="ap-score-side">
-                        <div className="ap-risk-badge" style={{ color: result.color, borderColor: `${result.color}28`, background: `${result.color}0c` }}>
-                          {result.label}
+                    {/* ── Resumo da análise ─────────────────────────── */}
+                    {bullets.length > 0 && (
+                      <div className="db-summary">
+                        <div className="db-summary-hdr">
+                          <span className="db-summary-title">Resumo da análise</span>
+                          <span className="db-summary-tag">MotorIA Engine™</span>
                         </div>
-                        <div className="ap-verdict" style={{ color: result.color }}>{result.verdict}</div>
-                        <div className="ap-score-data">
-                          <div className="ap-score-data-row">
-                            <span className="ap-score-data-lbl">ODD</span>
-                            <span className="ap-score-data-val ap-score-data-val-lg">{result.odd.toFixed(2)}</span>
-                          </div>
-                          <div className="ap-score-data-row">
-                            <span className="ap-score-data-lbl">MERCADO</span>
-                            <span className="ap-score-data-val">{result.tipo}</span>
-                          </div>
-                          <div className="ap-score-data-row">
-                            <span className="ap-score-data-lbl">EXPOSURE LEVEL™</span>
-                            <div className="ap-exposure-row">
-                              <div className="ap-exposure-track">
-                                <div className="ap-exposure-fill" style={{ width: `${result.exposure}%`, background: result.color }} />
-                              </div>
-                              <span className="ap-exposure-val" style={{ color: result.color }}>{result.exposure}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Probability Distortion */}
-                    <div className="ap-prob-panel">
-                      <div className="ap-prob-hdr">
-                        <span className="ap-prob-title">PROBABILITY DISTORTION™</span>
-                        <span className="ap-prob-vig">HOUSE MARGIN {result.vig}%</span>
-                      </div>
-                      <div className="ap-prob-bar" role="img" aria-label={`Vitória ${result.impl}%, derrota ${result.perda}%`}>
-                        <div className="ap-prob-win" style={{ width: `${result.impl}%` }} />
-                        <div className="ap-prob-lose" />
-                      </div>
-                      <div className="ap-prob-labels">
-                        <span className="ap-prob-w">VITÓRIA · {result.impl}%</span>
-                        <span className="ap-prob-l">DERROTA · {result.perda}%</span>
-                      </div>
-                    </div>
-
-                    {/* Metrics grid */}
-                    <div className="ap-metrics-grid">
-                      <MetricCard label="PROB. IMPLÍCITA"   value={`${result.impl}%`}  color="#22C55E" sub="Chance atribuída pela casa" />
-                      <MetricCard label="PROB. JUSTA"       value={`${result.justa}%`} color="rgba(232,232,230,.38)" sub="Sem margem da casa" />
-                      <MetricCard label="HOUSE MARGIN"      value={`${result.vig}%`}   color="#F59E0B" sub="Distorção embutida" tm />
-                      <MetricCard
-                        label="EV / R$100"
-                        value={`${parseFloat(result.ev) >= 0 ? "+" : ""}R$${Math.abs(parseFloat(result.ev)).toFixed(2)}`}
-                        color={parseFloat(result.ev) >= 0 ? "#22C55E" : "#EF4444"}
-                        sub="Retorno esperado"
-                      />
-                      <MetricCard label="RISK EXPOSURE"     value={`${result.perda}%`} color="#EF4444" sub="Probabilidade de derrota" tm />
-                      <MetricCard label="SIGNAL CONFIDENCE" value="94,2%"              color="rgba(232,232,230,.22)" sub="Confiança do modelo" tm />
-                    </div>
-
-                    {/* AI Modules */}
-                    {result.ai && (
-                      <div className="ap-ai-section">
-                        <div className="ap-ai-hdr">
-                          <span className="ap-ai-hdr-title">ANÁLISE QUALITATIVA</span>
-                          <span className="ap-ai-hdr-tag">MotorIA Engine™</span>
-                        </div>
-                        <div className="ap-ai-grid">
-                          <ModuleCard mod="MOD-01" title="RISCO PRINCIPAL">{result.ai.riscoPrincipal}</ModuleCard>
-                          <ModuleCard mod="MOD-02" title="CENÁRIO NECESSÁRIO">{result.ai.cenarioNecessario}</ModuleCard>
-                          <ModuleCard mod="MOD-03" title="PONTOS DE FALHA">{result.ai.oQuePodeDarErrado}</ModuleCard>
-                          <ModuleCard mod="MOD-04" title="LEITURA CONSERVADORA">{result.ai.leituraConservadora}</ModuleCard>
-                        </div>
-                        {result.ai.alertaFinal && (
-                          <div className="ap-alerta">
-                            <div className="ap-alerta-hdr">
-                              <span className="ap-alerta-icon" aria-hidden="true">▲</span>
-                              <span className="ap-alerta-tag">RISK SIGNAL™</span>
-                            </div>
-                            <p className="ap-alerta-text">{result.ai.alertaFinal}</p>
-                          </div>
-                        )}
+                        <ul className="db-bullets" aria-label="Pontos principais da análise">
+                          {bullets.map((b, i) => (
+                            <li key={i} className="db-bullet">
+                              <span className="db-bullet-dot" aria-hidden="true" />
+                              <span>{b}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     )}
 
-                    <p className="ap-disclaimer">
-                      Ferramenta educativa · Não constitui recomendação de aposta ·
-                      MotorIA Risk Engine™ v2.4
+                    {/* ── Ações ─────────────────────────────────────── */}
+                    <div className="db-actions">
+                      <button className="db-btn-primary" onClick={resetForm}>
+                        <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                          <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        Nova análise
+                      </button>
+                      <button
+                        className="db-btn-copy"
+                        onClick={() => handleCopy(result, bullets)}
+                        title="Copiar resumo da análise"
+                      >
+                        <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                          <rect x="5" y="5" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
+                          <path d="M9 5V3a1 1 0 00-1-1H3a1 1 0 00-1 1v5a1 1 0 001 1h2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                        </svg>
+                        Copiar resumo
+                      </button>
+                    </div>
+
+                    <p className="db-disclaimer">
+                      Análise educativa. Não representa garantia de resultado.
+                      A decisão é sua.
                     </p>
                   </div>
-                )}
+                  );
+                })()}
               </div>
             )}
 
@@ -1586,6 +1698,230 @@ body { overflow: hidden; }
 .ap-config-row span:last-child { color: var(--t3); font-variant-numeric: tabular-nums; font-family: 'Courier New', monospace; font-size: 11px; }
 .ap-config-online { color: rgba(34,197,94,.6) !important; }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   DASHBOARD DE RESULTADO — componentes db-*
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes db-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes db-card-in {
+  from { opacity: 0; transform: translateY(6px) scale(.99); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+@keyframes db-bar-in {
+  from { width: 0; }
+}
+
+/* ── Wrapper ──────────────────────────────────────────────────────────────── */
+.db-output {
+  display: flex; flex-direction: column; gap: 10px;
+  animation: db-in .25s ease both;
+}
+
+/* ── Topbar ───────────────────────────────────────────────────────────────── */
+.db-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+}
+.db-topbar-meta  { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.db-id   { font-size: 9px; font-weight: 800; letter-spacing: .14em; color: rgba(34,197,94,.5); font-family: 'Courier New', monospace; }
+.db-ts   { font-size: 10px; color: var(--t3); font-variant-numeric: tabular-nums; font-family: 'Courier New', monospace; }
+.db-sep  { color: var(--t3); font-size: 10px; }
+.db-ai-badge {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 9px; font-weight: 700; letter-spacing: .05em; color: var(--t3);
+}
+.db-ai-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--green);
+  animation: ap-pulse 2.5s ease-in-out infinite;
+}
+.db-btn-ghost {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; font-weight: 700; color: var(--t2);
+  background: rgba(255,255,255,.04); border: 1px solid var(--border);
+  border-radius: 6px; padding: 5px 13px; cursor: pointer;
+  transition: all .14s; font-family: inherit; letter-spacing: .04em;
+}
+.db-btn-ghost:hover { color: var(--t1); border-color: var(--bmd); }
+
+/* ── Event strip ──────────────────────────────────────────────────────────── */
+.db-event-strip {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 11px 16px;
+}
+.db-strip-sep {
+  width: 1px; height: 12px; background: var(--border); flex-shrink: 0;
+}
+.db-event-name  { font-size: 13px; font-weight: 700; color: var(--t1); letter-spacing: -0.02em; }
+.db-event-tag   { font-size: 11px; font-weight: 600; color: var(--t2); }
+.db-event-odd   { font-size: 11px; color: var(--t3); font-variant-numeric: tabular-nums; }
+.db-event-odd strong { color: var(--t1); font-weight: 700; }
+.db-event-valor { font-size: 11px; color: var(--t3); font-variant-numeric: tabular-nums; }
+
+/* ── Cards grid ───────────────────────────────────────────────────────────── */
+.db-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 8px;
+}
+.db-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; padding: 18px 18px;
+  display: flex; flex-direction: column; gap: 10px;
+  animation: db-card-in .28s ease both;
+  transition: border-color .14s;
+}
+.db-card:hover { border-color: var(--bmd); }
+
+.db-card-label {
+  font-size: 8.5px; font-weight: 800; letter-spacing: .18em;
+  color: var(--t3); text-transform: uppercase;
+}
+
+/* ── Card 1: Risco ────────────────────────────────────────────────────────── */
+.db-card-risco { grid-column: 1 / -1; } /* full width */
+
+.db-risco-score {
+  font-size: 72px; font-weight: 900; line-height: 1;
+  letter-spacing: -0.06em; font-variant-numeric: tabular-nums;
+  transition: color .4s;
+}
+.db-risco-denom { font-size: 26px; font-weight: 600; color: var(--t3); letter-spacing: 0; }
+
+.db-rbar-wrap { display: flex; flex-direction: column; gap: 6px; }
+.db-rbar-track {
+  position: relative; height: 8px; border-radius: 99px; overflow: visible;
+  display: flex; gap: 2px;
+}
+.db-rbar-zone {
+  flex: 1; height: 8px; border-radius: 99px;
+}
+.db-rbar-z1 { background: rgba(34,197,94,.25); }
+.db-rbar-z2 { background: rgba(245,158,11,.25); }
+.db-rbar-z3 { background: rgba(249,115,22,.25); }
+.db-rbar-z4 { background: rgba(239,68,68,.25); }
+.db-rbar-marker {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--t1); border: 2px solid var(--panel);
+  box-shadow: 0 0 0 3px rgba(255,255,255,.18);
+  transition: left .6s cubic-bezier(.22,.68,0,1.2);
+  z-index: 2;
+}
+.db-rbar-labels {
+  display: flex; justify-content: space-between;
+  font-size: 7.5px; font-weight: 700; letter-spacing: .06em; color: var(--t3);
+}
+
+.db-card-level {
+  font-size: 13px; font-weight: 800; letter-spacing: .1em;
+  text-transform: uppercase; transition: color .4s;
+}
+.db-card-sub {
+  font-size: 12px; color: var(--t3); line-height: 1.55;
+}
+
+/* ── Cards 2–4 shared ─────────────────────────────────────────────────────── */
+.db-big-num {
+  font-size: 42px; font-weight: 900; line-height: 1;
+  letter-spacing: -0.05em; font-variant-numeric: tabular-nums;
+}
+.db-big-sym { font-size: 22px; font-weight: 600; color: var(--t3); }
+.db-big-green { color: #22C55E; }
+.db-big-red   { color: #EF4444; font-size: 32px; }
+
+.db-mini-table { display: flex; flex-direction: column; gap: 5px; margin-top: 2px; }
+.db-mini-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px; color: var(--t3); gap: 8px;
+}
+.db-mini-row span:last-child {
+  font-weight: 700; font-variant-numeric: tabular-nums; text-align: right;
+  color: var(--t2);
+}
+.db-green  { color: #22C55E !important; }
+.db-amber  { color: #F59E0B !important; }
+.db-red    { color: #EF4444 !important; }
+.db-muted  { color: var(--t3) !important; font-weight: 500 !important; }
+
+/* ── Card 4: Leitura IA ───────────────────────────────────────────────────── */
+.db-leitura-status {
+  display: flex; align-items: center; gap: 9px;
+  font-size: 18px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2;
+  transition: color .3s;
+}
+.db-leitura-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  animation: ap-pulse 2.8s ease-in-out infinite;
+}
+.db-leitura-detail {
+  display: flex; flex-direction: column; gap: 4px;
+  background: rgba(255,255,255,.025); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px; margin-top: 2px;
+}
+.db-leitura-detail-lbl {
+  font-size: 8px; font-weight: 800; letter-spacing: .12em; color: var(--t3); text-transform: uppercase;
+}
+.db-leitura-detail-txt { font-size: 11.5px; color: var(--t2); line-height: 1.65; }
+
+/* ── Summary ──────────────────────────────────────────────────────────────── */
+.db-summary {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.db-summary-hdr {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.db-summary-title {
+  font-size: 8.5px; font-weight: 800; letter-spacing: .16em; color: var(--t3); text-transform: uppercase;
+}
+.db-summary-tag {
+  font-size: 8px; font-weight: 700; letter-spacing: .06em; color: rgba(34,197,94,.38);
+}
+.db-bullets { display: flex; flex-direction: column; gap: 8px; list-style: none; }
+.db-bullet {
+  display: flex; align-items: flex-start; gap: 9px;
+  font-size: 12.5px; color: var(--t2); line-height: 1.7;
+}
+.db-bullet-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(34,197,94,.4); flex-shrink: 0; margin-top: 6px;
+}
+
+/* ── Actions ──────────────────────────────────────────────────────────────── */
+.db-actions {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.db-btn-primary {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--t1); color: #060608;
+  font-size: 11px; font-weight: 900; letter-spacing: .12em;
+  padding: 12px 22px; border-radius: 8px; border: none; cursor: pointer;
+  font-family: inherit; transition: opacity .14s, transform .1s;
+}
+.db-btn-primary:hover  { opacity: .88; transform: translateY(-1px); }
+.db-btn-primary:active { transform: translateY(0); opacity: .95; }
+.db-btn-copy {
+  display: flex; align-items: center; gap: 7px;
+  background: transparent; color: var(--t2);
+  font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  padding: 11px 18px; border-radius: 8px;
+  border: 1px solid var(--border); cursor: pointer;
+  font-family: inherit; transition: all .14s;
+}
+.db-btn-copy:hover { color: var(--t1); border-color: var(--bmd); background: rgba(255,255,255,.03); }
+
+/* ── Disclaimer ───────────────────────────────────────────────────────────── */
+.db-disclaimer {
+  font-size: 10px; color: var(--t3); text-align: center;
+  padding-top: 6px; border-top: 1px solid var(--border); line-height: 1.6;
+}
+
 /* ─ Tipo description ───────────────────────────────────────────────────────── */
 @keyframes ap-desc-in {
   from { opacity: 0; transform: translateY(-3px); }
@@ -1718,5 +2054,18 @@ body { overflow: hidden; }
   .ap-hist-row { grid-template-columns: 1fr 36px 28px 52px; }
   .ap-hist-id, .ap-hist-odd, .ap-hist-bar, .ap-hist-ts { display: none; }
   .ap-loading-pct { font-size: 44px; }
+
+  /* Dashboard mobile */
+  .db-cards { grid-template-columns: 1fr; }
+  .db-card-risco { grid-column: 1; }
+  .db-risco-score { font-size: 56px; }
+  .db-big-num { font-size: 36px; }
+  .db-big-red { font-size: 28px; }
+  .db-leitura-status { font-size: 16px; }
+  .db-card { padding: 16px 15px; }
+  .db-event-strip { gap: 7px; padding: 10px 13px; }
+  .db-actions { flex-direction: column; align-items: stretch; }
+  .db-btn-primary, .db-btn-copy { justify-content: center; padding: 14px 20px; }
+  .db-rbar-labels { font-size: 7px; }
 }
 `;
