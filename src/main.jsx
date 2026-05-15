@@ -10,19 +10,21 @@ import { GLOBAL_CSS } from "./Layout";
   The Suspense fallback is intentionally minimal (dark bg only, no spinner)
   so there is no visible flash or layout shift.
 */
-const Landing   = lazy(() => import("./Landing"));
-const Tool      = lazy(() => import("./Tool"));
-const Analisar  = lazy(() => import("./Analisar"));
-const Obrigado  = lazy(() => import("./Obrigado"));
-const AppMembro = lazy(() => import("./AppMembro"));
+const Landing      = lazy(() => import("./Landing"));
+const Tool         = lazy(() => import("./Tool"));
+const AppDashboard = lazy(() => import("./AppDashboard"));
+const Analisar     = lazy(() => import("./Analisar"));
+const Obrigado     = lazy(() => import("./Obrigado"));
+const AppMembro    = lazy(() => import("./AppMembro"));
 
 function App() {
   const { path } = useRouter();
 
-  if (path === "/ferramenta" || path === "/app") return <Tool />;
+  if (path === "/ferramenta") return <Tool />;          // legado — mantido
+  if (path === "/app")        return <AppDashboard />;  // novo produto
   if (path === "/analisar")   return <Analisar />;
   if (path === "/obrigado")   return <Obrigado />;
-  if (path === "/app")        return <AppMembro />;
+  if (path === "/membro")     return <AppMembro />;
   if (path === "/pagar") {
     window.location.replace("https://pay.kiwify.com.br/DIVD8zl");
     return null;
