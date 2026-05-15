@@ -148,6 +148,25 @@ export default function AppDashboard() {
     return () => { document.title = prev; };
   }, []);
 
+  // Auto-leitura de token via URL ?t=<uuid> (link do email de compra)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const urlToken = params.get("t") || params.get("token");
+      if (urlToken && urlToken.length > 10) {
+        localStorage.setItem(TOKEN_KEY, urlToken);
+        setToken(urlToken);
+        setAccessBanner(true);
+        // Limpa o token da URL sem recarregar a página
+        const clean = window.location.pathname;
+        window.history.replaceState(null, "", clean);
+        // Esconde o banner após 4 segundos
+        const t = setTimeout(() => setAccessBanner(false), 4000);
+        return () => clearTimeout(t);
+      }
+    } catch {}
+  }, []);
+
   // Live clock
   const [now, setNow] = useState(new Date());
   useEffect(() => {
@@ -179,6 +198,7 @@ export default function AppDashboard() {
   const [token,      setToken]      = useState(() => localStorage.getItem(TOKEN_KEY) || "");
   const [credits,    setCredits]    = useState(null);
   const [analysisId, setAnalysisId] = useState(null);
+  const [accessBanner, setAccessBanner] = useState(false);
 
   const oddNum = parseFloat((odd || "").replace(",", "."));
   const oddPreview = odd && !isNaN(oddNum) && oddNum >= 1.01 ? calcScore(oddNum) : null;
@@ -274,6 +294,14 @@ export default function AppDashboard() {
       )}
 
       <div className="ap-shell">
+
+        {/* ── ACCESS BANNER ───────────────────────────────────────────────── */}
+        {accessBanner && (
+          <div className="ap-access-banner" role="status" aria-live="polite">
+            <span className="ap-access-banner-dot" aria-hidden="true" />
+            Acesso ativado — plataforma pronta para uso
+          </div>
+        )}
 
         {/* ── TOPBAR ──────────────────────────────────────────────────────── */}
         <header className="ap-topbar">
@@ -1231,6 +1259,25 @@ body { overflow: hidden; }
 }
 .ap-config-row span:last-child { color: var(--t3); font-variant-numeric: tabular-nums; font-family: 'Courier New', monospace; font-size: 11px; }
 .ap-config-online { color: rgba(34,197,94,.6) !important; }
+
+/* ─ Access banner ────────────────────────────────────────────────────────── */
+@keyframes ap-banner-in {
+  from { opacity: 0; transform: translateY(-100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ap-access-banner {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: var(--green); color: #050507;
+  font-size: 11px; font-weight: 800; letter-spacing: .1em;
+  padding: 10px 20px;
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  animation: ap-banner-in .3s ease both;
+}
+.ap-access-banner-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #050507; opacity: .6;
+  animation: ap-pulse 1.5s ease-in-out infinite;
+}
 
 /* ─ Mobile ────────────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {

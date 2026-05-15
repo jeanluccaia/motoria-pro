@@ -77,7 +77,11 @@ module.exports = async function handler(req, res) {
   }
 
   // ── 6. Verificar autenticação / créditos ──────────────────────────────────────
-  const tokenStr = (req.headers.authorization || "").replace(/^Bearer\s+/i, "").trim();
+  // Aceita token via x-motoria-token (frontend) ou Authorization: Bearer (legacy)
+  const tokenStr = (
+    req.headers["x-motoria-token"] ||
+    (req.headers.authorization || "").replace(/^Bearer\s+/i, "")
+  ).trim();
   let creditsRemaining = null;
   let isFree = false;
 

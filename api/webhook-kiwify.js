@@ -31,6 +31,7 @@
 
 const { generate, INITIAL_CREDITS } = require("./_credits");
 const { getIP, perMinute } = require("./_rate");
+const { sendAccessEmail } = require("./_email");
 const db = require("./_db");
 
 // Janela de idempotência: 30 dias (evita gerar dois tokens para o mesmo pedido)
@@ -85,12 +86,27 @@ module.exports = async function handler(req, res) {
   // ── Gerar token ───────────────────────────────────────────────────────────
   try {
     const token = await generate(email);
+    const name  = (body.Customer?.full_name || body.customer?.full_name || "").trim();
 
-    // Log para o admin localizar o token nos Vercel Logs e enviar ao cliente.
-    // IMPORTANTE: em produção, substituir por envio de email via Resend/SendGrid.
     console.log(
-      `[webhook-kiwify] TOKEN_GERADO | order: ${orderId} | email: ${email || "(sem email)"} | credits: ${INITIAL_CREDITS} | token: ${token}`
+      `[webhook-kiwify] TOKEN_GERADO | order: ${orderId} | email: ${email || "(sem email)"} | credits: ${INITIAL_CREDITS}`
     );
+
+    // ── Enviar email de acesso ─────────────────────────────────────────────
+    if (email) {
+      const emailResult = await sendAccessEmail({ to: email, token, name });
+      if (!emailResult.ok) {
+        // Log de fallback com token para recuperação manual — email falhou mas token é válido
+        console.error(
+          `[webhook-kiwify] EMAIL_FALHOU | order: ${orderId} | email: ${email} | erro: ${emailResult.error} | token_fallback: ${token}`
+        );
+      }
+    } else {
+      // Sem email no payload — log token para envio manual
+      console.warn(
+        `[webhook-kiwify] SEM_EMAIL | order: ${orderId} | token_manual: ${token}`
+      );
+    }
 
     // Respond 200 imediatamente para o Kiwify não retentar
     return res.status(200).json({ received: true, action: "token_generated" });
