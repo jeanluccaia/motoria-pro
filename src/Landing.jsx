@@ -349,6 +349,52 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── FOUNDER — Por que isso foi criado ──────────────────────────────────── */}
+      <section className="lp-founder">
+        <div className="lp-container">
+          <div className="lp-founder-layout">
+
+            {/* LEFT — cinematic photo */}
+            <div className="lp-founder-photo-wrap">
+              <picture>
+                <source type="image/avif" srcSet="/jean-analise-960.avif" />
+                <source type="image/webp" srcSet="/jean-analise-960.webp" />
+                <img
+                  src="/jean-analise.png"
+                  alt="Jean Lucca — criador do MotorIA Pro"
+                  className="lp-founder-img"
+                  loading="lazy"
+                  decoding="async"
+                  height="auto"
+                />
+              </picture>
+              <div className="lp-founder-caption">
+                <span className="lp-founder-caption-name">Jean Lucca</span>
+                <span className="lp-founder-caption-role">Criador do MotorIA Pro</span>
+              </div>
+            </div>
+
+            {/* RIGHT — copy */}
+            <div className="lp-founder-text">
+              <div className="lp-section-eyebrow">Por que isso foi criado</div>
+              <div className="lp-founder-copy">
+                <p className="lp-founder-p">As plataformas mostram retorno.</p>
+                <p className="lp-founder-p">Mas quase ninguém explica o risco matemático por trás das odds.</p>
+                <p className="lp-founder-p">Foi exatamente por isso que comecei a desenvolver o MotorIA Pro.</p>
+                <p className="lp-founder-p">A proposta nunca foi prometer lucro.</p>
+                <p className="lp-founder-p">Muito menos incentivar apostas.</p>
+                <p className="lp-founder-p lp-founder-p-lead">A ideia é simples:</p>
+                <p className="lp-founder-punchline">
+                  Entender o risco<br />
+                  antes da decisão.
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       {/* ── POSITIONING ────────────────────────────────────────────────────────── */}
       <section className="lp-position lp-section-dark">
         <div className="lp-container">
@@ -1032,6 +1078,89 @@ const CSS = `
   border-top: 1px solid var(--border); padding-top: 20px; max-width: 420px;
 }
 
+/* ── Founder ────────────────────────────────────────────────────────────────── */
+.lp-founder { padding: 112px 0; background: var(--bg); }
+.lp-founder-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 88px;
+  align-items: center;
+}
+
+/* Photo */
+.lp-founder-photo-wrap { display: flex; flex-direction: column; gap: 0; }
+.lp-founder-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 3px;
+  filter: grayscale(100%) contrast(1.22) brightness(0.86);
+  mask-image: radial-gradient(
+    ellipse 90% 94% at 50% 22%,
+    black 30%, rgba(0,0,0,.88) 52%, rgba(0,0,0,.42) 76%, transparent 94%
+  );
+  -webkit-mask-image: radial-gradient(
+    ellipse 90% 94% at 50% 22%,
+    black 30%, rgba(0,0,0,.88) 52%, rgba(0,0,0,.42) 76%, transparent 94%
+  );
+}
+.lp-founder-caption {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.lp-founder-caption-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--t1);
+  letter-spacing: -0.01em;
+}
+.lp-founder-caption-role {
+  font-size: 11px;
+  color: var(--t3);
+  letter-spacing: 0.02em;
+}
+
+/* Text */
+.lp-founder-text {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+.lp-founder-copy {
+  display: flex;
+  flex-direction: column;
+}
+.lp-founder-p {
+  font-size: clamp(15px, 1.9vw, 19px);
+  color: var(--t2);
+  line-height: 1.75;
+  letter-spacing: -0.01em;
+  margin: 0;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,.042);
+}
+.lp-founder-p:first-child { padding-top: 0; }
+.lp-founder-p-lead {
+  color: var(--t1) !important;
+  font-weight: 500;
+}
+.lp-founder-punchline {
+  font-size: clamp(26px, 3.8vw, 44px);
+  font-weight: 900;
+  color: var(--t1);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  margin: 0;
+  padding-top: 28px;
+}
+
 /* ── Mobile ─────────────────────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .lp-hero-layout { grid-template-columns: 1fr; gap: 48px; padding-top: 60px; padding-bottom: 60px; }
@@ -1043,12 +1172,14 @@ const CSS = `
   .lp-hero-meta { justify-content: center; }
   .lp-hero-right { max-width: 460px; width: 100%; margin: 0 auto; }
   .lp-dash-grid { grid-template-columns: repeat(2, 1fr); }
+  .lp-founder-layout { grid-template-columns: 1fr; gap: 48px; }
+  .lp-founder-photo-wrap { max-width: 280px; }
   .lp-position-layout { grid-template-columns: 1fr; gap: 40px; }
   .lp-pricing { grid-template-columns: 1fr; gap: 40px; }
   .lp-price-card { position: static; }
 }
 @media (max-width: 768px) {
-  .lp-section, .lp-expose, .lp-dash, .lp-position { padding: 72px 0; }
+  .lp-section, .lp-expose, .lp-dash, .lp-position, .lp-founder { padding: 72px 0; }
   .lp-container { padding: 0 20px; }
   .lp-nav { display: none; }
   .lp-hero { min-height: unset; }
