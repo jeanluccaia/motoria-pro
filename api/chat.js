@@ -158,7 +158,7 @@ module.exports = async function handler(req, res) {
         return res.status(429).json({ error: "Serviço sobrecarregado. Tente em alguns segundos." });
       }
       console.error(`[chat] Erro Anthropic HTTP ${status}`);
-      return res.status(500).json({ error: "Erro ao processar. Tente novamente." });
+      return res.status(500).json({ error: "Erro ao processar. Tente novamente.", _debug_status: status });
     }
 
     const data = await response.json();
