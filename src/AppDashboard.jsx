@@ -100,6 +100,22 @@ function fmtClock(d) {
 function fmtTime() {
   return new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
+function fmtDateBR() {
+  return new Date().toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" }).toUpperCase();
+}
+function mapLeague(league) {
+  const l = (league || "").toLowerCase();
+  if (l.includes("serie b") || l.includes("série b")) return "Série B";
+  if (l.includes("brasileir") || (l.includes("brazil") && l.includes("serie a"))) return "Brasileirão";
+  if (l.includes("libertad")) return "Libertadores";
+  if (l.includes("champions")) return "Champions";
+  if (l.includes("premier league")) return "Premier League";
+  if (l.includes("la liga") || l.includes("laliga") || l.includes("primera division")) return "La Liga";
+  if (l.includes("copa do brasil")) return "Copa do Brasil";
+  if (l.includes("bundesliga")) return "Bundesliga";
+  if (l.includes("ligue 1")) return "Ligue 1";
+  return "";
+}
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -152,6 +168,17 @@ const IconConfig = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
     <circle cx="7" cy="7" r="2" stroke="currentColor" strokeWidth="1.3"/>
     <path d="M7 1v2M7 11v2M1 7h2M11 7h2M3.22 3.22l1.41 1.41M9.37 9.37l1.41 1.41M3.22 10.78l1.41-1.41M9.37 4.63l1.41-1.41" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+  </svg>
+);
+
+const IconJogos = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <rect x="1.5" y="3" width="11" height="9.5" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
+    <path d="M1.5 6h11" stroke="currentColor" strokeWidth="1.2"/>
+    <path d="M4.5 1.5V4M9.5 1.5V4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+    <circle cx="4.5" cy="9" r=".9" fill="currentColor" opacity=".55"/>
+    <circle cx="7" cy="9" r=".9" fill="currentColor" opacity=".55"/>
+    <circle cx="9.5" cy="9" r=".9" fill="currentColor" opacity=".55"/>
   </svg>
 );
 
@@ -372,6 +399,24 @@ export default function AppDashboard() {
   const [credits,    setCredits]    = useState(null);
   const [analysisId, setAnalysisId] = useState(null);
 
+  // Jogos de Hoje
+  const [matches,        setMatches]        = useState([]);
+  const [matchesLoading, setMatchesLoading] = useState(false);
+  const [matchesError,   setMatchesError]   = useState("");
+  const [selectedGame,   setSelectedGame]   = useState(null);
+  const [leagueFilter,   setLeagueFilter]   = useState("todos");
+
+  useEffect(() => {
+    if (view !== "jogos") return;
+    if (matches.length > 0) return; // already loaded
+    setMatchesLoading(true);
+    setMatchesError("");
+    fetch("/api/matches")
+      .then(r => r.json())
+      .then(d => { setMatches(d.matches || []); setMatchesLoading(false); })
+      .catch(() => { setMatchesError("Erro ao carregar jogos. Tente novamente."); setMatchesLoading(false); });
+  }, [view]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const oddNum    = parseFloat((odd || "").replace(",", "."));
   const oddPreview = odd && !isNaN(oddNum) && oddNum >= 1.01 ? calcScore(oddNum) : null;
 
@@ -464,7 +509,17 @@ export default function AppDashboard() {
   }
 
   function loadFromHistory(item) { setResult(item); setJogo(item.jogo || ""); setOdd(String(item.odd)); setView("nova"); }
-  function resetForm() { setResult(null); setError(""); setJogo(""); setOdd(""); setValor(""); setObs(""); setCampeonato(""); }
+  function resetForm() {
+    setResult(null); setError(""); setJogo(""); setOdd("");
+    setValor(""); setObs(""); setCampeonato(""); setSelectedGame(null);
+  }
+  function selectGame(match) {
+    const camp = mapLeague(match.league);
+    setJogo(`${match.home} × ${match.away}`);
+    setCampeonato(camp);
+    setSelectedGame({ ...match, campeonato: camp });
+    navigate("nova");
+  }
   function handleCopy(r) {
     const riskLbl = r.label === "CRÍTICO" ? "MUITO ALTO" : r.label;
     const aiSentence = r.ai?.alertaFinal || r.ai?.leituraConservadora || "";
@@ -487,8 +542,9 @@ export default function AppDashboard() {
     {
       group: "ANÁLISE",
       items: [
-        { id: "geral",   label: "Visão Geral",  Icon: IconOverview },
-        { id: "nova",    label: "Nova Análise", Icon: IconAnalyze },
+        { id: "jogos",   label: "Jogos de Hoje", Icon: IconJogos },
+        { id: "nova",    label: "Nova Análise",  Icon: IconAnalyze },
+        { id: "geral",   label: "Visão Geral",   Icon: IconOverview },
         { id: "comparador", label: "Comparador", Icon: IconCompare, dim: true },
       ],
     },
@@ -720,6 +776,25 @@ export default function AppDashboard() {
             {view === "nova" && (
               <div className="ap-content ap-content-nova" key="nova">
 
+                {selectedGame && !result && !loading && (
+                  <div className="ap-game-strip">
+                    <span className="ap-game-strip-dot" aria-hidden="true" />
+                    <span className="ap-game-strip-text">{selectedGame.home} × {selectedGame.away}</span>
+                    {selectedGame.campeonato && (
+                      <span className="ap-game-strip-league">{selectedGame.campeonato}</span>
+                    )}
+                    {selectedGame.time && (
+                      <span className="ap-game-strip-time">{selectedGame.time}</span>
+                    )}
+                    <button
+                      className="ap-game-strip-clear"
+                      onClick={() => { setSelectedGame(null); setJogo(""); setCampeonato(""); }}
+                      aria-label="Remover jogo selecionado"
+                      type="button"
+                    >×</button>
+                  </div>
+                )}
+
                 {!result && !loading && (
                   <section className="ap-input-panel">
                     <form className="ap-form" onSubmit={handleSubmit} noValidate>
@@ -803,19 +878,36 @@ export default function AppDashboard() {
                 {/* Loading */}
                 {loading && (
                   <div className="ap-loading" role="status" aria-live="polite">
+                    {/* Engine header */}
                     <div className="ap-loading-hdr">
                       <div>
-                        <div className="ap-loading-engine">RISK ENGINE v2.4</div>
-                        <div className="ap-loading-sub">Processamento quantitativo em execução</div>
+                        <div className="ap-loading-engine">
+                          RISK ENGINE v2.4
+                          <span className="ap-loading-engine-dot" aria-hidden="true" />
+                        </div>
+                        {selectedGame ? (
+                          <div className="ap-loading-sub ap-loading-sub-game">
+                            {selectedGame.home} × {selectedGame.away}
+                          </div>
+                        ) : (
+                          <div className="ap-loading-sub">Processamento quantitativo em execução</div>
+                        )}
                       </div>
                       <span className="ap-loading-status">CALCULANDO</span>
                     </div>
+
+                    {/* Progress bar */}
                     <div className="ap-loading-bar-wrap">
                       <div className="ap-loading-bar" style={{ width: `${loadPct}%` }} />
+                      <div className="ap-loading-bar-glow" style={{ left: `${loadPct}%` }} />
                     </div>
+
+                    {/* Large percentage */}
                     <div className="ap-loading-pct" aria-label={`${loadPct}%`}>
                       {loadPct}<span className="ap-loading-pct-sym">%</span>
                     </div>
+
+                    {/* Steps list */}
                     <div className="ap-loading-steps">
                       {LOAD_STEPS.map((s, i) => (
                         <div key={i} className={`ap-lstep${i < loadStepIdx ? " ap-lstep-done" : i === loadStepIdx ? " ap-lstep-active" : ""}`}>
@@ -823,6 +915,9 @@ export default function AppDashboard() {
                             {i < loadStepIdx ? "✓" : i === loadStepIdx ? "▶" : "○"}
                           </span>
                           <span className="ap-lstep-lbl">{s.label}</span>
+                          {i === loadStepIdx && (
+                            <span className="ap-lstep-cursor" aria-hidden="true">_</span>
+                          )}
                           {i < loadStepIdx && <span className="ap-lstep-done-tag">OK</span>}
                         </div>
                       ))}
@@ -987,6 +1082,92 @@ export default function AppDashboard() {
                 title="Favoritos"
                 desc="Salve e organize suas análises mais relevantes. Crie coleções por campeonato, mercado ou período para consulta rápida."
               />
+            )}
+
+            {/* ════ JOGOS DE HOJE ════════════════════════════════════════ */}
+            {view === "jogos" && (
+              <div className="ap-content" key="jogos">
+                <div className="ap-panel-hdr">
+                  <div className="ap-panel-hdr-left">
+                    <div className="ap-panel-mod">MERCADO</div>
+                    <div className="ap-panel-title">Jogos de Hoje</div>
+                  </div>
+                  <div className="ap-panel-online">
+                    <span className="ap-status-dot" aria-hidden="true" />
+                    {fmtDateBR()}
+                  </div>
+                </div>
+
+                {matchesLoading && (
+                  <div className="jg-loading">
+                    <span className="jg-dot" /><span className="jg-dot" /><span className="jg-dot" />
+                    <span className="jg-loading-lbl">Buscando partidas...</span>
+                  </div>
+                )}
+
+                {matchesError && !matchesLoading && (
+                  <div className="ap-error" role="alert">{matchesError}</div>
+                )}
+
+                {!matchesLoading && matches.length === 0 && !matchesError && (
+                  <div className="ap-geral-empty">
+                    <p>Nenhuma partida encontrada para hoje.</p>
+                    <button className="ap-geral-btn" onClick={() => navigate("nova")}>Análise manual →</button>
+                  </div>
+                )}
+
+                {!matchesLoading && matches.length > 0 && (() => {
+                  const leagues = ["todos", ...new Set(matches.map(m => mapLeague(m.league)).filter(Boolean))];
+                  const filtered = leagueFilter === "todos"
+                    ? matches
+                    : matches.filter(m => mapLeague(m.league) === leagueFilter);
+                  return (
+                    <>
+                      {/* League filter pills */}
+                      <div className="jg-filters">
+                        {leagues.map(f => (
+                          <button
+                            key={f}
+                            className={`jg-pill${leagueFilter === f ? " jg-pill-on" : ""}`}
+                            onClick={() => setLeagueFilter(f)}
+                            type="button"
+                          >
+                            {f === "todos" ? "Todos" : f}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Match cards grid */}
+                      <div className="jg-grid">
+                        {filtered.map((m, idx) => (
+                          <button
+                            key={m.id || idx}
+                            className="jg-card"
+                            onClick={() => selectGame(m)}
+                            type="button"
+                            style={{ animationDelay: `${idx * 40}ms` }}
+                          >
+                            <div className="jg-card-header">
+                              <span className="jg-league">{mapLeague(m.league) || m.league}</span>
+                              {m.time && <span className="jg-time">{m.time}</span>}
+                            </div>
+                            <div className="jg-teams">
+                              <span className="jg-team jg-team-home">{m.home}</span>
+                              <span className="jg-vs">×</span>
+                              <span className="jg-team jg-team-away">{m.away}</span>
+                            </div>
+                            <div className="jg-card-footer">
+                              <span className="jg-cta">Analisar →</span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+
+                      <p className="jg-hint">Clique em uma partida para pré-preencher a análise.</p>
+                    </>
+                  );
+                })()}
+              </div>
             )}
 
             {/* ════ HISTÓRICO ══════════════════════════════════════════ */}
@@ -1568,6 +1749,25 @@ body { overflow: hidden; }
 .ap-lstep-icon { font-size: 9px; width: 14px; flex-shrink: 0; font-family: 'Courier New', monospace; color: inherit; }
 .ap-lstep-active .ap-lstep-icon { animation: ap-blink .7s ease-in-out infinite; }
 .ap-lstep-done-tag { margin-left: auto; font-size: 8px; font-weight: 800; letter-spacing: .08em; color: rgba(34,197,94,.4); font-family: 'Courier New', monospace; }
+.ap-lstep-cursor {
+  font-family: 'Courier New', monospace; font-size: 11px; color: var(--green);
+  animation: ap-blink .6s step-start infinite; margin-left: 1px;
+}
+.ap-loading-engine-dot {
+  display: inline-block; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--green); margin-left: 7px; vertical-align: middle;
+  animation: ap-pulse 1.8s ease-in-out infinite;
+}
+.ap-loading-sub-game {
+  color: var(--t1) !important; font-weight: 600; font-size: 12px;
+}
+.ap-loading-bar-wrap { position: relative; height: 2px; background: rgba(255,255,255,.06); border-radius: 99px; overflow: visible; }
+.ap-loading-bar-glow {
+  position: absolute; top: 50%; transform: translate(-50%, -50%);
+  width: 20px; height: 6px;
+  background: radial-gradient(ellipse, rgba(34,197,94,.45) 0%, transparent 70%);
+  pointer-events: none; transition: left .8s ease;
+}
 
 /* ─ Output ─────────────────────────────────────────────────────────────────── */
 .ap-output { display: flex; flex-direction: column; gap: 10px; animation: ap-fade-up .25s ease both; }
@@ -2255,5 +2455,156 @@ body { overflow: hidden; }
   font-style: italic;
   background: rgba(255,255,255,.025); border: 1px solid var(--border);
   border-radius: 8px; padding: 10px 12px; margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   JOGOS DE HOJE — jg-* components
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes jg-card-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes jg-dot-bounce {
+  0%, 80%, 100% { transform: scale(0.4); opacity: .3; }
+  40%           { transform: scale(1);   opacity: 1; }
+}
+
+/* Loading state */
+.jg-loading {
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  padding: 48px 0;
+}
+.jg-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--t3);
+  animation: jg-dot-bounce 1.4s ease-in-out infinite;
+}
+.jg-dot:nth-child(2) { animation-delay: .18s; }
+.jg-dot:nth-child(3) { animation-delay: .36s; }
+.jg-loading-lbl {
+  font-size: 11px; color: var(--t3); margin-left: 8px; letter-spacing: .03em;
+}
+
+/* League filter pills */
+.jg-filters {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 2px;
+}
+.jg-pill {
+  padding: 5px 13px; border-radius: 99px;
+  background: rgba(255,255,255,.04); border: 1px solid var(--border);
+  font-size: 10px; font-weight: 700; letter-spacing: .04em; color: var(--t2);
+  cursor: pointer; font-family: inherit; transition: all .13s;
+  white-space: nowrap;
+}
+.jg-pill:hover { color: var(--t1); border-color: var(--bmd); background: rgba(255,255,255,.07); }
+.jg-pill-on {
+  background: rgba(34,197,94,.1) !important;
+  border-color: rgba(34,197,94,.3) !important;
+  color: var(--green) !important;
+}
+
+/* Match cards grid */
+.jg-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+
+.jg-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 13px;
+  cursor: pointer; font-family: inherit; text-align: left;
+  width: 100%; color: inherit;
+  transition: border-color .15s, transform .13s, background .15s, box-shadow .15s;
+  animation: jg-card-in .24s ease both;
+}
+.jg-card:hover {
+  border-color: rgba(34,197,94,.26);
+  background: rgba(34,197,94,.03);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(0,0,0,.3), 0 0 0 1px rgba(34,197,94,.06) inset;
+}
+.jg-card:active { transform: translateY(0); }
+
+.jg-card-header {
+  display: flex; justify-content: space-between; align-items: center; gap: 6px;
+}
+.jg-league {
+  font-size: 8px; font-weight: 800; letter-spacing: .14em;
+  color: var(--t3); text-transform: uppercase;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.jg-time {
+  font-size: 10px; font-weight: 700; color: var(--t2);
+  font-variant-numeric: tabular-nums; font-family: 'Courier New', monospace;
+  flex-shrink: 0;
+}
+
+.jg-teams {
+  display: flex; align-items: center; gap: 8px;
+}
+.jg-team {
+  font-size: 13px; font-weight: 700; color: var(--t1);
+  letter-spacing: -0.02em; line-height: 1.25; flex: 1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.jg-team-away { text-align: right; }
+.jg-vs {
+  font-size: 10px; font-weight: 700; color: var(--t3); flex-shrink: 0;
+}
+
+.jg-card-footer { display: flex; justify-content: flex-end; }
+.jg-cta {
+  font-size: 9.5px; font-weight: 800; letter-spacing: .06em;
+  color: rgba(34,197,94,.4); transition: color .13s; text-transform: uppercase;
+}
+.jg-card:hover .jg-cta { color: var(--green); }
+
+/* Hint text */
+.jg-hint {
+  font-size: 10.5px; color: var(--t3); text-align: center;
+  padding: 4px 0 6px; line-height: 1.6; opacity: .7;
+}
+
+/* ─ Selected game strip ─────────────────────────────────────────────────────── */
+.ap-game-strip {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  background: rgba(34,197,94,.06);
+  border: 1px solid rgba(34,197,94,.2);
+  border-radius: 10px; padding: 10px 14px;
+  animation: ap-fade-up .18s ease both;
+}
+.ap-game-strip-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+  flex-shrink: 0; animation: ap-pulse 2.4s ease-in-out infinite;
+}
+.ap-game-strip-text {
+  font-size: 13px; font-weight: 700; color: var(--t1);
+  letter-spacing: -0.02em; flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ap-game-strip-league {
+  font-size: 9px; font-weight: 800; letter-spacing: .1em;
+  color: rgba(34,197,94,.7); text-transform: uppercase; flex-shrink: 0;
+}
+.ap-game-strip-time {
+  font-size: 10px; color: var(--t3); font-variant-numeric: tabular-nums;
+  font-family: 'Courier New', monospace; flex-shrink: 0;
+}
+.ap-game-strip-clear {
+  background: none; border: none; cursor: pointer;
+  font-size: 16px; color: var(--t3); line-height: 1;
+  padding: 0 2px; display: flex; align-items: center; justify-content: center;
+  transition: color .12s; flex-shrink: 0; width: 20px; height: 20px;
+}
+.ap-game-strip-clear:hover { color: var(--t1); }
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .jg-grid { grid-template-columns: 1fr; }
+  .jg-card { padding: 14px 15px; gap: 11px; }
+  .jg-team { font-size: 12.5px; }
+  .ap-game-strip { padding: 9px 12px; }
+  .ap-game-strip-text { font-size: 12px; }
 }
 `;
