@@ -570,7 +570,7 @@ export default function AppDashboard() {
               )}
               <div className="ap-engine-live">
                 <span className="ap-live-dot" aria-hidden="true" />
-                <span className="ap-live-lbl">ENGINE ATIVO</span>
+                <span className="ap-live-lbl">IA ONLINE</span>
               </div>
             </div>
           </div>
@@ -775,7 +775,7 @@ export default function AppDashboard() {
                             options={CAMPEONATOS}
                             value={campeonato}
                             onChange={setCampeonato}
-                            placeholder="Selecionar campeonato"
+                            placeholder="Selecionar"
                           />
                         </div>
                         <div className="ap-field">
@@ -2059,10 +2059,12 @@ body { overflow: hidden; }
 /* ─ Mobile ─────────────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .ap-hamburger { display: flex; }
+  /* Extra 8px of vertical breathing room for logo and menu */
+  .ap-topbar-row { height: 54px; }
   .ap-sidebar {
     position: fixed;
-    /* Account for topbar height + iOS safe area */
-    top: calc(46px + env(safe-area-inset-top));
+    /* Sidebar anchors below taller mobile topbar + safe area */
+    top: calc(54px + env(safe-area-inset-top));
     left: 0; bottom: 0;
     z-index: 50; transform: translateX(-100%);
     width: 230px; box-shadow: 6px 0 32px rgba(0,0,0,.6);
@@ -2072,7 +2074,9 @@ body { overflow: hidden; }
 @media (max-width: 640px) {
   .ap-content { padding: 12px 12px; }
   .ap-topbar-row { padding: 0 12px; }
-  .ap-live-lbl { display: none; }
+  /* Mobile status: show text label, hide the pulsing dot (no floating dot bug) */
+  .ap-live-dot { display: none; }
+  .ap-engine-live { font-size: 8px; letter-spacing: .06em; gap: 0; }
   .ap-topbar-tag { display: none; }
   .ap-topbar-aid { display: none; }
   .ap-geral-stats { grid-template-columns: 1fr 1fr; }
