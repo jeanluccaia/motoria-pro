@@ -13,29 +13,29 @@ const MOCK_METRICS = [
 ];
 
 const SHOW_ITEMS = [
-  "Odd: 2.80",
-  "Retorno se ganhar: +R$280",
-  "Lucro possível: R$180",
+  "A odd: 2.80",
+  "Retorno possível: +R$180",
+  "Resultado: vitória do Flamengo",
 ];
 
 const HIDE_ITEMS = [
-  "Probabilidade implícita: 35,7%",
-  "Margem embutida (vig): 5,5%",
-  "Chance real de perda: 64,3%",
-  "Valor esperado negativo: −R$14,50",
+  "Chance real de ganhar: só 35,7%",
+  "Taxa escondida da casa: 5,5%",
+  "Chance de perder: 64,3%",
+  "Perda média por R$100: −R$14,50",
 ];
 
 const DASH_CARDS = [
-  { num: "35,7%", color: "#22C55E", label: "Probabilidade implícita",  bar: 35.7, desc: "Chance mínima de ganho para o mercado equilibrar. Odd 2.80 = casa estima 35,7%." },
-  { num: "5,5%",  color: "#F59E0B", label: "Margem da casa (vig)",      bar: 5.5,  desc: "Taxa invisível embutida em toda odd. Você nunca vê — mas sempre paga." },
-  { num: "64,3%", color: "#EF4444", label: "Chance de perda",           bar: 64.3, desc: "Probabilidade estimada de perder essa aposta. Calculada direto da odd fornecida." },
-  { num: "−R$14", color: "#EF4444", label: "Valor esperado / R$100",    bar: 61,   desc: "No longo prazo, quanto você tende a perder por cada R$100 apostado nesse perfil." },
+  { num: "35,7%", color: "#22C55E", label: "Chance real de ganhar",   bar: 35.7, desc: "A odd 2.80 significa que a casa estima só 35,7% de chance de vitória. A maioria não sabe disso antes de apostar." },
+  { num: "5,5%",  color: "#F59E0B", label: "Taxa escondida da casa",  bar: 5.5,  desc: "Embutida em toda odd, invisível para o apostador. Você nunca vê essa cobrança — mas sempre paga." },
+  { num: "64,3%", color: "#EF4444", label: "Chance de perder",        bar: 64.3, desc: "A probabilidade real de perder essa aposta, calculada direto da odd que a plataforma te mostrou." },
+  { num: "−R$14", color: "#EF4444", label: "Perda média por R$100",   bar: 61,   desc: "No longo prazo, é quanto você tende a perder por cada R$100 apostado nesse perfil de odd." },
 ];
 
 const STEPS = [
-  { n: "01", title: "Informe o evento e a odd",   desc: "Jogo, tipo de aposta, odd e valor pretendido. Quanto mais contexto, mais precisa a análise.", tags: ["Evento", "Odd", "Tipo", "Valor"] },
-  { n: "02", title: "O motor calcula os riscos",  desc: "Probabilidade implícita, margem da casa, valor esperado e score de risco — calculados automaticamente.", tags: ["Score 0–100", "Probabilidade", "EV", "Margem"] },
-  { n: "03", title: "Receba a leitura de risco",  desc: "Relatório com cenário necessário, pontos cegos e leitura conservadora antes de qualquer decisão.", tags: ["Pontos cegos", "Chance de perda", "Análise final"] },
+  { n: "01", title: "Coloca o jogo e a odd",          desc: "Qual o jogo, que tipo de aposta, qual a odd e quanto você pensa em apostar. Menos de 30 segundos.", tags: ["Jogo", "Odd", "Tipo de aposta", "Valor"] },
+  { n: "02", title: "A IA calcula os riscos",          desc: "Em segundos, você vê a chance real de perder, a taxa escondida da casa e o impacto no seu bolso.", tags: ["Chance de perda", "Taxa da casa", "Impacto financeiro"] },
+  { n: "03", title: "Você decide com mais clareza",    desc: "Sem achismo. Sem emoção. Só os números que a plataforma não te mostra — antes de você apertar o botão.", tags: ["Análise completa", "Sem promessa de lucro", "Decisão sua"] },
 ];
 
 const TESTIMONIALS = [
@@ -48,26 +48,27 @@ const TESTIMONIALS = [
 ];
 
 const FEATURES = [
-  "20 análises incluídas no pacote inicial",
-  "MotorIA Risk Index™ (0–100) por análise",
-  "Probabilidade implícita calculada na hora",
-  "Margem da casa (vig) decodificada por mercado",
-  "Simulador de bankroll — projeção 30 e 90 dias",
-  "Detector de tilt — alerta comportamental de risco",
-  "8 indicadores matemáticos por análise completa",
-  "Relatório com pontos cegos e leitura conservadora",
-  "Acesso à engine de análise quantitativa completa",
+  "20 análises para usar quando quiser",
+  "Nota de risco de 0 a 100 por aposta",
+  "Chance real de ganhar calculada na hora",
+  "Taxa escondida da casa revelada por tipo de aposta",
+  "Simulador: veja o que acontece com seu dinheiro em 30 dias",
+  "Alerta de tilt — avisa quando você está apostando por impulso",
+  "8 dados que a plataforma não te mostra",
+  "Análise honesta com pontos cegos e leitura conservadora",
+  "Acesso completo à ferramenta de análise de risco",
 ];
 
 const FAQ_ITEMS = [
-  { q: "Funciona para qualquer esporte?",         a: "Sim. A análise se baseia na matemática da odd, que é universal — futebol, basquete, tênis, MMA, eSports e qualquer mercado com odds." },
-  { q: "Vocês são uma casa de aposta?",           a: "Não. Somos uma ferramenta educativa independente. Não fazemos apostas, não vendemos odds e não temos nenhuma relação com casas de aposta." },
-  { q: "É assinatura mensal?",                    a: "Não. É um acesso único por R$27. Sem renovação automática, sem mensalidade." },
-  { q: "Vocês dão palpites ou previsões?",        a: "Nunca. Mostramos riscos, probabilidades matemáticas e impacto financeiro. A decisão é sempre sua." },
-  { q: "Como recebo o acesso após o pagamento?",  a: "Imediatamente. Após o pagamento confirmado, você recebe o link de acesso no email de confirmação." },
-  { q: "Funciona no celular?",                    a: "Sim. A ferramenta é 100% mobile-first, feita para usar antes de qualquer decisão, de onde você estiver." },
-  { q: "E se eu já tenho problemas com jogo?",    a: "Procure ajuda imediatamente. Acesse jogoresponsavel.com.br ou ligue para o CVV: 188. Problema com jogo é sério e tem tratamento." },
-  { q: "Como funciona a garantia?",               a: "7 dias corridos a partir da compra. Não achou útil? Basta enviar um email e devolvemos 100% sem perguntas." },
+  { q: "Isso vai me ajudar a ganhar mais?",              a: "Não. Não existe ferramenta que garanta ganhos em apostas. O MotorIA te mostra o risco antes de decidir — não como vencer." },
+  { q: "Funciona para qualquer esporte?",                a: "Sim. A análise se baseia na matemática da odd, que é a mesma pra qualquer esporte — futebol, basquete, tênis, MMA, eSports." },
+  { q: "Vocês são uma casa de aposta?",                  a: "Não. Somos uma ferramenta educativa independente. Sem relação nenhuma com plataformas ou casas de aposta." },
+  { q: "É assinatura mensal?",                           a: "Não. É um acesso único por R$27. Sem mensalidade, sem renovação automática, sem surpresa no cartão." },
+  { q: "Vocês dão palpites ou previsões de resultado?",  a: "Nunca. Mostramos probabilidade e risco matemático. A decisão é sempre sua." },
+  { q: "Como recebo o acesso após o pagamento?",         a: "Imediatamente. Após a confirmação do pagamento, você recebe o link de acesso direto no email." },
+  { q: "Funciona no celular?",                           a: "Sim. A ferramenta foi feita para o celular — pra usar antes de qualquer decisão, de onde você estiver." },
+  { q: "E se eu já tenho problema com jogo compulsivo?", a: "Procure ajuda. Acesse jogoresponsavel.com.br ou ligue 188 (CVV). O MotorIA não substitui acompanhamento especializado." },
+  { q: "Como funciona a garantia?",                      a: "7 dias corridos a partir da compra. Não achou útil? Manda um email e devolvemos 100% sem perguntas." },
 ];
 
 const RECENT_ANALYSES = [
@@ -151,36 +152,31 @@ export default function Landing() {
           <div className="lp-hero-left">
             <div className="lp-tag-pill">
               <span className="lp-tag-dot" aria-hidden="true" />
-              Ferramenta matemática · Análise de odds
+              Ferramenta educativa · Não promete lucro · +18
             </div>
             <h1 className="lp-h1">
-              Análise matemática<br />
-              de risco em odds.
+              Você vê a odd.<br />
+              A casa vê a<br className="lp-h1-br-mobile" /> matemática.
             </h1>
             <div className="lp-hero-insight">
-              A maioria aposta olhando retorno.<br />
-              Poucos entendem probabilidade.
-            </div>
-            <div className="lp-hero-pills">
-              {["P(ganho) implícita", "VIG embutida", "MRI™ 0–100", "EV / R$100"].map(t => (
-                <span className="lp-hero-pill" key={t}>{t}</span>
-              ))}
+              O MotorIA mostra o risco que quase<br />
+              ninguém calcula antes de apostar.
             </div>
             <div className="lp-hero-actions">
-              <Link to="/pagar" className="lp-btn-hero">
-                Garantir acesso — R$27
+              <Link to="/app" className="lp-btn-hero">
+                Analisar uma aposta
                 <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                   <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </Link>
-              <a href="#problema" className="lp-btn-ghost">Ver como funciona</a>
+              <Link to="/pagar" className="lp-btn-ghost">Acesso completo por R$27</Link>
             </div>
             <div className="lp-hero-meta">
-              <span>Acesso por R$27</span>
+              <span>Ferramenta educativa</span>
               <span className="lp-meta-sep">·</span>
-              <span>Sem cadastro</span>
+              <span>Não promete lucro</span>
               <span className="lp-meta-sep">·</span>
-              <span>Garantia 7 dias</span>
+              <span>+18</span>
             </div>
           </div>
 
@@ -274,12 +270,12 @@ export default function Landing() {
         <div className="lp-container">
           <div className="lp-section-eyebrow">O problema</div>
           <h2 className="lp-h2">
-            Você vê a odd.<br />
-            A casa vê a matemática.
+            O que a plataforma<br />
+            não te mostra.
           </h2>
           <p className="lp-expose-sub">
-            As plataformas mostram o que te motiva a apostar.
-            Escondem o que te faria reconsiderar.
+            Plataformas mostram o que te anima a apostar.
+            Escondem o que te faria pensar duas vezes.
           </p>
           <div className="lp-expose-grid">
             <div className="lp-expose-col lp-expose-col-show">
@@ -311,7 +307,7 @@ export default function Landing() {
             </div>
           </div>
           <div className="lp-expose-callout">
-            <span className="lp-expose-callout-strong">O MotorIA Pro</span> calcula tudo isso automaticamente — antes de qualquer decisão.
+            <span className="lp-expose-callout-strong">O MotorIA</span> mostra tudo isso antes de você decidir — em menos de 60 segundos.
           </div>
         </div>
       </section>
@@ -319,9 +315,9 @@ export default function Landing() {
       {/* ── DASHBOARD — metrics visual ──────────────────────────────────────────── */}
       <section className="lp-dash lp-section-dark" id="como-funciona">
         <div className="lp-container">
-          <div className="lp-section-eyebrow">O que você recebe</div>
+          <div className="lp-section-eyebrow">O que você descobre</div>
           <h2 className="lp-h2 lp-h2-narrow">
-            8 indicadores.<br />Menos de 60 segundos.
+            4 números que mudam<br />como você enxerga a odd.
           </h2>
           <div className="lp-dash-grid">
             {DASH_CARDS.map(c => (
@@ -379,7 +375,7 @@ export default function Landing() {
       <section className="lp-section" id="como-funciona-steps">
         <div className="lp-container">
           <div className="lp-section-eyebrow">Como funciona</div>
-          <h2 className="lp-h2 lp-h2-narrow">3 etapas.<br />Menos de um minuto.</h2>
+          <h2 className="lp-h2 lp-h2-narrow">Simples assim.<br />Menos de um minuto.</h2>
           <div className="lp-steps">
             {STEPS.map(s => (
               <div className="lp-step" key={s.n}>
@@ -393,8 +389,8 @@ export default function Landing() {
             ))}
           </div>
           <div style={{ textAlign: "center" }}>
-            <Link to="/pagar" className="lp-btn-hero">
-              Entender o risco antes de decidir
+            <Link to="/app" className="lp-btn-hero">
+              Analisar uma aposta agora
               <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                 <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -432,14 +428,12 @@ export default function Landing() {
             <div className="lp-founder-text">
               <div className="lp-section-eyebrow">Por que isso foi criado</div>
               <div className="lp-founder-copy">
-                <p className="lp-founder-p">As plataformas mostram retorno.</p>
-                <p className="lp-founder-p">Mas quase ninguém explica o risco matemático por trás das odds.</p>
-                <p className="lp-founder-p">Foi exatamente por isso que comecei a desenvolver o MotorIA Pro.</p>
-                <p className="lp-founder-p">A proposta nunca foi prometer lucro.</p>
-                <p className="lp-founder-p">Muito menos incentivar apostas.</p>
-                <p className="lp-founder-p lp-founder-p-lead">A ideia é simples:</p>
+                <p className="lp-founder-p">A plataforma te mostra o retorno possível.</p>
+                <p className="lp-founder-p">Ninguém te mostra a probabilidade real de perder.</p>
+                <p className="lp-founder-p">Cansei de ver isso acontecer — e criei o MotorIA pra mudar.</p>
+                <p className="lp-founder-p lp-founder-p-lead">Não é um sistema de apostas. Não promete lucro.</p>
                 <p className="lp-founder-punchline">
-                  Entender o risco<br />
+                  É uma lupa no risco —<br />
                   antes da decisão.
                 </p>
               </div>
@@ -461,9 +455,9 @@ export default function Landing() {
               </h2>
               <div className="lp-position-points">
                 {[
-                  { title: "Não somos casa de aposta",     desc: "Ferramenta educativa independente. Sem relação com plataformas ou odds." },
-                  { title: "Não vendemos previsões",        desc: "Não existe como prever resultados. Mostramos probabilidade e risco matemático." },
-                  { title: "Não incentivamos apostas",      desc: "Nosso objetivo é deixar a decisão mais consciente — não mais frequente." },
+                  { title: "Não somos casa de aposta",     desc: "Somos uma ferramenta educativa independente. Sem relação nenhuma com plataformas ou odds." },
+                  { title: "Não damos palpites",            desc: "Ninguém prevê resultado de jogo. Mostramos a matemática por trás da odd — você decide." },
+                  { title: "Não incentivamos apostas",      desc: "Queremos que você decida com mais clareza, não que aposta mais." },
                 ].map((pt, i) => (
                   <div className="lp-position-pt" key={i}>
                     <span className="lp-position-pt-icon" aria-hidden="true">○</span>
@@ -494,8 +488,8 @@ export default function Landing() {
       {/* ── TESTIMONIALS ───────────────────────────────────────────────────────── */}
       <section className="lp-section">
         <div className="lp-container">
-          <div className="lp-section-eyebrow">Usuários</div>
-          <h2 className="lp-h2 lp-h2-narrow">Decisões mais conscientes.</h2>
+          <div className="lp-section-eyebrow">Quem usa</div>
+          <h2 className="lp-h2 lp-h2-narrow">O que eles falaram depois.</h2>
           <div className="lp-test-featured">
             <div className="lp-test-featured-quote">"{TESTIMONIALS[4].text}"</div>
             <div className="lp-test-featured-author">
@@ -533,8 +527,8 @@ export default function Landing() {
           <div className="lp-section-eyebrow">Acesso completo</div>
           <h2 className="lp-h2 lp-h2-narrow">Menos do que uma aposta perdida.</h2>
           <p className="lp-pricing-sub">
-            Uma análise que custa R$27 pode te fazer entender por que você perde
-            muito mais do que isso toda semana.
+            Uma análise de R$27 pode te fazer entender por que você perde
+            muito mais do que isso toda semana — antes de você perceber.
           </p>
           <div className="lp-pricing">
             <ul className="lp-features-list">
@@ -551,7 +545,7 @@ export default function Landing() {
                 <span className="lp-price-curr">R$</span>
                 <span className="lp-price-int">27</span>
               </div>
-              <p className="lp-price-note">Acesso completo à plataforma. Ativação imediata após o pagamento.</p>
+              <p className="lp-price-note">Acesso único. Sem mensalidade. Ativação imediata após o pagamento.</p>
               <Link to="/pagar" className="lp-btn-buy">Garantir acesso imediato →</Link>
               <div className="lp-guarantee">
                 <div className="lp-guarantee-icon">✓</div>
@@ -585,13 +579,16 @@ export default function Landing() {
             Ferramenta educativa · +18
           </div>
           <h2 className="lp-cta-h2">
-            Análise matemática<br />
-            <span className="lp-cta-dim">antes de decidir.</span>
+            Você vê a odd.<br />
+            <span className="lp-cta-dim">A casa vê a matemática.</span>
           </h2>
-          <p className="lp-cta-sub">Acesso imediato ao MotorIA Risk Engine™ por R$27.</p>
-          <Link to="/pagar" className="lp-btn-buy lp-btn-buy-lg">Garantir acesso por R$27 →</Link>
+          <p className="lp-cta-sub">O MotorIA mostra o que a plataforma não te mostra. Antes da sua decisão.</p>
+          <div className="lp-cta-actions">
+            <Link to="/app" className="lp-btn-buy lp-btn-buy-lg">Analisar uma aposta →</Link>
+            <Link to="/pagar" className="lp-cta-alt-link">Ou garanta acesso completo por R$27</Link>
+          </div>
           <div className="lp-cta-trust">
-            <span>Sem cadastro</span>
+            <span>Ferramenta educativa</span>
             <span className="lp-meta-sep">·</span>
             <span>Garantia de 7 dias</span>
             <span className="lp-meta-sep">·</span>
@@ -710,14 +707,17 @@ const CSS = `
 
 /* ── Hero insight (tension line) ────────────────────────────────────────────── */
 .lp-hero-insight {
-  font-size: 15px;
+  font-size: 16px;
   color: var(--t2);
   line-height: 1.75;
   letter-spacing: -0.01em;
-  padding-left: 13px;
+  padding-left: 14px;
   border-left: 2px solid rgba(34,197,94,.32);
-  margin-bottom: 28px;
+  margin-bottom: 32px;
 }
+
+/* h1 line break only visible on mobile */
+.lp-h1-br-mobile { display: none; }
 
 /* ── Hero ───────────────────────────────────────────────────────────────────── */
 .lp-hero {
@@ -1408,26 +1408,39 @@ const CSS = `
   padding-top: 28px;
 }
 
+/* ── CTA actions (final) ───────────────────────────────────────────────────── */
+.lp-cta-actions {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.lp-cta-alt-link {
+  font-size: 12px; color: var(--t3); text-decoration: none;
+  transition: color .15s; text-align: center;
+}
+.lp-cta-alt-link:hover { color: var(--t1); }
+
 /* ── Mobile ─────────────────────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .lp-hero-layout { grid-template-columns: 1fr; gap: 48px; padding-top: 60px; padding-bottom: 60px; }
   .lp-hero-left { align-items: center; text-align: center; }
   .lp-tag-pill { align-self: center; }
   .lp-hero-sub { max-width: none; }
-  .lp-hero-pills { justify-content: center; }
+  .lp-hero-insight { text-align: center; border-left: none; padding-left: 0;
+    border-top: 1px solid rgba(34,197,94,.2); border-bottom: 1px solid rgba(34,197,94,.2);
+    padding: 14px 0; }
   .lp-hero-actions { justify-content: center; }
   .lp-hero-meta { justify-content: center; }
   .lp-hero-right { max-width: 460px; width: 100%; margin: 0 auto; }
   .lp-dash-grid { grid-template-columns: repeat(2, 1fr); }
-  .lp-founder-layout { grid-template-columns: 1fr; gap: 48px; }
-  .lp-founder-photo-wrap { max-width: 280px; }
+  .lp-founder-layout { grid-template-columns: 1fr; gap: 40px; }
+  .lp-founder-photo-wrap { max-width: 240px; margin: 0 auto; }
+  .lp-founder-img { aspect-ratio: 4/5; }
   .lp-position-layout { grid-template-columns: 1fr; gap: 40px; }
   .lp-pricing { grid-template-columns: 1fr; gap: 40px; }
   .lp-price-card { position: static; }
 }
 @media (max-width: 768px) {
-  .lp-section, .lp-expose, .lp-dash, .lp-position, .lp-founder { padding: 72px 0; }
-  .lp-container { padding: 0 20px; }
+  .lp-section, .lp-expose, .lp-dash, .lp-position, .lp-founder { padding: 64px 0; }
+  .lp-container { padding: 0 18px; }
   .lp-nav { display: none; }
   .lp-hero { min-height: unset; }
   .lp-steps { grid-template-columns: 1fr; }
@@ -1435,18 +1448,38 @@ const CSS = `
   .lp-expose-vs-col { display: none; }
   .lp-expose-col-show { border-bottom: 1px solid var(--border); }
   .lp-testimonials { grid-template-columns: 1fr; }
-  .lp-cta-final { padding: 80px 0; }
+  .lp-cta-final { padding: 72px 0; }
+  .lp-founder-photo-wrap { max-width: 200px; }
+  .lp-founder-img { aspect-ratio: 1/1; }
 }
 @media (max-width: 480px) {
-  .lp-h1 { font-size: clamp(30px, 9vw, 48px); }
+  .lp-h1 { font-size: clamp(28px, 8.5vw, 44px); letter-spacing: -0.035em; }
+  .lp-h1-br-mobile { display: block; }
   .lp-dash-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
   .lp-dash-card { padding: 14px 12px; }
   .lp-dash-card-num { font-size: 22px; }
-  .lp-expose-col { padding: 20px 16px; }
+  .lp-expose-col { padding: 18px 14px; }
   .lp-mock-input-row { grid-template-columns: 1fr; }
-  .lp-hero-actions { flex-direction: column; align-items: stretch; }
+  .lp-hero-actions { flex-direction: column; align-items: stretch; width: 100%; }
   .lp-btn-hero { justify-content: center; }
-  .lp-test-featured { padding: 20px 16px; }
-  .lp-pricing-sub { margin-bottom: 28px; }
+  .lp-btn-ghost { text-align: center; }
+  .lp-test-featured { padding: 18px 14px; }
+  .lp-pricing-sub { margin-bottom: 24px; }
+  .lp-section-eyebrow { margin-bottom: 10px; }
+  .lp-h2 { margin-bottom: 12px; }
+  .lp-h2-narrow { margin-bottom: 32px; }
+  .lp-hero-layout { gap: 36px; padding-top: 48px; padding-bottom: 48px; }
+  .lp-hero-right { display: none; }
+  .lp-cta-actions { width: 100%; }
+  .lp-btn-buy-lg { width: 100%; text-align: center; }
+  .lp-founder-photo-wrap { max-width: 160px; }
+  .lp-founder-img { aspect-ratio: 1/1; }
+  .lp-cta-final { padding: 60px 0; }
+  .lp-expose-sub { font-size: 14px; margin-bottom: 28px; }
+  .lp-score-scale-bar { grid-template-columns: repeat(4,1fr); }
+  .lp-score-seg-range { display: none; }
+  .lp-recent-id, .lp-recent-ago { display: none; }
+  .lp-recent-row { grid-template-columns: 1fr 48px 24px 56px; gap: 6px; padding: 8px 12px; }
+  .lp-recent-odd { display: none; }
 }
 `;
