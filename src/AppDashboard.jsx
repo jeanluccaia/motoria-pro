@@ -34,7 +34,19 @@ const CAMPEONATOS = [
   "La Liga", "Copa do Brasil", "Série B",
 ];
 
-// Autocomplete suggestions intentionally omitted — static fake matches reduce credibility.
+// Suggested reference odds by market — used as quick-fill hint when a game is selected
+const SUGGESTED_ODDS = {
+  "Resultado da partida": "1.85",
+  "Mais ou menos gols":   "1.90",
+  "Ambos marcam":         "1.95",
+  "Handicap":             "2.10",
+  "Empate devolve":       "1.65",
+  "Chance dupla":         "1.40",
+  "Primeiro gol":         "3.50",
+  "Escanteios":           "1.90",
+  "Cartões":              "1.85",
+  "Múltipla":             "4.00",
+};
 
 const LOAD_STEPS = [
   { label: "Analisando odd informada",        pct: 16 },
@@ -400,21 +412,33 @@ export default function AppDashboard() {
   const [analysisId, setAnalysisId] = useState(null);
 
   // Jogos de Hoje
-  const [matches,        setMatches]        = useState([]);
-  const [matchesLoading, setMatchesLoading] = useState(false);
-  const [matchesError,   setMatchesError]   = useState("");
-  const [selectedGame,   setSelectedGame]   = useState(null);
-  const [leagueFilter,   setLeagueFilter]   = useState("todos");
+  const [matches,          setMatches]          = useState([]);
+  const [matchesLoading,   setMatchesLoading]   = useState(false);
+  const [matchesError,     setMatchesError]     = useState("");
+  const [matchesUpdatedAt, setMatchesUpdatedAt] = useState(null);
+  const [selectedGame,     setSelectedGame]     = useState(null);
+  const [leagueFilter,     setLeagueFilter]     = useState("todos");
 
-  useEffect(() => {
-    if (view !== "jogos") return;
-    if (matches.length > 0) return; // already loaded
+  function loadMatches() {
     setMatchesLoading(true);
     setMatchesError("");
     fetch("/api/matches")
       .then(r => r.json())
-      .then(d => { setMatches(d.matches || []); setMatchesLoading(false); })
-      .catch(() => { setMatchesError("Erro ao carregar jogos. Tente novamente."); setMatchesLoading(false); });
+      .then(d => {
+        setMatches(d.matches || []);
+        setMatchesUpdatedAt(d.updatedAt ? new Date(d.updatedAt) : new Date());
+        setMatchesLoading(false);
+      })
+      .catch(() => {
+        setMatchesError("Não foi possível carregar as partidas. Verifique sua conexão.");
+        setMatchesLoading(false);
+      });
+  }
+
+  useEffect(() => {
+    if (view !== "jogos") return;
+    if (matches.length > 0 && !matchesError) return;
+    loadMatches();
   }, [view]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const oddNum    = parseFloat((odd || "").replace(",", "."));
@@ -777,15 +801,19 @@ export default function AppDashboard() {
               <div className="ap-content ap-content-nova" key="nova">
 
                 {selectedGame && !result && !loading && (
-                  <div className="ap-game-strip">
-                    <span className="ap-game-strip-dot" aria-hidden="true" />
+                  <div className={`ap-game-strip${selectedGame.status === "live" ? " ap-game-strip-live" : ""}`}>
+                    <span className={`ap-game-strip-dot${selectedGame.status === "live" ? " ap-gsd-live" : ""}`} aria-hidden="true" />
                     <span className="ap-game-strip-text">{selectedGame.home} × {selectedGame.away}</span>
                     {selectedGame.campeonato && (
                       <span className="ap-game-strip-league">{selectedGame.campeonato}</span>
                     )}
-                    {selectedGame.time && (
+                    {selectedGame.status === "live" ? (
+                      <span className="ap-gsd-live-badge">
+                        AO VIVO{selectedGame.elapsed ? ` · ${selectedGame.elapsed}'` : ""}
+                      </span>
+                    ) : selectedGame.time ? (
                       <span className="ap-game-strip-time">{selectedGame.time}</span>
-                    )}
+                    ) : null}
                     <button
                       className="ap-game-strip-clear"
                       onClick={() => { setSelectedGame(null); setJogo(""); setCampeonato(""); }}
@@ -840,6 +868,24 @@ export default function AppDashboard() {
                         <label className="ap-label" htmlFor="tipo-input">TIPO DE APOSTA</label>
                         <CustomSelect id="tipo-input" options={TIPOS} value={tipo} onChange={setTipo} />
                       </div>
+
+                      {/* Odd sugestiva — shown when game is selected + odd not filled */}
+                      {selectedGame && SUGGESTED_ODDS[tipo] && !odd && (
+                        <div className="ap-odd-sug">
+                          <span className="ap-odd-sug-icon" aria-hidden="true">💡</span>
+                          <span className="ap-odd-sug-text">
+                            Odd referência para <em>{tipo}</em>:{" "}
+                            <strong>{SUGGESTED_ODDS[tipo]}</strong>
+                          </span>
+                          <button
+                            type="button"
+                            className="ap-odd-sug-btn"
+                            onClick={() => setOdd(SUGGESTED_ODDS[tipo])}
+                          >
+                            Usar
+                          </button>
+                        </div>
+                      )}
 
                       {/* ── Campos secundários ─────────────────────────── */}
                       <div className="ap-row-2 ap-row-secondary">
@@ -1087,28 +1133,55 @@ export default function AppDashboard() {
             {/* ════ JOGOS DE HOJE ════════════════════════════════════════ */}
             {view === "jogos" && (
               <div className="ap-content" key="jogos">
+
+                {/* Panel header */}
                 <div className="ap-panel-hdr">
                   <div className="ap-panel-hdr-left">
-                    <div className="ap-panel-mod">MERCADO</div>
+                    <div className="ap-panel-mod">ANÁLISE ESPORTIVA</div>
                     <div className="ap-panel-title">Jogos de Hoje</div>
                   </div>
-                  <div className="ap-panel-online">
-                    <span className="ap-status-dot" aria-hidden="true" />
-                    {fmtDateBR()}
+                  <div className="jg-hdr-right">
+                    <div className="jg-data-badge" title="Dados obtidos de fontes esportivas em tempo real">
+                      <span className="jg-data-dot" aria-hidden="true" />
+                      DADOS ESPORTIVOS
+                    </div>
+                    {matchesUpdatedAt && (
+                      <span className="jg-updated">
+                        {matchesUpdatedAt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    )}
+                    <button
+                      className="jg-refresh-btn"
+                      onClick={loadMatches}
+                      disabled={matchesLoading}
+                      title="Atualizar partidas"
+                      type="button"
+                      aria-label="Atualizar lista de partidas"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                        <path d="M12 7A5 5 0 1 1 7 2M12 7V2.5M12 2.5H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
                   </div>
                 </div>
 
+                {/* Loading */}
                 {matchesLoading && (
                   <div className="jg-loading">
                     <span className="jg-dot" /><span className="jg-dot" /><span className="jg-dot" />
-                    <span className="jg-loading-lbl">Buscando partidas...</span>
+                    <span className="jg-loading-lbl">Buscando partidas de hoje...</span>
                   </div>
                 )}
 
+                {/* Error */}
                 {matchesError && !matchesLoading && (
-                  <div className="ap-error" role="alert">{matchesError}</div>
+                  <div className="ap-error" role="alert">
+                    {matchesError}
+                    <button className="jg-retry-btn" onClick={loadMatches} type="button">Tentar novamente</button>
+                  </div>
                 )}
 
+                {/* Empty */}
                 {!matchesLoading && matches.length === 0 && !matchesError && (
                   <div className="ap-geral-empty">
                     <p>Nenhuma partida encontrada para hoje.</p>
@@ -1116,54 +1189,109 @@ export default function AppDashboard() {
                   </div>
                 )}
 
+                {/* Match list */}
                 {!matchesLoading && matches.length > 0 && (() => {
-                  const leagues = ["todos", ...new Set(matches.map(m => mapLeague(m.league)).filter(Boolean))];
-                  const filtered = leagueFilter === "todos"
-                    ? matches
+                  const liveCount  = matches.filter(m => m.status === "live").length;
+                  const leagues    = [...new Set(matches.map(m => mapLeague(m.league)).filter(Boolean))];
+                  const allPills   = ["todos", ...(liveCount > 0 ? ["live"] : []), ...leagues];
+
+                  const filtered = leagueFilter === "todos" ? matches
+                    : leagueFilter === "live"  ? matches.filter(m => m.status === "live")
                     : matches.filter(m => mapLeague(m.league) === leagueFilter);
+
                   return (
                     <>
-                      {/* League filter pills */}
+                      {/* League / status filter pills */}
                       <div className="jg-filters">
-                        {leagues.map(f => (
+                        {allPills.map(f => (
                           <button
                             key={f}
-                            className={`jg-pill${leagueFilter === f ? " jg-pill-on" : ""}`}
+                            className={[
+                              "jg-pill",
+                              leagueFilter === f ? "jg-pill-on" : "",
+                              f === "live"       ? "jg-pill-live" : "",
+                            ].join(" ").trim()}
                             onClick={() => setLeagueFilter(f)}
                             type="button"
                           >
-                            {f === "todos" ? "Todos" : f}
+                            {f === "todos" ? "Todos" : f === "live"
+                              ? <><span className="jg-pill-dot" aria-hidden="true" />Ao Vivo ({liveCount})</>
+                              : f}
                           </button>
                         ))}
                       </div>
 
-                      {/* Match cards grid */}
+                      {/* Cards grid */}
                       <div className="jg-grid">
-                        {filtered.map((m, idx) => (
-                          <button
-                            key={m.id || idx}
-                            className="jg-card"
-                            onClick={() => selectGame(m)}
-                            type="button"
-                            style={{ animationDelay: `${idx * 40}ms` }}
-                          >
-                            <div className="jg-card-header">
-                              <span className="jg-league">{mapLeague(m.league) || m.league}</span>
-                              {m.time && <span className="jg-time">{m.time}</span>}
-                            </div>
-                            <div className="jg-teams">
-                              <span className="jg-team jg-team-home">{m.home}</span>
-                              <span className="jg-vs">×</span>
-                              <span className="jg-team jg-team-away">{m.away}</span>
-                            </div>
-                            <div className="jg-card-footer">
-                              <span className="jg-cta">Analisar →</span>
-                            </div>
-                          </button>
-                        ))}
+                        {filtered.map((m, idx) => {
+                          const hasScore = m.scoreHome !== null && m.scoreAway !== null;
+                          return (
+                            <button
+                              key={m.id || idx}
+                              className={`jg-card jg-card-${m.status}`}
+                              onClick={() => selectGame(m)}
+                              type="button"
+                              style={{ animationDelay: `${Math.min(idx, 6) * 40}ms` }}
+                            >
+                              {/* Card header: league + kick-off time (upcoming only) */}
+                              <div className="jg-card-header">
+                                <span className="jg-league">{mapLeague(m.league) || m.league}</span>
+                                {m.status === "upcoming" && m.time && (
+                                  <span className="jg-time">{m.time}</span>
+                                )}
+                              </div>
+
+                              {/* Status indicator row */}
+                              {m.status === "live" && (
+                                <div className="jg-status-row">
+                                  <span className="jg-live-dot" aria-hidden="true" />
+                                  <span className="jg-status-live-text">AO VIVO</span>
+                                  {m.elapsed != null && (
+                                    <span className="jg-elapsed">{m.elapsed}'</span>
+                                  )}
+                                </div>
+                              )}
+                              {m.status === "ended" && (
+                                <div className="jg-status-row">
+                                  <span className="jg-status-ended-text">ENCERRADO</span>
+                                </div>
+                              )}
+
+                              {/* Teams + score */}
+                              <div className="jg-matchup">
+                                <span className="jg-team-name">{m.home}</span>
+                                <div className="jg-score-center">
+                                  {hasScore ? (
+                                    <span className="jg-score-pair">
+                                      <span className="jg-score-num">{m.scoreHome}</span>
+                                      <span className="jg-score-dash">—</span>
+                                      <span className="jg-score-num">{m.scoreAway}</span>
+                                    </span>
+                                  ) : (
+                                    <span className="jg-vs">×</span>
+                                  )}
+                                </div>
+                                <span className="jg-team-name jg-team-right">{m.away}</span>
+                              </div>
+
+                              {/* CTA */}
+                              <div className="jg-card-footer">
+                                <span className="jg-cta">Analisar →</span>
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
 
-                      <p className="jg-hint">Clique em uma partida para pré-preencher a análise.</p>
+                      {/* Disclaimer */}
+                      <div className="jg-disclaimer" role="note">
+                        <svg width="10" height="10" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                          <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.3"/>
+                          <path d="M7 6.5v3.5M7 4.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                        </svg>
+                        Ferramenta educativa. Os dados de partidas fornecem contexto para análise de risco.
+                        Não representa recomendação de aposta.
+                      </div>
                     </>
                   );
                 })()}
@@ -2606,5 +2734,180 @@ body { overflow: hidden; }
   .jg-team { font-size: 12.5px; }
   .ap-game-strip { padding: 9px 12px; }
   .ap-game-strip-text { font-size: 12px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   JOGOS v2 — premium match cards + live status
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Panel header right block ──────────────────────────────────────────────── */
+.jg-hdr-right {
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+.jg-data-badge {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 7.5px; font-weight: 800; letter-spacing: .13em;
+  color: rgba(34,197,94,.6);
+  background: rgba(34,197,94,.06); border: 1px solid rgba(34,197,94,.16);
+  border-radius: 99px; padding: 4px 9px; white-space: nowrap;
+}
+.jg-data-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--green); flex-shrink: 0;
+  animation: ap-pulse 2.2s ease-in-out infinite;
+}
+.jg-updated {
+  font-size: 8.5px; color: var(--t3); font-variant-numeric: tabular-nums;
+  font-family: 'Courier New', monospace; letter-spacing: .03em; flex-shrink: 0;
+}
+.jg-refresh-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 6px;
+  background: rgba(255,255,255,.04); border: 1px solid var(--border);
+  color: var(--t2); cursor: pointer; transition: all .13s; flex-shrink: 0;
+}
+.jg-refresh-btn:hover:not(:disabled) { color: var(--t1); border-color: var(--bmd); background: rgba(255,255,255,.07); }
+.jg-refresh-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ── Status rows ───────────────────────────────────────────────────────────── */
+.jg-status-row {
+  display: flex; align-items: center; gap: 5px; min-height: 14px;
+}
+.jg-live-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #EF4444; flex-shrink: 0;
+  animation: ap-pulse 1.4s ease-in-out infinite;
+}
+.jg-status-live-text {
+  font-size: 7.5px; font-weight: 800; letter-spacing: .14em; color: #EF4444; text-transform: uppercase;
+}
+.jg-elapsed {
+  font-size: 10px; font-weight: 700; color: rgba(239,68,68,.65);
+  font-variant-numeric: tabular-nums; font-family: 'Courier New', monospace;
+}
+.jg-status-ended-text {
+  font-size: 7.5px; font-weight: 800; letter-spacing: .12em; color: var(--t3); text-transform: uppercase;
+}
+
+/* ── Match layout ──────────────────────────────────────────────────────────── */
+.jg-matchup {
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+}
+.jg-team-name {
+  font-size: 13px; font-weight: 700; color: var(--t1);
+  letter-spacing: -0.02em; flex: 1; line-height: 1.2;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.jg-team-right { text-align: right; }
+.jg-score-center { flex-shrink: 0; }
+.jg-score-pair { display: flex; align-items: center; gap: 2px; }
+.jg-score-num {
+  font-size: 20px; font-weight: 900; line-height: 1;
+  font-variant-numeric: tabular-nums; color: var(--t1); min-width: 16px; text-align: center;
+}
+.jg-score-dash { font-size: 11px; color: var(--t3); font-weight: 700; margin: 0 1px; }
+
+/* ── Card state variants ───────────────────────────────────────────────────── */
+
+/* Live: red-tinted border, pulsing glow */
+@keyframes jg-live-pulse {
+  0%, 100% { border-color: rgba(239,68,68,.18); }
+  50%       { border-color: rgba(239,68,68,.38); box-shadow: 0 0 18px rgba(239,68,68,.07); }
+}
+.jg-card-live {
+  border-color: rgba(239,68,68,.2);
+  animation: jg-card-in .24s ease both, jg-live-pulse 2.4s ease-in-out infinite;
+}
+.jg-card-live:hover {
+  animation: none !important;
+  border-color: rgba(239,68,68,.45) !important;
+  background: rgba(239,68,68,.03) !important;
+  transform: translateY(-2px);
+}
+.jg-card-live .jg-team-name { color: var(--t1); }
+
+/* Ended: dimmed */
+.jg-card-ended { opacity: .55; }
+.jg-card-ended:hover {
+  opacity: .78; transform: translateY(-1px) !important;
+  border-color: var(--bmd) !important; background: rgba(255,255,255,.02) !important;
+  box-shadow: none !important;
+}
+.jg-card-ended .jg-team-name { color: var(--t2); }
+.jg-card-ended .jg-score-num { color: var(--t2); }
+.jg-card-ended .jg-cta { color: rgba(255,255,255,.16); }
+
+/* ── Filter pill live variant ──────────────────────────────────────────────── */
+.jg-pill-live { color: rgba(239,68,68,.65) !important; }
+.jg-pill-live.jg-pill-on {
+  background: rgba(239,68,68,.1) !important;
+  border-color: rgba(239,68,68,.28) !important;
+  color: #EF4444 !important;
+}
+.jg-pill-dot {
+  display: inline-block; width: 5px; height: 5px; border-radius: 50%;
+  background: currentColor; margin-right: 4px; vertical-align: middle;
+  animation: ap-pulse 1.4s ease-in-out infinite;
+}
+
+/* ── Error retry button ────────────────────────────────────────────────────── */
+.jg-retry-btn {
+  display: inline-block; margin-left: 10px;
+  font-size: 11px; font-weight: 700; color: var(--red); cursor: pointer;
+  background: none; border: none; font-family: inherit;
+  text-decoration: underline; padding: 0;
+}
+
+/* ── Disclaimer ────────────────────────────────────────────────────────────── */
+.jg-disclaimer {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 10.5px; color: var(--t3); line-height: 1.65;
+  padding: 11px 14px;
+  background: rgba(255,255,255,.02); border: 1px solid var(--border);
+  border-radius: 9px;
+}
+.jg-disclaimer svg { flex-shrink: 0; margin-top: 2px; opacity: .45; }
+
+/* ── Selected game strip — live variant ────────────────────────────────────── */
+.ap-game-strip-live {
+  background: rgba(239,68,68,.05) !important;
+  border-color: rgba(239,68,68,.22) !important;
+}
+.ap-gsd-live { background: #EF4444 !important; }
+.ap-gsd-live-badge {
+  font-size: 8.5px; font-weight: 800; letter-spacing: .1em;
+  color: rgba(239,68,68,.75); text-transform: uppercase; flex-shrink: 0;
+  animation: ap-blink 1.6s ease-in-out infinite;
+}
+
+/* ── Odd sugestiva ─────────────────────────────────────────────────────────── */
+.ap-odd-sug {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 9px 13px;
+  background: rgba(34,197,94,.04); border: 1px solid rgba(34,197,94,.14);
+  border-radius: 8px; animation: ap-fade-up .17s ease both;
+}
+.ap-odd-sug-icon { font-size: 12px; flex-shrink: 0; line-height: 1; }
+.ap-odd-sug-text {
+  font-size: 11.5px; color: var(--t2); flex: 1; min-width: 0; line-height: 1.4;
+}
+.ap-odd-sug-text em  { font-style: normal; color: var(--t1); font-weight: 600; }
+.ap-odd-sug-text strong { color: var(--green); font-weight: 800; }
+.ap-odd-sug-btn {
+  padding: 5px 13px; border-radius: 6px; flex-shrink: 0;
+  background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.22);
+  color: var(--green); font-size: 10px; font-weight: 800; letter-spacing: .06em;
+  cursor: pointer; font-family: inherit; white-space: nowrap;
+  transition: background .12s, border-color .12s;
+}
+.ap-odd-sug-btn:hover { background: rgba(34,197,94,.18); border-color: rgba(34,197,94,.38); }
+
+/* ── Jogos v2 mobile ───────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .jg-data-badge { display: none; }  /* too wide on narrow screens */
+  .jg-hdr-right { gap: 6px; }
+  .jg-team-name { font-size: 12px; }
+  .jg-score-num { font-size: 18px; }
+  .jg-disclaimer { font-size: 10px; }
+  .ap-odd-sug { padding: 8px 11px; }
+  .ap-odd-sug-text { font-size: 11px; }
 }
 `;
