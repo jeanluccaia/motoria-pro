@@ -1,472 +1,124 @@
-import { useState } from "react";
-import { LegalBar, Footer } from "./Layout";
-import { Link } from "./router";
+import{r as i,j as e}from"./vendor-BnG4zNoI.js";const n=i.createContext({path:"/",navigate:()=>{}});function A({children:a}){const[o,r]=i.useState(window.location.pathname);i.useEffect(()=>{const l=()=>r(window.location.pathname);return window.addEventListener("popstate",l),()=>window.removeEventListener("popstate",l)},[]);function t(l){window.history.pushState({},"",l),r(l),window.scrollTo({top:0,behavior:"instant"})}return e.jsx(n.Provider,{value:{path:o,navigate:t},children:a})}function q(){return i.useContext(n)}function m(){return i.useContext(n).navigate}function s({to:a,children:o,className:r,style:t,onClick:l}){const c=m();function d(p){p.preventDefault(),l&&l(p),c(a)}return e.jsx("a",{href:a,onClick:d,className:r,style:t,children:o})}function x(){return e.jsxs("div",{className:"ly-legal",children:[e.jsx("span",{children:"⚠"}),e.jsxs("span",{children:["Ferramenta educativa de risco. Não é recomendação de aposta. Apostas envolvem risco financeiro real e podem causar prejuízo."," ",e.jsx("strong",{children:"Proibido para menores de 18 anos."})," ",e.jsx("a",{href:"https://www.jogoresponsavel.com.br",target:"_blank",rel:"noopener noreferrer",children:"jogoresponsavel.com.br"})]})]})}function E(){return e.jsxs("header",{className:"ly-header",children:[e.jsxs(s,{to:"/",className:"ly-logo",children:[e.jsx("span",{className:"ly-logo-main",children:"MotorIA Pro"}),e.jsx("span",{className:"ly-logo-tag",children:"· Análise de Risco"})]}),e.jsx(s,{to:"/analisar",className:"ly-cta-btn",children:"Analisar minha aposta"})]})}function g(){return e.jsx("footer",{className:"ly-footer",children:e.jsxs("div",{className:"ly-footer-inner",children:[e.jsx("p",{className:"ly-footer-legal",children:"⚠ Ferramenta educativa. Não é recomendação de aposta. Apostas envolvem risco financeiro real e podem causar prejuízo. Jogue com responsabilidade."}),e.jsxs("p",{className:"ly-footer-links",children:[e.jsx("a",{href:"https://www.jogoresponsavel.com.br",target:"_blank",rel:"noopener noreferrer",children:"jogoresponsavel.com.br"})," · ",e.jsx("a",{href:"tel:188",children:"CVV 188"})," · ","Proibido para menores de 18 anos."]}),e.jsx("p",{className:"ly-footer-copy",children:"© 2026 MotorIA Pro — Análise de Risco. Todos os direitos reservados."})]})})}const C=`
+/* @import removed — fonts are loaded as non-blocking <link> in index.html. */
 
-// ─── Data ───────────────────────────────────────────────────────────────────────
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-const COMPARISON_SHOW = [
-  "A odd e o retorno possível",
-  "Quanto você pode ganhar",
-  "O lado positivo da aposta",
-];
-
-const COMPARISON_HIDE = [
-  "Chance real de perder",
-  "Margem escondida da casa",
-  "Nota de risco 0 a 100",
-  "Custo médio por R$100 apostado",
-];
-
-const DASH_CARDS = [
-  { num: "64,3%", color: "#EF4444", label: "Chance de perder",        bar: 64.3, desc: "A probabilidade de perder essa aposta, calculada direto da odd que a plataforma te mostrou." },
-  { num: "67",    color: "#F97316", label: "Nota de risco MotorIA",   bar: 67,   desc: "Escala de 0 a 100. Quanto maior, mais arriscada a aposta — independente da odd parecer boa." },
-  { num: "5,5%",  color: "#F59E0B", label: "Margem da casa",          bar: 5.5,  desc: "Embutida em toda odd, invisível. Você nunca vê essa cobrança — mas sempre paga." },
-  { num: "−R$14", color: "#EF4444", label: "Custo por R$100",         bar: 61,   desc: "No longo prazo, é quanto você tende a perder por cada R$100 apostado nesse perfil de odd." },
-];
-
-const STEPS = [
-  { n: "01", title: "Informe a odd",             desc: "Coloque a odd, o valor e o tipo de aposta. Leva menos de 30 segundos." },
-  { n: "02", title: "O MotorIA calcula o risco", desc: "Ele transforma a odd em uma leitura simples — chance de perda, nota de risco e custo estimado." },
-  { n: "03", title: "Decida com consciência",    desc: "Você vê se a aposta parece segura ou se exige cautela. A decisão é sempre sua." },
-];
-
-const TESTIMONIALS = [
-  { name: "R.", text: "Ia entrar só pra recuperar o loss. A análise mostrou risco alto. Fechei o app." },
-  { name: "A.", text: "Achava que odd baixa era segura. Agora olho diferente antes de qualquer aposta." },
-  { name: "F.", text: "Não me prometeu green. Só me fez pensar antes de clicar. Isso já valeu." },
-  { name: "M.", text: "Eu ia apostar no impulso. A nota de risco me travou. Parei e não apostei." },
-];
-
-const FEATURES = [
-  "20 análises para usar quando quiser",
-  "Nota de risco de 0 a 100 por aposta",
-  "Chance real de perder calculada na hora",
-  "Margem da casa revelada por tipo de aposta",
-  "Simulador de banca — veja o impacto em 30 dias",
-  "Alerta de tilt — avisa quando você está apostando por impulso",
-  "Leitura honesta com pontos cegos e análise conservadora",
-  "Acesso imediato após o pagamento",
-];
-
-const FAQ_ITEMS = [
-  { q: "Isso garante lucro?",                         a: "Não. Não existe ferramenta que garanta ganhos em apostas. O MotorIA te mostra o risco antes de decidir — não como vencer." },
-  { q: "Vocês dão palpites?",                         a: "Nunca. Mostramos probabilidade e risco matemático. A decisão é sempre sua." },
-  { q: "Vocês são uma casa de aposta?",               a: "Não. Somos uma ferramenta educativa independente. Sem relação nenhuma com plataformas ou casas de aposta." },
-  { q: "É assinatura mensal?",                        a: "Não. É um acesso único por R$27. Sem mensalidade, sem renovação automática, sem surpresa no cartão." },
-  { q: "Funciona no celular?",                        a: "Sim. A ferramenta foi feita para o celular — pra usar antes de qualquer decisão, de onde você estiver." },
-  { q: "E se eu já tenho problema com jogo?",         a: "Se apostar está te causando prejuízo, ansiedade ou perda de controle, a recomendação é procurar ajuda especializada — não usar a ferramenta para apostar. Acesse jogoresponsavel.com.br ou ligue 188 (CVV)." },
-];
-
-// ─── Sub-components ─────────────────────────────────────────────────────────────
-
-function FaqItem({ q, a }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className={`lp-faq-item${open ? " lp-faq-open" : ""}`} onClick={() => setOpen(!open)}>
-      <div className="lp-faq-q">
-        <span>{q}</span>
-        <span className="lp-faq-icon">{open ? "−" : "+"}</span>
-      </div>
-      {open && <p className="lp-faq-a">{a}</p>}
-    </div>
-  );
+:root {
+  --bg:    #0A0A0B;
+  --text:  #F2F2F0;
+  --muted: #6B7280;
+  --red:   #FF4D2E;
+  --amber: #FFB020;
+  --green: #1FCB7A;
+  --border: #1E1E1F;
+  --card:  #111112;
 }
 
-// ─── Landing ────────────────────────────────────────────────────────────────────
+html { scroll-behavior: smooth; }
 
-export default function Landing() {
-  return (
-    <>
-      <style>{CSS}</style>
-      <LegalBar />
-
-      {/* ── HEADER ─────────────────────────────────────────────────────────────── */}
-      <header className="lp-header">
-        <div className="lp-header-inner">
-          <div className="lp-logo">
-            <div className="lp-logo-mark">
-              <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-                <path d="M7 1L13 4V10L7 13L1 10V4L7 1Z" fill="#050505"/>
-                <path d="M7 1L13 4V10L7 13L1 10V4L7 1Z" fill="currentColor" fillOpacity=".9"/>
-              </svg>
-            </div>
-            <span className="lp-logo-name">MotorIA Pro</span>
-          </div>
-          <nav className="lp-nav">
-            <a href="#problema"      className="lp-nav-link">O problema</a>
-            <a href="#como-funciona" className="lp-nav-link">Como funciona</a>
-            <a href="#preco"         className="lp-nav-link">Preço</a>
-          </nav>
-          <Link to="/pagar" className="lp-nav-cta">Garantir acesso →</Link>
-        </div>
-      </header>
-
-      {/* ── HERO ───────────────────────────────────────────────────────────────── */}
-      <section className="lp-hero">
-        <div className="lp-hero-grid" aria-hidden="true" />
-        <div className="lp-container lp-hero-layout">
-
-          {/* LEFT */}
-          <div className="lp-hero-left">
-            <h1 className="lp-h1">
-              Essa odd<br />parecia boa.
-            </h1>
-            <p className="lp-hero-sub">
-              Até o MotorIA mostrar o risco.
-            </p>
-            <p className="lp-hero-desc">
-              Uma ferramenta que analisa o risco da aposta antes da decisão.
-            </p>
-            <div className="lp-hero-actions">
-              <Link to="/app" className="lp-btn-hero">
-                Analisar uma aposta
-                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                  <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </Link>
-              <Link to="/pagar" className="lp-btn-ghost">Acesso completo por R$27</Link>
-            </div>
-            <div className="lp-hero-meta">
-              Ferramenta educativa
-              <span className="lp-meta-sep">·</span>
-              +18
-              <span className="lp-meta-sep">·</span>
-              Não promete lucro
-            </div>
-          </div>
-
-          {/* RIGHT — mock analysis panel */}
-          <div className="lp-hero-right">
-            <div className="lp-mock">
-              <div className="lp-mock-topbar">
-                <div className="lp-mock-traffic">
-                  <span className="lp-mock-dot-r" />
-                  <span className="lp-mock-dot-y" />
-                  <span className="lp-mock-dot-g" />
-                </div>
-                <span className="lp-mock-title">MotorIA · Leitura de risco</span>
-                <span className="lp-mock-live">LIVE</span>
-              </div>
-              <div className="lp-mock-body">
-                <div className="lp-mock-session">
-                  <span className="lp-mock-session-id">ANÁLISE #2847</span>
-                  <span className="lp-mock-session-ts">hoje · 14:23</span>
-                </div>
-                <div className="lp-mock-input-row">
-                  <div className="lp-mock-cell">
-                    <span className="lp-mock-cell-lbl">Jogo</span>
-                    <span className="lp-mock-cell-val">Flamengo × Palmeiras</span>
-                    <span className="lp-mock-cell-sub">Vitória do Flamengo</span>
-                  </div>
-                  <div className="lp-mock-cell lp-mock-cell-sm">
-                    <span className="lp-mock-cell-lbl">Odd</span>
-                    <span className="lp-mock-cell-val lp-mock-odd">2.80</span>
-                  </div>
-                </div>
-                <div className="lp-mock-prob-split">
-                  <div className="lp-mock-prob-win" />
-                  <div className="lp-mock-prob-lose" />
-                </div>
-                <div className="lp-mock-prob-labels">
-                  <span className="lp-mock-prob-lbl lp-mock-prob-w">▲ Chance de ganhar 35,7%</span>
-                  <span className="lp-mock-prob-lbl lp-mock-prob-l">64,3% de perder ▼</span>
-                </div>
-                <div className="lp-mock-rule" />
-                <div className="lp-mock-data-grid">
-                  <div className="lp-mock-dc"><span className="lp-mock-dk">CHANCE DE GANHAR</span><span className="lp-mock-dv lp-mock-dv-g">35,71%</span></div>
-                  <div className="lp-mock-dc"><span className="lp-mock-dk">MARGEM DA CASA</span><span className="lp-mock-dv lp-mock-dv-a">5,47%</span></div>
-                  <div className="lp-mock-dc"><span className="lp-mock-dk">CHANCE DE PERDER</span><span className="lp-mock-dv lp-mock-dv-r">64,3%</span></div>
-                  <div className="lp-mock-dc"><span className="lp-mock-dk">CUSTO POR R$100</span><span className="lp-mock-dv lp-mock-dv-r">−R$14,50</span></div>
-                </div>
-                <div className="lp-mock-rule" />
-                <div className="lp-mock-score-wrap">
-                  <div className="lp-mock-score-hdr">
-                    <span className="lp-mock-score-lbl">NOTA DE RISCO</span>
-                    <span className="lp-mock-risk-tag">ALTO</span>
-                  </div>
-                  <div className="lp-mock-score-row">
-                    <div className="lp-mock-score-left">
-                      <span className="lp-mock-score-num">67</span>
-                      <span className="lp-mock-score-denom">/100</span>
-                    </div>
-                    <div className="lp-mock-bar-wrap">
-                      <div className="lp-mock-bar-track">
-                        <div className="lp-mock-bar-fill" />
-                        {[30, 60, 80].map(t => (
-                          <div key={t} className="lp-mock-bar-tick" style={{ left: `${t}%` }} />
-                        ))}
-                      </div>
-                      <div className="lp-mock-bar-labels">
-                        <span>Baixo</span><span>Mod.</span><span>Alto</span><span>Crítico</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="lp-mock-verdict">
-                    <span className="lp-mock-verdict-badge">DESFAVORÁVEL</span>
-                    <span className="lp-mock-verdict-detail">Verifique antes de decidir</span>
-                  </div>
-                </div>
-              </div>
-              <div className="lp-mock-footer">
-                Ferramenta educativa · Não é recomendação de aposta
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* ── PROBLEMA ───────────────────────────────────────────────────────────── */}
-      <section className="lp-problem lp-section-dark" id="problema">
-        <div className="lp-container">
-          <div className="lp-section-eyebrow">O problema</div>
-          <h2 className="lp-h2">
-            Nem toda aposta ruim<br />
-            parece arriscada.
-          </h2>
-          <p className="lp-problem-text">
-            Às vezes a odd parece boa. O jogo parece fácil.
-            A vontade de recuperar fala mais alto.
-          </p>
-          <p className="lp-problem-text lp-problem-text-em">
-            O MotorIA entra antes disso — mostrando o risco
-            que você talvez não esteja vendo.
-          </p>
-          <div className="lp-compare">
-            <div className="lp-compare-col lp-compare-show">
-              <div className="lp-compare-hdr">
-                <span className="lp-compare-dot lp-compare-dot-dim" />
-                <span className="lp-compare-title">Você normalmente vê</span>
-              </div>
-              {COMPARISON_SHOW.map((item, i) => (
-                <div className="lp-compare-row" key={i}>
-                  <span className="lp-compare-icon lp-c-dim">→</span>
-                  <span className="lp-compare-text">{item}</span>
-                </div>
-              ))}
-            </div>
-            <div className="lp-compare-col lp-compare-hide">
-              <div className="lp-compare-hdr">
-                <span className="lp-compare-dot lp-compare-dot-green" />
-                <span className="lp-compare-title">O MotorIA mostra</span>
-              </div>
-              {COMPARISON_HIDE.map((item, i) => (
-                <div className="lp-compare-row" key={i}>
-                  <span className="lp-compare-icon lp-c-green">✓</span>
-                  <span className="lp-compare-text">{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── INDICADORES ────────────────────────────────────────────────────────── */}
-      <section className="lp-dash" id="como-funciona">
-        <div className="lp-container">
-          <div className="lp-section-eyebrow">O que você descobre</div>
-          <h2 className="lp-h2 lp-h2-narrow">
-            4 números que a odd<br />não te mostra.
-          </h2>
-          <div className="lp-dash-grid">
-            {DASH_CARDS.map(c => (
-              <div className="lp-dash-card" key={c.label}>
-                <div className="lp-dash-card-num" style={{ color: c.color }}>{c.num}</div>
-                <div className="lp-dash-card-label">{c.label}</div>
-                <div className="lp-dash-mini-bar">
-                  <div className="lp-dash-mini-fill" style={{ width: `${c.bar}%`, background: c.color }} />
-                </div>
-                <div className="lp-dash-card-desc">{c.desc}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── COMO FUNCIONA ──────────────────────────────────────────────────────── */}
-      <section className="lp-section lp-section-dark" id="como-funciona-steps">
-        <div className="lp-container">
-          <div className="lp-section-eyebrow">Como funciona</div>
-          <h2 className="lp-h2 lp-h2-narrow">Simples assim.</h2>
-          <div className="lp-steps">
-            {STEPS.map(s => (
-              <div className="lp-step" key={s.n}>
-                <div className="lp-step-n">{s.n}</div>
-                <h3 className="lp-step-title">{s.title}</h3>
-                <p className="lp-step-desc">{s.desc}</p>
-              </div>
-            ))}
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <Link to="/app" className="lp-btn-hero">
-              Analisar uma aposta
-              <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── POSICIONAMENTO ─────────────────────────────────────────────────────── */}
-      <section className="lp-position">
-        <div className="lp-container">
-          <div className="lp-position-layout">
-
-            <div className="lp-position-left">
-              <div className="lp-section-eyebrow">Nossa posição</div>
-              <h2 className="lp-h2">
-                Não prometemos lucro.<br />
-                <span className="lp-h2-dim">Nunca prometemos.</span>
-              </h2>
-              <div className="lp-position-points">
-                {[
-                  "Não somos casa de aposta",
-                  "Não vendemos palpite",
-                  "Não garantimos resultado",
-                  "Não incentivamos apostar mais",
-                ].map((pt, i) => (
-                  <div className="lp-position-pt" key={i}>
-                    <span className="lp-position-pt-icon" aria-hidden="true">○</span>
-                    <span className="lp-position-pt-title">{pt}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="lp-position-bottom">
-                O objetivo é simples: te mostrar o risco antes da decisão.
-              </p>
-            </div>
-
-            <div className="lp-position-right">
-              <div className="lp-founder-photo-wrap">
-                <picture>
-                  <source type="image/avif" srcSet="/jean-analise-960.avif" />
-                  <source type="image/webp" srcSet="/jean-analise-960.webp" />
-                  <img
-                    src="/jean-analise.png"
-                    alt="Jean Lucca — criador do MotorIA Pro"
-                    className="lp-founder-img"
-                    loading="lazy"
-                    decoding="async"
-                    height="auto"
-                  />
-                </picture>
-                <div className="lp-founder-caption">
-                  <span className="lp-founder-caption-name">Jean Lucca</span>
-                  <span className="lp-founder-caption-role">Criador do MotorIA Pro</span>
-                </div>
-              </div>
-              <blockquote className="lp-position-quote">
-                <p className="lp-position-quote-text">
-                  "O problema nunca foi a odd.
-                  Foi não entender o risco por trás dela."
-                </p>
-              </blockquote>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ── DEPOIMENTOS ────────────────────────────────────────────────────────── */}
-      <section className="lp-section lp-section-dark">
-        <div className="lp-container">
-          <div className="lp-section-eyebrow">Quem usou</div>
-          <h2 className="lp-h2 lp-h2-narrow">O que disseram.</h2>
-          <div className="lp-testimonials">
-            {TESTIMONIALS.map((t, i) => (
-              <div className="lp-testimonial" key={i}>
-                <p className="lp-test-text">"{t.text}"</p>
-                <div className="lp-test-name">— {t.name}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── PREÇO ──────────────────────────────────────────────────────────────── */}
-      <section className="lp-section" id="preco">
-        <div className="lp-container">
-          <div className="lp-section-eyebrow">Acesso completo</div>
-          <h2 className="lp-h2 lp-h2-narrow">Custa menos que uma aposta perdida.</h2>
-          <p className="lp-pricing-sub">
-            Por R$27, você acessa uma ferramenta para entender o risco antes de decidir.
-          </p>
-          <div className="lp-pricing">
-            <ul className="lp-features-list">
-              {FEATURES.map((f, i) => (
-                <li className="lp-feature-item" key={i}>
-                  <span className="lp-feature-check">✓</span>
-                  <span>{f}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="lp-price-card">
-              <div className="lp-price-eyebrow">Acesso único</div>
-              <div className="lp-price-display">
-                <span className="lp-price-curr">R$</span>
-                <span className="lp-price-int">27</span>
-              </div>
-              <p className="lp-price-note">Sem mensalidade. Ativação imediata após o pagamento.</p>
-              <Link to="/pagar" className="lp-btn-buy">Garantir acesso por R$27 →</Link>
-              <div className="lp-guarantee">
-                <div className="lp-guarantee-icon">✓</div>
-                <div>
-                  <div className="lp-guarantee-title">Garantia de 7 dias</div>
-                  <div className="lp-guarantee-sub">Não achou útil? Devolvemos 100% sem perguntas.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── FAQ ────────────────────────────────────────────────────────────────── */}
-      <section className="lp-section lp-section-dark">
-        <div className="lp-container" style={{ maxWidth: 680 }}>
-          <div className="lp-section-eyebrow">Dúvidas</div>
-          <h2 className="lp-h2 lp-h2-narrow">Perguntas frequentes.</h2>
-          <div className="lp-faq">
-            {FAQ_ITEMS.map((item, i) => <FaqItem key={i} q={item.q} a={item.a} />)}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CTA FINAL ──────────────────────────────────────────────────────────── */}
-      <section className="lp-cta-final">
-        <div className="lp-cta-grid" aria-hidden="true" />
-        <div className="lp-container lp-cta-inner">
-          <h2 className="lp-cta-h2">
-            Antes de apostar,<br />
-            <span className="lp-cta-dim">veja o risco.</span>
-          </h2>
-          <p className="lp-cta-sub">O MotorIA mostra o que a plataforma não te mostra.</p>
-          <div className="lp-cta-actions">
-            <Link to="/app" className="lp-btn-buy lp-btn-buy-lg">Analisar uma aposta →</Link>
-            <Link to="/pagar" className="lp-cta-alt-link">Ou garanta acesso completo por R$27</Link>
-          </div>
-          <div className="lp-cta-trust">
-            <span>Ferramenta educativa</span>
-            <span className="lp-meta-sep">·</span>
-            <span>Garantia de 7 dias</span>
-            <span className="lp-meta-sep">·</span>
-            <span>Não é casa de aposta</span>
-          </div>
-          <p className="lp-cta-disclaimer">
-            Não garante resultados. Não incentiva apostas.
-            Uso recomendado apenas para maiores de 18 anos.
-          </p>
-        </div>
-      </section>
-
-      <Footer />
-    </>
-  );
+body {
+  background: var(--bg);
+  color: var(--text);
+  /*
+    System-font stack renders instantly (zero CLS before Inter arrives).
+    Inter/Syne declared first — browser swaps in silently once loaded.
+  */
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system,
+               BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
 }
 
-// ─── CSS ────────────────────────────────────────────────────────────────────────
+a { color: inherit; }
 
-const CSS = `
+/* ── Legal bar ───────────────────────────────────────── */
+.ly-legal {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 9px 20px;
+  background: rgba(255,176,32,0.07);
+  border-bottom: 1px solid rgba(255,176,32,0.15);
+  font-size: 12px;
+  color: rgba(255,176,32,0.8);
+  line-height: 1.5;
+}
+.ly-legal a { color: rgba(255,176,32,0.8); text-decoration: underline; }
+
+/* ── Header ──────────────────────────────────────────── */
+.ly-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(10,10,11,0.95);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+}
+
+.ly-logo {
+  text-decoration: none;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.ly-logo-main {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.ly-logo-tag {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.ly-cta-btn {
+  background: var(--text);
+  color: var(--bg);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.ly-cta-btn:hover { opacity: 0.85; }
+
+/* ── Footer ──────────────────────────────────────────── */
+.ly-footer {
+  border-top: 1px solid var(--border);
+  padding: 40px 24px;
+}
+.ly-footer-inner {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ly-footer-legal {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.ly-footer-links {
+  font-size: 12px;
+  color: #444;
+}
+.ly-footer-links a { color: #444; text-decoration: underline; }
+.ly-footer-copy {
+  font-size: 11px;
+  color: #333;
+}
+`,h=["A odd e o retorno possível","Quanto você pode ganhar","O lado positivo da aposta"],b=["Chance real de perder","Margem escondida da casa","Nota de risco 0 a 100","Custo médio por R$100 apostado"],f=[{num:"64,3%",color:"#EF4444",label:"Chance de perder",bar:64.3,desc:"A probabilidade de perder essa aposta, calculada direto da odd que a plataforma te mostrou."},{num:"67",color:"#F97316",label:"Nota de risco MotorIA",bar:67,desc:"Escala de 0 a 100. Quanto maior, mais arriscada a aposta — independente da odd parecer boa."},{num:"5,5%",color:"#F59E0B",label:"Margem da casa",bar:5.5,desc:"Embutida em toda odd, invisível. Você nunca vê essa cobrança — mas sempre paga."},{num:"−R$14",color:"#EF4444",label:"Custo por R$100",bar:61,desc:"No longo prazo, é quanto você tende a perder por cada R$100 apostado nesse perfil de odd."}],u=[{n:"01",title:"Informe a odd",desc:"Coloque a odd, o valor e o tipo de aposta. Leva menos de 30 segundos."},{n:"02",title:"O MotorIA calcula o risco",desc:"Ele transforma a odd em uma leitura simples — chance de perda, nota de risco e custo estimado."},{n:"03",title:"Decida com consciência",desc:"Você vê se a aposta parece segura ou se exige cautela. A decisão é sempre sua."}],v=[{name:"R.",text:"Ia entrar só pra recuperar o loss. A análise mostrou risco alto. Fechei o app."},{name:"A.",text:"Achava que odd baixa era segura. Agora olho diferente antes de qualquer aposta."},{name:"F.",text:"Não me prometeu green. Só me fez pensar antes de clicar. Isso já valeu."},{name:"M.",text:"Eu ia apostar no impulso. A nota de risco me travou. Parei e não apostei."}],j=["20 análises para usar quando quiser","Nota de risco de 0 a 100 por aposta","Chance real de perder calculada na hora","Margem da casa revelada por tipo de aposta","Simulador de banca — veja o impacto em 30 dias","Alerta de tilt — avisa quando você está apostando por impulso","Leitura honesta com pontos cegos e análise conservadora","Acesso imediato após o pagamento"],k=[{q:"Isso garante lucro?",a:"Não. Não existe ferramenta que garanta ganhos em apostas. O MotorIA te mostra o risco antes de decidir — não como vencer."},{q:"Vocês dão palpites?",a:"Nunca. Mostramos probabilidade e risco matemático. A decisão é sempre sua."},{q:"Vocês são uma casa de aposta?",a:"Não. Somos uma ferramenta educativa independente. Sem relação nenhuma com plataformas ou casas de aposta."},{q:"É assinatura mensal?",a:"Não. É um acesso único por R$27. Sem mensalidade, sem renovação automática, sem surpresa no cartão."},{q:"Funciona no celular?",a:"Sim. A ferramenta foi feita para o celular — pra usar antes de qualquer decisão, de onde você estiver."},{q:"E se eu já tenho problema com jogo?",a:"Se apostar está te causando prejuízo, ansiedade ou perda de controle, a recomendação é procurar ajuda especializada — não usar a ferramenta para apostar. Acesse jogoresponsavel.com.br ou ligue 188 (CVV)."}];function N({q:a,a:o}){const[r,t]=i.useState(!1);return e.jsxs("div",{className:`lp-faq-item${r?" lp-faq-open":""}`,onClick:()=>t(!r),children:[e.jsxs("div",{className:"lp-faq-q",children:[e.jsx("span",{children:a}),e.jsx("span",{className:"lp-faq-icon",children:r?"−":"+"})]}),r&&e.jsx("p",{className:"lp-faq-a",children:o})]})}function y(){return e.jsxs(e.Fragment,{children:[e.jsx("style",{children:w}),e.jsx(x,{}),e.jsx("header",{className:"lp-header",children:e.jsxs("div",{className:"lp-header-inner",children:[e.jsxs("div",{className:"lp-logo",children:[e.jsx("div",{className:"lp-logo-mark",children:e.jsxs("svg",{width:"13",height:"13",viewBox:"0 0 14 14",fill:"none",children:[e.jsx("path",{d:"M7 1L13 4V10L7 13L1 10V4L7 1Z",fill:"#050505"}),e.jsx("path",{d:"M7 1L13 4V10L7 13L1 10V4L7 1Z",fill:"currentColor",fillOpacity:".9"})]})}),e.jsx("span",{className:"lp-logo-name",children:"MotorIA Pro"})]}),e.jsxs("nav",{className:"lp-nav",children:[e.jsx("a",{href:"#problema",className:"lp-nav-link",children:"O problema"}),e.jsx("a",{href:"#como-funciona",className:"lp-nav-link",children:"Como funciona"}),e.jsx("a",{href:"#preco",className:"lp-nav-link",children:"Preço"})]}),e.jsx(s,{to:"/pagar",className:"lp-nav-cta",children:"Garantir acesso →"})]})}),e.jsxs("section",{className:"lp-hero",children:[e.jsx("div",{className:"lp-hero-grid","aria-hidden":"true"}),e.jsxs("div",{className:"lp-container lp-hero-layout",children:[e.jsxs("div",{className:"lp-hero-left",children:[e.jsxs("h1",{className:"lp-h1",children:["Essa odd",e.jsx("br",{}),"parecia boa."]}),e.jsx("p",{className:"lp-hero-sub",children:"Até o MotorIA mostrar o risco."}),e.jsx("p",{className:"lp-hero-desc",children:"Uma ferramenta que analisa o risco da aposta antes da decisão."}),e.jsxs("div",{className:"lp-hero-actions",children:[e.jsxs(s,{to:"/app",className:"lp-btn-hero",children:["Analisar uma aposta",e.jsx("svg",{width:"13",height:"13",viewBox:"0 0 14 14",fill:"none","aria-hidden":"true",children:e.jsx("path",{d:"M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5",stroke:"currentColor",strokeWidth:"1.5",strokeLinecap:"round",strokeLinejoin:"round"})})]}),e.jsx(s,{to:"/pagar",className:"lp-btn-ghost",children:"Acesso completo por R$27"})]}),e.jsxs("div",{className:"lp-hero-meta",children:["Ferramenta educativa",e.jsx("span",{className:"lp-meta-sep",children:"·"}),"+18",e.jsx("span",{className:"lp-meta-sep",children:"·"}),"Não promete lucro"]})]}),e.jsx("div",{className:"lp-hero-right",children:e.jsxs("div",{className:"lp-mock",children:[e.jsxs("div",{className:"lp-mock-topbar",children:[e.jsxs("div",{className:"lp-mock-traffic",children:[e.jsx("span",{className:"lp-mock-dot-r"}),e.jsx("span",{className:"lp-mock-dot-y"}),e.jsx("span",{className:"lp-mock-dot-g"})]}),e.jsx("span",{className:"lp-mock-title",children:"MotorIA · Leitura de risco"}),e.jsx("span",{className:"lp-mock-live",children:"LIVE"})]}),e.jsxs("div",{className:"lp-mock-body",children:[e.jsxs("div",{className:"lp-mock-session",children:[e.jsx("span",{className:"lp-mock-session-id",children:"ANÁLISE #2847"}),e.jsx("span",{className:"lp-mock-session-ts",children:"hoje · 14:23"})]}),e.jsxs("div",{className:"lp-mock-input-row",children:[e.jsxs("div",{className:"lp-mock-cell",children:[e.jsx("span",{className:"lp-mock-cell-lbl",children:"Jogo"}),e.jsx("span",{className:"lp-mock-cell-val",children:"Flamengo × Palmeiras"}),e.jsx("span",{className:"lp-mock-cell-sub",children:"Vitória do Flamengo"})]}),e.jsxs("div",{className:"lp-mock-cell lp-mock-cell-sm",children:[e.jsx("span",{className:"lp-mock-cell-lbl",children:"Odd"}),e.jsx("span",{className:"lp-mock-cell-val lp-mock-odd",children:"2.80"})]})]}),e.jsxs("div",{className:"lp-mock-prob-split",children:[e.jsx("div",{className:"lp-mock-prob-win"}),e.jsx("div",{className:"lp-mock-prob-lose"})]}),e.jsxs("div",{className:"lp-mock-prob-labels",children:[e.jsx("span",{className:"lp-mock-prob-lbl lp-mock-prob-w",children:"▲ Chance de ganhar 35,7%"}),e.jsx("span",{className:"lp-mock-prob-lbl lp-mock-prob-l",children:"64,3% de perder ▼"})]}),e.jsx("div",{className:"lp-mock-rule"}),e.jsxs("div",{className:"lp-mock-data-grid",children:[e.jsxs("div",{className:"lp-mock-dc",children:[e.jsx("span",{className:"lp-mock-dk",children:"CHANCE DE GANHAR"}),e.jsx("span",{className:"lp-mock-dv lp-mock-dv-g",children:"35,71%"})]}),e.jsxs("div",{className:"lp-mock-dc",children:[e.jsx("span",{className:"lp-mock-dk",children:"MARGEM DA CASA"}),e.jsx("span",{className:"lp-mock-dv lp-mock-dv-a",children:"5,47%"})]}),e.jsxs("div",{className:"lp-mock-dc",children:[e.jsx("span",{className:"lp-mock-dk",children:"CHANCE DE PERDER"}),e.jsx("span",{className:"lp-mock-dv lp-mock-dv-r",children:"64,3%"})]}),e.jsxs("div",{className:"lp-mock-dc",children:[e.jsx("span",{className:"lp-mock-dk",children:"CUSTO POR R$100"}),e.jsx("span",{className:"lp-mock-dv lp-mock-dv-r",children:"−R$14,50"})]})]}),e.jsx("div",{className:"lp-mock-rule"}),e.jsxs("div",{className:"lp-mock-score-wrap",children:[e.jsxs("div",{className:"lp-mock-score-hdr",children:[e.jsx("span",{className:"lp-mock-score-lbl",children:"NOTA DE RISCO"}),e.jsx("span",{className:"lp-mock-risk-tag",children:"ALTO"})]}),e.jsxs("div",{className:"lp-mock-score-row",children:[e.jsxs("div",{className:"lp-mock-score-left",children:[e.jsx("span",{className:"lp-mock-score-num",children:"67"}),e.jsx("span",{className:"lp-mock-score-denom",children:"/100"})]}),e.jsxs("div",{className:"lp-mock-bar-wrap",children:[e.jsxs("div",{className:"lp-mock-bar-track",children:[e.jsx("div",{className:"lp-mock-bar-fill"}),[30,60,80].map(a=>e.jsx("div",{className:"lp-mock-bar-tick",style:{left:`${a}%`}},a))]}),e.jsxs("div",{className:"lp-mock-bar-labels",children:[e.jsx("span",{children:"Baixo"}),e.jsx("span",{children:"Mod."}),e.jsx("span",{children:"Alto"}),e.jsx("span",{children:"Crítico"})]})]})]}),e.jsxs("div",{className:"lp-mock-verdict",children:[e.jsx("span",{className:"lp-mock-verdict-badge",children:"DESFAVORÁVEL"}),e.jsx("span",{className:"lp-mock-verdict-detail",children:"Verifique antes de decidir"})]})]})]}),e.jsx("div",{className:"lp-mock-footer",children:"Ferramenta educativa · Não é recomendação de aposta"})]})})]})]}),e.jsx("section",{className:"lp-problem lp-section-dark",id:"problema",children:e.jsxs("div",{className:"lp-container",children:[e.jsx("div",{className:"lp-section-eyebrow",children:"O problema"}),e.jsxs("h2",{className:"lp-h2",children:["Nem toda aposta ruim",e.jsx("br",{}),"parece arriscada."]}),e.jsx("p",{className:"lp-problem-text",children:"Às vezes a odd parece boa. O jogo parece fácil. A vontade de recuperar fala mais alto."}),e.jsx("p",{className:"lp-problem-text lp-problem-text-em",children:"O MotorIA entra antes disso — mostrando o risco que você talvez não esteja vendo."}),e.jsxs("div",{className:"lp-compare",children:[e.jsxs("div",{className:"lp-compare-col lp-compare-show",children:[e.jsxs("div",{className:"lp-compare-hdr",children:[e.jsx("span",{className:"lp-compare-dot lp-compare-dot-dim"}),e.jsx("span",{className:"lp-compare-title",children:"Você normalmente vê"})]}),h.map((a,o)=>e.jsxs("div",{className:"lp-compare-row",children:[e.jsx("span",{className:"lp-compare-icon lp-c-dim",children:"→"}),e.jsx("span",{className:"lp-compare-text",children:a})]},o))]}),e.jsxs("div",{className:"lp-compare-col lp-compare-hide",children:[e.jsxs("div",{className:"lp-compare-hdr",children:[e.jsx("span",{className:"lp-compare-dot lp-compare-dot-green"}),e.jsx("span",{className:"lp-compare-title",children:"O MotorIA mostra"})]}),b.map((a,o)=>e.jsxs("div",{className:"lp-compare-row",children:[e.jsx("span",{className:"lp-compare-icon lp-c-green",children:"✓"}),e.jsx("span",{className:"lp-compare-text",children:a})]},o))]})]})]})}),e.jsx("section",{className:"lp-dash",id:"como-funciona",children:e.jsxs("div",{className:"lp-container",children:[e.jsx("div",{className:"lp-section-eyebrow",children:"O que você descobre"}),e.jsxs("h2",{className:"lp-h2 lp-h2-narrow",children:["4 números que a odd",e.jsx("br",{}),"não te mostra."]}),e.jsx("div",{className:"lp-dash-grid",children:f.map(a=>e.jsxs("div",{className:"lp-dash-card",children:[e.jsx("div",{className:"lp-dash-card-num",style:{color:a.color},children:a.num}),e.jsx("div",{className:"lp-dash-card-label",children:a.label}),e.jsx("div",{className:"lp-dash-mini-bar",children:e.jsx("div",{className:"lp-dash-mini-fill",style:{width:`${a.bar}%`,background:a.color}})}),e.jsx("div",{className:"lp-dash-card-desc",children:a.desc})]},a.label))})]})}),e.jsx("section",{className:"lp-section lp-section-dark",id:"como-funciona-steps",children:e.jsxs("div",{className:"lp-container",children:[e.jsx("div",{className:"lp-section-eyebrow",children:"Como funciona"}),e.jsx("h2",{className:"lp-h2 lp-h2-narrow",children:"Simples assim."}),e.jsx("div",{className:"lp-steps",children:u.map(a=>e.jsxs("div",{className:"lp-step",children:[e.jsx("div",{className:"lp-step-n",children:a.n}),e.jsx("h3",{className:"lp-step-title",children:a.title}),e.jsx("p",{className:"lp-step-desc",children:a.desc})]},a.n))}),e.jsx("div",{style:{textAlign:"center"},children:e.jsxs(s,{to:"/app",className:"lp-btn-hero",children:["Analisar uma aposta",e.jsx("svg",{width:"13",height:"13",viewBox:"0 0 14 14",fill:"none","aria-hidden":"true",children:e.jsx("path",{d:"M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5",stroke:"currentColor",strokeWidth:"1.5",strokeLinecap:"round",strokeLinejoin:"round"})})]})})]})}),e.jsx("section",{className:"lp-position",children:e.jsx("div",{className:"lp-container",children:e.jsxs("div",{className:"lp-position-layout",children:[e.jsxs("div",{className:"lp-position-left",children:[e.jsx("div",{className:"lp-section-eyebrow",children:"Nossa posição"}),e.jsxs("h2",{className:"lp-h2",children:["Não prometemos lucro.",e.jsx("br",{}),e.jsx("span",{className:"lp-h2-dim",children:"Nunca prometemos."})]}),e.jsx("div",{className:"lp-position-points",children:["Não somos casa de aposta","Não vendemos palpite","Não garantimos resultado","Não incentivamos apostar mais"].map((a,o)=>e.jsxs("div",{className:"lp-position-pt",children:[e.jsx("span",{className:"lp-position-pt-icon","aria-hidden":"true",children:"○"}),e.jsx("span",{className:"lp-position-pt-title",children:a})]},o))}),e.jsx("p",{className:"lp-position-bottom",children:"O objetivo é simples: te mostrar o risco antes da decisão."})]}),e.jsxs("div",{className:"lp-position-right",children:[e.jsxs("div",{className:"lp-founder-photo-wrap",children:[e.jsxs("picture",{children:[e.jsx("source",{type:"image/avif",srcSet:"/jean-analise-960.avif"}),e.jsx("source",{type:"image/webp",srcSet:"/jean-analise-960.webp"}),e.jsx("img",{src:"/jean-analise.png",alt:"Jean Lucca — criador do MotorIA Pro",className:"lp-founder-img",loading:"lazy",decoding:"async",height:"auto"})]}),e.jsxs("div",{className:"lp-founder-caption",children:[e.jsx("span",{className:"lp-founder-caption-name",children:"Jean Lucca"}),e.jsx("span",{className:"lp-founder-caption-role",children:"Criador do MotorIA Pro"})]})]}),e.jsx("blockquote",{className:"lp-position-quote",children:e.jsx("p",{className:"lp-position-quote-text",children:'"O problema nunca foi a odd. Foi não entender o risco por trás dela."'})})]})]})})}),e.jsx("section",{className:"lp-section lp-section-dark",children:e.jsxs("div",{className:"lp-container",children:[e.jsx("div",{className:"lp-section-eyebrow",children:"Quem usou"}),e.jsx("h2",{className:"lp-h2 lp-h2-narrow",children:"O que disseram."}),e.jsx("div",{className:"lp-testimonials",children:v.map((a,o)=>e.jsxs("div",{className:"lp-testimonial",children:[e.jsxs("p",{className:"lp-test-text",children:['"',a.text,'"']}),e.jsxs("div",{className:"lp-test-name",children:["— ",a.name]})]},o))})]})}),e.jsx("section",{className:"lp-section",id:"preco",children:e.jsxs("div",{className:"lp-container",children:[e.jsx("div",{className:"lp-section-eyebrow",children:"Acesso completo"}),e.jsx("h2",{className:"lp-h2 lp-h2-narrow",children:"Custa menos que uma aposta perdida."}),e.jsx("p",{className:"lp-pricing-sub",children:"Por R$27, você acessa uma ferramenta para entender o risco antes de decidir."}),e.jsxs("div",{className:"lp-pricing",children:[e.jsx("ul",{className:"lp-features-list",children:j.map((a,o)=>e.jsxs("li",{className:"lp-feature-item",children:[e.jsx("span",{className:"lp-feature-check",children:"✓"}),e.jsx("span",{children:a})]},o))}),e.jsxs("div",{className:"lp-price-card",children:[e.jsx("div",{className:"lp-price-eyebrow",children:"Acesso único"}),e.jsxs("div",{className:"lp-price-display",children:[e.jsx("span",{className:"lp-price-curr",children:"R$"}),e.jsx("span",{className:"lp-price-int",children:"27"})]}),e.jsx("p",{className:"lp-price-note",children:"Sem mensalidade. Ativação imediata após o pagamento."}),e.jsx(s,{to:"/pagar",className:"lp-btn-buy",children:"Garantir acesso por R$27 →"}),e.jsxs("div",{className:"lp-guarantee",children:[e.jsx("div",{className:"lp-guarantee-icon",children:"✓"}),e.jsxs("div",{children:[e.jsx("div",{className:"lp-guarantee-title",children:"Garantia de 7 dias"}),e.jsx("div",{className:"lp-guarantee-sub",children:"Não achou útil? Devolvemos 100% sem perguntas."})]})]})]})]})]})}),e.jsx("section",{className:"lp-section lp-section-dark",children:e.jsxs("div",{className:"lp-container",style:{maxWidth:680},children:[e.jsx("div",{className:"lp-section-eyebrow",children:"Dúvidas"}),e.jsx("h2",{className:"lp-h2 lp-h2-narrow",children:"Perguntas frequentes."}),e.jsx("div",{className:"lp-faq",children:k.map((a,o)=>e.jsx(N,{q:a.q,a:a.a},o))})]})}),e.jsxs("section",{className:"lp-cta-final",children:[e.jsx("div",{className:"lp-cta-grid","aria-hidden":"true"}),e.jsxs("div",{className:"lp-container lp-cta-inner",children:[e.jsxs("h2",{className:"lp-cta-h2",children:["Antes de apostar,",e.jsx("br",{}),e.jsx("span",{className:"lp-cta-dim",children:"veja o risco."})]}),e.jsx("p",{className:"lp-cta-sub",children:"O MotorIA mostra o que a plataforma não te mostra."}),e.jsxs("div",{className:"lp-cta-actions",children:[e.jsx(s,{to:"/app",className:"lp-btn-buy lp-btn-buy-lg",children:"Analisar uma aposta →"}),e.jsx(s,{to:"/pagar",className:"lp-cta-alt-link",children:"Ou garanta acesso completo por R$27"})]}),e.jsxs("div",{className:"lp-cta-trust",children:[e.jsx("span",{children:"Ferramenta educativa"}),e.jsx("span",{className:"lp-meta-sep",children:"·"}),e.jsx("span",{children:"Garantia de 7 dias"}),e.jsx("span",{className:"lp-meta-sep",children:"·"}),e.jsx("span",{children:"Não é casa de aposta"})]}),e.jsx("p",{className:"lp-cta-disclaimer",children:"Não garante resultados. Não incentiva apostas. Uso recomendado apenas para maiores de 18 anos."})]})]}),e.jsx(g,{})]})}const w=`
 *, *::before, *::after { box-sizing: border-box; }
 
 :root {
@@ -1088,4 +740,4 @@ const CSS = `
   .lp-pricing-sub { margin-bottom: 28px; }
   .lp-founder-img { aspect-ratio: 4/3; }
 }
-`;
+`,F=Object.freeze(Object.defineProperty({__proto__:null,default:y},Symbol.toStringTag,{value:"Module"}));export{g as F,C as G,E as H,s as L,A as R,m as a,x as b,F as c,q as u};
