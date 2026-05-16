@@ -18,10 +18,10 @@ const COMPARISON_HIDE = [
 ];
 
 const DASH_CARDS = [
-  { num: "64,3%", color: "#EF4444", label: "Chance de perder",        bar: 64.3, desc: "A probabilidade de perder essa aposta, calculada direto da odd que a plataforma te mostrou." },
-  { num: "67",    color: "#F97316", label: "Nota de risco MotorIA",   bar: 67,   desc: "Escala de 0 a 100. Quanto maior, mais arriscada a aposta — independente da odd parecer boa." },
-  { num: "5,5%",  color: "#F59E0B", label: "Margem da casa",          bar: 5.5,  desc: "Embutida em toda odd, invisível. Você nunca vê essa cobrança — mas sempre paga." },
-  { num: "−R$14", color: "#EF4444", label: "Custo por R$100",         bar: 61,   desc: "No longo prazo, é quanto você tende a perder por cada R$100 apostado nesse perfil de odd." },
+  { num: "64,3%", color: "#EF4444", label: "Chance de perder",        bar: 64.3, desc: "O risco real dessa entrada." },
+  { num: "67",    color: "#F97316", label: "Nota de risco",           bar: 67,   desc: "Quanto maior, mais arriscada." },
+  { num: "5,5%",  color: "#F59E0B", label: "Margem da casa",          bar: 5.5,  desc: "O quanto a casa ganha em cima." },
+  { num: "−R$14", color: "#EF4444", label: "Perda média por R$100",   bar: 61,   desc: "O impacto dessa odd no longo prazo." },
 ];
 
 const STEPS = [
@@ -31,21 +31,19 @@ const STEPS = [
 ];
 
 const TESTIMONIALS = [
-  { name: "R.", text: "Ia entrar só pra recuperar o loss. A análise mostrou risco alto. Fechei o app." },
-  { name: "A.", text: "Achava que odd baixa era segura. Agora olho diferente antes de qualquer aposta." },
-  { name: "F.", text: "Não me prometeu green. Só me fez pensar antes de clicar. Isso já valeu." },
-  { name: "M.", text: "Eu ia apostar no impulso. A nota de risco me travou. Parei e não apostei." },
+  { name: "R.", text: "Ia entrar pra recuperar o loss.\nA análise mostrou risco alto.\nFechei o app." },
+  { name: "A.", text: "Achava que odd baixa era segura.\nAgora olho diferente." },
+  { name: "F.", text: "Não me prometeu green.\nSó me fez pensar antes de clicar." },
+  { name: "M.", text: "Eu ia apostar no impulso.\nA nota de risco me travou." },
 ];
 
 const FEATURES = [
-  "20 análises para usar quando quiser",
-  "Nota de risco de 0 a 100 por aposta",
-  "Chance real de perder calculada na hora",
-  "Margem da casa revelada por tipo de aposta",
-  "Simulador de banca — veja o impacto em 30 dias",
-  "Alerta de tilt — avisa quando você está apostando por impulso",
-  "Leitura honesta com pontos cegos e análise conservadora",
-  "Acesso imediato após o pagamento",
+  { text: "20 análises para usar quando quiser" },
+  { text: "Nota de risco de 0 a 100 por aposta" },
+  { text: "Chance de perder em segundos" },
+  { text: "Margem da casa revelada por tipo de aposta" },
+  { text: "Simulador de banca — impacto em 30 dias" },
+  { text: "Alerta de tilt — avisa quando você está no limite", tilt: true },
 ];
 
 const FAQ_ITEMS = [
@@ -115,7 +113,7 @@ export default function Landing() {
               Até o MotorIA mostrar o risco.
             </p>
             <p className="lp-hero-desc">
-              Uma ferramenta que analisa o risco da aposta antes da decisão.
+              Veja o risco antes de apostar.
             </p>
             <div className="lp-hero-actions">
               <Link to="/app" className="lp-btn-hero">
@@ -376,7 +374,7 @@ export default function Landing() {
           <div className="lp-testimonials">
             {TESTIMONIALS.map((t, i) => (
               <div className="lp-testimonial" key={i}>
-                <p className="lp-test-text">"{t.text}"</p>
+                <p className="lp-test-text" style={{ whiteSpace: "pre-line" }}>"{t.text}"</p>
                 <div className="lp-test-name">— {t.name}</div>
               </div>
             ))}
@@ -395,9 +393,9 @@ export default function Landing() {
           <div className="lp-pricing">
             <ul className="lp-features-list">
               {FEATURES.map((f, i) => (
-                <li className="lp-feature-item" key={i}>
-                  <span className="lp-feature-check">✓</span>
-                  <span>{f}</span>
+                <li className={`lp-feature-item${f.tilt ? " lp-feature-tilt" : ""}`} key={i}>
+                  <span className="lp-feature-check">{f.tilt ? "⚡" : "✓"}</span>
+                  <span>{f.text}</span>
                 </li>
               ))}
             </ul>
@@ -440,7 +438,7 @@ export default function Landing() {
             Antes de apostar,<br />
             <span className="lp-cta-dim">veja o risco.</span>
           </h2>
-          <p className="lp-cta-sub">O MotorIA mostra o que a plataforma não te mostra.</p>
+          <p className="lp-cta-sub">O risco que a odd esconde.</p>
           <div className="lp-cta-actions">
             <Link to="/app" className="lp-btn-buy lp-btn-buy-lg">Analisar uma aposta →</Link>
             <Link to="/pagar" className="lp-cta-alt-link">Ou garanta acesso completo por R$27</Link>
@@ -495,7 +493,7 @@ const CSS = `
 
 /* ── Layout ─────────────────────────────────────────────────────────────────── */
 .lp-container  { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
-.lp-section    { padding: 96px 0; }
+.lp-section    { padding: 80px 0; }
 .lp-section-dark { background: var(--bg2); }
 
 .lp-section-eyebrow {
@@ -590,8 +588,8 @@ const CSS = `
   margin-bottom: 16px;
 }
 .lp-hero-desc {
-  font-size: 15px; color: var(--t2); line-height: 1.65;
-  max-width: 420px; margin-bottom: 36px;
+  font-size: 16px; color: var(--t2); line-height: 1.5;
+  max-width: 420px; margin-bottom: 32px;
 }
 .lp-hero-actions {
   display: flex; align-items: center; gap: 16px;
@@ -779,7 +777,7 @@ const CSS = `
 }
 
 /* ── Problema ───────────────────────────────────────────────────────────────── */
-.lp-problem { padding: 96px 0; }
+.lp-problem { padding: 80px 0; }
 .lp-problem-text {
   font-size: 16px; color: var(--t2); line-height: 1.7;
   max-width: 540px; margin-bottom: 12px;
@@ -813,7 +811,7 @@ const CSS = `
 .lp-compare-text { font-size: 13px; color: var(--t2); line-height: 1.5; }
 
 /* ── Dashboard ──────────────────────────────────────────────────────────────── */
-.lp-dash { padding: 96px 0; background: var(--bg); }
+.lp-dash { padding: 80px 0; background: var(--bg); }
 .lp-dash-grid {
   display: grid; grid-template-columns: repeat(4,1fr); gap: 8px;
 }
@@ -853,7 +851,7 @@ const CSS = `
 .lp-step-desc  { font-size: 13px; color: var(--t2); line-height: 1.7; }
 
 /* ── Positioning ────────────────────────────────────────────────────────────── */
-.lp-position { padding: 96px 0; background: var(--bg); border-top: 1px solid var(--border); }
+.lp-position { padding: 80px 0; background: var(--bg); border-top: 1px solid var(--border); }
 .lp-position-layout {
   display: grid; grid-template-columns: 1fr 320px; gap: 72px; align-items: start;
 }
@@ -936,10 +934,18 @@ const CSS = `
   list-style: none; display: flex; flex-direction: column; gap: 14px; padding: 0; margin: 0;
 }
 .lp-feature-item {
-  display: flex; gap: 12px; font-size: 14px; color: var(--t2); align-items: baseline;
+  display: flex; gap: 12px; font-size: 14px; color: var(--t2); align-items: center;
   padding: 4px 0;
 }
 .lp-feature-check { color: var(--green); font-weight: 700; flex-shrink: 0; }
+.lp-feature-tilt {
+  color: var(--t1) !important;
+  background: rgba(34,197,94,.05);
+  border: 1px solid rgba(34,197,94,.18);
+  border-radius: 8px; padding: 10px 12px;
+  margin: 4px -12px; font-weight: 600;
+}
+.lp-feature-tilt .lp-feature-check { font-size: 13px; }
 .lp-price-card {
   position: sticky; top: 72px;
   background: rgba(255,255,255,.025); border: 1px solid var(--bmd);
@@ -994,7 +1000,7 @@ const CSS = `
 /* ── CTA Final ──────────────────────────────────────────────────────────────── */
 .lp-cta-final {
   position: relative; text-align: center; overflow: hidden;
-  background: var(--bg); padding: 104px 0;
+  background: var(--bg); padding: 88px 0;
   border-top: 1px solid var(--border);
 }
 .lp-cta-grid {
@@ -1035,7 +1041,7 @@ const CSS = `
 
 /* ── Mobile 1024px ──────────────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .lp-hero-layout { grid-template-columns: 1fr; gap: 48px; padding-top: 64px; padding-bottom: 64px; }
+  .lp-hero-layout { grid-template-columns: 1fr; gap: 44px; padding-top: 56px; padding-bottom: 56px; }
   .lp-hero-left { align-items: center; text-align: center; }
   .lp-hero-desc { max-width: none; }
   .lp-hero-actions { justify-content: center; }
@@ -1051,7 +1057,7 @@ const CSS = `
 
 /* ── Mobile 768px ───────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .lp-section, .lp-problem, .lp-dash, .lp-position { padding: 72px 0; }
+  .lp-section, .lp-problem, .lp-dash, .lp-position { padding: 56px 0; }
   .lp-container { padding: 0 18px; }
   .lp-nav { display: none; }
   .lp-hero { min-height: unset; }
@@ -1059,7 +1065,7 @@ const CSS = `
   .lp-compare { grid-template-columns: 1fr; }
   .lp-compare-show { border-right: none; border-bottom: 1px solid var(--border); }
   .lp-testimonials { grid-template-columns: 1fr; }
-  .lp-cta-final { padding: 80px 0; }
+  .lp-cta-final { padding: 64px 0; }
   .lp-founder-img { aspect-ratio: 3/2; }
 }
 
@@ -1067,8 +1073,8 @@ const CSS = `
 @media (max-width: 480px) {
   .lp-h1 { font-size: clamp(34px, 9.5vw, 52px); }
   .lp-hero-sub { font-size: clamp(16px, 5vw, 20px); }
-  .lp-hero-desc { font-size: 14px; margin-bottom: 28px; }
-  .lp-hero-layout { gap: 40px; padding-top: 52px; padding-bottom: 52px; }
+  .lp-hero-desc { font-size: 14px; margin-bottom: 24px; }
+  .lp-hero-layout { gap: 0; padding-top: 44px; padding-bottom: 44px; }
   .lp-hero-right { display: none; }
   .lp-hero-actions { flex-direction: column; align-items: stretch; width: 100%; }
   .lp-btn-hero { justify-content: center; }
@@ -1076,16 +1082,20 @@ const CSS = `
   .lp-dash-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
   .lp-dash-card { padding: 14px 12px; }
   .lp-dash-card-num { font-size: 20px; }
-  .lp-compare-col { padding: 18px 14px; }
+  .lp-compare-col { padding: 16px 14px; }
   .lp-mock-input-row { grid-template-columns: 1fr; }
-  .lp-section-eyebrow { margin-bottom: 10px; }
-  .lp-h2 { margin-bottom: 10px; }
-  .lp-h2-narrow { margin-bottom: 28px; }
-  .lp-problem-text { font-size: 15px; }
+  .lp-section-eyebrow { margin-bottom: 8px; }
+  .lp-h2 { margin-bottom: 8px; }
+  .lp-h2-narrow { margin-bottom: 24px; }
+  .lp-problem-text { font-size: 14px; }
+  .lp-problem-text-em { margin-bottom: 28px; }
   .lp-cta-actions { width: 100%; }
   .lp-btn-buy-lg { width: 100%; text-align: center; }
-  .lp-cta-final { padding: 64px 0; }
-  .lp-pricing-sub { margin-bottom: 28px; }
+  .lp-cta-final { padding: 56px 0; }
+  .lp-pricing-sub { margin-bottom: 24px; font-size: 14px; }
   .lp-founder-img { aspect-ratio: 4/3; }
+  .lp-steps { gap: 8px; margin-bottom: 32px; }
+  .lp-step { padding: 18px 16px; }
+  .lp-feature-tilt { margin: 4px -4px; }
 }
 `;
