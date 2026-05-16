@@ -718,7 +718,7 @@ export default function AppDashboard() {
 
             {/* ════ NOVA ANÁLISE ════════════════════════════════════════ */}
             {view === "nova" && (
-              <div className="ap-content" key="nova">
+              <div className="ap-content ap-content-nova" key="nova">
 
                 {!result && !loading && (
                   <section className="ap-input-panel">
@@ -727,7 +727,7 @@ export default function AppDashboard() {
                       {/* ── Campos principais ──────────────────────────── */}
                       <div className="ap-row-2">
                         <div className="ap-field">
-                          <label className="ap-label" htmlFor="odd-input">ODD DECIMAL</label>
+                          <label className="ap-label" htmlFor="odd-input">ODD</label>
                           <input
                             id="odd-input"
                             className="ap-input ap-input-odd"
@@ -742,17 +742,17 @@ export default function AppDashboard() {
                             <div className="ap-odd-preview" style={{ color: oddPreview.color }}>
                               <span>{oddPreview.label}</span>
                               <span className="ap-odd-preview-sep">·</span>
-                              <span>impl. {calcImplicita(oddNum).toFixed(1)}%</span>
+                              <span>chance {calcImplicita(oddNum).toFixed(0)}%</span>
                             </div>
                           )}
                         </div>
                         <div className="ap-field">
-                          <label className="ap-label" htmlFor="valor-input">EXPOSIÇÃO (R$)</label>
+                          <label className="ap-label" htmlFor="valor-input">QUANTO VAI APOSTAR?</label>
                           <input
                             id="valor-input"
                             className="ap-input"
                             type="text"
-                            placeholder="100"
+                            placeholder="R$ 100"
                             value={valor}
                             onChange={e => setValor(e.target.value)}
                             inputMode="decimal"
@@ -762,14 +762,8 @@ export default function AppDashboard() {
                       </div>
 
                       <div className="ap-field">
-                        <label className="ap-label" htmlFor="tipo-input">MERCADO</label>
+                        <label className="ap-label" htmlFor="tipo-input">TIPO DE APOSTA</label>
                         <CustomSelect id="tipo-input" options={TIPOS} value={tipo} onChange={setTipo} />
-                        {TIPO_DESC[tipo] && (
-                          <div className="ap-tipo-desc">
-                            <span className="ap-tipo-desc-dot" aria-hidden="true" />
-                            {TIPO_DESC[tipo]}
-                          </div>
-                        )}
                       </div>
 
                       {/* ── Campos secundários ─────────────────────────── */}
@@ -781,7 +775,7 @@ export default function AppDashboard() {
                             options={CAMPEONATOS}
                             value={campeonato}
                             onChange={setCampeonato}
-                            placeholder="Selecionar"
+                            placeholder="Selecionar campeonato"
                           />
                         </div>
                         <div className="ap-field">
@@ -790,7 +784,7 @@ export default function AppDashboard() {
                             id="jogo-input"
                             className="ap-input"
                             type="text"
-                            placeholder="Time A × Time B"
+                            placeholder="Ex: Flamengo × Palmeiras"
                             value={jogo}
                             onChange={e => setJogo(e.target.value)}
                             autoComplete="off"
@@ -1327,6 +1321,15 @@ body { overflow: hidden; }
   animation: ap-fade-up .2s ease both;
 }
 
+/* ─ Nova analysis: constrained width gives form intentional presence ────────── */
+.ap-content-nova {
+  max-width: 500px;
+  padding-top: 28px;
+}
+@media (max-width: 640px) {
+  .ap-content-nova { padding-top: 12px; }
+}
+
 /* ─ Panel header ───────────────────────────────────────────────────────────── */
 .ap-panel-hdr {
   display: flex; justify-content: space-between; align-items: flex-end;
@@ -1481,8 +1484,8 @@ body { overflow: hidden; }
 .ap-row-secondary { margin-top: -2px; }
 
 .ap-label {
-  font-size: 8.5px; font-weight: 800; letter-spacing: .15em;
-  color: rgba(255,255,255,.52); text-transform: uppercase;
+  font-size: 9px; font-weight: 700; letter-spacing: .1em;
+  color: rgba(255,255,255,.5); text-transform: uppercase;
 }
 .ap-label-opt { font-weight: 500; letter-spacing: 0; text-transform: none; font-size: 8px; opacity: .7; }
 
@@ -1511,7 +1514,8 @@ body { overflow: hidden; }
 
 .ap-odd-preview {
   display: flex; align-items: center; gap: 5px;
-  font-size: 9px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  font-size: 9px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  opacity: .85;
 }
 .ap-odd-preview-sep { color: var(--t3); }
 .ap-error {
