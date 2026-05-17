@@ -464,6 +464,7 @@ export default function AppDashboard() {
   const [teamData,       setTeamData]       = useState(null);
   const [selectedMarket, setSelectedMarket] = useState(null); // { tipo, ref }
   const [marketOdd,      setMarketOdd]      = useState("");
+  const [marketValor,    setMarketValor]    = useState("");
 
   useEffect(() => {
     fetch("/jogos-data.json").then(r => r.json()).then(setTeamData).catch(() => {});
@@ -502,6 +503,8 @@ export default function AppDashboard() {
     if (matches.length > 0 && !matchesError) return;
     loadMatches();
   }, [view]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const RISK_ENGINE_LABEL = `RISK ENGINE · ${new Date().toLocaleDateString("pt-BR", { month: "short" }).toUpperCase().replace(".", "")} ${new Date().getFullYear()}`;
 
   const oddNum    = parseFloat((odd || "").replace(",", "."));
   const oddPreview = odd && !isNaN(oddNum) && oddNum >= 1.01 ? calcScore(oddNum) : null;
@@ -573,7 +576,9 @@ export default function AppDashboard() {
       const ev       = calcEV(impl, oddN);
       const scoreObj = calcScore(oddN);
       const exposure = Math.min(100, Math.round((100 - justa) * 1.1));
-      const valorNum = parseFloat(valorVal) || 100;
+      const valorParsed = parseFloat(valorVal);
+      const valorFornecido = !isNaN(valorParsed) && valorParsed > 0;
+      const valorNum = valorFornecido ? valorParsed : 100;
 
       const r = {
         id: Math.floor(Math.random() * 8000) + 2000,
@@ -587,6 +592,7 @@ export default function AppDashboard() {
         ev:          ev.toFixed(2),
         perda:       (100 - impl).toFixed(1),
         exposure,
+        valorFornecido,
         valorAposta: valorNum,
         valorRisco:  ((valorNum * (100 - impl)) / 100).toFixed(2),
         ...scoreObj,
@@ -626,7 +632,7 @@ export default function AppDashboard() {
     setTipo(tipoVal);
     setOdd(String(oddStr));
     setFlowStep("resultado");
-    doAnalysis({ jogoVal, campVal, tipoVal, oddVal: String(oddStr), valorVal: valor || "100" });
+    doAnalysis({ jogoVal, campVal, tipoVal, oddVal: String(oddStr), valorVal: marketValor || valor });
   }
 
   function loadFromHistory(item) { setResult(item); setJogo(item.jogo || ""); setOdd(String(item.odd)); setView("nova"); }
@@ -634,7 +640,7 @@ export default function AppDashboard() {
   function resetForm() {
     setResult(null); setError(""); setJogo(""); setOdd("");
     setValor(""); setObs(""); setCampeonato(""); setSelectedGame(null);
-    setSelectedMarket(null); setMarketOdd("");
+    setSelectedMarket(null); setMarketOdd(""); setMarketValor("");
     setFlowStep("lista");
   }
 
@@ -736,11 +742,27 @@ export default function AppDashboard() {
               <div className="db-ind-value" style={{ color: "var(--t3)" }}>—</div>
             )}
           </div>
-          <div className="db-ind-card">
-            <div className="db-ind-label">VALOR EM RISCO</div>
-            <div className="db-ind-value" style={{ color: "#FF8C00" }}>{valorEmRisco}</div>
-            <div className="db-ind-micro">com base no valor que você informou</div>
-          </div>
+          {r.valorFornecido ? (() => {
+            const oddIdealNum = ai?.odd_ideal != null ? Number(ai.odd_ideal) : parseFloat(r.justa);
+            const perdaPct = (1 - r.odd / oddIdealNum) * 100;
+            const perdaAbs = Math.abs((perdaPct / 100) * r.valorAposta);
+            const isLoss = perdaPct > 0;
+            return (
+              <div className="db-ind-card">
+                <div className="db-ind-label">{isLoss ? "PERDA ESPERADA" : "LUCRO ESPERADO"}</div>
+                <div className="db-ind-value" style={{ color: isLoss ? "#E53E3E" : "#1DB954" }}>
+                  R$ {perdaAbs.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div className="db-ind-micro">por R$ {r.valorAposta.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} apostados</div>
+              </div>
+            );
+          })() : (
+            <div className="db-ind-card">
+              <div className="db-ind-label">VALOR EM RISCO</div>
+              <div className="db-ind-value" style={{ color: "#FF8C00" }}>{valorEmRisco}</div>
+              <div className="db-ind-micro">informe o valor para calcular</div>
+            </div>
+          )}
         </div>
 
         {/* 04 — Por que esse cenário */}
@@ -784,36 +806,58 @@ export default function AppDashboard() {
 
   function handleCopyResult(r) {
     const ai = r.aiResult;
-    const status = ai?.status || "—";
-    const frase  = ai?.frase || "";
-    const chanceGanhar = ai?.chance_ganhar != null ? `${Number(ai.chance_ganhar).toFixed(0)}%` : `${r.impl}%`;
-    const oddIdeal = ai?.odd_ideal != null ? Number(ai.odd_ideal).toFixed(2) : r.justa;
-    const vantagem = ai?.vantagem != null ? Number(ai.vantagem) : null;
+    const STATUS_ICONS = {
+      "BOA ENTRADA":          "✅",
+      "BOA, MAS COM CUIDADO": "⚠️",
+      "CUIDADO":              "⚠️",
+      "ENTRADA FRACA":        "⚠️",
+      "DESFAVORÁVEL":         "❌",
+      "RISCO ALTO":           "❌",
+      "NÃO COMPENSA":         "❌",
+    };
+    const status    = ai?.status || "CUIDADO";
+    const icon      = STATUS_ICONS[status] || "⚠️";
+    const frase     = ai?.frase || "";
+    const vantagem  = ai?.vantagem != null ? Number(ai.vantagem) : null;
     const valeAPena = vantagem != null ? (vantagem > 5 ? "SIM" : vantagem >= -5 ? "TALVEZ" : "NÃO") : "—";
-    const alerta = ai?.alerta || r.ai?.alertaFinal || "";
+    const vantagemStr = vantagem != null ? ` (${vantagem >= 0 ? "+" : ""}${vantagem}%)` : "";
+    const bullets   = ai?.bullets || [];
+    const alerta    = ai?.alerta || r.ai?.alertaFinal || "";
 
-    const text = [
+    const oddIdealNum = ai?.odd_ideal != null ? Number(ai.odd_ideal) : parseFloat(r.justa);
+    const perdaPct    = (1 - r.odd / oddIdealNum) * 100;
+    const isLoss      = perdaPct > 0;
+    const perdaAbs    = Math.abs((perdaPct / 100) * 100);
+
+    const lines = [
       "🔍 MotorIA Pro — Análise de Aposta",
       "",
       r.jogo !== "Aposta" ? r.jogo : r.tipo,
-      `Mercado: ${r.tipo}`,
-      `Odd analisada: ${r.odd.toFixed(2)}`,
+      `Mercado: ${r.tipo}  |  Odd: ${r.odd.toFixed(2)}`,
       "",
-      `Status: ${status}`,
-      frase,
+      `${icon} ${status}`,
+      frase ? `"${frase}"` : null,
       "",
-      "📊 Números:",
-      `• Chance de ganhar: ${chanceGanhar}`,
-      `• Odd ideal: ${oddIdeal}`,
-      `• Vale a pena? ${valeAPena}`,
-      alerta ? "" : null,
-      alerta ? `⚠️ ${alerta}` : null,
+      `Vale a pena? ${valeAPena}${vantagemStr}`,
       "",
-      "—",
-      "Análise gerada pelo MotorIA Pro",
-      "motoriaopro.com.br",
-    ].filter(v => v !== null).join("\n");
+      `📊 Por R$ 100 apostados:`,
+      `→ ${isLoss ? "Perda esperada" : "Lucro esperado"}: R$ ${perdaAbs.toFixed(2)}`,
+    ];
 
+    if (bullets.length > 0) {
+      lines.push("");
+      lines.push("Por quê:");
+      bullets.forEach(b => lines.push(`• ${b}`));
+    }
+
+    if (alerta) {
+      lines.push("");
+      lines.push(`⚠️ Atenção: ${alerta}`);
+    }
+
+    lines.push("", "—", "MotorIA Pro · motoriaopro.com.br");
+
+    const text = lines.filter(v => v !== null).join("\n");
     navigator.clipboard.writeText(text).catch(() => {});
     setCopiedId(r.id);
     setTimeout(() => setCopiedId(cur => cur === r.id ? null : cur), 2000);
@@ -965,7 +1009,7 @@ export default function AppDashboard() {
             <div className="ap-sidebar-engine">
               <div className="ap-sidebar-engine-dot" aria-hidden="true" />
               <div className="ap-sidebar-engine-info">
-                <span className="ap-sidebar-engine-name">RISK ENGINE v2.4</span>
+                <span className="ap-sidebar-engine-name">{RISK_ENGINE_LABEL}</span>
                 <span className="ap-sidebar-engine-status">ONLINE</span>
               </div>
             </div>
@@ -1186,7 +1230,7 @@ export default function AppDashboard() {
                     <div className="ap-loading-hdr">
                       <div>
                         <div className="ap-loading-engine">
-                          RISK ENGINE v2.4
+                          {RISK_ENGINE_LABEL}
                           <span className="ap-loading-engine-dot" aria-hidden="true" />
                         </div>
                         {selectedGame ? (
@@ -1492,8 +1536,8 @@ export default function AppDashboard() {
                             <button
                               className="fl-mcard-hdr"
                               onClick={() => {
-                                if (isOpen) { setSelectedMarket(null); setMarketOdd(""); }
-                                else { setSelectedMarket(m); setMarketOdd(m.ref); }
+                                if (isOpen) { setSelectedMarket(null); setMarketOdd(""); setMarketValor(""); }
+                                else { setSelectedMarket(m); setMarketOdd(m.ref); setMarketValor(""); }
                               }}
                               type="button"
                             >
@@ -1505,18 +1549,37 @@ export default function AppDashboard() {
                             </button>
                             {isOpen && (
                               <div className="fl-mcard-body">
-                                <span className="fl-mcard-odd-lbl">Sua odd</span>
-                                <input
-                                  className="fl-mcard-odd-input"
-                                  type="text"
-                                  value={marketOdd}
-                                  onChange={e => setMarketOdd(e.target.value)}
-                                  placeholder={m.ref}
-                                  inputMode="decimal"
-                                  autoComplete="off"
-                                  autoFocus
-                                  aria-label="Informe a odd"
-                                />
+                                <div className="fl-mcard-inputs-row">
+                                  <div className="fl-mcard-input-wrap fl-mcard-input-odd">
+                                    <span className="fl-mcard-odd-lbl">Sua odd</span>
+                                    <input
+                                      className="fl-mcard-odd-input"
+                                      type="text"
+                                      value={marketOdd}
+                                      onChange={e => setMarketOdd(e.target.value)}
+                                      placeholder={m.ref}
+                                      inputMode="decimal"
+                                      autoComplete="off"
+                                      aria-label="Informe a odd"
+                                    />
+                                  </div>
+                                  <div className="fl-mcard-input-wrap fl-mcard-input-valor">
+                                    <span className="fl-mcard-odd-lbl">Valor (R$)</span>
+                                    <div className="fl-mcard-valor-wrap">
+                                      <span className="fl-mcard-valor-prefix">R$</span>
+                                      <input
+                                        className="fl-mcard-odd-input fl-mcard-valor-input"
+                                        type="text"
+                                        value={marketValor}
+                                        onChange={e => setMarketValor(e.target.value)}
+                                        placeholder="0"
+                                        inputMode="decimal"
+                                        autoComplete="off"
+                                        aria-label="Valor da aposta"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
                                 <button
                                   className="fl-mcard-confirm"
                                   onClick={() => quickAnalyze(m.tipo, marketOdd || m.ref)}
@@ -1533,7 +1596,7 @@ export default function AppDashboard() {
 
                     {/* Link to full manual form */}
                     <button className="fl-manual-link" onClick={() => navigate("nova")} type="button">
-                      Abrir análise manual completa →
+                      Informar dados manualmente →
                     </button>
                   </div>
                 )}
@@ -1561,7 +1624,7 @@ export default function AppDashboard() {
                         <div className="ap-loading-hdr">
                           <div>
                             <div className="ap-loading-engine">
-                              RISK ENGINE v2.4
+                              {RISK_ENGINE_LABEL}
                               <span className="ap-loading-engine-dot" aria-hidden="true" />
                             </div>
                             <div className="ap-loading-sub ap-loading-sub-game">
@@ -3711,26 +3774,46 @@ body { overflow: hidden; }
   color: var(--t3); flex-shrink: 0; transition: transform .15s;
 }
 .fl-mcard-body {
-  display: flex; align-items: center; gap: 8px;
-  padding: 0 12px 12px; border-top: 1px solid var(--border);
-  padding-top: 10px;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px 12px 12px; border-top: 1px solid var(--border);
 }
+.fl-mcard-inputs-row {
+  display: flex; gap: 8px; align-items: flex-end;
+}
+.fl-mcard-input-wrap {
+  display: flex; flex-direction: column; gap: 4px; min-width: 0;
+}
+.fl-mcard-input-odd { flex: 3; }
+.fl-mcard-input-valor { flex: 2; }
 .fl-mcard-odd-lbl {
   font-size: 10px; font-weight: 700; color: var(--t2); letter-spacing: .05em; white-space: nowrap; text-transform: uppercase;
 }
 .fl-mcard-odd-input {
-  flex: 1; background: rgba(255,255,255,.05); border: 1px solid rgba(34,197,94,.3);
+  width: 100%; background: rgba(255,255,255,.05); border: 1px solid rgba(34,197,94,.3);
   border-radius: 7px; color: var(--t1); font-family: inherit;
   font-size: 17px; font-weight: 800; letter-spacing: -0.02em;
-  padding: 8px 10px; outline: none; min-width: 0;
+  padding: 8px 10px; outline: none; min-width: 0; box-sizing: border-box;
 }
 .fl-mcard-odd-input:focus { border-color: rgba(34,197,94,.6); }
+.fl-mcard-valor-wrap {
+  display: flex; align-items: center; background: rgba(255,255,255,.05);
+  border: 1px solid rgba(34,197,94,.3); border-radius: 7px; overflow: hidden;
+}
+.fl-mcard-valor-wrap:focus-within { border-color: rgba(34,197,94,.6); }
+.fl-mcard-valor-prefix {
+  font-size: 13px; font-weight: 700; color: var(--t2); padding: 8px 6px 8px 10px; white-space: nowrap;
+}
+.fl-mcard-valor-input {
+  border: none !important; border-radius: 0 !important; background: transparent !important;
+  flex: 1; padding: 8px 8px 8px 2px !important; font-size: 15px !important;
+}
+.fl-mcard-valor-input:focus { border-color: transparent !important; }
 .fl-mcard-confirm {
   background: #15803d; color: #dcfce7;
   font-size: 11px; font-weight: 900; letter-spacing: .06em;
   padding: 10px 16px; border-radius: 7px; border: none; cursor: pointer;
-  font-family: inherit; white-space: nowrap; flex-shrink: 0;
-  transition: background .13s;
+  font-family: inherit; white-space: nowrap;
+  transition: background .13s; width: 100%;
 }
 .fl-mcard-confirm:hover { background: #166534; }
 `;

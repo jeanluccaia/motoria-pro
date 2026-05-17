@@ -1014,6 +1014,21 @@ CAMPO "status" — use APENAS um desses 7 valores exatos (nada mais):
 "NÃO COMPENSA": odd muito baixa (< 1.30) ou vantagem < -20% — margem da casa engole todo valor
 NUNCA use: "NEUTRO", "MEDIO", "BAIXO", "ALTO", "BOM", "RUIM", "VALE APOSTAR", "PASSA LONGE"
 
+REGRA DE CLASSIFICAÇÃO POR VANTAGEM (use como base obrigatória para o status):
+vantagem = Math.round(((odd_informada / odd_ideal) - 1) * 100)
+Se vantagem >= +8%  → status: "BOA ENTRADA"
+Se vantagem >= +3%  → status: "BOA, MAS COM CUIDADO"
+Se vantagem >= -3%  → status: "CUIDADO"
+Se vantagem >= -8%  → status: "ENTRADA FRACA"
+Se vantagem >= -15% → status: "DESFAVORÁVEL"
+Se vantagem < -15%  → status: "NÃO COMPENSA"
+NUNCA use "NEUTRO". NUNCA use "MÉDIO". NUNCA use "ALTO" ou "BAIXO" isolados.
+Quando o status for "BOA ENTRADA" ou "BOA, MAS COM CUIDADO":
+- frase deve ser animadora mas sem prometer resultado
+- Exemplos de frase: "Os números indicam valor real nessa odd." / "Mercado favorável — odd acima do equilíbrio."
+- bullets devem destacar fatores positivos do jogo
+- alerta deve mencionar variáveis de atenção sem cancelar o resultado positivo
+
 CAMPO "frase" — máximo 12 palavras, tom de alerta inteligente para o apostador:
 NÃO USE: "probabilidade", "precificação", "vantagem negativa", "cenário estatístico", "valor esperado"
 USE: "risco", "cuidado", "não compensa", "parece boa mas não é", "mercado", "entrada"
