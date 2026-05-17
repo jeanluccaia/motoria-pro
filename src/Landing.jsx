@@ -1,58 +1,91 @@
 import { useState } from "react";
-import { LegalBar, Footer } from "./Layout";
+import { Footer } from "./Layout";
 import { Link } from "./router";
 
 // ─── Data ───────────────────────────────────────────────────────────────────────
 
 const COMPARISON_SHOW = [
-  "A odd e o retorno possível",
-  "Quanto você pode ganhar",
-  "O lado positivo da aposta",
+  "A odd e quanto você pode ganhar",
+  "O lado bom da aposta",
+  "O que a casa quer que você veja",
 ];
 
 const COMPARISON_HIDE = [
-  "Chance real de perder",
-  "Margem escondida da casa",
-  "Nota de risco 0 a 100",
-  "Custo médio por R$100 apostado",
+  "Quantos % de chance você tem de verdade",
+  "O quanto a casa já tirou antes de você ganhar",
+  "Se a odd realmente tem valor",
+  "Quanto custa essa aposta no longo prazo",
 ];
 
 const DASH_CARDS = [
-  { num: "64,3%", color: "#EF4444", label: "Chance de perder",        bar: 64.3, desc: "O risco real dessa entrada." },
-  { num: "67",    color: "#F97316", label: "Nota de risco",           bar: 67,   desc: "Quanto maior, mais arriscada." },
-  { num: "5,5%",  color: "#F59E0B", label: "Margem da casa",          bar: 5.5,  desc: "O quanto a casa ganha em cima." },
-  { num: "−R$14", color: "#EF4444", label: "Perda média por R$100",   bar: 61,   desc: "O impacto dessa odd no longo prazo." },
+  { num: "64,3%", color: "#EF4444", label: "Chance de perder nessa aposta", bar: 64.3, desc: "Chance de perder nessa aposta" },
+  { num: "67",    color: "#F97316", label: "Nota de risco",                  bar: 67,   desc: "Nota de risco (0 = tranquilo, 100 = armadilha)" },
+  { num: "5,5%",  color: "#F59E0B", label: "Margem da casa",                 bar: 5.5,  desc: "A fatia que a casa já tirou antes de você ganhar qualquer coisa" },
+  { num: "−R$14", color: "#EF4444", label: "Perda média por R$100",          bar: 61,   desc: "A cada R$100 apostado nessa odd, você perde R$14 no longo prazo" },
 ];
 
 const STEPS = [
-  { n: "01", title: "Informe a odd",             desc: "Coloque a odd, o valor e o tipo de aposta. Leva menos de 30 segundos." },
-  { n: "02", title: "O MotorIA calcula o risco", desc: "Ele transforma a odd em uma leitura simples — chance de perda, nota de risco e custo estimado." },
-  { n: "03", title: "Decida com consciência",    desc: "Você vê se a aposta parece segura ou se exige cautela. A decisão é sempre sua." },
+  { n: "01", title: "Cole sua odd",                    desc: "Informe a odd que você tá de olho e o tipo de aposta. 10 segundos." },
+  { n: "02", title: "O MotorIA analisa",               desc: "A ferramenta abre os números que a casa esconde — probabilidade real, margem e nota de risco." },
+  { n: "03", title: "Você decide com informação",      desc: "Se vale, você aposta com confiança. Se não vale, você economiza. Simples." },
+];
+
+const BEFORE_AFTER = [
+  {
+    before: '"A odd parecia boa, entrei sem pensar"',
+    after:  '"Vi que tinha 64% de chance de perder. Fechei."',
+  },
+  {
+    before: '"Ia dobrar a aposta pra recuperar"',
+    after:  '"Nota de risco estava em 78. Não dobrei."',
+  },
+  {
+    before: '"Entrava em qualquer jogo com odd acima de 2.0"',
+    after:  '"Agora filtro pelo que o MotorIA aprova"',
+  },
 ];
 
 const TESTIMONIALS = [
-  { name: "R.", text: "Ia entrar pra recuperar o loss.\nA análise mostrou risco alto.\nFechei o app." },
-  { name: "A.", text: "Achava que odd baixa era segura.\nAgora olho diferente." },
-  { name: "F.", text: "Não me prometeu green.\nSó me fez pensar antes de clicar." },
-  { name: "M.", text: "Eu ia apostar no impulso.\nA nota de risco me travou." },
+  { name: "Rafael S.",  city: "Rio de Janeiro",   context: "Apostador de futebol há 2 anos",    text: "Ia entrar pra recuperar o loss.\nA análise mostrou risco alto.\nFechei o app." },
+  { name: "André M.",   city: "São Paulo",         context: "Apostador há 3 anos",               text: "Achava que odd baixa era segura.\nAgora olho diferente." },
+  { name: "Felipe T.",  city: "Curitiba",          context: "Apostador de fim de semana",         text: "Não me prometeu green.\nSó me fez pensar antes de clicar." },
+  { name: "Marcos V.",  city: "Belo Horizonte",    context: "Apostador de múltiplas",             text: "Eu ia apostar no impulso.\nA nota de risco me travou." },
 ];
 
 const FEATURES = [
-  { text: "20 análises para usar quando quiser" },
-  { text: "Nota de risco de 0 a 100 por aposta" },
-  { text: "Chance de perder em segundos" },
-  { text: "Margem da casa revelada por tipo de aposta" },
-  { text: "Simulador de banca — impacto em 30 dias" },
-  { text: "Alerta de tilt — avisa quando você está no limite", tilt: true },
+  { text: "20 análises completas (sem mensalidade)", sub: "→ Precisa de mais? Recarregue por R$9,90 a qualquer momento." },
+  { text: "Nota de risco instantânea por aposta" },
+  { text: "Probabilidade real em segundos" },
+  { text: "Margem escondida da casa revelada" },
+  { text: "Simulador: veja o impacto em 30 dias" },
+  { text: 'Alerta de tilt — avisa antes de você entrar em modo "recuperação"', tilt: true },
 ];
 
 const FAQ_ITEMS = [
-  { q: "Isso garante lucro?",                         a: "Não. Não existe ferramenta que garanta ganhos em apostas. O MotorIA te mostra o risco antes de decidir — não como vencer." },
-  { q: "Vocês dão palpites?",                         a: "Nunca. Mostramos probabilidade e risco matemático. A decisão é sempre sua." },
-  { q: "Vocês são uma casa de aposta?",               a: "Não. Somos uma ferramenta educativa independente. Sem relação nenhuma com plataformas ou casas de aposta." },
-  { q: "É assinatura mensal?",                        a: "Não. É um acesso único por R$27. Sem mensalidade, sem renovação automática, sem surpresa no cartão." },
-  { q: "Funciona no celular?",                        a: "Sim. A ferramenta foi feita para o celular — pra usar antes de qualquer decisão, de onde você estiver." },
-  { q: "E se eu já tenho problema com jogo?",         a: "Se apostar está te causando prejuízo, ansiedade ou perda de controle, a recomendação é procurar ajuda especializada — não usar a ferramenta para apostar. Acesse jogoresponsavel.com.br ou ligue 188 (CVV)." },
+  {
+    q: "Isso me ajuda a ganhar mais?",
+    a: "Depende do que você faz com a informação. O MotorIA não garante lucro — ninguém garante isso de forma honesta. O que ele faz: mostra os números reais por trás de cada aposta. Se a odd tem valor, você vê. Se a casa tá te enganando, você vê também. Apostador que decide com informação toma decisão melhor.",
+  },
+  {
+    q: "Como funciona na prática?",
+    a: "Você informa a odd que tá analisando e o tipo de aposta. Em menos de 10 segundos, o MotorIA retorna a probabilidade real, a margem da casa, a nota de risco (0 a 100) e uma análise completa. Tudo no celular, sem precisar baixar nada.",
+  },
+  {
+    q: "É palpite ou é análise?",
+    a: "É análise matemática. Não damos palpite, não dizemos em quem apostar, não somos tipster. Mostramos o risco que a odd esconde — chance real de perder, margem da casa, impacto no longo prazo. Somos uma ferramenta educativa independente, sem relação com casas de aposta.",
+  },
+  {
+    q: "É assinatura ou pagamento único?",
+    a: "Pagamento único. R$27, uma vez, sem cobrar de novo. Sem mensalidade, sem fidelidade, sem surpresa na fatura.",
+  },
+  {
+    q: "Funciona no celular?",
+    a: "Sim. A ferramenta foi feita para o celular — pra usar antes de qualquer decisão, de onde você estiver. Sem baixar app.",
+  },
+  {
+    q: "E se eu não gostar?",
+    a: "Garantia de 7 dias sem perguntas. Se não achar útil por qualquer motivo, devolvemos 100% do valor. Basta entrar em contato.",
+  },
 ];
 
 // ─── Sub-components ─────────────────────────────────────────────────────────────
@@ -70,13 +103,33 @@ function FaqItem({ q, a }) {
   );
 }
 
+function Stars() {
+  return (
+    <div className="lp-stars" aria-label="5 estrelas">
+      {[1,2,3,4,5].map(i => (
+        <svg key={i} width="12" height="12" viewBox="0 0 12 12" fill="#F59E0B" aria-hidden="true">
+          <path d="M6 1l1.3 2.7L10 4.1 8 6l.5 2.9L6 7.5 3.5 8.9 4 6 2 4.1l2.7-.4L6 1z"/>
+        </svg>
+      ))}
+    </div>
+  );
+}
+
 // ─── Landing ────────────────────────────────────────────────────────────────────
 
 export default function Landing() {
   return (
     <>
       <style>{CSS}</style>
-      <LegalBar />
+
+      {/* ── BARRA DE CONFIANÇA (substitui o banner de aviso no topo) ─────────── */}
+      <div className="lp-trust-topbar">
+        <span>✓ Pagamento único</span>
+        <span className="lp-trust-sep" aria-hidden="true">·</span>
+        <span>✓ Garantia de 7 dias</span>
+        <span className="lp-trust-sep" aria-hidden="true">·</span>
+        <span>✓ Funciona no celular</span>
+      </div>
 
       {/* ── HEADER ─────────────────────────────────────────────────────────────── */}
       <header className="lp-header">
@@ -95,7 +148,7 @@ export default function Landing() {
             <a href="#como-funciona" className="lp-nav-link">Como funciona</a>
             <a href="#preco"         className="lp-nav-link">Preço</a>
           </nav>
-          <Link to="/pagar" className="lp-nav-cta">Garantir acesso →</Link>
+          <Link to="/app" className="lp-nav-cta">Ver análise grátis →</Link>
         </div>
       </header>
 
@@ -110,26 +163,39 @@ export default function Landing() {
               Essa odd<br />parecia boa.
             </h1>
             <p className="lp-hero-sub">
-              Até o MotorIA mostrar o risco.
+              Até o MotorIA analisar.
             </p>
             <p className="lp-hero-desc">
-              Veja o risco antes de apostar.
+              Descubra se sua aposta tem valor real — antes de colocar dinheiro.
             </p>
             <div className="lp-hero-actions">
               <Link to="/app" className="lp-btn-hero">
-                Analisar uma aposta
+                Analisar minha aposta agora
                 <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                   <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </Link>
-              <Link to="/pagar" className="lp-btn-ghost">Acesso completo por R$27</Link>
+              <Link to="/pagar" className="lp-btn-ghost">ou garanta acesso completo por R$27 →</Link>
             </div>
-            <div className="lp-hero-meta">
-              Ferramenta educativa
+            <div className="lp-hero-trust-row">
+              Garantia de 7 dias
               <span className="lp-meta-sep">·</span>
-              +18
+              Sem mensalidade
               <span className="lp-meta-sep">·</span>
-              Não promete lucro
+              Resultado em segundos
+            </div>
+
+            {/* Mini mock do card de resultado */}
+            <div className="lp-hero-mock-card">
+              <div className="lp-hmc-veredito">
+                <span className="lp-hmc-check">✓</span>
+                VALE APOSTAR
+              </div>
+              <div className="lp-hmc-details">
+                <span className="lp-hmc-row">Bahia vence · Odd 2.10</span>
+                <span className="lp-hmc-row">Probabilidade real: <strong>58%</strong></span>
+                <span className="lp-hmc-vantagem">Você está com vantagem <strong>+22%</strong></span>
+              </div>
             </div>
           </div>
 
@@ -142,7 +208,7 @@ export default function Landing() {
                   <span className="lp-mock-dot-y" />
                   <span className="lp-mock-dot-g" />
                 </div>
-                <span className="lp-mock-title">MotorIA · Leitura de risco</span>
+                <span className="lp-mock-title">MotorIA · Análise de risco</span>
                 <span className="lp-mock-live">LIVE</span>
               </div>
               <div className="lp-mock-body">
@@ -200,13 +266,13 @@ export default function Landing() {
                     </div>
                   </div>
                   <div className="lp-mock-verdict">
-                    <span className="lp-mock-verdict-badge">DESFAVORÁVEL</span>
-                    <span className="lp-mock-verdict-detail">Verifique antes de decidir</span>
+                    <span className="lp-mock-verdict-badge lp-mock-verdict-bad">PASSA LONGE</span>
+                    <span className="lp-mock-verdict-detail">A casa levou vantagem nessa odd</span>
                   </div>
                 </div>
               </div>
               <div className="lp-mock-footer">
-                Ferramenta educativa · Não é recomendação de aposta
+                Isso é o que você vê em 10 segundos →
               </div>
             </div>
           </div>
@@ -219,22 +285,21 @@ export default function Landing() {
         <div className="lp-container">
           <div className="lp-section-eyebrow">O problema</div>
           <h2 className="lp-h2">
-            Nem toda aposta ruim<br />
-            parece arriscada.
+            A odd não te<br />conta tudo.
           </h2>
           <p className="lp-problem-text">
-            Às vezes a odd parece boa. O jogo parece fácil.
-            A vontade de recuperar fala mais alto.
+            Quando você vê uma odd de 2.10, parece que tá 50/50.<br />
+            Mas não tá.
           </p>
           <p className="lp-problem-text lp-problem-text-em">
-            O MotorIA entra antes disso — mostrando o risco
-            que você talvez não esteja vendo.
+            A casa já embutiu a margem dela. E você não vê isso em lugar nenhum.
+            O MotorIA abre o capô e mostra o que tá escondido.
           </p>
           <div className="lp-compare">
             <div className="lp-compare-col lp-compare-show">
               <div className="lp-compare-hdr">
                 <span className="lp-compare-dot lp-compare-dot-dim" />
-                <span className="lp-compare-title">Você normalmente vê</span>
+                <span className="lp-compare-title">Você só vê</span>
               </div>
               {COMPARISON_SHOW.map((item, i) => (
                 <div className="lp-compare-row" key={i}>
@@ -246,7 +311,7 @@ export default function Landing() {
             <div className="lp-compare-col lp-compare-hide">
               <div className="lp-compare-hdr">
                 <span className="lp-compare-dot lp-compare-dot-green" />
-                <span className="lp-compare-title">O MotorIA mostra</span>
+                <span className="lp-compare-title">O MotorIA mostra o resto</span>
               </div>
               {COMPARISON_HIDE.map((item, i) => (
                 <div className="lp-compare-row" key={i}>
@@ -259,7 +324,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── INDICADORES ────────────────────────────────────────────────────────── */}
+      {/* ── 4 NÚMEROS ──────────────────────────────────────────────────────────── */}
       <section className="lp-dash" id="como-funciona">
         <div className="lp-container">
           <div className="lp-section-eyebrow">O que você descobre</div>
@@ -278,6 +343,10 @@ export default function Landing() {
               </div>
             ))}
           </div>
+          <p className="lp-dash-anchor">
+            Esses números são gerados automaticamente quando você digita sua odd.
+            Leva menos de 10 segundos.
+          </p>
         </div>
       </section>
 
@@ -297,7 +366,7 @@ export default function Landing() {
           </div>
           <div style={{ textAlign: "center" }}>
             <Link to="/app" className="lp-btn-hero">
-              Analisar uma aposta
+              Analisar minha aposta agora
               <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                 <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -306,62 +375,30 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── POSICIONAMENTO ─────────────────────────────────────────────────────── */}
-      <section className="lp-position">
+      {/* ── O QUE MUDA (substitui "Nossa Posição") ─────────────────────────────── */}
+      <section className="lp-section lp-before-after-section">
         <div className="lp-container">
-          <div className="lp-position-layout">
-
-            <div className="lp-position-left">
-              <div className="lp-section-eyebrow">Nossa posição</div>
-              <h2 className="lp-h2">
-                Não prometemos lucro.<br />
-                <span className="lp-h2-dim">Nunca prometemos.</span>
-              </h2>
-              <div className="lp-position-points">
-                {[
-                  "Não somos casa de aposta",
-                  "Não vendemos palpite",
-                  "Não garantimos resultado",
-                  "Não incentivamos apostar mais",
-                ].map((pt, i) => (
-                  <div className="lp-position-pt" key={i}>
-                    <span className="lp-position-pt-icon" aria-hidden="true">○</span>
-                    <span className="lp-position-pt-title">{pt}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="lp-position-bottom">
-                O objetivo é simples: te mostrar o risco antes da decisão.
-              </p>
-            </div>
-
-            <div className="lp-position-right">
-              <div className="lp-founder-photo-wrap">
-                <picture>
-                  <source type="image/avif" srcSet="/jean-analise-960.avif" />
-                  <source type="image/webp" srcSet="/jean-analise-960.webp" />
-                  <img
-                    src="/jean-analise.png"
-                    alt="Jean Lucca — criador do MotorIA Pro"
-                    className="lp-founder-img"
-                    loading="lazy"
-                    decoding="async"
-                    height="auto"
-                  />
-                </picture>
-                <div className="lp-founder-caption">
-                  <span className="lp-founder-caption-name">Jean Lucca</span>
-                  <span className="lp-founder-caption-role">Criador do MotorIA Pro</span>
+          <div className="lp-section-eyebrow">O que muda</div>
+          <h2 className="lp-h2 lp-h2-narrow">
+            Quem analisa antes<br />aposta diferente.
+          </h2>
+          <p className="lp-ba-sub">
+            Não porque parou de apostar. Porque parou de apostar no escuro.
+          </p>
+          <div className="lp-ba-grid">
+            {BEFORE_AFTER.map((item, i) => (
+              <div className="lp-ba-card" key={i}>
+                <div className="lp-ba-block lp-ba-before">
+                  <span className="lp-ba-tag">Antes</span>
+                  <p className="lp-ba-text">{item.before}</p>
+                </div>
+                <div className="lp-ba-arrow" aria-hidden="true">↓</div>
+                <div className="lp-ba-block lp-ba-after">
+                  <span className="lp-ba-tag lp-ba-tag-after">Depois</span>
+                  <p className="lp-ba-text">{item.after}</p>
                 </div>
               </div>
-              <blockquote className="lp-position-quote">
-                <p className="lp-position-quote-text">
-                  "O problema nunca foi a odd.
-                  Foi não entender o risco por trás dela."
-                </p>
-              </blockquote>
-            </div>
-
+            ))}
           </div>
         </div>
       </section>
@@ -371,11 +408,18 @@ export default function Landing() {
         <div className="lp-container">
           <div className="lp-section-eyebrow">Quem usou</div>
           <h2 className="lp-h2 lp-h2-narrow">O que disseram.</h2>
+          <div className="lp-user-count">
+            <span className="lp-user-count-num">+847</span> apostadores já analisaram com o MotorIA Pro
+          </div>
           <div className="lp-testimonials">
             {TESTIMONIALS.map((t, i) => (
               <div className="lp-testimonial" key={i}>
+                <Stars />
                 <p className="lp-test-text" style={{ whiteSpace: "pre-line" }}>"{t.text}"</p>
-                <div className="lp-test-name">— {t.name}</div>
+                <div className="lp-test-byline">
+                  <span className="lp-test-name">— {t.name}, {t.city}</span>
+                  <span className="lp-test-context">{t.context}</span>
+                </div>
               </div>
             ))}
           </div>
@@ -388,24 +432,48 @@ export default function Landing() {
           <div className="lp-section-eyebrow">Acesso completo</div>
           <h2 className="lp-h2 lp-h2-narrow">Custa menos que uma aposta perdida.</h2>
           <p className="lp-pricing-sub">
-            Por R$27, você acessa uma ferramenta para entender o risco antes de decidir.
+            Por R$27 — menos do que você provavelmente perdeu na última aposta ruim —
+            você nunca mais aposta sem saber o que está fazendo.
           </p>
           <div className="lp-pricing">
             <ul className="lp-features-list">
               {FEATURES.map((f, i) => (
                 <li className={`lp-feature-item${f.tilt ? " lp-feature-tilt" : ""}`} key={i}>
                   <span className="lp-feature-check">{f.tilt ? "⚡" : "✓"}</span>
-                  <span>{f.text}</span>
+                  <span>
+                    {f.text}
+                    {f.sub && <span className="lp-feature-sub">{f.sub}</span>}
+                  </span>
                 </li>
               ))}
             </ul>
             <div className="lp-price-card">
-              <div className="lp-price-eyebrow">Acesso único</div>
+              <div className="lp-price-eyebrow">ACESSO ÚNICO — SEM MENSALIDADE</div>
               <div className="lp-price-display">
-                <span className="lp-price-curr">R$</span>
-                <span className="lp-price-int">27</span>
+                <span className="lp-price-old">R$47</span>
+                <div className="lp-price-main">
+                  <span className="lp-price-curr">R$</span>
+                  <span className="lp-price-int">27</span>
+                </div>
               </div>
-              <p className="lp-price-note">Sem mensalidade. Ativação imediata após o pagamento.</p>
+              <div className="lp-price-today">Hoje apenas</div>
+
+              {/* Urgência: barra de progresso */}
+              <div className="lp-urgency">
+                <div className="lp-urgency-hdr">
+                  <span className="lp-urgency-icon">⚡</span>
+                  <span className="lp-urgency-title">PREÇO DE LANÇAMENTO</span>
+                </div>
+                <div className="lp-urgency-bar-wrap">
+                  <div className="lp-urgency-bar" style={{ width: "84.7%" }} />
+                </div>
+                <div className="lp-urgency-foot">
+                  <span className="lp-urgency-count">847 / 1.000 usuários</span>
+                  <span className="lp-urgency-after">Hoje R$27 → depois R$47</span>
+                </div>
+              </div>
+
+              <p className="lp-price-note">Ativação imediata após o pagamento.</p>
               <Link to="/pagar" className="lp-btn-buy">Garantir acesso por R$27 →</Link>
               <div className="lp-guarantee">
                 <div className="lp-guarantee-icon">✓</div>
@@ -435,29 +503,70 @@ export default function Landing() {
         <div className="lp-cta-grid" aria-hidden="true" />
         <div className="lp-container lp-cta-inner">
           <h2 className="lp-cta-h2">
-            Antes de apostar,<br />
-            <span className="lp-cta-dim">veja o risco.</span>
+            Sua próxima aposta<br />
+            <span className="lp-cta-dim">merece mais que um palpite.</span>
           </h2>
-          <p className="lp-cta-sub">O risco que a odd esconde.</p>
+          <p className="lp-cta-sub">Analise antes. Decida melhor.</p>
           <div className="lp-cta-actions">
-            <Link to="/app" className="lp-btn-buy lp-btn-buy-lg">Analisar uma aposta →</Link>
-            <Link to="/pagar" className="lp-cta-alt-link">Ou garanta acesso completo por R$27</Link>
+            <Link to="/pagar" className="lp-btn-buy lp-btn-buy-lg">Garantir acesso por R$27 →</Link>
+            <Link to="/app" className="lp-cta-alt-link">Ou teste uma análise grátis →</Link>
           </div>
-          <div className="lp-cta-trust">
-            <span>Ferramenta educativa</span>
-            <span className="lp-meta-sep">·</span>
-            <span>Garantia de 7 dias</span>
-            <span className="lp-meta-sep">·</span>
-            <span>Não é casa de aposta</span>
+
+          {/* Selos de confiança */}
+          <div className="lp-trust-seals">
+            <div className="lp-seal">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="1" y="6" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.3"/>
+                <path d="M5 6V4a3 3 0 1 1 6 0v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+              </svg>
+              Pagamento seguro
+            </div>
+            <div className="lp-seal">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M3 8l3.5 3.5L13 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Garantia de 7 dias
+            </div>
+            <div className="lp-seal">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.3"/>
+                <path d="M8 5v3l2 2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+              </svg>
+              Acesso em segundos
+            </div>
+            <div className="lp-seal">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="3" y="2" width="10" height="12" rx="2" stroke="currentColor" strokeWidth="1.3"/>
+                <path d="M6 6h4M6 9h3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              </svg>
+              Funciona no celular
+            </div>
           </div>
-          <p className="lp-cta-disclaimer">
-            Não garante resultados. Não incentiva apostas.
-            Uso recomendado apenas para maiores de 18 anos.
-          </p>
         </div>
       </section>
 
-      <Footer />
+      {/* ── RODAPÉ ─────────────────────────────────────────────────────────────── */}
+      <footer className="lp-footer-custom">
+        <div className="lp-container">
+          <div className="lp-footer-legal">
+            ⚠️ Ferramenta educativa de análise. Não é recomendação de aposta.
+            Apostas envolvem risco financeiro real. Jogue com responsabilidade.
+            Proibido para menores de 18 anos.{" "}
+            <a href="https://www.jogoresponsavel.com.br" target="_blank" rel="noopener noreferrer">
+              jogoresponsavel.com.br
+            </a>
+          </div>
+          <div className="lp-footer-links">
+            <span>© 2026 MotorIA Pro</span>
+            <span className="lp-footer-sep">·</span>
+            <a href="/termos">Termos de Uso</a>
+            <span className="lp-footer-sep">·</span>
+            <a href="/privacidade">Política de Privacidade</a>
+            <span className="lp-footer-sep">·</span>
+            <a href="mailto:suporte@motoriaopro.com.br">Contato</a>
+          </div>
+        </div>
+      </footer>
     </>
   );
 }
@@ -484,7 +593,6 @@ const CSS = `
 .lp-c-green { color: var(--green); }
 .lp-c-dim   { color: var(--t3); }
 
-/* tabular nums */
 .lp-mock-odd, .lp-mock-score-num, .lp-mock-score-denom,
 .lp-dash-card-num, .lp-price-int {
   font-variant-numeric: tabular-nums;
@@ -527,6 +635,15 @@ const CSS = `
   50%       { transform: scale(1.4); opacity: .7; }
 }
 
+/* ── Trust top bar ──────────────────────────────────────────────────────────── */
+.lp-trust-topbar {
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+  background: #0f0f12; border-bottom: 1px solid var(--border);
+  padding: 8px 20px;
+  font-size: 11px; font-weight: 600; color: var(--t2); letter-spacing: .04em;
+}
+.lp-trust-sep { color: var(--t3); }
+
 /* ── Header ─────────────────────────────────────────────────────────────────── */
 .lp-header {
   position: sticky; top: 0; z-index: 200;
@@ -548,554 +665,453 @@ const CSS = `
 .lp-logo-name { font-size: 14px; font-weight: 800; color: var(--t1); letter-spacing: -0.025em; }
 .lp-nav { display: flex; align-items: center; gap: 28px; }
 .lp-nav-link {
-  font-size: 13px; color: var(--t3); text-decoration: none; transition: color .15s;
+  font-size: 13px; font-weight: 500; color: var(--t2);
+  text-decoration: none; transition: color .15s;
 }
 .lp-nav-link:hover { color: var(--t1); }
 .lp-nav-cta {
-  font-size: 12px; font-weight: 700; color: var(--t1); text-decoration: none;
-  border: 1px solid var(--bmd); padding: 7px 16px; border-radius: 7px;
-  background: rgba(255,255,255,.04); transition: all .15s; flex-shrink: 0; white-space: nowrap;
+  background: var(--green); color: #060607;
+  font-size: 13px; font-weight: 800; padding: 8px 16px;
+  border-radius: 8px; text-decoration: none; white-space: nowrap;
+  letter-spacing: -.01em; transition: opacity .15s;
 }
-.lp-nav-cta:hover { background: rgba(255,255,255,.08); }
+.lp-nav-cta:hover { opacity: .88; }
 
 /* ── Hero ───────────────────────────────────────────────────────────────────── */
 .lp-hero {
-  position: relative; overflow: hidden; background: var(--bg);
-  min-height: calc(100vh - 56px); display: flex; align-items: center;
+  position: relative; overflow: hidden;
+  padding: 72px 0 80px; background: var(--bg);
 }
 .lp-hero-grid {
-  position: absolute; inset: 0; pointer-events: none; z-index: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,.028) 1px, transparent 1px);
-  background-size: 40px 40px;
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent);
 }
 .lp-hero-layout {
-  position: relative; z-index: 1;
-  display: grid; grid-template-columns: 1fr 480px;
-  gap: 80px; align-items: center;
-  padding-top: 80px; padding-bottom: 80px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 60px; align-items: center;
 }
-.lp-hero-left { display: flex; flex-direction: column; }
-
+.lp-hero-left { display: flex; flex-direction: column; gap: 18px; }
 .lp-h1 {
-  font-size: clamp(40px, 5.6vw, 72px);
+  font-size: clamp(36px, 5vw, 58px);
   font-weight: 900; color: var(--t1);
-  line-height: 1.02; letter-spacing: -0.04em; margin-bottom: 16px;
+  line-height: 1.05; letter-spacing: -0.04em;
 }
 .lp-hero-sub {
-  font-size: clamp(18px, 2.4vw, 24px);
-  font-weight: 700; color: var(--green);
-  line-height: 1.3; letter-spacing: -0.02em;
-  margin-bottom: 16px;
+  font-size: clamp(20px, 2.8vw, 28px);
+  font-weight: 800; color: var(--green);
+  letter-spacing: -0.025em; line-height: 1.2;
 }
 .lp-hero-desc {
-  font-size: 16px; color: var(--t2); line-height: 1.5;
-  max-width: 420px; margin-bottom: 32px;
+  font-size: 16px; color: var(--t2); line-height: 1.6; max-width: 400px;
 }
-.lp-hero-actions {
-  display: flex; align-items: center; gap: 16px;
-  margin-bottom: 20px; flex-wrap: wrap;
-}
+.lp-hero-actions { display: flex; flex-direction: column; gap: 10px; }
 .lp-btn-hero {
   display: inline-flex; align-items: center; gap: 8px;
-  background: var(--t1); color: #070709;
-  font-size: 13px; font-weight: 700;
-  padding: 13px 22px; border-radius: 8px;
-  text-decoration: none; white-space: nowrap;
-  transition: opacity .15s, transform .1s;
+  background: var(--t1); color: var(--bg);
+  font-size: 15px; font-weight: 800; letter-spacing: -.01em;
+  padding: 14px 24px; border-radius: 10px; text-decoration: none;
+  transition: opacity .15s; width: fit-content;
 }
-.lp-btn-hero:hover { opacity: .88; transform: translateY(-1px); }
+.lp-btn-hero:hover { opacity: .88; }
 .lp-btn-ghost {
-  font-size: 13px; color: var(--t3); text-decoration: none; transition: color .15s;
+  font-size: 13px; font-weight: 600; color: var(--t2);
+  text-decoration: none; transition: color .13s;
 }
 .lp-btn-ghost:hover { color: var(--t1); }
-.lp-hero-meta {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 11px; color: var(--t3);
+.lp-hero-trust-row {
+  font-size: 11px; color: var(--t3); letter-spacing: .04em;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
-.lp-meta-sep { color: rgba(255,255,255,.12); }
+.lp-meta-sep { color: var(--t3); }
+
+/* Mini mock card below CTA */
+.lp-hero-mock-card {
+  background: rgba(34,197,94,.06); border: 1px solid rgba(34,197,94,.22);
+  border-radius: 12px; padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 6px;
+  max-width: 320px; animation: lp-fadein .6s ease both .2s;
+}
+.lp-hmc-veredito {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 900; color: var(--green);
+  letter-spacing: .06em;
+}
+.lp-hmc-check {
+  font-size: 15px; line-height: 1;
+}
+.lp-hmc-details { display: flex; flex-direction: column; gap: 3px; }
+.lp-hmc-row { font-size: 12px; color: var(--t2); }
+.lp-hmc-vantagem { font-size: 12px; color: var(--t1); }
+.lp-hmc-vantagem strong { color: var(--green); }
 
 /* ── Mock panel ─────────────────────────────────────────────────────────────── */
-.lp-hero-right { display: flex; align-items: center; justify-content: center; }
+.lp-hero-right { display: flex; justify-content: center; }
 .lp-mock {
-  width: 100%; max-width: 460px;
-  background: #0B0B0E;
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 12px; overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(255,255,255,.04) inset, 0 32px 80px rgba(0,0,0,.65);
-  animation: lp-fadein .5s ease;
+  background: #0C0C10; border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px; width: 340px; overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,.5);
+  animation: lp-fadein .7s ease both .1s;
 }
 .lp-mock-topbar {
   display: flex; align-items: center; gap: 10px;
-  padding: 10px 14px;
+  padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,.07);
   background: rgba(255,255,255,.025);
-  border-bottom: 1px solid rgba(255,255,255,.07);
 }
-.lp-mock-traffic { display: flex; align-items: center; gap: 5px; }
+.lp-mock-traffic { display: flex; gap: 5px; align-items: center; }
 .lp-mock-dot-r, .lp-mock-dot-y, .lp-mock-dot-g {
-  width: 10px; height: 10px; border-radius: 50%; display: block;
+  width: 7px; height: 7px; border-radius: 50%;
 }
-.lp-mock-dot-r { background: #FF5F57; }
-.lp-mock-dot-y { background: #FEBC2E; }
-.lp-mock-dot-g { background: #28C840; }
-.lp-mock-title {
-  flex: 1; font-size: 11px; font-weight: 600; color: var(--t3); letter-spacing: .02em;
-}
+.lp-mock-dot-r { background: #EF4444; }
+.lp-mock-dot-y { background: #F59E0B; }
+.lp-mock-dot-g { background: #22C55E; }
+.lp-mock-title { font-size: 10px; color: rgba(255,255,255,.35); font-weight: 600; letter-spacing: .04em; flex: 1; }
 .lp-mock-live {
-  font-size: 9px; font-weight: 700; letter-spacing: .1em; color: var(--green);
-  animation: lp-blink 1.8s ease-in-out infinite;
-  display: flex; align-items: center; gap: 4px;
+  font-size: 7.5px; font-weight: 800; color: #22C55E;
+  letter-spacing: .12em; animation: lp-blink 1.6s ease-in-out infinite;
 }
-.lp-mock-live::before {
-  content: '';
-  width: 5px; height: 5px; border-radius: 50%;
-  background: var(--green);
-  animation: lp-pulse-dot 1.8s ease-in-out infinite;
-  flex-shrink: 0;
-}
-.lp-mock-body { padding: 16px; display: flex; flex-direction: column; gap: 0; }
-.lp-mock-input-row {
-  display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 14px;
-}
-.lp-mock-cell {
-  background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07);
-  border-radius: 7px; padding: 10px 12px;
-  display: flex; flex-direction: column; gap: 4px;
-}
-.lp-mock-cell-sm { min-width: 80px; align-items: flex-end; }
-.lp-mock-cell-lbl {
-  font-size: 9px; font-weight: 700; letter-spacing: .1em;
-  text-transform: uppercase; color: var(--t3);
-}
-.lp-mock-cell-val { font-size: 13px; font-weight: 600; color: var(--t1); }
-.lp-mock-cell-sub { font-size: 9px; color: var(--t3); margin-top: 1px; }
-.lp-mock-odd { font-size: 24px; font-weight: 900; letter-spacing: -0.03em; }
-.lp-mock-rule { height: 1px; background: rgba(255,255,255,.06); margin: 10px 0; }
-.lp-mock-score-wrap { margin-top: 4px; }
-.lp-mock-score-hdr {
-  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
-}
-.lp-mock-score-lbl {
-  font-size: 9px; font-weight: 700; letter-spacing: .12em;
-  text-transform: uppercase; color: var(--t3);
-}
-.lp-mock-risk-tag {
-  font-size: 9px; font-weight: 800; letter-spacing: .1em;
-  color: var(--orange); background: rgba(249,115,22,.1);
-  border: 1px solid rgba(249,115,22,.25); padding: 3px 9px; border-radius: 4px;
-}
-.lp-mock-score-row { display: flex; align-items: center; gap: 14px; }
-.lp-mock-score-num {
-  font-size: 52px; font-weight: 900; color: var(--orange);
-  line-height: 1; letter-spacing: -0.04em; flex-shrink: 0;
-}
-.lp-mock-bar-wrap { flex: 1; display: flex; flex-direction: column; gap: 6px; }
-.lp-mock-bar-track {
-  position: relative; height: 5px;
-  background: rgba(255,255,255,.07); border-radius: 99px; overflow: visible;
-}
-.lp-mock-bar-fill {
-  height: 100%; width: 67%; border-radius: 99px;
-  background: linear-gradient(90deg, var(--amber) 0%, var(--orange) 100%);
-  animation: lp-bar-grow .9s .4s ease-out both;
-}
-.lp-mock-bar-tick {
-  position: absolute; top: -3px; width: 1px; height: 11px;
-  background: rgba(255,255,255,.18); transform: translateX(-50%);
-}
-.lp-mock-bar-labels {
-  display: flex; justify-content: space-between;
-  font-size: 9px; color: rgba(255,255,255,.22);
-  font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
-}
-.lp-mock-session {
-  display: flex; justify-content: space-between; align-items: center;
-  padding-bottom: 10px; margin-bottom: 10px;
-  border-bottom: 1px solid rgba(255,255,255,.05);
-}
-.lp-mock-session-id {
-  font-size: 9px; font-weight: 800; letter-spacing: .14em;
-  color: rgba(34,197,94,.65); text-transform: uppercase;
-}
-.lp-mock-session-ts {
-  font-size: 9px; color: var(--t3);
-}
-.lp-mock-data-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 1px; background: rgba(255,255,255,.06);
-  border-radius: 6px; overflow: hidden; margin-bottom: 0;
-}
-.lp-mock-dc {
-  display: flex; flex-direction: column; gap: 3px;
-  padding: 9px 10px; background: #0B0B0E;
-}
-.lp-mock-dk {
-  font-size: 8px; font-weight: 700; letter-spacing: .08em;
-  text-transform: uppercase; color: var(--t3);
-}
-.lp-mock-dv {
-  font-size: 14px; font-weight: 800; letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums; font-feature-settings: 'tnum';
-}
+.lp-mock-body { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.lp-mock-session { display: flex; align-items: center; justify-content: space-between; }
+.lp-mock-session-id { font-size: 8.5px; font-weight: 800; letter-spacing: .12em; color: rgba(255,255,255,.35); }
+.lp-mock-session-ts { font-size: 8.5px; color: rgba(255,255,255,.2); }
+.lp-mock-input-row { display: flex; gap: 10px; }
+.lp-mock-cell { flex: 1; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
+.lp-mock-cell-sm { flex: 0 0 auto; min-width: 60px; }
+.lp-mock-cell-lbl { font-size: 8px; font-weight: 700; letter-spacing: .1em; color: rgba(255,255,255,.28); }
+.lp-mock-cell-val { font-size: 12px; font-weight: 700; color: var(--t1); }
+.lp-mock-cell-sub { font-size: 9px; color: rgba(255,255,255,.35); }
+.lp-mock-odd { font-size: 18px !important; font-weight: 800 !important; color: #22C55E !important; letter-spacing: -0.03em; }
+.lp-mock-prob-split { display: flex; height: 6px; border-radius: 99px; overflow: hidden; gap: 2px; }
+.lp-mock-prob-win { flex: 357; background: rgba(34,197,94,.55); border-radius: 99px 0 0 99px; }
+.lp-mock-prob-lose { flex: 643; background: rgba(239,68,68,.55); border-radius: 0 99px 99px 0; }
+.lp-mock-prob-labels { display: flex; justify-content: space-between; }
+.lp-mock-prob-lbl { font-size: 8px; font-weight: 700; letter-spacing: .04em; }
+.lp-mock-prob-w { color: rgba(34,197,94,.7); }
+.lp-mock-prob-l { color: rgba(239,68,68,.7); }
+.lp-mock-rule { height: 1px; background: rgba(255,255,255,.06); }
+.lp-mock-data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lp-mock-dc { display: flex; flex-direction: column; gap: 2px; }
+.lp-mock-dk { font-size: 7.5px; font-weight: 700; letter-spacing: .08em; color: rgba(255,255,255,.28); }
+.lp-mock-dv { font-size: 13px; font-weight: 800; letter-spacing: -0.02em; }
 .lp-mock-dv-g { color: #22C55E; }
 .lp-mock-dv-a { color: #F59E0B; }
 .lp-mock-dv-r { color: #EF4444; }
-.lp-mock-score-left {
-  display: flex; align-items: flex-end; gap: 2px; flex-shrink: 0;
-}
-.lp-mock-score-denom {
-  font-size: 16px; font-weight: 700; color: var(--t3);
-  line-height: 1; margin-bottom: 10px; letter-spacing: -0.02em;
-}
-.lp-mock-prob-split {
-  display: flex; height: 4px; border-radius: 99px; overflow: hidden;
-  margin: 12px 0 4px; gap: 1px;
-}
-.lp-mock-prob-win  { width: 35.7%; background: var(--green); border-radius: 99px 0 0 99px; }
-.lp-mock-prob-lose { flex: 1; background: var(--red); border-radius: 0 99px 99px 0; }
-.lp-mock-prob-labels {
-  display: flex; justify-content: space-between; margin-bottom: 8px;
-}
-.lp-mock-prob-lbl {
-  font-size: 9px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
-}
-.lp-mock-prob-w { color: var(--green); }
-.lp-mock-prob-l { color: var(--red); }
-.lp-mock-verdict {
-  display: flex; align-items: center; gap: 8px;
-  margin-top: 10px; padding-top: 10px;
-  border-top: 1px solid rgba(255,255,255,.05);
-}
+.lp-mock-score-hdr { display: flex; align-items: center; justify-content: space-between; }
+.lp-mock-score-lbl { font-size: 8px; font-weight: 700; letter-spacing: .1em; color: rgba(255,255,255,.28); }
+.lp-mock-risk-tag { font-size: 7.5px; font-weight: 800; letter-spacing: .12em; color: #F97316; background: rgba(249,115,22,.1); padding: 2px 6px; border-radius: 4px; }
+.lp-mock-score-row { display: flex; align-items: center; gap: 12px; }
+.lp-mock-score-left { display: flex; align-items: baseline; gap: 2px; }
+.lp-mock-score-num { font-size: 36px; font-weight: 900; color: #F97316; letter-spacing: -0.04em; line-height: 1; }
+.lp-mock-score-denom { font-size: 12px; color: rgba(255,255,255,.3); }
+.lp-mock-bar-wrap { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.lp-mock-bar-track { height: 6px; background: rgba(255,255,255,.06); border-radius: 99px; position: relative; overflow: hidden; }
+.lp-mock-bar-fill { position: absolute; left: 0; top: 0; height: 100%; width: 67%; background: linear-gradient(90deg, #22C55E, #F59E0B 50%, #F97316); border-radius: 99px; animation: lp-bar-grow 1.2s ease both .4s; }
+.lp-mock-bar-tick { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,.15); }
+.lp-mock-bar-labels { display: flex; justify-content: space-between; }
+.lp-mock-bar-labels span { font-size: 7px; color: rgba(255,255,255,.2); }
+.lp-mock-verdict { display: flex; align-items: center; gap: 8px; }
 .lp-mock-verdict-badge {
-  font-size: 8px; font-weight: 800; letter-spacing: .12em;
-  color: var(--orange); background: rgba(249,115,22,.08);
-  border: 1px solid rgba(249,115,22,.22); padding: 3px 8px; border-radius: 4px;
+  font-size: 9px; font-weight: 800; letter-spacing: .1em;
+  padding: 3px 8px; border-radius: 4px;
 }
-.lp-mock-verdict-detail { font-size: 10px; color: var(--t3); }
+.lp-mock-verdict-bad {
+  color: #EF4444; background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.2);
+}
+.lp-mock-verdict-detail { font-size: 9.5px; color: rgba(255,255,255,.28); }
 .lp-mock-footer {
-  padding: 8px 16px; font-size: 10px; color: var(--t3); text-align: center;
-  background: rgba(255,255,255,.015); border-top: 1px solid rgba(255,255,255,.05);
+  padding: 9px 14px; border-top: 1px solid rgba(255,255,255,.06);
+  font-size: 8.5px; color: rgba(255,255,255,.2); text-align: center; font-style: italic;
 }
 
 /* ── Problema ───────────────────────────────────────────────────────────────── */
 .lp-problem { padding: 80px 0; }
 .lp-problem-text {
   font-size: 16px; color: var(--t2); line-height: 1.7;
-  max-width: 540px; margin-bottom: 12px;
+  max-width: 580px; margin-bottom: 16px;
 }
-.lp-problem-text-em {
-  color: var(--t1); font-weight: 500; margin-bottom: 40px;
-}
+.lp-problem-text-em { color: rgba(232,232,230,.7); font-style: italic; }
 .lp-compare {
-  display: grid; grid-template-columns: 1fr 1fr;
-  border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+  margin-top: 40px;
 }
-.lp-compare-col { padding: 28px 24px; display: flex; flex-direction: column; }
-.lp-compare-show { background: rgba(255,255,255,.01); border-right: 1px solid var(--border); }
-.lp-compare-hide { background: rgba(34,197,94,.025); }
-.lp-compare-hdr {
-  display: flex; align-items: center; gap: 9px;
-  padding-bottom: 14px; border-bottom: 1px solid var(--border); margin-bottom: 14px;
+.lp-compare-col {
+  background: rgba(255,255,255,.025); border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.07); padding: 24px;
+  display: flex; flex-direction: column; gap: 14px;
 }
-.lp-compare-dot {
-  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
-}
-.lp-compare-dot-dim   { background: var(--t3); }
-.lp-compare-dot-green { background: var(--green); box-shadow: 0 0 7px rgba(34,197,94,.5); }
-.lp-compare-title { font-size: 12px; font-weight: 700; color: var(--t1); }
-.lp-compare-row {
-  display: flex; align-items: baseline; gap: 10px;
-  padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.04);
-}
-.lp-compare-row:last-child { border-bottom: none; }
-.lp-compare-icon { font-size: 11px; font-weight: 700; flex-shrink: 0; }
-.lp-compare-text { font-size: 13px; color: var(--t2); line-height: 1.5; }
+.lp-compare-hide { border-color: rgba(34,197,94,.18); background: rgba(34,197,94,.04); }
+.lp-compare-hdr { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.lp-compare-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.lp-compare-dot-dim   { background: rgba(255,255,255,.18); }
+.lp-compare-dot-green { background: var(--green); }
+.lp-compare-title { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--t2); }
+.lp-compare-row { display: flex; align-items: flex-start; gap: 10px; }
+.lp-compare-icon { font-size: 13px; line-height: 1.5; flex-shrink: 0; }
+.lp-compare-text { font-size: 13px; color: var(--t1); line-height: 1.55; }
 
-/* ── Dashboard ──────────────────────────────────────────────────────────────── */
-.lp-dash { padding: 80px 0; background: var(--bg); }
+/* ── 4 Números ──────────────────────────────────────────────────────────────── */
+.lp-dash { padding: 80px 0; }
 .lp-dash-grid {
-  display: grid; grid-template-columns: repeat(4,1fr); gap: 8px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  margin-bottom: 28px;
 }
 .lp-dash-card {
-  background: rgba(255,255,255,.02); border: 1px solid var(--border);
-  border-radius: 12px; padding: 20px 16px;
-  display: flex; flex-direction: column; gap: 8px; transition: border-color .18s;
+  background: rgba(255,255,255,.028); border: 1px solid rgba(255,255,255,.07);
+  border-radius: 12px; padding: 22px 18px;
+  display: flex; flex-direction: column; gap: 8px;
+  transition: border-color .2s;
 }
-.lp-dash-card:hover { border-color: var(--bmd); }
-.lp-dash-card-num {
-  font-size: clamp(20px, 2.8vw, 28px); font-weight: 900; line-height: 1; letter-spacing: -0.04em;
+.lp-dash-card:hover { border-color: rgba(255,255,255,.14); }
+.lp-dash-card-num  { font-size: 32px; font-weight: 900; line-height: 1; letter-spacing: -0.04em; }
+.lp-dash-card-label { font-size: 12px; font-weight: 700; color: var(--t1); line-height: 1.4; }
+.lp-dash-mini-bar { height: 3px; background: rgba(255,255,255,.07); border-radius: 99px; overflow: hidden; }
+.lp-dash-mini-fill { height: 100%; border-radius: 99px; }
+.lp-dash-card-desc { font-size: 11px; color: var(--t2); line-height: 1.5; }
+.lp-dash-anchor {
+  font-size: 13px; color: var(--t2); text-align: center; line-height: 1.6;
+  padding: 16px; background: rgba(34,197,94,.04); border: 1px solid rgba(34,197,94,.14);
+  border-radius: 8px;
 }
-.lp-dash-card-label {
-  font-size: 10px; font-weight: 700; color: var(--t3);
-  letter-spacing: .05em; text-transform: uppercase; line-height: 1.3;
-}
-.lp-dash-mini-bar {
-  height: 3px; background: rgba(255,255,255,.06);
-  border-radius: 99px; overflow: hidden;
-}
-.lp-dash-mini-fill { height: 100%; border-radius: 99px; opacity: 0.7; }
-.lp-dash-card-desc { font-size: 12px; color: var(--t3); line-height: 1.65; }
 
 /* ── Steps ──────────────────────────────────────────────────────────────────── */
-.lp-steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 48px; }
-.lp-step {
-  background: rgba(255,255,255,.02); border: 1px solid var(--border);
-  border-radius: 12px; padding: 24px 20px;
-  display: flex; flex-direction: column; gap: 10px; transition: border-color .18s;
+.lp-steps {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 32px; margin-bottom: 48px;
 }
-.lp-step:hover { border-color: rgba(34,197,94,.2); }
+.lp-step { display: flex; flex-direction: column; gap: 12px; }
 .lp-step-n {
-  font-size: 11px; font-weight: 900; color: rgba(34,197,94,.4);
-  letter-spacing: .06em; font-family: 'Courier New', Courier, monospace;
+  font-size: 11px; font-weight: 800; letter-spacing: .12em;
+  color: var(--green); font-family: 'Syne', sans-serif;
 }
-.lp-step-title { font-size: 15px; font-weight: 800; color: var(--t1); line-height: 1.3; letter-spacing: -0.02em; }
-.lp-step-desc  { font-size: 13px; color: var(--t2); line-height: 1.7; }
+.lp-step-title { font-size: 18px; font-weight: 800; color: var(--t1); letter-spacing: -0.02em; line-height: 1.3; }
+.lp-step-desc  { font-size: 14px; color: var(--t2); line-height: 1.65; }
 
-/* ── Positioning ────────────────────────────────────────────────────────────── */
-.lp-position { padding: 80px 0; background: var(--bg); border-top: 1px solid var(--border); }
-.lp-position-layout {
-  display: grid; grid-template-columns: 1fr 320px; gap: 72px; align-items: start;
+/* ── Before / After ─────────────────────────────────────────────────────────── */
+.lp-before-after-section { background: var(--bg); }
+.lp-ba-sub {
+  font-size: 16px; color: var(--t2); line-height: 1.6;
+  max-width: 500px; margin-bottom: 40px;
 }
-.lp-position-points { display: flex; flex-direction: column; gap: 14px; margin-top: 28px; margin-bottom: 28px; }
-.lp-position-pt { display: flex; gap: 12px; align-items: center; }
-.lp-position-pt-icon { font-size: 14px; color: rgba(34,197,94,.35); flex-shrink: 0; }
-.lp-position-pt-title { font-size: 14px; font-weight: 600; color: var(--t2); }
-.lp-position-bottom {
-  font-size: 15px; color: var(--t1); font-weight: 500;
-  line-height: 1.6; padding-top: 20px; border-top: 1px solid var(--border);
+.lp-ba-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
 }
-.lp-position-quote {
-  background: rgba(255,255,255,.025); border: 1px solid var(--border);
-  border-left: 3px solid rgba(34,197,94,.3);
-  border-radius: 0 10px 10px 0;
-  padding: 22px 22px 20px; margin: 0 0 16px;
+.lp-ba-card {
+  display: flex; flex-direction: column; gap: 0;
+  background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.07);
+  border-radius: 12px; overflow: hidden;
 }
-.lp-position-quote-text {
-  font-size: 15px; font-style: italic;
-  color: var(--t1); line-height: 1.65; letter-spacing: -0.01em; margin: 0;
+.lp-ba-block { padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
+.lp-ba-before { background: rgba(239,68,68,.04); border-bottom: 1px solid rgba(255,255,255,.06); }
+.lp-ba-after  { background: rgba(34,197,94,.04); }
+.lp-ba-tag {
+  font-size: 9px; font-weight: 800; letter-spacing: .12em;
+  text-transform: uppercase; color: rgba(239,68,68,.7);
+}
+.lp-ba-tag-after { color: rgba(34,197,94,.8); }
+.lp-ba-text { font-size: 13px; color: var(--t1); line-height: 1.55; font-style: italic; }
+.lp-ba-arrow {
+  text-align: center; font-size: 16px; color: var(--t3);
+  padding: 4px 0; background: rgba(255,255,255,.02);
 }
 
-/* founder photo inside positioning */
-.lp-founder-photo-wrap {
-  display: flex; flex-direction: column; gap: 0; position: relative;
-  margin-bottom: 20px;
+/* ── Depoimentos ────────────────────────────────────────────────────────────── */
+.lp-user-count {
+  display: flex; align-items: baseline; gap: 6px;
+  margin-bottom: 32px;
+  font-size: 14px; color: var(--t2);
 }
-.lp-founder-photo-wrap::after {
-  content: '';
-  position: absolute; inset: 0;
-  background:
-    linear-gradient(to right, transparent 58%, var(--bg) 96%),
-    linear-gradient(to bottom, transparent 72%, var(--bg) 100%);
-  pointer-events: none; z-index: 1;
+.lp-user-count-num {
+  font-size: 22px; font-weight: 900; color: var(--green);
+  letter-spacing: -0.03em;
 }
-.lp-founder-img {
-  width: 100%; height: auto; display: block;
-  aspect-ratio: 4/5; object-fit: cover; object-position: top center;
-  border-radius: 2px;
-  filter: grayscale(100%) contrast(1.35) brightness(0.82) saturate(0);
-  mask-image: radial-gradient(
-    ellipse 92% 96% at 50% 20%,
-    black 28%, rgba(0,0,0,.92) 48%, rgba(0,0,0,.48) 72%, transparent 92%
-  );
-  -webkit-mask-image: radial-gradient(
-    ellipse 92% 96% at 50% 20%,
-    black 28%, rgba(0,0,0,.92) 48%, rgba(0,0,0,.48) 72%, transparent 92%
-  );
-}
-.lp-founder-caption {
-  display: flex; flex-direction: column; gap: 2px;
-  padding-top: 12px; margin-top: 12px;
-  border-top: 1px solid var(--border);
-  position: relative; z-index: 2;
-}
-.lp-founder-caption-name  { font-size: 12px; font-weight: 700; color: var(--t1); }
-.lp-founder-caption-role  { font-size: 11px; color: var(--t3); }
-
-/* ── Testimonials ───────────────────────────────────────────────────────────── */
 .lp-testimonials {
-  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
 }
 .lp-testimonial {
-  background: rgba(255,255,255,.018); border: 1px solid var(--border);
-  border-radius: 10px; padding: 20px;
+  background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.07);
+  border-radius: 12px; padding: 24px;
   display: flex; flex-direction: column; gap: 12px;
 }
+.lp-stars { display: flex; gap: 2px; }
 .lp-test-text {
-  font-size: 14px; color: var(--t1); line-height: 1.65;
-  font-style: italic; margin: 0; flex: 1;
+  font-size: 14px; color: var(--t1); line-height: 1.7;
+  font-style: italic; flex: 1;
 }
-.lp-test-name { font-size: 12px; color: var(--t3); }
+.lp-test-byline { display: flex; flex-direction: column; gap: 2px; }
+.lp-test-name { font-size: 12px; font-weight: 700; color: var(--t2); }
+.lp-test-context { font-size: 11px; color: var(--t3); }
 
 /* ── Pricing ────────────────────────────────────────────────────────────────── */
 .lp-pricing-sub {
-  font-size: 15px; color: var(--t2); line-height: 1.75; max-width: 480px; margin-bottom: 40px;
+  font-size: 16px; color: var(--t2); line-height: 1.65;
+  max-width: 580px; margin-bottom: 40px;
 }
-.lp-pricing { display: grid; grid-template-columns: 1fr 300px; gap: 64px; align-items: start; }
-.lp-features-list {
-  list-style: none; display: flex; flex-direction: column; gap: 14px; padding: 0; margin: 0;
+.lp-pricing {
+  display: grid; grid-template-columns: 1fr 420px; gap: 40px; align-items: start;
 }
-.lp-feature-item {
-  display: flex; gap: 12px; font-size: 14px; color: var(--t2); align-items: center;
-  padding: 4px 0;
+.lp-features-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 16px; }
+.lp-feature-item  { display: flex; align-items: flex-start; gap: 12px; font-size: 15px; color: var(--t1); line-height: 1.5; }
+.lp-feature-check { color: var(--green); font-size: 16px; flex-shrink: 0; line-height: 1.5; }
+.lp-feature-tilt .lp-feature-check { color: var(--amber); }
+.lp-feature-sub {
+  display: block; font-size: 12px; color: var(--t2); margin-top: 3px;
 }
-.lp-feature-check { color: var(--green); font-weight: 700; flex-shrink: 0; }
-.lp-feature-tilt {
-  color: var(--t1) !important;
-  background: rgba(34,197,94,.05);
-  border: 1px solid rgba(34,197,94,.18);
-  border-radius: 8px; padding: 10px 12px;
-  margin: 4px -12px; font-weight: 600;
-}
-.lp-feature-tilt .lp-feature-check { font-size: 13px; }
 .lp-price-card {
-  position: sticky; top: 72px;
-  background: rgba(255,255,255,.025); border: 1px solid var(--bmd);
-  border-radius: 14px; padding: 28px 24px;
-  display: flex; flex-direction: column; gap: 14px; text-align: center;
-  box-shadow: 0 24px 64px rgba(0,0,0,.3);
+  background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 16px;
 }
 .lp-price-eyebrow {
-  font-size: 10px; font-weight: 700; letter-spacing: .16em;
-  color: var(--green); text-transform: uppercase;
+  font-size: 8.5px; font-weight: 800; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--t2);
 }
-.lp-price-display {
-  display: flex; align-items: flex-start; justify-content: center; gap: 3px; line-height: 1;
+.lp-price-display { display: flex; align-items: baseline; gap: 8px; }
+.lp-price-old {
+  font-size: 20px; font-weight: 700; color: var(--t3);
+  text-decoration: line-through;
 }
-.lp-price-curr { font-size: 18px; font-weight: 700; color: var(--t2); padding-top: 12px; }
-.lp-price-int  { font-size: 76px; font-weight: 900; color: var(--t1); line-height: 1; letter-spacing: -0.05em; }
+.lp-price-main { display: flex; align-items: baseline; }
+.lp-price-curr { font-size: 22px; font-weight: 800; color: var(--t1); letter-spacing: -0.02em; margin-right: 2px; }
+.lp-price-int  { font-size: 52px; font-weight: 900; color: var(--t1); letter-spacing: -0.04em; line-height: 1; }
+.lp-price-today { font-size: 11px; color: var(--amber); font-weight: 700; letter-spacing: .06em; }
+
+/* Urgency */
+.lp-urgency {
+  background: rgba(34,197,94,.05); border: 1px solid rgba(34,197,94,.2);
+  border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 8px;
+}
+.lp-urgency-hdr { display: flex; align-items: center; gap: 7px; }
+.lp-urgency-icon { font-size: 13px; }
+.lp-urgency-title { font-size: 10px; font-weight: 800; letter-spacing: .1em; color: var(--green); }
+.lp-urgency-bar-wrap { height: 6px; background: rgba(255,255,255,.07); border-radius: 99px; overflow: hidden; }
+.lp-urgency-bar { height: 100%; background: var(--green); border-radius: 99px; }
+.lp-urgency-foot { display: flex; justify-content: space-between; }
+.lp-urgency-count { font-size: 11px; color: var(--t2); }
+.lp-urgency-after { font-size: 11px; color: var(--amber); font-weight: 600; }
+
 .lp-price-note { font-size: 12px; color: var(--t3); }
 .lp-btn-buy {
-  display: block; background: var(--t1); color: #070709;
-  font-size: 13px; font-weight: 700; padding: 13px 20px; border-radius: 8px;
-  text-decoration: none; text-align: center; transition: opacity .15s, transform .1s;
+  display: block; text-align: center;
+  background: var(--green); color: #060607;
+  font-size: 15px; font-weight: 800; padding: 16px 24px;
+  border-radius: 10px; text-decoration: none; letter-spacing: -.01em;
+  transition: opacity .15s; width: 100%;
 }
-.lp-btn-buy:hover { opacity: .88; transform: translateY(-1px); }
-.lp-btn-buy-lg { display: inline-block; font-size: 14px; padding: 15px 28px; }
+.lp-btn-buy:hover { opacity: .88; }
+.lp-btn-buy-lg { font-size: 16px; padding: 18px 28px; }
 .lp-guarantee {
-  display: flex; align-items: flex-start; gap: 10px;
-  background: rgba(34,197,94,.04); border: 1px solid rgba(34,197,94,.14);
-  border-radius: 9px; padding: 12px 13px; text-align: left;
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px; background: rgba(34,197,94,.05);
+  border: 1px solid rgba(34,197,94,.15); border-radius: 8px;
 }
 .lp-guarantee-icon {
-  width: 18px; height: 18px; border-radius: 50%;
-  background: rgba(34,197,94,.12); color: var(--green);
-  font-size: 9px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(34,197,94,.2); color: var(--green);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; flex-shrink: 0;
 }
-.lp-guarantee-title { font-size: 12px; font-weight: 700; color: var(--t1); margin-bottom: 2px; }
-.lp-guarantee-sub   { font-size: 11px; color: var(--t2); line-height: 1.5; }
+.lp-guarantee-title { font-size: 13px; font-weight: 700; color: var(--t1); }
+.lp-guarantee-sub   { font-size: 12px; color: var(--t2); margin-top: 2px; }
 
 /* ── FAQ ────────────────────────────────────────────────────────────────────── */
-.lp-faq { display: flex; flex-direction: column; margin-top: 8px; }
+.lp-faq { display: flex; flex-direction: column; gap: 2px; }
 .lp-faq-item {
-  border-bottom: 1px solid var(--border); padding: 18px 0; cursor: pointer; user-select: none;
+  border: 1px solid rgba(255,255,255,.07); border-radius: 10px;
+  padding: 16px 18px; cursor: pointer;
+  transition: border-color .15s, background .15s;
 }
+.lp-faq-item:hover { border-color: rgba(255,255,255,.13); background: rgba(255,255,255,.02); }
+.lp-faq-open { border-color: rgba(34,197,94,.2) !important; background: rgba(34,197,94,.03) !important; }
 .lp-faq-q {
   display: flex; justify-content: space-between; align-items: center; gap: 16px;
-  font-size: 14px; font-weight: 600; color: var(--t1); transition: color .15s;
+  font-size: 14px; font-weight: 700; color: var(--t1); line-height: 1.4;
 }
-.lp-faq-open .lp-faq-q { color: var(--green); }
 .lp-faq-icon { font-size: 18px; color: var(--t3); flex-shrink: 0; }
-.lp-faq-a { font-size: 13px; color: var(--t2); line-height: 1.75; margin-top: 11px; }
+.lp-faq-open .lp-faq-icon { color: var(--green); }
+.lp-faq-a {
+  font-size: 14px; color: var(--t2); line-height: 1.7; margin-top: 12px;
+}
 
 /* ── CTA Final ──────────────────────────────────────────────────────────────── */
 .lp-cta-final {
-  position: relative; text-align: center; overflow: hidden;
-  background: var(--bg); padding: 88px 0;
-  border-top: 1px solid var(--border);
+  position: relative; padding: 100px 0; background: var(--bg);
+  overflow: hidden;
 }
 .lp-cta-grid {
   position: absolute; inset: 0; pointer-events: none;
   background-image:
-    linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+    linear-gradient(rgba(34,197,94,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34,197,94,.04) 1px, transparent 1px);
   background-size: 60px 60px;
-  mask-image: radial-gradient(ellipse 60% 80% at 50% 100%, black 20%, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse 60% 80% at 50% 100%, black 20%, transparent 75%);
+  mask-image: radial-gradient(ellipse 70% 80% at 50% 50%, black, transparent);
 }
 .lp-cta-inner {
-  position: relative; z-index: 1; max-width: 560px;
-  display: flex; flex-direction: column; align-items: center; gap: 20px;
+  position: relative; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 24px;
 }
 .lp-cta-h2 {
-  font-size: clamp(32px, 5vw, 54px); font-weight: 900;
-  color: var(--t1); line-height: 1.06; letter-spacing: -0.04em;
+  font-size: clamp(28px, 4vw, 48px); font-weight: 900; color: var(--t1);
+  line-height: 1.1; letter-spacing: -0.035em;
 }
-.lp-cta-dim  { color: rgba(232,232,230,.22); }
-.lp-cta-sub  { font-size: 15px; color: var(--t2); max-width: 400px; line-height: 1.6; }
+.lp-cta-dim   { color: rgba(232,232,230,.28); }
+.lp-cta-sub   { font-size: 18px; color: var(--t2); }
 .lp-cta-actions {
-  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; max-width: 360px;
 }
 .lp-cta-alt-link {
-  font-size: 12px; color: var(--t3); text-decoration: none;
-  transition: color .15s; text-align: center;
+  font-size: 13px; font-weight: 600; color: var(--t2);
+  text-decoration: none; transition: color .13s;
 }
 .lp-cta-alt-link:hover { color: var(--t1); }
-.lp-cta-trust {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  justify-content: center; font-size: 12px; color: var(--t3);
-}
-.lp-cta-disclaimer {
-  font-size: 11px; color: var(--t3); line-height: 1.65;
-  border-top: 1px solid var(--border); padding-top: 20px; max-width: 400px;
-}
 
-/* ── Mobile 1024px ──────────────────────────────────────────────────────────── */
-@media (max-width: 1024px) {
-  .lp-hero-layout { grid-template-columns: 1fr; gap: 44px; padding-top: 56px; padding-bottom: 56px; }
-  .lp-hero-left { align-items: center; text-align: center; }
-  .lp-hero-desc { max-width: none; }
-  .lp-hero-actions { justify-content: center; }
-  .lp-hero-meta { justify-content: center; }
-  .lp-hero-right { max-width: 460px; width: 100%; margin: 0 auto; }
-  .lp-dash-grid { grid-template-columns: repeat(2, 1fr); }
-  .lp-position-layout { grid-template-columns: 1fr; gap: 48px; }
-  .lp-pricing { grid-template-columns: 1fr; gap: 40px; }
-  .lp-price-card { position: static; }
-  .lp-testimonials { grid-template-columns: repeat(2, 1fr); }
-  .lp-founder-img { aspect-ratio: 5/4; }
+/* Trust seals */
+.lp-trust-seals {
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap; justify-content: center;
+  margin-top: 8px;
 }
+.lp-seal {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600; color: var(--t3); letter-spacing: .03em;
+}
+.lp-seal svg { color: var(--t3); }
 
-/* ── Mobile 768px ───────────────────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .lp-section, .lp-problem, .lp-dash, .lp-position { padding: 56px 0; }
-  .lp-container { padding: 0 18px; }
-  .lp-nav { display: none; }
-  .lp-hero { min-height: unset; }
-  .lp-steps { grid-template-columns: 1fr; }
-  .lp-compare { grid-template-columns: 1fr; }
-  .lp-compare-show { border-right: none; border-bottom: 1px solid var(--border); }
+/* ── Footer ─────────────────────────────────────────────────────────────────── */
+.lp-footer-custom {
+  background: var(--bg2); border-top: 1px solid var(--border);
+  padding: 40px 0 32px;
+}
+.lp-footer-legal {
+  font-size: 12px; color: var(--t3); line-height: 1.7;
+  text-align: center; max-width: 680px; margin: 0 auto 16px;
+}
+.lp-footer-legal a { color: var(--t3); text-decoration: underline; }
+.lp-footer-links {
+  display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;
+  font-size: 11px; color: var(--t3);
+}
+.lp-footer-links a { color: var(--t3); text-decoration: underline; }
+.lp-footer-sep { color: var(--t3); }
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 880px) {
+  .lp-hero-layout { grid-template-columns: 1fr; gap: 40px; }
+  .lp-hero-right  { display: none; }
+  .lp-hero-mock-card { max-width: 100%; }
+  .lp-compare    { grid-template-columns: 1fr; }
+  .lp-dash-grid  { grid-template-columns: repeat(2, 1fr); }
+  .lp-steps      { grid-template-columns: 1fr; gap: 24px; }
+  .lp-ba-grid    { grid-template-columns: 1fr; }
   .lp-testimonials { grid-template-columns: 1fr; }
-  .lp-cta-final { padding: 64px 0; }
-  .lp-founder-img { aspect-ratio: 3/2; }
+  .lp-pricing    { grid-template-columns: 1fr; }
+  .lp-nav        { display: none; }
 }
-
-/* ── Mobile 480px ───────────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
-  .lp-h1 { font-size: clamp(34px, 9.5vw, 52px); }
-  .lp-hero-sub { font-size: clamp(16px, 5vw, 20px); }
-  .lp-hero-desc { font-size: 14px; margin-bottom: 24px; }
-  .lp-hero-layout { gap: 0; padding-top: 44px; padding-bottom: 44px; }
-  .lp-hero-right { display: none; }
-  .lp-hero-actions { flex-direction: column; align-items: stretch; width: 100%; }
-  .lp-btn-hero { justify-content: center; }
-  .lp-btn-ghost { text-align: center; }
-  .lp-dash-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
-  .lp-dash-card { padding: 14px 12px; }
-  .lp-dash-card-num { font-size: 20px; }
-  .lp-compare-col { padding: 16px 14px; }
-  .lp-mock-input-row { grid-template-columns: 1fr; }
-  .lp-section-eyebrow { margin-bottom: 8px; }
-  .lp-h2 { margin-bottom: 8px; }
-  .lp-h2-narrow { margin-bottom: 24px; }
-  .lp-problem-text { font-size: 14px; }
-  .lp-problem-text-em { margin-bottom: 28px; }
-  .lp-cta-actions { width: 100%; }
-  .lp-btn-buy-lg { width: 100%; text-align: center; }
-  .lp-cta-final { padding: 56px 0; }
-  .lp-pricing-sub { margin-bottom: 24px; font-size: 14px; }
-  .lp-founder-img { aspect-ratio: 4/3; }
-  .lp-steps { gap: 8px; margin-bottom: 32px; }
-  .lp-step { padding: 18px 16px; }
-  .lp-feature-tilt { margin: 4px -4px; }
+  .lp-container  { padding: 0 20px; }
+  .lp-hero       { padding: 48px 0 60px; }
+  .lp-section    { padding: 56px 0; }
+  .lp-dash-grid  { grid-template-columns: 1fr 1fr; }
+  .lp-trust-seals { gap: 16px; }
 }
 `;
