@@ -465,6 +465,7 @@ export default function AppDashboard() {
   const [selectedMarket, setSelectedMarket] = useState(null); // { tipo, ref }
   const [marketOdd,      setMarketOdd]      = useState("");
   const [marketValor,    setMarketValor]    = useState("");
+  const [oddError,       setOddError]       = useState("");
 
   useEffect(() => {
     fetch("/jogos-data.json").then(r => r.json()).then(setTeamData).catch(() => {});
@@ -742,27 +743,29 @@ export default function AppDashboard() {
               <div className="db-ind-value" style={{ color: "var(--t3)" }}>—</div>
             )}
           </div>
-          {r.valorFornecido ? (() => {
-            const oddIdealNum = ai?.odd_ideal != null ? Number(ai.odd_ideal) : parseFloat(r.justa);
-            const perdaPct = (1 - r.odd / oddIdealNum) * 100;
-            const perdaAbs = Math.abs((perdaPct / 100) * r.valorAposta);
-            const isLoss = perdaPct > 0;
-            return (
-              <div className="db-ind-card">
-                <div className="db-ind-label">{isLoss ? "PERDA ESPERADA" : "LUCRO ESPERADO"}</div>
-                <div className="db-ind-value" style={{ color: isLoss ? "#E53E3E" : "#1DB954" }}>
-                  R$ {perdaAbs.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </div>
-                <div className="db-ind-micro">por R$ {r.valorAposta.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} apostados</div>
-              </div>
-            );
-          })() : (
+          {r.valorFornecido ? (
             <div className="db-ind-card">
               <div className="db-ind-label">VALOR EM RISCO</div>
-              <div className="db-ind-value" style={{ color: "#FF8C00" }}>{valorEmRisco}</div>
-              <div className="db-ind-micro">informe o valor para calcular</div>
+              <div className="db-ind-value" style={{ color: "#FF8C00" }}>
+                R$ {Number(r.valorAposta).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div className="db-ind-micro">com base no valor que você informou</div>
             </div>
-          )}
+          ) : (() => {
+            const oddIdealNum = ai?.odd_ideal != null ? Number(ai.odd_ideal) : parseFloat(r.justa);
+            const perdaPct = (1 - r.odd / oddIdealNum) * 100;
+            const isGain = perdaPct < 0;
+            const xVal = Math.abs(perdaPct).toFixed(0);
+            return (
+              <div className="db-ind-card">
+                <div className="db-ind-label">{isGain ? "GANHO ESPERADO" : "PERDA ESPERADA"}</div>
+                <div className="db-ind-value" style={{ color: isGain ? "#1DB954" : "#E53E3E" }}>
+                  {isGain ? `+R$${xVal}` : `-R$${xVal}`}
+                </div>
+                <div className="db-ind-micro">por R$100 apostados</div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* 04 — Por que esse cenário */}
@@ -1536,8 +1539,8 @@ export default function AppDashboard() {
                             <button
                               className="fl-mcard-hdr"
                               onClick={() => {
-                                if (isOpen) { setSelectedMarket(null); setMarketOdd(""); setMarketValor(""); }
-                                else { setSelectedMarket(m); setMarketOdd(m.ref); setMarketValor(""); }
+                                if (isOpen) { setSelectedMarket(null); setMarketOdd(""); setMarketValor(""); setOddError(""); }
+                                else { setSelectedMarket(m); setMarketOdd(m.ref); setMarketValor(""); setOddError(""); }
                               }}
                               type="button"
                             >
@@ -1553,10 +1556,11 @@ export default function AppDashboard() {
                                   <div className="fl-mcard-input-wrap fl-mcard-input-odd">
                                     <span className="fl-mcard-odd-lbl">Sua odd</span>
                                     <input
-                                      className="fl-mcard-odd-input"
+                                      className={`fl-mcard-odd-input${oddError ? " fl-mcard-odd-input-err" : ""}`}
                                       type="text"
                                       value={marketOdd}
-                                      onChange={e => setMarketOdd(e.target.value)}
+                                      onChange={e => { setMarketOdd(e.target.value); setOddError(""); }}
+                                      onFocus={e => e.target.select()}
                                       placeholder={m.ref}
                                       inputMode="decimal"
                                       autoComplete="off"
@@ -1564,7 +1568,7 @@ export default function AppDashboard() {
                                     />
                                   </div>
                                   <div className="fl-mcard-input-wrap fl-mcard-input-valor">
-                                    <span className="fl-mcard-odd-lbl">Valor (R$)</span>
+                                    <span className="fl-mcard-odd-lbl">Valor (opcional)</span>
                                     <div className="fl-mcard-valor-wrap">
                                       <span className="fl-mcard-valor-prefix">R$</span>
                                       <input
@@ -1572,7 +1576,7 @@ export default function AppDashboard() {
                                         type="text"
                                         value={marketValor}
                                         onChange={e => setMarketValor(e.target.value)}
-                                        placeholder="0"
+                                        placeholder="quanto vai apostar?"
                                         inputMode="decimal"
                                         autoComplete="off"
                                         aria-label="Valor da aposta"
@@ -1580,9 +1584,20 @@ export default function AppDashboard() {
                                     </div>
                                   </div>
                                 </div>
+                                {oddError && (
+                                  <div className="fl-mcard-odd-error">{oddError}</div>
+                                )}
                                 <button
                                   className="fl-mcard-confirm"
-                                  onClick={() => quickAnalyze(m.tipo, marketOdd || m.ref)}
+                                  onClick={() => {
+                                    const oddToUse = marketOdd || m.ref;
+                                    const oddNum = parseFloat(String(oddToUse).replace(",", "."));
+                                    if (isNaN(oddNum) || oddNum < 1.01 || oddNum > 50) {
+                                      setOddError("Digite uma odd válida (ex: 1.85, 2.10, 3.50)");
+                                      return;
+                                    }
+                                    quickAnalyze(m.tipo, oddToUse);
+                                  }}
                                   type="button"
                                 >
                                   Analisar →
@@ -1594,10 +1609,6 @@ export default function AppDashboard() {
                       })}
                     </div>
 
-                    {/* Link to full manual form */}
-                    <button className="fl-manual-link" onClick={() => navigate("nova")} type="button">
-                      Informar dados manualmente →
-                    </button>
                   </div>
                 )}
 
@@ -1736,7 +1747,13 @@ export default function AppDashboard() {
                         <div className="db-actions">
                           <button
                             className="db-btn-primary"
-                            onClick={() => { setResult(null); setError(""); setSelectedGame(null); setFlowStep("lista"); }}
+                            onClick={() => {
+                              setResult(null); setError(""); setLoading(false);
+                              setSelectedGame(null); setSelectedMarket(null);
+                              setMarketOdd(""); setMarketValor(""); setOddError("");
+                              setFlowStep("lista");
+                              window.scrollTo({ top: 0, behavior: "smooth" });
+                            }}
                             type="button"
                           >
                             <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -3795,6 +3812,10 @@ body { overflow: hidden; }
   padding: 8px 10px; outline: none; min-width: 0; box-sizing: border-box;
 }
 .fl-mcard-odd-input:focus { border-color: rgba(34,197,94,.6); }
+.fl-mcard-odd-input-err { border-color: rgba(229,62,62,.6) !important; }
+.fl-mcard-odd-error {
+  font-size: 12px; color: #E53E3E; margin-top: -4px; padding: 0 2px;
+}
 .fl-mcard-valor-wrap {
   display: flex; align-items: center; background: rgba(255,255,255,.05);
   border: 1px solid rgba(34,197,94,.3); border-radius: 7px; overflow: hidden;
