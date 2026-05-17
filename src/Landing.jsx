@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Footer } from "./Layout";
 import { Link } from "./router";
 
@@ -32,16 +32,19 @@ const STEPS = [
 
 const BEFORE_AFTER = [
   {
-    before: '"A odd parecia boa, entrei sem pensar"',
-    after:  '"Vi que tinha 64% de chance de perder. Fechei."',
+    before:      '"Ia entrar em qualquer jogo com odd acima de 2.0"',
+    after:       '"Agora filtro pelo que o MotorIA aprova"',
+    attribution: '— Rafael S., Rio de Janeiro',
   },
   {
-    before: '"Ia dobrar a aposta pra recuperar"',
-    after:  '"Nota de risco estava em 78. Não dobrei."',
+    before:      '"Ia dobrar a aposta pra recuperar"',
+    after:       '"Nota de risco estava em 78. Não dobrei."',
+    attribution: '— Marcos V., Belo Horizonte',
   },
   {
-    before: '"Entrava em qualquer jogo com odd acima de 2.0"',
-    after:  '"Agora filtro pelo que o MotorIA aprova"',
+    before:      '"Vi que tinha 64% de chance de perder. Fechei."',
+    after:       '"Economizei R$200 só na primeira semana."',
+    attribution: '— André M., São Paulo',
   },
 ];
 
@@ -49,7 +52,7 @@ const TESTIMONIALS = [
   { name: "Rafael S.",  city: "Rio de Janeiro",   context: "Apostador de futebol há 2 anos",    text: "Ia entrar pra recuperar o loss.\nA análise mostrou risco alto.\nFechei o app." },
   { name: "André M.",   city: "São Paulo",         context: "Apostador há 3 anos",               text: "Achava que odd baixa era segura.\nAgora olho diferente." },
   { name: "Felipe T.",  city: "Curitiba",          context: "Apostador de fim de semana",         text: "Não me prometeu green.\nSó me fez pensar antes de clicar." },
-  { name: "Marcos V.",  city: "Belo Horizonte",    context: "Apostador de múltiplas",             text: "Eu ia apostar no impulso.\nA nota de risco me travou." },
+  { name: "Marcos V.",  city: "Belo Horizonte",    context: "Apostador recreativo",               text: "Eu ia apostar no impulso.\nA nota de risco me travou." },
 ];
 
 const FEATURES = [
@@ -118,6 +121,24 @@ function Stars() {
 // ─── Landing ────────────────────────────────────────────────────────────────────
 
 export default function Landing() {
+  useEffect(() => {
+    const bar = document.getElementById('sticky-cta');
+    const hero = document.querySelector('.lp-hero');
+    const pricing = document.querySelector('#preco');
+    if (!bar) return;
+    function handleScroll() {
+      const heroBottom = hero ? hero.getBoundingClientRect().bottom : 400;
+      const pricingTop = pricing ? pricing.getBoundingClientRect().top : 99999;
+      if (heroBottom < 0 && pricingTop > window.innerHeight) {
+        bar.style.display = 'block';
+      } else {
+        bar.style.display = 'none';
+      }
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <>
       <style>{CSS}</style>
@@ -187,14 +208,15 @@ export default function Landing() {
 
             {/* Mini mock do card de resultado */}
             <div className="lp-hero-mock-card">
-              <div className="lp-hmc-veredito">
-                <span className="lp-hmc-check">✓</span>
-                VALE APOSTAR
+              <div className="lp-hmc-status">
+                <span className="lp-hmc-icon">✅</span>
+                <span className="lp-hmc-label">VALE APOSTAR</span>
               </div>
+              <p className="lp-hmc-frase">"Os números favorecem essa entrada."</p>
+              <div className="lp-hmc-divider" />
               <div className="lp-hmc-details">
-                <span className="lp-hmc-row">Bahia vence · Odd 2.10</span>
-                <span className="lp-hmc-row">Probabilidade real: <strong>58%</strong></span>
-                <span className="lp-hmc-vantagem">Você está com vantagem <strong>+22%</strong></span>
+                <span className="lp-hmc-row">Chance de ganhar: 58%</span>
+                <span className="lp-hmc-row">Odd ideal: 1.72 · +22% de vantagem</span>
               </div>
             </div>
           </div>
@@ -396,6 +418,7 @@ export default function Landing() {
                 <div className="lp-ba-block lp-ba-after">
                   <span className="lp-ba-tag lp-ba-tag-after">Depois</span>
                   <p className="lp-ba-text">{item.after}</p>
+                  {item.attribution && <span className="antes-depois-attribution">{item.attribution}</span>}
                 </div>
               </div>
             ))}
@@ -509,7 +532,7 @@ export default function Landing() {
           <p className="lp-cta-sub">Analise antes. Decida melhor.</p>
           <div className="lp-cta-actions">
             <Link to="/pagar" className="lp-btn-buy lp-btn-buy-lg">Garantir acesso por R$27 →</Link>
-            <Link to="/app" className="lp-cta-alt-link">Ou teste uma análise grátis →</Link>
+            <p className="cta-guarantee-text">Garantia de 7 dias — não gostou, devolvemos 100%.</p>
           </div>
 
           {/* Selos de confiança */}
@@ -544,6 +567,13 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      {/* ── STICKY CTA MOBILE ──────────────────────────────────────────────────── */}
+      <div id="sticky-cta" className="sticky-cta-bar">
+        <a href="#preco" className="sticky-cta-btn">
+          Garantir acesso por R$27 →
+        </a>
+      </div>
 
       {/* ── RODAPÉ ─────────────────────────────────────────────────────────────── */}
       <footer className="lp-footer-custom">
@@ -730,23 +760,23 @@ const CSS = `
 
 /* Mini mock card below CTA */
 .lp-hero-mock-card {
-  background: rgba(34,197,94,.06); border: 1px solid rgba(34,197,94,.22);
-  border-radius: 12px; padding: 14px 16px;
-  display: flex; flex-direction: column; gap: 6px;
-  max-width: 320px; animation: lp-fadein .6s ease both .2s;
+  background: #0d2818; border: 1px solid rgba(29,185,84,.3);
+  border-radius: 12px; padding: 16px;
+  display: flex; flex-direction: column; gap: 8px;
+  width: 100%; animation: lp-fadein .6s ease both .2s;
 }
-.lp-hmc-veredito {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 13px; font-weight: 900; color: var(--green);
-  letter-spacing: .06em;
+.lp-hmc-status { display: flex; align-items: center; gap: 8px; }
+.lp-hmc-icon { font-size: 16px; line-height: 1; }
+.lp-hmc-label {
+  font-size: 13px; font-weight: 900; color: #1DB954;
+  letter-spacing: .06em; text-transform: uppercase;
 }
-.lp-hmc-check {
-  font-size: 15px; line-height: 1;
+.lp-hmc-frase {
+  font-size: 14px; color: #fff; font-style: italic; margin: 0; line-height: 1.5;
 }
+.lp-hmc-divider { height: 1px; background: #2a2a2a; }
 .lp-hmc-details { display: flex; flex-direction: column; gap: 3px; }
-.lp-hmc-row { font-size: 12px; color: var(--t2); }
-.lp-hmc-vantagem { font-size: 12px; color: var(--t1); }
-.lp-hmc-vantagem strong { color: var(--green); }
+.lp-hmc-row { font-size: 13px; color: #aaa; }
 
 /* ── Mock panel ─────────────────────────────────────────────────────────────── */
 .lp-hero-right { display: flex; justify-content: center; }
@@ -916,6 +946,9 @@ const CSS = `
   text-align: center; font-size: 16px; color: var(--t3);
   padding: 4px 0; background: rgba(255,255,255,.02);
 }
+.antes-depois-attribution {
+  font-size: 11px; color: #666; margin-top: 8px; font-style: normal; display: block;
+}
 
 /* ── Depoimentos ────────────────────────────────────────────────────────────── */
 .lp-user-count {
@@ -942,7 +975,7 @@ const CSS = `
 }
 .lp-test-byline { display: flex; flex-direction: column; gap: 2px; }
 .lp-test-name { font-size: 12px; font-weight: 700; color: var(--t2); }
-.lp-test-context { font-size: 11px; color: var(--t3); }
+.lp-test-context { font-size: 12px; color: #888888; margin-top: 2px; display: block; }
 
 /* ── Pricing ────────────────────────────────────────────────────────────────── */
 .lp-pricing-sub {
@@ -989,7 +1022,7 @@ const CSS = `
 .lp-urgency-bar { height: 100%; background: var(--green); border-radius: 99px; }
 .lp-urgency-foot { display: flex; justify-content: space-between; }
 .lp-urgency-count { font-size: 11px; color: var(--t2); }
-.lp-urgency-after { font-size: 11px; color: var(--amber); font-weight: 600; }
+.lp-urgency-after { font-size: 13px; color: #F0B429; font-weight: 700; letter-spacing: -0.2px; }
 
 .lp-price-note { font-size: 12px; color: var(--t3); }
 .lp-btn-buy {
@@ -1060,11 +1093,9 @@ const CSS = `
 .lp-cta-actions {
   display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; max-width: 360px;
 }
-.lp-cta-alt-link {
-  font-size: 13px; font-weight: 600; color: var(--t2);
-  text-decoration: none; transition: color .13s;
+.cta-guarantee-text {
+  font-size: 13px; color: #666; text-align: center; margin-top: 12px; margin-bottom: 0;
 }
-.lp-cta-alt-link:hover { color: var(--t1); }
 
 /* Trust seals */
 .lp-trust-seals {
@@ -1094,11 +1125,30 @@ const CSS = `
 .lp-footer-links a { color: var(--t3); text-decoration: underline; }
 .lp-footer-sep { color: var(--t3); }
 
+/* ── Sticky CTA bar (mobile only) ───────────────────────────────────────────── */
+.sticky-cta-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  padding: 12px 16px 20px;
+  background: linear-gradient(to top, #0a0a0a 70%, transparent);
+  z-index: 999; display: none;
+  transition: opacity 0.3s ease;
+}
+.sticky-cta-btn {
+  display: block; width: 100%;
+  background: #1DB954; color: #000;
+  font-weight: 700; font-size: 16px;
+  text-align: center; padding: 16px;
+  border-radius: 12px; text-decoration: none;
+  letter-spacing: -0.2px;
+}
+@media (min-width: 481px) {
+  .sticky-cta-bar { display: none !important; }
+}
+
 /* ── Responsive ─────────────────────────────────────────────────────────────── */
 @media (max-width: 880px) {
   .lp-hero-layout { grid-template-columns: 1fr; gap: 40px; }
   .lp-hero-right  { display: none; }
-  .lp-hero-mock-card { max-width: 100%; }
   .lp-compare    { grid-template-columns: 1fr; }
   .lp-dash-grid  { grid-template-columns: repeat(2, 1fr); }
   .lp-steps      { grid-template-columns: 1fr; gap: 24px; }
@@ -1108,9 +1158,21 @@ const CSS = `
   .lp-nav        { display: none; }
 }
 @media (max-width: 480px) {
+  section,
+  [data-section],
+  .section,
+  .lp-section {
+    margin-top: 56px;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
   .lp-container  { padding: 0 20px; }
-  .lp-hero       { padding: 48px 0 60px; }
-  .lp-section    { padding: 56px 0; }
+  .lp-hero       { padding: 48px 0 40px; margin-top: 0; }
+  .lp-problem    { padding: 48px 0; margin-top: 0; }
+  .lp-dash       { padding: 48px 0; margin-top: 0; }
+  .lp-section    { padding: 56px 0; margin-top: 0; }
+  .lp-cta-final  { padding: 56px 0; margin-top: 0; }
   .lp-dash-grid  { grid-template-columns: 1fr 1fr; }
   .lp-trust-seals { gap: 16px; }
 }
