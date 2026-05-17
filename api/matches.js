@@ -1,134 +1,150 @@
-// api/matches.js — MotorIA Sports Data Layer v3
-// POLÍTICA: nunca retornar jogos inventados/hardcoded.
-// Se a API não retornar dados reais → array vazio.
-// Fonte: TheSportsDB free tier (dados reais somente).
+// api/matches.js — MotorIA Sports Data Layer v4
+// Fonte: ESPN Scoreboard API (pública, sem chave, dados reais em tempo real)
+// POLÍTICA: nunca retornar jogos inventados. Se a API falhar → array vazio.
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  // Cache de 2 minutos na edge, stale-while-revalidate 30s
   res.setHeader("Cache-Control", "s-maxage=120, stale-while-revalidate=30");
 
   if (req.method === "OPTIONS") return res.status(200).end();
 
-  const now   = new Date();
-  const today = now.toISOString().split("T")[0]; // YYYY-MM-DD
+  // Ligas que buscamos em paralelo na ESPN
+  const ESPN_LEAGUES = [
+    { slug: "bra.1",                   name: "Brasileirão"       },
+    { slug: "bra.2",                   name: "Série B"           },
+    { slug: "bra.cup",                 name: "Copa do Brasil"    },
+    { slug: "eng.1",                   name: "Premier League"    },
+    { slug: "esp.1",                   name: "La Liga"           },
+    { slug: "ger.1",                   name: "Bundesliga"        },
+    { slug: "ita.1",                   name: "Serie A"           },
+    { slug: "fra.1",                   name: "Ligue 1"           },
+    { slug: "uefa.champions",          name: "Champions League"  },
+    { slug: "conmebol.libertadores",   name: "Libertadores"      },
+    { slug: "conmebol.sudamericana",   name: "Sul-Americana"     },
+  ];
 
+  const now = new Date();
   let matches = [];
   let source  = "empty";
 
-  // ── TheSportsDB free tier ─────────────────────────────────────────────────────
   try {
-    const url = `https://www.thesportsdb.com/api/v1/json/1/eventsday.php?d=${today}&s=Soccer`;
-    console.log(`[matches] fetching TheSportsDB for ${today}…`);
+    // Busca todas as ligas em paralelo
+    const results = await Promise.allSettled(
+      ESPN_LEAGUES.map(({ slug, name }) => fetchESPNLeague(slug, name))
+    );
 
-    const r = await fetch(url, {
-      headers: { "User-Agent": "MotorIA/3.0" },
-      signal:  AbortSignal.timeout(6000),
-    });
+    const all = results
+      .filter(r => r.status === "fulfilled")
+      .flatMap(r => r.value);
 
-    if (!r.ok) {
-      console.log(`[matches] API failed — HTTP ${r.status}`);
-      source = "api_error";
+    console.log(`[matches] ESPN retornou ${all.length} jogos no total`);
+
+    if (all.length > 0) {
+      matches = all.map(e => normalizeESPN(e, now));
+      source  = "api";
+      console.log("[matches] API games:", matches.map(m => `${m.home} x ${m.away} (${m.league}) ${m.status}`));
     } else {
-      const data   = await r.json();
-      const events = (data.events || []).filter(Boolean);
-      console.log(`[matches] API returned ${events.length} total soccer events`);
-
-      const RELEVANT = [
-        "brazil", "brasileir", "serie a", "série a",
-        "premier league", "la liga", "champions league",
-        "libertadores", "copa do brasil", "serie b", "série b",
-        "bundesliga", "ligue 1",
-      ];
-
-      const relevant = events
-        .filter(e => {
-          const l = (e.strLeague || "").toLowerCase();
-          return RELEVANT.some(k => l.includes(k));
-        })
-        .slice(0, 20);
-
-      if (relevant.length > 0) {
-        matches = relevant.map(e => fromTheSportsDB(e, now));
-        source  = "api";
-        console.log(`[matches] API games: ${matches.length} relevant fixtures`, matches.map(m => `${m.home} x ${m.away} (${m.league})`));
-      } else {
-        console.log("[matches] No real games returned — empty state shown");
-        source = "empty";
-      }
+      console.log("[matches] No real games returned today");
     }
   } catch (err) {
     console.log("[matches] API failed —", err.message || err);
     source = "api_error";
   }
 
-  // Sort: live → upcoming (by time) → ended
+  // Ordena: ao vivo → agendado (por horário) → encerrado
   const ORDER = { live: 0, upcoming: 1, ended: 2 };
   matches.sort((a, b) => {
     if (ORDER[a.status] !== ORDER[b.status]) return ORDER[a.status] - ORDER[b.status];
-    return (a.time || "").localeCompare(b.time || "");
+    return (a.timestamp || 0) - (b.timestamp || 0);
   });
 
   return res.status(200).json({
     matches,
     source,
-    date:      today,
+    date:      now.toISOString().split("T")[0],
     updatedAt: now.toISOString(),
     total:     matches.length,
     liveCount: matches.filter(m => m.status === "live").length,
   });
 }
 
-// ── Normaliza evento do TheSportsDB ──────────────────────────────────────────
-function fromTheSportsDB(e, now) {
-  // strTime do TheSportsDB está em UTC — convertemos para BRT (UTC-3) para exibição
-  const rawTime = e.strTime ? e.strTime.substring(0, 5) : null;
-  const brtTime = rawTime ? utcToBRT(rawTime) : null;
-  const { status, elapsed } = deriveStatus(rawTime, now);
+// ── Busca jogos de uma liga na ESPN ──────────────────────────────────────────
+async function fetchESPNLeague(slug, leagueName) {
+  const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/${slug}/scoreboard`;
+  const r = await fetch(url, {
+    headers: { "User-Agent": "MotorIA/4.0" },
+    signal:  AbortSignal.timeout(6000),
+  });
+  if (!r.ok) return [];
+  const data = await r.json();
+  return (data.events || []).map(ev => ({ ...ev, _leagueName: leagueName }));
+}
 
-  const rawHome = e.intHomeScore;
-  const rawAway = e.intAwayScore;
-  const hasScore =
-    rawHome !== null && rawHome !== undefined && rawHome !== "" &&
-    rawAway !== null && rawAway !== undefined && rawAway !== "";
+// ── Normaliza evento ESPN → formato padrão MotorIA ──────────────────────────
+function normalizeESPN(ev, now) {
+  const comp = (ev.competitions || [])[0] || {};
+  const competitors = comp.competitors || [];
+
+  const home = competitors.find(c => c.homeAway === "home");
+  const away = competitors.find(c => c.homeAway === "away");
+
+  const homeTeam  = home?.team?.displayName || home?.team?.name || "—";
+  const awayTeam  = away?.team?.displayName || away?.team?.name || "—";
+  const homeScore = home?.score ?? null;
+  const awayScore = away?.score ?? null;
+
+  const dateStr    = comp.date || ev.date || null;
+  const timestamp  = dateStr ? new Date(dateStr).getTime() : null;
+  const { status, elapsed, timeBRT } = deriveStatusESPN(comp.status, timestamp, now);
+
+  const hasScore = status !== "upcoming" &&
+    homeScore !== null && awayScore !== null &&
+    homeScore !== "" && awayScore !== "";
 
   return {
-    id:        e.idEvent || String(Math.random()),
-    home:      e.strHomeTeam || "—",
-    away:      e.strAwayTeam || "—",
-    league:    e.strLeague   || "",
-    country:   e.strCountry  || "",
-    timeUTC:   rawTime,
-    time:      brtTime,   // exibido na UI (BRT)
+    id:        comp.id || ev.id || String(Math.random()),
+    home:      homeTeam,
+    away:      awayTeam,
+    league:    ev._leagueName || ev.name || "",
+    time:      timeBRT,
+    timestamp,
     status,
     elapsed,
-    scoreHome: hasScore ? Number(rawHome) : null,
-    scoreAway: hasScore ? Number(rawAway) : null,
-    round:     e.intRound ? `Rodada ${e.intRound}` : null,
-    source:    "thesportsdb",
+    scoreHome: hasScore ? Number(homeScore) : null,
+    scoreAway: hasScore ? Number(awayScore) : null,
+    round:     null,
+    source:    "espn",
   };
 }
 
-// Converte "HH:MM" UTC para "HH:MM" BRT (UTC-3)
-function utcToBRT(timeStr) {
-  const [h, m] = timeStr.split(":").map(Number);
-  const totalMin = h * 60 + m - 180; // -3h
-  const brtMin   = ((totalMin % 1440) + 1440) % 1440;
-  const bh = Math.floor(brtMin / 60).toString().padStart(2, "0");
-  const bm = (brtMin % 60).toString().padStart(2, "0");
-  return `${bh}:${bm}`;
-}
+// ── Deriva status a partir do objeto de status ESPN ──────────────────────────
+function deriveStatusESPN(statusObj, timestamp, now) {
+  const state = statusObj?.type?.state || "";      // "pre" | "in" | "post"
+  const name  = statusObj?.type?.name  || "";      // "STATUS_SCHEDULED", "STATUS_IN_PROGRESS", "STATUS_FINAL", etc.
+  const clock = statusObj?.displayClock || "";     // "45:00", "2nd Half", etc.
 
-// ── Status baseado no horário UTC do jogo vs hora atual UTC ──────────────────
-function deriveStatus(timeUTC, now) {
-  if (!timeUTC) return { status: "upcoming", elapsed: null };
+  // Converte timestamp UTC para horário BRT (UTC-3) para exibição
+  let timeBRT = null;
+  if (timestamp) {
+    const d = new Date(timestamp);
+    const brtH = String((d.getUTCHours() + 21) % 24).padStart(2, "0"); // UTC-3 = -3h mod 24
+    const brtM = String(d.getUTCMinutes()).padStart(2, "0");
+    timeBRT = `${brtH}:${brtM}`;
+  }
 
-  const [h, m]   = timeUTC.split(":").map(Number);
-  const matchMin = h * 60 + m;                           // minutos UTC desde meia-noite
-  const nowMin   = now.getUTCHours() * 60 + now.getUTCMinutes(); // minutos UTC agora
-  const diff     = nowMin - matchMin;                    // minutos desde o início
+  if (state === "post" || name.includes("FINAL") || name.includes("FT")) {
+    return { status: "ended", elapsed: null, timeBRT };
+  }
 
-  if (diff < -10)  return { status: "upcoming", elapsed: null };
-  if (diff > 115)  return { status: "ended",    elapsed: null }; // 90' + 25' buffer
-  return { status: "live", elapsed: Math.min(90, Math.max(1, diff)) };
+  if (state === "in" || name.includes("PROGRESS") || name.includes("HALFTIME") || name.includes("PAUSED")) {
+    // Tenta extrair minutos do clock ("45:00" → 45)
+    const mins = parseInt(clock, 10);
+    const elapsed = !isNaN(mins) ? Math.min(90, mins) : null;
+    return { status: "live", elapsed, timeBRT };
+  }
+
+  // "pre" ou desconhecido → agendado
+  return { status: "upcoming", elapsed: null, timeBRT };
 }
