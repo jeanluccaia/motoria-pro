@@ -34,6 +34,16 @@ const CAMPEONATOS = [
   "La Liga", "Copa do Brasil", "Série B",
 ];
 
+// Primary markets shown in the quick-flow market selection step
+const MAIN_MARKETS = [
+  { tipo: "Resultado da partida", ref: "1.85" },
+  { tipo: "Mais ou menos gols",   ref: "1.90" },
+  { tipo: "Ambos marcam",         ref: "1.95" },
+  { tipo: "Handicap",             ref: "2.10" },
+  { tipo: "Empate devolve",       ref: "1.65" },
+  { tipo: "Chance dupla",         ref: "1.40" },
+];
+
 // Suggested reference odds by market — used as quick-fill hint when a game is selected
 const SUGGESTED_ODDS = {
   "Resultado da partida": "1.85",
@@ -387,8 +397,17 @@ export default function AppDashboard() {
 
   // Sidebar
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [view, setView] = useState("nova");
-  function navigate(v) { setView(v); setSidebarOpen(false); }
+  const [view,        setView]        = useState("jogos"); // jogos is the primary entry point
+  const [flowStep,    setFlowStep]    = useState("lista"); // "lista" | "mercado" | "resultado"
+  function navigate(v) {
+    setView(v);
+    setSidebarOpen(false);
+    if (v === "jogos") {
+      setFlowStep("lista");
+      setResult(null);
+      setError("");
+    }
+  }
 
   // Form
   const [jogo,        setJogo]        = useState("");
@@ -450,12 +469,9 @@ export default function AppDashboard() {
     : null;
   const lastItem = history[0] || null;
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (!odd || isNaN(oddNum) || oddNum < 1.01) {
-      setError("Informe uma odd válida (mínimo 1.01).");
-      return;
-    }
+  // ── Core analysis engine — called by both form submit and quick flow ──────
+  async function doAnalysis({ jogoVal, campVal, tipoVal, oddVal, valorVal }) {
+    const oddN = parseFloat(String(oddVal).replace(",", "."));
     setLoading(true);
     setError("");
     setResult(null);
@@ -470,7 +486,7 @@ export default function AppDashboard() {
     }, 820);
 
     try {
-      const userMsg = `Aposta: ${jogo || "não informado"} | Campeonato: ${campeonato || "não informado"} | Tipo: ${tipo} | Odd: ${odd} | Valor: R$${valor || "100"} | Obs: ${obs || "nenhuma"}`;
+      const userMsg = `Aposta: ${jogoVal || "não informado"} | Campeonato: ${campVal || "não informado"} | Tipo: ${tipoVal} | Odd: ${oddVal} | Valor: R$${valorVal || "100"} | Obs: ${obs || "nenhuma"}`;
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -492,21 +508,21 @@ export default function AppDashboard() {
       if (data.credits !== undefined) setCredits(data.credits);
       if (data.token) { localStorage.setItem(TOKEN_KEY, data.token); setToken(data.token); }
 
-      const impl     = calcImplicita(oddNum);
-      const vig      = calcVig(oddNum);
+      const impl     = calcImplicita(oddN);
+      const vig      = calcVig(oddN);
       const justaRaw = impl / (1 - vig / 100);
       const justa    = Math.min(justaRaw, 99);
-      const ev       = calcEV(impl, oddNum);
-      const scoreObj = calcScore(oddNum);
+      const ev       = calcEV(impl, oddN);
+      const scoreObj = calcScore(oddN);
       const exposure = Math.min(100, Math.round((100 - justa) * 1.1));
+      const valorNum = parseFloat(valorVal) || 100;
 
-      const valorNum = parseFloat(valor) || 100;
       const r = {
         id: Math.floor(Math.random() * 8000) + 2000,
         ts: fmtTime(),
-        jogo: jogo || "Aposta",
-        tipo,
-        odd: oddNum,
+        jogo: jogoVal || "Aposta",
+        tipo: tipoVal,
+        odd:  oddN,
         impl:        impl.toFixed(2),
         justa:       justa.toFixed(2),
         vig:         vig.toFixed(2),
@@ -532,17 +548,108 @@ export default function AppDashboard() {
     }
   }
 
+  // Manual form submit (legacy / advanced flow)
+  function handleSubmit(e) {
+    e.preventDefault();
+    const oddN = parseFloat((odd || "").replace(",", "."));
+    if (!odd || isNaN(oddN) || oddN < 1.01) {
+      setError("Informe uma odd válida (mínimo 1.01).");
+      return;
+    }
+    doAnalysis({ jogoVal: jogo, campVal: campeonato, tipoVal: tipo, oddVal: odd, valorVal: valor });
+  }
+
+  // Quick-flow: market tapped → analyze immediately with reference (or custom) odd
+  function quickAnalyze(tipoVal, oddStr) {
+    if (!tipoVal || !oddStr) return;
+    const jogoVal = selectedGame ? `${selectedGame.home} × ${selectedGame.away}` : jogo;
+    const campVal = selectedGame?.campeonato || campeonato;
+    setTipo(tipoVal);
+    setOdd(String(oddStr));
+    setFlowStep("resultado");
+    doAnalysis({ jogoVal, campVal, tipoVal, oddVal: String(oddStr), valorVal: valor || "100" });
+  }
+
   function loadFromHistory(item) { setResult(item); setJogo(item.jogo || ""); setOdd(String(item.odd)); setView("nova"); }
+
   function resetForm() {
     setResult(null); setError(""); setJogo(""); setOdd("");
     setValor(""); setObs(""); setCampeonato(""); setSelectedGame(null);
+    setFlowStep("lista");
   }
+
   function selectGame(match) {
     const camp = mapLeague(match.league);
     setJogo(`${match.home} × ${match.away}`);
     setCampeonato(camp);
     setSelectedGame({ ...match, campeonato: camp });
-    navigate("nova");
+    setFlowStep("mercado"); // → market selection step (stays in jogos view)
+  }
+
+  // Shared result-card renderer — used in both quick flow and manual flow
+  function renderResultCard(r) {
+    const leitura    = deriveLeituraIA(r.score);
+    const riskLbl    = r.label === "CRÍTICO" ? "MUITO ALTO" : r.label;
+    const aiSentence = r.ai?.alertaFinal || r.ai?.leituraConservadora || leitura.sub;
+    return (
+      <div className="db-result-card">
+        <div className="db-rc-header">
+          <div className="db-rc-event">{r.jogo !== "Aposta" ? r.jogo : r.tipo}</div>
+          <div className="db-rc-meta">
+            {r.jogo !== "Aposta" && <span className="db-rc-badge">{r.tipo}</span>}
+            <span className="db-rc-odd">Odd {r.odd.toFixed(2)}</span>
+            {r.valorAposta && <span className="db-rc-valor">R$ {r.valorAposta.toFixed(0)}</span>}
+          </div>
+        </div>
+        <div className="db-rc-divider" />
+        <div className="db-rc-risk">
+          <div className="db-rc-risk-top">
+            <span className="db-rc-label">Risco da Aposta</span>
+            <span className="db-rc-level" style={{ color: r.color }}>{riskLbl}</span>
+          </div>
+          <div className="db-rc-score" style={{ color: r.color }}>
+            {r.score}<span className="db-rc-score-denom">/100</span>
+          </div>
+          <div className="db-rbar-wrap" role="img" aria-label={`Risco ${r.score} de 100`}>
+            <div className="db-rbar-track">
+              <div className="db-rbar-zone db-rbar-z1" />
+              <div className="db-rbar-zone db-rbar-z2" />
+              <div className="db-rbar-zone db-rbar-z3" />
+              <div className="db-rbar-zone db-rbar-z4" />
+              <div className="db-rbar-marker" style={{ left: `calc(${Math.min(r.score, 98)}% - 5px)` }} />
+            </div>
+          </div>
+          <div className="db-rc-phrase">{getRiscoFrase(r.score)}</div>
+        </div>
+        <div className="db-rc-divider" />
+        <div className="db-rc-data">
+          <div className="db-rc-data-item">
+            <span className="db-rc-label">Chance estimada</span>
+            <span className="db-rc-big db-rc-big-green">
+              {r.impl}<span className="db-rc-sym">%</span>
+            </span>
+            <span className="db-rc-sub">{r.perda}% de não converter</span>
+          </div>
+          <div className="db-rc-data-sep" />
+          <div className="db-rc-data-item">
+            <span className="db-rc-label">Valor em risco</span>
+            <span className="db-rc-big" style={{ color: r.color }}>
+              R$<span>{r.valorRisco || "—"}</span>
+            </span>
+            <span className="db-rc-sub">de R$ {r.valorAposta?.toFixed(0) || "—"} apostados</span>
+          </div>
+        </div>
+        <div className="db-rc-divider" />
+        <div className="db-rc-ai">
+          <span className="db-rc-label">Leitura da IA</span>
+          <div className="db-rc-ai-verdict" style={{ color: leitura.color }}>
+            <span className="db-rc-ai-dot" style={{ background: leitura.color }} aria-hidden="true" />
+            {leitura.text}
+          </div>
+          {aiSentence && <p className="db-rc-ai-sentence">"{aiSentence}"</p>}
+        </div>
+      </div>
+    );
   }
   function handleCopy(r) {
     const riskLbl = r.label === "CRÍTICO" ? "MUITO ALTO" : r.label;
@@ -566,10 +673,10 @@ export default function AppDashboard() {
     {
       group: "ANÁLISE",
       items: [
-        { id: "jogos",   label: "Jogos de Hoje", Icon: IconJogos },
-        { id: "nova",    label: "Nova Análise",  Icon: IconAnalyze },
-        { id: "geral",   label: "Visão Geral",   Icon: IconOverview },
-        { id: "comparador", label: "Comparador", Icon: IconCompare, dim: true },
+        { id: "jogos",      label: "Jogos de Hoje",  Icon: IconJogos },
+        { id: "nova",       label: "Análise Manual", Icon: IconAnalyze, manual: true },
+        { id: "geral",      label: "Visão Geral",    Icon: IconOverview },
+        { id: "comparador", label: "Comparador",     Icon: IconCompare, dim: true },
       ],
     },
     {
@@ -677,10 +784,10 @@ export default function AppDashboard() {
             {NAV.map(({ group, items }) => (
               <div className="ap-sidebar-group" key={group}>
                 <div className="ap-sidebar-group-lbl">{group}</div>
-                {items.map(({ id, label, Icon, badge, live, dim }) => (
+                {items.map(({ id, label, Icon, badge, live, dim, manual }) => (
                   <button
                     key={id}
-                    className={`ap-nav-item${view === id ? " ap-nav-active" : ""}${dim ? " ap-nav-dim" : ""}`}
+                    className={`ap-nav-item${view === id ? " ap-nav-active" : ""}${dim ? " ap-nav-dim" : ""}${manual ? " ap-nav-manual" : ""}`}
                     onClick={() => navigate(id)}
                     aria-current={view === id ? "page" : undefined}
                   >
@@ -1130,171 +1237,346 @@ export default function AppDashboard() {
               />
             )}
 
-            {/* ════ JOGOS DE HOJE ════════════════════════════════════════ */}
+            {/* ════ JOGOS DE HOJE — 3-step primary flow ═══════════════════ */}
             {view === "jogos" && (
-              <div className="ap-content" key="jogos">
+              <div className="ap-content ap-content-flow" key={`jogos-${flowStep}`}>
 
-                {/* Panel header */}
-                <div className="ap-panel-hdr">
-                  <div className="ap-panel-hdr-left">
-                    <div className="ap-panel-mod">ANÁLISE ESPORTIVA</div>
-                    <div className="ap-panel-title">Jogos de Hoje</div>
-                  </div>
-                  <div className="jg-hdr-right">
-                    <div className="jg-data-badge" title="Dados obtidos de fontes esportivas em tempo real">
-                      <span className="jg-data-dot" aria-hidden="true" />
-                      DADOS ESPORTIVOS
+                {/* ══ STEP 1: LISTA ══════════════════════════════════════════ */}
+                {flowStep === "lista" && (
+                  <div className="fl-step">
+
+                    {/* Panel header */}
+                    <div className="ap-panel-hdr">
+                      <div className="ap-panel-hdr-left">
+                        <div className="ap-panel-mod">ANÁLISE ESPORTIVA</div>
+                        <div className="ap-panel-title">Jogos de Hoje</div>
+                      </div>
+                      <div className="jg-hdr-right">
+                        <div className="jg-data-badge">
+                          <span className="jg-data-dot" aria-hidden="true" />
+                          DADOS ESPORTIVOS
+                        </div>
+                        {matchesUpdatedAt && (
+                          <span className="jg-updated">
+                            {matchesUpdatedAt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        )}
+                        <button className="jg-refresh-btn" onClick={loadMatches} disabled={matchesLoading} title="Atualizar" type="button" aria-label="Atualizar partidas">
+                          <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                            <path d="M12 7A5 5 0 1 1 7 2M12 7V2.5M12 2.5H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </button>
+                      </div>
                     </div>
-                    {matchesUpdatedAt && (
-                      <span className="jg-updated">
-                        {matchesUpdatedAt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-                      </span>
+
+                    {matchesLoading && (
+                      <div className="jg-loading">
+                        <span className="jg-dot" /><span className="jg-dot" /><span className="jg-dot" />
+                        <span className="jg-loading-lbl">Buscando partidas...</span>
+                      </div>
                     )}
-                    <button
-                      className="jg-refresh-btn"
-                      onClick={loadMatches}
-                      disabled={matchesLoading}
-                      title="Atualizar partidas"
-                      type="button"
-                      aria-label="Atualizar lista de partidas"
-                    >
-                      <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                        <path d="M12 7A5 5 0 1 1 7 2M12 7V2.5M12 2.5H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    {matchesError && !matchesLoading && (
+                      <div className="ap-error" role="alert">
+                        {matchesError}
+                        <button className="jg-retry-btn" onClick={loadMatches} type="button">Tentar novamente</button>
+                      </div>
+                    )}
+                    {!matchesLoading && matches.length === 0 && !matchesError && (
+                      <div className="ap-geral-empty">
+                        <p>Nenhuma partida encontrada para hoje.</p>
+                        <button className="ap-geral-btn" onClick={() => navigate("nova")}>Análise manual →</button>
+                      </div>
+                    )}
+
+                    {!matchesLoading && matches.length > 0 && (() => {
+                      const liveCount = matches.filter(m => m.status === "live").length;
+                      const leagues   = [...new Set(matches.map(m => mapLeague(m.league)).filter(Boolean))];
+                      const allPills  = ["todos", ...(liveCount > 0 ? ["live"] : []), ...leagues];
+                      const filtered  = leagueFilter === "todos" ? matches
+                        : leagueFilter === "live" ? matches.filter(m => m.status === "live")
+                        : matches.filter(m => mapLeague(m.league) === leagueFilter);
+                      return (
+                        <>
+                          <div className="jg-filters">
+                            {allPills.map(f => (
+                              <button
+                                key={f}
+                                className={["jg-pill", leagueFilter === f ? "jg-pill-on" : "", f === "live" ? "jg-pill-live" : ""].join(" ").trim()}
+                                onClick={() => setLeagueFilter(f)}
+                                type="button"
+                              >
+                                {f === "todos" ? "Todos" : f === "live"
+                                  ? <><span className="jg-pill-dot" aria-hidden="true" />Ao Vivo ({liveCount})</>
+                                  : f}
+                              </button>
+                            ))}
+                          </div>
+                          <div className="jg-grid">
+                            {filtered.map((m, idx) => {
+                              const hasScore = m.scoreHome !== null && m.scoreAway !== null;
+                              return (
+                                <button
+                                  key={m.id || idx}
+                                  className={`jg-card jg-card-${m.status}`}
+                                  onClick={() => selectGame(m)}
+                                  type="button"
+                                  style={{ animationDelay: `${Math.min(idx, 6) * 40}ms` }}
+                                >
+                                  <div className="jg-card-header">
+                                    <span className="jg-league">{mapLeague(m.league) || m.league}</span>
+                                    {m.status === "upcoming" && m.time && <span className="jg-time">{m.time}</span>}
+                                  </div>
+                                  {m.status === "live" && (
+                                    <div className="jg-status-row">
+                                      <span className="jg-live-dot" aria-hidden="true" />
+                                      <span className="jg-status-live-text">AO VIVO</span>
+                                      {m.elapsed != null && <span className="jg-elapsed">{m.elapsed}'</span>}
+                                    </div>
+                                  )}
+                                  {m.status === "ended" && (
+                                    <div className="jg-status-row">
+                                      <span className="jg-status-ended-text">ENCERRADO</span>
+                                    </div>
+                                  )}
+                                  <div className="jg-matchup">
+                                    <span className="jg-team-name">{m.home}</span>
+                                    <div className="jg-score-center">
+                                      {hasScore
+                                        ? <span className="jg-score-pair"><span className="jg-score-num">{m.scoreHome}</span><span className="jg-score-dash">—</span><span className="jg-score-num">{m.scoreAway}</span></span>
+                                        : <span className="jg-vs">×</span>}
+                                    </div>
+                                    <span className="jg-team-name jg-team-right">{m.away}</span>
+                                  </div>
+                                  <div className="jg-card-footer">
+                                    <span className="jg-cta">Escolher mercado →</span>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <div className="jg-disclaimer" role="note">
+                            <svg width="10" height="10" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                              <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.3"/>
+                              <path d="M7 6.5v3.5M7 4.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                            </svg>
+                            Ferramenta educativa. Dados de partidas para contexto de análise de risco. Não é recomendação de aposta.
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                {/* ══ STEP 2: MERCADO ════════════════════════════════════════ */}
+                {flowStep === "mercado" && selectedGame && (
+                  <div className="fl-step">
+
+                    {/* Back */}
+                    <button className="fl-back-btn" onClick={() => { setSelectedGame(null); setFlowStep("lista"); }} type="button">
+                      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                        <path d="M8 2L4 6L8 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
+                      Mudar partida
+                    </button>
+
+                    {/* Game hero */}
+                    <div className={`fl-game-hero${selectedGame.status === "live" ? " fl-game-hero-live" : ""}`}>
+                      <div className="fl-hero-meta">
+                        <span className="fl-hero-league">{selectedGame.campeonato}</span>
+                        {selectedGame.status === "live" ? (
+                          <div className="fl-hero-status-live">
+                            <span className="fl-hero-live-dot" aria-hidden="true" />
+                            AO VIVO{selectedGame.elapsed ? ` · ${selectedGame.elapsed}'` : ""}
+                          </div>
+                        ) : selectedGame.time ? (
+                          <span className="fl-hero-time">{selectedGame.time}</span>
+                        ) : null}
+                      </div>
+                      <div className="fl-teams">
+                        <span className="fl-team">{selectedGame.home}</span>
+                        <span className="fl-vs">×</span>
+                        <span className="fl-team fl-team-right">{selectedGame.away}</span>
+                      </div>
+                    </div>
+
+                    {/* Market grid */}
+                    <div className="fl-section-hdr">ESCOLHA O MERCADO</div>
+                    <div className="fl-market-grid">
+                      {MAIN_MARKETS.map(m => (
+                        <button
+                          key={m.tipo}
+                          className="fl-market-btn"
+                          onClick={() => quickAnalyze(m.tipo, m.ref)}
+                          type="button"
+                        >
+                          <span className="fl-market-name">{m.tipo}</span>
+                          <span className="fl-market-ref">Ref. {m.ref}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Custom odd option */}
+                    <div className="fl-sep">
+                      <span className="fl-sep-line" aria-hidden="true" />
+                      <span className="fl-sep-lbl">ou informe sua odd</span>
+                      <span className="fl-sep-line" aria-hidden="true" />
+                    </div>
+                    <div className="fl-custom-row">
+                      <div className="fl-custom-tipo">
+                        <CustomSelect id="fl-tipo" options={TIPOS} value={tipo} onChange={setTipo} />
+                      </div>
+                      <input
+                        className="ap-input ap-input-odd fl-custom-odd"
+                        type="text"
+                        placeholder="2.80"
+                        value={odd}
+                        onChange={e => setOdd(e.target.value)}
+                        inputMode="decimal"
+                        autoComplete="off"
+                        aria-label="Sua odd"
+                      />
+                      <button
+                        className="fl-custom-submit"
+                        onClick={() => quickAnalyze(tipo, odd)}
+                        disabled={!odd}
+                        type="button"
+                      >
+                        ANALISAR →
+                      </button>
+                    </div>
+
+                    {/* Link to full manual form */}
+                    <button className="fl-manual-link" onClick={() => navigate("nova")} type="button">
+                      Abrir análise manual completa →
                     </button>
                   </div>
-                </div>
-
-                {/* Loading */}
-                {matchesLoading && (
-                  <div className="jg-loading">
-                    <span className="jg-dot" /><span className="jg-dot" /><span className="jg-dot" />
-                    <span className="jg-loading-lbl">Buscando partidas de hoje...</span>
-                  </div>
                 )}
 
-                {/* Error */}
-                {matchesError && !matchesLoading && (
-                  <div className="ap-error" role="alert">
-                    {matchesError}
-                    <button className="jg-retry-btn" onClick={loadMatches} type="button">Tentar novamente</button>
-                  </div>
-                )}
+                {/* ══ STEP 3: RESULTADO (loading + result) ═══════════════════ */}
+                {flowStep === "resultado" && (
+                  <div className="fl-step">
 
-                {/* Empty */}
-                {!matchesLoading && matches.length === 0 && !matchesError && (
-                  <div className="ap-geral-empty">
-                    <p>Nenhuma partida encontrada para hoje.</p>
-                    <button className="ap-geral-btn" onClick={() => navigate("nova")}>Análise manual →</button>
-                  </div>
-                )}
+                    {/* Context strip */}
+                    {selectedGame && (
+                      <div className={`fl-ctx-strip${selectedGame.status === "live" ? " fl-ctx-live" : ""}`}>
+                        <span className="fl-ctx-dot" aria-hidden="true" />
+                        <span className="fl-ctx-match">{selectedGame.home} × {selectedGame.away}</span>
+                        <span className="fl-ctx-sep" aria-hidden="true">·</span>
+                        <span className="fl-ctx-tipo">{tipo}</span>
+                        {selectedGame.status === "live" && (
+                          <span className="fl-ctx-live-badge">AO VIVO</span>
+                        )}
+                      </div>
+                    )}
 
-                {/* Match list */}
-                {!matchesLoading && matches.length > 0 && (() => {
-                  const liveCount  = matches.filter(m => m.status === "live").length;
-                  const leagues    = [...new Set(matches.map(m => mapLeague(m.league)).filter(Boolean))];
-                  const allPills   = ["todos", ...(liveCount > 0 ? ["live"] : []), ...leagues];
+                    {/* Loading */}
+                    {loading && (
+                      <div className="ap-loading" role="status" aria-live="polite">
+                        <div className="ap-loading-hdr">
+                          <div>
+                            <div className="ap-loading-engine">
+                              RISK ENGINE v2.4
+                              <span className="ap-loading-engine-dot" aria-hidden="true" />
+                            </div>
+                            <div className="ap-loading-sub ap-loading-sub-game">
+                              {selectedGame ? `${selectedGame.home} × ${selectedGame.away}` : "Processando análise"}
+                            </div>
+                          </div>
+                          <span className="ap-loading-status">CALCULANDO</span>
+                        </div>
+                        <div className="ap-loading-bar-wrap">
+                          <div className="ap-loading-bar" style={{ width: `${loadPct}%` }} />
+                          <div className="ap-loading-bar-glow" style={{ left: `${loadPct}%` }} />
+                        </div>
+                        <div className="ap-loading-pct" aria-label={`${loadPct}%`}>
+                          {loadPct}<span className="ap-loading-pct-sym">%</span>
+                        </div>
+                        <div className="ap-loading-steps">
+                          {LOAD_STEPS.map((s, i) => (
+                            <div key={i} className={`ap-lstep${i < loadStepIdx ? " ap-lstep-done" : i === loadStepIdx ? " ap-lstep-active" : ""}`}>
+                              <span className="ap-lstep-icon" aria-hidden="true">
+                                {i < loadStepIdx ? "✓" : i === loadStepIdx ? "▶" : "○"}
+                              </span>
+                              <span className="ap-lstep-lbl">{s.label}</span>
+                              {i === loadStepIdx && <span className="ap-lstep-cursor" aria-hidden="true">_</span>}
+                              {i < loadStepIdx && <span className="ap-lstep-done-tag">OK</span>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                  const filtered = leagueFilter === "todos" ? matches
-                    : leagueFilter === "live"  ? matches.filter(m => m.status === "live")
-                    : matches.filter(m => mapLeague(m.league) === leagueFilter);
+                    {/* Error */}
+                    {error && !loading && (
+                      <div className="ap-error" role="alert">
+                        {error}
+                        <button
+                          className="fl-retry"
+                          onClick={() => { setError(""); quickAnalyze(tipo, odd); }}
+                          type="button"
+                        >
+                          Tentar novamente
+                        </button>
+                      </div>
+                    )}
 
-                  return (
-                    <>
-                      {/* League / status filter pills */}
-                      <div className="jg-filters">
-                        {allPills.map(f => (
+                    {/* Result */}
+                    {result && !loading && (
+                      <div className="db-output" role="region" aria-label="Resultado da análise">
+                        <div className="db-topbar">
+                          <div className="db-topbar-meta">
+                            <span className="db-id">#{result.id}</span>
+                            <span className="db-sep" aria-hidden="true">·</span>
+                            <span className="db-ts">{result.ts}</span>
+                            <span className="db-sep" aria-hidden="true">·</span>
+                            <span className="db-ai-badge">
+                              <span className="db-ai-dot" aria-hidden="true" />IA ativa
+                            </span>
+                          </div>
+                          <div className="fl-result-nav">
+                            <button className="db-btn-ghost" onClick={() => { setResult(null); setError(""); setFlowStep("mercado"); }} type="button">
+                              ← Outro mercado
+                            </button>
+                          </div>
+                        </div>
+
+                        {renderResultCard(result)}
+
+                        {/* Note if using reference odd */}
+                        {MAIN_MARKETS.some(m => m.ref === result.odd.toFixed(2)) && (
+                          <div className="fl-ref-note">
+                            Análise com odd de referência ({result.odd.toFixed(2)}).
+                            Use a odd real da sua casa para maior precisão.
+                          </div>
+                        )}
+
+                        <div className="db-actions">
                           <button
-                            key={f}
-                            className={[
-                              "jg-pill",
-                              leagueFilter === f ? "jg-pill-on" : "",
-                              f === "live"       ? "jg-pill-live" : "",
-                            ].join(" ").trim()}
-                            onClick={() => setLeagueFilter(f)}
+                            className="db-btn-primary"
+                            onClick={() => { setResult(null); setError(""); setSelectedGame(null); setFlowStep("lista"); }}
                             type="button"
                           >
-                            {f === "todos" ? "Todos" : f === "live"
-                              ? <><span className="jg-pill-dot" aria-hidden="true" />Ao Vivo ({liveCount})</>
-                              : f}
+                            <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                              <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            Nova partida
                           </button>
-                        ))}
+                          <button className="db-btn-copy" onClick={() => handleCopy(result)} type="button">
+                            <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                              <rect x="5" y="5" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
+                              <path d="M9 5V3a1 1 0 00-1-1H3a1 1 0 00-1 1v5a1 1 0 001 1h2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                            </svg>
+                            Copiar
+                          </button>
+                        </div>
+                        <p className="db-disclaimer">
+                          Análise educativa. Não representa garantia de resultado. A decisão é sempre sua.
+                        </p>
                       </div>
+                    )}
+                  </div>
+                )}
 
-                      {/* Cards grid */}
-                      <div className="jg-grid">
-                        {filtered.map((m, idx) => {
-                          const hasScore = m.scoreHome !== null && m.scoreAway !== null;
-                          return (
-                            <button
-                              key={m.id || idx}
-                              className={`jg-card jg-card-${m.status}`}
-                              onClick={() => selectGame(m)}
-                              type="button"
-                              style={{ animationDelay: `${Math.min(idx, 6) * 40}ms` }}
-                            >
-                              {/* Card header: league + kick-off time (upcoming only) */}
-                              <div className="jg-card-header">
-                                <span className="jg-league">{mapLeague(m.league) || m.league}</span>
-                                {m.status === "upcoming" && m.time && (
-                                  <span className="jg-time">{m.time}</span>
-                                )}
-                              </div>
-
-                              {/* Status indicator row */}
-                              {m.status === "live" && (
-                                <div className="jg-status-row">
-                                  <span className="jg-live-dot" aria-hidden="true" />
-                                  <span className="jg-status-live-text">AO VIVO</span>
-                                  {m.elapsed != null && (
-                                    <span className="jg-elapsed">{m.elapsed}'</span>
-                                  )}
-                                </div>
-                              )}
-                              {m.status === "ended" && (
-                                <div className="jg-status-row">
-                                  <span className="jg-status-ended-text">ENCERRADO</span>
-                                </div>
-                              )}
-
-                              {/* Teams + score */}
-                              <div className="jg-matchup">
-                                <span className="jg-team-name">{m.home}</span>
-                                <div className="jg-score-center">
-                                  {hasScore ? (
-                                    <span className="jg-score-pair">
-                                      <span className="jg-score-num">{m.scoreHome}</span>
-                                      <span className="jg-score-dash">—</span>
-                                      <span className="jg-score-num">{m.scoreAway}</span>
-                                    </span>
-                                  ) : (
-                                    <span className="jg-vs">×</span>
-                                  )}
-                                </div>
-                                <span className="jg-team-name jg-team-right">{m.away}</span>
-                              </div>
-
-                              {/* CTA */}
-                              <div className="jg-card-footer">
-                                <span className="jg-cta">Analisar →</span>
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      {/* Disclaimer */}
-                      <div className="jg-disclaimer" role="note">
-                        <svg width="10" height="10" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                          <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.3"/>
-                          <path d="M7 6.5v3.5M7 4.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-                        </svg>
-                        Ferramenta educativa. Os dados de partidas fornecem contexto para análise de risco.
-                        Não representa recomendação de aposta.
-                      </div>
-                    </>
-                  );
-                })()}
               </div>
             )}
 
@@ -2909,5 +3191,236 @@ body { overflow: hidden; }
   .jg-disclaimer { font-size: 10px; }
   .ap-odd-sug { padding: 8px 11px; }
   .ap-odd-sug-text { font-size: 11px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FLOW — 3-step primary flow (fl-* components)
+   JOGOS → MERCADO → RESULTADO: zero-friction analysis in <15 seconds
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes fl-step-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Content wrapper (flow variant) ───────────────────────────────────────── */
+.ap-content-flow {
+  max-width: 600px;
+  padding-top: 20px;
+}
+
+/* ── Step wrapper ─────────────────────────────────────────────────────────── */
+.fl-step {
+  display: flex; flex-direction: column; gap: 14px;
+  animation: fl-step-in .2s ease both;
+}
+
+/* ── Back button ──────────────────────────────────────────────────────────── */
+.fl-back-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: none; cursor: pointer;
+  font-size: 11.5px; font-weight: 700; color: var(--t2);
+  font-family: inherit; padding: 0; letter-spacing: .02em;
+  align-self: flex-start; transition: color .13s;
+}
+.fl-back-btn:hover { color: var(--t1); }
+
+/* ── Game hero card (large match display in mercado step) ─────────────────── */
+.fl-game-hero {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 14px; padding: 20px 22px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.fl-game-hero-live {
+  border-color: rgba(239,68,68,.25);
+  background: rgba(239,68,68,.025);
+}
+
+.fl-hero-meta {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.fl-hero-league {
+  font-size: 9px; font-weight: 800; letter-spacing: .16em;
+  color: var(--t3); text-transform: uppercase;
+}
+.fl-hero-time {
+  font-size: 12px; font-weight: 700; color: var(--t2);
+  font-variant-numeric: tabular-nums; font-family: 'Courier New', monospace;
+}
+.fl-hero-status-live {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; font-weight: 800; letter-spacing: .1em; color: #EF4444;
+}
+.fl-hero-live-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #EF4444; flex-shrink: 0;
+  animation: ap-pulse 1.4s ease-in-out infinite;
+}
+
+/* Teams row — prominent match display */
+.fl-teams {
+  display: flex; align-items: center; gap: 12px;
+}
+.fl-team {
+  font-size: 22px; font-weight: 900; color: var(--t1);
+  letter-spacing: -0.04em; flex: 1; line-height: 1.1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.fl-team-right { text-align: right; }
+.fl-vs {
+  font-size: 14px; font-weight: 700; color: var(--t3); flex-shrink: 0;
+}
+
+/* ── Section header ───────────────────────────────────────────────────────── */
+.fl-section-hdr {
+  font-size: 8px; font-weight: 800; letter-spacing: .2em;
+  color: var(--t3); text-transform: uppercase;
+  margin-top: 2px; margin-bottom: -2px;
+}
+
+/* ── Market grid (2 × 3 = 6 buttons) ─────────────────────────────────────── */
+.fl-market-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+}
+
+.fl-market-btn {
+  display: flex; flex-direction: column; gap: 5px;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 13px 14px;
+  cursor: pointer; font-family: inherit; text-align: left;
+  transition: border-color .14s, background .14s, transform .12s;
+}
+.fl-market-btn:hover {
+  border-color: rgba(34,197,94,.32);
+  background: rgba(34,197,94,.04);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,.25);
+}
+.fl-market-btn:active { transform: translateY(0); }
+
+.fl-market-name {
+  font-size: 11.5px; font-weight: 700; color: var(--t1);
+  letter-spacing: -0.01em; line-height: 1.3;
+}
+.fl-market-ref {
+  font-size: 9px; font-weight: 700; letter-spacing: .04em;
+  color: rgba(34,197,94,.6); font-family: 'Courier New', monospace;
+}
+
+/* ── Separator ────────────────────────────────────────────────────────────── */
+.fl-sep {
+  display: flex; align-items: center; gap: 10px; margin: 2px 0;
+}
+.fl-sep-line {
+  flex: 1; height: 1px; background: rgba(255,255,255,.06);
+}
+.fl-sep-lbl {
+  font-size: 9px; font-weight: 700; letter-spacing: .1em;
+  color: var(--t3); text-transform: uppercase; flex-shrink: 0;
+}
+
+/* ── Custom odd row ───────────────────────────────────────────────────────── */
+.fl-custom-row {
+  display: grid; grid-template-columns: 1fr 88px auto; gap: 8px; align-items: end;
+}
+.fl-custom-tipo { min-width: 0; }
+.fl-custom-odd {
+  font-size: 18px !important; font-weight: 800 !important;
+  letter-spacing: -0.03em !important; padding: 11px 10px !important;
+  text-align: center;
+}
+.fl-custom-submit {
+  display: flex; align-items: center; justify-content: center;
+  background: #15803d; color: #dcfce7;
+  font-size: 10px; font-weight: 900; letter-spacing: .1em;
+  padding: 0 16px; border-radius: 8px; border: none; cursor: pointer;
+  font-family: inherit; white-space: nowrap; flex-shrink: 0;
+  height: 44px; min-width: 80px;
+  transition: background .15s, transform .12s;
+}
+.fl-custom-submit:hover:not(:disabled) {
+  background: #166534; transform: translateY(-1px);
+}
+.fl-custom-submit:active { transform: translateY(0); }
+.fl-custom-submit:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ── Manual analysis link (secondary action) ──────────────────────────────── */
+.fl-manual-link {
+  display: block; text-align: center;
+  font-size: 10.5px; font-weight: 700; color: var(--t3);
+  background: none; border: none; cursor: pointer; font-family: inherit;
+  letter-spacing: .03em; padding: 4px 0;
+  transition: color .13s; align-self: center;
+}
+.fl-manual-link:hover { color: var(--t2); }
+
+/* ── Context strip (resultado step — shows selected game + market) ─────────── */
+.fl-ctx-strip {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  background: rgba(34,197,94,.05);
+  border: 1px solid rgba(34,197,94,.16);
+  border-radius: 10px; padding: 9px 14px;
+  animation: ap-fade-up .18s ease both;
+}
+.fl-ctx-live {
+  background: rgba(239,68,68,.04) !important;
+  border-color: rgba(239,68,68,.2) !important;
+}
+.fl-ctx-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+  flex-shrink: 0; animation: ap-pulse 2.4s ease-in-out infinite;
+}
+.fl-ctx-live .fl-ctx-dot { background: #EF4444; animation-duration: 1.4s; }
+.fl-ctx-match {
+  font-size: 12px; font-weight: 700; color: var(--t1); letter-spacing: -0.02em;
+}
+.fl-ctx-sep { color: var(--t3); font-size: 10px; }
+.fl-ctx-tipo { font-size: 11px; color: var(--t2); }
+.fl-ctx-live-badge {
+  font-size: 8px; font-weight: 800; letter-spacing: .1em;
+  color: rgba(239,68,68,.8); text-transform: uppercase; flex-shrink: 0;
+  animation: ap-blink 1.6s ease-in-out infinite;
+}
+
+/* ── Result nav row (← Outro mercado button) ──────────────────────────────── */
+.fl-result-nav {
+  display: flex; align-items: center;
+}
+
+/* ── Retry button (inside error block) ───────────────────────────────────── */
+.fl-retry {
+  display: inline-block; margin-left: 10px;
+  font-size: 11px; font-weight: 700; color: var(--red);
+  background: none; border: none; cursor: pointer; font-family: inherit;
+  text-decoration: underline; padding: 0;
+}
+
+/* ── Reference odd note ───────────────────────────────────────────────────── */
+.fl-ref-note {
+  font-size: 10px; color: var(--t3); line-height: 1.55;
+  padding: 8px 12px;
+  background: rgba(255,255,255,.02); border: 1px solid var(--border);
+  border-radius: 7px;
+}
+
+/* ── Secondary nav item style (Análise Manual) ────────────────────────────── */
+.ap-nav-manual { opacity: .72; }
+.ap-nav-manual:hover:not(.ap-nav-dim) { opacity: 1; }
+.ap-nav-manual.ap-nav-active { opacity: 1; }
+
+/* ── Flow mobile ──────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .ap-content-flow { padding-top: 12px; }
+  .fl-game-hero { padding: 16px 16px; }
+  .fl-team { font-size: 17px; }
+  .fl-market-grid { grid-template-columns: repeat(2, 1fr); }
+  .fl-market-btn { padding: 11px 12px; }
+  .fl-market-name { font-size: 11px; }
+  /* Custom row: tipo spans full width, then odd + submit on row 2 */
+  .fl-custom-row {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+  }
+  .fl-custom-tipo { grid-column: 1 / -1; }
+  .fl-custom-odd { width: auto; text-align: left; }
 }
 `;
