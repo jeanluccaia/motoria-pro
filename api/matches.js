@@ -1,13 +1,12 @@
-// api/matches.js — MotorIA Sports Data Layer v2
-// Sources: TheSportsDB free tier → curated smart fallback
-// Returns standardized match objects with real-time status (live / upcoming / ended)
-// based on Brazilian time (UTC-3).
+// api/matches.js — MotorIA Sports Data Layer v3
+// POLÍTICA: nunca retornar jogos inventados/hardcoded.
+// Se a API não retornar dados reais → array vazio.
+// Fonte: TheSportsDB free tier (dados reais somente).
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-  // 5-minute edge cache, 60-second stale-while-revalidate
-  res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=60");
+  res.setHeader("Cache-Control", "s-maxage=120, stale-while-revalidate=30");
 
   if (req.method === "OPTIONS") return res.status(200).end();
 
@@ -15,19 +14,25 @@ export default async function handler(req, res) {
   const today = now.toISOString().split("T")[0]; // YYYY-MM-DD
 
   let matches = [];
-  let source  = "curated";
+  let source  = "empty";
 
-  // ── Primary: TheSportsDB free tier ───────────────────────────────────────────
+  // ── TheSportsDB free tier ─────────────────────────────────────────────────────
   try {
     const url = `https://www.thesportsdb.com/api/v1/json/1/eventsday.php?d=${today}&s=Soccer`;
-    const r   = await fetch(url, {
-      headers: { "User-Agent": "MotorIA/2.0" },
-      signal:  AbortSignal.timeout(5000),
+    console.log(`[matches] fetching TheSportsDB for ${today}…`);
+
+    const r = await fetch(url, {
+      headers: { "User-Agent": "MotorIA/3.0" },
+      signal:  AbortSignal.timeout(6000),
     });
 
-    if (r.ok) {
+    if (!r.ok) {
+      console.log(`[matches] API failed — HTTP ${r.status}`);
+      source = "api_error";
+    } else {
       const data   = await r.json();
       const events = (data.events || []).filter(Boolean);
+      console.log(`[matches] API returned ${events.length} total soccer events`);
 
       const RELEVANT = [
         "brazil", "brasileir", "serie a", "série a",
@@ -41,22 +46,23 @@ export default async function handler(req, res) {
           const l = (e.strLeague || "").toLowerCase();
           return RELEVANT.some(k => l.includes(k));
         })
-        .slice(0, 16);
+        .slice(0, 20);
 
-      if (relevant.length >= 3) {
+      if (relevant.length > 0) {
         matches = relevant.map(e => fromTheSportsDB(e, now));
-        source  = "live";
+        source  = "api";
+        console.log(`[matches] API games: ${matches.length} relevant fixtures`, matches.map(m => `${m.home} x ${m.away} (${m.league})`));
+      } else {
+        console.log("[matches] No real games returned — empty state shown");
+        source = "empty";
       }
     }
-  } catch (_) { /* fall through */ }
-
-  // ── Fallback: smart curated schedule ─────────────────────────────────────────
-  if (matches.length < 3) {
-    matches = getCurated(now);
-    source  = "curated";
+  } catch (err) {
+    console.log("[matches] API failed —", err.message || err);
+    source = "api_error";
   }
 
-  // Sort: live first, then upcoming (by time), then ended
+  // Sort: live → upcoming (by time) → ended
   const ORDER = { live: 0, upcoming: 1, ended: 2 };
   matches.sort((a, b) => {
     if (ORDER[a.status] !== ORDER[b.status]) return ORDER[a.status] - ORDER[b.status];
@@ -73,12 +79,13 @@ export default async function handler(req, res) {
   });
 }
 
-// ── Normalize a TheSportsDB event ─────────────────────────────────────────────
+// ── Normaliza evento do TheSportsDB ──────────────────────────────────────────
 function fromTheSportsDB(e, now) {
-  const timeStr = e.strTime ? e.strTime.substring(0, 5) : null;
-  const { status, elapsed } = deriveStatus(timeStr, now);
+  // strTime do TheSportsDB está em UTC — convertemos para BRT (UTC-3) para exibição
+  const rawTime = e.strTime ? e.strTime.substring(0, 5) : null;
+  const brtTime = rawTime ? utcToBRT(rawTime) : null;
+  const { status, elapsed } = deriveStatus(rawTime, now);
 
-  // Scores: TheSportsDB returns null strings when not yet played
   const rawHome = e.intHomeScore;
   const rawAway = e.intAwayScore;
   const hasScore =
@@ -87,89 +94,41 @@ function fromTheSportsDB(e, now) {
 
   return {
     id:        e.idEvent || String(Math.random()),
-    home:      e.strHomeTeam  || "—",
-    away:      e.strAwayTeam  || "—",
-    league:    e.strLeague    || "",
-    country:   e.strCountry   || "",
-    time:      timeStr,
+    home:      e.strHomeTeam || "—",
+    away:      e.strAwayTeam || "—",
+    league:    e.strLeague   || "",
+    country:   e.strCountry  || "",
+    timeUTC:   rawTime,
+    time:      brtTime,   // exibido na UI (BRT)
     status,
     elapsed,
     scoreHome: hasScore ? Number(rawHome) : null,
     scoreAway: hasScore ? Number(rawAway) : null,
     round:     e.intRound ? `Rodada ${e.intRound}` : null,
+    source:    "thesportsdb",
   };
 }
 
-// ── Status from match kick-off time (Brazil = UTC-3) ─────────────────────────
-// Returns { status: "live"|"upcoming"|"ended", elapsed: number|null }
-function deriveStatus(timeStr, now) {
-  if (!timeStr) return { status: "upcoming", elapsed: null };
+// Converte "HH:MM" UTC para "HH:MM" BRT (UTC-3)
+function utcToBRT(timeStr) {
+  const [h, m] = timeStr.split(":").map(Number);
+  const totalMin = h * 60 + m - 180; // -3h
+  const brtMin   = ((totalMin % 1440) + 1440) % 1440;
+  const bh = Math.floor(brtMin / 60).toString().padStart(2, "0");
+  const bm = (brtMin % 60).toString().padStart(2, "0");
+  return `${bh}:${bm}`;
+}
 
-  const [h, m]        = timeStr.split(":").map(Number);
-  const matchMin      = h * 60 + m;                          // BRT minutes since midnight
-  const utcMin        = now.getUTCHours() * 60 + now.getUTCMinutes();
-  const brtMin        = ((utcMin - 180) + 1440) % 1440;     // UTC → BRT
-  const diff          = brtMin - matchMin;                   // minutes since kick-off
+// ── Status baseado no horário UTC do jogo vs hora atual UTC ──────────────────
+function deriveStatus(timeUTC, now) {
+  if (!timeUTC) return { status: "upcoming", elapsed: null };
+
+  const [h, m]   = timeUTC.split(":").map(Number);
+  const matchMin = h * 60 + m;                           // minutos UTC desde meia-noite
+  const nowMin   = now.getUTCHours() * 60 + now.getUTCMinutes(); // minutos UTC agora
+  const diff     = nowMin - matchMin;                    // minutos desde o início
 
   if (diff < -10)  return { status: "upcoming", elapsed: null };
-  if (diff > 110)  return { status: "ended",    elapsed: null };  // ~90' + 20' buffer
+  if (diff > 115)  return { status: "ended",    elapsed: null }; // 90' + 25' buffer
   return { status: "live", elapsed: Math.min(90, Math.max(1, diff)) };
 }
-
-// ── Curated schedule by day-of-week ──────────────────────────────────────────
-// All times are BRT (UTC-3). Status is computed at request time via deriveStatus.
-function getCurated(now) {
-  const dow      = now.getUTCDay();               // 0 = Sun … 6 = Sat
-  const schedule = (dow === 0 || dow === 6)
-    ? WEEKEND
-    : (dow === 2 || dow === 4)
-    ? CHAMPIONS_DAYS
-    : MIDWEEK;
-
-  return schedule.map((m, i) => {
-    const { status, elapsed } = deriveStatus(m.time, now);
-    return {
-      ...m,
-      id:        `c${i}`,
-      status,
-      elapsed,
-      scoreHome: null,
-      scoreAway: null,
-    };
-  });
-}
-
-// Times in BRT (UTC-3).
-const WEEKEND = [
-  { home: "Arsenal",       away: "Chelsea",         league: "Premier League",   time: "11:30" },
-  { home: "Real Madrid",   away: "Barcelona",       league: "La Liga",          time: "13:00" },
-  { home: "Juventus",      away: "AC Milan",        league: "Serie A",          time: "14:45" },
-  { home: "Corinthians",   away: "São Paulo",       league: "Brasileirão",      time: "16:00" },
-  { home: "Grêmio",        away: "Internacional",   league: "Brasileirão",      time: "16:00" },
-  { home: "Santos",        away: "Botafogo",        league: "Brasileirão",      time: "18:30" },
-  { home: "Flamengo",      away: "Palmeiras",       league: "Brasileirão",      time: "18:30" },
-  { home: "Atlético-MG",   away: "Cruzeiro",        league: "Brasileirão",      time: "20:30" },
-  { home: "Fortaleza",     away: "Bahia",           league: "Brasileirão",      time: "20:30" },
-  { home: "Bayer Leverkusen", away: "Bayern München", league: "Bundesliga",    time: "15:30" },
-];
-
-const CHAMPIONS_DAYS = [
-  { home: "Bayern München",  away: "Arsenal",         league: "Champions League", time: "16:00" },
-  { home: "Real Madrid",     away: "Manchester City", league: "Champions League", time: "16:00" },
-  { home: "Inter de Milão",  away: "PSG",             league: "Champions League", time: "16:00" },
-  { home: "Atlético Madrid", away: "Dortmund",        league: "Champions League", time: "13:45" },
-  { home: "Flamengo",        away: "River Plate",     league: "Libertadores",     time: "21:30" },
-  { home: "Palmeiras",       away: "Boca Juniors",    league: "Libertadores",     time: "19:00" },
-  { home: "Atlético-MG",     away: "Vélez Sársfield", league: "Libertadores",     time: "21:00" },
-];
-
-const MIDWEEK = [
-  { home: "Manchester City",  away: "Liverpool",       league: "Premier League",   time: "17:30" },
-  { home: "Barcelona",        away: "Sevilla",         league: "La Liga",          time: "21:00" },
-  { home: "Bayern München",   away: "Dortmund",        league: "Bundesliga",       time: "20:30" },
-  { home: "PSG",              away: "Olympique Lyon",  league: "Ligue 1",          time: "21:00" },
-  { home: "Flamengo",         away: "Atlético-MG",     league: "Brasileirão",      time: "20:00" },
-  { home: "Palmeiras",        away: "Corinthians",     league: "Brasileirão",      time: "20:00" },
-  { home: "São Paulo",        away: "Santos",          league: "Brasileirão",      time: "21:30" },
-  { home: "Cruzeiro",         away: "Grêmio",          league: "Série B",          time: "18:30" },
-];

@@ -434,6 +434,7 @@ export default function AppDashboard() {
   const [matches,          setMatches]          = useState([]);
   const [matchesLoading,   setMatchesLoading]   = useState(false);
   const [matchesError,     setMatchesError]     = useState("");
+  const [matchesSource,    setMatchesSource]    = useState(null);
   const [matchesUpdatedAt, setMatchesUpdatedAt] = useState(null);
   const [selectedGame,     setSelectedGame]     = useState(null);
   const [leagueFilter,     setLeagueFilter]     = useState("todos");
@@ -441,15 +442,27 @@ export default function AppDashboard() {
   function loadMatches() {
     setMatchesLoading(true);
     setMatchesError("");
+    setMatches([]);
     fetch("/api/matches")
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then(d => {
-        setMatches(d.matches || []);
+        const games = Array.isArray(d.matches) ? d.matches : [];
+        const src   = d.source || "unknown";
+        console.log("[MotorIA] API games:", games);
+        if (games.length === 0) {
+          console.log("[MotorIA] No real games returned — source:", src);
+        }
+        setMatches(games);
+        setMatchesSource(src);
         setMatchesUpdatedAt(d.updatedAt ? new Date(d.updatedAt) : new Date());
         setMatchesLoading(false);
       })
-      .catch(() => {
-        setMatchesError("Não foi possível carregar as partidas. Verifique sua conexão.");
+      .catch(err => {
+        console.log("[MotorIA] API failed —", err.message || err);
+        setMatchesError("network");
         setMatchesLoading(false);
       });
   }
@@ -1272,19 +1285,37 @@ export default function AppDashboard() {
                     {matchesLoading && (
                       <div className="jg-loading">
                         <span className="jg-dot" /><span className="jg-dot" /><span className="jg-dot" />
-                        <span className="jg-loading-lbl">Buscando partidas...</span>
+                        <span className="jg-loading-lbl">Atualizando jogos reais…</span>
                       </div>
                     )}
                     {matchesError && !matchesLoading && (
-                      <div className="ap-error" role="alert">
-                        {matchesError}
-                        <button className="jg-retry-btn" onClick={loadMatches} type="button">Tentar novamente</button>
+                      <div className="ap-geral-empty" role="alert">
+                        <div className="jg-empty-icon" aria-hidden="true">
+                          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="9.5" stroke="currentColor" strokeWidth="1.4"/>
+                            <path d="M12 7v5.5M12 15.5v.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                          </svg>
+                        </div>
+                        <p className="jg-empty-title">Não conseguimos atualizar os jogos.</p>
+                        <p className="jg-empty-sub">Você pode tentar novamente ou fazer uma análise manual.</p>
+                        <div className="jg-empty-actions">
+                          <button className="jg-retry-btn" onClick={loadMatches} type="button">Tentar novamente</button>
+                          <button className="ap-geral-btn" onClick={() => navigate("nova")} type="button">Analisar manualmente</button>
+                        </div>
                       </div>
                     )}
                     {!matchesLoading && matches.length === 0 && !matchesError && (
                       <div className="ap-geral-empty">
-                        <p>Nenhuma partida encontrada para hoje.</p>
-                        <button className="ap-geral-btn" onClick={() => navigate("nova")}>Análise manual →</button>
+                        <div className="jg-empty-icon" aria-hidden="true">
+                          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                            <rect x="3" y="4" width="18" height="17" rx="2.5" stroke="currentColor" strokeWidth="1.4"/>
+                            <path d="M3 9h18M8 2v4M16 2v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                            <path d="M7.5 14h9M7.5 17.5h5.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                          </svg>
+                        </div>
+                        <p className="jg-empty-title">Nenhum jogo real encontrado agora.</p>
+                        <p className="jg-empty-sub">Os jogos aparecem aqui quando a API retorna partidas disponíveis para hoje.</p>
+                        <button className="ap-geral-btn" onClick={() => navigate("nova")} type="button">Analisar manualmente →</button>
                       </div>
                     )}
 
@@ -1348,7 +1379,7 @@ export default function AppDashboard() {
                                     <span className="jg-team-name jg-team-right">{m.away}</span>
                                   </div>
                                   <div className="jg-card-footer">
-                                    <span className="jg-cta">Escolher mercado →</span>
+                                    <span className="jg-cta">Analisar risco →</span>
                                   </div>
                                 </button>
                               );
@@ -2006,11 +2037,15 @@ body { overflow: hidden; }
 
 .ap-geral-empty {
   background: var(--panel); border: 1px solid var(--border);
-  border-radius: 10px; padding: 32px 20px;
-  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  border-radius: 10px; padding: 36px 24px;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
   text-align: center;
 }
 .ap-geral-empty p { font-size: 13px; color: var(--t3); }
+.jg-empty-icon { color: var(--t3); opacity: .5; margin-bottom: 2px; }
+.jg-empty-title { font-size: 14px !important; font-weight: 600; color: var(--t1) !important; margin: 0; }
+.jg-empty-sub   { font-size: 12px !important; color: var(--t3) !important; line-height: 1.6; max-width: 280px; margin: 0; }
+.jg-empty-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
 
 /* ─ Coming soon ────────────────────────────────────────────────────────────── */
 .ap-coming-panel {
@@ -3132,11 +3167,12 @@ body { overflow: hidden; }
 
 /* ── Error retry button ────────────────────────────────────────────────────── */
 .jg-retry-btn {
-  display: inline-block; margin-left: 10px;
-  font-size: 11px; font-weight: 700; color: var(--red); cursor: pointer;
-  background: none; border: none; font-family: inherit;
-  text-decoration: underline; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: var(--t1); cursor: pointer;
+  background: var(--bg); border: 1px solid var(--border); font-family: inherit;
+  border-radius: 8px; padding: 8px 16px; transition: border-color .18s;
 }
+.jg-retry-btn:hover { border-color: var(--t3); }
 
 /* ── Disclaimer ────────────────────────────────────────────────────────────── */
 .jg-disclaimer {
