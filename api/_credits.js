@@ -49,16 +49,17 @@ module.exports = {
    * O token expira em TOKEN_TTL_DAYS dias (TTL aplicado tanto no campo
    * expiresAt quanto na chave Redis).
    */
-  async generate(email = "") {
+  async generate(email = "", credits = INITIAL_CREDITS) {
     if (!db.isConfigured()) throw new Error("Redis não configurado.");
 
     const token = randomUUID();
     const now   = Date.now();
+    const qty   = Math.max(1, Math.min(500, Number(credits) || INITIAL_CREDITS));
 
     await db.set(
       `tok:${token}`,
       {
-        credits:     INITIAL_CREDITS,
+        credits:     qty,
         creditsUsed: 0,
         created:     now,
         expiresAt:   now + TOKEN_TTL_MS,

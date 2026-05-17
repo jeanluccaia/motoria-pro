@@ -68,14 +68,17 @@ module.exports = async function handler(req, res) {
     return res.status(401).json({ error: "Não autorizado." });
   }
 
-  const { email = "" } = req.body || {};
+  const { email = "", credits } = req.body || {};
+  const creditsNum = credits != null ? Number(credits) : INITIAL_CREDITS;
 
   try {
-    const token = await generate(email);
-    console.log(`[admin-generate] Token gerado — email: ${email || "(sem email)"}, IP: ${ip}`);
+    const token = await generate(email, creditsNum);
+    const qty   = Math.max(1, Math.min(500, creditsNum || INITIAL_CREDITS));
+    console.log(`[admin-generate] Token gerado — email: ${email || "(sem email)"}, credits: ${qty}, IP: ${ip}`);
     return res.status(200).json({
       token,
-      credits:   INITIAL_CREDITS,
+      credits:   qty,
+      link:      `https://motoriaopro.com.br/app?t=${token}`,
       expiresIn: `${TOKEN_TTL_DAYS} dias`,
       email,
     });
