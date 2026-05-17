@@ -109,6 +109,26 @@ function parseAI(text) {
     alertaFinal:         matchBlock(text, "ALERTA_FINAL"),
   };
 }
+function parseAIJson(text) {
+  try {
+    const m = text.match(/\{[\s\S]*\}/);
+    if (m) return JSON.parse(m[0]);
+  } catch {}
+  return null;
+}
+function lookupTeam(name, data) {
+  if (!data?.teams || !name) return null;
+  if (data.teams[name]) return data.teams[name];
+  const n = name.toLowerCase();
+  const key = Object.keys(data.teams).find(k =>
+    n.includes(k.toLowerCase()) || k.toLowerCase().includes(n)
+  );
+  return key ? data.teams[key] : null;
+}
+function lookupH2H(home, away, data) {
+  if (!data?.h2h) return null;
+  return data.h2h[`${home}-${away}`] || data.h2h[`${away}-${home}`] || null;
+}
 function loadHistory() {
   try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]"); }
   catch { return []; }
@@ -439,6 +459,15 @@ export default function AppDashboard() {
   const [selectedGame,     setSelectedGame]     = useState(null);
   const [leagueFilter,     setLeagueFilter]     = useState("todos");
 
+  // Team form / H2H data (static JSON)
+  const [teamData,       setTeamData]       = useState(null);
+  const [selectedMarket, setSelectedMarket] = useState(null); // { tipo, ref }
+  const [marketOdd,      setMarketOdd]      = useState("");
+
+  useEffect(() => {
+    fetch("/jogos-data.json").then(r => r.json()).then(setTeamData).catch(() => {});
+  }, []);
+
   function loadMatches() {
     setMatchesLoading(true);
     setMatchesError("");
@@ -499,14 +528,28 @@ export default function AppDashboard() {
     }, 820);
 
     try {
-      const userMsg = `Aposta: ${jogoVal || "não informado"} | Campeonato: ${campVal || "não informado"} | Tipo: ${tipoVal} | Odd: ${oddVal} | Valor: R$${valorVal || "100"} | Obs: ${obs || "nenhuma"}`;
+      // Build forma/H2H context from static data
+      let formaCtx = "";
+      if (teamData && jogoVal && jogoVal !== "Aposta") {
+        const parts = jogoVal.split(" × ");
+        if (parts.length === 2) {
+          const homeTeam = lookupTeam(parts[0].trim(), teamData);
+          const awayTeam = lookupTeam(parts[1].trim(), teamData);
+          if (homeTeam) formaCtx += ` | ${parts[0].trim()} forma: ${homeTeam.forma.join("-")} GM:${homeTeam.gm} GS:${homeTeam.gs}`;
+          if (awayTeam) formaCtx += ` | ${parts[1].trim()} forma: ${awayTeam.forma.join("-")} GM:${awayTeam.gm} GS:${awayTeam.gs}`;
+          const h2h = lookupH2H(parts[0].trim(), parts[1].trim(), teamData);
+          if (h2h) formaCtx += ` | H2H: H${h2h.h} D${h2h.d} A${h2h.a} méd.${h2h.mediaGols}gols`;
+        }
+      }
+
+      const userMsg = `Jogo: ${jogoVal || "não informado"} | Campeonato: ${campVal || "não informado"} | Mercado: ${tipoVal} | Odd: ${oddVal}${valorVal ? ` | Valor: R$${valorVal}` : ""}${formaCtx}`;
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...(token ? { "x-motoria-token": token } : {}),
         },
-        body: JSON.stringify({ tool: "chance_de_perder", userMessage: userMsg }),
+        body: JSON.stringify({ tool: "aposta", userMessage: userMsg }),
       });
       clearInterval(stepInterval);
       if (res.status === 402) { window.location.href = KIWIFY_URL; return; }
@@ -521,6 +564,7 @@ export default function AppDashboard() {
       if (data.credits !== undefined) setCredits(data.credits);
       if (data.token) { localStorage.setItem(TOKEN_KEY, data.token); setToken(data.token); }
 
+      const aiResult = parseAIJson(rawText);
       const impl     = calcImplicita(oddN);
       const vig      = calcVig(oddN);
       const justaRaw = impl / (1 - vig / 100);
@@ -545,7 +589,8 @@ export default function AppDashboard() {
         valorAposta: valorNum,
         valorRisco:  ((valorNum * (100 - impl)) / 100).toFixed(2),
         ...scoreObj,
-        ai: parseAI(rawText),
+        ai:       parseAI(rawText),
+        aiResult,
       };
       setResult(r);
       setAnalysisId(r.id);
@@ -588,6 +633,7 @@ export default function AppDashboard() {
   function resetForm() {
     setResult(null); setError(""); setJogo(""); setOdd("");
     setValor(""); setObs(""); setCampeonato(""); setSelectedGame(null);
+    setSelectedMarket(null); setMarketOdd("");
     setFlowStep("lista");
   }
 
@@ -601,80 +647,124 @@ export default function AppDashboard() {
 
   // Shared result-card renderer — used in both quick flow and manual flow
   function renderResultCard(r) {
-    const leitura    = deriveLeituraIA(r.score);
-    const riskLbl    = r.label === "CRÍTICO" ? "MUITO ALTO" : r.label;
-    const aiSentence = r.ai?.alertaFinal || r.ai?.leituraConservadora || leitura.sub;
+    const ai = r.aiResult;
+    const veredito = ai?.veredito || (r.score <= 35 ? "VALE APOSTAR" : r.score <= 65 ? "NEUTRO" : "PASSA LONGE");
+    const verColor = veredito === "VALE APOSTAR" ? "#22C55E" : veredito === "NEUTRO" ? "#F59E0B" : "#EF4444";
+    const probReal = ai?.probabilidade_real != null ? Number(ai.probabilidade_real).toFixed(1) : r.impl;
+    const oddJusta = ai?.odd_justa != null ? Number(ai.odd_justa).toFixed(2) : r.justa;
+    const vantagem = ai?.vantagem_percentual != null ? Number(ai.vantagem_percentual) : null;
+    const vantagemStr = vantagem != null ? (vantagem >= 0 ? `+${vantagem}%` : `${vantagem}%`) : null;
+    const vantagemColor = vantagem != null ? (vantagem >= 5 ? "#22C55E" : vantagem >= -5 ? "#F59E0B" : "#EF4444") : "var(--t2)";
+    const razoes = ai?.razoes_positivas || [];
+    const alerta = ai?.alerta || r.ai?.alertaFinal || r.ai?.riscoPrincipal;
+    const confianca = ai?.confianca;
+
     return (
       <div className="db-result-card">
+        {/* Cabeçalho: jogo + mercado + odd */}
         <div className="db-rc-header">
           <div className="db-rc-event">{r.jogo !== "Aposta" ? r.jogo : r.tipo}</div>
           <div className="db-rc-meta">
             {r.jogo !== "Aposta" && <span className="db-rc-badge">{r.tipo}</span>}
             <span className="db-rc-odd">Odd {r.odd.toFixed(2)}</span>
-            {r.valorAposta && <span className="db-rc-valor">R$ {r.valorAposta.toFixed(0)}</span>}
           </div>
         </div>
+
         <div className="db-rc-divider" />
-        <div className="db-rc-risk">
-          <div className="db-rc-risk-top">
-            <span className="db-rc-label">Risco da Aposta</span>
-            <span className="db-rc-level" style={{ color: r.color }}>{riskLbl}</span>
+
+        {/* Veredito principal */}
+        <div className="db-veredito" style={{ background: `${verColor}0F`, borderColor: `${verColor}30` }}>
+          <span className="db-veredito-icon" style={{ color: verColor }} aria-hidden="true">
+            {veredito === "VALE APOSTAR" ? "✓" : veredito === "NEUTRO" ? "—" : "✕"}
+          </span>
+          <span className="db-veredito-text" style={{ color: verColor }}>{veredito}</span>
+          {confianca && (
+            <span className="db-confianca" style={{ borderColor: `${verColor}40`, color: verColor }}>
+              {confianca}
+            </span>
+          )}
+        </div>
+
+        {/* Métricas rápidas */}
+        <div className="db-metrics-row">
+          <div className="db-metric-item">
+            <span className="db-metric-lbl">Prob. Real</span>
+            <span className="db-metric-val">{probReal}%</span>
           </div>
-          <div className="db-rc-score" style={{ color: r.color }}>
-            {r.score}<span className="db-rc-score-denom">/100</span>
+          <div className="db-metric-sep" />
+          <div className="db-metric-item">
+            <span className="db-metric-lbl">Odd Justa</span>
+            <span className="db-metric-val">{oddJusta}</span>
           </div>
-          <div className="db-rbar-wrap" role="img" aria-label={`Risco ${r.score} de 100`}>
-            <div className="db-rbar-track">
-              <div className="db-rbar-zone db-rbar-z1" />
-              <div className="db-rbar-zone db-rbar-z2" />
-              <div className="db-rbar-zone db-rbar-z3" />
-              <div className="db-rbar-zone db-rbar-z4" />
-              <div className="db-rbar-marker" style={{ left: `calc(${Math.min(r.score, 98)}% - 5px)` }} />
+          {vantagemStr && (
+            <>
+              <div className="db-metric-sep" />
+              <div className="db-metric-item">
+                <span className="db-metric-lbl">Vantagem</span>
+                <span className="db-metric-val" style={{ color: vantagemColor }}>{vantagemStr}</span>
+              </div>
+            </>
+          )}
+          {r.valorAposta && (
+            <>
+              <div className="db-metric-sep" />
+              <div className="db-metric-item">
+                <span className="db-metric-lbl">Em risco</span>
+                <span className="db-metric-val" style={{ color: r.color }}>R${r.valorRisco}</span>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* 3 Razões */}
+        {razoes.length > 0 && (
+          <>
+            <div className="db-rc-divider" />
+            <div className="db-razoes">
+              <div className="db-razoes-title">Por que esse cenário</div>
+              {razoes.map((raiz, i) => (
+                <div key={i} className="db-razao-item">
+                  <span className="db-razao-dot" aria-hidden="true" />
+                  <span>{raiz}</span>
+                </div>
+              ))}
             </div>
-          </div>
-          <div className="db-rc-phrase">{getRiscoFrase(r.score)}</div>
-        </div>
-        <div className="db-rc-divider" />
-        <div className="db-rc-data">
-          <div className="db-rc-data-item">
-            <span className="db-rc-label">Chance estimada</span>
-            <span className="db-rc-big db-rc-big-green">
-              {r.impl}<span className="db-rc-sym">%</span>
-            </span>
-            <span className="db-rc-sub">{r.perda}% de não converter</span>
-          </div>
-          <div className="db-rc-data-sep" />
-          <div className="db-rc-data-item">
-            <span className="db-rc-label">Valor em risco</span>
-            <span className="db-rc-big" style={{ color: r.color }}>
-              R$<span>{r.valorRisco || "—"}</span>
-            </span>
-            <span className="db-rc-sub">de R$ {r.valorAposta?.toFixed(0) || "—"} apostados</span>
-          </div>
-        </div>
-        <div className="db-rc-divider" />
-        <div className="db-rc-ai">
-          <span className="db-rc-label">Leitura da IA</span>
-          <div className="db-rc-ai-verdict" style={{ color: leitura.color }}>
-            <span className="db-rc-ai-dot" style={{ background: leitura.color }} aria-hidden="true" />
-            {leitura.text}
-          </div>
-          {aiSentence && <p className="db-rc-ai-sentence">"{aiSentence}"</p>}
-        </div>
+          </>
+        )}
+
+        {/* Alerta */}
+        {alerta && (
+          <>
+            <div className="db-rc-divider" />
+            <div className="db-alerta" role="alert">
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M7 2L13 12H1L7 2Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+                <path d="M7 6v3M7 10.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+              </svg>
+              <span>{alerta}</span>
+            </div>
+          </>
+        )}
       </div>
     );
   }
   function handleCopy(r) {
-    const riskLbl = r.label === "CRÍTICO" ? "MUITO ALTO" : r.label;
-    const aiSentence = r.ai?.alertaFinal || r.ai?.leituraConservadora || "";
+    const ai = r.aiResult;
+    const veredito = ai?.veredito || r.label;
+    const probReal = ai?.probabilidade_real != null ? `${Number(ai.probabilidade_real).toFixed(1)}%` : `${r.impl}%`;
+    const oddJusta = ai?.odd_justa != null ? Number(ai.odd_justa).toFixed(2) : r.justa;
+    const vantagem = ai?.vantagem_percentual != null ? (Number(ai.vantagem_percentual) >= 0 ? `+${ai.vantagem_percentual}%` : `${ai.vantagem_percentual}%`) : null;
+    const alerta   = ai?.alerta || r.ai?.alertaFinal || "";
+    const razoes   = ai?.razoes_positivas || [];
     const lines = [
       `MotorIA Pro · Análise #${r.id}`,
       `${r.jogo} | ${r.tipo} | Odd ${r.odd.toFixed(2)}`,
       ``,
-      `Risco da Aposta: ${r.score}/100 · ${riskLbl}`,
-      `Chance Estimada: ${r.impl}%`,
-      r.valorRisco ? `Valor em Risco: R$ ${r.valorRisco}` : null,
-      aiSentence ? `Leitura da IA: "${aiSentence}"` : null,
+      `VEREDITO: ${veredito}${ai?.confianca ? ` (${ai.confianca})` : ""}`,
+      `Prob. Real: ${probReal} · Odd Justa: ${oddJusta}${vantagem ? ` · Vantagem: ${vantagem}` : ""}`,
+      r.valorRisco ? `Em risco: R$ ${r.valorRisco} de R$ ${r.valorAposta?.toFixed(0)}` : null,
+      razoes.length > 0 ? `\nPor que esse cenário:\n${razoes.map(rz => `• ${rz}`).join("\n")}` : null,
+      alerta ? `\n⚠ ${alerta}` : null,
       ``,
       `Análise educativa. Não representa garantia de resultado.`,
     ].filter(Boolean).join("\n");
@@ -1378,8 +1468,29 @@ export default function AppDashboard() {
                                     </div>
                                     <span className="jg-team-name jg-team-right">{m.away}</span>
                                   </div>
+                                  {teamData && (() => {
+                                    const homeT = lookupTeam(m.home, teamData);
+                                    const awayT = lookupTeam(m.away, teamData);
+                                    if (!homeT && !awayT) return null;
+                                    const dotColor = r => r === "W" ? "#22C55E" : r === "D" ? "#F59E0B" : "#EF4444";
+                                    return (
+                                      <div className="jg-forma-row">
+                                        <div className="jg-forma-side">
+                                          {(homeT?.forma || []).map((r, i) => (
+                                            <span key={i} className="jg-forma-dot" style={{ background: dotColor(r) }} title={r} />
+                                          ))}
+                                        </div>
+                                        <div className="jg-forma-mid" />
+                                        <div className="jg-forma-side jg-forma-side-r">
+                                          {(awayT?.forma || []).map((r, i) => (
+                                            <span key={i} className="jg-forma-dot" style={{ background: dotColor(r) }} title={r} />
+                                          ))}
+                                        </div>
+                                      </div>
+                                    );
+                                  })()}
                                   <div className="jg-card-footer">
-                                    <span className="jg-cta">Analisar risco →</span>
+                                    <span className="jg-cta">Vale apostar? →</span>
                                   </div>
                                 </button>
                               );
@@ -1430,50 +1541,53 @@ export default function AppDashboard() {
                       </div>
                     </div>
 
-                    {/* Market grid */}
+                    {/* Market grid — inline editable odds */}
                     <div className="fl-section-hdr">ESCOLHA O MERCADO</div>
-                    <div className="fl-market-grid">
-                      {MAIN_MARKETS.map(m => (
-                        <button
-                          key={m.tipo}
-                          className="fl-market-btn"
-                          onClick={() => quickAnalyze(m.tipo, m.ref)}
-                          type="button"
-                        >
-                          <span className="fl-market-name">{m.tipo}</span>
-                          <span className="fl-market-ref">Ref. {m.ref}</span>
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Custom odd option */}
-                    <div className="fl-sep">
-                      <span className="fl-sep-line" aria-hidden="true" />
-                      <span className="fl-sep-lbl">ou informe sua odd</span>
-                      <span className="fl-sep-line" aria-hidden="true" />
-                    </div>
-                    <div className="fl-custom-row">
-                      <div className="fl-custom-tipo">
-                        <CustomSelect id="fl-tipo" options={TIPOS} value={tipo} onChange={setTipo} />
-                      </div>
-                      <input
-                        className="ap-input ap-input-odd fl-custom-odd"
-                        type="text"
-                        placeholder="2.80"
-                        value={odd}
-                        onChange={e => setOdd(e.target.value)}
-                        inputMode="decimal"
-                        autoComplete="off"
-                        aria-label="Sua odd"
-                      />
-                      <button
-                        className="fl-custom-submit"
-                        onClick={() => quickAnalyze(tipo, odd)}
-                        disabled={!odd}
-                        type="button"
-                      >
-                        ANALISAR →
-                      </button>
+                    <div className="fl-market-list">
+                      {MAIN_MARKETS.map(m => {
+                        const isOpen = selectedMarket?.tipo === m.tipo;
+                        return (
+                          <div key={m.tipo} className={`fl-mcard${isOpen ? " fl-mcard-open" : ""}`}>
+                            <button
+                              className="fl-mcard-hdr"
+                              onClick={() => {
+                                if (isOpen) { setSelectedMarket(null); setMarketOdd(""); }
+                                else { setSelectedMarket(m); setMarketOdd(m.ref); }
+                              }}
+                              type="button"
+                            >
+                              <span className="fl-mcard-name">{m.tipo}</span>
+                              <span className="fl-mcard-ref">Ref. {m.ref}</span>
+                              <svg className="fl-mcard-chev" width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ transform: isOpen ? "rotate(180deg)" : "none" }}>
+                                <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            </button>
+                            {isOpen && (
+                              <div className="fl-mcard-body">
+                                <span className="fl-mcard-odd-lbl">Sua odd</span>
+                                <input
+                                  className="fl-mcard-odd-input"
+                                  type="text"
+                                  value={marketOdd}
+                                  onChange={e => setMarketOdd(e.target.value)}
+                                  placeholder={m.ref}
+                                  inputMode="decimal"
+                                  autoComplete="off"
+                                  autoFocus
+                                  aria-label="Informe a odd"
+                                />
+                                <button
+                                  className="fl-mcard-confirm"
+                                  onClick={() => quickAnalyze(m.tipo, marketOdd || m.ref)}
+                                  type="button"
+                                >
+                                  Analisar →
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
 
                     {/* Link to full manual form */}
@@ -1572,6 +1686,40 @@ export default function AppDashboard() {
                         </div>
 
                         {renderResultCard(result)}
+
+                        {/* H2H block */}
+                        {teamData && result.jogo && result.jogo !== "Aposta" && (() => {
+                          const parts = result.jogo.split(" × ");
+                          if (parts.length !== 2) return null;
+                          const h2h = lookupH2H(parts[0].trim(), parts[1].trim(), teamData);
+                          if (!h2h) return null;
+                          const total = h2h.h + h2h.d + h2h.a;
+                          const homeShort = parts[0].trim().split(" ")[0];
+                          const awayShort = parts[1].trim().split(" ")[0];
+                          return (
+                            <div className="db-h2h">
+                              <div className="db-h2h-title">H2H · Últimos {total} jogos</div>
+                              <div className="db-h2h-row">
+                                <div className="db-h2h-item">
+                                  <span className="db-h2h-val" style={{ color: "#22C55E" }}>{h2h.h}</span>
+                                  <span className="db-h2h-lbl">{homeShort}</span>
+                                </div>
+                                <div className="db-h2h-item">
+                                  <span className="db-h2h-val">{h2h.d}</span>
+                                  <span className="db-h2h-lbl">Empate</span>
+                                </div>
+                                <div className="db-h2h-item">
+                                  <span className="db-h2h-val" style={{ color: "#EF4444" }}>{h2h.a}</span>
+                                  <span className="db-h2h-lbl">{awayShort}</span>
+                                </div>
+                                <div className="db-h2h-item">
+                                  <span className="db-h2h-val" style={{ color: "#F59E0B" }}>{h2h.mediaGols}</span>
+                                  <span className="db-h2h-lbl">Méd. gols</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
 
                         {/* Note if using reference odd */}
                         {MAIN_MARKETS.some(m => m.ref === result.odd.toFixed(2)) && (
@@ -3459,4 +3607,152 @@ body { overflow: hidden; }
   .fl-custom-tipo { grid-column: 1 / -1; }
   .fl-custom-odd { width: auto; text-align: left; }
 }
+
+/* ── New veredito card ─────────────────────────────────────────────────────── */
+.db-veredito {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.1);
+  animation: ap-fade-up .2s ease both;
+}
+.db-veredito-icon {
+  font-size: 18px; font-weight: 900; line-height: 1; flex-shrink: 0; width: 20px; text-align: center;
+}
+.db-veredito-text {
+  font-size: 15px; font-weight: 900; letter-spacing: .04em; flex: 1;
+}
+.db-confianca {
+  font-size: 9px; font-weight: 800; letter-spacing: .1em;
+  padding: 3px 8px; border-radius: 99px; border: 1px solid;
+  flex-shrink: 0;
+}
+
+/* ── Metrics row ───────────────────────────────────────────────────────────── */
+.db-metrics-row {
+  display: flex; align-items: stretch; gap: 0;
+  background: rgba(255,255,255,.025); border-radius: 10px;
+  border: 1px solid var(--border); overflow: hidden;
+}
+.db-metric-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 11px 8px; gap: 3px;
+}
+.db-metric-lbl {
+  font-size: 9px; font-weight: 700; letter-spacing: .08em; color: var(--t2); text-transform: uppercase;
+}
+.db-metric-val {
+  font-size: 15px; font-weight: 800; color: var(--t1); letter-spacing: -0.02em;
+}
+.db-metric-sep {
+  width: 1px; background: var(--border); flex-shrink: 0; margin: 8px 0;
+}
+
+/* ── Razoes ────────────────────────────────────────────────────────────────── */
+.db-razoes { display: flex; flex-direction: column; gap: 7px; }
+.db-razoes-title {
+  font-size: 9px; font-weight: 800; letter-spacing: .1em; color: var(--t2); text-transform: uppercase;
+}
+.db-razao-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 12px; color: var(--t1); line-height: 1.5;
+}
+.db-razao-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: #22C55E;
+  flex-shrink: 0; margin-top: 5px;
+}
+
+/* ── Alerta ────────────────────────────────────────────────────────────────── */
+.db-alerta {
+  display: flex; align-items: flex-start; gap: 8px;
+  background: rgba(245,158,11,.07); border: 1px solid rgba(245,158,11,.22);
+  border-radius: 8px; padding: 10px 12px;
+  font-size: 12px; color: rgba(245,158,11,.9); line-height: 1.5;
+}
+.db-alerta svg { color: rgba(245,158,11,.8); flex-shrink: 0; margin-top: 1px; }
+
+/* ── H2H block ─────────────────────────────────────────────────────────────── */
+.db-h2h {
+  background: rgba(255,255,255,.025); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 10px;
+  animation: ap-fade-up .2s ease both;
+}
+.db-h2h-title {
+  font-size: 9px; font-weight: 800; letter-spacing: .1em; color: var(--t2); text-transform: uppercase;
+}
+.db-h2h-row {
+  display: flex; gap: 0;
+}
+.db-h2h-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
+.db-h2h-val {
+  font-size: 18px; font-weight: 800; color: var(--t1); letter-spacing: -0.02em;
+}
+.db-h2h-lbl {
+  font-size: 9px; font-weight: 700; color: var(--t2); letter-spacing: .04em;
+}
+
+/* ── Forma dots on game cards ──────────────────────────────────────────────── */
+.jg-forma-row {
+  display: flex; align-items: center; gap: 6px; padding: 4px 0 2px;
+}
+.jg-forma-side { display: flex; gap: 3px; flex: 1; }
+.jg-forma-side-r { justify-content: flex-end; }
+.jg-forma-mid { width: 16px; flex-shrink: 0; }
+.jg-forma-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+
+/* ── Inline market cards (P4) ──────────────────────────────────────────────── */
+.fl-market-list {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.fl-mcard {
+  border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+  background: rgba(255,255,255,.02);
+  transition: border-color .15s;
+}
+.fl-mcard-open {
+  border-color: rgba(34,197,94,.35);
+}
+.fl-mcard-hdr {
+  display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+  background: none; border: none; cursor: pointer; width: 100%;
+  font-family: inherit; text-align: left;
+  transition: background .12s;
+}
+.fl-mcard-hdr:hover { background: rgba(255,255,255,.03); }
+.fl-mcard-name {
+  flex: 1; font-size: 13px; font-weight: 700; color: var(--t1);
+}
+.fl-mcard-ref {
+  font-size: 11px; color: var(--t2); font-weight: 600;
+}
+.fl-mcard-chev {
+  color: var(--t3); flex-shrink: 0; transition: transform .15s;
+}
+.fl-mcard-body {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 12px 12px; border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+.fl-mcard-odd-lbl {
+  font-size: 10px; font-weight: 700; color: var(--t2); letter-spacing: .05em; white-space: nowrap; text-transform: uppercase;
+}
+.fl-mcard-odd-input {
+  flex: 1; background: rgba(255,255,255,.05); border: 1px solid rgba(34,197,94,.3);
+  border-radius: 7px; color: var(--t1); font-family: inherit;
+  font-size: 17px; font-weight: 800; letter-spacing: -0.02em;
+  padding: 8px 10px; outline: none; min-width: 0;
+}
+.fl-mcard-odd-input:focus { border-color: rgba(34,197,94,.6); }
+.fl-mcard-confirm {
+  background: #15803d; color: #dcfce7;
+  font-size: 11px; font-weight: 900; letter-spacing: .06em;
+  padding: 10px 16px; border-radius: 7px; border: none; cursor: pointer;
+  font-family: inherit; white-space: nowrap; flex-shrink: 0;
+  transition: background .13s;
+}
+.fl-mcard-confirm:hover { background: #166534; }
 `;
