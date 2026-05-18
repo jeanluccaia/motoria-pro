@@ -67,10 +67,18 @@ const LOAD_STEPS = [
   { label: "Compilando painel de análise",     pct: 96 },
 ];
 
-const TOKEN_KEY   = "motoria_token";
-const HISTORY_KEY = "motoria_hist_v2";
-const MAX_HISTORY = 8;
-const KIWIFY_URL  = "https://pay.kiwify.com.br/DIVD8zl";
+const TOKEN_KEY      = "motoria_token";
+const HISTORY_KEY    = "motoria_hist_v2";
+const MAX_HISTORY    = 8;
+const KIWIFY_URL     = "https://pay.kiwify.com.br/DIVD8zl";
+const BANKROLL_KEY   = "motoria_bankroll_entries";
+const BANKROLL_CFG   = "motoria_bankroll_cfg";
+
+const BK_MERCADOS = [
+  "Resultado da partida", "Mais ou menos gols", "Ambos marcam",
+  "Handicap", "Empate devolve", "Chance dupla",
+  "Primeiro gol", "Escanteios", "Cartões", "Múltipla",
+];
 
 // ─── Math helpers ─────────────────────────────────────────────────────────────
 
@@ -159,6 +167,79 @@ function mapLeague(league) {
   return "";
 }
 
+// ─── Bankroll helpers ─────────────────────────────────────────────────────────
+
+function loadBankroll() {
+  try { return JSON.parse(localStorage.getItem(BANKROLL_KEY) || "[]"); }
+  catch { return []; }
+}
+function saveBankroll(arr) {
+  try { localStorage.setItem(BANKROLL_KEY, JSON.stringify(arr)); } catch {}
+}
+function loadBkCfg() {
+  try { return JSON.parse(localStorage.getItem(BANKROLL_CFG) || "{}"); }
+  catch { return {}; }
+}
+function saveBkCfg(cfg) {
+  try { localStorage.setItem(BANKROLL_CFG, JSON.stringify(cfg)); } catch {}
+}
+
+function calcBkStats(entries, bancaInicial) {
+  if (!bancaInicial || bancaInicial <= 0) return null;
+  let saldo       = bancaInicial;
+  let ganhos      = 0;
+  let perdas      = 0;
+  let wins        = 0;
+  let losses      = 0;
+  let streak      = 0;
+  let maxStreak   = 0;
+  let curStreak   = 0;
+  let totalApos   = 0;
+
+  const sorted = [...entries].sort((a, b) => a.ts - b.ts);
+
+  for (const e of sorted) {
+    if (e.resultado === "Anulada") continue;
+    totalApos++;
+    if (e.resultado === "Ganhou") {
+      const lucro = parseFloat(e.valor) * (parseFloat(e.odd) - 1);
+      saldo   += lucro;
+      ganhos  += lucro;
+      wins++;
+      curStreak = curStreak > 0 ? curStreak + 1 : 1;
+    } else {
+      saldo   -= parseFloat(e.valor);
+      perdas  += parseFloat(e.valor);
+      losses++;
+      curStreak = curStreak < 0 ? curStreak - 1 : -1;
+    }
+    if (curStreak < 0 && Math.abs(curStreak) > maxStreak) maxStreak = Math.abs(curStreak);
+    streak = curStreak;
+  }
+
+  const lucroTotal  = ganhos - perdas;
+  const roi         = totalApos > 0 ? (lucroTotal / (perdas + ganhos)) * 100 : 0;
+  const acerto      = totalApos > 0 ? (wins / totalApos) * 100 : 0;
+
+  return { saldo, lucroTotal, roi, acerto, wins, losses, totalApos, streak, maxStreak };
+}
+
+function getBkAlerts(entries, bancaInicial) {
+  const alerts = [];
+  if (!bancaInicial || bancaInicial <= 0 || entries.length === 0) return alerts;
+  const last = entries[0]; // most recent
+  const pctBanca = (parseFloat(last?.valor || 0) / bancaInicial) * 100;
+  if (pctBanca > 10)  alerts.push({ type: "danger", msg: `Última entrada: ${pctBanca.toFixed(1)}% da banca — exposição acima do recomendado.` });
+  else if (pctBanca >= 5) alerts.push({ type: "warn",   msg: `Última entrada: ${pctBanca.toFixed(1)}% da banca — atenção à gestão.` });
+
+  const stats = calcBkStats(entries, bancaInicial);
+  if (stats) {
+    if (stats.streak <= -3) alerts.push({ type: "danger", msg: `Sequência de ${Math.abs(stats.streak)} derrotas seguidas — revise a estratégia.` });
+    if (stats.lucroTotal < 0) alerts.push({ type: "warn",   msg: `Resultado acumulado negativo: R$ ${Math.abs(stats.lucroTotal).toFixed(2)} abaixo do investido.` });
+  }
+  return alerts;
+}
+
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
 const IconOverview = () => (
@@ -221,6 +302,14 @@ const IconJogos = () => (
     <circle cx="4.5" cy="9" r=".9" fill="currentColor" opacity=".55"/>
     <circle cx="7" cy="9" r=".9" fill="currentColor" opacity=".55"/>
     <circle cx="9.5" cy="9" r=".9" fill="currentColor" opacity=".55"/>
+  </svg>
+);
+
+const IconBanca = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <rect x="1.5" y="5" width="11" height="8" rx="1.4" stroke="currentColor" strokeWidth="1.3"/>
+    <path d="M4 5V3.5a3 3 0 0 1 6 0V5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+    <circle cx="7" cy="9" r="1.2" fill="currentColor" opacity=".7"/>
   </svg>
 );
 
@@ -460,6 +549,16 @@ export default function AppDashboard() {
   const [selectedGame,     setSelectedGame]     = useState(null);
   const [leagueFilter,     setLeagueFilter]     = useState("todos");
 
+  // Controle de Banca
+  const [bkEntries,      setBkEntries]      = useState(loadBankroll);
+  const [bkCfg,          setBkCfg]          = useState(loadBkCfg);
+  const [bkFormOpen,     setBkFormOpen]     = useState(false);
+  const [bkClearConfirm, setBkClearConfirm] = useState(false);
+  const [bkForm,         setBkForm]         = useState({
+    valor: "", odd: "", resultado: "Ganhou", mercado: "Resultado da partida", obs: "",
+  });
+  const [bkSetupVal,     setBkSetupVal]     = useState("");
+
   // Team form / H2H data (static JSON)
   const [teamData,       setTeamData]       = useState(null);
   const [selectedMarket, setSelectedMarket] = useState(null); // { tipo, ref }
@@ -657,6 +756,48 @@ export default function AppDashboard() {
     setCampeonato(camp);
     setSelectedGame({ ...match, campeonato: camp });
     setFlowStep("mercado"); // → market selection step (stays in jogos view)
+  }
+
+  // ── Bankroll handlers ─────────────────────────────────────────────────────
+  function setupBanca() {
+    const v = parseFloat(bkSetupVal.replace(",", "."));
+    if (!v || v <= 0) return;
+    const cfg = { bancaInicial: v };
+    setBkCfg(cfg);
+    saveBkCfg(cfg);
+    setBkSetupVal("");
+  }
+
+  function addBankrollEntry() {
+    const valor = parseFloat(bkForm.valor.replace(",", "."));
+    const odd   = parseFloat(bkForm.odd.replace(",", "."));
+    if (!valor || valor <= 0 || !odd || odd < 1.01) return;
+    const entry = {
+      id:        Math.random().toString(36).slice(2),
+      ts:        Date.now(),
+      valor,
+      odd,
+      resultado: bkForm.resultado,
+      mercado:   bkForm.mercado,
+      obs:       bkForm.obs.trim(),
+    };
+    const updated = [entry, ...bkEntries];
+    setBkEntries(updated);
+    saveBankroll(updated);
+    setBkForm({ valor: "", odd: "", resultado: "Ganhou", mercado: "Resultado da partida", obs: "" });
+    setBkFormOpen(false);
+  }
+
+  function deleteBankrollEntry(id) {
+    const updated = bkEntries.filter(e => e.id !== id);
+    setBkEntries(updated);
+    saveBankroll(updated);
+  }
+
+  function clearBankroll() {
+    setBkEntries([]);
+    saveBankroll([]);
+    setBkClearConfirm(false);
   }
 
   // Shared result-card renderer — used in both quick flow and manual flow
@@ -914,14 +1055,17 @@ export default function AppDashboard() {
   }
 
   // ─── Sidebar nav structure ──────────────────────────────────────────────────
+  const hasAccess = !!(token && token.length > 10);
+
   const NAV = [
     {
       group: "ANÁLISE",
       items: [
-        { id: "jogos",      label: "Jogos de Hoje",  Icon: IconJogos },
-        { id: "nova",       label: "Análise Manual", Icon: IconAnalyze, manual: true },
-        { id: "geral",      label: "Visão Geral",    Icon: IconOverview },
-        { id: "comparador", label: "Comparador",     Icon: IconCompare, dim: true },
+        { id: "jogos",      label: "Jogos de Hoje",      Icon: IconJogos },
+        { id: "nova",       label: "Análise Manual",      Icon: IconAnalyze, manual: true },
+        { id: "geral",      label: "Visão Geral",         Icon: IconOverview },
+        { id: "banca",      label: "Controle de Banca",   Icon: IconBanca },
+        { id: "comparador", label: "Comparador",          Icon: IconCompare, dim: true },
       ],
     },
     {
@@ -1792,6 +1936,284 @@ export default function AppDashboard() {
 
               </div>
             )}
+
+            {/* ════ CONTROLE DE BANCA ══════════════════════════════════ */}
+            {view === "banca" && (() => {
+              const bancaInicial = parseFloat(bkCfg?.bancaInicial) || 0;
+              const stats        = bancaInicial > 0 ? calcBkStats(bkEntries, bancaInicial) : null;
+              const alerts       = bancaInicial > 0 ? getBkAlerts(bkEntries, bancaInicial) : [];
+              const pctBancaAtual = stats ? ((stats.saldo / bancaInicial) * 100).toFixed(1) : null;
+
+              return (
+                <div className="ap-content" key="banca">
+                  <div className="ap-panel-hdr">
+                    <div className="ap-panel-hdr-left">
+                      <div className="ap-panel-mod">GESTÃO</div>
+                      <div className="ap-panel-title">Controle de Banca</div>
+                    </div>
+                    <div className="ap-panel-online">
+                      <span className="ap-status-dot" aria-hidden="true" />
+                      {bkEntries.length} ENTRADAS
+                    </div>
+                  </div>
+
+                  {/* ── Paywall: sem token → locked preview ─────────────── */}
+                  {!hasAccess ? (
+                    <div className="lk-wrap" style={{ marginTop: 12 }}>
+                      <div className="lk-preview-card" style={{ minHeight: 340 }}>
+                        <div className="lk-header">
+                          <div className="lk-header-event">Controle de Banca</div>
+                          <div className="lk-header-meta">
+                            <span className="lk-badge-blur">████████</span>
+                          </div>
+                        </div>
+                        <div className="lk-divider" />
+                        <div className="bk-stats-blur-row">
+                          {["Saldo atual","ROI","Acerto","Perda máx."].map(l => (
+                            <div key={l} className="bk-stat-blur-card">
+                              <div className="bk-stat-blur-val">██.█</div>
+                              <div className="bk-stat-blur-label">{l}</div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="lk-overlay">
+                          <div className="lk-lock-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                              <rect x="3" y="11" width="18" height="11" rx="3" stroke="rgba(255,255,255,.25)" strokeWidth="1.5"/>
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="rgba(255,255,255,.25)" strokeWidth="1.5" strokeLinecap="round"/>
+                              <circle cx="12" cy="16" r="1.5" fill="rgba(255,255,255,.25)"/>
+                            </svg>
+                          </div>
+                          <div className="lk-lock-title">Controle de banca disponível com acesso</div>
+                          <div className="lk-lock-sub">Registre entradas · acompanhe ROI · gerencie sua banca</div>
+                          <a href={KIWIFY_URL} className="lk-cta-btn">Desbloquear acesso completo</a>
+                          <div className="lk-price-note">Pagamento único · sem mensalidade · acesso imediato · R$ 27</div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* ── Setup da banca inicial ──────────────────────── */}
+                      {!bancaInicial && (
+                        <div className="bk-setup-panel">
+                          <div className="bk-setup-title">Configure sua banca inicial</div>
+                          <div className="bk-setup-sub">Informe o valor total que você dedica às apostas para calcular métricas precisas.</div>
+                          <div className="bk-setup-row">
+                            <span className="bk-currency">R$</span>
+                            <input
+                              className="ap-input bk-setup-input"
+                              type="number"
+                              min="1"
+                              step="0.01"
+                              placeholder="Ex: 500.00"
+                              value={bkSetupVal}
+                              onChange={e => setBkSetupVal(e.target.value)}
+                              onKeyDown={e => e.key === "Enter" && setupBanca()}
+                            />
+                            <button className="bk-setup-btn" onClick={setupBanca}>Confirmar</button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* ── Alertas inteligentes ─────────────────────────── */}
+                      {alerts.length > 0 && (
+                        <div className="bk-alerts">
+                          {alerts.map((a, i) => (
+                            <div key={i} className={`bk-alert bk-alert-${a.type}`}>
+                              <span className="bk-alert-icon">{a.type === "danger" ? "⚠" : "●"}</span>
+                              {a.msg}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* ── Dashboard cards ──────────────────────────────── */}
+                      {bancaInicial > 0 && stats && (
+                        <div className="bk-cards">
+                          <div className="bk-card">
+                            <div className="bk-card-label">SALDO ATUAL</div>
+                            <div className="bk-card-val" style={{ color: stats.saldo >= bancaInicial ? "var(--green)" : "var(--red)" }}>
+                              R$ {stats.saldo.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </div>
+                            <div className="bk-card-sub">{pctBancaAtual}% da banca inicial</div>
+                          </div>
+                          <div className="bk-card">
+                            <div className="bk-card-label">LUCRO / PREJUÍZO</div>
+                            <div className="bk-card-val" style={{ color: stats.lucroTotal >= 0 ? "var(--green)" : "var(--red)" }}>
+                              {stats.lucroTotal >= 0 ? "+" : ""}R$ {Math.abs(stats.lucroTotal).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </div>
+                            <div className="bk-card-sub">{stats.wins}G · {stats.losses}P de {stats.totalApos} apostas</div>
+                          </div>
+                          <div className="bk-card">
+                            <div className="bk-card-label">ROI</div>
+                            <div className="bk-card-val" style={{ color: stats.roi >= 0 ? "var(--green)" : "var(--red)" }}>
+                              {stats.roi >= 0 ? "+" : ""}{stats.roi.toFixed(1)}%
+                            </div>
+                            <div className="bk-card-sub">Retorno sobre investido</div>
+                          </div>
+                          <div className="bk-card">
+                            <div className="bk-card-label">TAXA DE ACERTO</div>
+                            <div className="bk-card-val" style={{ color: stats.acerto >= 55 ? "var(--green)" : stats.acerto >= 45 ? "var(--amber)" : "var(--red)" }}>
+                              {stats.acerto.toFixed(1)}%
+                            </div>
+                            <div className="bk-card-sub">{stats.wins} vitórias</div>
+                          </div>
+                          <div className="bk-card">
+                            <div className="bk-card-label">SEQUÊNCIA ATUAL</div>
+                            <div className="bk-card-val" style={{ color: stats.streak > 0 ? "var(--green)" : stats.streak < 0 ? "var(--red)" : "var(--t2)" }}>
+                              {stats.streak > 0 ? `+${stats.streak}` : stats.streak === 0 ? "—" : stats.streak}
+                            </div>
+                            <div className="bk-card-sub">Pior sequência: {stats.maxStreak} derrotas</div>
+                          </div>
+                          <div className="bk-card">
+                            <div className="bk-card-label">BANCA INICIAL</div>
+                            <div className="bk-card-val" style={{ color: "var(--t1)" }}>
+                              R$ {bancaInicial.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </div>
+                            <div className="bk-card-sub bk-reset-link" onClick={() => { setBkCfg({}); saveBkCfg({}); }}>redefinir</div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* ── Botão adicionar entrada ──────────────────────── */}
+                      <div className="bk-actions">
+                        <button className="bk-add-btn" onClick={() => setBkFormOpen(o => !o)}>
+                          {bkFormOpen ? "Cancelar" : "+ Registrar entrada"}
+                        </button>
+                        {bkEntries.length > 0 && (
+                          bkClearConfirm ? (
+                            <div className="bk-clear-confirm">
+                              <span>Apagar tudo?</span>
+                              <button className="bk-clear-yes" onClick={clearBankroll}>Sim, apagar</button>
+                              <button className="bk-clear-no"  onClick={() => setBkClearConfirm(false)}>Cancelar</button>
+                            </div>
+                          ) : (
+                            <button className="bk-clear-btn" onClick={() => setBkClearConfirm(true)}>Limpar histórico</button>
+                          )
+                        )}
+                      </div>
+
+                      {/* ── Formulário de entrada ────────────────────────── */}
+                      {bkFormOpen && (
+                        <div className="bk-form">
+                          <div className="bk-form-row">
+                            <div className="bk-form-field">
+                              <label className="ap-label">VALOR APOSTADO (R$)</label>
+                              <input
+                                className="ap-input"
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                placeholder="Ex: 25.00"
+                                value={bkForm.valor}
+                                onChange={e => setBkForm(f => ({ ...f, valor: e.target.value }))}
+                              />
+                            </div>
+                            <div className="bk-form-field">
+                              <label className="ap-label">ODD</label>
+                              <input
+                                className="ap-input"
+                                type="number"
+                                min="1.01"
+                                step="0.01"
+                                placeholder="Ex: 1.85"
+                                value={bkForm.odd}
+                                onChange={e => setBkForm(f => ({ ...f, odd: e.target.value }))}
+                              />
+                            </div>
+                          </div>
+                          <div className="bk-form-row">
+                            <div className="bk-form-field">
+                              <label className="ap-label">RESULTADO</label>
+                              <select
+                                className="ap-input"
+                                value={bkForm.resultado}
+                                onChange={e => setBkForm(f => ({ ...f, resultado: e.target.value }))}
+                              >
+                                <option>Ganhou</option>
+                                <option>Perdeu</option>
+                                <option>Anulada</option>
+                              </select>
+                            </div>
+                            <div className="bk-form-field">
+                              <label className="ap-label">MERCADO</label>
+                              <select
+                                className="ap-input"
+                                value={bkForm.mercado}
+                                onChange={e => setBkForm(f => ({ ...f, mercado: e.target.value }))}
+                              >
+                                {BK_MERCADOS.map(m => <option key={m}>{m}</option>)}
+                              </select>
+                            </div>
+                          </div>
+                          <div className="bk-form-field">
+                            <label className="ap-label">OBSERVAÇÃO (opcional)</label>
+                            <input
+                              className="ap-input"
+                              type="text"
+                              maxLength={120}
+                              placeholder="Ex: Flamengo × Palmeiras — aposta no empate"
+                              value={bkForm.obs}
+                              onChange={e => setBkForm(f => ({ ...f, obs: e.target.value }))}
+                            />
+                          </div>
+                          <button
+                            className="bk-submit-btn"
+                            onClick={addBankrollEntry}
+                            disabled={!bkForm.valor || !bkForm.odd}
+                          >
+                            Salvar entrada
+                          </button>
+                        </div>
+                      )}
+
+                      {/* ── Histórico de entradas ────────────────────────── */}
+                      {bkEntries.length > 0 ? (
+                        <div className="bk-hist">
+                          <div className="bk-hist-hdr">
+                            <span>Data</span>
+                            <span>Mercado</span>
+                            <span>Odd</span>
+                            <span>Valor</span>
+                            <span>Resultado</span>
+                            <span></span>
+                          </div>
+                          {bkEntries.map(e => {
+                            const cor = e.resultado === "Ganhou" ? "var(--green)" : e.resultado === "Perdeu" ? "var(--red)" : "var(--t2)";
+                            const retorno = e.resultado === "Ganhou"
+                              ? `+R$ ${(e.valor * (e.odd - 1)).toFixed(2)}`
+                              : e.resultado === "Perdeu"
+                              ? `-R$ ${parseFloat(e.valor).toFixed(2)}`
+                              : "—";
+                            return (
+                              <div key={e.id} className="bk-hist-row">
+                                <span className="bk-hist-date">{new Date(e.ts).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}</span>
+                                <span className="bk-hist-mercado">{e.mercado}</span>
+                                <span className="bk-hist-odd">{parseFloat(e.odd).toFixed(2)}</span>
+                                <span className="bk-hist-valor">R$ {parseFloat(e.valor).toFixed(2)}</span>
+                                <span className="bk-hist-res" style={{ color: cor }}>{retorno}</span>
+                                <button className="bk-hist-del" onClick={() => deleteBankrollEntry(e.id)} aria-label="Remover">×</button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : bancaInicial > 0 ? (
+                        <div className="ap-empty">Nenhuma entrada registrada. Use o botão acima para adicionar.</div>
+                      ) : null}
+
+                      {/* ── Frases educativas ────────────────────────────── */}
+                      <div className="bk-edu">
+                        <p>A gestão de banca é o único fator que você controla totalmente em apostas. Defina um limite, respeite-o.</p>
+                        <p>Recomenda-se arriscar entre 1% e 3% da banca por entrada para preservar o capital a longo prazo.</p>
+                      </div>
+                      <p className="db-disclaimer">
+                        Ferramenta educativa. Não representa orientação financeira. A responsabilidade pelas decisões é inteiramente sua.
+                      </p>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* ════ HISTÓRICO ══════════════════════════════════════════ */}
             {view === "historico" && (
@@ -3999,5 +4421,161 @@ body { overflow: hidden; }
   .lk-lock-title { font-size: 14px; }
   .lk-lock-sub { font-size: 11px; }
   .lk-score-blur { font-size: 48px; }
+}
+
+/* ─ Controle de Banca ──────────────────────────────────────────────────────── */
+
+/* Setup */
+.bk-setup-panel {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px 22px; margin-bottom: 16px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.bk-setup-title { font-size: 13px; font-weight: 800; color: var(--t1); }
+.bk-setup-sub   { font-size: 11.5px; color: var(--t2); line-height: 1.5; }
+.bk-setup-row   { display: flex; align-items: center; gap: 8px; }
+.bk-currency    { font-size: 13px; font-weight: 700; color: var(--t2); }
+.bk-setup-input { flex: 1; }
+.bk-setup-btn {
+  background: #16a34a; color: #dcfce7;
+  font-size: 11.5px; font-weight: 800; letter-spacing: .05em;
+  border: none; border-radius: 8px; padding: 10px 18px;
+  cursor: pointer; font-family: inherit; white-space: nowrap;
+  transition: background .15s;
+}
+.bk-setup-btn:hover { background: #15803d; }
+
+/* Alerts */
+.bk-alerts { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; }
+.bk-alert {
+  display: flex; align-items: flex-start; gap: 8px;
+  border-radius: 8px; padding: 10px 13px; font-size: 11.5px; line-height: 1.5;
+  border: 1px solid transparent;
+}
+.bk-alert-danger { background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.2); color: #fca5a5; }
+.bk-alert-warn   { background: rgba(245,158,11,.08); border-color: rgba(245,158,11,.18); color: #fcd34d; }
+.bk-alert-icon   { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+
+/* Dashboard cards */
+.bk-cards {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  margin-bottom: 14px;
+}
+.bk-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 14px 12px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.bk-card-label { font-size: 9px; font-weight: 800; letter-spacing: .1em; color: var(--t2); }
+.bk-card-val   { font-size: 18px; font-weight: 900; line-height: 1.1; }
+.bk-card-sub   { font-size: 10px; color: var(--t2); }
+.bk-reset-link { cursor: pointer; color: var(--t3); transition: color .12s; }
+.bk-reset-link:hover { color: var(--t2); }
+
+/* Actions row */
+.bk-actions { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.bk-add-btn {
+  background: #16a34a; color: #dcfce7;
+  font-size: 11.5px; font-weight: 800; letter-spacing: .05em;
+  border: none; border-radius: 8px; padding: 10px 20px;
+  cursor: pointer; font-family: inherit;
+  transition: background .15s, transform .12s;
+}
+.bk-add-btn:hover { background: #15803d; transform: translateY(-1px); }
+.bk-clear-btn {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--t2); font-size: 11px; font-weight: 700; letter-spacing: .04em;
+  border-radius: 7px; padding: 9px 14px; cursor: pointer; font-family: inherit;
+  transition: border-color .13s, color .13s;
+}
+.bk-clear-btn:hover { border-color: rgba(239,68,68,.3); color: #fca5a5; }
+.bk-clear-confirm { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--t2); }
+.bk-clear-yes {
+  background: rgba(239,68,68,.15); color: #fca5a5; border: 1px solid rgba(239,68,68,.25);
+  font-size: 11px; font-weight: 700; border-radius: 6px;
+  padding: 6px 12px; cursor: pointer; font-family: inherit;
+}
+.bk-clear-no {
+  background: transparent; color: var(--t2); border: 1px solid var(--border);
+  font-size: 11px; font-weight: 700; border-radius: 6px;
+  padding: 6px 12px; cursor: pointer; font-family: inherit;
+}
+
+/* Form */
+.bk-form {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; padding: 18px; margin-bottom: 14px;
+  display: flex; flex-direction: column; gap: 12px;
+  animation: ap-fade-up .18s ease both;
+}
+.bk-form-row   { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.bk-form-field { display: flex; flex-direction: column; gap: 5px; }
+.bk-submit-btn {
+  background: #16a34a; color: #dcfce7;
+  font-size: 12px; font-weight: 900; letter-spacing: .07em;
+  border: none; border-radius: 9px; padding: 13px;
+  cursor: pointer; font-family: inherit;
+  transition: background .15s; margin-top: 2px;
+}
+.bk-submit-btn:hover:not(:disabled) { background: #15803d; }
+.bk-submit-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* History table */
+.bk-hist { margin-bottom: 18px; }
+.bk-hist-hdr {
+  display: grid; grid-template-columns: 56px 1fr 60px 80px 100px 28px;
+  gap: 8px; padding: 6px 8px;
+  font-size: 9px; font-weight: 800; letter-spacing: .1em; color: var(--t2);
+  border-bottom: 1px solid var(--border);
+}
+.bk-hist-row {
+  display: grid; grid-template-columns: 56px 1fr 60px 80px 100px 28px;
+  gap: 8px; padding: 9px 8px;
+  font-size: 11.5px; color: var(--t1);
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  align-items: center;
+  transition: background .1s;
+}
+.bk-hist-row:hover { background: rgba(255,255,255,.02); border-radius: 6px; }
+.bk-hist-date    { color: var(--t2); font-size: 10.5px; }
+.bk-hist-mercado { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.bk-hist-odd     { font-weight: 700; }
+.bk-hist-valor   { }
+.bk-hist-res     { font-weight: 800; font-size: 11.5px; }
+.bk-hist-del {
+  background: none; border: none; color: var(--t3);
+  cursor: pointer; font-size: 15px; line-height: 1;
+  padding: 2px 4px; border-radius: 4px;
+  transition: color .12s, background .12s;
+}
+.bk-hist-del:hover { color: #fca5a5; background: rgba(239,68,68,.1); }
+
+/* Blurred stats (paywall preview) */
+.bk-stats-blur-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 12px 0 36px;
+}
+.bk-stat-blur-card {
+  background: rgba(255,255,255,.03); border-radius: 8px;
+  padding: 12px 10px; display: flex; flex-direction: column; gap: 5px;
+  user-select: none; pointer-events: none;
+}
+.bk-stat-blur-val   { font-size: 20px; font-weight: 900; filter: blur(7px); color: var(--t2); }
+.bk-stat-blur-label { font-size: 9px; font-weight: 800; letter-spacing: .1em; color: var(--t3); }
+
+/* Educational */
+.bk-edu {
+  display: flex; flex-direction: column; gap: 7px;
+  background: rgba(255,255,255,.02); border: 1px solid var(--border);
+  border-radius: 9px; padding: 14px 16px; margin-bottom: 12px;
+}
+.bk-edu p { font-size: 11px; color: var(--t2); line-height: 1.6; }
+
+@media (max-width: 640px) {
+  .bk-cards { grid-template-columns: repeat(2, 1fr); }
+  .bk-hist-hdr,
+  .bk-hist-row { grid-template-columns: 48px 1fr 52px 70px 28px; }
+  .bk-hist-mercado { display: none; }
+  .bk-stats-blur-row { grid-template-columns: repeat(2, 1fr); }
+  .bk-form-row { grid-template-columns: 1fr; }
 }
 `;
