@@ -129,10 +129,9 @@ export default function Landing() {
 
           {/* Right — imagem hero */}
           <div className="lp-hero-right">
-            {/* INSERIR IMAGEM 1 AQUI — salvar como: /public/hero-risk-awareness.webp */}
             <div className="lp-img-wrap">
               <img
-                src="/hero-risk-awareness.webp"
+                src="/hero-risk-awareness.png"
                 alt="Homem analisando aposta no celular antes de entrar"
                 className="lp-hero-img"
                 loading="eager"
@@ -254,10 +253,9 @@ export default function Landing() {
             "A maioria só olha a odd.<br />Poucos sabem o quanto já perderam esse mês."
           </p>
 
-          {/* INSERIR IMAGEM 2 AQUI — salvar como: /public/bankroll-control-dashboard.webp */}
           <div className="lp-img-wrap lp-img-wrap-banca">
             <img
-              src="/bankroll-control-dashboard.webp"
+              src="/bankroll-control-dashboard.png"
               alt="Celular mostrando dashboard de controle de banca com saldo e lucro"
               className="lp-banca-img"
               loading="lazy"
