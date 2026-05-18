@@ -669,7 +669,10 @@ export default function AppDashboard() {
       if (data.credits !== undefined) setCredits(data.credits);
       if (data.token) { localStorage.setItem(TOKEN_KEY, data.token); setToken(data.token); }
       // Sem token → API retorna locked: true sem chamar Anthropic
+      // Efeito cinético: pausa em 75%, blur-in de 800ms, então exibe o paywall
       if (data.locked) {
+        setLoadPct(75);
+        await new Promise(r => setTimeout(r, 1500));
         setResult({ locked: true, signals: data.preview?.signals || [] });
         setLoadPct(100);
         setTimeout(() => setLoading(false), 280);
@@ -2286,6 +2289,28 @@ export default function AppDashboard() {
 
           </main>
         </div>
+
+        {/* ── MOBILE TAB BAR ──────────────────────────────────────────── */}
+        <nav className="ap-tab-bar" aria-label="Navegação principal">
+          {[
+            { id: "jogos",  label: "Jogos",   Icon: IconJogos },
+            { id: "nova",   label: "Análise", Icon: IconAnalyze },
+            { id: "banca",  label: "Banca",   Icon: IconBanca },
+            { id: "config", label: "Config",  Icon: IconConfig },
+          ].map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              className={`ap-tab-item${view === id ? " ap-tab-active" : ""}`}
+              onClick={() => navigate(id)}
+              aria-current={view === id ? "page" : undefined}
+              type="button"
+            >
+              <Icon />
+              <span className="ap-tab-label">{label}</span>
+            </button>
+          ))}
+        </nav>
+
       </div>
     </>
   );
@@ -4577,5 +4602,56 @@ body { overflow: hidden; }
   .bk-hist-mercado { display: none; }
   .bk-stats-blur-row { grid-template-columns: repeat(2, 1fr); }
   .bk-form-row { grid-template-columns: 1fr; }
+}
+
+/* ─ Locked card entrance animation ─────────────────────────────────────────── */
+@keyframes lk-reveal {
+  from { opacity: 0; filter: blur(8px); transform: translateY(6px); }
+  to   { opacity: 1; filter: blur(0px); transform: translateY(0); }
+}
+.lk-wrap {
+  animation: lk-reveal .8s cubic-bezier(.4,0,.2,1) both;
+}
+
+/* ─ Mobile bottom tab bar ───────────────────────────────────────────────────── */
+.ap-tab-bar { display: none; }
+
+@media (max-width: 640px) {
+  /* Show tab bar */
+  .ap-tab-bar {
+    display: flex;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    padding-bottom: max(env(safe-area-inset-bottom), 8px);
+    z-index: 45;
+    /* keep above main content, below sidebar overlay */
+  }
+
+  .ap-tab-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 3px; padding: 9px 4px 4px;
+    background: none; border: none;
+    cursor: pointer; font-family: inherit;
+    color: var(--t2); transition: color .12s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ap-tab-item:active { background: rgba(255,255,255,.03); }
+  .ap-tab-label {
+    font-size: 9px; font-weight: 700; letter-spacing: .05em;
+    line-height: 1;
+  }
+  .ap-tab-active { color: var(--green); }
+
+  /* Push main content up above tab bar (~60px bar + safe area) */
+  .ap-main {
+    padding-bottom: calc(60px + max(env(safe-area-inset-bottom), 8px));
+  }
+
+  /* Sidebar bottom safe area (home indicator below last nav item) */
+  .ap-sidebar {
+    padding-bottom: max(env(safe-area-inset-bottom), 16px);
+  }
 }
 `;

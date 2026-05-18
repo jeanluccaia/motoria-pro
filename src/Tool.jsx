@@ -122,7 +122,7 @@ export default function Tool() {
   const [token,        setToken]        = useState(() => localStorage.getItem(TOKEN_KEY) || "");
   const [credits,      setCredits]      = useState(null);
   const [freeUsed,     setFreeUsed]     = useState(0);
-  const [gateMode,     setGateMode]     = useState(null); // null | "free_limit" | "no_credits"
+  const [gateMode,     setGateMode]     = useState(null); // null | "free_limit" | "no_credits" | "no_access"
   const [tokenInput,   setTokenInput]   = useState("");
   const [tokenLoading, setTokenLoading] = useState(false);
   const [tokenError,   setTokenError]   = useState("");
@@ -236,6 +236,14 @@ export default function Tool() {
         body:    JSON.stringify({ tool: "chance_de_perder", userMessage: parts.join("\n") }),
       });
       const data = await res.json();
+
+      // ── Sem token → bloqueio real (API não chamou Anthropic) ─────────────────
+      if (data.locked) {
+        stopCycle();
+        setGateMode("no_access");
+        setLoading(false);
+        return;
+      }
 
       // ── Crédito / paywall ────────────────────────────────────────────────────
       if (res.status === 402) {
@@ -390,6 +398,12 @@ export default function Tool() {
                     <circle cx="11" cy="11" r="9" stroke="currentColor" strokeWidth="1.5"/>
                     <path d="M11 7v5M11 15h.01" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
                   </svg>
+                ) : gateMode === "no_access" ? (
+                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                    <rect x="3" y="10" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                    <path d="M7 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <circle cx="11" cy="15" r="1.3" fill="currentColor"/>
+                  </svg>
                 ) : (
                   <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
                     <path d="M11 3L19 7V15L11 19L3 15V7L11 3Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
@@ -401,18 +415,34 @@ export default function Tool() {
                 <h2 className="tl-gate-title">
                   {gateMode === "no_credits"
                     ? "Suas análises acabaram."
+                    : gateMode === "no_access"
+                    ? "Resultado completo disponível."
                     : "Você usou as 2 análises gratuitas."}
                 </h2>
                 <p className="tl-gate-sub">
                   {gateMode === "no_credits"
                     ? "Recarregue 20 novas análises por R$27 e continue vendo o risco real antes de apostar."
+                    : gateMode === "no_access"
+                    ? "Desbloqueie a análise completa, controle de banca e histórico. Pagamento único — sem mensalidade."
                     : "Para continuar vendo o risco real das suas apostas, desbloqueie o acesso completo — 20 análises por R$27."}
                 </p>
+                {gateMode === "no_access" && (
+                  <div className="tl-gate-price">
+                    <span className="tl-gate-price-old">R$47</span>
+                    <span className="tl-gate-price-real">R$27</span>
+                  </div>
+                )}
                 <a href={KIWIFY_URL} className="tl-gate-btn" target="_blank" rel="noopener noreferrer">
-                  Comprar 20 análises — R$27 →
+                  {gateMode === "no_access" ? "Desbloquear agora →" : "Comprar 20 análises — R$27 →"}
                 </a>
+                {gateMode === "no_access" && (
+                  <p className="tl-gate-payment-note">Pagamento único · Sem mensalidade · Acesso imediato</p>
+                )}
                 <ul className="tl-gate-feats">
-                  {["20 análises incluídas", "Nível de risco por aposta", "O que pode dar errado em cada uma", "Recarregável quando precisar"].map(f => (
+                  {(gateMode === "no_access"
+                    ? ["Análise de risco completa por aposta", "Controle de Banca: ROI, saldo e sequência", "Alertas de exposição alta", "20 análises incluídas · Pagamento único"]
+                    : ["20 análises incluídas", "Nível de risco por aposta", "O que pode dar errado em cada uma", "Recarregável quando precisar"]
+                  ).map(f => (
                     <li key={f}><span className="tl-gate-check">✓</span> {f}</li>
                   ))}
                 </ul>
@@ -1407,6 +1437,20 @@ option { background: #111; color: var(--t1); }
 }
 .tl-gate-feats li { font-size: 13px; color: var(--t2); }
 .tl-gate-check { color: var(--green); font-weight: 700; margin-right: 6px; }
+.tl-gate-price {
+  display: flex; align-items: baseline; gap: 10px;
+  justify-content: center; margin-bottom: 10px;
+}
+.tl-gate-price-old {
+  font-size: 14px; color: var(--t3);
+  text-decoration: line-through; font-weight: 600;
+}
+.tl-gate-price-real {
+  font-size: 28px; font-weight: 900; color: var(--t1); letter-spacing: -.03em;
+}
+.tl-gate-payment-note {
+  font-size: 11px; color: var(--t3); margin: 4px 0 0; text-align: center;
+}
 .tl-gate-divider {
   display: flex; align-items: center; gap: 12px;
   width: 100%; margin: 8px 0 16px;
