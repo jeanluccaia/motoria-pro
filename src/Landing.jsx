@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Footer } from "./Layout";
 import { Link } from "./router";
 
@@ -60,8 +60,16 @@ const FEATURES = [
   { text: "Nota de risco instantânea por aposta" },
   { text: "Probabilidade real em segundos" },
   { text: "Margem escondida da casa revelada" },
-  { text: "Simulador: veja o impacto em 30 dias" },
+  { text: "Controle de Banca: ROI, saldo e sequência de perdas em tempo real" },
   { text: 'Alerta de tilt — avisa antes de você entrar em modo "recuperação"', tilt: true },
+];
+
+const BK_BANCA_FEATURES = [
+  "Acompanhe saldo, lucro/prejuízo e ROI em tempo real",
+  "Veja quanto da sua banca está em risco por entrada",
+  "Identifique sequências de perdas antes de agir no impulso",
+  "Registre suas entradas e entenda seus padrões",
+  "Receba alertas quando a exposição estiver alta demais",
 ];
 
 const FAQ_ITEMS = [
@@ -103,6 +111,102 @@ function FaqItem({ q, a }) {
       </div>
       {open && <p className="lp-faq-a">{a}</p>}
     </div>
+  );
+}
+
+/* ── Controle de Banca dashboard (static simulation) ─────────────────────── */
+function BancaSection() {
+  const [barVisible, setBarVisible] = useState(false);
+  const barRef = useRef(null);
+
+  useEffect(() => {
+    const el = barRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setBarVisible(true); obs.disconnect(); }
+    }, { threshold: 0.3 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  const cards = [
+    { label: "Saldo Atual",           val: "R$ 1.247,00", sub: "+R$ 247 desde o início",      color: "#22c55e", type: "money" },
+    { label: "Lucro / Prejuízo",      val: "+R$ 247,00",  sub: "+24,7% sobre a banca inicial", color: "#22c55e", type: "money" },
+    { label: "ROI",                   val: "+12,4%",       sub: "Últimas 30 entradas",          color: "#22c55e", type: "roi" },
+    { label: "% da Banca em Risco",   val: "3,2%",         sub: "Dentro do limite seguro",      color: "#22c55e", type: "bar" },
+    { label: "Sequência de Perdas",   val: "1",            sub: "Sem alerta ativo",             color: "#22c55e", type: "streak" },
+    { label: "Total de Entradas",     val: "30",           sub: "Entradas registradas",         color: "#e8e8e6", type: "count" },
+  ];
+
+  return (
+    <section className="lp-section lp-banca-section" id="controle-banca">
+      <div className="lp-container">
+
+        {/* Header */}
+        <div className="lp-section-eyebrow">Controle de Banca</div>
+        <h2 className="lp-h2 lp-h2-narrow">
+          Risco também é<br />tamanho de entrada.
+        </h2>
+        <p className="lp-banca-sub">
+          Uma análise boa não salva uma banca mal gerida. Mesmo uma entrada com boa
+          leitura pode virar problema quando o valor exposto é alto demais.
+        </p>
+
+        {/* Dashboard simulado */}
+        <div className="lp-bk-grid" ref={barRef}>
+          {cards.map((c, i) => (
+            <div className="lp-bk-card" key={i}>
+              <div className="lp-bk-label">{c.label}</div>
+              <div className="lp-bk-val" style={{ color: c.color }}>{c.val}</div>
+              {c.type === "bar" ? (
+                <>
+                  <div className="lp-bk-pct-bar">
+                    <div className="lp-bk-pct-zone lp-bk-zone-g" />
+                    <div className="lp-bk-pct-zone lp-bk-zone-y" />
+                    <div className="lp-bk-pct-zone lp-bk-zone-r" />
+                    <div
+                      className="lp-bk-pct-thumb"
+                      style={{ left: `${barVisible ? 3.2 : 0}%`, transition: barVisible ? "left 1.1s cubic-bezier(.4,0,.2,1)" : "none" }}
+                    />
+                  </div>
+                  <div className="lp-bk-bar-labels">
+                    <span>0%</span><span>5%</span><span>10%</span><span>+</span>
+                  </div>
+                  <div className="lp-bk-sub">{c.sub}</div>
+                </>
+              ) : (
+                <div className="lp-bk-sub">{c.sub}</div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Alerta dinâmico */}
+        <div className="lp-bk-alert">
+          <div className="lp-bk-alert-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L2 22h20L12 2z" stroke="#f59e0b" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12 9v5M12 17.5v.5" stroke="#f59e0b" strokeWidth="1.8" strokeLinecap="round"/>
+            </svg>
+          </div>
+          <p className="lp-bk-alert-text">
+            <strong>Atenção à exposição:</strong> Você está na 3ª entrada consecutiva com exposição acima de 5%.
+            Considere reduzir o tamanho da próxima entrada.
+          </p>
+        </div>
+
+        {/* Feature list */}
+        <ul className="lp-bk-features">
+          {BK_BANCA_FEATURES.map((f, i) => (
+            <li key={i} className="lp-bk-feature-row">
+              <span className="lp-bk-check" aria-hidden="true">✓</span>
+              <span>{f}</span>
+            </li>
+          ))}
+        </ul>
+
+      </div>
+    </section>
   );
 }
 
@@ -181,22 +285,23 @@ export default function Landing() {
           {/* LEFT */}
           <div className="lp-hero-left">
             <h1 className="lp-h1">
-              Essa odd<br />parecia boa.
+              O problema não é<br />só a odd.
             </h1>
             <p className="lp-hero-sub">
-              Até o MotorIA analisar.
+              É quanto da sua banca você expõe nela.
             </p>
             <p className="lp-hero-desc">
-              Descubra se sua aposta tem valor real — antes de colocar dinheiro.
+              Analise o risco da entrada, controle sua banca e entenda quando uma aposta
+              aparentemente boa pode comprometer seu saldo.
             </p>
             <div className="lp-hero-actions">
               <Link to="/app" className="lp-btn-hero">
-                Analisar minha aposta agora
+                Ver análise agora
                 <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                   <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </Link>
-              <Link to="/pagar" className="lp-btn-ghost">ou garanta acesso completo por R$27 →</Link>
+              <a href="#controle-banca" className="lp-btn-ghost">Entender como funciona ↓</a>
             </div>
             <div className="lp-hero-trust-row">
               Garantia de 7 dias
@@ -449,6 +554,9 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── CONTROLE DE BANCA ──────────────────────────────────────────────────── */}
+      <BancaSection />
+
       {/* ── PREÇO ──────────────────────────────────────────────────────────────── */}
       <section className="lp-section" id="preco">
         <div className="lp-container">
@@ -471,7 +579,8 @@ export default function Landing() {
               ))}
             </ul>
             <div className="lp-price-card">
-              <div className="lp-price-eyebrow">ACESSO ÚNICO — SEM MENSALIDADE</div>
+              <div className="lp-price-eyebrow">ACESSO IMEDIATO AO MOTORIA PRO</div>
+              <div className="lp-price-includes">Análise de risco + Controle de Banca</div>
               <div className="lp-price-display">
                 <span className="lp-price-old">R$47</span>
                 <div className="lp-price-main">
@@ -496,8 +605,9 @@ export default function Landing() {
                 </div>
               </div>
 
+              <div className="lp-price-payment-note">Pagamento único • Sem mensalidade</div>
               <p className="lp-price-note">Ativação imediata após o pagamento.</p>
-              <Link to="/pagar" className="lp-btn-buy">Garantir acesso por R$27 →</Link>
+              <Link to="/pagar" className="lp-btn-buy">Desbloquear agora →</Link>
               <div className="lp-guarantee">
                 <div className="lp-guarantee-icon">✓</div>
                 <div>
@@ -1175,5 +1285,133 @@ const CSS = `
   .lp-cta-final  { padding: 56px 0; margin-top: 0; }
   .lp-dash-grid  { grid-template-columns: 1fr 1fr; }
   .lp-trust-seals { gap: 16px; }
+}
+
+/* ─ Controle de Banca — Landing Page ───────────────────────────────────────── */
+
+.lp-banca-section { background: #0a0a0a; }
+
+.lp-banca-sub {
+  font-size: 16px; color: var(--t2); line-height: 1.7;
+  max-width: 560px; margin: 0 auto 40px; text-align: center;
+}
+
+/* 6-card dashboard grid */
+.lp-bk-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.lp-bk-card {
+  background: #111111;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 18px 16px 16px;
+  display: flex; flex-direction: column; gap: 5px;
+  transition: transform .18s ease, border-color .18s;
+}
+.lp-bk-card:hover {
+  transform: scale(1.02);
+  border-color: rgba(255,255,255,0.12);
+}
+
+.lp-bk-label {
+  font-size: 9px; font-weight: 800;
+  letter-spacing: .12em; color: #888888;
+  text-transform: uppercase;
+}
+
+.lp-bk-val {
+  font-size: 22px; font-weight: 900;
+  line-height: 1.1; letter-spacing: -.02em;
+}
+
+.lp-bk-sub {
+  font-size: 11px; color: #888888; margin-top: 2px;
+}
+
+/* Barra de progresso % de banca — 3 zonas coloridas */
+.lp-bk-pct-bar {
+  position: relative; height: 7px; border-radius: 99px;
+  display: flex; overflow: hidden; margin-top: 6px;
+}
+.lp-bk-pct-zone { flex: 1; }
+.lp-bk-zone-g   { background: rgba(34,197,94,.35); }
+.lp-bk-zone-y   { background: rgba(245,158,11,.35); }
+.lp-bk-zone-r   { background: rgba(239,68,68,.35); }
+
+.lp-bk-pct-thumb {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 11px; height: 11px; border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 7px rgba(34,197,94,.7);
+}
+
+.lp-bk-bar-labels {
+  display: flex; justify-content: space-between;
+  font-size: 9px; color: #484848; margin-top: 4px;
+}
+
+/* Alerta dinâmico */
+.lp-bk-alert {
+  display: flex; align-items: flex-start; gap: 13px;
+  background: rgba(245,158,11,.06);
+  border: 1px solid rgba(245,158,11,.2);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 28px;
+}
+.lp-bk-alert-icon { flex-shrink: 0; margin-top: 1px; }
+.lp-bk-alert-text {
+  font-size: 13px; color: #e8e8e6; line-height: 1.6;
+}
+.lp-bk-alert-text strong { color: #fcd34d; font-weight: 700; }
+
+/* Feature list */
+.lp-bk-features {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 10px;
+  max-width: 520px; margin-left: auto; margin-right: auto;
+}
+.lp-bk-feature-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 14px; color: var(--t2); line-height: 1.5;
+}
+.lp-bk-check {
+  color: #22c55e; font-weight: 900;
+  font-size: 13px; flex-shrink: 0; margin-top: 1px;
+}
+
+/* Price card additions */
+.lp-price-includes {
+  font-size: 11px; font-weight: 700; letter-spacing: .07em;
+  color: #22c55e; margin-bottom: 8px;
+}
+.lp-price-payment-note {
+  font-size: 11px; color: #888888; letter-spacing: .04em;
+  margin-bottom: 6px; text-align: center;
+}
+
+/* Responsive — tablet */
+@media (max-width: 768px) {
+  .lp-bk-grid { grid-template-columns: repeat(2, 1fr); }
+  .lp-bk-val  { font-size: 18px; }
+}
+
+/* Responsive — mobile */
+@media (max-width: 480px) {
+  .lp-banca-section { padding: 48px 0; margin-top: 0; }
+  .lp-bk-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .lp-bk-val  { font-size: 17px; }
+  .lp-banca-sub { font-size: 14px; }
+  .lp-bk-feature-row { font-size: 13px; }
+}
+
+/* Extra small — 375px */
+@media (max-width: 400px) {
+  .lp-bk-card { padding: 14px 12px 12px; }
+  .lp-bk-val  { font-size: 16px; }
 }
 `;
