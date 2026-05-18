@@ -121,8 +121,7 @@ export default function Tool() {
   // Auth / credits
   const [token,        setToken]        = useState(() => localStorage.getItem(TOKEN_KEY) || "");
   const [credits,      setCredits]      = useState(null);
-  const [freeUsed,     setFreeUsed]     = useState(0);
-  const [gateMode,     setGateMode]     = useState(null); // null | "free_limit" | "no_credits" | "no_access"
+  const [gateMode,     setGateMode]     = useState(null); // null | "no_credits" | "no_access"
   const [tokenInput,   setTokenInput]   = useState("");
   const [tokenLoading, setTokenLoading] = useState(false);
   const [tokenError,   setTokenError]   = useState("");
@@ -248,7 +247,7 @@ export default function Tool() {
       // ── Crédito / paywall ────────────────────────────────────────────────────
       if (res.status === 402) {
         if (data.code === "NO_CREDITS") { setCredits(0); setGateMode("no_credits"); }
-        else if (data.code === "FREE_LIMIT") { setFreeUsed(data.freeUsed ?? 2); setGateMode("free_limit"); }
+        else { setGateMode("no_access"); }
         stopCycle(); setLoading(false);
         return;
       }
@@ -265,7 +264,6 @@ export default function Tool() {
 
       // ── Atualizar créditos ───────────────────────────────────────────────────
       if (data.credits  != null) setCredits(data.credits);
-      if (data.freeUsed != null) setFreeUsed(data.freeUsed);
 
       const text  = data.content?.[0]?.text || "";
       const vig   = calcVig(oddN);
@@ -309,7 +307,6 @@ export default function Tool() {
   const bullets   = (result?.ai.oQuePodeDarErrado || "")
     .split("\n").filter(l => l.trim()).map(l => l.replace(/^[-•*]\s*/, ""));
 
-  const freeLeft = Math.max(0, 2 - freeUsed);
 
   return (
     <>
@@ -339,10 +336,6 @@ export default function Tool() {
               <span className="tl-credits-dot" />
               <span className="tl-credits-count">{credits}</span>
               <span className="tl-credits-label">análise{credits !== 1 ? "s" : ""}</span>
-            </div>
-          ) : !token ? (
-            <div className="tl-credits-pill tl-credits-free">
-              <span className="tl-credits-label">{freeLeft} grátis</span>
             </div>
           ) : null}
 
@@ -890,7 +883,7 @@ const CSS = `
   background: rgba(31,203,122,0.07);
   border: 1px solid rgba(31,203,122,0.18);
 }
-.tl-credits-free {
+.tl-credits-locked {
   background: rgba(255,255,255,0.03);
   border: 1px solid var(--border);
   color: var(--t3);

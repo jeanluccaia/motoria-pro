@@ -553,6 +553,7 @@ export default function AppDashboard() {
   const [bkEntries,      setBkEntries]      = useState(loadBankroll);
   const [bkCfg,          setBkCfg]          = useState(loadBkCfg);
   const [bkFormOpen,     setBkFormOpen]     = useState(false);
+  const [bkFormExpanded, setBkFormExpanded] = useState(false);
   const [bkClearConfirm, setBkClearConfirm] = useState(false);
   const [bkForm,         setBkForm]         = useState({
     valor: "", odd: "", resultado: "Ganhou", mercado: "Resultado da partida", obs: "",
@@ -563,6 +564,7 @@ export default function AppDashboard() {
   const [teamData,       setTeamData]       = useState(null);
   const [selectedMarket, setSelectedMarket] = useState(null); // { tipo, ref }
   const [marketOdd,      setMarketOdd]      = useState("");
+  const [marketValor,    setMarketValor]    = useState("");
 
   useEffect(() => {
     fetch("/jogos-data.json").then(r => r.json()).then(setTeamData).catch(() => {});
@@ -734,14 +736,14 @@ export default function AppDashboard() {
   }
 
   // Quick-flow: market tapped → analyze immediately with reference (or custom) odd
-  function quickAnalyze(tipoVal, oddStr) {
+  function quickAnalyze(tipoVal, oddStr, valorStr) {
     if (!tipoVal || !oddStr) return;
     const jogoVal = selectedGame ? `${selectedGame.home} × ${selectedGame.away}` : jogo;
     const campVal = selectedGame?.campeonato || campeonato;
     setTipo(tipoVal);
     setOdd(String(oddStr));
     setFlowStep("resultado");
-    doAnalysis({ jogoVal, campVal, tipoVal, oddVal: String(oddStr), valorVal: valor || "100" });
+    doAnalysis({ jogoVal, campVal, tipoVal, oddVal: String(oddStr), valorVal: valorStr || valor || "100" });
   }
 
   function loadFromHistory(item) { setResult(item); setJogo(item.jogo || ""); setOdd(String(item.odd)); setView("nova"); }
@@ -749,7 +751,7 @@ export default function AppDashboard() {
   function resetForm() {
     setResult(null); setError(""); setJogo(""); setOdd("");
     setValor(""); setObs(""); setCampeonato(""); setSelectedGame(null);
-    setSelectedMarket(null); setMarketOdd("");
+    setSelectedMarket(null); setMarketOdd(""); setMarketValor("");
     setFlowStep("lista");
   }
 
@@ -1736,8 +1738,8 @@ export default function AppDashboard() {
                             <button
                               className="fl-mcard-hdr"
                               onClick={() => {
-                                if (isOpen) { setSelectedMarket(null); setMarketOdd(""); }
-                                else { setSelectedMarket(m); setMarketOdd(m.ref); }
+                                if (isOpen) { setSelectedMarket(null); setMarketOdd(""); setMarketValor(""); }
+                                else { setSelectedMarket(m); setMarketOdd(m.ref); setMarketValor(""); }
                               }}
                               type="button"
                             >
@@ -1747,29 +1749,63 @@ export default function AppDashboard() {
                                 <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                               </svg>
                             </button>
-                            {isOpen && (
-                              <div className="fl-mcard-body">
-                                <span className="fl-mcard-odd-lbl">Sua odd</span>
-                                <input
-                                  className="fl-mcard-odd-input"
-                                  type="text"
-                                  value={marketOdd}
-                                  onChange={e => setMarketOdd(e.target.value)}
-                                  placeholder={m.ref}
-                                  inputMode="decimal"
-                                  autoComplete="off"
-                                  autoFocus
-                                  aria-label="Informe a odd"
-                                />
-                                <button
-                                  className="fl-mcard-confirm"
-                                  onClick={() => quickAnalyze(m.tipo, marketOdd || m.ref)}
-                                  type="button"
-                                >
-                                  Analisar →
-                                </button>
-                              </div>
-                            )}
+                            {isOpen && (() => {
+                              const bancaIni = parseFloat(bkCfg?.bancaInicial) || 0;
+                              const vNum     = parseFloat(marketValor);
+                              const pctBanca = bancaIni > 0 && vNum > 0 ? ((vNum / bancaIni) * 100).toFixed(1) : null;
+                              return (
+                                <div className="fl-mcard-body">
+                                  <div className="fl-mcard-fields">
+                                    <div className="fl-mcard-field-wrap">
+                                      <span className="fl-mcard-odd-lbl">Odd</span>
+                                      <input
+                                        className="fl-mcard-odd-input"
+                                        type="text"
+                                        value={marketOdd}
+                                        onChange={e => setMarketOdd(e.target.value)}
+                                        placeholder={m.ref}
+                                        inputMode="decimal"
+                                        autoComplete="off"
+                                        autoFocus
+                                        aria-label="Informe a odd"
+                                      />
+                                    </div>
+                                    <div className="fl-mcard-field-wrap">
+                                      <span className="fl-mcard-odd-lbl">Valor R$</span>
+                                      <input
+                                        className="fl-mcard-odd-input"
+                                        type="number"
+                                        min="0.01"
+                                        step="0.01"
+                                        value={marketValor}
+                                        onChange={e => setMarketValor(e.target.value)}
+                                        placeholder={bancaIni > 0 ? (bancaIni * 0.05).toFixed(0) : "50"}
+                                        inputMode="decimal"
+                                        autoComplete="off"
+                                        aria-label="Valor apostado"
+                                      />
+                                    </div>
+                                  </div>
+                                  {pctBanca !== null && (
+                                    <div className="fl-mcard-banca-hint">
+                                      {pctBanca}% da banca · {parseFloat(marketValor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                    </div>
+                                  )}
+                                  {bancaIni === 0 && (
+                                    <div className="fl-mcard-banca-hint fl-mcard-banca-setup">
+                                      Configure sua banca em Controle de Banca para ver a exposição
+                                    </div>
+                                  )}
+                                  <button
+                                    className="fl-mcard-confirm"
+                                    onClick={() => quickAnalyze(m.tipo, marketOdd || m.ref, marketValor)}
+                                    type="button"
+                                  >
+                                    Analisar →
+                                  </button>
+                                </div>
+                              );
+                            })()}
                           </div>
                         );
                       })}
@@ -2002,17 +2038,19 @@ export default function AppDashboard() {
                           <div className="bk-setup-title">Configure sua banca inicial</div>
                           <div className="bk-setup-sub">Informe o valor total que você dedica às apostas para calcular métricas precisas.</div>
                           <div className="bk-setup-row">
-                            <span className="bk-currency">R$</span>
-                            <input
-                              className="ap-input bk-setup-input"
-                              type="number"
-                              min="1"
-                              step="0.01"
-                              placeholder="Ex: 500.00"
-                              value={bkSetupVal}
-                              onChange={e => setBkSetupVal(e.target.value)}
-                              onKeyDown={e => e.key === "Enter" && setupBanca()}
-                            />
+                            <div className="bk-setup-input-wrap">
+                              <span className="bk-currency">R$</span>
+                              <input
+                                className="ap-input bk-setup-input"
+                                type="number"
+                                min="1"
+                                step="0.01"
+                                placeholder="Ex: 500.00"
+                                value={bkSetupVal}
+                                onChange={e => setBkSetupVal(e.target.value)}
+                                onKeyDown={e => e.key === "Enter" && setupBanca()}
+                              />
+                            </div>
                             <button className="bk-setup-btn" onClick={setupBanca}>Confirmar</button>
                           </div>
                         </div>
@@ -2031,7 +2069,15 @@ export default function AppDashboard() {
                       )}
 
                       {/* ── Dashboard cards ──────────────────────────────── */}
-                      {bancaInicial > 0 && stats && (
+                      {bancaInicial > 0 && bkEntries.length === 0 && (
+                        <div className="bk-empty-state">
+                          <div className="bk-empty-icon">📊</div>
+                          <div className="bk-empty-title">Nenhuma entrada ainda</div>
+                          <div className="bk-empty-sub">Registre sua primeira aposta para começar a acompanhar sua banca.</div>
+                        </div>
+                      )}
+
+                      {bancaInicial > 0 && bkEntries.length > 0 && stats && (
                         <div className="bk-cards">
                           <div className="bk-card">
                             <div className="bk-card-label">SALDO ATUAL</div>
@@ -2080,7 +2126,7 @@ export default function AppDashboard() {
 
                       {/* ── Botão adicionar entrada ──────────────────────── */}
                       <div className="bk-actions">
-                        <button className="bk-add-btn" onClick={() => setBkFormOpen(o => !o)}>
+                        <button className="bk-add-btn" onClick={() => { setBkFormOpen(o => !o); setBkFormExpanded(false); }}>
                           {bkFormOpen ? "Cancelar" : "+ Registrar entrada"}
                         </button>
                         {bkEntries.length > 0 && (
@@ -2099,9 +2145,12 @@ export default function AppDashboard() {
                       {/* ── Formulário de entrada ────────────────────────── */}
                       {bkFormOpen && (
                         <div className="bk-form">
+                          <p className="bk-form-intro">Registre o resultado da sua aposta para atualizar sua banca.</p>
+
+                          {/* Required fields */}
                           <div className="bk-form-row">
                             <div className="bk-form-field">
-                              <label className="ap-label">VALOR APOSTADO (R$)</label>
+                              <label className="ap-label">VALOR (R$)</label>
                               <input
                                 className="ap-input"
                                 type="number"
@@ -2125,41 +2174,53 @@ export default function AppDashboard() {
                               />
                             </div>
                           </div>
-                          <div className="bk-form-row">
-                            <div className="bk-form-field">
-                              <label className="ap-label">RESULTADO</label>
-                              <select
-                                className="ap-input"
-                                value={bkForm.resultado}
-                                onChange={e => setBkForm(f => ({ ...f, resultado: e.target.value }))}
-                              >
-                                <option>Ganhou</option>
-                                <option>Perdeu</option>
-                                <option>Anulada</option>
-                              </select>
-                            </div>
-                            <div className="bk-form-field">
-                              <label className="ap-label">MERCADO</label>
-                              <select
-                                className="ap-input"
-                                value={bkForm.mercado}
-                                onChange={e => setBkForm(f => ({ ...f, mercado: e.target.value }))}
-                              >
-                                {BK_MERCADOS.map(m => <option key={m}>{m}</option>)}
-                              </select>
-                            </div>
-                          </div>
                           <div className="bk-form-field">
-                            <label className="ap-label">OBSERVAÇÃO (opcional)</label>
-                            <input
+                            <label className="ap-label">RESULTADO</label>
+                            <select
                               className="ap-input"
-                              type="text"
-                              maxLength={120}
-                              placeholder="Ex: Flamengo × Palmeiras — aposta no empate"
-                              value={bkForm.obs}
-                              onChange={e => setBkForm(f => ({ ...f, obs: e.target.value }))}
-                            />
+                              value={bkForm.resultado}
+                              onChange={e => setBkForm(f => ({ ...f, resultado: e.target.value }))}
+                            >
+                              <option>Ganhou</option>
+                              <option>Perdeu</option>
+                              <option>Anulada</option>
+                            </select>
                           </div>
+
+                          {/* Optional fields toggle */}
+                          <button
+                            className="bk-form-more"
+                            type="button"
+                            onClick={() => setBkFormExpanded(v => !v)}
+                          >
+                            {bkFormExpanded ? "− Menos opções" : "+ Mercado e observação"}
+                          </button>
+                          {bkFormExpanded && (
+                            <>
+                              <div className="bk-form-field">
+                                <label className="ap-label">MERCADO</label>
+                                <select
+                                  className="ap-input"
+                                  value={bkForm.mercado}
+                                  onChange={e => setBkForm(f => ({ ...f, mercado: e.target.value }))}
+                                >
+                                  {BK_MERCADOS.map(m => <option key={m}>{m}</option>)}
+                                </select>
+                              </div>
+                              <div className="bk-form-field">
+                                <label className="ap-label">OBSERVAÇÃO</label>
+                                <input
+                                  className="ap-input"
+                                  type="text"
+                                  maxLength={120}
+                                  placeholder="Ex: Flamengo × Palmeiras — aposta no empate"
+                                  value={bkForm.obs}
+                                  onChange={e => setBkForm(f => ({ ...f, obs: e.target.value }))}
+                                />
+                              </div>
+                            </>
+                          )}
+
                           <button
                             className="bk-submit-btn"
                             onClick={addBankrollEntry}
@@ -2336,6 +2397,7 @@ const CSS = `
   --orange: #F97316;
 }
 
+html, body { overflow-x: hidden; max-width: 100%; }
 body { overflow: hidden; }
 
 @keyframes ap-pulse {
@@ -2399,6 +2461,7 @@ body { overflow: hidden; }
 .ap-topbar-row {
   display: flex; align-items: center; justify-content: space-between;
   height: 46px; padding: 0 16px; gap: 12px;
+  overflow: hidden; min-width: 0;
 }
 .ap-topbar-left  { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .ap-topbar-right { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
@@ -2424,7 +2487,7 @@ body { overflow: hidden; }
 .ap-topbar-sep  { color: var(--t3); font-size: 13px; }
 .ap-topbar-tag  { font-size: 10.5px; font-weight: 600; color: rgba(255,255,255,.28); letter-spacing: .04em; }
 
-.ap-topbar-center { flex: 1; display: flex; align-items: center; justify-content: center; }
+.ap-topbar-center { flex: 1; display: flex; align-items: center; justify-content: center; min-width: 0; overflow: hidden; }
 .ap-topbar-clock {
   font-size: 11px; font-weight: 700; letter-spacing: .06em; color: rgba(255,255,255,.3);
   font-variant-numeric: tabular-nums; font-family: 'Courier New', monospace;
@@ -2562,7 +2625,7 @@ body { overflow: hidden; }
 
 /* ─ Main ───────────────────────────────────────────────────────────────────── */
 .ap-main {
-  flex: 1; overflow-y: auto; background: var(--bg);
+  flex: 1; overflow-y: auto; overflow-x: hidden; background: var(--bg);
   /* Bottom safe area keeps content above iPhone home indicator */
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -2603,7 +2666,7 @@ body { overflow: hidden; }
 
 /* ─ Visão Geral ────────────────────────────────────────────────────────────── */
 .ap-geral-stats {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;
 }
 .ap-geral-stat {
   background: var(--panel); border: 1px solid var(--border);
@@ -2730,7 +2793,7 @@ body { overflow: hidden; }
 }
 
 .ap-form { display: flex; flex-direction: column; gap: 14px; margin-top: 0; }
-.ap-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ap-row-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
 .ap-field { display: flex; flex-direction: column; gap: 6px; }
 
 /* Dim label for secondary fields */
@@ -2915,7 +2978,7 @@ body { overflow: hidden; }
 .ap-prob-l { font-size: 9px; font-weight: 800; color: var(--red);   letter-spacing: .05em; }
 
 /* Metrics grid */
-.ap-metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.ap-metrics-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
 .ap-metric-card {
   background: var(--panel); border: 1px solid var(--border);
   border-radius: 10px; padding: 13px 12px;
@@ -2936,7 +2999,7 @@ body { overflow: hidden; }
 }
 .ap-ai-hdr-title { font-size: 8px; font-weight: 800; letter-spacing: .18em; color: var(--t3); }
 .ap-ai-hdr-tag   { font-size: 8px; font-weight: 700; letter-spacing: .06em; color: rgba(34,197,94,.38); }
-.ap-ai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.ap-ai-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 7px; }
 .ap-ai-card {
   background: var(--panel); border: 1px solid var(--border);
   border-radius: 10px; padding: 13px 14px;
@@ -3066,7 +3129,7 @@ body { overflow: hidden; }
 /* ── Cards grid ───────────────────────────────────────────────────────────── */
 .db-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   grid-template-rows: auto auto;
   gap: 8px;
 }
@@ -3353,13 +3416,13 @@ body { overflow: hidden; }
   .ap-engine-live { font-size: 8px; letter-spacing: .06em; gap: 0; }
   .ap-topbar-tag { display: none; }
   .ap-topbar-aid { display: none; }
-  .ap-geral-stats { grid-template-columns: 1fr 1fr; }
+  .ap-geral-stats { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .ap-geral-action { flex-direction: column; align-items: flex-start; }
   .ap-geral-recent-row { grid-template-columns: 1fr 36px 28px 50px; }
   .ap-geral-recent-id, .ap-geral-recent-odd, .ap-geral-recent-bar { display: none; }
-  .ap-metrics-grid { grid-template-columns: 1fr 1fr; }
-  .ap-ai-grid { grid-template-columns: 1fr; }
-  .ap-row-2 { grid-template-columns: 1fr; }
+  .ap-metrics-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .ap-ai-grid { grid-template-columns: minmax(0, 1fr); }
+  .ap-row-2 { grid-template-columns: minmax(0, 1fr); }
   .ap-score-hero { flex-direction: column; align-items: flex-start; gap: 18px; padding: 18px 16px; }
   .ap-score-data-lbl { min-width: 80px; }
   .ap-hist-row { grid-template-columns: 1fr 36px 28px 52px; }
@@ -3375,7 +3438,7 @@ body { overflow: hidden; }
   .ap-submit { padding: 14px 20px; font-size: 11.5px; margin-top: 4px; }
 
   /* Dashboard mobile */
-  .db-cards { grid-template-columns: 1fr; }
+  .db-cards { grid-template-columns: minmax(0, 1fr); }
   .db-card-risco { grid-column: 1; }
   .db-risco-score { font-size: 56px; }
   .db-big-num { font-size: 36px; }
@@ -3580,7 +3643,7 @@ body { overflow: hidden; }
 
 /* Match cards grid */
 .jg-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px;
 }
 
 .jg-card {
@@ -3675,7 +3738,7 @@ body { overflow: hidden; }
 
 /* Mobile responsive */
 @media (max-width: 640px) {
-  .jg-grid { grid-template-columns: 1fr; }
+  .jg-grid { grid-template-columns: minmax(0, 1fr); }
   .jg-card { padding: 14px 15px; gap: 11px; }
   .jg-team { font-size: 12.5px; }
   .ap-game-strip { padding: 9px 12px; }
@@ -3944,7 +4007,7 @@ body { overflow: hidden; }
 
 /* ── Market grid (2 × 3 = 6 buttons) ─────────────────────────────────────── */
 .fl-market-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
 }
 
 .fl-market-btn {
@@ -4077,7 +4140,7 @@ body { overflow: hidden; }
   .ap-content-flow { padding-top: 12px; }
   .fl-game-hero { padding: 16px 16px; }
   .fl-team { font-size: 17px; }
-  .fl-market-grid { grid-template-columns: repeat(2, 1fr); }
+  .fl-market-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .fl-market-btn { padding: 11px 12px; }
   .fl-market-name { font-size: 11px; }
   /* Custom row: tipo spans full width, then odd + submit on row 2 */
@@ -4258,25 +4321,33 @@ body { overflow: hidden; }
   color: var(--t3); flex-shrink: 0; transition: transform .15s;
 }
 .fl-mcard-body {
-  display: flex; align-items: center; gap: 8px;
-  padding: 0 12px 12px; border-top: 1px solid var(--border);
-  padding-top: 10px;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px 12px 12px; border-top: 1px solid var(--border);
 }
+.fl-mcard-fields {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px;
+}
+.fl-mcard-field-wrap { display: flex; flex-direction: column; gap: 4px; }
 .fl-mcard-odd-lbl {
   font-size: 10px; font-weight: 700; color: var(--t2); letter-spacing: .05em; white-space: nowrap; text-transform: uppercase;
 }
 .fl-mcard-odd-input {
-  flex: 1; background: rgba(255,255,255,.05); border: 1px solid rgba(34,197,94,.3);
+  background: rgba(255,255,255,.05); border: 1px solid rgba(34,197,94,.3);
   border-radius: 7px; color: var(--t1); font-family: inherit;
-  font-size: 17px; font-weight: 800; letter-spacing: -0.02em;
-  padding: 8px 10px; outline: none; min-width: 0;
+  font-size: 16px; font-weight: 800; letter-spacing: -0.02em;
+  padding: 8px 10px; outline: none; min-width: 0; width: 100%;
 }
 .fl-mcard-odd-input:focus { border-color: rgba(34,197,94,.6); }
+.fl-mcard-banca-hint {
+  font-size: 10.5px; font-weight: 600; color: var(--green);
+  letter-spacing: .02em;
+}
+.fl-mcard-banca-setup { color: var(--t3); }
 .fl-mcard-confirm {
   background: #15803d; color: #dcfce7;
   font-size: 11px; font-weight: 900; letter-spacing: .06em;
-  padding: 10px 16px; border-radius: 7px; border: none; cursor: pointer;
-  font-family: inherit; white-space: nowrap; flex-shrink: 0;
+  padding: 11px 16px; border-radius: 7px; border: none; cursor: pointer;
+  font-family: inherit; width: 100%;
   transition: background .13s;
 }
 .fl-mcard-confirm:hover { background: #166534; }
@@ -4458,12 +4529,14 @@ body { overflow: hidden; }
 }
 .bk-setup-title { font-size: 13px; font-weight: 800; color: var(--t1); }
 .bk-setup-sub   { font-size: 11.5px; color: var(--t2); line-height: 1.5; }
-.bk-setup-row   { display: flex; align-items: center; gap: 8px; }
-.bk-currency    { font-size: 13px; font-weight: 700; color: var(--t2); }
-.bk-setup-input { flex: 1; }
+.bk-setup-row   { display: flex; flex-direction: column; gap: 8px; }
+.bk-setup-input-wrap { display: flex; align-items: center; gap: 8px; }
+.bk-currency    { font-size: 13px; font-weight: 700; color: var(--t2); flex-shrink: 0; }
+.bk-setup-input { flex: 1; min-width: 0; }
 .bk-setup-btn {
   background: #16a34a; color: #dcfce7;
   font-size: 11.5px; font-weight: 800; letter-spacing: .05em;
+  width: 100%;
   border: none; border-radius: 8px; padding: 10px 18px;
   cursor: pointer; font-family: inherit; white-space: nowrap;
   transition: background .15s;
@@ -4483,7 +4556,7 @@ body { overflow: hidden; }
 
 /* Dashboard cards */
 .bk-cards {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
   margin-bottom: 14px;
 }
 .bk-card {
@@ -4533,7 +4606,7 @@ body { overflow: hidden; }
   display: flex; flex-direction: column; gap: 12px;
   animation: ap-fade-up .18s ease both;
 }
-.bk-form-row   { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.bk-form-row   { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
 .bk-form-field { display: flex; flex-direction: column; gap: 5px; }
 .bk-submit-btn {
   background: #16a34a; color: #dcfce7;
@@ -4544,6 +4617,24 @@ body { overflow: hidden; }
 }
 .bk-submit-btn:hover:not(:disabled) { background: #15803d; }
 .bk-submit-btn:disabled { opacity: .45; cursor: not-allowed; }
+.bk-form-intro {
+  font-size: 11.5px; color: var(--t2); margin: 0 0 4px; line-height: 1.5;
+}
+.bk-form-more {
+  background: none; border: none; cursor: pointer; font-family: inherit;
+  font-size: 11px; font-weight: 700; color: var(--t3); letter-spacing: .04em;
+  padding: 2px 0; text-align: left; transition: color .12s;
+}
+.bk-form-more:hover { color: var(--t2); }
+.bk-empty-state {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; padding: 32px 22px;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px; text-align: center; margin-bottom: 14px;
+}
+.bk-empty-icon  { font-size: 28px; }
+.bk-empty-title { font-size: 13px; font-weight: 800; color: var(--t1); }
+.bk-empty-sub   { font-size: 11.5px; color: var(--t2); line-height: 1.5; max-width: 260px; }
 
 /* History table */
 .bk-hist { margin-bottom: 18px; }
@@ -4577,7 +4668,7 @@ body { overflow: hidden; }
 
 /* Blurred stats (paywall preview) */
 .bk-stats-blur-row {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 12px 0 36px;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 12px 0 36px;
 }
 .bk-stat-blur-card {
   background: rgba(255,255,255,.03); border-radius: 8px;
@@ -4596,12 +4687,12 @@ body { overflow: hidden; }
 .bk-edu p { font-size: 11px; color: var(--t2); line-height: 1.6; }
 
 @media (max-width: 640px) {
-  .bk-cards { grid-template-columns: repeat(2, 1fr); }
+  .bk-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .bk-hist-hdr,
   .bk-hist-row { grid-template-columns: 48px 1fr 52px 70px 28px; }
   .bk-hist-mercado { display: none; }
-  .bk-stats-blur-row { grid-template-columns: repeat(2, 1fr); }
-  .bk-form-row { grid-template-columns: 1fr; }
+  .bk-stats-blur-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bk-form-row { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ─ Locked card entrance animation ─────────────────────────────────────────── */

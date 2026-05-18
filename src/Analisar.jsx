@@ -5,7 +5,6 @@ import { calcAll } from "./math";
 
 // ─── Constantes ────────────────────────────────────────────────────────────────
 
-const FREE_KEY   = "motoria_free_v1";
 const ACCESS_KEY = "motoria_access_v1";
 
 const ESPORTES   = ["Futebol", "Basquete", "Tênis", "MMA", "eSports", "Outro"];
@@ -30,9 +29,7 @@ const LOADING_MSGS = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function hasAccess()   { return localStorage.getItem(ACCESS_KEY) === "1"; }
-function getFreeUsed() { return parseInt(localStorage.getItem(FREE_KEY) || "0"); }
-function incFreeUsed() { localStorage.setItem(FREE_KEY, String(getFreeUsed() + 1)); }
+function hasAccess() { return localStorage.getItem(ACCESS_KEY) === "1"; }
 
 function matchLine(text, key) {
   const m = text.match(new RegExp(`^${key}:\\s*(.+)`, "m"));
@@ -170,7 +167,7 @@ export default function Analisar() {
     setError("");
     setDecision(null);
 
-    if (getFreeUsed() >= 1 && !hasAccess()) {
+    if (!hasAccess()) {
       setPaywall(true);
       return;
     }
@@ -206,7 +203,6 @@ export default function Analisar() {
       if (!res.ok) throw new Error(data.error || "Erro ao processar. Tente novamente.");
       const ai = parseAI(data.content?.[0]?.text || "");
       setResult({ math, ai });
-      incFreeUsed();
       setTimeout(() => {
         resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 300);
@@ -245,8 +241,8 @@ export default function Analisar() {
         <div className="an-paywall-overlay">
           <div className="an-paywall-box">
             <div className="an-pw-icon">🔒</div>
-            <h2 className="an-pw-title">Você usou sua análise grátis</h2>
-            <p className="an-pw-sub">Para análises ilimitadas, acesso vitalício por R$27.</p>
+            <h2 className="an-pw-title">Acesso necessário</h2>
+            <p className="an-pw-sub">Desbloqueie análises de risco completas por R$27. Pagamento único, sem mensalidade.</p>
             <Link to="/pagar" className="an-pw-cta">Garantir acesso vitalício →</Link>
             <button className="an-pw-close" onClick={() => setPaywall(false)}>Cancelar</button>
           </div>
@@ -587,11 +583,11 @@ export default function Analisar() {
                 Todo resultado esportivo é imprevisível. Jogue com responsabilidade.
               </p>
 
-              {getFreeUsed() >= 1 && !hasAccess() && (
+              {!hasAccess() && (
                 <div className="an-upgrade-banner">
-                  <p>Você usou sua análise grátis.</p>
+                  <p>Acesso necessário para análises completas.</p>
                   <Link to="/pagar" className="an-upgrade-cta">
-                    Desbloquear análises ilimitadas — R$27 vitalício →
+                    Desbloquear por R$27 — acesso imediato →
                   </Link>
                 </div>
               )}
