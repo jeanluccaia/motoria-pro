@@ -553,17 +553,30 @@ export default function AppDashboard() {
         body: JSON.stringify({ tool: "aposta", userMessage: userMsg }),
       });
       clearInterval(stepInterval);
-      if (res.status === 402) { window.location.href = KIWIFY_URL; return; }
+      // 402 = créditos esgotados → locked card (não redireciona)
+      if (res.status === 402) {
+        setResult({ locked: true, signals: [] });
+        setLoadPct(100);
+        setTimeout(() => setLoading(false), 280);
+        return;
+      }
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
         setError(d.error || "Erro ao processar análise.");
         setLoading(false);
         return;
       }
-      const data    = await res.json();
-      const rawText = data.content?.[0]?.text || "";
+      const data = await res.json();
       if (data.credits !== undefined) setCredits(data.credits);
       if (data.token) { localStorage.setItem(TOKEN_KEY, data.token); setToken(data.token); }
+      // Sem token → API retorna locked: true sem chamar Anthropic
+      if (data.locked) {
+        setResult({ locked: true, signals: data.preview?.signals || [] });
+        setLoadPct(100);
+        setTimeout(() => setLoading(false), 280);
+        return;
+      }
+      const rawText = data.content?.[0]?.text || "";
 
       const aiResult = parseAIJson(rawText);
       const impl     = calcImplicita(oddN);
@@ -778,6 +791,87 @@ export default function AppDashboard() {
             {isCopied ? "✓ Copiado!" : "📋 Copiar análise"}
           </button>
         </div>
+      </div>
+    );
+  }
+
+  // ─── Locked card ─────────────────────────────────────────────────────────────
+  // SEGURANÇA: o resultado real NUNCA foi gerado. A API retornou apenas sinais
+  // parciais sem chamar Anthropic. Este card é display-only.
+  function renderLockedCard(signals = []) {
+    return (
+      <div className="lk-wrap">
+        <div className="lk-preview-card">
+
+          {/* Blurred header */}
+          <div className="lk-header">
+            <div className="lk-header-event">█████████ × █████████</div>
+            <div className="lk-header-meta">
+              <span className="lk-badge-blur">████████</span>
+              <span className="lk-odd-blur">Odd █.██</span>
+            </div>
+          </div>
+
+          <div className="lk-divider" />
+
+          {/* Blurred risk score */}
+          <div className="lk-risk-row">
+            <div>
+              <span className="lk-section-label">RISCO DA APOSTA</span>
+              <div className="lk-score-blur">██<span className="lk-score-denom">/100</span></div>
+            </div>
+            <div className="lk-level-blur">███████</div>
+          </div>
+          <div className="lk-bar-wrap">
+            <div className="lk-bar-track"><div className="lk-bar-fill" /></div>
+          </div>
+
+          <div className="lk-divider" />
+
+          {/* Sinais parciais — único conteúdo visível real */}
+          <div className="lk-signals">
+            <span className="lk-section-label">SINAIS DETECTADOS</span>
+            {signals.map((s, i) => (
+              <div key={i} className="lk-signal">
+                <span className="lk-signal-dot" aria-hidden="true" />
+                <span>{s}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="lk-divider" />
+
+          {/* Blurred AI reading */}
+          <div className="lk-ai-row">
+            <span className="lk-section-label">LEITURA DA IA</span>
+            <div className="lk-ai-blur">
+              <span className="lk-ai-dot" aria-hidden="true" />
+              <span>██████████████████</span>
+            </div>
+            <div className="lk-ai-text-blur">████████████████████████████████████</div>
+          </div>
+
+          {/* Gradient overlay + CTA */}
+          <div className="lk-overlay">
+            <div className="lk-lock-icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                <circle cx="12" cy="16" r="1.5" fill="currentColor"/>
+              </svg>
+            </div>
+            <div className="lk-lock-title">Análise completa disponível com acesso</div>
+            <div className="lk-lock-sub">Score real · Chance estimada · Leitura completa da IA</div>
+            <a href={KIWIFY_URL} className="lk-cta-btn" target="_blank" rel="noopener noreferrer">
+              Desbloquear análise completa
+            </a>
+            <div className="lk-price-note">Pagamento único · sem mensalidade · acesso imediato · R$ 27</div>
+          </div>
+
+        </div>
+        <button className="lk-back" onClick={() => { setResult(null); setError(""); }} type="button">
+          ← Tentar outra análise
+        </button>
       </div>
     );
   }
@@ -1229,8 +1323,11 @@ export default function AppDashboard() {
                   </div>
                 )}
 
-                {/* Output */}
-                {result && !loading && (
+                {/* Output — locked */}
+                {result && !loading && result.locked && renderLockedCard(result.signals || [])}
+
+                {/* Output — completo */}
+                {result && !loading && !result.locked && (
                   <div className="db-output" role="region" aria-label="Resultado da análise">
                     <div className="db-topbar">
                       <div className="db-topbar-meta">
@@ -1606,8 +1703,11 @@ export default function AppDashboard() {
                       </div>
                     )}
 
-                    {/* Result */}
-                    {result && !loading && (
+                    {/* Result — locked */}
+                    {result && !loading && result.locked && renderLockedCard(result.signals || [])}
+
+                    {/* Result — completo */}
+                    {result && !loading && !result.locked && (
                       <div className="db-output" role="region" aria-label="Resultado da análise">
                         <div className="db-topbar">
                           <div className="db-topbar-meta">
@@ -3733,4 +3833,171 @@ body { overflow: hidden; }
   transition: background .13s;
 }
 .fl-mcard-confirm:hover { background: #166534; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOCKED STATE — lk-* components
+   Card premium exibido quando o usuário não tem token válido.
+   SEGURANÇA: a análise real NUNCA foi gerada — API retornou apenas sinais
+   parciais sem chamar Anthropic. Score/chance/AI nunca chegam ao DOM.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes lk-glow {
+  0%, 100% { box-shadow: 0 0 32px rgba(34,197,94,.06), 0 0 0 1px rgba(34,197,94,.1) inset; }
+  50%       { box-shadow: 0 0 56px rgba(34,197,94,.12), 0 0 0 1px rgba(34,197,94,.18) inset; }
+}
+
+.lk-wrap {
+  display: flex; flex-direction: column; gap: 12px;
+  animation: db-in .25s ease both;
+}
+
+.lk-preview-card {
+  position: relative;
+  background: var(--panel); border: 1px solid rgba(34,197,94,.14);
+  border-radius: 14px; overflow: hidden;
+  animation: lk-glow 3.2s ease-in-out infinite;
+}
+
+/* Blurred header */
+.lk-header {
+  padding: 16px 20px 14px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.lk-header-event {
+  font-size: 18px; font-weight: 800;
+  color: rgba(255,255,255,.1); letter-spacing: -0.03em;
+  filter: blur(4px); user-select: none; pointer-events: none;
+}
+.lk-header-meta { display: flex; align-items: center; gap: 7px; }
+.lk-badge-blur, .lk-odd-blur {
+  font-size: 10px; color: rgba(255,255,255,.08);
+  filter: blur(3px); user-select: none; pointer-events: none;
+  padding: 3px 8px; border-radius: 4px;
+  background: rgba(255,255,255,.03);
+}
+
+.lk-divider { height: 1px; background: var(--border); }
+
+/* Section label */
+.lk-section-label {
+  display: block;
+  font-size: 8px; font-weight: 800; letter-spacing: .18em;
+  color: var(--t3); text-transform: uppercase; margin-bottom: 8px;
+}
+
+/* Blurred score */
+.lk-risk-row {
+  padding: 16px 20px 10px;
+  display: flex; align-items: flex-start; justify-content: space-between;
+}
+.lk-score-blur {
+  font-size: 60px; font-weight: 900; line-height: 1;
+  letter-spacing: -0.06em; font-variant-numeric: tabular-nums;
+  color: rgba(255,255,255,.1); filter: blur(6px);
+  user-select: none; pointer-events: none;
+}
+.lk-score-denom {
+  font-size: 22px; font-weight: 600; color: rgba(255,255,255,.06); letter-spacing: 0;
+}
+.lk-level-blur {
+  font-size: 10px; font-weight: 800; letter-spacing: .12em;
+  color: rgba(255,255,255,.1); filter: blur(4px);
+  user-select: none; pointer-events: none; margin-top: 4px;
+}
+
+/* Fake progress bar */
+.lk-bar-wrap { padding: 0 20px 14px; }
+.lk-bar-track {
+  height: 8px; border-radius: 99px;
+  background: rgba(255,255,255,.04); overflow: hidden;
+}
+.lk-bar-fill {
+  width: 58%; height: 100%; border-radius: 99px;
+  background: rgba(255,255,255,.07); filter: blur(2px);
+}
+
+/* Signals — único conteúdo real visível */
+.lk-signals {
+  padding: 14px 20px 18px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.lk-signal {
+  display: flex; align-items: flex-start; gap: 9px;
+  font-size: 12.5px; color: var(--t2); line-height: 1.6;
+}
+.lk-signal-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(34,197,94,.55); flex-shrink: 0; margin-top: 5px;
+}
+
+/* Blurred AI */
+.lk-ai-row {
+  padding: 12px 20px 16px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.lk-ai-blur {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 18px; font-weight: 800;
+  color: rgba(255,255,255,.08); filter: blur(5px);
+  user-select: none; pointer-events: none;
+}
+.lk-ai-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(34,197,94,.25); flex-shrink: 0;
+}
+.lk-ai-text-blur {
+  font-size: 12px; color: rgba(255,255,255,.05);
+  filter: blur(4px); user-select: none; pointer-events: none;
+}
+
+/* Lock overlay — gradient + CTA */
+.lk-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(6,6,8,0)    0%,
+    rgba(6,6,8,.55) 22%,
+    rgba(6,6,8,.95) 52%,
+    rgba(6,6,8,.99) 100%
+  );
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-end;
+  padding: 20px 24px 28px; gap: 9px; text-align: center;
+}
+.lk-lock-icon { color: rgba(34,197,94,.65); margin-bottom: 4px; }
+.lk-lock-title {
+  font-size: 15px; font-weight: 800; color: var(--t1); letter-spacing: -0.02em;
+}
+.lk-lock-sub {
+  font-size: 11.5px; color: var(--t2); line-height: 1.55; max-width: 300px;
+}
+.lk-cta-btn {
+  display: flex; align-items: center; justify-content: center;
+  background: #16a34a; color: #dcfce7;
+  font-size: 12px; font-weight: 900; letter-spacing: .07em;
+  padding: 14px 32px; border-radius: 9px;
+  text-decoration: none; margin-top: 4px; width: 100%;
+  box-shadow: 0 4px 22px rgba(22,163,74,.4), 0 1px 3px rgba(0,0,0,.4);
+  transition: background .15s, transform .12s;
+}
+.lk-cta-btn:hover { background: #15803d; transform: translateY(-1px); }
+.lk-cta-btn:active { transform: translateY(0); }
+.lk-price-note {
+  font-size: 10px; color: rgba(255,255,255,.3); letter-spacing: .03em;
+}
+
+.lk-back {
+  display: block; text-align: center;
+  font-size: 10.5px; font-weight: 700; color: var(--t3);
+  background: none; border: none; cursor: pointer; font-family: inherit;
+  padding: 4px 0; transition: color .13s;
+}
+.lk-back:hover { color: var(--t2); }
+
+@media (max-width: 640px) {
+  .lk-overlay { padding: 18px 18px 24px; gap: 8px; }
+  .lk-lock-title { font-size: 14px; }
+  .lk-lock-sub { font-size: 11px; }
+  .lk-score-blur { font-size: 48px; }
+}
 `;

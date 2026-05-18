@@ -83,7 +83,6 @@ module.exports = async function handler(req, res) {
     (req.headers.authorization || "").replace(/^Bearer\s+/i, "")
   ).trim();
   let creditsRemaining = null;
-  let isFree = false;
 
   if (credits.isValidUUID(tokenStr)) {
     // ── Usuário com token: debitar crédito ────────────────────────────────────
@@ -105,30 +104,29 @@ module.exports = async function handler(req, res) {
       }
       if (result.reason === "no_credits") {
         return res.status(402).json({
-          error:   "Seus créditos acabaram. Adquira mais para continuar.",
-          code:    "NO_CREDITS",
-          credits: 0,
+          locked: true,
+          code:   "NO_CREDITS",
         });
       }
-      // Razão desconhecida — não expor detalhes
-      return res.status(402).json({ error: "Acesso negado.", code: "ACCESS_DENIED" });
+      return res.status(402).json({ locked: true, code: "ACCESS_DENIED" });
     }
 
     creditsRemaining = result.credits;
 
   } else {
-    // ── Usuário sem token: verificar tier gratuito ────────────────────────────
-    // freeUsed() é fail-closed: sem Redis retorna FREE_LIMIT
-    const used = await rate.freeUsed(ip);
-    if (used >= rate.FREE_LIMIT) {
-      return res.status(402).json({
-        error:     "Limite de análises gratuitas atingido.",
-        code:      "FREE_LIMIT",
-        freeUsed:  used,
-        freeLimit: rate.FREE_LIMIT,
-      });
-    }
-    isFree = true;
+    // ── BLOQUEIO REAL: sem token → preview parcial, Anthropic NÃO é chamado ──
+    // Nenhum score, chance ou análise chega ao frontend sem token válido.
+    return res.status(200).json({
+      locked: true,
+      preview: {
+        signals: [
+          "Exposição acima da média detectada",
+          "Mercado exige cautela neste cenário",
+          "Oscilação incomum identificada na odd",
+          "Probabilidade implícita com inconsistência detectada",
+        ],
+      },
+    });
   }
 
   // ── 7. Chamar Anthropic ───────────────────────────────────────────────────────
@@ -163,17 +161,11 @@ module.exports = async function handler(req, res) {
 
     const data = await response.json();
 
-    // ── 8. Registrar uso gratuito APÓS sucesso (não cobra por erro) ───────────
-    if (isFree) {
-      await rate.incFree(ip);
-    }
-
-    // ── 9. Resposta ───────────────────────────────────────────────────────────
+    // ── 8. Resposta ─────────────────────────────────────────────────────────────
     return res.status(200).json({
+      locked:  false,
       content: data.content || [],
-      credits:   creditsRemaining,
-      freeUsed:  isFree ? await rate.freeUsed(ip) : undefined,
-      freeLimit: isFree ? rate.FREE_LIMIT         : undefined,
+      credits: creditsRemaining,
     });
 
   } catch (err) {
