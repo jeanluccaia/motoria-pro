@@ -8,28 +8,28 @@ const KIWIFY_URL = "https://pay.kiwify.com.br/DIVD8zl";
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 const TESTIMONIALS = [
-  { text: "Eu achava que controlava, mas só olhava aposta por aposta.", name: "Rafael S.", city: "Rio de Janeiro" },
-  { text: "O controle de banca foi o que mais me chamou atenção.", name: "André M.", city: "São Paulo" },
-  { text: "Ver lucro e prejuízo no mês muda a forma de apostar.", name: "Felipe T.", city: "Curitiba" },
-  { text: "Antes eu só via a odd. Agora olho o impacto na banca.", name: "Marcos V.", city: "Belo Horizonte" },
+  { text: "Eu achava que controlava, mas só olhava aposta por aposta.", name: "Carlos R.", detail: "São Paulo · apostador há 2 anos" },
+  { text: "O controle foi o que mais me chamou atenção. Eu nunca sabia quanto tinha perdido no mês.", name: "André M.", detail: "São Paulo · apostador há 3 anos" },
+  { text: "Ver quanto gastei no mês mudou tudo. Antes eu não sabia nem o total.", name: "Felipe T.", detail: "Curitiba · apostador de fim de semana" },
+  { text: "Antes eu só via a odd. Agora vejo o quanto isso pesa na minha grana.", name: "Marcos V.", detail: "Belo Horizonte · apostador recreativo" },
 ];
 
 const FAQ_ITEMS = [
   {
     q: "Isso me ajuda a ganhar mais?",
-    a: "O MotorIA não garante lucro — nenhuma ferramenta honesta garante isso. O que ele faz: mostra o risco real por trás de cada aposta para você entender antes de agir.",
+    a: "Não prometemos ganhos. Mas você vai parar de perder no escuro. Saber o risco antes de entrar já faz diferença.",
   },
   {
     q: "É palpite ou análise?",
-    a: "É análise. Não somos tipster, não damos palpite, não temos relação com casas de aposta. Mostramos risco da odd, margem da casa e impacto real na banca.",
+    a: "Não damos palpite. Mostramos o risco da aposta que você já escolheu. A decisão é sempre sua.",
   },
   {
     q: "É assinatura ou pagamento único?",
-    a: "Pagamento único. R$27, uma vez. Sem mensalidade, sem cobrança recorrente, sem surpresa na fatura.",
+    a: "Pagamento único de R$27. Não cobra mais nada nunca.",
   },
   {
     q: "E se eu não gostar?",
-    a: "Garantia de 7 dias. Não achou útil? Devolvemos 100% do valor, sem perguntas.",
+    a: "Não gostou em 7 dias? Devolvo seu dinheiro. Sem burocracia.",
   },
 ];
 
@@ -112,7 +112,8 @@ export default function Landing() {
               antes da entrada.
             </h1>
             <p className="lp-hero-sub">
-              O MotorIA Pro ajuda você a entender o risco da aposta e acompanhar sua banca — com visão clara de lucro, prejuízo e exposição.
+              Antes de entrar em qualquer aposta, veja se vale a pena.<br />
+              E acompanhe quanto você ganhou ou perdeu no mês.
             </p>
             <div className="lp-hero-actions">
               <Link to="/app" className="lp-btn-hero">
@@ -121,25 +122,20 @@ export default function Landing() {
                   <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </Link>
-              <a href="#como-funciona" className="lp-btn-ghost">Como funciona ↓</a>
+              <a href="#como-funciona" className="lp-btn-ghost">Entender como funciona ↓</a>
             </div>
-            <p className="lp-hero-micro">Pagamento único · R$27 · sem mensalidade</p>
+            <p className="lp-hero-micro">R$27 uma vez só · acesso imediato · sem mensalidade</p>
           </div>
 
-          {/* Right — image placeholder */}
+          {/* Right — imagem hero */}
           <div className="lp-hero-right">
-            {/*
-              INSERIR IMAGEM 1 AQUI
-              Arquivo sugerido: /public/hero-risk-awareness.webp
-              Substituir o div placeholder pelo elemento <img>:
+            <div className="lp-img-wrap">
               <img
-                src="/hero-risk-awareness.webp"
-                alt="Pessoa analisando risco antes de apostar"
+                src="/hero-risk-awareness.png"
+                alt="Homem analisando aposta no celular antes de entrar"
                 className="lp-hero-img"
+                loading="eager"
               />
-            */}
-            <div className="lp-placeholder lp-placeholder-hero">
-              <span className="lp-placeholder-lbl" aria-hidden="true">Imagem 1 — Hero</span>
             </div>
           </div>
 
@@ -153,9 +149,9 @@ export default function Landing() {
           <h2 className="lp-h2">Antes de apostar,<br />passe por 3 passos.</h2>
           <div className="lp-steps">
             {[
-              { n: "01", title: "Informe a aposta",      desc: "Escolha o jogo, mercado, odd e valor da entrada." },
-              { n: "02", title: "Veja o risco",           desc: "O MotorIA aponta sinais de cautela antes da decisão." },
-              { n: "03", title: "Controle sua banca",     desc: "Registre entradas e acompanhe lucro, prejuízo, ROI e exposição." },
+              { n: "01", title: "Informe a aposta",    desc: "Digite a odd e quanto vai apostar." },
+              { n: "02", title: "Veja o risco",         desc: "A ferramenta te avisa se a aposta é arriscada demais." },
+              { n: "03", title: "Decida com clareza",   desc: "Você vê tudo antes de confirmar. Sem surpresa depois." },
             ].map((s, i) => (
               <div className="lp-step" key={i}>
                 <div className="lp-step-n" aria-hidden="true">{s.n}</div>
@@ -178,7 +174,7 @@ export default function Landing() {
             <div className="lp-eyebrow">Análise de risco</div>
             <h2 className="lp-h2">Nem toda aposta que parece boa tem risco baixo.</h2>
             <p className="lp-risk-desc">
-              O MotorIA organiza os dados da entrada e mostra sinais que normalmente passam despercebidos quando a decisão é tomada no impulso.
+              A ferramenta te mostra o que você normalmente só descobre depois de perder.
             </p>
           </div>
 
@@ -230,20 +226,20 @@ export default function Landing() {
       <section className="lp-section lp-dark" id="banca">
         <div className="lp-container">
           <div className="lp-eyebrow">Controle de Banca</div>
-          <h2 className="lp-h2">Controle sua banca<br />de verdade.</h2>
+          <h2 className="lp-h2">Sabe quanto você<br />perdeu esse mês?</h2>
           <p className="lp-banca-sub">
-            Veja quanto você gastou, quanto recebeu, se está no lucro ou no prejuízo — e como cada entrada afeta sua banca.
+            A maioria dos apostadores não sabe. O MotorIA Pro mostra seu saldo, seu lucro e suas perdas — tudo num lugar só.
           </p>
 
           {/* Mock dashboard */}
           <div className="lp-bk-grid">
             {[
-              { label: "Saldo Atual",          val: "R$ 1.247",  sub: "+R$247 desde o início",        c: "#22c55e" },
-              { label: "Lucro / Prejuízo",     val: "+R$ 247",   sub: "+24,7% sobre a banca inicial",  c: "#22c55e" },
-              { label: "ROI",                  val: "+12,4%",    sub: "Últimas 30 entradas",           c: "#22c55e" },
-              { label: "Entradas registradas", val: "30",        sub: "Total no período",              c: "#e8e8e6" },
-              { label: "Sequência de perdas",  val: "1",         sub: "Sem alerta ativo",              c: "#22c55e" },
-              { label: "% da banca exposta",   val: "3,2%",      sub: "Dentro do limite seguro",       c: "#22c55e" },
+              { label: "Saldo Atual",           val: "R$ 1.247",  sub: "+R$247 desde o início",      c: "#22c55e" },
+              { label: "Lucro do mês",          val: "+R$ 247",   sub: "Em 30 entradas registradas",   c: "#22c55e" },
+              { label: "Rendimento",            val: "+12,4%",    sub: "Sobre o valor apostado",       c: "#22c55e" },
+              { label: "Entradas registradas",  val: "30",        sub: "Total no período",             c: "#e8e8e6" },
+              { label: "Sequência de perdas",   val: "1",         sub: "Sem alerta ativo",             c: "#22c55e" },
+              { label: "Apostado hoje",         val: "R$ 80",     sub: "Dentro do limite diário",      c: "#22c55e" },
             ].map((c, i) => (
               <div className="lp-bk-card" key={i}>
                 <div className="lp-bk-label">{c.label}</div>
@@ -254,21 +250,16 @@ export default function Landing() {
           </div>
 
           <p className="lp-banca-quote">
-            "A maioria olha a odd.<br />Poucos acompanham o impacto real de cada entrada na banca."
+            "A maioria só olha a odd.<br />Poucos sabem o quanto já perderam esse mês."
           </p>
 
-          {/*
-            INSERIR IMAGEM 2 AQUI
-            Arquivo sugerido: /public/bankroll-control-dashboard.webp
-            Substituir o div placeholder pelo elemento <img>:
+          <div className="lp-img-wrap lp-img-wrap-banca">
             <img
-              src="/bankroll-control-dashboard.webp"
-              alt="Dashboard de controle de banca mostrando ROI e exposição"
+              src="/bankroll-control-dashboard.png"
+              alt="Celular mostrando dashboard de controle de banca com saldo e lucro"
               className="lp-banca-img"
+              loading="lazy"
             />
-          */}
-          <div className="lp-placeholder lp-placeholder-banca">
-            <span className="lp-placeholder-lbl" aria-hidden="true">Imagem 2 — Controle de Banca</span>
           </div>
 
         </div>
@@ -277,15 +268,14 @@ export default function Landing() {
       {/* ── O QUE VOCÊ PASSA A VER ───────────────────────────────────────────── */}
       <section className="lp-section" id="padroes">
         <div className="lp-container">
-          <div className="lp-eyebrow">Consciência</div>
-          <h2 className="lp-h2">Veja padrões que<br />ficam escondidos.</h2>
+          <div className="lp-eyebrow">O que você passa a ver</div>
+          <h2 className="lp-h2">Informação que você<br />não tinha antes.</h2>
           <div className="lp-patterns">
             {[
-              "Quanto você já colocou em jogo no mês",
-              "Se está tentando recuperar prejuízo",
-              "Se aumentou o valor após perdas",
-              "Se sua banca está ficando exposta demais",
-              "Quais tipos de entrada mais pesam no resultado",
+              "Quanto você ganhou esse mês",
+              "Quanto você perdeu",
+              "Se você está apostando mais do que devia",
+              "Quando está no prejuízo e tentando recuperar no impulso",
             ].map((item, i) => (
               <div className="lp-pattern" key={i}>
                 <span className="lp-pattern-dot" aria-hidden="true" />
@@ -308,7 +298,8 @@ export default function Landing() {
             {TESTIMONIALS.map((t, i) => (
               <div className="lp-test" key={i}>
                 <p className="lp-test-text">"{t.text}"</p>
-                <div className="lp-test-by">— {t.name}, {t.city}</div>
+                <div className="lp-test-by">— {t.name}</div>
+                <div className="lp-test-detail">{t.detail}</div>
               </div>
             ))}
           </div>
@@ -355,7 +346,7 @@ export default function Landing() {
               <div className="lp-urgency">
                 <div className="lp-urgency-top">
                   <span className="lp-urgency-dot" aria-hidden="true" />
-                  <span className="lp-urgency-txt">PREÇO DE LANÇAMENTO · +800 / 1.000 usuários</span>
+                  <span className="lp-urgency-txt">Vagas restantes: 153 de 1.000</span>
                 </div>
                 <div className="lp-urgency-track">
                   <div className="lp-urgency-fill" />
@@ -373,7 +364,7 @@ export default function Landing() {
               <p className="lp-btn-micro">Acesso imediato · pagamento único</p>
               <div className="lp-guarantee">
                 <span className="lp-guarantee-icon" aria-hidden="true">✓</span>
-                <span>Garantia de 7 dias — não gostou, devolvemos 100%.</span>
+                <span>Não gostou em 7 dias? Devolvo seu dinheiro. Sem burocracia.</span>
               </div>
             </div>
 
@@ -606,7 +597,7 @@ body { background: var(--bg); color: var(--t1); font-family: -apple-system, Blin
   font-size: clamp(14px, 1.6vw, 16.5px); color: var(--t2);
   line-height: 1.65; margin-bottom: 36px; max-width: 460px;
 }
-.lp-hero-actions { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+.lp-hero-actions { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; margin-top: 0; }
 .lp-hero-micro {
   font-size: 11px; color: var(--t3); letter-spacing: .04em;
 }
@@ -615,10 +606,23 @@ body { background: var(--bg); color: var(--t1); font-family: -apple-system, Blin
   display: flex; justify-content: center; align-items: center;
   animation: lp-fadein .5s .15s ease both;
 }
-.lp-hero-img {
-  width: 100%; border-radius: 18px;
+/* ── Image wrappers ─────────────────────────────────────────────────────────── */
+.lp-img-wrap {
+  width: 100%; border-radius: 16px; overflow: hidden;
   box-shadow: 0 0 60px rgba(34,197,94,.12), 0 24px 80px rgba(0,0,0,.6);
-  border: 1px solid rgba(34,197,94,.18);
+  border: 1px solid rgba(34,197,94,.15);
+}
+.lp-img-wrap-banca {
+  margin-top: 40px;
+  box-shadow: 0 0 40px rgba(34,197,94,.08), 0 20px 60px rgba(0,0,0,.4);
+}
+.lp-hero-img {
+  width: 100%; display: block; object-fit: cover;
+  border-radius: 16px;
+}
+.lp-banca-img {
+  width: 100%; display: block; object-fit: cover;
+  border-radius: 16px;
 }
 
 /* ── Buttons ─────────────────────────────────────────────────────────────────── */
@@ -632,11 +636,11 @@ body { background: var(--bg); color: var(--t1); font-family: -apple-system, Blin
 .lp-btn-hero:hover { background: #16a34a; transform: translateY(-1px); }
 
 .lp-btn-ghost {
-  font-size: 12.5px; font-weight: 600; color: var(--t2);
-  text-decoration: none; letter-spacing: .02em;
-  transition: color .15s;
+  font-size: 14px; font-weight: 500; color: #666;
+  text-decoration: none; letter-spacing: .01em;
+  transition: color .15s; cursor: pointer;
 }
-.lp-btn-ghost:hover { color: var(--t1); }
+.lp-btn-ghost:hover { color: var(--t2); }
 
 .lp-btn-buy {
   display: block; width: 100%; text-align: center;
@@ -812,7 +816,8 @@ body { background: var(--bg); color: var(--t1); font-family: -apple-system, Blin
 .lp-test-text {
   font-size: 14px; color: var(--t1); line-height: 1.65; font-weight: 400;
 }
-.lp-test-by { font-size: 11.5px; color: var(--t3); font-weight: 600; }
+.lp-test-by     { font-size: 12px; color: var(--t2); font-weight: 700; }
+.lp-test-detail { font-size: 11px; color: var(--t3); margin-top: 3px; }
 
 /* ── Offer section ──────────────────────────────────────────────────────────── */
 .lp-offer-layout {
@@ -951,12 +956,13 @@ body { background: var(--bg); color: var(--t1); font-family: -apple-system, Blin
   .lp-nav-cta { font-size: 11px; padding: 7px 13px; }
 
   /* Hero */
-  .lp-hero { padding: 60px 0 52px; min-height: auto; }
-  .lp-hero-layout { grid-template-columns: 1fr; gap: 36px; }
+  .lp-hero { padding: 56px 0 48px; min-height: auto; }
+  .lp-hero-layout { grid-template-columns: 1fr; gap: 32px; }
   .lp-hero-right { order: -1; }
-  .lp-placeholder-hero { aspect-ratio: 3/2; max-height: 240px; }
+  .lp-hero-img { height: 420px; }
+  .lp-banca-img { height: 360px; }
   .lp-h1 { font-size: clamp(32px, 8vw, 48px); }
-  .lp-hero-sub { font-size: 14px; }
+  .lp-hero-sub { font-size: 15px; }
 
   /* Steps */
   .lp-steps { flex-direction: column; gap: 0; }
