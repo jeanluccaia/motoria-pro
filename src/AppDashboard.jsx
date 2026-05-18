@@ -1,5 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "./router";
+import { useAuth } from "./contexts/AuthContext";
+import {
+  loadBancaConfig, saveBancaConfig,
+  loadEntries, addEntry, deleteEntry, clearEntries,
+} from "./lib/bancaDb";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -474,6 +479,8 @@ function CustomSelect({ id, options, value, onChange, placeholder }) {
 // ─── AppDashboard ─────────────────────────────────────────────────────────────
 
 export default function AppDashboard() {
+  const { session } = useAuth();
+
   useEffect(() => {
     const prev = document.title;
     document.title = "MotorIA Risk Engine™";
@@ -559,6 +566,26 @@ export default function AppDashboard() {
     valor: "", odd: "", resultado: "Ganhou", mercado: "Resultado da partida", obs: "",
   });
   const [bkSetupVal,     setBkSetupVal]     = useState("");
+  const [bkSyncing,      setBkSyncing]      = useState(false);
+
+  // Sync bankroll from Supabase when user is authenticated
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    setBkSyncing(true);
+    Promise.all([
+      loadBancaConfig(session.user.id),
+      loadEntries(session.user.id),
+    ]).then(([cfg, entries]) => {
+      if (cfg) {
+        setBkCfg(cfg);
+        saveBkCfg(cfg);
+      }
+      if (entries.length > 0) {
+        setBkEntries(entries);
+        saveBankroll(entries);
+      }
+    }).catch(() => {}).finally(() => setBkSyncing(false));
+  }, [session?.user?.id]);
 
   // Team form / H2H data (static JSON)
   const [teamData,       setTeamData]       = useState(null);
@@ -771,13 +798,14 @@ export default function AppDashboard() {
     setBkCfg(cfg);
     saveBkCfg(cfg);
     setBkSetupVal("");
+    if (session?.user?.id) saveBancaConfig(session.user.id, v).catch(() => {});
   }
 
-  function addBankrollEntry() {
+  async function addBankrollEntry() {
     const valor = parseFloat(bkForm.valor.replace(",", "."));
     const odd   = parseFloat(bkForm.odd.replace(",", "."));
     if (!valor || valor <= 0 || !odd || odd < 1.01) return;
-    const entry = {
+    const localEntry = {
       id:        Math.random().toString(36).slice(2),
       ts:        Date.now(),
       valor,
@@ -786,7 +814,14 @@ export default function AppDashboard() {
       mercado:   bkForm.mercado,
       obs:       bkForm.obs.trim(),
     };
-    const updated = [entry, ...bkEntries];
+    // Persist to Supabase if logged in; replace local id with DB id
+    if (session?.user?.id) {
+      try {
+        const dbId = await addEntry(session.user.id, localEntry);
+        localEntry.id = dbId;
+      } catch (_) {}
+    }
+    const updated = [localEntry, ...bkEntries];
     setBkEntries(updated);
     saveBankroll(updated);
     setBkForm({ valor: "", odd: "", resultado: "Ganhou", mercado: "Resultado da partida", obs: "" });
@@ -797,12 +832,14 @@ export default function AppDashboard() {
     const updated = bkEntries.filter(e => e.id !== id);
     setBkEntries(updated);
     saveBankroll(updated);
+    if (session?.user?.id) deleteEntry(id).catch(() => {});
   }
 
   function clearBankroll() {
     setBkEntries([]);
     saveBankroll([]);
     setBkClearConfirm(false);
+    if (session?.user?.id) clearEntries(session.user.id).catch(() => {});
   }
 
   // Shared result-card renderer — used in both quick flow and manual flow
@@ -1992,7 +2029,7 @@ export default function AppDashboard() {
                     </div>
                     <div className="ap-panel-online">
                       <span className="ap-status-dot" aria-hidden="true" />
-                      {bkEntries.length} ENTRADAS
+                      {bkSyncing ? "SINCRONIZANDO…" : `${bkEntries.length} ENTRADAS${session ? " · SALVO" : ""}`}
                     </div>
                   </div>
 

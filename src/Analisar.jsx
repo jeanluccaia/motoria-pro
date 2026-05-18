@@ -1,7 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { LegalBar, Header, Footer } from "./Layout";
 import { Link, useNavigate } from "./router";
 import { calcAll } from "./math";
+import { supabase, getIsPaid } from "./lib/supabase";
 
 // ─── Constantes ────────────────────────────────────────────────────────────────
 
@@ -19,17 +20,51 @@ const SENTIMENTOS = [
 ];
 
 const LOADING_MSGS = [
-  "Calculando margem da casa...",
-  "Estimando probabilidade real...",
-  "Projetando 30 e 90 dias...",
-  "Analisando fatores de risco...",
-  "Comparando com 12 mil apostas similares...",
-  "Preparando seu relatório...",
+  "Analisando exposição ao risco…",
+  "Padrões de armadilha identificados…",
+  "Comparando probabilidade implícita…",
+  "Calculando distorção da odd…",
+  "Mapeando viés da casa de apostas…",
+  "Gerando relatório de risco…",
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function hasAccess() { return localStorage.getItem(ACCESS_KEY) === "1"; }
+// Única fonte de verdade para verificar acesso
+function canViewFullAnalysis() {
+  return localStorage.getItem(ACCESS_KEY) === "1";
+}
+
+function getPartialSignals(math) {
+  const margem   = parseFloat(math.margem);
+  const ev       = parseFloat(math.evReais);
+  const kelly    = parseFloat(math.kelly);
+  const ruina    = parseFloat(math.riscoRuina);
+  const semaforo = math.semaforo;
+
+  const signals = [];
+  if (semaforo === "VERMELHO" || margem >= 7)
+    signals.push("Exposição acima da média detectada");
+  else
+    signals.push("Mercado exige cautela");
+
+  if (ev < 0)
+    signals.push("Risco potencial identificado");
+  else
+    signals.push("Oscilação incomum encontrada");
+
+  if (kelly === 0)
+    signals.push("Probabilidade implícita inconsistente");
+  else
+    signals.push("Padrão de entrada identificado");
+
+  if (ruina >= 50)
+    signals.push("Nível de exposição elevado encontrado");
+  else
+    signals.push("Análise de viés concluída");
+
+  return signals;
+}
 
 function matchLine(text, key) {
   const m = text.match(new RegExp(`^${key}:\\s*(.+)`, "m"));
@@ -123,13 +158,19 @@ function Indicator({ label, value, sub, highlight }) {
 export default function Analisar() {
   const navigate = useNavigate();
 
-  const [step, setStep]     = useState(1);
-  const [result, setResult] = useState(null);
+  const [step, setStep]         = useState(1);
+  const [result, setResult]     = useState(null);
   const [loading, setLoading]   = useState(false);
   const [loadIdx, setLoadIdx]   = useState(0);
-  const [error,  setError]  = useState("");
-  const [paywall, setPaywall] = useState(false);
+  const [error,  setError]      = useState("");
   const [decision, setDecision] = useState(null);
+  const [showCode,    setShowCode]    = useState(false);
+  const [codeInput,   setCodeInput]   = useState("");
+  const [codeError,   setCodeError]   = useState("");
+  const [codeLoading, setCodeLoading] = useState(false);
+
+  // Reactive access state — initialized from localStorage, updated async via Supabase + URL token
+  const [accessGranted, setAccessGranted] = useState(() => canViewFullAnalysis());
 
   const [s1, setS1] = useState({ jogo: "", esporte: "Futebol", tipoAposta: "Resultado final", casa: "Bet365" });
   const [s2, setS2] = useState({ odd: "", valor: "", frequencia: 5 });
@@ -137,6 +178,68 @@ export default function Analisar() {
 
   const resultRef = useRef(null);
   const timerRef  = useRef(null);
+
+  useEffect(() => {
+    // Purge stale free-trial keys from old versions
+    ["motoria_free_v1", "motoria_free", "freeUsed", "motoria_trial"].forEach(
+      (k) => localStorage.removeItem(k)
+    );
+
+    // Check Supabase session — grants access if user is authenticated and has paid
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session && !canViewFullAnalysis()) {
+        const paid = await getIsPaid(session.user.id);
+        if (paid) {
+          localStorage.setItem(ACCESS_KEY, "1");
+          setAccessGranted(true);
+        }
+      }
+    });
+
+    // URL admin token: /analisar?access=TOKEN
+    const params = new URLSearchParams(window.location.search);
+    const tk = params.get("access");
+    if (tk) {
+      fetch("/api/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: tk }),
+      })
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.valid) {
+            localStorage.setItem(ACCESS_KEY, "1");
+            setAccessGranted(true);
+            window.history.replaceState({}, "", window.location.pathname);
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
+
+  async function handleApplyCode() {
+    if (!codeInput.trim()) return;
+    setCodeLoading(true);
+    setCodeError("");
+    try {
+      const res = await fetch("/api/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: codeInput.trim() }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        localStorage.setItem(ACCESS_KEY, "1");
+        setAccessGranted(true);
+      } else {
+        setCodeError("Código inválido ou expirado.");
+      }
+    } catch {
+      setCodeError("Erro ao verificar código. Tente novamente.");
+    } finally {
+      setCodeLoading(false);
+    }
+  }
 
   function set1(k) { return (e) => setS1((p) => ({ ...p, [k]: e.target.value })); }
   function set2(k) { return (e) => setS2((p) => ({ ...p, [k]: e.target.value })); }
@@ -167,13 +270,17 @@ export default function Analisar() {
     setError("");
     setDecision(null);
 
-    if (!hasAccess()) {
-      setPaywall(true);
-      return;
-    }
-
     const oddNum = parseFloat(s2.odd.replace(",", "."));
     const math   = calcAll(oddNum, s2.valor || 0, s1.casa, s2.frequencia, s3.sentimento);
+
+    // If user doesn't have access: show partial result immediately without calling AI
+    if (!accessGranted) {
+      setResult({ math, ai: {} });
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+      return;
+    }
 
     const userMessage = [
       `Jogo: ${s1.jogo}`,
@@ -219,6 +326,9 @@ export default function Analisar() {
     setStep(1);
     setDecision(null);
     setError("");
+    setShowCode(false);
+    setCodeInput("");
+    setCodeError("");
   }
 
   const sc = result ? semaforoColor(result.math.semaforo) : "#FFB020";
@@ -226,28 +336,11 @@ export default function Analisar() {
   const bullets = (result?.ai.oQuePodeDarErrado || "")
     .split("\n").filter((l) => l.trim()).map((l) => l.replace(/^[-•*]\s*/, ""));
 
-  const kellyVal = result && s2.valor
-    ? (parseFloat(result.math.kelly) / 100 * parseFloat(s2.valor) / parseFloat(result.math.kelly) * 100).toFixed(0)
-    : null;
-
   return (
     <>
       <style>{CSS}</style>
       <LegalBar />
       <Header />
-
-      {/* ── PAYWALL ─────────────────────────────────────────── */}
-      {paywall && (
-        <div className="an-paywall-overlay">
-          <div className="an-paywall-box">
-            <div className="an-pw-icon">🔒</div>
-            <h2 className="an-pw-title">Acesso necessário</h2>
-            <p className="an-pw-sub">Desbloqueie análises de risco completas por R$27. Pagamento único, sem mensalidade.</p>
-            <Link to="/pagar" className="an-pw-cta">Garantir acesso vitalício →</Link>
-            <button className="an-pw-close" onClick={() => setPaywall(false)}>Cancelar</button>
-          </div>
-        </div>
-      )}
 
       <div className="an-root">
         <div className="an-wrap">
@@ -255,7 +348,6 @@ export default function Analisar() {
           {/* ── WIZARD ───────────────────────────────────────── */}
           {!result && !loading && (
             <>
-              {/* Barra de progresso com etapas numeradas */}
               <div className="an-progress-wrap">
                 <div className="an-step-nums">
                   {[
@@ -311,16 +403,29 @@ export default function Analisar() {
               {step === 2 && (
                 <div className="an-form">
                   <h1 className="an-form-title">Os números</h1>
-                  <div className="an-row">
-                    <div className="an-field">
-                      <label className="an-label">Odd</label>
-                      <input className="an-input" value={s2.odd} onChange={set2("odd")} placeholder="Ex: 1.80" inputMode="decimal" />
-                    </div>
-                    <div className="an-field">
-                      <label className="an-label">Valor a apostar <span className="an-opt">(opcional)</span></label>
-                      <input className="an-input" value={s2.valor} onChange={set2("valor")} placeholder="Ex: R$50" inputMode="decimal" />
+
+                  <div className="an-field">
+                    <label className="an-label">
+                      Quanto você vai apostar?
+                      <span className="an-opt"> (opcional — personaliza as projeções)</span>
+                    </label>
+                    <div className="an-valor-wrap">
+                      <span className="an-valor-prefix">R$</span>
+                      <input
+                        className="an-input an-valor-input"
+                        value={s2.valor}
+                        onChange={(e) => setS2((p) => ({ ...p, valor: e.target.value.replace(",", ".") }))}
+                        placeholder="50"
+                        inputMode="decimal"
+                      />
                     </div>
                   </div>
+
+                  <div className="an-field">
+                    <label className="an-label">Odd</label>
+                    <input className="an-input" value={s2.odd} onChange={set2("odd")} placeholder="Ex: 1.80" inputMode="decimal" />
+                  </div>
+
                   <div className="an-field">
                     <label className="an-label">
                       Frequência — apostas similares por semana:{" "}
@@ -355,7 +460,6 @@ export default function Analisar() {
                     </div>
                   </div>
 
-                  {/* Alerta de tilt */}
                   {(s3.sentimento === "tentando_recuperar" || s3.sentimento === "frustrado") && (
                     <div className="an-tilt-alert">
                       <strong>⚠ Atenção: Sinal de tilt detectado.</strong>
@@ -409,8 +513,107 @@ export default function Analisar() {
             </div>
           )}
 
-          {/* ── RESULTADO ────────────────────────────────────── */}
-          {result && !loading && (
+          {/* ── LOCK SCREEN (sem acesso) ─────────────────────── */}
+          {result && !loading && !accessGranted && (
+            <div className="an-lock-root" ref={resultRef}>
+
+              <div className="an-partial-header">
+                <span className="an-partial-dot" />
+                <span className="an-partial-title">Análise parcial concluída</span>
+              </div>
+
+              <p className="an-partial-desc">
+                O MotorIA encontrou sinais importantes de risco nesta entrada.
+              </p>
+
+              <div className="an-signals">
+                {getPartialSignals(result.math).map((sig, i) => (
+                  <div key={i} className="an-signal-chip">
+                    <span className="an-signal-dot" />
+                    {sig}
+                  </div>
+                ))}
+              </div>
+
+              {/* Card borrado */}
+              <div className="an-blurred-card">
+                <div className="an-blurred-inner">
+                  <div className="an-blur-section">
+                    <div className="an-blur-label">RISCO DA APOSTA</div>
+                    <div className="an-blur-value an-blur-block">██ / 100</div>
+                  </div>
+                  <div className="an-blur-divider" />
+                  <div className="an-blur-section">
+                    <div className="an-blur-label">CHANCE ESTIMADA</div>
+                    <div className="an-blur-value an-blur-block">██,█%</div>
+                  </div>
+                  <div className="an-blur-divider" />
+                  <div className="an-blur-section">
+                    <div className="an-blur-label">LEITURA DA IA</div>
+                    <div className="an-blur-value an-blur-block an-blur-text">████████████ ████████████</div>
+                    <div className="an-blur-value an-blur-block an-blur-text" style={{ marginTop: 6 }}>████ ████████ ███████████</div>
+                  </div>
+                </div>
+                <div className="an-blurred-fog" />
+                <div className="an-lock-badge">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="11" width="18" height="11" rx="2" stroke="#00dc64" strokeWidth="1.8"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#00dc64" strokeWidth="1.8"/>
+                  </svg>
+                  Bloqueado
+                </div>
+              </div>
+
+              {/* CTA */}
+              <div className="an-lock-cta">
+                <div className="an-lock-headline">Resultado parcial identificado.</div>
+                <div className="an-lock-sub">
+                  O MotorIA encontrou sinais importantes de risco nesta entrada.
+                </div>
+
+                <a
+                  href="https://pay.kiwify.com.br/DIVD8zl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="an-lock-btn"
+                >
+                  Desbloquear análise completa
+                </a>
+
+                <div className="an-lock-price">
+                  Pagamento único · sem mensalidade · acesso imediato · <strong>R$27</strong>
+                </div>
+              </div>
+
+              {/* Código de acesso */}
+              {!showCode ? (
+                <button className="an-code-toggle" onClick={() => setShowCode(true)}>
+                  Tenho um código de acesso
+                </button>
+              ) : (
+                <div className="an-code-form">
+                  <input
+                    className="an-code-input"
+                    placeholder="Digite seu código"
+                    value={codeInput}
+                    onChange={(e) => setCodeInput(e.target.value.toUpperCase())}
+                    onKeyDown={(e) => e.key === "Enter" && handleApplyCode()}
+                  />
+                  <button className="an-code-btn" onClick={handleApplyCode} disabled={codeLoading}>
+                    {codeLoading ? "Verificando…" : "Aplicar"}
+                  </button>
+                  {codeError && <div className="an-code-err">{codeError}</div>}
+                </div>
+              )}
+
+              <button className="an-reset" style={{ marginTop: 20 }} onClick={resetWizard}>
+                ← Analisar outra aposta
+              </button>
+            </div>
+          )}
+
+          {/* ── RESULTADO COMPLETO (com acesso) ──────────────── */}
+          {result && !loading && accessGranted && (
             <div className="an-result" ref={resultRef}>
               <button className="an-reset" onClick={resetWizard}>← Nova análise</button>
 
@@ -429,52 +632,14 @@ export default function Analisar() {
 
               {/* 8 INDICADORES */}
               <div className="an-ind-grid">
-                <Indicator
-                  label="PROBABILIDADE IMPLÍCITA"
-                  value={`${result.math.probImplicita}%`}
-                  sub="de chance segundo a odd"
-                />
-                <Indicator
-                  label="PROBABILIDADE REAL ESTIMADA"
-                  value={`${result.math.probReal}%`}
-                  sub={`ajustada pela margem da ${s1.casa}`}
-                />
-                <Indicator
-                  label="MARGEM DA CASA (VIG)"
-                  value={`${result.math.margem}%`}
-                  sub="taxa invisível por aposta"
-                  highlight={parseFloat(result.math.margem) >= 7 ? "#FF4D2E" : "#FFB020"}
-                />
-                <Indicator
-                  label="VALOR ESPERADO (EV)"
-                  value={`${parseFloat(result.math.evReais) >= 0 ? "+" : ""}R$${result.math.evReais}`}
-                  sub="por aposta no longo prazo"
-                  highlight={parseFloat(result.math.evReais) >= 0 ? "#1FCB7A" : "#FF4D2E"}
-                />
-                <Indicator
-                  label="PROJEÇÃO 30 DIAS"
-                  value={`${parseFloat(result.math.resultado30d) >= 0 ? "+" : ""}R$${result.math.resultado30d}`}
-                  sub={`apostando ${s2.frequencia}×/sem`}
-                  highlight={parseFloat(result.math.resultado30d) >= 0 ? "#1FCB7A" : "#FF4D2E"}
-                />
-                <Indicator
-                  label="PROJEÇÃO 90 DIAS"
-                  value={`${parseFloat(result.math.resultado90d) >= 0 ? "+" : ""}R$${result.math.resultado90d}`}
-                  sub="cenário esperado"
-                  highlight={parseFloat(result.math.resultado90d) >= 0 ? "#1FCB7A" : "#FF4D2E"}
-                />
-                <Indicator
-                  label="KELLY CRITERION"
-                  value={parseFloat(result.math.kelly) === 0 ? "0% — não apostar" : `${result.math.kelly}% da banca`}
-                  sub="fração racional sugerida"
-                  highlight={parseFloat(result.math.kelly) === 0 ? "#FF4D2E" : undefined}
-                />
-                <Indicator
-                  label="RISCO DE RUÍNA (20 APOSTAS)"
-                  value={`${result.math.riscoRuina}%`}
-                  sub="prob. de zerar essa série"
-                  highlight={parseFloat(result.math.riscoRuina) >= 50 ? "#FF4D2E" : "#FFB020"}
-                />
+                <Indicator label="PROBABILIDADE IMPLÍCITA" value={`${result.math.probImplicita}%`} sub="de chance segundo a odd" />
+                <Indicator label="PROBABILIDADE REAL ESTIMADA" value={`${result.math.probReal}%`} sub={`ajustada pela margem da ${s1.casa}`} />
+                <Indicator label="MARGEM DA CASA (VIG)" value={`${result.math.margem}%`} sub="taxa invisível por aposta" highlight={parseFloat(result.math.margem) >= 7 ? "#FF4D2E" : "#FFB020"} />
+                <Indicator label="VALOR ESPERADO (EV)" value={`${parseFloat(result.math.evReais) >= 0 ? "+" : ""}R$${result.math.evReais}`} sub="por aposta no longo prazo" highlight={parseFloat(result.math.evReais) >= 0 ? "#1FCB7A" : "#FF4D2E"} />
+                <Indicator label="PROJEÇÃO 30 DIAS" value={`${parseFloat(result.math.resultado30d) >= 0 ? "+" : ""}R$${result.math.resultado30d}`} sub={`apostando ${s2.frequencia}×/sem`} highlight={parseFloat(result.math.resultado30d) >= 0 ? "#1FCB7A" : "#FF4D2E"} />
+                <Indicator label="PROJEÇÃO 90 DIAS" value={`${parseFloat(result.math.resultado90d) >= 0 ? "+" : ""}R$${result.math.resultado90d}`} sub="cenário esperado" highlight={parseFloat(result.math.resultado90d) >= 0 ? "#1FCB7A" : "#FF4D2E"} />
+                <Indicator label="KELLY CRITERION" value={parseFloat(result.math.kelly) === 0 ? "0% — não apostar" : `${result.math.kelly}% da banca`} sub="fração racional sugerida" highlight={parseFloat(result.math.kelly) === 0 ? "#FF4D2E" : undefined} />
+                <Indicator label="RISCO DE RUÍNA (20 APOSTAS)" value={`${result.math.riscoRuina}%`} sub="prob. de zerar essa série" highlight={parseFloat(result.math.riscoRuina) >= 50 ? "#FF4D2E" : "#FFB020"} />
               </div>
 
               {/* SIMULAÇÃO */}
@@ -504,12 +669,10 @@ export default function Analisar() {
                   A <strong>{s1.casa}</strong> cobra uma margem de{" "}
                   <strong>{result.math.margem}%</strong> nesse mercado. Isso significa que de cada{" "}
                   <strong>R$100 apostados</strong>, R${(parseFloat(result.math.margem)).toFixed(2)} vão para
-                  o lucro da casa <em>antes</em> de qualquer resultado. Essa margem torna o EV
-                  negativo para a maioria das apostas no longo prazo.
+                  o lucro da casa <em>antes</em> de qualquer resultado.
                 </p>
               </div>
 
-              {/* ALERTA COMPORTAMENTAL */}
               {(result.ai.alertaComport && result.ai.alertaComport.trim()) && (
                 <div className="an-card an-card-red">
                   <div className="an-card-label">⚠ ALERTA COMPORTAMENTAL</div>
@@ -517,7 +680,6 @@ export default function Analisar() {
                 </div>
               )}
 
-              {/* CENÁRIO NECESSÁRIO */}
               {result.ai.cenarioNecessario && (
                 <div className="an-card">
                   <div className="an-card-label">O QUE PRECISA ACONTECER PARA DAR CERTO</div>
@@ -525,7 +687,6 @@ export default function Analisar() {
                 </div>
               )}
 
-              {/* O QUE PODE DAR ERRADO */}
               {bullets.length > 0 && (
                 <div className="an-card an-card-danger">
                   <div className="an-card-label">O QUE PODE DAR ERRADO</div>
@@ -535,7 +696,6 @@ export default function Analisar() {
                 </div>
               )}
 
-              {/* LEITURA CONSERVADORA */}
               {result.ai.leituraConservadora && (
                 <div className="an-card">
                   <div className="an-card-label">LEITURA CONSERVADORA</div>
@@ -543,7 +703,6 @@ export default function Analisar() {
                 </div>
               )}
 
-              {/* DECISÃO */}
               <div className="an-card an-card-decision">
                 <div className="an-card-label">DECISÃO</div>
                 {!decision ? (
@@ -569,7 +728,6 @@ export default function Analisar() {
                 )}
               </div>
 
-              {/* ALERTA FINAL */}
               <div className="an-card an-card-final">
                 <div className="an-card-label">⚠ ALERTA FINAL</div>
                 {result.ai.alertaFinal && <p className="an-card-text" style={{ marginBottom: 14 }}>{result.ai.alertaFinal}</p>}
@@ -582,15 +740,6 @@ export default function Analisar() {
                 Análise gerada por IA com base em cálculo matemático. Não é recomendação de aposta.
                 Todo resultado esportivo é imprevisível. Jogue com responsabilidade.
               </p>
-
-              {!hasAccess() && (
-                <div className="an-upgrade-banner">
-                  <p>Acesso necessário para análises completas.</p>
-                  <Link to="/pagar" className="an-upgrade-cta">
-                    Desbloquear por R$27 — acesso imediato →
-                  </Link>
-                </div>
-              )}
             </div>
           )}
 
@@ -605,437 +754,183 @@ export default function Analisar() {
 // ─── CSS ───────────────────────────────────────────────────────────────────────
 
 const CSS = `
-.an-root {
-  min-height: 80vh;
-  padding: 0 0 80px;
-}
-.an-wrap {
-  max-width: 560px;
-  margin: 0 auto;
-  padding: 32px 20px;
-}
+.an-root { min-height: 80vh; padding: 0 0 80px; }
+.an-wrap { max-width: 560px; margin: 0 auto; padding: 32px 20px; }
 
 /* Progress numerado */
 .an-progress-wrap { margin-bottom: 32px; }
-
 .an-step-nums {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  position: relative;
+  display: flex; align-items: flex-start; justify-content: space-between; position: relative;
 }
 .an-step-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  position: relative;
-  flex: 1;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 6px; position: relative; flex: 1;
 }
 .an-step-dot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  font-size: 12px; font-weight: 800;
-  color: #2e2e30;
-  border: 1.5px solid #222;
-  background: #0A0A0B;
-  transition: all 0.25s;
-  z-index: 1;
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 50%;
+  font-size: 12px; font-weight: 800; color: #2e2e30;
+  border: 1.5px solid #222; background: #0A0A0B;
+  transition: all 0.25s; z-index: 1;
 }
-.an-step-active {
-  color: var(--text);
-  border-color: var(--text);
-  background: rgba(242,242,240,0.07);
-  box-shadow: 0 0 0 4px rgba(242,242,240,0.05);
-}
-.an-step-done {
-  color: #1FCB7A;
-  border-color: rgba(31,203,122,0.5);
-  background: rgba(31,203,122,0.08);
-  font-size: 11px;
-}
-.an-step-title {
-  font-size: 10px;
-  font-weight: 600;
-  color: #2e2e30;
-  letter-spacing: 0.03em;
-  text-align: center;
-  white-space: nowrap;
-  transition: color 0.25s;
-}
+.an-step-active { color: var(--text); border-color: var(--text); background: rgba(242,242,240,0.07); box-shadow: 0 0 0 4px rgba(242,242,240,0.05); }
+.an-step-done { color: #1FCB7A; border-color: rgba(31,203,122,0.5); background: rgba(31,203,122,0.08); font-size: 11px; }
+.an-step-title { font-size: 10px; font-weight: 600; color: #2e2e30; letter-spacing: 0.03em; text-align: center; white-space: nowrap; transition: color 0.25s; }
 .an-step-title-active { color: var(--muted); }
-.an-step-line {
-  position: absolute;
-  top: 15px;
-  left: calc(50% + 18px);
-  right: calc(-50% + 18px);
-  height: 1px;
-  background: #1a1a1b;
-  transition: background 0.3s;
-}
+.an-step-line { position: absolute; top: 15px; left: calc(50% + 18px); right: calc(-50% + 18px); height: 1px; background: #1a1a1b; transition: background 0.3s; }
 .an-step-line-done { background: rgba(31,203,122,0.3); }
 
-/* Local save indicator */
-.an-local-save {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(31,203,122,0.05);
-  border: 1px solid rgba(31,203,122,0.18);
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin-top: -4px;
-}
+/* Local save */
+.an-local-save { display: flex; align-items: center; gap: 10px; background: rgba(31,203,122,0.05); border: 1px solid rgba(31,203,122,0.18); border-radius: 10px; padding: 10px 14px; margin-top: -4px; }
 .an-local-save-icon { font-size: 15px; flex-shrink: 0; }
-.an-local-save-title {
-  font-size: 12px; font-weight: 700;
-  color: #1FCB7A; display: block;
-}
-.an-local-save-sub {
-  font-size: 11px; color: #555;
-  display: block; line-height: 1.4; margin-top: 1px;
-}
+.an-local-save-title { font-size: 12px; font-weight: 700; color: #1FCB7A; display: block; }
+.an-local-save-sub { font-size: 11px; color: #555; display: block; line-height: 1.4; margin-top: 1px; }
 
 /* Form */
 .an-form { display: flex; flex-direction: column; gap: 20px; }
-.an-form-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 22px;
-  font-weight: 800;
-  color: #fff;
-  margin-bottom: 4px;
-}
+.an-form-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 4px; }
 .an-field { display: flex; flex-direction: column; gap: 8px; }
 .an-label { font-size: 13px; font-weight: 600; color: #aaa; }
 .an-opt { font-size: 11px; color: #555; font-weight: 400; }
-.an-input {
-  background: #111112;
-  border: 1px solid #222;
-  border-radius: 10px;
-  color: var(--text);
-  font-size: 15px;
-  font-family: inherit;
-  padding: 12px 14px;
-  outline: none;
-  transition: border-color 0.18s;
-  width: 100%;
-  -webkit-appearance: none;
-  appearance: none;
-}
+.an-input { background: #111112; border: 1px solid #222; border-radius: 10px; color: var(--text); font-size: 15px; font-family: inherit; padding: 12px 14px; outline: none; transition: border-color 0.18s; width: 100%; -webkit-appearance: none; appearance: none; }
 .an-input::placeholder { color: #333; }
 .an-input:focus { border-color: #444; }
 
-/* Slider */
-.an-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 4px;
-  background: #222;
-  border-radius: 99px;
-  outline: none;
-  cursor: pointer;
-}
-.an-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--text);
-  cursor: pointer;
-}
-.an-slider-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: #444;
-}
-.an-freq-num { color: var(--text); }
+/* Valor com prefixo R$ */
+.an-valor-wrap { display: flex; align-items: center; background: #111112; border: 1px solid #222; border-radius: 10px; overflow: hidden; transition: border-color 0.18s; }
+.an-valor-wrap:focus-within { border-color: #444; }
+.an-valor-prefix { padding: 0 4px 0 14px; font-size: 16px; font-weight: 700; color: #1FCB7A; flex-shrink: 0; }
+.an-valor-input { border: none !important; background: transparent; padding-left: 4px; font-size: 18px; font-weight: 700; }
 
+/* Slider */
+.an-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: #222; border-radius: 99px; outline: none; cursor: pointer; }
+.an-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--text); cursor: pointer; }
+.an-slider-labels { display: flex; justify-content: space-between; font-size: 11px; color: #444; }
+.an-freq-num { color: var(--text); }
 .an-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 /* Buttons */
 .an-btn-row { display: flex; gap: 10px; }
-.an-next-btn, .an-submit-btn {
-  flex: 1;
-  background: var(--text);
-  color: var(--bg);
-  border: none;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 700;
-  font-family: inherit;
-  padding: 15px;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
+.an-next-btn, .an-submit-btn { flex: 1; background: var(--text); color: var(--bg); border: none; border-radius: 10px; font-size: 15px; font-weight: 700; font-family: inherit; padding: 15px; cursor: pointer; transition: opacity 0.15s; }
 .an-next-btn:hover, .an-submit-btn:hover { opacity: 0.88; }
-.an-back-btn {
-  background: none;
-  border: 1px solid #222;
-  border-radius: 10px;
-  color: #555;
-  font-size: 14px;
-  font-family: inherit;
-  padding: 15px 18px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
+.an-back-btn { background: none; border: 1px solid #222; border-radius: 10px; color: #555; font-size: 14px; font-family: inherit; padding: 15px 18px; cursor: pointer; transition: all 0.15s; }
 .an-back-btn:hover { border-color: #444; color: #aaa; }
 
 /* Erro */
-.an-err {
-  background: rgba(255,77,46,0.08);
-  border: 1px solid rgba(255,77,46,0.2);
-  border-radius: 10px;
-  color: #f87171;
-  font-size: 14px;
-  padding: 12px 14px;
-}
+.an-err { background: rgba(255,77,46,0.08); border: 1px solid rgba(255,77,46,0.2); border-radius: 10px; color: #f87171; font-size: 14px; padding: 12px 14px; }
 
-/* Step 3 */
-.an-step3-note { font-size: 13px; color: #444; margin-top: -8px; }
-.an-tilt-alert {
-  background: rgba(255,77,46,0.08);
-  border: 1px solid rgba(255,77,46,0.25);
-  border-radius: 12px;
-  padding: 16px;
-  animation: an-pulse 2s infinite;
-}
+/* Tilt */
+.an-tilt-alert { background: rgba(255,77,46,0.08); border: 1px solid rgba(255,77,46,0.25); border-radius: 12px; padding: 16px; animation: an-pulse 2s infinite; }
 @keyframes an-pulse { 0%,100%{opacity:1} 50%{opacity:0.85} }
 .an-tilt-alert strong { color: var(--red); display: block; margin-bottom: 6px; }
 .an-tilt-alert p { font-size: 14px; color: #bbb; line-height: 1.6; }
 
-.an-sentiment-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-.an-sent-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #111112;
-  border: 1px solid #222;
-  border-radius: 9px;
-  color: #888;
-  font-size: 14px;
-  font-family: inherit;
-  padding: 12px 14px;
-  cursor: pointer;
-  transition: all 0.15s;
-  text-align: left;
-}
+/* Sentiment */
+.an-sentiment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.an-sent-btn { display: flex; align-items: center; gap: 10px; background: #111112; border: 1px solid #222; border-radius: 9px; color: #888; font-size: 14px; font-family: inherit; padding: 12px 14px; cursor: pointer; transition: all 0.15s; text-align: left; }
 .an-sent-btn:hover { border-color: #444; color: var(--text); }
-.an-sent-on {
-  border-color: var(--text);
-  color: var(--text);
-  background: rgba(242,242,240,0.06);
-}
+.an-sent-on { border-color: var(--text); color: var(--text); background: rgba(242,242,240,0.06); }
 
 /* Loading */
-.an-loading {
-  text-align: center;
-  padding: 80px 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-}
-.an-spinner {
-  width: 44px; height: 44px;
-  border: 2px solid #1E1E1F;
-  border-top-color: var(--text);
-  border-radius: 50%;
-  animation: an-spin 0.8s linear infinite;
-}
+.an-loading { text-align: center; padding: 80px 20px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.an-spinner { width: 44px; height: 44px; border: 2px solid #1E1E1F; border-top-color: var(--text); border-radius: 50%; animation: an-spin 0.8s linear infinite; }
 @keyframes an-spin { to { transform: rotate(360deg); } }
 .an-load-text { font-size: 14px; color: var(--muted); }
 
+/* Lock screen */
+.an-lock-root { display: flex; flex-direction: column; gap: 16px; }
+.an-partial-header { display: flex; align-items: center; gap: 8px; }
+.an-partial-dot { width: 8px; height: 8px; border-radius: 50%; background: #1FCB7A; box-shadow: 0 0 8px #1FCB7A88; animation: an-pulse 2s infinite; flex-shrink: 0; }
+.an-partial-title { font-size: 12px; font-weight: 700; color: #1FCB7A; letter-spacing: 0.08em; text-transform: uppercase; }
+.an-partial-desc { font-size: 15px; color: #aaa; line-height: 1.6; margin: 0; }
+
+.an-signals { display: flex; flex-direction: column; gap: 8px; }
+.an-signal-chip { display: flex; align-items: center; gap: 10px; background: rgba(31,203,122,0.06); border: 1px solid rgba(31,203,122,0.15); border-radius: 9px; padding: 10px 14px; font-size: 13px; color: #ccc; }
+.an-signal-dot { width: 6px; height: 6px; border-radius: 50%; background: #1FCB7A; flex-shrink: 0; }
+
+.an-blurred-card { background: #111112; border: 1px solid #1E1E1F; border-radius: 14px; overflow: hidden; position: relative; }
+.an-blurred-inner { display: flex; padding: 20px; gap: 0; filter: blur(6px); user-select: none; }
+.an-blur-section { flex: 1; padding: 0 12px; }
+.an-blur-section:first-child { padding-left: 0; }
+.an-blur-section:last-child { padding-right: 0; }
+.an-blur-divider { width: 1px; background: #1E1E1F; flex-shrink: 0; }
+.an-blur-label { font-size: 9px; font-weight: 700; color: #444; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+.an-blur-value { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: var(--text); }
+.an-blur-block { opacity: 0.5; }
+.an-blur-text { font-size: 13px; font-family: inherit; letter-spacing: 2px; }
+.an-blurred-fog { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 30%, rgba(10,10,11,0.95) 100%); }
+.an-lock-badge { position: absolute; bottom: 14px; right: 14px; display: flex; align-items: center; gap: 6px; background: rgba(0,220,100,0.1); border: 1px solid rgba(0,220,100,0.25); border-radius: 8px; padding: 6px 10px; font-size: 12px; font-weight: 700; color: #00dc64; }
+
+.an-lock-cta { background: #111112; border: 1px solid #1E1E1F; border-radius: 14px; padding: 22px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; }
+.an-lock-headline { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 900; color: #fff; }
+.an-lock-sub { font-size: 14px; color: #888; line-height: 1.6; max-width: 300px; }
+.an-lock-btn { display: block; width: 100%; padding: 15px; background: #1FCB7A; color: #000; font-size: 15px; font-weight: 900; border-radius: 10px; text-decoration: none; transition: opacity 0.15s; }
+.an-lock-btn:hover { opacity: 0.9; }
+.an-lock-price { font-size: 13px; color: #555; }
+.an-lock-price strong { color: #1FCB7A; }
+
+.an-code-toggle { background: none; border: none; color: #555; font-size: 13px; font-family: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; padding: 0; align-self: center; }
+.an-code-toggle:hover { color: #888; }
+.an-code-form { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.an-code-input { background: #111112; border: 1px solid #222; border-radius: 9px; color: var(--text); font-size: 15px; font-family: inherit; padding: 12px 14px; outline: none; letter-spacing: 0.08em; }
+.an-code-input:focus { border-color: #444; }
+.an-code-btn { background: var(--text); color: var(--bg); border: none; border-radius: 9px; font-size: 14px; font-weight: 700; font-family: inherit; padding: 12px; cursor: pointer; transition: opacity 0.15s; }
+.an-code-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.an-code-err { font-size: 13px; color: #f87171; text-align: center; }
+
 /* Result */
 .an-result { display: flex; flex-direction: column; gap: 12px; }
-.an-reset {
-  background: none; border: 1px solid #1E1E1F; border-radius: 8px;
-  color: #444; font-size: 13px; font-family: inherit;
-  padding: 9px 14px; cursor: pointer; align-self: flex-start;
-  transition: all 0.15s; margin-bottom: 4px;
-}
+.an-reset { background: none; border: 1px solid #1E1E1F; border-radius: 8px; color: #444; font-size: 13px; font-family: inherit; padding: 9px 14px; cursor: pointer; align-self: flex-start; transition: all 0.15s; margin-bottom: 4px; }
 .an-reset:hover { border-color: #444; color: var(--muted); }
 
-/* Semáforo */
-.an-semaforo {
-  display: flex; align-items: center; gap: 16px;
-  border: 1px solid; border-radius: 14px; padding: 20px;
-}
+.an-semaforo { display: flex; align-items: center; gap: 16px; border: 1px solid; border-radius: 14px; padding: 20px; }
 .an-sem-dot { width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0; }
-.an-sem-label {
-  font-family: 'Syne', sans-serif;
-  font-size: 20px; font-weight: 800;
-}
+.an-sem-label { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; }
 .an-sem-phrase { font-size: 14px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
 
-/* Indicadores */
-.an-ind-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.an-ind {
-  background: #111112;
-  border: 1px solid #1E1E1F;
-  border-radius: 12px;
-  padding: 16px;
-}
-.an-ind-label {
-  font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
-  color: #444; margin-bottom: 10px; text-transform: uppercase;
-}
-.an-ind-value {
-  font-family: 'Syne', sans-serif;
-  font-size: 22px; font-weight: 800;
-  color: var(--text); line-height: 1;
-  margin-bottom: 6px;
-}
+.an-ind-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.an-ind { background: #111112; border: 1px solid #1E1E1F; border-radius: 12px; padding: 16px; }
+.an-ind-label { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; color: #444; margin-bottom: 10px; text-transform: uppercase; }
+.an-ind-value { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; margin-bottom: 6px; }
 .an-ind-sub { font-size: 11px; color: #555; }
 
-/* Cards */
-.an-card {
-  background: #111112;
-  border: 1px solid #1E1E1F;
-  border-radius: 12px;
-  padding: 18px;
-}
-.an-card-amber {
-  border-color: rgba(255,176,32,0.2);
-  background: rgba(255,176,32,0.04);
-}
-.an-card-red {
-  border-color: rgba(255,77,46,0.25);
-  background: rgba(255,77,46,0.05);
-}
-.an-card-danger {
-  border-color: rgba(255,77,46,0.15);
-  background: rgba(255,77,46,0.03);
-}
-.an-card-decision {
-  border-color: rgba(242,242,240,0.1);
-  background: rgba(242,242,240,0.03);
-}
-.an-card-final {
-  border-color: rgba(255,176,32,0.2);
-  background: rgba(255,176,32,0.04);
-}
-.an-card-label {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
-  color: #444; margin-bottom: 14px; text-transform: uppercase;
-}
-.an-card-text {
-  font-size: 14px; color: #bbb; line-height: 1.7; margin: 0;
-}
+.an-card { background: #111112; border: 1px solid #1E1E1F; border-radius: 12px; padding: 18px; }
+.an-card-amber { border-color: rgba(255,176,32,0.2); background: rgba(255,176,32,0.04); }
+.an-card-red { border-color: rgba(255,77,46,0.25); background: rgba(255,77,46,0.05); }
+.an-card-danger { border-color: rgba(255,77,46,0.15); background: rgba(255,77,46,0.03); }
+.an-card-decision { border-color: rgba(242,242,240,0.1); background: rgba(242,242,240,0.03); }
+.an-card-final { border-color: rgba(255,176,32,0.2); background: rgba(255,176,32,0.04); }
+.an-card-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: #444; margin-bottom: 14px; text-transform: uppercase; }
+.an-card-text { font-size: 14px; color: #bbb; line-height: 1.7; margin: 0; }
 
-/* Chart */
-.an-chart-legend {
-  display: flex; gap: 16px; flex-wrap: wrap;
-  font-size: 11px; margin: 10px 0 6px;
-}
+.an-chart-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 11px; margin: 10px 0 6px; }
 .an-leg { display: flex; align-items: center; gap: 4px; }
 .an-leg-exp { color: var(--text); }
 .an-leg-opt { color: #1FCB7A; opacity: 0.7; }
 .an-leg-pes { color: #FF4D2E; opacity: 0.7; }
 .an-sim-note { font-size: 13px; color: #666; margin-top: 8px; }
 
-/* Bullets */
 .an-bullets { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-.an-bullet {
-  font-size: 14px; color: #bbb; padding-left: 20px;
-  position: relative; line-height: 1.6;
-}
-.an-bullet::before {
-  content: "—"; position: absolute; left: 0;
-  color: var(--red); font-weight: 700;
-}
+.an-bullet { font-size: 14px; color: #bbb; padding-left: 20px; position: relative; line-height: 1.6; }
+.an-bullet::before { content: "—"; position: absolute; left: 0; color: var(--red); font-weight: 700; }
 
-/* Decisão */
 .an-dec-btns { display: flex; flex-direction: column; gap: 10px; }
-.an-dec-btn {
-  background: #111112; border: 1px solid #1E1E1F;
-  border-radius: 9px; color: #aaa; font-size: 14px;
-  font-family: inherit; padding: 13px 16px; cursor: pointer;
-  text-align: left; transition: all 0.15s;
-}
+.an-dec-btn { background: #111112; border: 1px solid #1E1E1F; border-radius: 9px; color: #aaa; font-size: 14px; font-family: inherit; padding: 13px 16px; cursor: pointer; text-align: left; transition: all 0.15s; }
 .an-dec-avoid { border-color: rgba(31,203,122,0.25); color: #1FCB7A; }
 .an-dec-avoid:hover { background: rgba(31,203,122,0.06); }
 .an-dec-reduce:hover { background: rgba(255,176,32,0.06); color: #FFB020; border-color: rgba(255,176,32,0.25); }
 .an-dec-proceed:hover { background: rgba(255,77,46,0.05); }
-.an-dec-confirm {
-  font-size: 14px; color: var(--muted); padding: 12px 0;
-}
+.an-dec-confirm { font-size: 14px; color: var(--muted); padding: 12px 0; }
 .an-dec-confirm-green { color: #1FCB7A; }
 
-/* Quote */
-.an-quote {
-  font-size: 14px; font-style: italic; color: var(--amber);
-  border-left: 2px solid rgba(255,176,32,0.3);
-  padding: 10px 14px; margin: 0;
-  border-radius: 0 6px 6px 0;
-  background: rgba(255,176,32,0.04);
-  line-height: 1.6;
-}
-
-/* Upgrade banner */
-.an-upgrade-banner {
-  background: #111112; border: 1px solid #1E1E1F;
-  border-radius: 12px; padding: 20px; text-align: center;
-}
-.an-upgrade-banner p { font-size: 14px; color: var(--muted); margin-bottom: 14px; }
-.an-upgrade-cta {
-  display: inline-block; background: var(--text); color: var(--bg);
-  font-size: 14px; font-weight: 700; padding: 13px 22px;
-  border-radius: 9px; text-decoration: none; transition: opacity 0.15s;
-}
-.an-upgrade-cta:hover { opacity: 0.88; }
-
-.an-disclaimer {
-  font-size: 11px; color: #333; text-align: center; line-height: 1.6;
-}
-
-/* Paywall overlay */
-.an-paywall-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 999; padding: 20px;
-}
-.an-paywall-box {
-  background: #111112; border: 1px solid #222;
-  border-radius: 16px; padding: 36px 28px;
-  max-width: 400px; width: 100%; text-align: center;
-  display: flex; flex-direction: column; gap: 14px;
-}
-.an-pw-icon { font-size: 36px; }
-.an-pw-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 22px; font-weight: 800; color: #fff;
-}
-.an-pw-sub { font-size: 15px; color: var(--muted); }
-.an-pw-cta {
-  display: block; background: var(--text); color: var(--bg);
-  font-size: 15px; font-weight: 700; padding: 15px;
-  border-radius: 10px; text-decoration: none; margin-top: 4px;
-  transition: opacity 0.15s;
-}
-.an-pw-cta:hover { opacity: 0.88; }
-.an-pw-close {
-  background: none; border: none; color: #444;
-  font-size: 14px; font-family: inherit; cursor: pointer;
-}
-.an-pw-close:hover { color: var(--muted); }
+.an-quote { font-size: 14px; font-style: italic; color: var(--amber); border-left: 2px solid rgba(255,176,32,0.3); padding: 10px 14px; margin: 0; border-radius: 0 6px 6px 0; background: rgba(255,176,32,0.04); line-height: 1.6; }
+.an-disclaimer { font-size: 11px; color: #333; text-align: center; line-height: 1.6; }
 
 @media (max-width: 400px) {
   .an-ind-grid { grid-template-columns: 1fr; }
   .an-row { grid-template-columns: 1fr; }
   .an-sentiment-grid { grid-template-columns: 1fr; }
+  .an-blurred-inner { flex-direction: column; gap: 12px; }
+  .an-blur-divider { display: none; }
 }
 `;
