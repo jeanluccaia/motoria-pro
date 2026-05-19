@@ -1,5 +1,8 @@
 const { createClient } = require("@supabase/supabase-js");
 const crypto = require("crypto");
+const db     = require("../_db");
+
+const AUTH_EMAIL_TTL_SECS = 86400 * 60; // 60 dias — janela generosa para o usuário fazer login
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
@@ -54,28 +57,36 @@ module.exports = async function handler(req, res) {
     (u) => u.email?.toLowerCase() === email.toLowerCase()
   );
 
+  // ── Sempre: registrar autorização no Redis (funciona mesmo antes do cadastro) ──
+  const normalizedEmail = email.toLowerCase();
+  await db.set(`auth_email:${normalizedEmail}`, "1", AUTH_EMAIL_TTL_SECS);
+  console.log(`[webhook/payment] auth_email gravado no Redis — email: ${normalizedEmail}`);
+
   if (!user) {
-    // User hasn't logged in yet — store pending payment for when they sign up
-    console.warn(`[webhook/payment] User not found for email: ${email}. Payment will apply on first login.`);
-    // Store in a pending_payments table if needed — for now just return ok
-    return res.status(200).json({ received: true, note: "user_not_found_yet", email });
+    // Usuário ainda não criou conta — autorização guardada no Redis.
+    // Quando fizer login, /api/auth/sync-paid vai sincronizar is_paid.
+    console.log(`[webhook/payment] Usuário não encontrado — aguarda primeiro login: ${normalizedEmail}`);
+    return res.status(200).json({ received: true, note: "pending_first_login", email: normalizedEmail });
   }
 
-  // Grant access
+  // Grant access in Supabase profiles
   const { error: updateErr } = await supabase
     .from("profiles")
-    .update({
+    .upsert({
+      id:         user.id,
       is_paid:    true,
       paid_at:    new Date().toISOString(),
       payment_id: orderId || null,
-    })
-    .eq("id", user.id);
+    }, { onConflict: "id" });
 
   if (updateErr) {
     console.error("[webhook/payment] update error:", updateErr.message);
-    return res.status(500).json({ error: "Failed to update profile" });
+    // Redis já foi salvo — não é erro fatal, sync-paid vai completar depois
+  } else {
+    // Redis já pode ser limpo (sincronizado com sucesso agora)
+    await db.del(`auth_email:${normalizedEmail}`);
+    console.log(`[webhook/payment] is_paid atualizado em Supabase — email: ${normalizedEmail}, uid: ${user.id}`);
   }
 
-  console.log(`[webhook/payment] Access granted to ${email} (uid: ${user.id})`);
   return res.status(200).json({ success: true });
 };

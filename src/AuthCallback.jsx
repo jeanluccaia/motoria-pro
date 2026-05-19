@@ -1,51 +1,57 @@
 import { useEffect, useState } from "react";
-import { supabase, getIsPaid } from "./lib/supabase";
+import { supabase } from "./lib/supabase";
 
 const ACCESS_KEY = "motoria_access_v1";
+
+async function syncAndCheckPaid(session) {
+  try {
+    const jwt = session.access_token;
+    const res = await fetch("/api/auth/sync-paid", {
+      method: "POST",
+      headers: {
+        "Content-Type":  "application/json",
+        "Authorization": `Bearer ${jwt}`,
+      },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return data.is_paid === true;
+    }
+  } catch (err) {
+    console.error("[auth-callback] sync-paid error:", err.message);
+  }
+  return false;
+}
 
 export default function AuthCallback() {
   const [status, setStatus] = useState("Autenticando…");
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (session) {
-          setStatus("Verificando acesso…");
-          try {
-            const paid = await getIsPaid(session.user.id);
-            if (paid) {
-              localStorage.setItem(ACCESS_KEY, "1");
-              setStatus("Acesso confirmado! Redirecionando…");
-              setTimeout(() => window.location.replace("/app"), 600);
-            } else {
-              setStatus("Redirecionando…");
-              setTimeout(() => window.location.replace("/paywall"), 600);
-            }
-          } catch {
-            setTimeout(() => window.location.replace("/app"), 600);
-          }
+    async function handleSession(session) {
+      if (!session) return;
+      setStatus("Verificando acesso…");
+      try {
+        const paid = await syncAndCheckPaid(session);
+        if (paid) {
+          localStorage.setItem(ACCESS_KEY, "1");
+          setStatus("Acesso confirmado! Redirecionando…");
+          setTimeout(() => window.location.replace("/app"), 600);
+        } else {
+          setStatus("Redirecionando…");
+          setTimeout(() => window.location.replace("/paywall"), 600);
         }
+      } catch {
+        setTimeout(() => window.location.replace("/app"), 600);
       }
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => { await handleSession(session); }
     );
 
     // Fallback: session may already exist before the event fires
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session) {
-        setStatus("Verificando acesso…");
-        try {
-          const paid = await getIsPaid(session.user.id);
-          if (paid) {
-            localStorage.setItem(ACCESS_KEY, "1");
-            setStatus("Acesso confirmado! Redirecionando…");
-            setTimeout(() => window.location.replace("/app"), 600);
-          } else {
-            setStatus("Redirecionando…");
-            setTimeout(() => window.location.replace("/paywall"), 600);
-          }
-        } catch {
-          setTimeout(() => window.location.replace("/app"), 600);
-        }
-      }
+      await handleSession(session);
     });
 
     const timeout = setTimeout(() => {
