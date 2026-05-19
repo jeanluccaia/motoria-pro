@@ -141,7 +141,7 @@ function VideoSection() {
             preload="metadata"
             poster="/hero-risk-awareness.png"
           >
-            <source src="/motoria-demo.mp4" type="video/mp4" />
+            <source src="/video/motoria-demo.mp4" type="video/mp4" />
           </video>
 
           {/* Fallback play button — shown when autoplay is blocked by browser */}
