@@ -318,7 +318,7 @@ export default function Landing() {
           <div className="lp-risk-right">
             <div className="lp-risk-card">
               <div className="lp-risk-card-top">
-                <span className="lp-risk-card-title">Resultado parcial identificado.</span>
+                <span className="lp-risk-card-title">Resultado da análise</span>
                 <span className="lp-risk-badge">⚠ CAUTELA</span>
               </div>
               <div className="lp-risk-signals">
@@ -326,7 +326,6 @@ export default function Landing() {
                   "Exposição elevada detectada",
                   "Entrada exige cautela",
                   "Impacto relevante na banca",
-                  "Análise completa bloqueada",
                 ].map((s, i) => (
                   <div className="lp-risk-signal" key={i}>
                     <span className="lp-risk-signal-dot" aria-hidden="true" />
@@ -337,16 +336,26 @@ export default function Landing() {
               <div className="lp-risk-metrics">
                 <div className="lp-risk-metric">
                   <div className="lp-risk-metric-lbl">RISCO DA APOSTA</div>
-                  <div className="lp-risk-metric-val">██ / 100</div>
+                  <div className="lp-risk-metric-val lp-risk-val-red">72 / 100</div>
+                  <div className="lp-risk-bar-wrap">
+                    <div className="lp-risk-bar-fill" style={{ width: "72%" }} />
+                  </div>
                 </div>
                 <div className="lp-risk-metric">
                   <div className="lp-risk-metric-lbl">CHANCE ESTIMADA</div>
-                  <div className="lp-risk-metric-val">██,█%</div>
+                  <div className="lp-risk-metric-val lp-risk-val-amber">38,6%</div>
                 </div>
               </div>
               <div className="lp-risk-leitura">
                 <div className="lp-risk-metric-lbl">LEITURA</div>
-                <div className="lp-risk-blur">████████████████████████████</div>
+                <div className="lp-risk-leitura-body">
+                  <p className="lp-risk-leitura-text">Exposição acima do ideal.</p>
+                  <div className="lp-risk-leitura-fade" aria-hidden="true" />
+                  <div className="lp-risk-lock-hint">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    análise completa bloqueada
+                  </div>
+                </div>
               </div>
               <a href={KIWIFY_URL} className="lp-risk-cta" target="_blank" rel="noopener noreferrer">
                 Desbloquear análise completa por R$27
@@ -927,17 +936,37 @@ body { background: var(--bg); color: var(--t1); font-family: -apple-system, Blin
   font-size: 8.5px; font-weight: 800; letter-spacing: .14em; color: var(--t2);
 }
 .lp-risk-metric-val {
-  font-size: 18px; font-weight: 900; color: var(--t3);
-  letter-spacing: .06em; font-family: 'Courier New', monospace;
+  font-size: 22px; font-weight: 900; letter-spacing: .03em;
+  font-family: 'Courier New', monospace; line-height: 1;
+}
+.lp-risk-val-red   { color: #ef4444; }
+.lp-risk-val-amber { color: #f59e0b; }
+.lp-risk-bar-wrap {
+  height: 3px; background: rgba(255,255,255,.08); border-radius: 2px; overflow: hidden;
+}
+.lp-risk-bar-fill {
+  height: 100%; background: #ef4444; border-radius: 2px;
 }
 .lp-risk-leitura {
   background: rgba(255,255,255,.02); border: 1px solid var(--border);
   border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px;
 }
-.lp-risk-blur {
-  font-size: 13px; color: var(--t3); letter-spacing: .12em;
-  font-family: 'Courier New', monospace;
-  filter: blur(3px); user-select: none;
+.lp-risk-leitura-body {
+  position: relative; overflow: hidden;
+}
+.lp-risk-leitura-text {
+  font-size: 13px; font-weight: 600; color: var(--t1);
+  margin: 0 0 28px; line-height: 1.5;
+}
+.lp-risk-leitura-fade {
+  position: absolute; bottom: 18px; left: 0; right: 0; height: 28px;
+  background: linear-gradient(to bottom, transparent, #0E0E12);
+  pointer-events: none;
+}
+.lp-risk-lock-hint {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 700; letter-spacing: .06em;
+  color: var(--t2); text-transform: uppercase;
 }
 .lp-risk-cta {
   display: block; text-align: center;
