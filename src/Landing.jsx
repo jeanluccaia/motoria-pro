@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "./router";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -48,6 +48,115 @@ function FaqItem({ q, a }) {
       </div>
       {open && <p className="lp-faq-a">{a}</p>}
     </div>
+  );
+}
+
+// ─── VideoSection ─────────────────────────────────────────────────────────────
+
+function VideoSection() {
+  const videoRef  = useRef(null);
+  const [muted,   setMuted]   = useState(true);
+  // showPlay: true when autoplay was blocked and the user hasn't tapped yet
+  const [showPlay, setShowPlay] = useState(false);
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+
+    // Try to play immediately (works when autoPlay attr + muted are present)
+    v.play().catch(() => setShowPlay(true));
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          // Only attempt play — don't reset currentTime (breaks mid-scroll UX)
+          v.play().catch(() => setShowPlay(true));
+        } else {
+          v.pause();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(v);
+    return () => observer.disconnect();
+  }, []);
+
+  function handlePlayClick() {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = true;        // ensure muted so browser allows autoplay after tap
+    setMuted(true);
+    v.play().then(() => setShowPlay(false)).catch(() => {});
+  }
+
+  function toggleMute() {
+    const v = videoRef.current;
+    if (!v) return;
+    const next = !v.muted;
+    v.muted = next;
+    if (!next) v.play().catch(() => {});
+    setMuted(next);
+  }
+
+  return (
+    <section className="lp-section lp-dark lp-video-section" id="demo">
+      <div className="lp-container" style={{ textAlign: "center" }}>
+        <div className="lp-eyebrow">Demonstração</div>
+        <h2 className="lp-h2" style={{ marginBottom: 12 }}>Veja como funciona</h2>
+        <p className="lp-video-sub">
+          Em poucos segundos você monta sua entrada, entende o risco e acompanha sua banca.
+        </p>
+        <div className="lp-video-wrap" style={{ position: "relative" }}>
+          <video
+            ref={videoRef}
+            className="lp-video"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            poster="/hero-risk-awareness.png"
+          >
+            <source src="/motoria-demo.mp4" type="video/mp4" />
+          </video>
+
+          {/* Fallback play button — shown when autoplay is blocked by browser */}
+          {showPlay && (
+            <button
+              className="lp-play-btn"
+              onClick={handlePlayClick}
+              aria-label="Reproduzir vídeo"
+            >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+            </button>
+          )}
+
+          {/* Mute toggle — only show when video is playing */}
+          {!showPlay && (
+            <button
+              className={`lp-mute-btn${muted ? " lp-mute-btn-on" : ""}`}
+              onClick={toggleMute}
+              aria-label={muted ? "Ativar som" : "Silenciar"}
+            >
+              {muted ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                  <line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                </svg>
+              )}
+              <span>{muted ? "Ativar som" : "Silenciar"}</span>
+            </button>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -166,27 +275,7 @@ export default function Landing() {
       </section>
 
       {/* ── VEJA COMO FUNCIONA — vídeo demo ─────────────────────────────────── */}
-      <section className="lp-section lp-dark lp-video-section" id="demo">
-        <div className="lp-container" style={{ textAlign: "center" }}>
-          <div className="lp-eyebrow">Demonstração</div>
-          <h2 className="lp-h2" style={{ marginBottom: 12 }}>Veja como funciona</h2>
-          <p className="lp-video-sub">
-            Em poucos segundos você monta sua entrada, entende o risco e acompanha sua banca.
-          </p>
-          <div className="lp-video-wrap">
-            {/* Substituir o src abaixo pelo caminho do MP4 renderizado */}
-            <video
-              className="lp-video"
-              src="/demo-motoria-v3.mp4"
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster="/video-poster.jpg"
-            />
-          </div>
-        </div>
-      </section>
+      <VideoSection />
 
       {/* ── ANÁLISE DE RISCO ─────────────────────────────────────────────────── */}
       <section className="lp-section" id="analise">
@@ -747,6 +836,30 @@ body { background: var(--bg); color: var(--t1); font-family: -apple-system, Blin
 @media (max-width: 480px) {
   .lp-video-wrap { max-width: 90vw; border-radius: 20px; }
 }
+
+/* ── Play fallback button ───────────────────────────────────────────────────── */
+.lp-play-btn {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.45); border: none; border-radius: 28px;
+  color: #fff; cursor: pointer; transition: background .15s;
+}
+.lp-play-btn:hover { background: rgba(0,0,0,.6); }
+.lp-play-btn svg { filter: drop-shadow(0 2px 8px rgba(0,0,0,.6)); }
+
+/* ── Mute button ────────────────────────────────────────────────────────────── */
+.lp-mute-btn {
+  position: absolute; bottom: 14px; right: 14px;
+  display: flex; align-items: center; gap: 7px;
+  background: rgba(0,0,0,.65); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 99px; padding: 8px 14px 8px 10px;
+  color: #fff; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: background .15s, border-color .15s;
+  letter-spacing: .02em;
+}
+.lp-mute-btn:hover { background: rgba(0,0,0,.85); border-color: rgba(255,255,255,.3); }
+.lp-mute-btn-on { border-color: rgba(34,197,94,.4); color: var(--green); }
 
 /* ── Risk section ───────────────────────────────────────────────────────────── */
 .lp-risk-layout {
