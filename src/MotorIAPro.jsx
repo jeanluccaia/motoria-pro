@@ -1,5 +1,6 @@
 import React from "react";
 import { useState, useEffect, useRef } from "react";
+import { buildSafeHeaders } from "./utils/safeHeaders";
 
 // System prompts movidos para api/_prompts.js (servidor).
 // O frontend envia apenas o identificador da ferramenta — nunca o prompt completo.
@@ -729,7 +730,7 @@ export default function MotorIAPro() {
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: buildSafeHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           tool: selectedTool,
           userMessage: input,
@@ -844,7 +845,7 @@ export default function MotorIAPro() {
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: buildSafeHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           tool: activeFlow.promptKey,
           userMessage: promptText,

@@ -5,6 +5,7 @@ import {
   loadBancaConfig, saveBancaConfig,
   loadEntries, addEntry, deleteEntry, clearEntries,
 } from "./lib/bancaDb";
+import { buildSafeHeaders, cleanLocalStorageToken } from "./utils/safeHeaders";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -556,7 +557,7 @@ export default function AppDashboard() {
 
   // System
   const [history,    setHistory]    = useState(loadHistory);
-  const [token,      setToken]      = useState(() => localStorage.getItem(TOKEN_KEY) || "");
+  const [token,      setToken]      = useState(() => cleanLocalStorageToken(TOKEN_KEY));
   const [credits,    setCredits]    = useState(null);
   const [analysisId, setAnalysisId] = useState(null);
   const [copiedId,   setCopiedId]   = useState(null);
@@ -687,17 +688,15 @@ export default function AppDashboard() {
 
       const userMsg = `Jogo: ${jogoVal || "não informado"} | Campeonato: ${campVal || "não informado"} | Mercado: ${tipoVal} | Odd: ${oddVal}${valorVal ? ` | Valor: R$${valorVal}` : ""}${formaCtx}`;
       const adminKey = localStorage.getItem("motoria_admin_key");
-      const safeJwt  = session?.access_token
-        ? String(session.access_token).replace(/[^\x20-\x7E]/g, "")
-        : null;
+      const rawJwt   = session?.access_token ?? "";
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: {
+        headers: buildSafeHeaders({
           "Content-Type": "application/json",
           ...(adminKey === "MOTORIA_OWNER_KEY_2026" ? { "x-admin-key": "MOTORIA_OWNER_KEY_2026" } : {}),
           ...(token ? { "x-motoria-token": token } : {}),
-          ...(!token && safeJwt && safeJwt.length > 10 ? { "Authorization": `Bearer ${safeJwt}` } : {}),
-        },
+          ...(!token && rawJwt.length > 10 ? { Authorization: `Bearer ${rawJwt}` } : {}),
+        }),
         body: JSON.stringify({ tool: "aposta", userMessage: userMsg }),
       });
       clearInterval(stepInterval);

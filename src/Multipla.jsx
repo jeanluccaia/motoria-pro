@@ -2,21 +2,21 @@ import { useState, useEffect } from "react";
 import { LegalBar, Header, Footer } from "./Layout";
 import { useAuth } from "./contexts/AuthContext";
 import { loadSlips, saveSlip, updateSlipResult, deleteSlip } from "./lib/multiplaDb";
+import { buildSafeHeaders } from "./utils/safeHeaders";
 
 const ADMIN_BYPASS_KEY = "MOTORIA_OWNER_KEY_2026";
 
 function buildAuthHeaders(session) {
-  const headers = { "Content-Type": "application/json" };
   const adminKey = localStorage.getItem("motoria_admin_key");
   if (adminKey === ADMIN_BYPASS_KEY) {
-    headers["x-admin-key"] = ADMIN_BYPASS_KEY;
-    return headers;
+    return buildSafeHeaders({ "Content-Type": "application/json", "x-admin-key": ADMIN_BYPASS_KEY });
   }
-  if (session?.access_token) {
-    const token = String(session.access_token).replace(/[^\x20-\x7E]/g, "");
-    if (token.length > 10) headers["Authorization"] = `Bearer ${token}`;
-  }
-  return headers;
+  return buildSafeHeaders({
+    "Content-Type": "application/json",
+    ...(session?.access_token && String(session.access_token).length > 10
+      ? { Authorization: `Bearer ${session.access_token}` }
+      : {}),
+  });
 }
 
 const MERCADOS = [

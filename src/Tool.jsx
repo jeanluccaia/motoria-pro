@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "./router";
+import { buildSafeHeaders, cleanLocalStorageToken } from "./utils/safeHeaders";
 
 // ─── Constantes ────────────────────────────────────────────────────────────────
 
@@ -132,14 +133,14 @@ export default function Tool() {
 
   // ── Validar token salvo ao montar ────────────────────────────────────────────
   useEffect(() => {
-    const saved = localStorage.getItem(TOKEN_KEY);
+    const saved = cleanLocalStorageToken(TOKEN_KEY);
     if (saved) validateToken(saved, false);
   }, []); // eslint-disable-line
 
   async function validateToken(t, showErrorOnFail = true) {
     try {
       const res  = await fetch("/api/validate-token", {
-        headers: { Authorization: `Bearer ${t}` },
+        headers: buildSafeHeaders({ Authorization: `Bearer ${t}` }),
       });
       const data = await res.json();
       if (res.ok && data.valid) {
@@ -226,12 +227,12 @@ export default function Tool() {
     startCycle();
 
     try {
-      const headers = { "Content-Type": "application/json" };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
       const res  = await fetch("/api/chat", {
         method:  "POST",
-        headers,
+        headers: buildSafeHeaders({
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        }),
         body:    JSON.stringify({ tool: "chance_de_perder", userMessage: parts.join("\n") }),
       });
       const data = await res.json();

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { buildSafeHeaders } from "./utils/safeHeaders";
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -161,7 +162,7 @@ export default function RiskAnalysis() {
       const [res] = await Promise.all([
         fetch("/api/chat", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: buildSafeHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({ tool: "risk", userMessage }),
         }),
         new Promise((r) => setTimeout(r, 1500)),

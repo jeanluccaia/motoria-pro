@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { buildSafeHeaders } from "./utils/safeHeaders";
 
 // ─── Constantes ────────────────────────────────────────────────────────────────
 
@@ -135,7 +136,7 @@ export default function ChanceDePerde() {
     try {
       const res  = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: buildSafeHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ tool: "chance_de_perder", userMessage }),
       });
       const data = await res.json();
