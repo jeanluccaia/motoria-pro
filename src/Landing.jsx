@@ -225,9 +225,12 @@ export default function Landing() {
             <a href="#banca"         className="lp-nav-link">Controle de banca</a>
             <a href="#oferta"        className="lp-nav-link">Preço</a>
           </nav>
-          <a href={KIWIFY_URL} className="lp-nav-cta" target="_blank" rel="noopener noreferrer">
-            Desbloquear por R$27
-          </a>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <Link to="/login" className="lp-nav-login">Entrar</Link>
+            <a href={KIWIFY_URL} className="lp-nav-cta" target="_blank" rel="noopener noreferrer">
+              Desbloquear por R$27
+            </a>
+          </div>
         </div>
       </header>
 
@@ -696,6 +699,14 @@ body { background: var(--bg); color: var(--t1); font-family: -apple-system, Blin
   transition: color .15s;
 }
 .lp-nav-link:hover { color: var(--t1); }
+
+.lp-nav-login {
+  font-size: 12px; font-weight: 600; color: var(--t2);
+  text-decoration: none; padding: 7px 14px;
+  border: 1px solid var(--border); border-radius: 8px;
+  transition: color .15s, border-color .15s; flex-shrink: 0;
+}
+.lp-nav-login:hover { color: var(--t1); border-color: rgba(255,255,255,.25); }
 
 .lp-nav-cta {
   font-size: 11.5px; font-weight: 800; letter-spacing: .04em;

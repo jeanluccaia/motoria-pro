@@ -46,11 +46,13 @@ const Login        = lazy(() => import("./Login"));
 const AuthCallback = lazy(() => import("./AuthCallback"));
 const PaywallPage  = lazy(() => import("./PaywallPage"));
 const Multipla     = lazy(() => import("./Multipla"));
+const Invite       = lazy(() => import("./Invite"));
 
 function App() {
   const { path } = useRouter();
 
   if (path === "/login")              return <Login />;
+  if (path === "/invite")             return <Invite />;
   if (path === "/auth/callback")      return <AuthCallback />;
   if (path === "/paywall")            return <PaywallPage />;
   if (path === "/ferramenta")         return <Tool />;          // legado — mantido
