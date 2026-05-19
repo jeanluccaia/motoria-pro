@@ -165,6 +165,29 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── VEJA COMO FUNCIONA — vídeo demo ─────────────────────────────────── */}
+      <section className="lp-section lp-dark lp-video-section" id="demo">
+        <div className="lp-container" style={{ textAlign: "center" }}>
+          <div className="lp-eyebrow">Demonstração</div>
+          <h2 className="lp-h2" style={{ marginBottom: 12 }}>Veja como funciona</h2>
+          <p className="lp-video-sub">
+            Em poucos segundos você monta sua entrada, entende o risco e acompanha sua banca.
+          </p>
+          <div className="lp-video-wrap">
+            {/* Substituir o src abaixo pelo caminho do MP4 renderizado */}
+            <video
+              className="lp-video"
+              src="/demo-motoria-v3.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              poster="/video-poster.jpg"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* ── ANÁLISE DE RISCO ─────────────────────────────────────────────────── */}
       <section className="lp-section" id="analise">
         <div className="lp-container lp-risk-layout">
@@ -700,6 +723,30 @@ body { background: var(--bg); color: var(--t1); font-family: -apple-system, Blin
 }
 .lp-step-body { display: flex; flex-direction: column; gap: 8px; }
 .lp-step-desc { font-size: 13.5px; color: var(--t2); line-height: 1.6; }
+
+/* ── Video section ──────────────────────────────────────────────────────────── */
+.lp-video-section { padding: 80px 0; }
+.lp-video-sub {
+  font-size: 15px; color: var(--t2); line-height: 1.65;
+  max-width: 480px; margin: 0 auto 40px; text-align: center;
+}
+.lp-video-wrap {
+  max-width: 380px;
+  margin: 0 auto;
+  border-radius: 28px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 0 60px rgba(34,197,94,0.08), 0 32px 80px rgba(0,0,0,0.5);
+  background: #0a0a0a;
+  aspect-ratio: 9/16;
+  display: flex; align-items: center; justify-content: center;
+}
+.lp-video {
+  width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 28px;
+}
+@media (max-width: 480px) {
+  .lp-video-wrap { max-width: 90vw; border-radius: 20px; }
+}
 
 /* ── Risk section ───────────────────────────────────────────────────────────── */
 .lp-risk-layout {
