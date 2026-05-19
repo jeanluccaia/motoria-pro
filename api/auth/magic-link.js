@@ -28,6 +28,11 @@ const RESEND_FROM  = process.env.RESEND_FROM || "MotorIA <acesso@motoriaopro.com
 const SB_URL       = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SB_SRV       = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+// Emails de teste/beta — sempre autorizados sem pagamento
+const TESTER_EMAILS = new Set(
+  (process.env.TESTER_EMAILS || "").split(",").map(e => e.trim().toLowerCase()).filter(Boolean)
+);
+
 function normalizeEmail(e) {
   return String(e || "").trim().toLowerCase();
 }
@@ -123,17 +128,20 @@ module.exports = async function handler(req, res) {
   }
 
   try {
+    // Tester/beta — acesso direto sem pagamento
+    const byTester   = TESTER_EMAILS.has(email);
     // Verificar autorização (Redis tem prioridade — cobre usuários que ainda não criaram conta)
-    const byRedis    = await isAuthorizedByRedis(email);
-    const bySupabase = byRedis ? false : await isAuthorizedBySupabase(email);
+    const byRedis    = byTester ? false : await isAuthorizedByRedis(email);
+    const bySupabase = (byTester || byRedis) ? false : await isAuthorizedBySupabase(email);
 
-    if (!byRedis && !bySupabase) {
+    if (!byTester && !byRedis && !bySupabase) {
       console.log(`[magic-link] Acesso negado — email não autorizado: ${email}`);
       // Resposta genérica — não vaza se o email existe ou não
       return res.status(403).json({ error: "Acesso não encontrado. Verifique se este é o email usado na compra." });
     }
 
-    console.log(`[magic-link] Autorizado via ${byRedis ? "Redis" : "Supabase"} — email: ${email}`);
+    const via = byTester ? "tester" : byRedis ? "Redis" : "Supabase";
+    console.log(`[magic-link] Autorizado via ${via} — email: ${email}`);
     await generateAndSendLink(email);
     return res.status(200).json({ ok: true });
 
