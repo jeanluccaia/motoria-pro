@@ -52,8 +52,8 @@ export default function Login() {
           ) : (
             <>
               <p className="lg-sub">
-                Digite seu email para receber um link de acesso — sem senha,
-                sem burocracia.
+                Use o email da sua compra ou o email liberado pela equipe.
+                Vamos enviar um link de acesso direto.
               </p>
               <form className="lg-form" onSubmit={handleSubmit}>
                 <input
@@ -71,7 +71,11 @@ export default function Login() {
                 </button>
               </form>
               <p className="lg-price-note">
-                R$27 uma vez só · acesso imediato · sem mensalidade
+                Ainda não tem acesso?{" "}
+                <a href="https://pay.kiwify.com.br/DIVD8zl" target="_blank" rel="noopener noreferrer"
+                   style={{ color: "#1FCB7A", textDecoration: "none" }}>
+                  Desbloquear por R$27
+                </a>
               </p>
             </>
           )}

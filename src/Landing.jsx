@@ -1178,6 +1178,7 @@ body { background: var(--bg); color: var(--t1); font-family: -apple-system, Blin
   .lp-nav { display: none; }
   .lp-header-inner { height: 52px; }
   .lp-nav-cta { font-size: 11px; padding: 7px 13px; }
+  .lp-nav-login { font-size: 11px; padding: 6px 11px; }
 
   /* Hero */
   .lp-hero { padding: 56px 0 48px; min-height: auto; }

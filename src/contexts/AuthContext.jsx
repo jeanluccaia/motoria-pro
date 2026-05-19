@@ -25,21 +25,34 @@ export function AuthProvider({ children }) {
   }, []);
 
   async function sendMagicLink(email) {
+    // 1. Verificar autorização no servidor (TESTER_EMAILS / is_paid / Redis)
     const res = await fetch("/api/auth/magic-link", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
+    const data = await res.json().catch(() => ({}));
+
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || "Erro ao enviar link de acesso.");
+      throw new Error(data.error || "Email não encontrado. Use o email da compra.");
     }
+
+    if (data.sent) return; // Resend enviou — ok
+
+    // 2. Fallback: Supabase OTP (não precisa de Resend)
+    const redirectTo = window.location.origin + "/auth/callback";
+    const { error: otpErr } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: redirectTo },
+    });
+    if (otpErr) throw new Error("Erro ao enviar: " + otpErr.message);
   }
 
   async function signOut() {
     await supabase.auth.signOut();
     setSession(null);
     setIsPaid(false);
+    localStorage.removeItem("motoria_access_v1");
   }
 
   return (

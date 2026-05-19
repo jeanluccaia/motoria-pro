@@ -45,9 +45,9 @@ const LOADING_MSGS = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-// Única fonte de verdade para verificar acesso
-function canViewFullAnalysis() {
-  return localStorage.getItem(ACCESS_KEY) === "1";
+// canViewFullAnalysis é chamada com isPaid do AuthContext como fallback
+function canViewFullAnalysis(isPaidCtx = false) {
+  return localStorage.getItem(ACCESS_KEY) === "1" || isPaidCtx === true;
 }
 
 function getPartialSignals(math) {

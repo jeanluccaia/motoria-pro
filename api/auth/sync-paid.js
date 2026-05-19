@@ -52,9 +52,13 @@ module.exports = async function handler(req, res) {
 
   const email = user.email?.toLowerCase();
 
-  // Tester/beta — acesso direto
+  // Tester/beta — acesso direto + garantir is_paid=true no banco
   if (TESTER_EMAILS.has(email)) {
     console.log(`[sync-paid] tester autorizado: ${email}`);
+    // Gravar no banco para getIsPaid() do frontend funcionar sem depender de TESTER_EMAILS
+    await admin.from("profiles")
+      .upsert({ id: user.id, is_paid: true }, { onConflict: "id" })
+      .catch(() => {});
     return res.status(200).json({ is_paid: true });
   }
 
