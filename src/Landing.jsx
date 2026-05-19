@@ -69,7 +69,6 @@ function VideoSection() {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          // Only attempt play — don't reset currentTime (breaks mid-scroll UX)
           v.play().catch(() => setShowPlay(true));
         } else {
           v.pause();
@@ -78,7 +77,32 @@ function VideoSection() {
       { threshold: 0.3 }
     );
     observer.observe(v);
-    return () => observer.disconnect();
+
+    // ── Hero moment: analysis result (~12s–19.5s) ──────────────────────────
+    // Frames 360–570 at 30fps = 12.0s–19.0s in the 30s video
+    function onTimeUpdate() {
+      const t = v.currentTime;
+      const inResult = t >= 12 && t <= 19.5;
+      const wrap = v.closest(".lp-video-wrap");
+      if (wrap) {
+        wrap.style.transition = "transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94)";
+        wrap.style.transform  = inResult ? "scale(1.055)" : "scale(1)";
+      }
+      v.style.transition = "filter 0.5s ease";
+      v.style.filter     = inResult
+        ? "contrast(1.12) brightness(1.04) saturate(1.08)"
+        : "none";
+    }
+    v.addEventListener("timeupdate", onTimeUpdate);
+
+    return () => {
+      observer.disconnect();
+      v.removeEventListener("timeupdate", onTimeUpdate);
+      // Reset styles on unmount
+      const wrap = v.closest?.(".lp-video-wrap");
+      if (wrap) { wrap.style.transform = ""; wrap.style.transition = ""; }
+      v.style.filter = ""; v.style.transition = "";
+    };
   }, []);
 
   function handlePlayClick() {
