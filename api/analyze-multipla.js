@@ -9,10 +9,14 @@ module.exports = async function handler(req, res) {
 
   const { selecoes = [], valorTotal, oddTotal, chanceReal } = req.body;
 
-  // Verificar acesso via Supabase JWT (se disponível)
+  // Verificar acesso via Supabase JWT ou admin bypass
   let isPaid = false;
   const authHeader = req.headers.authorization || "";
-  const jwt = authHeader.replace("Bearer ", "");
+  const jwt        = authHeader.replace("Bearer ", "");
+  const adminKey   = (req.headers["x-admin-key"] || "").trim();
+
+  const ADMIN_KEYS = new Set(["MOTORIA_OWNER_KEY_2026", "MOTORIA_ADMIN_2026"]);
+  if (ADMIN_KEYS.has(adminKey)) isPaid = true;
 
   if (jwt && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
     try {

@@ -6,7 +6,24 @@ import { useAuth } from "./contexts/AuthContext";
 
 // ─── Constantes ────────────────────────────────────────────────────────────────
 
-const ACCESS_KEY = "motoria_access_v1";
+const ACCESS_KEY  = "motoria_access_v1";
+const ADMIN_BYPASS_KEY = "MOTORIA_OWNER_KEY_2026";
+
+// Retorna headers seguros para fetch — sanitiza o JWT para evitar erro ISO-8859-1
+function buildAuthHeaders(session) {
+  const headers = { "Content-Type": "application/json" };
+  const adminKey = localStorage.getItem("motoria_admin_key");
+  if (adminKey === ADMIN_BYPASS_KEY) {
+    headers["x-admin-key"] = ADMIN_BYPASS_KEY;
+    return headers;
+  }
+  if (session?.access_token) {
+    // JWT deve ser ASCII puro — defensive check
+    const token = String(session.access_token).replace(/[^\x20-\x7E]/g, "");
+    if (token.length > 10) headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
+}
 
 const ESPORTES   = ["Futebol", "Basquete", "Tênis", "MMA", "eSports", "Outro"];
 const TIPOS      = ["Resultado final", "Over / Under", "Ambas marcam (BTTS)", "Handicap asiático", "Handicap europeu", "Escanteios", "Cartões", "Primeiro gol", "Múltipla", "Chance dupla", "Draw No Bet", "Outro"];
@@ -293,8 +310,7 @@ export default function Analisar() {
     startCycle();
 
     try {
-      const headers = { "Content-Type": "application/json" };
-      if (session?.access_token) headers["Authorization"] = `Bearer ${session.access_token}`;
+      const headers = buildAuthHeaders(session);
 
       const res  = await fetch("/api/chat", {
         method: "POST",

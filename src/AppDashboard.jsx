@@ -686,12 +686,17 @@ export default function AppDashboard() {
       }
 
       const userMsg = `Jogo: ${jogoVal || "não informado"} | Campeonato: ${campVal || "não informado"} | Mercado: ${tipoVal} | Odd: ${oddVal}${valorVal ? ` | Valor: R$${valorVal}` : ""}${formaCtx}`;
+      const adminKey = localStorage.getItem("motoria_admin_key");
+      const safeJwt  = session?.access_token
+        ? String(session.access_token).replace(/[^\x20-\x7E]/g, "")
+        : null;
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(adminKey === "MOTORIA_OWNER_KEY_2026" ? { "x-admin-key": "MOTORIA_OWNER_KEY_2026" } : {}),
           ...(token ? { "x-motoria-token": token } : {}),
-          ...(!token && session?.access_token ? { "Authorization": `Bearer ${session.access_token}` } : {}),
+          ...(!token && safeJwt && safeJwt.length > 10 ? { "Authorization": `Bearer ${safeJwt}` } : {}),
         },
         body: JSON.stringify({ tool: "aposta", userMessage: userMsg }),
       });

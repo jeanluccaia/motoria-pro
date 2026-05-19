@@ -78,11 +78,19 @@ module.exports = async function handler(req, res) {
 
   // ── 6. Verificar autenticação / créditos ──────────────────────────────────────
   // Aceita: (a) UUID token via x-motoria-token, (b) Supabase JWT via Authorization
-  const uuidToken = (req.headers["x-motoria-token"] || "").trim();
-  const bearerJwt = (req.headers.authorization || "").replace(/^Bearer\s+/i, "").trim();
+  // (c) bypass de admin via x-admin-key (apenas para dono da conta — teste interno)
+  const uuidToken  = (req.headers["x-motoria-token"] || "").trim();
+  const bearerJwt  = (req.headers.authorization || "").replace(/^Bearer\s+/i, "").trim();
+  const adminKey   = (req.headers["x-admin-key"] || "").trim();
 
   let isAuthorized   = false;
   let creditsRemaining = null;
+
+  // ── (admin) bypass para testes do dono ───────────────────────────────────
+  const ADMIN_KEYS = new Set(["MOTORIA_OWNER_KEY_2026", "MOTORIA_ADMIN_2026"]);
+  if (ADMIN_KEYS.has(adminKey)) {
+    isAuthorized = true;
+  }
 
   // ── (a) UUID token (sistema legado de créditos) ───────────────────────────
   if (credits.isValidUUID(uuidToken)) {
