@@ -4,44 +4,35 @@ import { Router, useRouter } from "./router";
 import { GLOBAL_CSS } from "./Layout";
 import { AuthProvider } from "./contexts/AuthContext";
 
-// ── FETCH DEBUG PATCH (TEMPORÁRIO — remover após identificar o header inválido) ──
+// ── GLOBAL FETCH SANITIZER — strips non-ISO-8859-1 chars from ALL headers ──
+// Prevents "String contains non ISO-8859-1 code point" browser error
+// regardless of source (Supabase SDK, env vars with BOM, third-party libs).
 (function patchFetch() {
   const orig = window.fetch;
-  window.fetch = async function debugFetch(input, init = {}) {
-    try {
-      if (init?.headers) {
-        const entries =
-          init.headers instanceof Headers
-            ? Array.from(init.headers.entries())
-            : Array.isArray(init.headers)
-              ? init.headers
-              : Object.entries(init.headers);
 
-        for (const [key, value] of entries) {
-          const k = String(key);
-          const v = String(value ?? "");
-          const badKey   = [...k].filter(ch => ch.charCodeAt(0) > 127);
-          const badValue = [...v].filter(ch => ch.charCodeAt(0) > 127);
-          if (badKey.length || badValue.length) {
-            console.error("🚨 BAD HEADER DETECTED", {
-              url: String(input),
-              header: k,
-              value: v,
-              badCharsInKey:   badKey.map(c => ({ char: c, code: c.charCodeAt(0) })),
-              badCharsInValue: badValue.map(c => ({ char: c, code: c.charCodeAt(0) })),
-              allValueCodes:   [...v].map(c => c.charCodeAt(0)),
-            });
-          }
-        }
-        console.log("✅ FETCH:", String(input).replace(/\?.*/, ""), "| headers:", Object.fromEntries(
-          entries.map(([k, v]) => [k, String(v).slice(0, 40)])
-        ));
-      }
-      return orig.call(this, input, init);
-    } catch (err) {
-      console.error("🚨 FETCH THREW:", { url: String(input), error: err.message, init });
-      throw err;
+  // Strip any char with code point > 255 (non-ISO-8859-1)
+  function san(v) { return String(v ?? "").replace(/[^\x00-\xFF]/g, "").trim(); }
+
+  function sanitizeHeaders(raw) {
+    if (!raw) return raw;
+    if (raw instanceof Headers) {
+      const h = new Headers();
+      for (const [k, v] of raw.entries()) { const sk = san(k); if (sk) h.set(sk, san(v)); }
+      return h;
     }
+    if (Array.isArray(raw)) {
+      return raw.map(([k, v]) => [san(k), san(v)]).filter(([k]) => k);
+    }
+    const h = {};
+    for (const [k, v] of Object.entries(raw)) { const sk = san(k); if (sk) h[sk] = san(v); }
+    return h;
+  }
+
+  window.fetch = function safeFetch(input, init) {
+    if (init?.headers) {
+      init = { ...init, headers: sanitizeHeaders(init.headers) };
+    }
+    return orig.call(this, input, init);
   };
 })();
 
