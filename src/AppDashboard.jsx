@@ -479,7 +479,16 @@ function CustomSelect({ id, options, value, onChange, placeholder }) {
 // ─── AppDashboard ─────────────────────────────────────────────────────────────
 
 export default function AppDashboard() {
-  const { session } = useAuth();
+  const { session, isPaid, authLoading } = useAuth();
+
+  // Route guard: redirect unauthenticated or unpaid users
+  useEffect(() => {
+    if (authLoading) return;
+    const hasUuidToken = !!(localStorage.getItem("motoria_token") && localStorage.getItem("motoria_token").length > 10);
+    if (!session && !hasUuidToken) {
+      window.location.replace("/login");
+    }
+  }, [session, isPaid, authLoading]);
 
   useEffect(() => {
     const prev = document.title;
@@ -677,6 +686,7 @@ export default function AppDashboard() {
         headers: {
           "Content-Type": "application/json",
           ...(token ? { "x-motoria-token": token } : {}),
+          ...(!token && session?.access_token ? { "Authorization": `Bearer ${session.access_token}` } : {}),
         },
         body: JSON.stringify({ tool: "aposta", userMessage: userMsg }),
       });
@@ -1097,7 +1107,7 @@ export default function AppDashboard() {
   }
 
   // ─── Sidebar nav structure ──────────────────────────────────────────────────
-  const hasAccess = !!(token && token.length > 10);
+  const hasAccess = isPaid || !!(token && token.length > 10);
 
   const NAV = [
     {

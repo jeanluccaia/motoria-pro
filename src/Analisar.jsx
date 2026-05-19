@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { LegalBar, Header, Footer } from "./Layout";
 import { Link, useNavigate } from "./router";
 import { calcAll } from "./math";
-import { supabase, getIsPaid } from "./lib/supabase";
+import { useAuth } from "./contexts/AuthContext";
 
 // ─── Constantes ────────────────────────────────────────────────────────────────
 
@@ -157,6 +157,7 @@ function Indicator({ label, value, sub, highlight }) {
 
 export default function Analisar() {
   const navigate = useNavigate();
+  const { session, isPaid } = useAuth();
 
   const [step, setStep]         = useState(1);
   const [result, setResult]     = useState(null);
@@ -169,8 +170,8 @@ export default function Analisar() {
   const [codeError,   setCodeError]   = useState("");
   const [codeLoading, setCodeLoading] = useState(false);
 
-  // Reactive access state — initialized from localStorage, updated async via Supabase + URL token
-  const [accessGranted, setAccessGranted] = useState(() => canViewFullAnalysis());
+  // Access: Supabase paid session OR localStorage code (admin/webhook grant)
+  const accessGranted = isPaid || canViewFullAnalysis();
 
   const [s1, setS1] = useState({ jogo: "", esporte: "Futebol", tipoAposta: "Resultado final", casa: "Bet365" });
   const [s2, setS2] = useState({ odd: "", valor: "", frequencia: 5 });
@@ -185,17 +186,6 @@ export default function Analisar() {
       (k) => localStorage.removeItem(k)
     );
 
-    // Check Supabase session — grants access if user is authenticated and has paid
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session && !canViewFullAnalysis()) {
-        const paid = await getIsPaid(session.user.id);
-        if (paid) {
-          localStorage.setItem(ACCESS_KEY, "1");
-          setAccessGranted(true);
-        }
-      }
-    });
-
     // URL admin token: /analisar?access=TOKEN
     const params = new URLSearchParams(window.location.search);
     const tk = params.get("access");
@@ -209,7 +199,6 @@ export default function Analisar() {
         .then((d) => {
           if (d.valid) {
             localStorage.setItem(ACCESS_KEY, "1");
-            setAccessGranted(true);
             window.history.replaceState({}, "", window.location.pathname);
           }
         })
@@ -230,7 +219,10 @@ export default function Analisar() {
       const data = await res.json();
       if (data.valid) {
         localStorage.setItem(ACCESS_KEY, "1");
-        setAccessGranted(true);
+        // Clear partial result so user re-submits with full access
+        setResult(null);
+        setShowCode(false);
+        setStep(3);
       } else {
         setCodeError("Código inválido ou expirado.");
       }
@@ -301,13 +293,25 @@ export default function Analisar() {
     startCycle();
 
     try {
+      const headers = { "Content-Type": "application/json" };
+      if (session?.access_token) headers["Authorization"] = `Bearer ${session.access_token}`;
+
       const res  = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ tool: "analyze", userMessage }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao processar. Tente novamente.");
+
+      // Server confirmed access is blocked despite client thinking it has access
+      if (data.locked) {
+        localStorage.removeItem(ACCESS_KEY);
+        setResult({ math, ai: {} });
+        setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+        return;
+      }
+
       const ai = parseAI(data.content?.[0]?.text || "");
       setResult({ math, ai });
       setTimeout(() => {
@@ -571,12 +575,7 @@ export default function Analisar() {
                   O MotorIA encontrou sinais importantes de risco nesta entrada.
                 </div>
 
-                <a
-                  href="https://pay.kiwify.com.br/DIVD8zl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="an-lock-btn"
-                >
+                <a href="/login" className="an-lock-btn">
                   Desbloquear análise completa
                 </a>
 

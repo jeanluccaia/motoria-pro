@@ -1,8 +1,9 @@
 import { useAuth } from "./contexts/AuthContext";
-import { useNavigate } from "./router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { getIsPaid } from "./lib/supabase";
 
 const KIWIFY_URL = "https://pay.kiwify.com.br/DIVD8zl";
+const ACCESS_KEY = "motoria_access_v1";
 
 const FEATURES = [
   "Análise de risco por aposta (odd, margem, EV, Kelly)",
@@ -15,12 +16,32 @@ const FEATURES = [
 
 export default function PaywallPage() {
   const { session, isPaid, authLoading } = useAuth();
-  const navigate = useNavigate();
+  const [checking, setChecking] = useState(false);
+  const [checkMsg, setCheckMsg] = useState("");
 
   useEffect(() => {
-    if (!authLoading && !session) navigate("/login");
-    if (!authLoading && session && isPaid) navigate("/app");
+    if (!authLoading && !session) window.location.replace("/login");
+    if (!authLoading && session && isPaid) window.location.replace("/app");
   }, [session, isPaid, authLoading]);
+
+  async function verificarAcesso() {
+    if (!session?.user?.id) return;
+    setChecking(true);
+    setCheckMsg("");
+    try {
+      const paid = await getIsPaid(session.user.id);
+      if (paid) {
+        localStorage.setItem(ACCESS_KEY, "1");
+        window.location.replace("/app");
+      } else {
+        setCheckMsg("Pagamento ainda não confirmado. Aguarde alguns segundos e tente novamente.");
+      }
+    } catch {
+      setCheckMsg("Erro ao verificar. Tente novamente.");
+    } finally {
+      setChecking(false);
+    }
+  }
 
   return (
     <>
@@ -53,6 +74,14 @@ export default function PaywallPage() {
           </ul>
 
           <p className="pw-guarantee">🛡 7 dias de garantia. Não gostou? Devolvo 100%.</p>
+
+          <div className="pw-divider" />
+
+          <p className="pw-already">Já realizou o pagamento?</p>
+          <button className="pw-verify-btn" onClick={verificarAcesso} disabled={checking}>
+            {checking ? "Verificando…" : "Confirmar meu acesso"}
+          </button>
+          {checkMsg && <p className="pw-check-msg">{checkMsg}</p>}
         </div>
       </div>
     </>
@@ -67,6 +96,7 @@ const CSS = `
   align-items: center;
   justify-content: center;
   padding: 24px;
+  font-family: 'Inter', sans-serif;
 }
 .pw-box {
   width: 100%;
@@ -112,6 +142,7 @@ const CSS = `
   text-decoration: none;
   margin-bottom: 24px;
   transition: opacity 0.15s;
+  box-sizing: border-box;
 }
 .pw-btn:hover { opacity: 0.9; }
 .pw-features {
@@ -130,4 +161,28 @@ const CSS = `
 }
 .pw-check { color: #1FCB7A; flex-shrink: 0; }
 .pw-guarantee { font-size: 12px; color: #555; }
+.pw-divider { width: 100%; height: 1px; background: #1A1A1D; margin: 24px 0; }
+.pw-already { font-size: 13px; color: #444; margin-bottom: 10px; }
+.pw-verify-btn {
+  width: 100%;
+  padding: 13px;
+  background: transparent;
+  border: 1px solid #2A2A2E;
+  border-radius: 10px;
+  color: #6B7280;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-sizing: border-box;
+}
+.pw-verify-btn:hover:not(:disabled) { border-color: #1FCB7A; color: #1FCB7A; }
+.pw-verify-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.pw-check-msg {
+  font-size: 13px;
+  color: #FFB020;
+  margin-top: 10px;
+  line-height: 1.5;
+}
 `;

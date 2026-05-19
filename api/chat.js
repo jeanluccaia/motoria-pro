@@ -77,16 +77,16 @@ module.exports = async function handler(req, res) {
   }
 
   // ── 6. Verificar autenticação / créditos ──────────────────────────────────────
-  // Aceita token via x-motoria-token (frontend) ou Authorization: Bearer (legacy)
-  const tokenStr = (
-    req.headers["x-motoria-token"] ||
-    (req.headers.authorization || "").replace(/^Bearer\s+/i, "")
-  ).trim();
+  // Aceita: (a) UUID token via x-motoria-token, (b) Supabase JWT via Authorization
+  const uuidToken = (req.headers["x-motoria-token"] || "").trim();
+  const bearerJwt = (req.headers.authorization || "").replace(/^Bearer\s+/i, "").trim();
+
+  let isAuthorized   = false;
   let creditsRemaining = null;
 
-  if (credits.isValidUUID(tokenStr)) {
-    // ── Usuário com token: debitar crédito ────────────────────────────────────
-    const result = await credits.deduct(tokenStr);
+  // ── (a) UUID token (sistema legado de créditos) ───────────────────────────
+  if (credits.isValidUUID(uuidToken)) {
+    const result = await credits.deduct(uuidToken);
 
     if (!result) {
       return res.status(401).json({
@@ -103,19 +103,38 @@ module.exports = async function handler(req, res) {
         });
       }
       if (result.reason === "no_credits") {
-        return res.status(402).json({
-          locked: true,
-          code:   "NO_CREDITS",
-        });
+        return res.status(402).json({ locked: true, code: "NO_CREDITS" });
       }
       return res.status(402).json({ locked: true, code: "ACCESS_DENIED" });
     }
 
     creditsRemaining = result.credits;
+    isAuthorized     = true;
+  }
 
-  } else {
-    // ── BLOQUEIO REAL: sem token → preview parcial, Anthropic NÃO é chamado ──
-    // Nenhum score, chance ou análise chega ao frontend sem token válido.
+  // ── (b) Supabase JWT — usuário pago via magic link ────────────────────────
+  if (!isAuthorized && bearerJwt) {
+    const sbUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (sbUrl && sbKey) {
+      try {
+        const { createClient } = require("@supabase/supabase-js");
+        const sb = createClient(sbUrl, sbKey, { auth: { persistSession: false } });
+        const { data: { user } } = await sb.auth.getUser(bearerJwt);
+        if (user) {
+          const { data: profile } = await sb
+            .from("profiles")
+            .select("is_paid")
+            .eq("id", user.id)
+            .single();
+          isAuthorized = profile?.is_paid === true;
+        }
+      } catch (_) {}
+    }
+  }
+
+  // ── Bloqueio real: sem autorização → preview parcial ─────────────────────
+  if (!isAuthorized) {
     return res.status(200).json({
       locked: true,
       preview: {

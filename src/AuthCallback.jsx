@@ -1,32 +1,53 @@
 import { useEffect, useState } from "react";
-import { supabase } from "./lib/supabase";
+import { supabase, getIsPaid } from "./lib/supabase";
+
+const ACCESS_KEY = "motoria_access_v1";
 
 export default function AuthCallback() {
   const [status, setStatus] = useState("Autenticando…");
 
   useEffect(() => {
-    // Magic link: Supabase processa o hash automaticamente.
-    // Aguarda onAuthStateChange confirmar a sessão.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      async (_event, session) => {
         if (session) {
-          setStatus("Acesso confirmado! Redirecionando…");
-          setTimeout(() => {
-            window.location.replace("/app");
-          }, 600);
+          setStatus("Verificando acesso…");
+          try {
+            const paid = await getIsPaid(session.user.id);
+            if (paid) {
+              localStorage.setItem(ACCESS_KEY, "1");
+              setStatus("Acesso confirmado! Redirecionando…");
+              setTimeout(() => window.location.replace("/app"), 600);
+            } else {
+              setStatus("Redirecionando…");
+              setTimeout(() => window.location.replace("/paywall"), 600);
+            }
+          } catch {
+            setTimeout(() => window.location.replace("/app"), 600);
+          }
         }
       }
     );
 
-    // Fallback: sessão já existia antes do evento disparar
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Fallback: session may already exist before the event fires
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
-        setStatus("Acesso confirmado! Redirecionando…");
-        setTimeout(() => window.location.replace("/app"), 600);
+        setStatus("Verificando acesso…");
+        try {
+          const paid = await getIsPaid(session.user.id);
+          if (paid) {
+            localStorage.setItem(ACCESS_KEY, "1");
+            setStatus("Acesso confirmado! Redirecionando…");
+            setTimeout(() => window.location.replace("/app"), 600);
+          } else {
+            setStatus("Redirecionando…");
+            setTimeout(() => window.location.replace("/paywall"), 600);
+          }
+        } catch {
+          setTimeout(() => window.location.replace("/app"), 600);
+        }
       }
     });
 
-    // Timeout de segurança
     const timeout = setTimeout(() => {
       setStatus("Não foi possível autenticar. Verifique seu link.");
     }, 8000);
@@ -63,18 +84,11 @@ export default function AuthCallback() {
         {status}
       </p>
       {isError && (
-        <a href="/login" style={{
-          marginTop: 8,
-          color: "#1FCB7A",
-          fontSize: 14,
-          textDecoration: "none",
-        }}>
+        <a href="/login" style={{ marginTop: 8, color: "#1FCB7A", fontSize: 14, textDecoration: "none" }}>
           Voltar ao login
         </a>
       )}
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
