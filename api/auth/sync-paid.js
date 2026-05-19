@@ -54,9 +54,17 @@ module.exports = async function handler(req, res) {
 
   if (hasRedis) {
     // Sincronizar: marcar is_paid no Supabase e remover chave Redis
-    const { error: updErr } = await admin
+    let updErr = null;
+    const { error: e1 } = await admin
       .from("profiles")
       .upsert({ id: user.id, is_paid: true, paid_at: new Date().toISOString() }, { onConflict: "id" });
+    if (e1) {
+      console.warn("[sync-paid] upsert completo falhou, tentando minimal:", e1.message);
+      const { error: e2 } = await admin
+        .from("profiles")
+        .upsert({ id: user.id, is_paid: true }, { onConflict: "id" });
+      updErr = e2;
+    }
 
     if (updErr) {
       console.error("[sync-paid] Erro ao atualizar profiles:", updErr.message);

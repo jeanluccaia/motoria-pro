@@ -108,12 +108,17 @@ async function createOrFindUser(supabase, email) {
 }
 
 async function grantAccess(supabase, userId, orderId) {
-  const { error } = await supabase
+  // Tenta upsert completo; se falhar por coluna inexistente, tenta só is_paid
+  const full = { id: userId, is_paid: true, paid_at: new Date().toISOString(), payment_id: orderId || null };
+  const { error } = await supabase.from("profiles").upsert(full, { onConflict: "id" });
+  if (!error) return true;
+
+  console.warn("[webhook] upsert completo falhou, tentando minimal:", error.message);
+  const { error: e2 } = await supabase
     .from("profiles")
-    .upsert({ id: userId, is_paid: true, paid_at: new Date().toISOString(), payment_id: orderId || null },
-             { onConflict: "id" });
-  if (error) console.error("[webhook] profiles upsert error:", error.message);
-  return !error;
+    .upsert({ id: userId, is_paid: true }, { onConflict: "id" });
+  if (e2) console.error("[webhook] profiles upsert minimal error:", e2.message);
+  return !e2;
 }
 
 async function sendMagicLinkEmail(supabase, email) {
