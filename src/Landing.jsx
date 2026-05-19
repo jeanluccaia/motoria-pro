@@ -116,8 +116,8 @@ export default function Landing() {
               E acompanhe quanto você ganhou ou perdeu no mês.
             </p>
             <div className="lp-hero-actions">
-              <Link to="/app" className="lp-btn-hero">
-                Ver análise agora
+              <Link to="/multipla" className="lp-btn-hero">
+                Analisar meu bilhete
                 <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                   <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>

@@ -490,6 +490,11 @@ export default function AppDashboard() {
     }
   }, [session, isPaid, authLoading]);
 
+  // Block render until auth resolves — prevents brief free-access flash
+  if (authLoading) {
+    return <div style={{ minHeight: "100vh", background: "#050505" }} />;
+  }
+
   useEffect(() => {
     const prev = document.title;
     document.title = "MotorIA Risk Engine™";
