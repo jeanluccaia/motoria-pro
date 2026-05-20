@@ -9,8 +9,8 @@
  */
 
 const { createClient } = require("@supabase/supabase-js");
+const { applyCors, resolveAppUrl } = require("../_cors");
 
-const APP_URL     = (process.env.APP_URL || "https://motoriaopro.com.br").replace(/\/$/, "");
 const SB_URL      = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SB_SRV      = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const RESEND_KEY  = process.env.RESEND_API_KEY;
@@ -22,12 +22,8 @@ function isValidEmail(e)   { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
 
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
-  res.setHeader("Access-Control-Allow-Origin", APP_URL);
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") return res.status(204).end();
-  if (req.method !== "POST")   return res.status(405).end();
+  if (applyCors(req, res)) return;
+  if (req.method !== "POST") return res.status(405).end();
 
   const email = normalizeEmail(req.body?.email);
   const code  = String(req.body?.code || "").trim();
@@ -83,10 +79,13 @@ module.exports = async function handler(req, res) {
   }
 
   // Gerar magic link
+  const appUrl = resolveAppUrl(req, res);
+  if (!appUrl) return;
+
   const { data: linkData, error: linkErr } = await sb.auth.admin.generateLink({
     type:    "magiclink",
     email,
-    options: { redirectTo: `${APP_URL}/auth/callback` },
+    options: { redirectTo: `${appUrl}/auth/callback` },
   });
 
   const link = linkData?.properties?.action_link;

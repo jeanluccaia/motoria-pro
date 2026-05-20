@@ -32,7 +32,11 @@
 const { createClient } = require("@supabase/supabase-js");
 const crypto           = require("crypto");
 
-const APP_URL     = (process.env.APP_URL || "https://motoriaopro.com.br").replace(/\/$/, "");
+function getAppUrl() {
+  const url = process.env.APP_URL;
+  if (!url) console.warn("[webhook] APP_URL não configurada — usando fallback motoria-pro.vercel.app");
+  return (url || "https://motoria-pro.vercel.app").replace(/\/$/, "");
+}
 const SB_URL      = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SB_SRV      = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const RESEND_KEY  = process.env.RESEND_API_KEY;
@@ -130,7 +134,7 @@ async function sendMagicLinkEmail(supabase, email) {
   const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
     type:    "magiclink",
     email,
-    options: { redirectTo: `${APP_URL}/auth/callback` },
+    options: { redirectTo: `${getAppUrl()}/auth/callback` },
   });
 
   if (linkErr || !linkData?.properties?.action_link) {

@@ -17,8 +17,8 @@
 
 const { createClient } = require("@supabase/supabase-js");
 const db = require("../_db");
+const { applyCors } = require("../_cors");
 
-const APP_URL = (process.env.APP_URL || "https://motoriaopro.com.br").replace(/\/$/, "");
 const SB_URL  = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SB_SRV  = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -28,12 +28,8 @@ const TESTER_EMAILS = new Set(
 
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
-  res.setHeader("Access-Control-Allow-Origin", APP_URL);
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-  if (req.method === "OPTIONS") return res.status(204).end();
-  if (req.method !== "POST")   return res.status(405).end();
+  if (applyCors(req, res)) return;
+  if (req.method !== "POST") return res.status(405).end();
 
   const jwt = (req.headers.authorization || "").replace(/^Bearer\s+/i, "").trim();
   if (!jwt) return res.status(401).json({ error: "Token ausente." });

@@ -17,9 +17,9 @@
 "use strict";
 
 const { createClient } = require("@supabase/supabase-js");
+const { resolveAppUrl } = require("../_cors");
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET;
-const APP_URL      = (process.env.APP_URL || "https://motoriaopro.com.br").replace(/\/$/, "");
 const SB_URL       = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SB_SRV       = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const RESEND_KEY   = process.env.RESEND_API_KEY;
@@ -112,10 +112,13 @@ module.exports = async function handler(req, res) {
   result.steps.redis = "set (se configurado)";
 
   // 4. Gerar magic link
+  const appUrl = resolveAppUrl(req, res);
+  if (!appUrl) return;
+
   const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
     type: "magiclink",
     email,
-    options: { redirectTo: `${APP_URL}/auth/callback` },
+    options: { redirectTo: `${appUrl}/auth/callback` },
   });
 
   const link = linkData?.properties?.action_link;

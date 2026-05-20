@@ -13,7 +13,7 @@
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_FROM    = process.env.RESEND_FROM || "MotorIA <acesso@motoriaopro.com.br>";
-const APP_URL        = (process.env.APP_URL || "https://motoriaopro.com.br").replace(/\/$/, "");
+const APP_URL        = (process.env.APP_URL || "https://motoria-pro.vercel.app").replace(/\/$/, "");
 
 /**
  * Envia o email de acesso ao comprador.

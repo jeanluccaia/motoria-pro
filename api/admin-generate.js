@@ -78,7 +78,7 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({
       token,
       credits:   qty,
-      link:      `https://motoriaopro.com.br/app?t=${token}`,
+      link:      `${process.env.APP_URL || "https://motoria-pro.vercel.app"}/app?t=${token}`,
       expiresIn: `${TOKEN_TTL_DAYS} dias`,
       email,
     });

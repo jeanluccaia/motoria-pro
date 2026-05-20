@@ -1,68 +1,73 @@
-/**
- * _cors.js — Middleware CORS para endpoints da API
- *
- * Restringe chamadas cross-origin à origem oficial (ALLOWED_ORIGIN) e
- * ao localhost em desenvolvimento.
- *
- * CONTEXTO:
- *   Como o SPA e a API estão no mesmo projeto Vercel (mesma origem), o browser
- *   não envia o header Origin em requests normais — CORS não é acionado para
- *   o uso legítimo. Este middleware protege contra sites de terceiros que
- *   tentarem usar o token de um usuário autenticado via browser (CSRF-like).
- *
- * CONFIGURAÇÃO:
- *   ALLOWED_ORIGIN (env var) — origem(s) permitida(s), separadas por vírgula.
- *   Exemplo: https://motoria-landing.vercel.app,https://motoriapro.com.br
- *
- * USO:
- *   const { applyCors } = require("./_cors");
- *   // No início de cada handler, antes de qualquer processamento:
- *   if (applyCors(req, res)) return; // preflight OPTIONS respondido
- */
-
 "use strict";
 
-const IS_DEV = process.env.NODE_ENV !== "production";
+/**
+ * _cors.js — CORS + APP_URL centralizado
+ *
+ * Origens permitidas (hardcoded + extensíveis via ALLOWED_ORIGINS env var):
+ *   https://motoria-pro.vercel.app
+ *   https://motoriaopro.com.br
+ *   http://localhost:5173
+ *
+ * Uso nos handlers:
+ *   const { applyCors, resolveAppUrl } = require("../_cors");
+ *   if (applyCors(req, res)) return; // responde preflight e sai
+ *   const appUrl = resolveAppUrl(req, res); // retorna url ou responde 500 e retorna null
+ */
 
-// Origini permitidas — lidas ao carregar o módulo (sem custo por request)
-const ALLOWED_ORIGINS = new Set(
-  (process.env.ALLOWED_ORIGIN || "")
-    .split(",")
-    .map((o) => o.trim())
-    .filter(Boolean)
-);
+const BASE_ORIGINS = new Set([
+  "https://motoria-pro.vercel.app",
+  "https://motoriaopro.com.br",
+  "http://localhost:5173",
+]);
+
+// Origens extras via env var (separadas por vírgula)
+const extraOrigins = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+const ALLOWED_ORIGINS = new Set([...BASE_ORIGINS, ...extraOrigins]);
 
 /**
- * Aplica headers CORS e responde ao preflight OPTIONS.
- * Retorna true se a request foi tratada como preflight (caller deve return).
- * Retorna false se o processamento normal deve continuar.
+ * Aplica headers CORS e responde preflight OPTIONS.
+ * Retorna true se foi preflight (caller deve fazer `return`).
  */
 function applyCors(req, res) {
   const origin = (req.headers.origin || "").trim();
+  const allowed = ALLOWED_ORIGINS.has(origin)
+    ? origin
+    : "https://motoria-pro.vercel.app";
 
-  let allowed = "";
-  if (origin) {
-    if (ALLOWED_ORIGINS.has(origin)) {
-      allowed = origin;
-    } else if (IS_DEV && (origin.startsWith("http://localhost") || origin.startsWith("http://127.0.0.1"))) {
-      allowed = origin; // localhost liberado apenas em desenvolvimento
-    }
-  }
+  res.setHeader("Access-Control-Allow-Origin",  allowed);
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-admin-secret");
+  res.setHeader("Vary", "Origin");
 
-  if (allowed) {
-    res.setHeader("Access-Control-Allow-Origin",  allowed);
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    res.setHeader("Vary", "Origin");
-  }
-
-  // Preflight — responde imediatamente sem processar o body
   if (req.method === "OPTIONS") {
     res.status(204).end();
     return true;
   }
-
   return false;
 }
 
-module.exports = { applyCors };
+/**
+ * Retorna a APP_URL canônica.
+ * Em produção, exige que APP_URL esteja configurada ou responde 500.
+ * Em dev (localhost origin), usa a origin da request.
+ * Nunca retorna motoriaopro.com.br como fallback silencioso.
+ */
+function resolveAppUrl(req, res) {
+  if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, "");
+
+  const origin = (req?.headers?.origin || "").trim();
+  if (origin === "http://localhost:5173") return "http://localhost:5173";
+
+  if (res) {
+    res.status(500).json({
+      error: "APP_URL não configurada no servidor. Configure a variável de ambiente APP_URL.",
+    });
+  }
+  return null;
+}
+
+module.exports = { applyCors, resolveAppUrl, ALLOWED_ORIGINS };

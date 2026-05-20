@@ -115,7 +115,7 @@ module.exports = async function handler(req, res) {
   }
 
   // ── Webhook URL esperada ────────────────────────────────────────────────────
-  const appBase = APP_URL || "https://motoriaopro.com.br";
+  const appBase = APP_URL || "https://motoria-pro.vercel.app";
   report.expected_webhook_url = WH_SECRET
     ? `${appBase}/api/webhook/payment?token=${WH_SECRET}`
     : `${appBase}/api/webhook/payment  (⚠️  sem autenticação — configure KIWIFY_WEBHOOK_SECRET)`;

@@ -12,13 +12,7 @@
 
 const { createClient } = require("@supabase/supabase-js");
 const db = require("../_db");
-
-// URL base do app — DEVE estar no Vercel env vars como APP_URL
-const APP_URL = (
-  process.env.APP_URL ||
-  process.env.VITE_APP_URL ||
-  "https://motoria-pro.vercel.app"
-).replace(/\/$/, "");
+const { applyCors, resolveAppUrl } = require("../_cors");
 
 const RESEND_KEY  = process.env.RESEND_API_KEY;
 const RESEND_FROM = process.env.RESEND_FROM || "MotorIA <acesso@motoriaopro.com.br>";
@@ -91,12 +85,8 @@ async function sendViaResend(email, link) {
 
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
-  res.setHeader("Access-Control-Allow-Origin", APP_URL);
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") return res.status(204).end();
-  if (req.method !== "POST")   return res.status(405).end();
+  if (applyCors(req, res)) return;
+  if (req.method !== "POST") return res.status(405).end();
 
   const email = normalizeEmail(req.body?.email);
   if (!isValidEmail(email)) return res.status(400).json({ error: "Email inválido." });
@@ -116,11 +106,14 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: "Configuração do servidor incompleta." });
   }
 
+  const appUrl = resolveAppUrl(req, res);
+  if (!appUrl) return;
+
   const admin = createClient(SB_URL, SB_SRV);
   const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
     type:    "magiclink",
     email,
-    options: { redirectTo: `${APP_URL}/auth/callback` },
+    options: { redirectTo: `${appUrl}/auth/callback` },
   });
 
   if (linkErr || !linkData?.properties?.action_link) {
