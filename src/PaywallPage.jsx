@@ -15,14 +15,24 @@ const FEATURES = [
 ];
 
 export default function PaywallPage() {
-  const { session, isPaid, authLoading } = useAuth();
+  const { session, isPaid, hasAccess, authLoading } = useAuth();
   const [checking, setChecking] = useState(false);
   const [checkMsg, setCheckMsg] = useState("");
 
   useEffect(() => {
-    if (!authLoading && !session) window.location.replace("/login");
-    if (!authLoading && session && isPaid) window.location.replace("/app");
-  }, [session, isPaid, authLoading]);
+    if (authLoading) return;
+    if (hasAccess || isPaid) {
+      console.log("redirect reason:", "paywall-user-has-access", {
+        to: "/app",
+        path: window.location.pathname,
+        hasSession: !!session,
+        hasAccess,
+        isPaid,
+      });
+      window.location.replace("/app");
+      return;
+    }
+  }, [session, isPaid, hasAccess, authLoading]);
 
   async function verificarAcesso() {
     if (!session?.user?.id) return;
@@ -32,6 +42,7 @@ export default function PaywallPage() {
       const paid = await getIsPaid(session.user.id);
       if (paid) {
         localStorage.setItem(ACCESS_KEY, "1");
+        console.log("redirect reason:", "paywall-manual-access-confirmed", { to: "/app" });
         window.location.replace("/app");
       } else {
         setCheckMsg("Pagamento ainda não confirmado. Aguarde alguns segundos e tente novamente.");

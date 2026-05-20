@@ -28,6 +28,43 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 );
 
 -- ----------------------------------------------------------------
+-- 2. access_codes - codigos de acesso do MVP
+-- ----------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.access_codes (
+  code        TEXT        PRIMARY KEY,
+  max_uses    INTEGER     NOT NULL DEFAULT 20 CHECK (max_uses > 0),
+  used_count  INTEGER     NOT NULL DEFAULT 0 CHECK (used_count >= 0),
+  active      BOOLEAN     NOT NULL DEFAULT TRUE,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expires_at  TIMESTAMPTZ
+);
+
+INSERT INTO public.access_codes (code, max_uses, used_count, active)
+VALUES
+  ('JEAN2026', 20, 0, TRUE),
+  ('GELEIA2026', 20, 0, TRUE),
+  ('TESTE2026', 20, 0, TRUE)
+ON CONFLICT (code) DO NOTHING;
+
+-- ----------------------------------------------------------------
+-- 3. access_grants - emails liberados por compra/codigo/admin
+-- ----------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.access_grants (
+  id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  email         TEXT        NOT NULL,
+  user_id       UUID        REFERENCES public.profiles(id) ON DELETE SET NULL,
+  code          TEXT        REFERENCES public.access_codes(code),
+  source        TEXT        NOT NULL DEFAULT 'code',
+  status        TEXT        NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'revoked', 'expired')),
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_login_at TIMESTAMPTZ
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS access_grants_email_code_uidx
+  ON public.access_grants (email, code);
+
+-- ----------------------------------------------------------------
 -- 2. bankroll — banca financeira do usuário
 -- ----------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.bankroll (
@@ -158,6 +195,10 @@ CREATE OR REPLACE TRIGGER trg_profiles_updated_at
   BEFORE UPDATE ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
+CREATE OR REPLACE TRIGGER trg_access_grants_updated_at
+  BEFORE UPDATE ON public.access_grants
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
 CREATE OR REPLACE TRIGGER trg_bankroll_updated_at
   BEFORE UPDATE ON public.bankroll
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
@@ -166,6 +207,8 @@ CREATE OR REPLACE TRIGGER trg_bankroll_updated_at
 -- ROW LEVEL SECURITY
 -- ================================================================
 ALTER TABLE public.profiles            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.access_codes        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.access_grants       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bankroll            ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bets                ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bet_slips           ENABLE ROW LEVEL SECURITY;
@@ -182,6 +225,20 @@ CREATE POLICY "profiles: select own"
 CREATE POLICY "profiles: update own"
   ON public.profiles FOR UPDATE
   USING (auth.uid() = id);
+
+-- ----------------------------------------------------------------
+-- access_codes
+-- ----------------------------------------------------------------
+CREATE POLICY "access_codes: no public access"
+  ON public.access_codes FOR SELECT
+  USING (FALSE);
+
+-- ----------------------------------------------------------------
+-- access_grants
+-- ----------------------------------------------------------------
+CREATE POLICY "access_grants: select own"
+  ON public.access_grants FOR SELECT
+  USING (auth.uid() = user_id);
 
 -- ----------------------------------------------------------------
 -- bankroll

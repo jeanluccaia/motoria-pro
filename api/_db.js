@@ -66,6 +66,20 @@ module.exports = {
     return cmd("DEL", key);
   },
 
+  async sadd(key, member) {
+    return cmd("SADD", key, String(member));
+  },
+
+  async scard(key) {
+    const n = await cmd("SCARD", key);
+    return n == null ? null : Number(n);
+  },
+
+  async sismember(key, member) {
+    const n = await cmd("SISMEMBER", key, String(member));
+    return Number(n) === 1;
+  },
+
   /**
    * Incrementa atomicamente e define TTL apenas na primeira chamada.
    * Padrão seguro para rate limiting em serverless.

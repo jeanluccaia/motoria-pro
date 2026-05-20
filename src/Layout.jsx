@@ -27,9 +27,10 @@ export function Header() {
         <span className="ly-logo-main">MotorIA Pro</span>
         <span className="ly-logo-tag">· Análise de Risco</span>
       </Link>
-      <Link to="/analisar" className="ly-cta-btn">
-        Analisar minha aposta
-      </Link>
+      <div className="ly-header-nav">
+        <Link to="/analisar" className="ly-nav-link">Análise</Link>
+        <Link to="/analisar" className="ly-cta-btn">Analisar →</Link>
+      </div>
     </header>
   );
 }
@@ -144,6 +145,22 @@ a { color: inherit; }
   font-weight: 500;
 }
 
+.ly-header-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ly-nav-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6B7280;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 7px;
+  transition: color 0.15s;
+  white-space: nowrap;
+}
+.ly-nav-link:hover { color: #F2F2F0; }
 .ly-cta-btn {
   background: var(--text);
   color: var(--bg);
@@ -154,8 +171,16 @@ a { color: inherit; }
   text-decoration: none;
   transition: opacity 0.15s;
   white-space: nowrap;
+  margin-left: 4px;
 }
 .ly-cta-btn:hover { opacity: 0.85; }
+
+@media (max-width: 960px) {
+  .ly-header { padding: 14px 16px; gap: 12px; }
+  .ly-logo-tag { display: none; }
+  .ly-nav-link { display: none; }
+  .ly-cta-btn { margin-left: 0; padding: 8px 12px; font-size: 12px; }
+}
 
 /* ── Footer ──────────────────────────────────────────── */
 .ly-footer {

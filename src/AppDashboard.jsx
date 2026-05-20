@@ -79,6 +79,8 @@ const MAX_HISTORY    = 8;
 const KIWIFY_URL     = "https://pay.kiwify.com.br/DIVD8zl";
 const BANKROLL_KEY   = "motoria_bankroll_entries";
 const BANKROLL_CFG   = "motoria_bankroll_cfg";
+const CODE_SESSION_KEY = "motoria_code_session";
+const MULTIPLA_DRAFT_KEY = "motoria_multipla_seed";
 
 const BK_MERCADOS = [
   "Resultado da partida", "Mais ou menos gols", "Ambos marcam",
@@ -89,6 +91,19 @@ const BK_MERCADOS = [
 // ─── Math helpers ─────────────────────────────────────────────────────────────
 
 function calcImplicita(odd) { return (1 / odd) * 100; }
+
+const MONTHS_PT = ["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DEZ"];
+function fmtGameDate(timestamp) {
+  if (!timestamp) return null;
+  const BRT = -3 * 3600 * 1000;
+  const gameD  = new Date(timestamp + BRT);
+  const todayD  = new Date(Date.now() + BRT);
+  const key  = d => `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
+  const tomD  = new Date(Date.now() + BRT + 86400000);
+  if (key(gameD) === key(todayD))  return "HOJE";
+  if (key(gameD) === key(tomD))    return "AMANHÃ";
+  return `${String(gameD.getUTCDate()).padStart(2, "0")} ${MONTHS_PT[gameD.getUTCMonth()]}`;
+}
 function calcVig(oddN) {
   if (oddN <= 1.4) return 4.0;
   if (oddN <= 1.7) return 4.8;
@@ -108,6 +123,15 @@ function calcScore(oddN) {
   else if (score <= 80) { label = "ALTO";     color = "#F97316"; verdict = "DESFAVORÁVEL"; }
   else                  { label = "CRÍTICO";  color = "#EF4444"; verdict = "DESFAVORÁVEL"; }
   return { score, label, color, verdict };
+}
+
+function getCodeSessionToken() {
+  try {
+    const s = JSON.parse(localStorage.getItem(CODE_SESSION_KEY) || "null");
+    return s?.sessionToken || "";
+  } catch {
+    return "";
+  }
 }
 function matchBlock(text, key) {
   const m  = text.match(new RegExp(`^${key}:[^\\n]*\\n([\\s\\S]*?)(?=\\n[A-Z_]{3,}:|$)`, "m"));
@@ -319,6 +343,20 @@ const IconBanca = () => (
   </svg>
 );
 
+const IconBilhete = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <rect x="1.5" y="2" width="11" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
+    <path d="M4.5 5h5M4.5 7.5h5M4.5 10h3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+  </svg>
+);
+
+const IconConta = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <circle cx="7" cy="4.5" r="2.5" stroke="currentColor" strokeWidth="1.3"/>
+    <path d="M1.5 12.5c0-2.76 2.46-5 5.5-5s5.5 2.24 5.5 5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+  </svg>
+);
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function MetricCard({ label, value, color, sub, tm }) {
@@ -479,17 +517,35 @@ function CustomSelect({ id, options, value, onChange, placeholder }) {
 
 // ─── AppDashboard ─────────────────────────────────────────────────────────────
 
+const IconMultipla = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <rect x="1.5" y="1.5" width="5" height="3.5" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+    <rect x="1.5" y="6.5" width="5" height="3.5" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+    <rect x="7.5" y="1.5" width="5" height="3.5" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+    <rect x="7.5" y="6.5" width="5" height="3.5" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+    <path d="M4 5v1.5M10 5v1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+  </svg>
+);
+
 export default function AppDashboard() {
-  const { session, isPaid, authLoading } = useAuth();
+  const { session, isPaid, hasAccess: authHasAccess, authLoading } = useAuth();
 
   // Route guard: redirect unauthenticated or unpaid users
   useEffect(() => {
     if (authLoading) return;
     const hasUuidToken = !!(localStorage.getItem("motoria_token") && localStorage.getItem("motoria_token").length > 10);
-    if (!session && !hasUuidToken) {
-      window.location.replace("/login");
+    const hasLocalAccess = authHasAccess || isPaid || localStorage.getItem("motoria_access_v1") === "1";
+    if (!hasUuidToken && !hasLocalAccess) {
+      console.log("redirect reason:", "app-guard-no-access", {
+        to: "/paywall",
+        path: window.location.pathname,
+        hasSession: !!session,
+        hasUuidToken,
+        hasLocalAccess,
+      });
+      window.location.replace("/paywall");
     }
-  }, [session, isPaid, authLoading]);
+  }, [session, isPaid, authHasAccess, authLoading]);
 
   // Block render until auth resolves — prevents brief free-access flash
   if (authLoading) {
@@ -527,10 +583,13 @@ export default function AppDashboard() {
   }, []);
 
   // Sidebar
+  const goTo = useNavigate();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [view,        setView]        = useState("jogos"); // jogos is the primary entry point
-  const [flowStep,    setFlowStep]    = useState("lista"); // "lista" | "mercado" | "resultado"
+  const [view,        setView]        = useState("jogos");
+  const [flowStep,    setFlowStep]    = useState("lista");
   function navigate(v) {
+    if (v === "multipla") { goTo("/analisar"); return; }
     setView(v);
     setSidebarOpen(false);
     if (v === "jogos") {
@@ -538,6 +597,33 @@ export default function AppDashboard() {
       setResult(null);
       setError("");
     }
+  }
+
+  function openMultiplaDraft({ jogoVal, tipoVal, oddVal, valorVal, obsVal = "" }) {
+    const oddN = parseFloat(String(oddVal || "").replace(",", "."));
+    if (!oddVal || isNaN(oddN) || oddN <= 1) {
+      setError("Informe uma odd valida antes de adicionar outra selecao.");
+      return;
+    }
+
+    const draft = {
+      selecoes: [{
+        id: Date.now(),
+        jogo: String(jogoVal || "Aposta").trim() || "Aposta",
+        mercado: String(tipoVal || "Resultado da partida").trim(),
+        odd: oddN,
+        obs: String(obsVal || "").trim(),
+      }],
+      valorTotal: String(valorVal || "").trim(),
+      bancaAtual: bkCfg?.bancaInicial ? String(bkCfg.bancaInicial) : "",
+      openModal: true,
+    };
+
+    try {
+      sessionStorage.setItem(MULTIPLA_DRAFT_KEY, JSON.stringify(draft));
+    } catch {}
+
+    goTo("/analisar");
   }
 
   // Form
@@ -570,6 +656,13 @@ export default function AppDashboard() {
   const [matchesUpdatedAt, setMatchesUpdatedAt] = useState(null);
   const [selectedGame,     setSelectedGame]     = useState(null);
   const [leagueFilter,     setLeagueFilter]     = useState("todos");
+
+  // Bilhete (ticket builder from jogos de hoje)
+  const [bilhete,              setBilhete]              = useState([]);
+  const [bilhetePickerGame,    setBilhetePickerGame]    = useState(null);
+  const [bilhetePickerMercado, setBilhetePickerMercado] = useState(MAIN_MARKETS[0]);
+  const [bilhetePickerOdd,     setBilhetePickerOdd]     = useState("");
+  const [bilheteValor,         setBilheteValor]         = useState("");
 
   // Controle de Banca
   const [bkEntries,      setBkEntries]      = useState(loadBankroll);
@@ -689,12 +782,14 @@ export default function AppDashboard() {
       const userMsg = `Jogo: ${jogoVal || "não informado"} | Campeonato: ${campVal || "não informado"} | Mercado: ${tipoVal} | Odd: ${oddVal}${valorVal ? ` | Valor: R$${valorVal}` : ""}${formaCtx}`;
       const adminKey = localStorage.getItem("motoria_admin_key");
       const rawJwt   = session?.access_token ?? "";
+      const codeSessionToken = getCodeSessionToken();
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: buildSafeHeaders({
           "Content-Type": "application/json",
           ...(adminKey === "MOTORIA_OWNER_KEY_2026" ? { "x-admin-key": "MOTORIA_OWNER_KEY_2026" } : {}),
           ...(token ? { "x-motoria-token": token } : {}),
+          ...(codeSessionToken ? { "x-motoria-code-session": codeSessionToken } : {}),
           ...(!token && rawJwt.length > 10 ? { Authorization: `Bearer ${rawJwt}` } : {}),
         }),
         body: JSON.stringify({ tool: "aposta", userMessage: userMsg }),
@@ -782,6 +877,17 @@ export default function AppDashboard() {
   }
 
   // Quick-flow: market tapped → analyze immediately with reference (or custom) odd
+  function addManualToMultipla() {
+    const jogoVal = selectedGame ? `${selectedGame.home} Ã— ${selectedGame.away}` : jogo;
+    openMultiplaDraft({
+      jogoVal,
+      tipoVal: tipo,
+      oddVal: odd,
+      valorVal: valor,
+      obsVal: campeonato,
+    });
+  }
+
   function quickAnalyze(tipoVal, oddStr, valorStr) {
     if (!tipoVal || !oddStr) return;
     const jogoVal = selectedGame ? `${selectedGame.home} × ${selectedGame.away}` : jogo;
@@ -807,6 +913,43 @@ export default function AppDashboard() {
     setCampeonato(camp);
     setSelectedGame({ ...match, campeonato: camp });
     setFlowStep("mercado"); // → market selection step (stays in jogos view)
+  }
+
+  function abrirBilhetePicker(match) {
+    const camp = mapLeague(match.league);
+    setBilhetePickerGame({ ...match, campeonato: camp });
+    setBilhetePickerMercado(MAIN_MARKETS[0]);
+    setBilhetePickerOdd(MAIN_MARKETS[0].ref);
+  }
+
+  function confirmarBilheteItem() {
+    const oddN = parseFloat(String(bilhetePickerOdd || "").replace(",", "."));
+    if (!bilhetePickerGame || !bilhetePickerMercado || isNaN(oddN) || oddN <= 1) return;
+    const item = {
+      id: Date.now(),
+      jogo: `${bilhetePickerGame.home} × ${bilhetePickerGame.away}`,
+      mercado: bilhetePickerMercado.tipo,
+      odd: oddN,
+      obs: bilhetePickerGame.campeonato || "",
+    };
+    setBilhete(prev => [...prev, item]);
+    setBilhetePickerGame(null);
+    setBilhetePickerOdd("");
+  }
+
+  function removerDoBilhete(id) {
+    setBilhete(prev => prev.filter(s => s.id !== id));
+  }
+
+  function irParaAnaliseBilhete() {
+    const draft = {
+      selecoes: bilhete,
+      valorTotal: bilheteValor,
+      bancaAtual: bkCfg?.bancaInicial ? String(bkCfg.bancaInicial) : "",
+      openModal: false,
+    };
+    try { sessionStorage.setItem(MULTIPLA_DRAFT_KEY, JSON.stringify(draft)); } catch {}
+    goTo("/multipla");
   }
 
   // ── Bankroll handlers ─────────────────────────────────────────────────────
@@ -1122,24 +1265,16 @@ export default function AppDashboard() {
     {
       group: "ANÁLISE",
       items: [
-        { id: "jogos",      label: "Jogos de Hoje",      Icon: IconJogos },
-        { id: "nova",       label: "Análise Manual",      Icon: IconAnalyze, manual: true },
-        { id: "geral",      label: "Visão Geral",         Icon: IconOverview },
-        { id: "banca",      label: "Controle de Banca",   Icon: IconBanca },
-        { id: "comparador", label: "Comparador",          Icon: IconCompare, dim: true },
+        { id: "jogos", label: "Central de Jogos",  Icon: IconJogos },
+        { id: "nova",  label: "Análise Manual",    Icon: IconAnalyze, manual: true },
       ],
     },
     {
-      group: "MERCADOS",
+      group: "GESTÃO",
       items: [
-        { id: "aovivo",    label: "Ao Vivo",   Icon: IconLive, live: true, dim: true },
-        { id: "favoritos", label: "Favoritos", Icon: IconStar, dim: true },
-      ],
-    },
-    {
-      group: "ARQUIVO",
-      items: [
-        { id: "historico", label: "Histórico", Icon: IconHistory, badge: history.length || null },
+        { id: "geral",     label: "Visão Geral",      Icon: IconOverview },
+        { id: "banca",     label: "Controle de Banca",Icon: IconBanca },
+        { id: "historico", label: "Histórico",        Icon: IconHistory, badge: history.length || null },
       ],
     },
     {
@@ -1157,6 +1292,130 @@ export default function AppDashboard() {
       {sidebarOpen && (
         <div className="ap-overlay" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
       )}
+
+      {/* ── Bilhete market picker ──────────────────────────────────────────── */}
+      {bilhetePickerGame && (
+        <div className="bp-overlay" onClick={() => setBilhetePickerGame(null)} aria-modal="true" role="dialog">
+          <div className="bp-sheet" onClick={e => e.stopPropagation()}>
+            <div className="bp-sheet-handle" />
+            <div className="bp-sheet-header">
+              <div className="bp-sheet-match">
+                <span className="bp-sheet-league">{bilhetePickerGame.campeonato}</span>
+                <span className="bp-sheet-teams">{bilhetePickerGame.home} × {bilhetePickerGame.away}</span>
+              </div>
+              <button className="bp-sheet-close" onClick={() => setBilhetePickerGame(null)} type="button" aria-label="Fechar">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
+
+            <div className="bp-section-lbl">MERCADO</div>
+            <div className="bp-market-pills">
+              {MAIN_MARKETS.map(mk => (
+                <button
+                  key={mk.tipo}
+                  className={`bp-market-pill${bilhetePickerMercado?.tipo === mk.tipo ? " bp-market-pill-on" : ""}`}
+                  onClick={() => { setBilhetePickerMercado(mk); setBilhetePickerOdd(mk.ref); }}
+                  type="button"
+                >
+                  {mk.tipo}
+                </button>
+              ))}
+            </div>
+
+            <div className="bp-section-lbl">ODD</div>
+            <input
+              className="bp-odd-input"
+              type="text"
+              inputMode="decimal"
+              value={bilhetePickerOdd}
+              onChange={e => setBilhetePickerOdd(e.target.value)}
+              placeholder={bilhetePickerMercado?.ref || "1.85"}
+              autoComplete="off"
+            />
+
+            <button
+              className="bp-confirm-btn"
+              onClick={confirmarBilheteItem}
+              type="button"
+              disabled={!bilhetePickerOdd || isNaN(parseFloat(String(bilhetePickerOdd).replace(",", "."))) || parseFloat(String(bilhetePickerOdd).replace(",", ".")) <= 1}
+            >
+              + Adicionar ao bilhete
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Bilhete drawer (fixed bottom) ────────────────────────────────── */}
+      {bilhete.length > 0 && view === "jogos" && flowStep === "lista" && (() => {
+        const oddTotal   = bilhete.reduce((acc, s) => acc * s.odd, 1);
+        const valorNum   = parseFloat(String(bilheteValor).replace(",", ".")) || 0;
+        const retorno    = valorNum > 0 ? (valorNum * oddTotal).toFixed(2) : null;
+        const bancaNum   = parseFloat(bkCfg?.bancaInicial) || 0;
+        const pctBanca   = bancaNum > 0 && valorNum > 0 ? ((valorNum / bancaNum) * 100).toFixed(1) : null;
+        const canAnalyze = valorNum > 0;
+        return (
+          <div className="bd-drawer">
+            <div className="bd-drawer-inner">
+              {/* Header row: count + odd */}
+              <div className="bd-header-row">
+                <span className="bd-count">{bilhete.length} {bilhete.length === 1 ? "seleção" : "seleções"}</span>
+                <span className="bd-odd-badge">Odd <strong>{oddTotal.toFixed(2)}</strong></span>
+              </div>
+
+              {/* Chips row */}
+              {bilhete.length >= 1 && (
+                <div className="bd-sel-list">
+                  {bilhete.map(s => (
+                    <span key={s.id} className="bd-sel-chip">
+                      {s.jogo.split(" × ")[0]}
+                      <button className="bd-sel-remove" onClick={() => removerDoBilhete(s.id)} type="button" aria-label="Remover">×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Valor da entrada row */}
+              <div className="bd-valor-row">
+                <div className="bd-valor-input-wrap">
+                  <span className="bd-currency">R$</span>
+                  <input
+                    className="bd-valor-input"
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    step="0.01"
+                    placeholder="Ex: 50"
+                    value={bilheteValor}
+                    onChange={e => setBilheteValor(e.target.value)}
+                  />
+                </div>
+                {canAnalyze ? (
+                  <div className="bd-computed">
+                    <span className="bd-retorno">Retorno <strong>R$ {retorno}</strong></span>
+                    {pctBanca && <span className="bd-pct-banca">{pctBanca}% da banca</span>}
+                  </div>
+                ) : (
+                  <span className="bd-valor-hint">Informe o valor da entrada</span>
+                )}
+              </div>
+
+              {/* CTA */}
+              <button
+                className={`bd-cta${canAnalyze ? "" : " bd-cta--disabled"}`}
+                onClick={canAnalyze ? irParaAnaliseBilhete : undefined}
+                type="button"
+                disabled={!canAnalyze}
+              >
+                {canAnalyze
+                  ? (bilhete.length === 1 ? "Analisar risco da entrada →" : "Analisar risco do bilhete →")
+                  : "Informe o valor da entrada"}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {accessBanner && (
         <div className="ap-access-banner" role="status" aria-live="polite">
@@ -1309,18 +1568,32 @@ export default function AppDashboard() {
                   </div>
                 </div>
 
-                {/* Quick action */}
-                <div className="ap-geral-action">
-                  <div className="ap-geral-action-left">
-                    <div className="ap-geral-action-title">Iniciar nova análise quantitativa</div>
-                    <div className="ap-geral-action-sub">MOTORIA RISK INDEX™ · Probabilidade · EV · Exposição</div>
+                {/* Quick actions */}
+                <div className="ap-geral-actions">
+                  <div className="ap-geral-action">
+                    <div className="ap-geral-action-left">
+                      <div className="ap-geral-action-title">Análise Simples</div>
+                      <div className="ap-geral-action-sub">MOTORIA RISK INDEX™ · Probabilidade · EV · Exposição</div>
+                    </div>
+                    <button className="ap-geral-btn" onClick={() => navigate("nova")}>
+                      Analisar
+                      <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                        <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
                   </div>
-                  <button className="ap-geral-btn" onClick={() => navigate("nova")}>
-                    Analisar
-                    <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                      <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
+                  <div className="ap-geral-action ap-geral-action-multipla">
+                    <div className="ap-geral-action-left">
+                      <div className="ap-geral-action-title">Montar bilhete</div>
+                      <div className="ap-geral-action-sub">Adicione seleções e veja o risco acumulado antes de apostar.</div>
+                    </div>
+                    <button className="ap-geral-btn ap-geral-btn-multipla" onClick={() => navigate("multipla")}>
+                      Adicionar seleções
+                      <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                        <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Recent mini list */}
@@ -1470,6 +1743,18 @@ export default function AppDashboard() {
                         </div>
                       </div>
 
+                      <div className="ap-multi-prompt">
+                        <span>Quer transformar em múltipla?</span>
+                        <button
+                          className="ap-multi-add"
+                          type="button"
+                          onClick={addManualToMultipla}
+                          disabled={!odd || isNaN(oddNum) || oddNum < 1.01}
+                        >
+                          + Adicionar outra seleção
+                        </button>
+                      </div>
+
                       {error && <div className="ap-error" role="alert">{error}</div>}
                       <button className="ap-submit" type="submit">
                         INICIAR ANÁLISE →
@@ -1595,7 +1880,7 @@ export default function AppDashboard() {
                     <div className="ap-panel-hdr">
                       <div className="ap-panel-hdr-left">
                         <div className="ap-panel-mod">ANÁLISE ESPORTIVA</div>
-                        <div className="ap-panel-title">Jogos de Hoje</div>
+                        <div className="ap-panel-title">Central de Jogos</div>
                       </div>
                       <div className="jg-hdr-right">
                         <div className="jg-data-badge">
@@ -1678,64 +1963,91 @@ export default function AppDashboard() {
                           <div className="jg-grid">
                             {filtered.map((m, idx) => {
                               const hasScore = m.scoreHome !== null && m.scoreAway !== null;
+                              const inBilhete = bilhete.some(s => s.jogo === `${m.home} × ${m.away}`);
                               return (
-                                <button
+                                <div
                                   key={m.id || idx}
-                                  className={`jg-card jg-card-${m.status}`}
-                                  onClick={() => selectGame(m)}
-                                  type="button"
+                                  className={`jg-card jg-card-${m.status}${inBilhete ? " jg-card-in-bilhete" : ""}`}
                                   style={{ animationDelay: `${Math.min(idx, 6) * 40}ms` }}
                                 >
-                                  <div className="jg-card-header">
-                                    <span className="jg-league">{mapLeague(m.league) || m.league}</span>
-                                    {m.status === "upcoming" && m.time && <span className="jg-time">{m.time}</span>}
-                                  </div>
-                                  {m.status === "live" && (
-                                    <div className="jg-status-row">
-                                      <span className="jg-live-dot" aria-hidden="true" />
-                                      <span className="jg-status-live-text">AO VIVO</span>
-                                      {m.elapsed != null && <span className="jg-elapsed">{m.elapsed}'</span>}
+                                  <button
+                                    className="jg-card-main"
+                                    onClick={() => selectGame(m)}
+                                    type="button"
+                                  >
+                                    <div className="jg-card-header">
+                                      <span className="jg-league">{mapLeague(m.league) || m.league}</span>
+                                      {m.status === "upcoming" && m.time && (
+                                        <span className="jg-time">
+                                          {fmtGameDate(m.timestamp) && (
+                                            <span className="jg-date-ctx">{fmtGameDate(m.timestamp)} · </span>
+                                          )}
+                                          {m.time}
+                                        </span>
+                                      )}
                                     </div>
-                                  )}
-                                  {m.status === "ended" && (
-                                    <div className="jg-status-row">
-                                      <span className="jg-status-ended-text">ENCERRADO</span>
-                                    </div>
-                                  )}
-                                  <div className="jg-matchup">
-                                    <span className="jg-team-name">{m.home}</span>
-                                    <div className="jg-score-center">
-                                      {hasScore
-                                        ? <span className="jg-score-pair"><span className="jg-score-num">{m.scoreHome}</span><span className="jg-score-dash">—</span><span className="jg-score-num">{m.scoreAway}</span></span>
-                                        : <span className="jg-vs">×</span>}
-                                    </div>
-                                    <span className="jg-team-name jg-team-right">{m.away}</span>
-                                  </div>
-                                  {teamData && (() => {
-                                    const homeT = lookupTeam(m.home, teamData);
-                                    const awayT = lookupTeam(m.away, teamData);
-                                    if (!homeT && !awayT) return null;
-                                    const dotColor = r => r === "W" ? "#22C55E" : r === "D" ? "#F59E0B" : "#EF4444";
-                                    return (
-                                      <div className="jg-forma-row">
-                                        <div className="jg-forma-side">
-                                          {(homeT?.forma || []).map((r, i) => (
-                                            <span key={i} className="jg-forma-dot" style={{ background: dotColor(r) }} title={r} />
-                                          ))}
-                                        </div>
-                                        <div className="jg-forma-mid" />
-                                        <div className="jg-forma-side jg-forma-side-r">
-                                          {(awayT?.forma || []).map((r, i) => (
-                                            <span key={i} className="jg-forma-dot" style={{ background: dotColor(r) }} title={r} />
-                                          ))}
-                                        </div>
+                                    {m.status === "live" && (
+                                      <div className="jg-status-row">
+                                        <span className="jg-live-dot" aria-hidden="true" />
+                                        <span className="jg-status-live-text">AO VIVO</span>
+                                        {m.elapsed != null && <span className="jg-elapsed">{m.elapsed}'</span>}
                                       </div>
-                                    );
-                                  })()}
-                                  <div className="jg-card-footer">
-                                    <span className="jg-cta">Vale apostar? →</span>
+                                    )}
+                                    {m.status === "ended" && (
+                                      <div className="jg-status-row">
+                                        <span className="jg-status-ended-text">ENCERRADO</span>
+                                      </div>
+                                    )}
+                                    <div className="jg-matchup">
+                                      <span className="jg-team-name">{m.home}</span>
+                                      <div className="jg-score-center">
+                                        {hasScore
+                                          ? <span className="jg-score-pair"><span className="jg-score-num">{m.scoreHome}</span><span className="jg-score-dash">—</span><span className="jg-score-num">{m.scoreAway}</span></span>
+                                          : <span className="jg-vs">×</span>}
+                                      </div>
+                                      <span className="jg-team-name jg-team-right">{m.away}</span>
+                                    </div>
+                                    {teamData && (() => {
+                                      const homeT = lookupTeam(m.home, teamData);
+                                      const awayT = lookupTeam(m.away, teamData);
+                                      if (!homeT && !awayT) return null;
+                                      const dotColor = r => r === "W" ? "#22C55E" : r === "D" ? "#F59E0B" : "#EF4444";
+                                      return (
+                                        <div className="jg-forma-row">
+                                          <div className="jg-forma-side">
+                                            {(homeT?.forma || []).map((r, i) => (
+                                              <span key={i} className="jg-forma-dot" style={{ background: dotColor(r) }} title={r} />
+                                            ))}
+                                          </div>
+                                          <div className="jg-forma-mid" />
+                                          <div className="jg-forma-side jg-forma-side-r">
+                                            {(awayT?.forma || []).map((r, i) => (
+                                              <span key={i} className="jg-forma-dot" style={{ background: dotColor(r) }} title={r} />
+                                            ))}
+                                          </div>
+                                        </div>
+                                      );
+                                    })()}
+                                  </button>
+                                  <div className="jg-card-footer-btns">
+                                    <button
+                                      className="jg-cta-analyze"
+                                      onClick={() => selectGame(m)}
+                                      type="button"
+                                    >
+                                      Vale apostar? →
+                                    </button>
+                                    <button
+                                      className={`jg-bilhete-btn${inBilhete ? " jg-bilhete-btn-on" : ""}`}
+                                      onClick={() => inBilhete
+                                        ? removerDoBilhete(bilhete.find(s => s.jogo === `${m.home} × ${m.away}`)?.id)
+                                        : abrirBilhetePicker(m)}
+                                      type="button"
+                                    >
+                                      {inBilhete ? "✓ No bilhete" : "+ Bilhete"}
+                                    </button>
                                   </div>
-                                </button>
+                                </div>
                               );
                             })}
                           </div>
@@ -1858,6 +2170,19 @@ export default function AppDashboard() {
                                     type="button"
                                   >
                                     Analisar →
+                                  </button>
+                                  <button
+                                    className="fl-mcard-add"
+                                    onClick={() => openMultiplaDraft({
+                                      jogoVal: `${selectedGame.home} × ${selectedGame.away}`,
+                                      tipoVal: m.tipo,
+                                      oddVal: marketOdd || m.ref,
+                                      valorVal: marketValor,
+                                      obsVal: selectedGame.campeonato,
+                                    })}
+                                    type="button"
+                                  >
+                                    + Adicionar outra seleção
                                   </button>
                                 </div>
                               );
@@ -2034,37 +2359,123 @@ export default function AppDashboard() {
 
             {/* ════ CONTROLE DE BANCA ══════════════════════════════════ */}
             {view === "banca" && (() => {
-              const bancaInicial = parseFloat(bkCfg?.bancaInicial) || 0;
-              const stats        = bancaInicial > 0 ? calcBkStats(bkEntries, bancaInicial) : null;
-              const alerts       = bancaInicial > 0 ? getBkAlerts(bkEntries, bancaInicial) : [];
+              const bancaInicial  = parseFloat(bkCfg?.bancaInicial) || 0;
+              const stats         = bancaInicial > 0 ? calcBkStats(bkEntries, bancaInicial) : null;
+              const alerts        = bancaInicial > 0 ? getBkAlerts(bkEntries, bancaInicial) : [];
+              const bancaAtual    = stats?.saldo ?? bancaInicial;
               const pctBancaAtual = stats ? ((stats.saldo / bancaInicial) * 100).toFixed(1) : null;
+
+              const stakeMin  = bancaInicial > 0 ? bancaInicial * 0.01 : 0;
+              const stakeMax  = bancaInicial > 0 ? bancaInicial * 0.03 : 0;
+              const hasEntries = bkEntries.length > 0;
+
+              // Stake real: média das entradas ou 2% padrão para setup vazio
+              const avgStakeVal = hasEntries
+                ? bkEntries.reduce((s, e) => s + parseFloat(e.valor || 0), 0) / bkEntries.length
+                : bancaInicial * 0.02;
+              const avgStakePct = bancaAtual > 0 ? (avgStakeVal / bancaAtual) * 100 : 2;
+
+              // Thresholds: ≤3% conservador · 4-8% moderado · >8% agressivo
+              const riskZone = avgStakePct <= 3 ? "conservador" : avgStakePct <= 8 ? "moderado" : "agressivo";
+
+              // Cursor mapeado por segmento (0–33% · 33–66% · 66–97%)
+              const riskCursorPct = avgStakePct <= 3
+                ? Math.max(3, (avgStakePct / 3) * 33)
+                : avgStakePct <= 8
+                ? 33 + ((avgStakePct - 3) / 5) * 33
+                : Math.min(97, 66 + ((avgStakePct - 8) / 6) * 31);
+
+              // Quebra: quantas derrotas seguidas destroem a banca
+              const lossesToRuin = bancaAtual > 0 && avgStakeVal > 0
+                ? Math.floor(bancaAtual / avgStakeVal)
+                : null;
+
+              // Simulação de 5 perdas (fallback se lossesToRuin > 7)
+              const sim5LossPct = bancaAtual > 0
+                ? ((avgStakeVal * 5 / bancaAtual) * 100).toFixed(1)
+                : null;
+
+              // Mensagens de impacto — humanas, diretas, sem números artificiais
+              const simTitle = lossesToRuin !== null
+                ? lossesToRuin <= 2
+                  ? `Se você perder ${lossesToRuin} apostas seguidas, sua banca vai acabar.`
+                  : lossesToRuin <= 5
+                  ? `Com ${lossesToRuin} perdas seguidas, você quebra a banca.`
+                  : lossesToRuin <= 10
+                  ? `Você aguenta até ${lossesToRuin} perdas seguidas antes de quebrar.`
+                  : `5 perdas seguidas tiram ${sim5LossPct}% da sua banca.`
+                : null;
+              const simSub = lossesToRuin !== null
+                ? lossesToRuin <= 2
+                  ? "Reduza o valor por aposta agora."
+                  : lossesToRuin <= 5
+                  ? "Esse valor por aposta é alto para sua banca."
+                  : lossesToRuin <= 10
+                  ? "Uma sequência ruim pode mudar tudo rápido."
+                  : "Você tem fôlego, mas controle os valores."
+                : null;
+
+              // Leitura da IA — sempre ativa quando bancaInicial configurado
+              const AI_READINGS = {
+                conservador: {
+                  comDados:   { title: "Você está controlando bem.", msg: "Seu risco está saudável. Sua banca aguenta oscilações sem sustos." },
+                  semDados:   { title: "Você está no caminho certo.", msg: "O valor por aposta cabe bem na sua banca. Continue assim." },
+                },
+                moderado: {
+                  comDados:   { title: "Seu risco já começa a subir.", msg: "Algumas perdas seguidas já machucam bastante. Fique de olho." },
+                  semDados:   { title: "Esse valor já começa a pesar.", msg: "Aposte menos por entrada para ter mais fôlego nas perdas." },
+                },
+                agressivo: {
+                  comDados:   { title: "Poucas perdas podem te quebrar.", msg: "Você está arriscando muito por aposta. Reduza antes que seja tarde." },
+                  semDados:   { title: "Você está apostando alto.", msg: "Para o tamanho da sua banca, esse valor por aposta é arriscado." },
+                },
+              };
+              const aiReading = bancaInicial > 0
+                ? (hasEntries ? AI_READINGS[riskZone].comDados : AI_READINGS[riskZone].semDados)
+                : null;
+
+              let maxDrawdown = 0;
+              if (hasEntries && bancaInicial > 0) {
+                let peak = bancaInicial; let running = bancaInicial;
+                const chrono = [...bkEntries].sort((a, b) => a.ts - b.ts);
+                for (const e of chrono) {
+                  const v = parseFloat(e.valor || 0); const o = parseFloat(e.odd || 1);
+                  if (e.resultado === "Ganhou") running += v * (o - 1);
+                  else if (e.resultado === "Perdeu") running -= v;
+                  if (running > peak) peak = running;
+                  const dd = peak > 0 ? ((peak - running) / peak) * 100 : 0;
+                  if (dd > maxDrawdown) maxDrawdown = dd;
+                }
+              }
+
+              const fmtBRL = v => Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
               return (
                 <div className="ap-content" key="banca">
                   <div className="ap-panel-hdr">
                     <div className="ap-panel-hdr-left">
-                      <div className="ap-panel-mod">GESTÃO</div>
-                      <div className="ap-panel-title">Controle de Banca</div>
+                      <div className="ap-panel-mod">BANCA</div>
+                      <div className="ap-panel-title">Sua banca hoje</div>
                     </div>
                     <div className="ap-panel-online">
                       <span className="ap-status-dot" aria-hidden="true" />
-                      {bkSyncing ? "SINCRONIZANDO…" : `${bkEntries.length} ENTRADAS${session ? " · SALVO" : ""}`}
+                      {bkSyncing ? "SINCRONIZANDO…" : `${bkEntries.length} APOSTAS${session ? " · SALVO" : ""}`}
                     </div>
                   </div>
 
-                  {/* ── Paywall: sem token → locked preview ─────────────── */}
+                  {/* ── Paywall ──────────────────────────────────────────── */}
                   {!hasAccess ? (
                     <div className="lk-wrap" style={{ marginTop: 12 }}>
                       <div className="lk-preview-card" style={{ minHeight: 340 }}>
                         <div className="lk-header">
-                          <div className="lk-header-event">Controle de Banca</div>
+                          <div className="lk-header-event">Sua banca hoje</div>
                           <div className="lk-header-meta">
                             <span className="lk-badge-blur">████████</span>
                           </div>
                         </div>
                         <div className="lk-divider" />
                         <div className="bk-stats-blur-row">
-                          {["Saldo atual","ROI","Acerto","Perda máx."].map(l => (
+                          {["Banca atual","Faixa segura","Winrate","Drawdown"].map(l => (
                             <div key={l} className="bk-stat-blur-card">
                               <div className="bk-stat-blur-val">██.█</div>
                               <div className="bk-stat-blur-label">{l}</div>
@@ -2080,7 +2491,7 @@ export default function AppDashboard() {
                             </svg>
                           </div>
                           <div className="lk-lock-title">Controle de banca disponível com acesso</div>
-                          <div className="lk-lock-sub">Registre entradas · acompanhe ROI · gerencie sua banca</div>
+                          <div className="lk-lock-sub">Registre apostas · acompanhe ROI · proteja seu capital</div>
                           <a href={KIWIFY_URL} className="lk-cta-btn">Desbloquear acesso completo</a>
                           <div className="lk-price-note">Pagamento único · sem mensalidade · acesso imediato · R$ 27</div>
                         </div>
@@ -2088,11 +2499,11 @@ export default function AppDashboard() {
                     </div>
                   ) : (
                     <>
-                      {/* ── Setup da banca inicial ──────────────────────── */}
+                      {/* ── Setup ────────────────────────────────────────── */}
                       {!bancaInicial && (
                         <div className="bk-setup-panel">
                           <div className="bk-setup-title">Configure sua banca inicial</div>
-                          <div className="bk-setup-sub">Informe o valor total que você dedica às apostas para calcular métricas precisas.</div>
+                          <div className="bk-setup-sub">Quanto você dedica ao total para apostas? Isso define sua faixa de risco seguro por aposta.</div>
                           <div className="bk-setup-row">
                             <div className="bk-setup-input-wrap">
                               <span className="bk-currency">R$</span>
@@ -2112,7 +2523,7 @@ export default function AppDashboard() {
                         </div>
                       )}
 
-                      {/* ── Alertas inteligentes ─────────────────────────── */}
+                      {/* ── Alertas ──────────────────────────────────────── */}
                       {alerts.length > 0 && (
                         <div className="bk-alerts">
                           {alerts.map((a, i) => (
@@ -2124,40 +2535,118 @@ export default function AppDashboard() {
                         </div>
                       )}
 
-                      {/* ── Dashboard cards ──────────────────────────────── */}
-                      {bancaInicial > 0 && bkEntries.length === 0 && (
-                        <div className="bk-empty-state">
-                          <div className="bk-empty-icon">📊</div>
-                          <div className="bk-empty-title">Nenhuma entrada ainda</div>
-                          <div className="bk-empty-sub">Registre sua primeira aposta para começar a acompanhar sua banca.</div>
+                      {/* ── Painel ao vivo ───────────────────────────────── */}
+                      {bancaInicial > 0 && (
+                        <div className="bk-live">
+
+                          {/* Banca atual + faixa segura */}
+                          <div className="bk-live-top">
+                            <div className="bk-live-main">
+                              <div className="bk-live-label">BANCA ATUAL</div>
+                              <div className="bk-live-val" style={{ color: stats && stats.saldo < bancaInicial ? "var(--red)" : "var(--green)" }}>
+                                R$ {fmtBRL(bancaAtual)}
+                              </div>
+                              <div className="bk-live-sub">
+                                {stats
+                                  ? `${pctBancaAtual}% da inicial · ${stats.totalApos} apostas`
+                                  : "Proteja seu capital antes de aumentar risco"}
+                              </div>
+                            </div>
+                            <div className="bk-live-stake">
+                              <div className="bk-live-label">VALOR SEGURO POR APOSTA</div>
+                              <div className="bk-live-stake-range">
+                                R$ {fmtBRL(stakeMin)} – R$ {fmtBRL(stakeMax)}
+                              </div>
+                              <div className="bk-live-sub">1% a 3% da banca</div>
+                            </div>
+                          </div>
+
+                          {/* Quanto você arrisca por aposta */}
+                          {hasEntries && (
+                            <div className="bk-exposure">
+                              <div className="bk-exposure-label">VOCÊ ESTÁ ARRISCANDO POR APOSTA</div>
+                              <div className="bk-exposure-pct" style={{
+                                color: riskZone === "conservador" ? "var(--green)"
+                                  : riskZone === "moderado" ? "var(--amber)"
+                                  : "var(--red)"
+                              }}>
+                                {avgStakePct.toFixed(1)}%
+                              </div>
+                              <div className="bk-exposure-abs">R$ {fmtBRL(avgStakeVal)} por aposta em média</div>
+                            </div>
+                          )}
+
+                          {/* Barra de risco */}
+                          <div className="bk-risk">
+                            <div className="bk-risk-header">
+                              <div className="bk-risk-label">SEU RISCO HOJE</div>
+                              <div className={`bk-risk-badge bk-risk-badge-${riskZone}`}>
+                                {riskZone === "conservador" ? "Seguro" : riskZone === "moderado" ? "Moderado" : "ALTO RISCO"}
+                              </div>
+                            </div>
+                            <div className="bk-risk-bar">
+                              <div className="bk-risk-track">
+                                <div className="bk-risk-seg bk-risk-seg-c" />
+                                <div className="bk-risk-seg bk-risk-seg-m" />
+                                <div className="bk-risk-seg bk-risk-seg-a" />
+                              </div>
+                              <div className="bk-risk-cursor" style={{ left: `${riskCursorPct}%` }} />
+                            </div>
+                            <div className="bk-risk-legends">
+                              <span>até 3%</span><span>4% – 8%</span><span>acima de 8%</span>
+                            </div>
+                          </div>
+
+                          {/* Leitura da IA */}
+                          {aiReading && (
+                            <div className={`bk-ai-reading bk-ai-reading-${riskZone}`}>
+                              <div className="bk-ai-label">LEITURA DA IA</div>
+                              <div className="bk-ai-title">{aiReading.title}</div>
+                              <div className="bk-ai-msg">{aiReading.msg}</div>
+                            </div>
+                          )}
+
+                          {/* Simulação real */}
+                          {simTitle && (
+                            <div className={`bk-sim bk-sim-${riskZone}`}>
+                              <div className="bk-sim-left">
+                                <div className="bk-sim-label">SE VOCÊ PERDER</div>
+                                <div className="bk-sim-title">{simTitle}</div>
+                                <div className="bk-sim-detail">{simSub}</div>
+                              </div>
+                              {lossesToRuin <= 10 && (
+                                <div className="bk-sim-right">
+                                  <div className="bk-sim-val"
+                                    style={{ color: lossesToRuin <= 2 ? "var(--red)" : lossesToRuin <= 5 ? "var(--amber)" : "var(--green)" }}>
+                                    {lossesToRuin}
+                                  </div>
+                                  <div className="bk-sim-sub">perdas</div>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       )}
 
+                      {/* ── Stats cards ──────────────────────────────────── */}
                       {bancaInicial > 0 && bkEntries.length > 0 && stats && (
                         <div className="bk-cards">
                           <div className="bk-card">
-                            <div className="bk-card-label">SALDO ATUAL</div>
-                            <div className="bk-card-val" style={{ color: stats.saldo >= bancaInicial ? "var(--green)" : "var(--red)" }}>
-                              R$ {stats.saldo.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </div>
-                            <div className="bk-card-sub">{pctBancaAtual}% da banca inicial</div>
-                          </div>
-                          <div className="bk-card">
                             <div className="bk-card-label">LUCRO / PREJUÍZO</div>
                             <div className="bk-card-val" style={{ color: stats.lucroTotal >= 0 ? "var(--green)" : "var(--red)" }}>
-                              {stats.lucroTotal >= 0 ? "+" : ""}R$ {Math.abs(stats.lucroTotal).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              {stats.lucroTotal >= 0 ? "+" : ""}R$ {fmtBRL(Math.abs(stats.lucroTotal))}
                             </div>
-                            <div className="bk-card-sub">{stats.wins}G · {stats.losses}P de {stats.totalApos} apostas</div>
+                            <div className="bk-card-sub">{stats.wins}G · {stats.losses}P de {stats.totalApos}</div>
                           </div>
                           <div className="bk-card">
                             <div className="bk-card-label">ROI</div>
                             <div className="bk-card-val" style={{ color: stats.roi >= 0 ? "var(--green)" : "var(--red)" }}>
                               {stats.roi >= 0 ? "+" : ""}{stats.roi.toFixed(1)}%
                             </div>
-                            <div className="bk-card-sub">Retorno sobre investido</div>
+                            <div className="bk-card-sub">Retorno total</div>
                           </div>
                           <div className="bk-card">
-                            <div className="bk-card-label">TAXA DE ACERTO</div>
+                            <div className="bk-card-label">ACERTO</div>
                             <div className="bk-card-val" style={{ color: stats.acerto >= 55 ? "var(--green)" : stats.acerto >= 45 ? "var(--amber)" : "var(--red)" }}>
                               {stats.acerto.toFixed(1)}%
                             </div>
@@ -2171,19 +2660,26 @@ export default function AppDashboard() {
                             <div className="bk-card-sub">Pior sequência: {stats.maxStreak} derrotas</div>
                           </div>
                           <div className="bk-card">
+                            <div className="bk-card-label">MAIOR QUEDA</div>
+                            <div className="bk-card-val" style={{ color: maxDrawdown > 20 ? "var(--red)" : maxDrawdown > 10 ? "var(--amber)" : "var(--green)" }}>
+                              {maxDrawdown.toFixed(1)}%
+                            </div>
+                            <div className="bk-card-sub">Pior momento até hoje</div>
+                          </div>
+                          <div className="bk-card">
                             <div className="bk-card-label">BANCA INICIAL</div>
                             <div className="bk-card-val" style={{ color: "var(--t1)" }}>
-                              R$ {bancaInicial.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              R$ {fmtBRL(bancaInicial)}
                             </div>
-                            <div className="bk-card-sub bk-reset-link" onClick={() => { setBkCfg({}); saveBkCfg({}); }}>redefinir</div>
+                            <div className="bk-card-sub bk-reset-link" onClick={() => { setBkCfg({}); saveBkCfg({}); }}>resetar banca</div>
                           </div>
                         </div>
                       )}
 
-                      {/* ── Botão adicionar entrada ──────────────────────── */}
+                      {/* ── Botão registrar aposta ───────────────────────── */}
                       <div className="bk-actions">
                         <button className="bk-add-btn" onClick={() => { setBkFormOpen(o => !o); setBkFormExpanded(false); }}>
-                          {bkFormOpen ? "Cancelar" : "+ Registrar entrada"}
+                          {bkFormOpen ? "Cancelar" : "+ Registrar aposta"}
                         </button>
                         {bkEntries.length > 0 && (
                           bkClearConfirm ? (
@@ -2198,12 +2694,10 @@ export default function AppDashboard() {
                         )}
                       </div>
 
-                      {/* ── Formulário de entrada ────────────────────────── */}
+                      {/* ── Formulário ───────────────────────────────────── */}
                       {bkFormOpen && (
                         <div className="bk-form">
                           <p className="bk-form-intro">Registre o resultado da sua aposta para atualizar sua banca.</p>
-
-                          {/* Required fields */}
                           <div className="bk-form-row">
                             <div className="bk-form-field">
                               <label className="ap-label">VALOR (R$)</label>
@@ -2242,8 +2736,6 @@ export default function AppDashboard() {
                               <option>Anulada</option>
                             </select>
                           </div>
-
-                          {/* Optional fields toggle */}
                           <button
                             className="bk-form-more"
                             type="button"
@@ -2276,18 +2768,17 @@ export default function AppDashboard() {
                               </div>
                             </>
                           )}
-
                           <button
                             className="bk-submit-btn"
                             onClick={addBankrollEntry}
                             disabled={!bkForm.valor || !bkForm.odd}
                           >
-                            Salvar entrada
+                            Salvar aposta
                           </button>
                         </div>
                       )}
 
-                      {/* ── Histórico de entradas ────────────────────────── */}
+                      {/* ── Histórico ────────────────────────────────────── */}
                       {bkEntries.length > 0 ? (
                         <div className="bk-hist">
                           <div className="bk-hist-hdr">
@@ -2318,13 +2809,13 @@ export default function AppDashboard() {
                           })}
                         </div>
                       ) : bancaInicial > 0 ? (
-                        <div className="ap-empty">Nenhuma entrada registrada. Use o botão acima para adicionar.</div>
+                        <div className="ap-empty">Nenhuma aposta registrada. Use o botão acima para adicionar.</div>
                       ) : null}
 
-                      {/* ── Frases educativas ────────────────────────────── */}
+                      {/* ── Educativo ────────────────────────────────────── */}
                       <div className="bk-edu">
                         <p>A gestão de banca é o único fator que você controla totalmente em apostas. Defina um limite, respeite-o.</p>
-                        <p>Recomenda-se arriscar entre 1% e 3% da banca por entrada para preservar o capital a longo prazo.</p>
+                        <p>Recomenda-se arriscar entre 1% e 3% da banca por aposta para preservar o capital a longo prazo.</p>
                       </div>
                       <p className="db-disclaimer">
                         Ferramenta educativa. Não representa orientação financeira. A responsabilidade pelas decisões é inteiramente sua.
@@ -2409,23 +2900,65 @@ export default function AppDashboard() {
 
         {/* ── MOBILE TAB BAR ──────────────────────────────────────────── */}
         <nav className="ap-tab-bar" aria-label="Navegação principal">
-          {[
-            { id: "jogos",  label: "Jogos",   Icon: IconJogos },
-            { id: "nova",   label: "Análise", Icon: IconAnalyze },
-            { id: "banca",  label: "Banca",   Icon: IconBanca },
-            { id: "config", label: "Config",  Icon: IconConfig },
-          ].map(({ id, label, Icon }) => (
-            <button
-              key={id}
-              className={`ap-tab-item${view === id ? " ap-tab-active" : ""}`}
-              onClick={() => navigate(id)}
-              aria-current={view === id ? "page" : undefined}
-              type="button"
-            >
-              <Icon />
-              <span className="ap-tab-label">{label}</span>
-            </button>
-          ))}
+          {/* Jogos */}
+          <button
+            className={`ap-tab-item${view === "jogos" && bilhete.length === 0 ? " ap-tab-active" : ""}`}
+            onClick={() => navigate("jogos")}
+            aria-current={view === "jogos" && bilhete.length === 0 ? "page" : undefined}
+            type="button"
+          >
+            <IconJogos />
+            <span className="ap-tab-label">Jogos</span>
+          </button>
+
+          {/* Bilhete — active when has selections */}
+          <button
+            className={`ap-tab-item${bilhete.length > 0 ? " ap-tab-active ap-tab-bilhete" : ""}`}
+            onClick={() => navigate("jogos")}
+            aria-label={bilhete.length > 0 ? `Bilhete: ${bilhete.length} seleção` : "Bilhete"}
+            type="button"
+          >
+            <span className="ap-tab-icon-wrap">
+              <IconBilhete />
+              {bilhete.length > 0 && (
+                <span className="ap-tab-badge" aria-hidden="true">{bilhete.length}</span>
+              )}
+            </span>
+            <span className="ap-tab-label">Bilhete</span>
+          </button>
+
+          {/* Banca */}
+          <button
+            className={`ap-tab-item${view === "banca" ? " ap-tab-active" : ""}`}
+            onClick={() => navigate("banca")}
+            aria-current={view === "banca" ? "page" : undefined}
+            type="button"
+          >
+            <IconBanca />
+            <span className="ap-tab-label">Banca</span>
+          </button>
+
+          {/* Histórico */}
+          <button
+            className={`ap-tab-item${view === "historico" ? " ap-tab-active" : ""}`}
+            onClick={() => navigate("historico")}
+            aria-current={view === "historico" ? "page" : undefined}
+            type="button"
+          >
+            <IconHistory />
+            <span className="ap-tab-label">Histórico</span>
+          </button>
+
+          {/* Conta */}
+          <button
+            className={`ap-tab-item${view === "config" ? " ap-tab-active" : ""}`}
+            onClick={() => navigate("config")}
+            aria-current={view === "config" ? "page" : undefined}
+            type="button"
+          >
+            <IconConta />
+            <span className="ap-tab-label">Conta</span>
+          </button>
         </nav>
 
       </div>
@@ -2581,6 +3114,10 @@ body { overflow: hidden; }
   display: flex; flex-direction: column;
   padding: 0 0 12px; overflow-y: auto;
   transition: transform .22s ease;
+}
+/* Mobile: sidebar hidden entirely — tab bar handles navigation */
+@media (max-width: 768px) {
+  .ap-sidebar { display: none !important; }
 }
 
 /* Sidebar brand mark */
@@ -2740,10 +3277,15 @@ body { overflow: hidden; }
   color: var(--t3); text-transform: uppercase;
 }
 
+.ap-geral-actions { display: flex; flex-direction: column; gap: 10px; }
 .ap-geral-action {
   background: var(--panel); border: 1px solid var(--border);
   border-radius: 10px; padding: 16px 18px;
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.ap-geral-action-multipla {
+  border-color: rgba(31,203,122,0.2);
+  background: rgba(31,203,122,0.03);
 }
 .ap-geral-action-left { display: flex; flex-direction: column; gap: 4px; }
 .ap-geral-action-title { font-size: 13px; font-weight: 700; color: var(--t1); letter-spacing: -0.02em; }
@@ -2757,6 +3299,11 @@ body { overflow: hidden; }
   transition: opacity .14s;
 }
 .ap-geral-btn:hover { opacity: .88; }
+.ap-geral-btn-multipla {
+  background: transparent; color: #1FCB7A;
+  border: 1px solid rgba(31,203,122,0.4);
+}
+.ap-geral-btn-multipla:hover { background: rgba(31,203,122,0.08); opacity: 1; }
 
 .ap-geral-recent {
   background: var(--panel); border: 1px solid var(--border);
@@ -2898,6 +3445,26 @@ body { overflow: hidden; }
   border-radius: 8px; padding: 10px 12px;
 }
 
+.ap-multi-prompt {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: rgba(34,197,94,.045); border: 1px solid rgba(34,197,94,.16);
+  border-radius: 9px; padding: 10px 12px;
+}
+.ap-multi-prompt span {
+  font-size: 12px; font-weight: 700; color: var(--t2);
+}
+.ap-multi-add {
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; color: #22C55E;
+  border: 1px solid rgba(34,197,94,.38);
+  border-radius: 7px; padding: 9px 12px;
+  font-size: 10.5px; font-weight: 900; letter-spacing: .04em;
+  font-family: inherit; cursor: pointer; white-space: nowrap;
+  transition: background .13s, opacity .13s;
+}
+.ap-multi-add:hover:not(:disabled) { background: rgba(34,197,94,.08); }
+.ap-multi-add:disabled { opacity: .42; cursor: not-allowed; }
+
 .ap-submit {
   display: flex; align-items: center; justify-content: center; gap: 9px;
   background: #15803d; color: #dcfce7;
@@ -2912,6 +3479,11 @@ body { overflow: hidden; }
   transform: translateY(-1px);
 }
 .ap-submit:active { transform: translateY(0); }
+
+@media (max-width: 640px) {
+  .ap-multi-prompt { flex-direction: column; align-items: stretch; }
+  .ap-multi-add { width: 100%; }
+}
 
 /* ─ Loading ────────────────────────────────────────────────────────────────── */
 .ap-loading {
@@ -3449,29 +4021,35 @@ body { overflow: hidden; }
 
 .sel-opt-text { flex: 1; }
 
-/* ─ Mobile ─────────────────────────────────────────────────────────────────── */
-@media (max-width: 900px) {
+/* ─ Tablet (hamburger + overlay sidebar, no tab bar) ───────────────────────── */
+@media (min-width: 769px) and (max-width: 900px) {
   .ap-hamburger { display: flex; }
-  /* Extra 8px of vertical breathing room for logo and menu */
   .ap-topbar-row { height: 54px; }
   .ap-sidebar {
     position: fixed;
-    /* Sidebar anchors below taller mobile topbar + safe area */
     top: calc(54px + env(safe-area-inset-top));
     left: 0; bottom: 0;
     z-index: 50; transform: translateX(-100%);
     width: 230px; box-shadow: 6px 0 32px rgba(0,0,0,.6);
+    display: flex !important;
   }
   .ap-sidebar-open { transform: translateX(0); }
 }
-@media (max-width: 640px) {
-  .ap-content { padding: 12px 12px; }
-  .ap-topbar-row { padding: 0 12px; }
-  /* Mobile status: show text label, hide the pulsing dot (no floating dot bug) */
-  .ap-live-dot { display: none; }
+
+/* ─ Mobile (≤768px) — tab bar, no sidebar, no hamburger ────────────────────── */
+@media (max-width: 768px) {
+  /* Topbar */
+  .ap-hamburger   { display: none !important; }
+  .ap-topbar-row  { height: 52px; padding: 0 14px; }
+  .ap-topbar-tag  { display: none; }
+  .ap-topbar-aid  { display: none; }
+  .ap-live-dot    { display: none; }
   .ap-engine-live { font-size: 8px; letter-spacing: .06em; gap: 0; }
-  .ap-topbar-tag { display: none; }
-  .ap-topbar-aid { display: none; }
+
+  /* Content */
+  .ap-content { padding: 12px 12px; }
+
+  /* Layout items */
   .ap-geral-stats { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .ap-geral-action { flex-direction: column; align-items: flex-start; }
   .ap-geral-recent-row { grid-template-columns: 1fr 36px 28px 50px; }
@@ -3485,7 +4063,7 @@ body { overflow: hidden; }
   .ap-hist-id, .ap-hist-odd, .ap-hist-bar, .ap-hist-ts { display: none; }
   .ap-loading-pct { font-size: 44px; }
 
-  /* Form mobile — compact for first-fold visibility */
+  /* Form */
   .ap-input-panel { padding: 16px 14px 18px; border-radius: 12px; }
   .ap-form { gap: 11px; }
   .ap-field { gap: 5px; }
@@ -3493,7 +4071,7 @@ body { overflow: hidden; }
   .ap-input-odd { font-size: 20px; }
   .ap-submit { padding: 14px 20px; font-size: 11.5px; margin-top: 4px; }
 
-  /* Dashboard mobile */
+  /* Dashboard cards */
   .db-cards { grid-template-columns: minmax(0, 1fr); }
   .db-card-risco { grid-column: 1; }
   .db-risco-score { font-size: 56px; }
@@ -3506,7 +4084,7 @@ body { overflow: hidden; }
   .db-btn-primary, .db-btn-copy { justify-content: center; padding: 14px 20px; }
   .db-rbar-labels { font-size: 7px; }
 
-  /* Result card mobile */
+  /* Result card */
   .db-rc-header { padding: 14px 16px 12px; }
   .db-rc-event  { font-size: 15px; }
   .db-rc-risk   { padding: 14px 16px; }
@@ -3516,6 +4094,11 @@ body { overflow: hidden; }
   .db-rc-big    { font-size: 28px; }
   .db-rc-ai     { padding: 14px 16px; }
   .db-rc-ai-verdict { font-size: 15px; }
+
+  /* Main content gets bottom padding for tab bar */
+  .ap-main {
+    padding-bottom: calc(64px + max(env(safe-area-inset-bottom), 8px));
+  }
 }
 
 /* ─ Form separator (optional section) ─────────────────────────────────────── */
@@ -3730,7 +4313,11 @@ body { overflow: hidden; }
 .jg-time {
   font-size: 10px; font-weight: 700; color: var(--t2);
   font-variant-numeric: tabular-nums; font-family: 'Courier New', monospace;
-  flex-shrink: 0;
+  flex-shrink: 0; white-space: nowrap;
+}
+.jg-date-ctx {
+  font-size: 8px; font-weight: 800; letter-spacing: .08em;
+  color: var(--t3); text-transform: uppercase;
 }
 
 .jg-teams {
@@ -4407,6 +4994,18 @@ body { overflow: hidden; }
   transition: background .13s;
 }
 .fl-mcard-confirm:hover { background: #166534; }
+.fl-mcard-add {
+  background: transparent; color: #22C55E;
+  font-size: 10.5px; font-weight: 900; letter-spacing: .04em;
+  padding: 10px 14px; border-radius: 7px;
+  border: 1px solid rgba(34,197,94,.36); cursor: pointer;
+  font-family: inherit; width: 100%;
+  transition: background .13s, border-color .13s;
+}
+.fl-mcard-add:hover {
+  background: rgba(34,197,94,.08);
+  border-color: rgba(34,197,94,.54);
+}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    LOCKED STATE — lk-* components
@@ -4610,6 +5209,107 @@ body { overflow: hidden; }
 .bk-alert-warn   { background: rgba(245,158,11,.08); border-color: rgba(245,158,11,.18); color: #fcd34d; }
 .bk-alert-icon   { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
 
+/* Live banca panel */
+.bk-live { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.bk-live-top { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.bk-live-main, .bk-live-stake {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; padding: 18px 16px;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.bk-live-label {
+  font-size: 9px; font-weight: 800; letter-spacing: .12em; color: var(--t2); margin-bottom: 2px;
+}
+.bk-live-val { font-size: 26px; font-weight: 900; line-height: 1.1; letter-spacing: -.02em; }
+.bk-live-stake-range {
+  font-size: 17px; font-weight: 900; color: #22c55e; line-height: 1.2; letter-spacing: -.01em;
+}
+.bk-live-sub { font-size: 10px; color: var(--t2); line-height: 1.4; }
+
+/* Risk bar */
+.bk-risk {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; padding: 15px 16px;
+  display: flex; flex-direction: column; gap: 9px;
+}
+.bk-risk-header { display: flex; justify-content: space-between; align-items: center; }
+.bk-risk-label  { font-size: 9px; font-weight: 800; letter-spacing: .12em; color: var(--t2); }
+.bk-risk-badge  { font-size: 9px; font-weight: 800; letter-spacing: .06em; padding: 3px 9px; border-radius: 99px; }
+.bk-risk-badge-conservador { background: rgba(34,197,94,.15); color: #86efac; }
+.bk-risk-badge-moderado    { background: rgba(245,158,11,.15); color: #fcd34d; }
+.bk-risk-badge-agressivo   {
+  background: rgba(239,68,68,.18); color: #fca5a5;
+  animation: bk-badge-pulse 1.8s ease-in-out infinite;
+}
+@keyframes bk-badge-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .6; }
+}
+.bk-risk-bar { position: relative; padding-bottom: 4px; }
+.bk-risk-track {
+  display: flex; height: 6px; border-radius: 99px; overflow: hidden; gap: 2px;
+}
+.bk-risk-seg   { flex: 1; }
+.bk-risk-seg-c { background: #22c55e; }
+.bk-risk-seg-m { background: #f59e0b; }
+.bk-risk-seg-a { background: #ef4444; }
+.bk-risk-cursor {
+  position: absolute; top: -3px; width: 12px; height: 12px;
+  background: #fff; border-radius: 50%; transform: translateX(-50%);
+  box-shadow: 0 0 0 2px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.35);
+  transition: left .4s cubic-bezier(.4,0,.2,1);
+}
+.bk-risk-legends {
+  display: flex; justify-content: space-between;
+  font-size: 9px; color: var(--t3); letter-spacing: .03em;
+}
+
+/* Exposição real */
+.bk-exposure {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.bk-exposure-label { font-size: 9px; font-weight: 800; letter-spacing: .12em; color: var(--t2); margin-bottom: 2px; }
+.bk-exposure-pct   { font-size: 38px; font-weight: 900; line-height: 1; letter-spacing: -.04em; }
+.bk-exposure-abs   { font-size: 11px; color: var(--t2); }
+
+/* Leitura da IA */
+.bk-ai-reading {
+  border-radius: 12px; padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 7px;
+  border: 1px solid transparent;
+}
+.bk-ai-reading-conservador { background: rgba(34,197,94,.06);  border-color: rgba(34,197,94,.18); }
+.bk-ai-reading-moderado    { background: rgba(245,158,11,.06); border-color: rgba(245,158,11,.18); }
+.bk-ai-reading-agressivo   {
+  background: rgba(239,68,68,.07); border-color: rgba(239,68,68,.22);
+  animation: bk-glow-red 3s ease-in-out infinite;
+}
+@keyframes bk-glow-red {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+  50%       { box-shadow: 0 0 14px 2px rgba(239,68,68,.12); }
+}
+.bk-ai-label { font-size: 9px; font-weight: 800; letter-spacing: .12em; color: var(--t2); }
+.bk-ai-title { font-size: 14px; font-weight: 800; color: var(--t1); line-height: 1.2; margin-top: 4px; }
+.bk-ai-msg   { font-size: 12px; color: var(--t2); line-height: 1.65; }
+
+/* Simulação de quebra */
+.bk-sim {
+  display: flex; justify-content: space-between; align-items: center;
+  border-radius: 12px; padding: 15px 18px; gap: 12px;
+  border: 1px solid transparent;
+}
+.bk-sim-conservador { background: rgba(34,197,94,.06);  border-color: rgba(34,197,94,.2); }
+.bk-sim-moderado    { background: rgba(245,158,11,.06); border-color: rgba(245,158,11,.2); }
+.bk-sim-agressivo   { background: rgba(239,68,68,.06);  border-color: rgba(239,68,68,.2); }
+.bk-sim-label  { font-size: 9px; font-weight: 800; letter-spacing: .1em; color: var(--t2); margin-bottom: 2px; }
+.bk-sim-title  { font-size: 12.5px; color: var(--t1); line-height: 1.45; font-weight: 700; }
+.bk-sim-detail { font-size: 10.5px; color: var(--t2); margin-top: 4px; line-height: 1.4; }
+.bk-sim-right  { text-align: right; flex-shrink: 0; }
+.bk-sim-val    { font-size: 36px; font-weight: 900; line-height: 1; letter-spacing: -.04em; }
+.bk-sim-sub    { font-size: 10px; color: var(--t2); margin-top: 2px; }
+
 /* Dashboard cards */
 .bk-cards {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
@@ -4743,6 +5443,12 @@ body { overflow: hidden; }
 .bk-edu p { font-size: 11px; color: var(--t2); line-height: 1.6; }
 
 @media (max-width: 640px) {
+  .bk-live-top { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .bk-live-val { font-size: 22px; }
+  .bk-live-stake-range { font-size: 14px; }
+  .bk-exposure-pct { font-size: 30px; }
+  .bk-sim-val { font-size: 28px; }
+  .bk-ai-title { font-size: 13px; }
   .bk-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .bk-hist-hdr,
   .bk-hist-row { grid-template-columns: 48px 1fr 52px 70px 28px; }
@@ -4763,42 +5469,309 @@ body { overflow: hidden; }
 /* ─ Mobile bottom tab bar ───────────────────────────────────────────────────── */
 .ap-tab-bar { display: none; }
 
-@media (max-width: 640px) {
-  /* Show tab bar */
+@media (max-width: 768px) {
   .ap-tab-bar {
     display: flex;
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: var(--bg2);
-    border-top: 1px solid var(--border);
-    padding-bottom: max(env(safe-area-inset-bottom), 8px);
-    z-index: 45;
-    /* keep above main content, below sidebar overlay */
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 45;
+    background: #0B0B0F;
+    border-top: 1px solid rgba(255,255,255,.07);
+    /* iOS home indicator */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -4px 24px rgba(0,0,0,.5);
   }
 
   .ap-tab-item {
-    flex: 1; display: flex; flex-direction: column;
+    flex: 1;
+    display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    gap: 3px; padding: 9px 4px 4px;
+    gap: 4px;
+    /* 64px height — minimum 44px Apple tap target guideline */
+    min-height: 64px; padding: 10px 4px 8px;
     background: none; border: none;
     cursor: pointer; font-family: inherit;
-    color: var(--t2); transition: color .12s;
+    color: rgba(255,255,255,.38);
+    transition: color .14s;
     -webkit-tap-highlight-color: transparent;
+    position: relative;
   }
-  .ap-tab-item:active { background: rgba(255,255,255,.03); }
+  .ap-tab-item:active { background: rgba(255,255,255,.035); }
+
+  /* Icon wrapper — needed for badge positioning */
+  .ap-tab-icon-wrap {
+    position: relative; display: flex;
+    align-items: center; justify-content: center;
+  }
+  /* Ensure plain SVGs without wrapper also look right */
+  .ap-tab-item > svg { display: block; }
+
+  .ap-tab-item svg { width: 22px; height: 22px; }
+
   .ap-tab-label {
-    font-size: 9px; font-weight: 700; letter-spacing: .05em;
-    line-height: 1;
-  }
-  .ap-tab-active { color: var(--green); }
-
-  /* Push main content up above tab bar (~60px bar + safe area) */
-  .ap-main {
-    padding-bottom: calc(60px + max(env(safe-area-inset-bottom), 8px));
+    font-size: 10px; font-weight: 700; letter-spacing: .04em;
+    line-height: 1; white-space: nowrap;
   }
 
-  /* Sidebar bottom safe area (home indicator below last nav item) */
-  .ap-sidebar {
-    padding-bottom: max(env(safe-area-inset-bottom), 16px);
+  /* Active state */
+  .ap-tab-active { color: #22C55E; }
+
+  /* Active indicator pill above icon */
+  .ap-tab-active::before {
+    content: '';
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 28px; height: 2px; border-radius: 0 0 99px 99px;
+    background: #22C55E;
   }
+
+  /* Bilhete badge */
+  .ap-tab-badge {
+    position: absolute; top: -5px; right: -8px;
+    background: #22C55E; color: #050507;
+    font-size: 9px; font-weight: 800;
+    border-radius: 99px; min-width: 16px; height: 16px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4px; line-height: 1;
+    border: 1.5px solid #0B0B0F;
+  }
+
+  /* Bilhete tab: green tint on icon/label even when not "page-active" */
+  .ap-tab-bilhete { color: #22C55E; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BILHETE — Game card restructure + market picker + bottom drawer
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Game card as div (was button) ─────────────────────────────────────── */
+.jg-card {
+  display: flex; flex-direction: column;
+  padding: 0; overflow: hidden;
+}
+.jg-card-main {
+  display: flex; flex-direction: column; gap: 13px;
+  padding: 16px 18px;
+  background: none; border: none; cursor: pointer;
+  font-family: inherit; text-align: left; color: inherit;
+  width: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+.jg-card-in-bilhete {
+  border-color: rgba(34,197,94,.4) !important;
+  background: rgba(34,197,94,.04) !important;
+}
+.jg-card-footer-btns {
+  display: flex; gap: 6px; padding: 0 12px 12px;
+}
+.jg-cta-analyze {
+  flex: 1; background: none; border: 1px solid var(--border);
+  border-radius: 7px; padding: 7px 10px;
+  font-size: 9.5px; font-weight: 800; letter-spacing: .06em;
+  color: rgba(34,197,94,.4); cursor: pointer; font-family: inherit;
+  text-transform: uppercase; transition: color .13s, border-color .13s;
+}
+.jg-card:hover .jg-cta-analyze { color: var(--green); border-color: rgba(34,197,94,.3); }
+.jg-bilhete-btn {
+  flex-shrink: 0; background: rgba(34,197,94,.08);
+  border: 1px solid rgba(34,197,94,.2); border-radius: 7px;
+  padding: 7px 11px; font-size: 9.5px; font-weight: 800;
+  letter-spacing: .04em; color: var(--green); cursor: pointer;
+  font-family: inherit; transition: background .13s, border-color .13s;
+  white-space: nowrap;
+}
+.jg-bilhete-btn:hover { background: rgba(34,197,94,.16); border-color: rgba(34,197,94,.4); }
+.jg-bilhete-btn-on {
+  background: rgba(34,197,94,.15) !important;
+  border-color: rgba(34,197,94,.5) !important;
+  color: #1FCB7A !important;
+}
+@media (max-width: 640px) {
+  .jg-card-main { padding: 14px 15px; gap: 11px; }
+  .jg-card-footer-btns { padding: 0 10px 10px; }
+  .jg-bilhete-btn { font-size: 9px; padding: 6px 9px; }
+  .jg-cta-analyze { font-size: 9px; }
+}
+
+/* ── Bilhete picker (market picker bottom sheet) ────────────────────────── */
+@keyframes bp-sheet-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.bp-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.bp-sheet {
+  width: 100%; max-width: 480px;
+  background: #111113; border: 1px solid #252528;
+  border-radius: 20px 20px 0 0; padding: 0 20px 32px;
+  display: flex; flex-direction: column; gap: 14px;
+  animation: bp-sheet-up .22s cubic-bezier(.4,0,.2,1) both;
+  max-height: 85vh; overflow-y: auto;
+}
+.bp-sheet-handle {
+  width: 36px; height: 4px; background: #333;
+  border-radius: 2px; margin: 14px auto 4px; flex-shrink: 0;
+}
+.bp-sheet-header {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+}
+.bp-sheet-match { display: flex; flex-direction: column; gap: 3px; }
+.bp-sheet-league {
+  font-size: 8px; font-weight: 800; letter-spacing: .16em;
+  color: var(--t3); text-transform: uppercase;
+}
+.bp-sheet-teams {
+  font-size: 16px; font-weight: 900; color: var(--t1); letter-spacing: -0.03em;
+}
+.bp-sheet-close {
+  background: none; border: none; cursor: pointer; color: var(--t3);
+  padding: 2px; flex-shrink: 0; transition: color .13s; margin-top: 2px;
+}
+.bp-sheet-close:hover { color: var(--t1); }
+.bp-section-lbl {
+  font-size: 8px; font-weight: 800; letter-spacing: .2em;
+  color: var(--t3); text-transform: uppercase; margin-bottom: -6px;
+}
+.bp-market-pills {
+  display: flex; flex-wrap: wrap; gap: 7px;
+}
+.bp-market-pill {
+  padding: 7px 14px; border-radius: 99px;
+  background: rgba(255,255,255,.04); border: 1px solid var(--border);
+  font-size: 11px; font-weight: 600; color: var(--t2);
+  cursor: pointer; font-family: inherit; transition: all .13s;
+  white-space: nowrap;
+}
+.bp-market-pill:hover { color: var(--t1); border-color: var(--bmd); }
+.bp-market-pill-on {
+  background: rgba(34,197,94,.12) !important;
+  border-color: rgba(34,197,94,.35) !important;
+  color: var(--green) !important;
+}
+.bp-odd-input {
+  width: 100%; padding: 14px 16px;
+  background: #18181b; border: 1px solid #2a2a2e;
+  border-radius: 12px; color: var(--t1);
+  font-size: 22px; font-weight: 900; letter-spacing: -0.03em;
+  outline: none; transition: border-color .15s;
+  font-family: 'Courier New', monospace;
+}
+.bp-odd-input:focus { border-color: rgba(34,197,94,.45); }
+.bp-confirm-btn {
+  width: 100%; padding: 16px;
+  background: #15803d; color: #dcfce7;
+  border: none; border-radius: 12px;
+  font-size: 14px; font-weight: 800; font-family: inherit;
+  cursor: pointer; letter-spacing: .02em;
+  transition: background .15s, transform .12s;
+}
+.bp-confirm-btn:hover:not(:disabled) { background: #166534; transform: translateY(-1px); }
+.bp-confirm-btn:active { transform: translateY(0); }
+.bp-confirm-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ── Bilhete drawer (fixed bottom) ─────────────────────────────────────── */
+@keyframes bd-in {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+.bd-drawer {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
+  background: #0F0F11; border-top: 1px solid rgba(34,197,94,.22);
+  padding: 12px 16px;
+  padding-bottom: max(env(safe-area-inset-bottom), 12px);
+  box-shadow: 0 -8px 32px rgba(0,0,0,.45);
+  animation: bd-in .24s cubic-bezier(.4,0,.2,1) both;
+}
+.bd-drawer-inner {
+  max-width: 600px; margin: 0 auto;
+  display: flex; flex-direction: column; gap: 10px;
+}
+/* Header row */
+.bd-header-row {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.bd-count {
+  font-size: 10px; font-weight: 800; letter-spacing: .12em;
+  color: var(--green); text-transform: uppercase;
+}
+.bd-odd-badge {
+  font-size: 12px; color: var(--t2);
+}
+.bd-odd-badge strong { color: var(--t1); font-weight: 800; }
+/* Chips */
+.bd-sel-list { display: flex; flex-wrap: wrap; gap: 5px; }
+.bd-sel-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.2);
+  border-radius: 99px; padding: 3px 8px;
+  font-size: 10px; font-weight: 700; color: var(--t1);
+  white-space: nowrap;
+}
+.bd-sel-remove {
+  background: none; border: none; cursor: pointer;
+  color: var(--t3); font-size: 12px; line-height: 1;
+  padding: 0 0 0 2px; transition: color .12s; font-family: inherit;
+}
+.bd-sel-remove:hover { color: var(--red); }
+/* Valor da entrada */
+.bd-valor-row {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.bd-valor-input-wrap {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px; padding: 0 12px; flex-shrink: 0;
+  transition: border-color .15s;
+}
+.bd-valor-input-wrap:focus-within {
+  border-color: rgba(34,197,94,.5);
+}
+.bd-currency {
+  font-size: 13px; font-weight: 700; color: var(--t3);
+}
+.bd-valor-input {
+  background: none; border: none; outline: none;
+  font-size: 20px; font-weight: 800; font-family: inherit;
+  color: var(--t1); width: 90px; padding: 10px 0;
+}
+.bd-valor-input::placeholder { color: var(--t3); font-weight: 500; }
+.bd-valor-input::-webkit-inner-spin-button,
+.bd-valor-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.bd-computed {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.bd-retorno {
+  font-size: 13px; color: var(--t2);
+}
+.bd-retorno strong { color: #22C55E; font-weight: 800; }
+.bd-pct-banca {
+  font-size: 11px; color: var(--t3);
+  background: rgba(255,255,255,.05); border-radius: 6px;
+  padding: 3px 8px;
+}
+.bd-valor-hint {
+  font-size: 12px; color: var(--t3); font-style: italic;
+}
+/* CTA */
+.bd-cta {
+  width: 100%; background: var(--green); color: #000;
+  border: none; border-radius: 10px; padding: 14px 18px;
+  font-size: 13px; font-weight: 800; font-family: inherit;
+  cursor: pointer; letter-spacing: .02em; text-align: center;
+  transition: opacity .15s;
+}
+.bd-cta:hover:not(:disabled) { opacity: .88; }
+.bd-cta--disabled {
+  background: rgba(255,255,255,.07); color: var(--t3);
+  cursor: default;
+}
+@media (max-width: 768px) {
+  /* Drawer sits above the bottom tab bar (64px) + safe area */
+  .bd-drawer {
+    padding: 10px 14px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+  .bd-valor-input { width: 80px; font-size: 18px; }
 }
 `;

@@ -21,6 +21,7 @@ const SYSTEM_PROMPTS = require("./_prompts");
 const rate    = require("./_rate");
 const credits = require("./_credits");
 const { applyCors } = require("./_cors");
+const { getCodeSessionFromReq } = require("./_codeSession");
 
 const ALLOWED_TOOLS    = new Set(Object.keys(SYSTEM_PROMPTS));
 const MAX_INPUT_CHARS  = 1800;
@@ -93,7 +94,11 @@ module.exports = async function handler(req, res) {
   }
 
   // ── (a) UUID token (sistema legado de créditos) ───────────────────────────
-  if (credits.isValidUUID(uuidToken)) {
+  if (!isAuthorized && getCodeSessionFromReq(req)) {
+    isAuthorized = true;
+  }
+
+  if (!isAuthorized && credits.isValidUUID(uuidToken)) {
     const result = await credits.deduct(uuidToken);
 
     if (!result) {

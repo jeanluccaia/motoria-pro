@@ -9,14 +9,26 @@ import { buildSafeHeaders } from "./utils/safeHeaders";
 
 const ACCESS_KEY  = "motoria_access_v1";
 const ADMIN_BYPASS_KEY = "MOTORIA_OWNER_KEY_2026";
+const CODE_SESSION_KEY = "motoria_code_session";
+
+function getCodeSessionToken() {
+  try {
+    const s = JSON.parse(localStorage.getItem(CODE_SESSION_KEY) || "null");
+    return s?.sessionToken || "";
+  } catch {
+    return "";
+  }
+}
 
 function buildAuthHeaders(session) {
   const adminKey = localStorage.getItem("motoria_admin_key");
+  const codeSessionToken = getCodeSessionToken();
   if (adminKey === ADMIN_BYPASS_KEY) {
     return buildSafeHeaders({ "Content-Type": "application/json", "x-admin-key": ADMIN_BYPASS_KEY });
   }
   return buildSafeHeaders({
     "Content-Type": "application/json",
+    ...(codeSessionToken ? { "x-motoria-code-session": codeSessionToken } : {}),
     ...(session?.access_token && String(session.access_token).length > 10
       ? { Authorization: `Bearer ${session.access_token}` }
       : {}),
@@ -173,6 +185,7 @@ function Indicator({ label, value, sub, highlight }) {
 export default function Analisar() {
   const navigate = useNavigate();
   const { session, isPaid } = useAuth();
+
 
   const [step, setStep]         = useState(1);
   const [result, setResult]     = useState(null);
@@ -362,6 +375,12 @@ export default function Analisar() {
 
       <div className="an-root">
         <div className="an-wrap">
+
+          {/* Modo toggle */}
+          <div className="an-mode-toggle">
+            <button className="an-mode-btn an-mode-active">Simples</button>
+            <button className="an-mode-btn" onClick={() => navigate("/multipla")}>Múltipla</button>
+          </div>
 
           {/* ── WIZARD ───────────────────────────────────────── */}
           {!result && !loading && (
@@ -938,6 +957,12 @@ const CSS = `
 
 .an-quote { font-size: 14px; font-style: italic; color: var(--amber); border-left: 2px solid rgba(255,176,32,0.3); padding: 10px 14px; margin: 0; border-radius: 0 6px 6px 0; background: rgba(255,176,32,0.04); line-height: 1.6; }
 .an-disclaimer { font-size: 11px; color: #333; text-align: center; line-height: 1.6; }
+
+/* Mode toggle */
+.an-mode-toggle { display: flex; background: #0D0D0F; border: 1px solid #1E1E1F; border-radius: 10px; padding: 3px; gap: 3px; margin-bottom: 8px; }
+.an-mode-btn { flex: 1; padding: 9px 8px; background: transparent; border: none; border-radius: 7px; color: #555; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.15s; }
+.an-mode-btn:hover { color: #aaa; }
+.an-mode-active { background: #1A1A1D; color: #F2F2F0 !important; }
 
 @media (max-width: 400px) {
   .an-ind-grid { grid-template-columns: 1fr; }

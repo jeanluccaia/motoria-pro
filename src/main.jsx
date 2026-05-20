@@ -39,7 +39,6 @@ import { AuthProvider } from "./contexts/AuthContext";
 const Landing      = lazy(() => import("./Landing"));
 const Tool         = lazy(() => import("./Tool"));
 const AppDashboard = lazy(() => import("./AppDashboard"));
-const Analisar     = lazy(() => import("./Analisar"));
 const Obrigado     = lazy(() => import("./Obrigado"));
 const AppMembro    = lazy(() => import("./AppMembro"));
 const Login        = lazy(() => import("./Login"));
@@ -57,7 +56,7 @@ function App() {
   if (path === "/paywall")            return <PaywallPage />;
   if (path === "/ferramenta")         return <Tool />;          // legado — mantido
   if (path === "/app")                return <AppDashboard />;
-  if (path === "/analisar")           return <Analisar />;
+  if (path === "/analisar")           return <Multipla />;
   if (path === "/multipla")           return <Multipla />;
   if (path === "/obrigado")           return <Obrigado />;
   if (path === "/membro")             return <AppMembro />;

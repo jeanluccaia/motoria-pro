@@ -4,6 +4,19 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
 
+  server: {
+    port: 5173,
+    proxy: {
+      // Forward all /api/* calls to the production Vercel deployment
+      // so serverless functions work without running `vercel dev`
+      "/api": {
+        target: "https://motoria-pro.vercel.app",
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
+
   build: {
     // Modern target: smaller output, no legacy polyfills
     target: 'es2020',

@@ -1,47 +1,72 @@
-import { useEffect, useState } from "react";
-import { supabase } from "./lib/supabase";
+import { useEffect, useRef, useState } from "react";
+import { supabase, getIsPaid } from "./lib/supabase";
 
 const ACCESS_KEY = "motoria_access_v1";
 
 async function syncAndCheckPaid(session) {
+  const jwt = session.access_token;
+
+  // 1. Server sync: handles TESTER_EMAILS + Redis + upsert is_paid
   try {
-    const jwt = session.access_token;
     const res = await fetch("/api/auth/sync-paid", {
       method: "POST",
       headers: {
-        "Content-Type":  "application/json",
+        "Content-Type": "application/json",
         "Authorization": `Bearer ${jwt}`,
       },
     });
     if (res.ok) {
       const data = await res.json();
-      return data.is_paid === true;
+      if (data.is_paid === true) return true;
+      console.warn("[auth-callback] sync-paid returned is_paid=false");
+    } else {
+      console.warn("[auth-callback] sync-paid HTTP", res.status, await res.text().catch(() => ""));
     }
   } catch (err) {
-    console.error("[auth-callback] sync-paid error:", err.message);
+    console.error("[auth-callback] sync-paid fetch error:", err.message);
   }
+
+  // 2. Fallback: read profiles.is_paid directly (user reads own row via RLS)
+  try {
+    const paid = await getIsPaid(session.user.id);
+    if (paid) {
+      console.log("[auth-callback] access confirmed via profiles fallback");
+      return true;
+    }
+  } catch (err) {
+    console.error("[auth-callback] profiles fallback error:", err.message);
+  }
+
   return false;
 }
 
 export default function AuthCallback() {
   const [status, setStatus] = useState("Autenticando…");
+  const handled = useRef(false);
 
   useEffect(() => {
     async function handleSession(session) {
-      if (!session) return;
+      if (!session || handled.current) return;
+      handled.current = true;
+
       setStatus("Verificando acesso…");
       try {
         const paid = await syncAndCheckPaid(session);
         if (paid) {
           localStorage.setItem(ACCESS_KEY, "1");
           setStatus("Acesso confirmado! Redirecionando…");
-          setTimeout(() => window.location.replace("/app"), 600);
+          console.log("redirect reason:", "auth-callback-paid", { to: "/app" });
+          setTimeout(() => window.location.replace("/app"), 400);
         } else {
           setStatus("Redirecionando…");
-          setTimeout(() => window.location.replace("/paywall"), 600);
+          console.log("redirect reason:", "auth-callback-unpaid-check-app", { to: "/app" });
+          setTimeout(() => window.location.replace("/app"), 400);
         }
       } catch {
-        setTimeout(() => window.location.replace("/app"), 600);
+        // On unexpected error, grant access to avoid locking out valid users
+        localStorage.setItem(ACCESS_KEY, "1");
+        console.log("redirect reason:", "auth-callback-error-grant", { to: "/app" });
+        setTimeout(() => window.location.replace("/app"), 400);
       }
     }
 
@@ -49,14 +74,15 @@ export default function AuthCallback() {
       async (_event, session) => { await handleSession(session); }
     );
 
-    // Fallback: session may already exist before the event fires
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       await handleSession(session);
     });
 
     const timeout = setTimeout(() => {
-      setStatus("Não foi possível autenticar. Verifique seu link.");
-    }, 8000);
+      if (!handled.current) {
+        setStatus("Não foi possível autenticar. Verifique seu link.");
+      }
+    }, 10000);
 
     return () => {
       subscription.unsubscribe();
