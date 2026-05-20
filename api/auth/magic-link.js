@@ -35,24 +35,57 @@ function isTesterEmail(email) {
 }
 
 async function isAuthorized(email) {
-  if (isTesterEmail(email)) return { ok: true, via: "tester" };
+  // 1. TESTER_EMAILS
+  if (isTesterEmail(email)) {
+    console.log(`[magic-link] AUTORIZADO via TESTER_EMAILS — ${email}`);
+    return { ok: true, via: "tester" };
+  }
+  console.log(`[magic-link] Não é tester (TESTER_EMAILS.size=${TESTER_EMAILS.size}) — ${email}`);
 
-  // Redis
+  // 2. Redis
   try {
     const val = await db.get(`auth_email:${email}`);
-    if (val) return { ok: true, via: "redis" };
-  } catch {}
+    if (val) {
+      console.log(`[magic-link] AUTORIZADO via Redis — ${email}`);
+      return { ok: true, via: "redis" };
+    }
+    console.log(`[magic-link] Redis: sem chave para ${email}`);
+  } catch (e) {
+    console.log(`[magic-link] Redis: exceção (${e.message})`);
+  }
 
-  // Supabase profiles.is_paid
-  if (!SB_URL || !SB_SRV) return { ok: false };
+  // 3. Supabase profiles.is_paid
+  if (!SB_URL || !SB_SRV) {
+    console.error(`[magic-link] NEGADO — Supabase env vars ausentes: SB_URL=${!!SB_URL} SB_SRV=${!!SB_SRV}`);
+    return { ok: false };
+  }
+
   try {
     const admin = createClient(SB_URL, SB_SRV);
-    const { data: list } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const { data: list, error: listErr } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    if (listErr) {
+      console.error(`[magic-link] listUsers falhou: ${listErr.message}`);
+      return { ok: false };
+    }
     const user = (list?.users || []).find(u => normalizeEmail(u.email) === email);
-    if (!user) return { ok: false };
-    const { data: profile } = await admin.from("profiles").select("is_paid").eq("id", user.id).single();
-    if (profile?.is_paid === true) return { ok: true, via: "profiles" };
-  } catch {}
+    if (!user) {
+      console.log(`[magic-link] NEGADO — email não existe em auth.users: ${email} (total=${list?.users?.length})`);
+      return { ok: false };
+    }
+    console.log(`[magic-link] Usuário encontrado uid=${user.id} — verificando profiles...`);
+    const { data: profile, error: profErr } = await admin.from("profiles").select("is_paid").eq("id", user.id).single();
+    if (profErr) {
+      console.error(`[magic-link] profiles select error: ${profErr.message}`);
+      return { ok: false };
+    }
+    if (profile?.is_paid === true) {
+      console.log(`[magic-link] AUTORIZADO via profiles.is_paid — ${email}`);
+      return { ok: true, via: "profiles" };
+    }
+    console.log(`[magic-link] NEGADO — profiles.is_paid=${profile?.is_paid} para ${email}`);
+  } catch (e) {
+    console.error(`[magic-link] Exceção no check de profiles: ${e.message}`);
+  }
 
   return { ok: false };
 }

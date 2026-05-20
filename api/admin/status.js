@@ -1,21 +1,27 @@
 /**
  * GET /api/admin/status
  * Header: x-admin-secret: ADMIN_SECRET
+ * Query:  ?testEmail=user@example.com  (optional — tests authorization for that email)
  *
  * Diagnóstico completo de todas as integrações sem efeitos colaterais.
  */
 "use strict";
 const { createClient } = require("@supabase/supabase-js");
+const { ALLOWED_ORIGINS } = require("../_cors");
 
-const ADMIN_SECRET = process.env.ADMIN_SECRET;
-const SB_URL  = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SB_SRV  = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const RESEND_KEY  = process.env.RESEND_API_KEY;
-const RESEND_FROM = process.env.RESEND_FROM;
-const APP_URL     = process.env.APP_URL;
-const WH_SECRET   = process.env.KIWIFY_WEBHOOK_SECRET;
-const REDIS_URL   = process.env.UPSTASH_REDIS_REST_URL;
-const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const ADMIN_SECRET   = process.env.ADMIN_SECRET;
+const SB_URL         = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SB_SRV         = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const RESEND_KEY     = process.env.RESEND_API_KEY;
+const RESEND_FROM    = process.env.RESEND_FROM;
+const APP_URL        = process.env.APP_URL;
+const WH_SECRET      = process.env.KIWIFY_WEBHOOK_SECRET;
+const REDIS_URL      = process.env.UPSTASH_REDIS_REST_URL;
+const REDIS_TOKEN    = process.env.UPSTASH_REDIS_REST_TOKEN;
+const TESTER_EMAILS_RAW = process.env.TESTER_EMAILS || "";
+const TESTER_EMAILS  = new Set(
+  TESTER_EMAILS_RAW.split(",").map(e => e.trim().toLowerCase()).filter(Boolean)
+);
 
 function mask(v) {
   if (!v) return null;
@@ -33,14 +39,25 @@ module.exports = async function handler(req, res) {
   const report = {
     timestamp: new Date().toISOString(),
     env: {
-      VITE_SUPABASE_URL:       SB_URL   ? `✅ ${SB_URL}`           : "❌ AUSENTE",
-      SUPABASE_SERVICE_ROLE_KEY: SB_SRV  ? `✅ ${mask(SB_SRV)}`     : "❌ AUSENTE",
-      RESEND_API_KEY:          RESEND_KEY? `✅ ${mask(RESEND_KEY)}`  : "❌ AUSENTE",
-      RESEND_FROM:             RESEND_FROM ? `✅ ${RESEND_FROM}`     : "❌ AUSENTE",
-      APP_URL:                 APP_URL   ? `✅ ${APP_URL}`           : "❌ AUSENTE",
-      KIWIFY_WEBHOOK_SECRET:   WH_SECRET ? `✅ ${mask(WH_SECRET)}`  : "⚠️  AUSENTE (aceita qualquer req)",
-      ADMIN_SECRET:            "✅ configurado",
-      UPSTASH_REDIS_REST_URL:  REDIS_URL ? `✅ ${mask(REDIS_URL)}`  : "⚠️  AUSENTE (Redis opcional)",
+      VITE_SUPABASE_URL:         SB_URL    ? `✅ ${SB_URL}`          : "❌ AUSENTE",
+      SUPABASE_SERVICE_ROLE_KEY: SB_SRV   ? `✅ ${mask(SB_SRV)}`    : "❌ AUSENTE — auth check vai falhar",
+      RESEND_API_KEY:            RESEND_KEY? `✅ ${mask(RESEND_KEY)}` : "❌ AUSENTE",
+      RESEND_FROM:               RESEND_FROM ? `✅ ${RESEND_FROM}`   : "❌ AUSENTE",
+      APP_URL:                   APP_URL   ? `✅ ${APP_URL}`          : "❌ AUSENTE — redirectTo vai falhar",
+      KIWIFY_WEBHOOK_SECRET:     WH_SECRET ? `✅ ${mask(WH_SECRET)}` : "⚠️  AUSENTE",
+      ADMIN_SECRET:              "✅ configurado",
+      UPSTASH_REDIS_REST_URL:    REDIS_URL ? `✅ ${mask(REDIS_URL)}` : "⚠️  AUSENTE (Redis opcional)",
+      TESTER_EMAILS:             TESTER_EMAILS_RAW
+        ? `✅ configurado (${TESTER_EMAILS.size} emails)`
+        : "❌ AUSENTE — testers não têm acesso automático",
+    },
+    tester_config: {
+      configured: Boolean(TESTER_EMAILS_RAW),
+      count: TESTER_EMAILS.size,
+    },
+    cors: {
+      allowed_origins: [...ALLOWED_ORIGINS],
+      app_url: APP_URL || "❌ não configurado",
     },
     connectivity: {},
   };
@@ -119,6 +136,52 @@ module.exports = async function handler(req, res) {
   report.expected_webhook_url = WH_SECRET
     ? `${appBase}/api/webhook/payment?token=${WH_SECRET}`
     : `${appBase}/api/webhook/payment  (⚠️  sem autenticação — configure KIWIFY_WEBHOOK_SECRET)`;
+
+  // ── testEmail: diagnóstico de autorização para um email específico ──────────
+  const testEmail = String(req.query?.testEmail || "").trim().toLowerCase();
+  if (testEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testEmail)) {
+    const result = { email: testEmail, checks: {} };
+
+    result.checks.is_tester = TESTER_EMAILS.has(testEmail);
+
+    if (SB_URL && SB_SRV) {
+      try {
+        const sb = createClient(SB_URL, SB_SRV, { auth: { autoRefreshToken: false, persistSession: false } });
+        const { data: userList, error: listErr } = await sb.auth.admin.listUsers({ page: 1, perPage: 1000 });
+        if (listErr) {
+          result.checks.auth_user = `❌ listUsers falhou: ${listErr.message}`;
+        } else {
+          const found = (userList?.users || []).find(u => (u.email || "").toLowerCase() === testEmail);
+          if (!found) {
+            result.checks.auth_user = `❌ não encontrado em auth.users (total: ${userList?.users?.length})`;
+            result.checks.is_paid   = "❌ não verificado — usuário não existe";
+          } else {
+            result.checks.auth_user = `✅ encontrado uid=${found.id}`;
+            const { data: prof, error: profErr } = await sb.from("profiles").select("is_paid, paid_at").eq("id", found.id).single();
+            if (profErr) {
+              result.checks.is_paid = `❌ profiles error: ${profErr.message}`;
+            } else {
+              result.checks.is_paid = prof?.is_paid === true
+                ? `✅ is_paid=true (paid_at: ${prof.paid_at || "null"})`
+                : `❌ is_paid=${prof?.is_paid}`;
+            }
+          }
+        }
+      } catch (e) {
+        result.checks.auth_user = `❌ exceção: ${e.message}`;
+      }
+    } else {
+      result.checks.auth_user = "❌ Supabase env vars ausentes";
+    }
+
+    result.conclusion = result.checks.is_tester
+      ? "✅ AUTORIZADO via TESTER_EMAILS"
+      : result.checks.is_paid?.startsWith("✅")
+        ? "✅ AUTORIZADO via profiles.is_paid"
+        : "❌ NEGADO — não é tester e is_paid != true";
+
+    report.test_email_result = result;
+  }
 
   return res.status(200).json(report);
 };

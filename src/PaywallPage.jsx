@@ -6,12 +6,12 @@ const KIWIFY_URL = "https://pay.kiwify.com.br/DIVD8zl";
 const ACCESS_KEY = "motoria_access_v1";
 
 const FEATURES = [
-  "Análise de risco por entrada (odd, margem, EV, Kelly)",
-  "Análise de múltiplas — risco combinado do bilhete",
-  "Controle de banca com histórico completo",
-  "ROI, taxa de acerto e sequência de perdas",
-  "Simulação de 30 e 90 dias",
-  "Acesso imediato · sem mensalidade",
+  "Análise de risco por entrada",
+  "Análise de múltiplas",
+  "Controle de banca no mês",
+  "Histórico de entradas",
+  "ROI e sequência de perdas",
+  "Acesso imediato",
 ];
 
 export default function PaywallPage() {
@@ -47,48 +47,40 @@ export default function PaywallPage() {
     <>
       <style>{CSS}</style>
       <div className="pw-root">
-
-        {/* Glow de fundo */}
-        <div className="pw-bg-glow" aria-hidden="true" />
+        <div className="pw-glow-bg" aria-hidden="true" />
 
         <div className="pw-box">
-
-          {/* Lock */}
-          <div className="pw-lock-wrap">
-            <svg className="pw-lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <div className="pw-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
           </div>
 
-          {/* Hierarquia textual */}
-          <p className="pw-eyebrow">Acesso Premium</p>
+          <p className="pw-badge">Acesso Premium</p>
           <h1 className="pw-title">Acesso bloqueado</h1>
-          <p className="pw-sub">
-            Desbloqueie análise completa, múltiplas<br className="pw-br" /> e controle de banca.
+          <p className="pw-subtitle">
+            Desbloqueie análise completa,<br />múltiplas e controle de banca.
           </p>
 
-          {/* Preço */}
-          <div className="pw-price-block">
-            <span className="pw-old">R$47</span>
-            <div className="pw-price">R$27</div>
-            <p className="pw-price-note">pagamento único</p>
+          <div className="pw-price-wrap">
+            <span className="pw-was">R$47</span>
+            <div className="pw-now">R$27</div>
+            <p className="pw-once">pagamento único</p>
           </div>
 
-          {/* CTA */}
-          <a href={KIWIFY_URL} target="_blank" rel="noopener noreferrer" className="pw-btn">
+          <a href={KIWIFY_URL} target="_blank" rel="noopener noreferrer" className="pw-cta">
             Desbloquear acesso agora
           </a>
-          <p className="pw-microcopy">Pagamento único · sem mensalidade · acesso imediato</p>
+          <p className="pw-micro">Pagamento único · sem mensalidade</p>
 
-          {/* Benefícios */}
-          <ul className="pw-features">
+          <ul className="pw-list">
             {FEATURES.map((f) => (
-              <li key={f} className="pw-feature">
-                <span className="pw-check" aria-hidden="true">
-                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                    <circle cx="6.5" cy="6.5" r="6.5" fill="#1FCB7A" fillOpacity=".15"/>
-                    <path d="M3.5 6.5l2 2 4-4" stroke="#1FCB7A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <li key={f} className="pw-item">
+                <span className="pw-item-icon" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <circle cx="9" cy="9" r="9" fill="#1FCB7A" fillOpacity=".12"/>
+                    <path d="M5.5 9l2.5 2.5 5-5" stroke="#1FCB7A" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </span>
                 <span>{f}</span>
@@ -96,22 +88,19 @@ export default function PaywallPage() {
             ))}
           </ul>
 
-          {/* Garantia */}
-          <div className="pw-guarantee">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1FCB7A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0,marginTop:1}}>
+          <div className="pw-shield">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1FCB7A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0,marginTop:2}}>
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             </svg>
             <span>7 dias de garantia — não gostou, devolvo 100%</span>
           </div>
 
-          {/* Já paguei */}
-          <div className="pw-divider" />
-          <p className="pw-already">Já realizou o pagamento?</p>
-          <button className="pw-verify-btn" onClick={verificarAcesso} disabled={checking}>
+          <div className="pw-sep" />
+          <p className="pw-paid-label">Já realizou o pagamento?</p>
+          <button className="pw-paid-btn" onClick={verificarAcesso} disabled={checking}>
             {checking ? "Verificando…" : "Confirmar meu acesso"}
           </button>
-          {checkMsg && <p className="pw-check-msg">{checkMsg}</p>}
-
+          {checkMsg && <p className="pw-paid-msg">{checkMsg}</p>}
         </div>
       </div>
     </>
@@ -119,37 +108,39 @@ export default function PaywallPage() {
 }
 
 const CSS = `
-@keyframes pw-fade-up {
-  from { opacity: 0; transform: translateY(18px); }
+@keyframes pw-in {
+  from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes pw-glow-breathe {
-  0%, 100% { box-shadow: 0 0 28px 0 rgba(31,203,122,.28); }
-  50%       { box-shadow: 0 0 44px 4px rgba(31,203,122,.42); }
+@keyframes pw-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(31,203,122,.35), 0 8px 32px rgba(31,203,122,.18); }
+  50%       { box-shadow: 0 0 0 6px rgba(31,203,122,.0), 0 8px 44px rgba(31,203,122,.3); }
 }
+
+* { box-sizing: border-box; }
 
 .pw-root {
   min-height: 100vh;
   min-height: 100dvh;
-  background: #060608;
+  background: #07080A;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 32px 20px 48px;
+  padding: 48px 24px 64px;
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
   position: relative;
   overflow: hidden;
 }
 
-/* Glow radial de fundo — muito sutil */
-.pw-bg-glow {
-  position: absolute;
-  top: -10%;
+.pw-glow-bg {
+  position: fixed;
+  top: -120px;
   left: 50%;
   transform: translateX(-50%);
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(ellipse at center, rgba(31,203,122,.06) 0%, transparent 68%);
+  width: 700px;
+  height: 500px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(31,203,122,.07) 0%, transparent 65%);
   pointer-events: none;
   z-index: 0;
 }
@@ -158,198 +149,178 @@ const CSS = `
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 390px;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  animation: pw-fade-up .55s cubic-bezier(.22,.68,0,1.2) both;
+  animation: pw-in .5s cubic-bezier(.22,.68,0,1.1) both;
 }
 
-/* Lock icon */
-.pw-lock-wrap {
-  width: 56px;
-  height: 56px;
+.pw-icon {
+  width: 60px;
+  height: 60px;
   background: rgba(31,203,122,.1);
-  border: 1px solid rgba(31,203,122,.2);
-  border-radius: 16px;
+  border: 1.5px solid rgba(31,203,122,.22);
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 28px;
+  margin-bottom: 32px;
+  flex-shrink: 0;
 }
-.pw-lock-icon {
-  width: 24px;
-  height: 24px;
-  color: #1FCB7A;
-}
+.pw-icon svg { color: #1FCB7A; }
 
-/* Texto */
-.pw-eyebrow {
+.pw-badge {
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: .18em;
-  color: #1FCB7A;
+  letter-spacing: .2em;
   text-transform: uppercase;
+  color: #1FCB7A;
+  margin: 0 0 14px;
+}
+
+.pw-title {
+  font-size: 30px;
+  font-weight: 900;
+  color: #EFEFED;
+  letter-spacing: -.03em;
+  line-height: 1.1;
   margin: 0 0 12px;
 }
-.pw-title {
-  font-size: 28px;
-  font-weight: 900;
-  color: #F2F2F0;
-  margin: 0 0 14px;
-  letter-spacing: -.025em;
-  line-height: 1.1;
-}
-.pw-sub {
-  font-size: 15px;
-  color: #72727A;
-  line-height: 1.65;
-  margin: 0 0 36px;
-  max-width: 280px;
-}
-.pw-br { display: block; }
 
-/* Preço */
-.pw-price-block {
+.pw-subtitle {
+  font-size: 15px;
+  color: #686870;
+  line-height: 1.7;
+  margin: 0 0 40px;
+  max-width: 270px;
+}
+
+.pw-price-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  margin-bottom: 32px;
+  margin-bottom: 36px;
+  gap: 0;
 }
-.pw-old {
-  font-size: 14px;
-  color: #444448;
+.pw-was {
+  font-size: 15px;
+  color: #3A3A40;
   text-decoration: line-through;
-  text-decoration-color: rgba(68,68,72,.8);
-  letter-spacing: .01em;
+  text-decoration-color: #3A3A40;
+  margin-bottom: 4px;
 }
-.pw-price {
-  font-size: 72px;
+.pw-now {
+  font-size: 80px;
   font-weight: 900;
   color: #1FCB7A;
-  letter-spacing: -.04em;
-  line-height: 1;
+  letter-spacing: -.05em;
+  line-height: .95;
 }
-.pw-price-note {
+.pw-once {
   font-size: 11px;
-  color: #444448;
+  letter-spacing: .14em;
   text-transform: uppercase;
-  letter-spacing: .12em;
-  margin: 2px 0 0;
+  color: #3A3A40;
+  margin-top: 8px;
 }
 
-/* CTA */
-.pw-btn {
+.pw-cta {
   display: block;
   width: 100%;
-  padding: 18px 24px;
+  padding: 20px 24px;
   background: #1FCB7A;
-  color: #060608;
+  color: #050608;
   font-size: 15px;
   font-weight: 800;
-  letter-spacing: .02em;
-  border-radius: 14px;
+  letter-spacing: .025em;
+  border-radius: 16px;
   text-decoration: none;
-  box-sizing: border-box;
-  animation: pw-glow-breathe 3s ease-in-out infinite;
-  transition: transform .15s, opacity .15s;
+  animation: pw-pulse 2.8s ease-in-out infinite;
+  transition: transform .15s, filter .15s;
+  margin-bottom: 12px;
 }
-.pw-btn:hover {
-  opacity: .92;
-  transform: translateY(-1px);
-}
-.pw-btn:active { transform: scale(.98); }
+.pw-cta:hover  { filter: brightness(1.07); transform: translateY(-2px); }
+.pw-cta:active { transform: scale(.98); }
 
-.pw-microcopy {
+.pw-micro {
   font-size: 11px;
-  color: #38383E;
-  margin: 10px 0 36px;
+  color: #333338;
+  margin: 0 0 40px;
   letter-spacing: .01em;
 }
 
-/* Benefícios */
-.pw-features {
+.pw-list {
   list-style: none;
   padding: 0;
-  margin: 0 0 32px;
+  margin: 0 0 36px;
   width: 100%;
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
-.pw-feature {
+.pw-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #8A8A94;
+  line-height: 1.45;
+}
+.pw-item-icon { flex-shrink: 0; }
+
+.pw-shield {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  font-size: 13.5px;
-  color: #9CA3AF;
-  line-height: 1.5;
-}
-.pw-check {
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-/* Garantia */
-.pw-guarantee {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 12px;
-  color: #4B4B52;
-  line-height: 1.6;
-  margin-bottom: 32px;
+  font-size: 12.5px;
+  color: #3E3E48;
+  line-height: 1.65;
+  margin-bottom: 36px;
   text-align: left;
-  max-width: 280px;
+  max-width: 290px;
 }
 
-/* Divider */
-.pw-divider {
+.pw-sep {
   width: 100%;
   height: 1px;
-  background: rgba(255,255,255,.05);
+  background: rgba(255,255,255,.045);
   margin-bottom: 28px;
 }
 
-/* Já paguei */
-.pw-already {
+.pw-paid-label {
   font-size: 12px;
-  color: #38383E;
+  color: #333338;
   margin: 0 0 12px;
-  letter-spacing: .02em;
 }
-.pw-verify-btn {
+.pw-paid-btn {
   width: 100%;
-  padding: 14px;
+  padding: 15px;
   background: transparent;
-  border: 1px solid rgba(255,255,255,.07);
-  border-radius: 12px;
-  color: #4B4B52;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 13px;
+  color: #444450;
   font-size: 13px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
   transition: border-color .2s, color .2s;
-  box-sizing: border-box;
 }
-.pw-verify-btn:hover:not(:disabled) {
-  border-color: rgba(31,203,122,.35);
-  color: #1FCB7A;
-}
-.pw-verify-btn:disabled { opacity: .4; cursor: not-allowed; }
-.pw-check-msg {
+.pw-paid-btn:hover:not(:disabled) { border-color: rgba(31,203,122,.3); color: #1FCB7A; }
+.pw-paid-btn:disabled { opacity: .35; cursor: not-allowed; }
+.pw-paid-msg {
   font-size: 12px;
-  color: #F59E0B;
+  color: #D97706;
   margin-top: 12px;
-  line-height: 1.55;
+  line-height: 1.6;
 }
 
-@media (max-width: 400px) {
-  .pw-price { font-size: 60px; }
-  .pw-title { font-size: 24px; }
-  .pw-btn   { font-size: 14px; padding: 17px; }
+@media (max-width: 390px) {
+  .pw-now   { font-size: 68px; }
+  .pw-title { font-size: 26px; }
+  .pw-cta   { font-size: 14px; padding: 18px; }
+  .pw-root  { padding: 36px 20px 52px; }
 }
 `;
