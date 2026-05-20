@@ -1377,6 +1377,7 @@ export default function AppDashboard() {
               )}
 
               {/* Valor da entrada row */}
+              <div className="bd-valor-label">Valor da entrada (R$)</div>
               <div className="bd-valor-row">
                 <div className="bd-valor-input-wrap">
                   <span className="bd-currency">R$</span>
@@ -5713,28 +5714,33 @@ body { overflow: hidden; }
   padding: 0 0 0 2px; transition: color .12s; font-family: inherit;
 }
 .bd-sel-remove:hover { color: var(--red); }
-/* Valor da entrada */
+/* Valor da entrada — label + input row */
+.bd-valor-label {
+  font-size: 9px; font-weight: 800; letter-spacing: .14em;
+  color: rgba(34,197,94,.7); text-transform: uppercase; margin-bottom: 4px;
+}
 .bd-valor-row {
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
 }
 .bd-valor-input-wrap {
   display: flex; align-items: center; gap: 6px;
-  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
-  border-radius: 10px; padding: 0 12px; flex-shrink: 0;
+  background: rgba(255,255,255,.08); border: 1.5px solid rgba(255,255,255,.22);
+  border-radius: 10px; padding: 0 14px; flex-shrink: 0;
   transition: border-color .15s;
 }
 .bd-valor-input-wrap:focus-within {
-  border-color: rgba(34,197,94,.5);
+  border-color: #22C55E;
+  background: rgba(34,197,94,.06);
 }
 .bd-currency {
-  font-size: 13px; font-weight: 700; color: var(--t3);
+  font-size: 15px; font-weight: 800; color: #22C55E;
 }
 .bd-valor-input {
   background: none; border: none; outline: none;
-  font-size: 20px; font-weight: 800; font-family: inherit;
-  color: var(--t1); width: 90px; padding: 10px 0;
+  font-size: 22px; font-weight: 900; font-family: inherit;
+  color: var(--t1); width: 90px; padding: 12px 0;
 }
-.bd-valor-input::placeholder { color: var(--t3); font-weight: 500; }
+.bd-valor-input::placeholder { color: rgba(255,255,255,.35); font-weight: 500; font-size: 18px; }
 .bd-valor-input::-webkit-inner-spin-button,
 .bd-valor-input::-webkit-outer-spin-button { -webkit-appearance: none; }
 .bd-computed {
@@ -5746,11 +5752,11 @@ body { overflow: hidden; }
 .bd-retorno strong { color: #22C55E; font-weight: 800; }
 .bd-pct-banca {
   font-size: 11px; color: var(--t3);
-  background: rgba(255,255,255,.05); border-radius: 6px;
+  background: rgba(255,255,255,.07); border-radius: 6px;
   padding: 3px 8px;
 }
 .bd-valor-hint {
-  font-size: 12px; color: var(--t3); font-style: italic;
+  font-size: 12px; color: rgba(255,255,255,.45); font-style: italic;
 }
 /* CTA */
 .bd-cta {
