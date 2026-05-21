@@ -11,7 +11,7 @@
 
 const { createClient } = require("@supabase/supabase-js");
 const crypto = require("crypto");
-const { resolveAppUrl, ALLOWED_ORIGINS } = require("./_cors");
+const { ALLOWED_ORIGINS } = require("./_cors");
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET;
 const SB_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -47,8 +47,8 @@ function isMissingTable(error) {
   return error?.code === "42P01" || msg.includes("does not exist") || msg.includes("schema cache");
 }
 
-function getAppUrl(req, res) {
-  return resolveAppUrl(req, res) || (process.env.APP_URL || "https://motoria-pro.vercel.app").replace(/\/$/, "");
+function getAppUrl() {
+  return (process.env.APP_URL || "https://motoria-pro.vercel.app").replace(/\/$/, "");
 }
 
 function createAdminClient() {
@@ -226,8 +226,7 @@ async function handleGrant(req, res) {
   result.steps.access_codes = accessCode.active === false ? "inactive" : "active";
   result.steps.access_grants = await persistGrant(supabase, { email, user, source, code });
 
-  const appUrl = getAppUrl(req, res);
-  if (!appUrl) return;
+  const appUrl = getAppUrl();
 
   result.steps.email = sendEmail
     ? await sendAccessCodeEmail({ email, code, appUrl })

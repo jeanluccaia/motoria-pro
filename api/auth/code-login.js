@@ -23,8 +23,6 @@ function stripBOM(s) { return s && s.charCodeAt(0) === 0xFEFF ? s.slice(1) : s; 
 const SB_URL = stripBOM(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL);
 const SB_SRV = stripBOM(process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-const BETA_CODES = ["GELEIA2026", "JEAN2026", "TESTE2026"];
-
 const TESTER_EMAILS = new Set(
   (process.env.TESTER_EMAILS || "")
     .split(",")
@@ -64,10 +62,9 @@ function parseEnvCodes() {
 }
 
 const ENV_CODE_ROWS = parseEnvCodes();
-const FALLBACK_CODES = new Map([
-  ...BETA_CODES.map(code => [code, { code, maxUses: DEFAULT_MAX_USES, active: true }]),
-  ...ENV_CODE_ROWS.map(row => [row.code, { ...row, active: true }]),
-]);
+const FALLBACK_CODES = new Map(
+  ENV_CODE_ROWS.map(row => [row.code, { ...row, active: true }])
+);
 
 const memRL = new Map();
 
@@ -75,11 +72,14 @@ function normalizeEmail(e) { return String(e || "").trim().toLowerCase(); }
 function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
 
 function getClientIp(req) {
-  return (
-    req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
-    req.socket?.remoteAddress ||
-    "unknown"
-  );
+  // x-real-ip é injetado pelo Vercel e não pode ser spoofado pelo cliente
+  const realIP = (req.headers["x-real-ip"] || "").trim();
+  if (realIP) return realIP;
+  // Último entry do x-forwarded-for (Vercel append ao final) — não o primeiro (controlado pelo cliente)
+  const xff = (req.headers["x-forwarded-for"] || "").split(",");
+  const edgeIP = xff[xff.length - 1]?.trim();
+  if (edgeIP) return edgeIP;
+  return req.socket?.remoteAddress || "unknown";
 }
 
 async function isRateLimited(ip) {
@@ -305,33 +305,29 @@ module.exports = async function handler(req, res) {
     const grantCheck = await findActiveGrant(admin, email, code);
     existingGrant = grantCheck.grant;
 
-    if (!existingGrant) {
-      const codeCheck = await getOrSeedAccessCode(admin, code);
-      // Fall back to env/memory codes when: table missing, OR any Supabase error (e.g. BOM in key)
-      const useFallback = codeCheck.tableMissing || (codeCheck.error && !codeCheck.row);
-      if (useFallback) {
-        const fallback = await validateWithRedisFallback(email, code);
-        if (!fallback.ok) {
-          const msg = fallback.reason === "limit"
-            ? "Codigo atingiu o limite de usos."
-            : "Codigo invalido ou expirado.";
-          return res.status(fallback.reason === "limit" ? 403 : 401).json({ error: msg, code: fallback.reason });
-        }
-        codeSource = fallback.source;
-      } else {
-        const row = codeCheck.row;
-        if (!row || row.active === false || isExpired(row)) {
-          return res.status(401).json({ error: "Codigo invalido ou expirado.", code: "invalid" });
-        }
-        if (Number(row.used_count || 0) >= Number(row.max_uses || DEFAULT_MAX_USES)) {
-          return res.status(403).json({ error: "Codigo atingiu o limite de usos.", code: "limit" });
-        }
-        codeSource = "access_codes";
-        shouldIncrement = true;
-        existingGrant = { __row: row };
+    const codeCheck = await getOrSeedAccessCode(admin, code);
+    // Fall back to env/memory codes when: table missing, OR any Supabase error (e.g. BOM in key)
+    const useFallback = codeCheck.tableMissing || (codeCheck.error && !codeCheck.row) || !codeCheck.row;
+    if (useFallback) {
+      const fallback = await validateWithRedisFallback(email, code);
+      if (!fallback.ok) {
+        const msg = fallback.reason === "limit"
+          ? "Codigo atingiu o limite de usos."
+          : "Codigo invalido ou expirado.";
+        return res.status(fallback.reason === "limit" ? 403 : 401).json({ error: msg, code: fallback.reason });
       }
+      codeSource = existingGrant ? "existing_grant" : fallback.source;
     } else {
-      codeSource = "existing_grant";
+      const row = codeCheck.row;
+      if (!row || row.active === false || isExpired(row)) {
+        return res.status(401).json({ error: "Codigo invalido ou expirado.", code: "invalid" });
+      }
+      if (!existingGrant && Number(row.used_count || 0) >= Number(row.max_uses || DEFAULT_MAX_USES)) {
+        return res.status(403).json({ error: "Codigo atingiu o limite de usos.", code: "limit" });
+      }
+      codeSource = existingGrant ? "existing_grant" : "access_codes";
+      shouldIncrement = !existingGrant;
+      existingGrant = existingGrant || { __row: row };
     }
   } else {
     const fallback = await validateWithRedisFallback(email, code);

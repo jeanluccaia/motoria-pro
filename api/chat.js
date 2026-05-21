@@ -88,8 +88,10 @@ module.exports = async function handler(req, res) {
   let creditsRemaining = null;
 
   // ── (admin) bypass para testes do dono ───────────────────────────────────
-  const ADMIN_KEYS = new Set(["MOTORIA_OWNER_KEY_2026", "MOTORIA_ADMIN_2026"]);
-  if (ADMIN_KEYS.has(adminKey)) {
+  const ADMIN_KEYS = new Set(
+    (process.env.ADMIN_KEYS || "").split(",").map(s => s.trim()).filter(Boolean)
+  );
+  if (ADMIN_KEYS.size > 0 && ADMIN_KEYS.has(adminKey)) {
     isAuthorized = true;
   }
 

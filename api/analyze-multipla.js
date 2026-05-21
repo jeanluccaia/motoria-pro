@@ -22,7 +22,9 @@ const TESTER_EMAILS = new Set(
     .split(",").map(e => e.trim().toLowerCase()).filter(Boolean)
 );
 
-const ADMIN_KEYS = new Set(["MOTORIA_OWNER_KEY_2026", "MOTORIA_ADMIN_2026"]);
+const ADMIN_KEYS = new Set(
+  (process.env.ADMIN_KEYS || "").split(",").map(s => s.trim()).filter(Boolean)
+);
 
 // ── Auth ────────────────────────────────────────────────────────────────────
 
@@ -175,7 +177,7 @@ module.exports = async function handler(req, res) {
 
   // ── Auth check ─────────────────────────────────────────────────────────────
   const adminKey = (req.headers["x-admin-key"] || "").trim();
-  let isPaid = ADMIN_KEYS.has(adminKey);
+  let isPaid = ADMIN_KEYS.size > 0 && ADMIN_KEYS.has(adminKey);
 
   if (!isPaid && getCodeSessionFromReq(req)) {
     isPaid = true;

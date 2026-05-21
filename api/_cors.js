@@ -40,7 +40,7 @@ function applyCors(req, res) {
 
   res.setHeader("Access-Control-Allow-Origin",  allowed);
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-admin-secret");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-admin-secret, x-motoria-code-session");
   res.setHeader("Vary", "Origin");
 
   if (req.method === "OPTIONS") {
