@@ -357,6 +357,15 @@ const IconConta = () => (
   </svg>
 );
 
+const IconScan = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <rect x="1" y="1" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+    <rect x="9" y="1" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+    <rect x="1" y="9" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+    <path d="M9 11h2m2 0h-2m0 0V9m0 2v2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+  </svg>
+);
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function MetricCard({ label, value, color, sub, tm }) {
@@ -571,6 +580,7 @@ export default function AppDashboard() {
   const [flowStep,    setFlowStep]    = useState("lista");
   function navigate(v) {
     if (!hasPremiumAccess && (v === "historico" || v === "geral")) { openPremiumGate(v); return; }
+    if (v === "importar") { goTo("/importar"); return; }
     if (v === "multipla") {
       if (!requirePremiumAccess("multipla-menu")) return;
       goTo("/analisar");
@@ -1286,8 +1296,9 @@ export default function AppDashboard() {
     {
       group: "ANÁLISE",
       items: [
-        { id: "jogos", label: "Jogos & Risco", Icon: IconJogos },
-        { id: "nova",  label: "Análise Manual",   Icon: IconAnalyze, manual: true },
+        { id: "jogos",    label: "Jogos & Risco",    Icon: IconJogos },
+        { id: "nova",     label: "Análise Manual",   Icon: IconAnalyze, manual: true },
+        { id: "importar", label: "Importar Print",   Icon: IconScan },
       ],
     },
     {
@@ -2977,6 +2988,17 @@ export default function AppDashboard() {
               )}
             </span>
             <span className="ap-tab-label">Bilhete</span>
+          </button>
+
+          {/* Importar Print */}
+          <button
+            className="ap-tab-item"
+            onClick={() => navigate("importar")}
+            type="button"
+            aria-label="Importar Print"
+          >
+            <IconScan />
+            <span className="ap-tab-label">Print</span>
           </button>
 
           {/* Banca */}
