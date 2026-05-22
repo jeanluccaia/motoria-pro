@@ -241,15 +241,15 @@ export default function Landing() {
 
           {/* Left — text */}
           <div className="lp-hero-left">
-            <div className="lp-hero-tag">Análise de risco · Controle de banca</div>
+            <div className="lp-hero-tag">Leitura de bilhete · Análise de risco · Controle de banca</div>
             <h1 className="lp-h1">
               Vai apostar?<br />
               <span className="lp-h1-accent">Analise o risco</span><br />
               antes de apostar.
             </h1>
             <p className="lp-hero-sub">
-              Antes de decidir, veja o impacto na sua banca.<br />
-              E acompanhe quanto dinheiro ficou em jogo no mês.
+              Importe o print do bilhete ou cole a odd. O MotorIA lê a aposta,
+              avalia o risco em segundos e mostra o impacto na sua banca.
             </p>
             <div className="lp-hero-actions">
               <Link to="/app" className="lp-btn-hero">
@@ -272,6 +272,107 @@ export default function Landing() {
                 className="lp-hero-img"
                 loading="eager"
               />
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ── IMPORTAR BILHETE ─────────────────────────────────────────────────── */}
+      <section className="lp-section lp-dark lp-import-section" id="importar">
+        <div className="lp-container lp-import-layout">
+
+          {/* Left — copy */}
+          <div className="lp-import-left">
+            <div className="lp-eyebrow">Nova funcionalidade</div>
+            <h2 className="lp-h2">
+              IMPORTE O PRINT<br />
+              DO SEU BILHETE.
+            </h2>
+            <p className="lp-import-sub">
+              O MotorIA lê sua aposta, identifica estrutura, mercados e gera
+              uma análise de risco em segundos.
+            </p>
+            <ul className="lp-import-bullets" aria-label="Capacidades de leitura">
+              {[
+                "Detecta apostas múltiplas",
+                "Reconhece linhas asiáticas",
+                "Analisa apostas ao vivo",
+                "Score inteligente contextual",
+                "Estrutura Yankee e proteção parcial",
+                "Leitura automática do bilhete",
+              ].map((b, i) => (
+                <li key={i} className="lp-import-bullet">
+                  <span className="lp-import-check" aria-hidden="true">✓</span>
+                  <span>{b}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="lp-import-tagline">
+              Não é só uma IA lendo odds.<br />
+              <strong>É uma análise estrutural da aposta.</strong>
+            </p>
+          </div>
+
+          {/* Right — mock analysis card */}
+          <div className="lp-import-right" aria-hidden="true">
+            <div className="lp-mock-wrap">
+
+              {/* Slip received */}
+              <div className="lp-mock-slip">
+                <div className="lp-mock-slip-hdr">
+                  <span className="lp-mock-slip-dot" /><span className="lp-mock-slip-dot" />
+                  <span className="lp-mock-slip-name">betano</span>
+                  <span className="lp-mock-slip-badge">Meu Bilhete</span>
+                </div>
+                {[
+                  { match: "Man City x Arsenal",     mkt: "Over 1.0/1.5 Gols",       odd: "1.82" },
+                  { match: "Real Madrid x Bayern",   mkt: "Ambos Marcam – Sim",      odd: "1.70" },
+                  { match: "Liverpool x PSG",        mkt: "Resultado – Liverpool",   odd: "2.10" },
+                ].map((r, i) => (
+                  <div key={i} className="lp-mock-slip-row">
+                    <div className="lp-mock-slip-match">{r.match}</div>
+                    <div className="lp-mock-slip-mkt">{r.mkt}</div>
+                    <div className="lp-mock-slip-odd">{r.odd}</div>
+                  </div>
+                ))}
+                <div className="lp-mock-slip-foot">
+                  <span>R$50,00</span>
+                  <span className="lp-mock-slip-ret">Retorno: R$323,40</span>
+                </div>
+              </div>
+
+              {/* Transition indicator */}
+              <div className="lp-mock-transition">
+                <div className="lp-mock-dots">
+                  <span /><span /><span />
+                </div>
+                <span className="lp-mock-lbl">Lendo bilhete…</span>
+              </div>
+
+              {/* Result card */}
+              <div className="lp-mock-result">
+                <div className="lp-mock-result-hdr">
+                  <div>
+                    <div className="lp-mock-result-eyebrow">SCORE DE RISCO</div>
+                    <div className="lp-mock-result-score">68</div>
+                  </div>
+                  <div className="lp-mock-badge-alto">ALTO</div>
+                </div>
+                <div className="lp-mock-veredicto">EXIGE CAUTELA</div>
+                <div className="lp-mock-alerts">
+                  <div className="lp-mock-alert lp-mock-alert-info">
+                    Linha asiática detectada — risco parcialmente diluído
+                  </div>
+                  <div className="lp-mock-alert lp-mock-alert-danger">
+                    3 seleções ao vivo — variância elevada
+                  </div>
+                </div>
+                <div className="lp-mock-analise">
+                  Múltipla de 3 seleções · 11,2% de chance estimada · análise gerada em 4s
+                </div>
+              </div>
+
             </div>
           </div>
 
@@ -1229,5 +1330,126 @@ body { background: var(--bg); color: var(--t1); font-family: -apple-system, Blin
   .lp-bk-grid { grid-template-columns: 1fr; }
   .lp-risk-metrics { grid-template-columns: 1fr; }
   .lp-h2 { font-size: clamp(24px, 7vw, 34px); }
+  .lp-import-layout { grid-template-columns: 1fr; gap: 40px; }
+  .lp-import-section { padding: 60px 0; }
+  .lp-mock-wrap { max-width: 400px; margin: 0 auto; }
+}
+
+/* ── Import / Scanner section ───────────────────────────────────────────────── */
+.lp-import-section { padding: 72px 0; }
+.lp-import-layout {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 72px; align-items: center;
+}
+.lp-import-sub {
+  font-size: 15px; color: var(--t2); line-height: 1.7;
+  margin-bottom: 28px; max-width: 400px;
+}
+.lp-import-bullets { list-style: none; display: flex; flex-direction: column; gap: 9px; margin-bottom: 26px; }
+.lp-import-bullet  { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--t2); }
+.lp-import-check {
+  width: 19px; height: 19px; border-radius: 50%;
+  background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.22);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: var(--green); flex-shrink: 0; font-weight: 900;
+}
+.lp-import-tagline {
+  font-size: 13px; color: var(--t2); line-height: 1.65;
+  border-left: 2px solid rgba(34,197,94,.25); padding-left: 14px;
+  font-style: italic;
+}
+.lp-import-tagline strong { color: var(--t1); font-style: normal; }
+
+/* Mock wrapper */
+.lp-mock-wrap { display: flex; flex-direction: column; gap: 10px; }
+
+/* Slip card */
+.lp-mock-slip {
+  background: #0D0D10; border: 1px solid rgba(255,255,255,.07);
+  border-radius: 14px; overflow: hidden;
+}
+.lp-mock-slip-hdr {
+  display: flex; align-items: center; gap: 7px;
+  padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,.05);
+  background: #111115;
+}
+.lp-mock-slip-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.13); }
+.lp-mock-slip-name {
+  font-size: 11px; font-weight: 800; color: var(--t2);
+  margin-right: auto; letter-spacing: .02em;
+}
+.lp-mock-slip-badge {
+  font-size: 9px; font-weight: 700; letter-spacing: .1em;
+  color: #1FCB7A; background: rgba(31,203,122,.09);
+  padding: 2px 7px; border-radius: 9px;
+}
+.lp-mock-slip-row {
+  padding: 9px 14px; border-bottom: 1px solid rgba(255,255,255,.04);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.lp-mock-slip-row:last-of-type { border-bottom: none; }
+.lp-mock-slip-match { font-size: 11px; font-weight: 700; color: var(--t1); }
+.lp-mock-slip-mkt   { font-size: 10px; color: var(--t2); }
+.lp-mock-slip-odd   { font-size: 11px; font-weight: 900; color: #1FCB7A; font-family: monospace; }
+.lp-mock-slip-foot  {
+  display: flex; justify-content: space-between;
+  padding: 9px 14px; background: #111115;
+  font-size: 10.5px; color: var(--t2); font-weight: 600;
+}
+.lp-mock-slip-ret { color: #1FCB7A; }
+
+/* Transition */
+.lp-mock-transition {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  padding: 2px 0;
+}
+.lp-mock-dots { display: flex; gap: 4px; }
+.lp-mock-dots span {
+  width: 4px; height: 4px; border-radius: 50%; background: rgba(31,203,122,.35);
+}
+.lp-mock-dots span:nth-child(2) { background: rgba(31,203,122,.6); }
+.lp-mock-dots span:nth-child(3) { background: rgba(31,203,122,.25); }
+.lp-mock-lbl {
+  font-size: 9.5px; font-weight: 700; letter-spacing: .12em;
+  color: rgba(31,203,122,.5); text-transform: uppercase;
+}
+
+/* Result card */
+.lp-mock-result {
+  background: #0D0D10; border: 1px solid rgba(249,115,22,.2);
+  border-radius: 14px; padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+  box-shadow: 0 0 28px rgba(249,115,22,.06);
+}
+.lp-mock-result-hdr { display: flex; align-items: flex-start; justify-content: space-between; }
+.lp-mock-result-eyebrow {
+  font-size: 8.5px; font-weight: 800; letter-spacing: .14em; color: var(--t2);
+  margin-bottom: 3px;
+}
+.lp-mock-result-score {
+  font-size: 42px; font-weight: 900; line-height: 1; color: #F97316;
+  font-family: 'Courier New', monospace;
+}
+.lp-mock-badge-alto {
+  font-size: 9px; font-weight: 800; letter-spacing: .12em;
+  color: #F97316; background: rgba(249,115,22,.1);
+  border: 1px solid rgba(249,115,22,.25);
+  border-radius: 99px; padding: 4px 10px;
+  white-space: nowrap; align-self: flex-start; margin-top: 2px;
+}
+.lp-mock-veredicto {
+  font-size: 9.5px; font-weight: 800; letter-spacing: .15em; color: var(--t2);
+  text-transform: uppercase;
+}
+.lp-mock-alerts { display: flex; flex-direction: column; gap: 5px; }
+.lp-mock-alert {
+  font-size: 11px; padding: 7px 10px; border-radius: 7px;
+  line-height: 1.4; border-left: 2px solid;
+}
+.lp-mock-alert-info   { color: #93C5FD; border-color: #3B82F6; background: rgba(59,130,246,.06); }
+.lp-mock-alert-danger { color: #FCA5A5; border-color: #EF4444; background: rgba(239,68,68,.05); }
+.lp-mock-analise {
+  font-size: 11px; color: var(--t2); line-height: 1.6;
+  padding-top: 6px; border-top: 1px solid rgba(255,255,255,.05);
 }
 `;

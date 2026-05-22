@@ -84,8 +84,22 @@ async function callAI(selecoes, chanceReal, oddTotal, valorTotal, bancaAtual) {
   const pct = bancaAtual > 0 ? ((valorTotal / bancaAtual) * 100).toFixed(1) : null;
   const retorno = (valorTotal * oddTotal).toFixed(2);
 
-  const prompt = `Você é um analista sênior de gestão de risco em apostas esportivas. Analise este bilhete múltiplo de forma técnica e direta.
+  // Detect Asian market selections for context-aware prompting
+  const asianPatterns = /asiático|asiatico|asian|handicap\s+as|\b(0\.25|0\.75|1\.25|1\.75|2\.25|2\.75|3\.25)\b|\d+[\.,]\d+\/\d+[\.,]\d+/i;
+  const asianSelecoes = selecoes.filter(s => asianPatterns.test(s.mercado || "") || asianPatterns.test(s.obs || ""));
+  const temAsiatico   = asianSelecoes.length > 0;
 
+  const asianContext = temAsiatico
+    ? `\nAVISO — MERCADOS ASIÁTICOS DETECTADOS (${asianSelecoes.length} seleção/seleções):
+${asianSelecoes.map(s => `- ${s.jogo} | ${s.mercado}`).join("\n")}
+Em mercados asiáticos (Handicap Asiático, Total de Gols com linha fracionada como 1.0/1.5, 2.25, etc.), parte da aposta pode ser DEVOLVIDA ou perdida parcialmente dependendo do resultado. Isso reduz a exposição real em relação a um over/under binário.
+PROIBIDO usar as frases: "uma inversão destrói o bilhete", "risco oculto extremo" ou "valor desproporcional ao retorno" para justificar apenas o mercado asiático.
+Na LEITURA_FINAL, obrigatoriamente mencione que linhas asiáticas reduzem parcialmente o risco, mas que por ser uma múltipla com ${selecoes.length} seleções o risco combinado ainda é relevante.
+Se não tiver certeza de como a linha específica funciona, escreva: "Este mercado parece ter regra asiática/parcial. Confirme as regras da casa antes de apostar."\n`
+    : "";
+
+  const prompt = `Você é um analista sênior de gestão de risco em apostas esportivas. Analise este bilhete múltiplo de forma técnica e direta.
+${asianContext}
 BILHETE:
 ${selecoes.map((s, i) => `${i + 1}. ${s.jogo} | ${s.mercado} | Odd ${parseFloat(s.odd).toFixed(2)}${s.obs ? ` | Obs: ${s.obs}` : ""}`).join("\n")}
 
@@ -101,18 +115,19 @@ Regras absolutas:
 - NUNCA transforme a análise em comando de decisão
 - NUNCA invente estatísticas específicas
 - Use linguagem popular, direta e fácil de entender
+- NUNCA prometa lucro nem sugira apostar
 
 Responda EXATAMENTE neste formato (sem texto extra antes ou depois):
 
 NIVEL_RISCO: [baixo | médio | alto | muito alto]
 DEPENDENCIAS: [frase curta e simples descrevendo o que precisa bater no bilhete — ex: "3 resultados precisam dar certo juntos"]
-RISCO_PRINCIPAL: [1-2 frases sobre o maior risco deste bilhete específico]
+RISCO_PRINCIPAL: [1-2 frases sobre o maior risco deste bilhete específico — sem culpar o mercado asiático se houver um]
 O_QUE_PODE_DAR_ERRADO:
 - [primeiro fator concreto de risco]
 - [segundo fator]
 - [terceiro fator]
 ALERTA_ACUMULADO: [frase sobre como o risco cresce com cada seleção adicionada — use % se possível]
-LEITURA_FINAL: [avaliação técnica do bilhete como um todo — 2-3 frases]`;
+LEITURA_FINAL: [avaliação técnica do bilhete como um todo — 2-3 frases; se houver mercado asiático, mencione a proteção parcial mas reforce o risco da múltipla]`;
 
   try {
     const r = await fetch("https://api.anthropic.com/v1/messages", {
