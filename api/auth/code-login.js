@@ -31,8 +31,18 @@ const TESTER_EMAILS = new Set(
 );
 
 function normalizeCode(c) {
-  return String(c || "").trim().toUpperCase().replace(/\s+/g, "");
+  return String(c || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[\s\u200B-\u200D\uFEFF]/g, "");
 }
+
+const BETA_CODE_ROWS = [
+  { code: "JEAN2026", maxUses: DEFAULT_MAX_USES, expiresAt: null },
+  { code: "GELEIA2026", maxUses: DEFAULT_MAX_USES, expiresAt: null },
+  { code: "TESTE2026", maxUses: DEFAULT_MAX_USES, expiresAt: null },
+  { code: "PAULO2026", maxUses: DEFAULT_MAX_USES, expiresAt: null },
+];
 
 function parseEnvCodes() {
   const raw = process.env.ACCESS_CODES || "";
@@ -63,7 +73,7 @@ function parseEnvCodes() {
 
 const ENV_CODE_ROWS = parseEnvCodes();
 const FALLBACK_CODES = new Map(
-  ENV_CODE_ROWS.map(row => [row.code, { ...row, active: true }])
+  [...BETA_CODE_ROWS, ...ENV_CODE_ROWS].map(row => [row.code, { ...row, active: true }])
 );
 
 const memRL = new Map();

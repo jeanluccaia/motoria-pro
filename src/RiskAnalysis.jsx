@@ -12,15 +12,15 @@ const RISK_SECTIONS = [
 ];
 
 const SECTION_META = {
-  "PROBABILIDADE IMPLÍCITA": { icon: "📊", label: "Probabilidade Implícita" },
+  "PROBABILIDADE IMPLÍCITA": { icon: "📊", label: "Chance pela odd" },
   "NÍVEL DE RISCO":          { icon: "⚡", label: "Nível de Risco" },
-  "CENÁRIO NECESSÁRIO":      { icon: "🎯", label: "Cenário Necessário" },
+  "CENÁRIO NECESSÁRIO":      { icon: "🎯", label: "O que precisa dar certo" },
   "PONTOS DE ATENÇÃO":       { icon: "⚠️", label: "Pontos de Atenção" },
-  "LEITURA FINAL":           { icon: "🧠", label: "Leitura Final" },
+  "LEITURA FINAL":           { icon: "🧠", label: "Resumo final" },
 };
 
 const LOADING_MESSAGES = [
-  "Analisando cenário...",
+  "Analisando a aposta...",
   "Calculando probabilidade...",
   "Processando fatores de risco...",
   "Gerando Score proprietário...",
@@ -609,7 +609,7 @@ export default function RiskAnalysis() {
               Análise Inteligente<br />de Risco de Aposta
             </div>
             <div className="ra-sub">
-              Simule cenários e entenda o risco antes de apostar
+              Entenda o risco antes de apostar
             </div>
           </div>
 
@@ -655,7 +655,7 @@ export default function RiskAnalysis() {
               {impliedProb && (
                 <div className="ra-prob-chip">
                   <span className="ra-prob-val">{impliedProb}%</span>
-                  <span className="ra-prob-label">probabilidade implícita</span>
+                  <span className="ra-prob-label">chance pela odd</span>
                 </div>
               )}
             </div>

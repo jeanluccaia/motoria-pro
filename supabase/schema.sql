@@ -43,7 +43,8 @@ INSERT INTO public.access_codes (code, max_uses, used_count, active)
 VALUES
   ('JEAN2026', 20, 0, TRUE),
   ('GELEIA2026', 20, 0, TRUE),
-  ('TESTE2026', 20, 0, TRUE)
+  ('TESTE2026', 20, 0, TRUE),
+  ('PAULO2026', 20, 0, TRUE)
 ON CONFLICT (code) DO NOTHING;
 
 -- ----------------------------------------------------------------

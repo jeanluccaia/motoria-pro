@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "./contexts/AuthContext";
 
 function normalizeCode(value) {
-  return String(value || "").toUpperCase().replace(/\s+/g, "");
+  return String(value || "").toUpperCase().replace(/[\s\u200B-\u200D\uFEFF]/g, "");
 }
 
 export default function Login() {

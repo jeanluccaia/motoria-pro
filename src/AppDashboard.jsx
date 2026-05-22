@@ -67,7 +67,7 @@ const SUGGESTED_ODDS = {
 const LOAD_STEPS = [
   { label: "Analisando odd informada",        pct: 16 },
   { label: "Calculando chance estimada",       pct: 32 },
-  { label: "Medindo exposição da banca",       pct: 52 },
+  { label: "Medindo peso na banca",            pct: 52 },
   { label: "Avaliando retorno esperado",       pct: 70 },
   { label: "Gerando leitura da IA",            pct: 86 },
   { label: "Compilando painel de análise",     pct: 96 },
@@ -259,8 +259,8 @@ function getBkAlerts(entries, bancaInicial) {
   if (!bancaInicial || bancaInicial <= 0 || entries.length === 0) return alerts;
   const last = entries[0]; // most recent
   const pctBanca = (parseFloat(last?.valor || 0) / bancaInicial) * 100;
-  if (pctBanca > 10)  alerts.push({ type: "danger", msg: `Última entrada: ${pctBanca.toFixed(1)}% da banca — exposição acima do recomendado.` });
-  else if (pctBanca >= 5) alerts.push({ type: "warn",   msg: `Última entrada: ${pctBanca.toFixed(1)}% da banca — atenção à gestão.` });
+  if (pctBanca > 10)  alerts.push({ type: "danger", msg: `Última aposta: ${pctBanca.toFixed(1)}% da banca — valor alto para sua banca.` });
+  else if (pctBanca >= 5) alerts.push({ type: "warn",   msg: `Última aposta: ${pctBanca.toFixed(1)}% da banca — vale revisar o tamanho.` });
 
   const stats = calcBkStats(entries, bancaInicial);
   if (stats) {
@@ -406,17 +406,17 @@ function ComingSoon({ mod, title, desc }) {
 // ─── Dashboard helpers ────────────────────────────────────────────────────────
 
 function getRiscoFrase(score) {
-  if (score <= 30) return "Exposição dentro do esperado.";
-  if (score <= 55) return "Cenário exige atenção. Revise antes de confirmar.";
+  if (score <= 30) return "Valor dentro do esperado.";
+  if (score <= 55) return "Aposta pede atenção. Revise antes de confirmar.";
   if (score <= 75) return "Risco acima do ideal. Melhor rever o valor.";
-  return "Exposição muito alta. Cautela recomendada.";
+  return "Valor muito alto para a banca. Revise com calma.";
 }
 
 function deriveLeituraIA(score) {
-  if (score <= 30) return { text: "Cenário equilibrado",  color: "#22C55E", sub: "Exposição dentro do esperado para o perfil." };
+  if (score <= 30) return { text: "Aposta equilibrada",  color: "#22C55E", sub: "Valor dentro do esperado para seu perfil." };
   if (score <= 55) return { text: "Ok com cautela",       color: "#F59E0B", sub: "Revise o valor apostado antes de confirmar." };
-  if (score <= 75) return { text: "Risco elevado",        color: "#F97316", sub: "Cenário menos favorável. Exposição acima do ideal." };
-  return             { text: "Exposição agressiva",  color: "#EF4444", sub: "Risco alto. Melhor revisar banca e odd." };
+  if (score <= 75) return { text: "Risco elevado",        color: "#F97316", sub: "Aposta mais pesada. Valor acima do ideal." };
+  return             { text: "Valor agressivo",  color: "#EF4444", sub: "Risco alto. Melhor revisar banca e odd." };
 }
 
 function deriveBullets(r) {
@@ -528,30 +528,11 @@ const IconMultipla = () => (
 );
 
 export default function AppDashboard() {
-  const { session, isPaid, hasAccess: authHasAccess, authLoading } = useAuth();
+  const { session, isPaid, hasAccess: authHasAccess } = useAuth();
 
-  // Route guard: redirect unauthenticated or unpaid users
-  useEffect(() => {
-    if (authLoading) return;
-    const hasUuidToken = !!(localStorage.getItem("motoria_token") && localStorage.getItem("motoria_token").length > 10);
-    const hasLocalAccess = authHasAccess || isPaid || localStorage.getItem("motoria_access_v1") === "1";
-    if (!hasUuidToken && !hasLocalAccess) {
-      console.log("redirect reason:", "app-guard-no-access", {
-        to: "/paywall",
-        path: window.location.pathname,
-        hasSession: !!session,
-        hasUuidToken,
-        hasLocalAccess,
-      });
-      window.location.replace("/paywall");
-    }
-  }, [session, isPaid, authHasAccess, authLoading]);
+  // /app stays open for freemium preview; premium actions are gated at click time.
 
-  // Block render until auth resolves — prevents brief free-access flash
-  if (authLoading) {
-    return <div style={{ minHeight: "100vh", background: "#050505" }} />;
-  }
-
+  // Page title
   useEffect(() => {
     const prev = document.title;
     document.title = "MotorIA Risk Engine™";
@@ -589,7 +570,12 @@ export default function AppDashboard() {
   const [view,        setView]        = useState("jogos");
   const [flowStep,    setFlowStep]    = useState("lista");
   function navigate(v) {
-    if (v === "multipla") { goTo("/analisar"); return; }
+    if (!hasPremiumAccess && (v === "historico" || v === "geral")) { openPremiumGate(v); return; }
+    if (v === "multipla") {
+      if (!requirePremiumAccess("multipla-menu")) return;
+      goTo("/analisar");
+      return;
+    }
     setView(v);
     setSidebarOpen(false);
     if (v === "jogos") {
@@ -600,6 +586,7 @@ export default function AppDashboard() {
   }
 
   function openMultiplaDraft({ jogoVal, tipoVal, oddVal, valorVal, obsVal = "" }) {
+    if (!requirePremiumAccess("multipla-draft")) return;
     const oddN = parseFloat(String(oddVal || "").replace(",", "."));
     if (!oddVal || isNaN(oddN) || oddN <= 1) {
       setError("Informe uma odd valida antes de adicionar outra selecao.");
@@ -647,6 +634,30 @@ export default function AppDashboard() {
   const [credits,    setCredits]    = useState(null);
   const [analysisId, setAnalysisId] = useState(null);
   const [copiedId,   setCopiedId]   = useState(null);
+  const [premiumModalOpen, setPremiumModalOpen] = useState(false);
+  const codeSessionToken = getCodeSessionToken();
+  const hasPremiumAccess = Boolean(
+    authHasAccess ||
+    isPaid ||
+    localStorage.getItem("motoria_access_v1") === "1" ||
+    codeSessionToken ||
+    (token && token.length > 10)
+  );
+
+  function openPremiumGate(reason = "premium-action") {
+    console.log("premium gate:", reason, {
+      path: window.location.pathname,
+      hasSession: Boolean(session),
+      hasPremiumAccess,
+    });
+    setPremiumModalOpen(true);
+  }
+
+  function requirePremiumAccess(reason) {
+    if (hasPremiumAccess) return true;
+    openPremiumGate(reason);
+    return false;
+  }
 
   // Jogos de Hoje
   const [matches,          setMatches]          = useState([]);
@@ -750,6 +761,7 @@ export default function AppDashboard() {
 
   // ── Core analysis engine — called by both form submit and quick flow ──────
   async function doAnalysis({ jogoVal, campVal, tipoVal, oddVal, valorVal }) {
+    if (!requirePremiumAccess("analysis-api")) return;
     const oddN = parseFloat(String(oddVal).replace(",", "."));
     setLoading(true);
     setError("");
@@ -890,6 +902,7 @@ export default function AppDashboard() {
 
   function quickAnalyze(tipoVal, oddStr, valorStr) {
     if (!tipoVal || !oddStr) return;
+    if (!requirePremiumAccess("quick-analysis")) return;
     const jogoVal = selectedGame ? `${selectedGame.home} × ${selectedGame.away}` : jogo;
     const campVal = selectedGame?.campeonato || campeonato;
     setTipo(tipoVal);
@@ -898,7 +911,10 @@ export default function AppDashboard() {
     doAnalysis({ jogoVal, campVal, tipoVal, oddVal: String(oddStr), valorVal: valorStr || valor || "100" });
   }
 
-  function loadFromHistory(item) { setResult(item); setJogo(item.jogo || ""); setOdd(String(item.odd)); setView("nova"); }
+  function loadFromHistory(item) {
+    if (!requirePremiumAccess("history-open")) return;
+    setResult(item); setJogo(item.jogo || ""); setOdd(String(item.odd)); setView("nova");
+  }
 
   function resetForm() {
     setResult(null); setError(""); setJogo(""); setOdd("");
@@ -942,6 +958,7 @@ export default function AppDashboard() {
   }
 
   function irParaAnaliseBilhete() {
+    if (!requirePremiumAccess("bilhete-analysis")) return;
     const draft = {
       selecoes: bilhete,
       valorTotal: bilheteValor,
@@ -954,6 +971,7 @@ export default function AppDashboard() {
 
   // ── Bankroll handlers ─────────────────────────────────────────────────────
   function setupBanca() {
+    if (!requirePremiumAccess("bankroll-setup")) return;
     const v = parseFloat(bkSetupVal.replace(",", "."));
     if (!v || v <= 0) return;
     const cfg = { bancaInicial: v };
@@ -964,6 +982,7 @@ export default function AppDashboard() {
   }
 
   async function addBankrollEntry() {
+    if (!requirePremiumAccess("bankroll-save")) return;
     const valor = parseFloat(bkForm.valor.replace(",", "."));
     const odd   = parseFloat(bkForm.odd.replace(",", "."));
     if (!valor || valor <= 0 || !odd || odd < 1.01) return;
@@ -991,6 +1010,7 @@ export default function AppDashboard() {
   }
 
   function deleteBankrollEntry(id) {
+    if (!requirePremiumAccess("bankroll-delete")) return;
     const updated = bkEntries.filter(e => e.id !== id);
     setBkEntries(updated);
     saveBankroll(updated);
@@ -998,6 +1018,7 @@ export default function AppDashboard() {
   }
 
   function clearBankroll() {
+    if (!requirePremiumAccess("bankroll-clear")) return;
     setBkEntries([]);
     saveBankroll([]);
     setBkClearConfirm(false);
@@ -1009,16 +1030,16 @@ export default function AppDashboard() {
     const ai = r.aiResult;
 
     const STATUS_MAP = {
-      "BOA ENTRADA":          { color: "#1DB954", icon: "✅" },
-      "BOA, MAS COM CUIDADO": { color: "#8BC34A", icon: "⚠️" },
-      "CUIDADO":              { color: "#F0B429", icon: "⚠️" },
-      "ENTRADA FRACA":        { color: "#FF8C00", icon: "⚠️" },
-      "DESFAVORÁVEL":         { color: "#E8641A", icon: "❌" },
-      "RISCO ALTO":           { color: "#E53E3E", icon: "❌" },
-      "NÃO COMPENSA":         { color: "#C0392B", icon: "❌" },
+      "CENÁRIO FAVORÁVEL":        { color: "#1DB954", icon: "•", label: "RISCO CONTROLADO" },
+      "CENÁRIO COM ATENÇÃO":      { color: "#8BC34A", icon: "•", label: "PEDE ATENÇÃO" },
+      "CENÁRIO EQUILIBRADO":      { color: "#F0B429", icon: "•", label: "MEIO A MEIO" },
+      "EXPOSIÇÃO POUCO ATRATIVA": { color: "#FF8C00", icon: "•", label: "POUCO INTERESSANTE" },
+      "CENÁRIO DESFAVORÁVEL":     { color: "#E8641A", icon: "•", label: "CENÁRIO PESADO" },
+      "RISCO ELEVADO":            { color: "#E53E3E", icon: "•", label: "RISCO ALTO" },
+      "EXPOSIÇÃO DESPROPORCIONAL":{ color: "#C0392B", icon: "•", label: "VALOR PESADO PARA O RETORNO" },
     };
     const status = ai?.status || "CUIDADO";
-    const badge  = STATUS_MAP[status] || { color: "#FF8C00", icon: "⚠️" };
+    const badge  = STATUS_MAP[status] || { color: "#FF8C00", icon: "•", label: "RESUMO DA ANÁLISE" };
     const frase  = ai?.frase || "";
 
     const chanceGanhar = ai?.chance_ganhar != null
@@ -1029,11 +1050,11 @@ export default function AppDashboard() {
       : r.justa;
     const vantagem = ai?.vantagem != null ? Number(ai.vantagem) : null;
 
-    let valeAPena = null, valeColor = "#999", valeSubtext = "";
+    let leituraCenario = null, leituraColor = "#999", leituraSubtext = "";
     if (vantagem != null) {
-      if (vantagem > 5)        { valeAPena = "SIM";    valeColor = "#1DB954"; valeSubtext = "mercado favorável"; }
-      else if (vantagem >= -5) { valeAPena = "TALVEZ"; valeColor = "#F0B429"; valeSubtext = "mercado neutro"; }
-      else                     { valeAPena = "NÃO";    valeColor = "#E53E3E"; valeSubtext = "mercado desfavorável"; }
+      if (vantagem > 5)        { leituraCenario = "MAIS LEVE"; leituraColor = "#1DB954"; leituraSubtext = "os números ajudam mais"; }
+      else if (vantagem >= -5) { leituraCenario = "NO LIMITE"; leituraColor = "#F0B429"; leituraSubtext = "não sobra muita folga"; }
+      else                     { leituraCenario = "PESADO";     leituraColor = "#E53E3E"; leituraSubtext = "o valor em jogo pesa mais"; }
     }
 
     const airisco = ai?.valor_em_risco != null && Number(ai.valor_em_risco) > 0
@@ -1063,7 +1084,7 @@ export default function AppDashboard() {
         {/* 01 — Badge de status */}
         <div className="db-status-badge" style={{ background: `${badge.color}1A`, borderLeftColor: badge.color }}>
           <span className="db-status-icon" aria-hidden="true">{badge.icon}</span>
-          <span className="db-status-text" style={{ color: badge.color }}>{status}</span>
+          <span className="db-status-text" style={{ color: badge.color }}>{badge.label}</span>
         </div>
 
         {/* 02 — Frase humana */}
@@ -1072,20 +1093,25 @@ export default function AppDashboard() {
         {/* 03 — Grid 2×2 de indicadores */}
         <div className="db-ind-grid">
           <div className="db-ind-card">
-            <div className="db-ind-label">CHANCE DE GANHAR</div>
+            <div className="db-ind-label">DINHEIRO EM RISCO</div>
+            <div className="db-ind-value" style={{ color: "#FF8C00" }}>{valorEmRisco}</div>
+            <div className="db-ind-micro">com base no valor que você informou</div>
+          </div>
+          <div className="db-ind-card">
+            <div className="db-ind-label">CHANCE ESTIMADA</div>
             <div className="db-ind-value">{chanceGanhar}</div>
           </div>
           <div className="db-ind-card">
-            <div className="db-ind-label">ODD IDEAL</div>
+            <div className="db-ind-label">ODD JUSTA</div>
             <div className="db-ind-value">{oddIdeal}</div>
-            <div className="db-ind-micro">a odd que faria essa aposta equilibrada</div>
+            <div className="db-ind-micro">número para comparar com a odd da casa</div>
           </div>
           <div className="db-ind-card">
-            <div className="db-ind-label">VALE A PENA?</div>
-            {valeAPena ? (
+            <div className="db-ind-label">RESUMO DA ANÁLISE</div>
+            {leituraCenario ? (
               <>
-                <div className="db-ind-value" style={{ color: valeColor }}>{valeAPena}</div>
-                <div className="db-ind-micro">{valeSubtext}</div>
+                <div className="db-ind-value" style={{ color: leituraColor }}>{leituraCenario}</div>
+                <div className="db-ind-micro">{leituraSubtext}</div>
                 {vantagem != null && (
                   <div className="db-ind-pct">{vantagem >= 0 ? `+${vantagem}%` : `${vantagem}%`}</div>
                 )}
@@ -1094,17 +1120,12 @@ export default function AppDashboard() {
               <div className="db-ind-value" style={{ color: "var(--t3)" }}>—</div>
             )}
           </div>
-          <div className="db-ind-card">
-            <div className="db-ind-label">VALOR EM RISCO</div>
-            <div className="db-ind-value" style={{ color: "#FF8C00" }}>{valorEmRisco}</div>
-            <div className="db-ind-micro">com base no valor que você informou</div>
-          </div>
         </div>
 
-        {/* 04 — Por que esse cenário */}
+        {/* 04 — Por que deu isso */}
         {bullets.length > 0 && (
           <div className="db-bullets-block">
-            <div className="db-bullets-title">POR QUE ESSE CENÁRIO</div>
+            <div className="db-bullets-title">POR QUE DEU ISSO</div>
             {bullets.map((bullet, i) => (
               <div key={i} className="db-bullet-item">
                 <span className="db-bullet-dot" aria-hidden="true">•</span>
@@ -1206,7 +1227,7 @@ export default function AppDashboard() {
               </svg>
             </div>
             <div className="lk-lock-title">Análise completa disponível com acesso</div>
-            <div className="lk-lock-sub">Score real · Chance estimada · Leitura completa da IA</div>
+            <div className="lk-lock-sub">Chance estimada · dinheiro em risco · resumo completo</div>
             <a href={KIWIFY_URL} className="lk-cta-btn" target="_blank" rel="noopener noreferrer">
               Desbloquear análise completa
             </a>
@@ -1228,25 +1249,25 @@ export default function AppDashboard() {
     const chanceGanhar = ai?.chance_ganhar != null ? `${Number(ai.chance_ganhar).toFixed(0)}%` : `${r.impl}%`;
     const oddIdeal = ai?.odd_ideal != null ? Number(ai.odd_ideal).toFixed(2) : r.justa;
     const vantagem = ai?.vantagem != null ? Number(ai.vantagem) : null;
-    const valeAPena = vantagem != null ? (vantagem > 5 ? "SIM" : vantagem >= -5 ? "TALVEZ" : "NÃO") : "—";
+    const leituraCenario = vantagem != null ? (vantagem > 5 ? "MAIS LEVE" : vantagem >= -5 ? "NO LIMITE" : "PESADO") : "—";
     const alerta = ai?.alerta || r.ai?.alertaFinal || "";
 
     const text = [
-      "🔍 MotorIA Pro — Análise de Aposta",
+      "MotorIA Pro — Análise da aposta",
       "",
       r.jogo !== "Aposta" ? r.jogo : r.tipo,
       `Mercado: ${r.tipo}`,
       `Odd analisada: ${r.odd.toFixed(2)}`,
       "",
-      `Status: ${status}`,
+      `Leitura: ${status}`,
       frase,
       "",
-      "📊 Números:",
-      `• Chance de ganhar: ${chanceGanhar}`,
-      `• Odd ideal: ${oddIdeal}`,
-      `• Vale a pena? ${valeAPena}`,
+      "Números:",
+      `• Chance estimada: ${chanceGanhar}`,
+      `• Odd justa: ${oddIdeal}`,
+      `• Resumo: ${leituraCenario}`,
       alerta ? "" : null,
-      alerta ? `⚠️ ${alerta}` : null,
+      alerta ? `Observação: ${alerta}` : null,
       "",
       "—",
       "Análise gerada pelo MotorIA Pro",
@@ -1259,14 +1280,14 @@ export default function AppDashboard() {
   }
 
   // ─── Sidebar nav structure ──────────────────────────────────────────────────
-  const hasAccess = isPaid || !!(token && token.length > 10);
+  const hasAccess = hasPremiumAccess;
 
   const NAV = [
     {
       group: "ANÁLISE",
       items: [
-        { id: "jogos", label: "Central de Jogos",  Icon: IconJogos },
-        { id: "nova",  label: "Análise Manual",    Icon: IconAnalyze, manual: true },
+        { id: "jogos", label: "Jogos & Risco", Icon: IconJogos },
+        { id: "nova",  label: "Análise Manual",   Icon: IconAnalyze, manual: true },
       ],
     },
     {
@@ -1288,6 +1309,33 @@ export default function AppDashboard() {
   return (
     <>
       <style>{CSS}</style>
+
+      {premiumModalOpen && (
+        <div className="pg-overlay" onClick={() => setPremiumModalOpen(false)} role="presentation">
+          <div className="pg-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="pg-title">
+            <button className="pg-close" type="button" onClick={() => setPremiumModalOpen(false)} aria-label="Fechar">
+              x
+            </button>
+            <div className="pg-mark" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="1.7"/>
+                <path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+                <circle cx="12" cy="15" r="1.4" fill="currentColor"/>
+              </svg>
+            </div>
+            <h2 id="pg-title" className="pg-title">Análise completa bloqueada</h2>
+            <p className="pg-text">Você pode explorar os jogos, mas precisa desbloquear para ver risco, banca e leitura completa.</p>
+            <div className="pg-actions">
+              <a href={KIWIFY_URL} className="pg-primary" target="_blank" rel="noopener noreferrer">
+                Desbloquear por R$27
+              </a>
+              <a href="/login" className="pg-secondary">
+                Já tenho código
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       {sidebarOpen && (
         <div className="ap-overlay" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
@@ -1376,8 +1424,8 @@ export default function AppDashboard() {
                 </div>
               )}
 
-              {/* Valor da entrada row */}
-              <div className="bd-valor-label">Valor da entrada (R$)</div>
+              {/* Valor da aposta row */}
+              <div className="bd-valor-label">Valor da aposta (R$)</div>
               <div className="bd-valor-row">
                 <div className="bd-valor-input-wrap">
                   <span className="bd-currency">R$</span>
@@ -1398,7 +1446,7 @@ export default function AppDashboard() {
                     {pctBanca && <span className="bd-pct-banca">{pctBanca}% da banca</span>}
                   </div>
                 ) : (
-                  <span className="bd-valor-hint">Informe o valor da entrada</span>
+                  <span className="bd-valor-hint">Informe o valor da aposta</span>
                 )}
               </div>
 
@@ -1410,8 +1458,8 @@ export default function AppDashboard() {
                 disabled={!canAnalyze}
               >
                 {canAnalyze
-                  ? (bilhete.length === 1 ? "Analisar risco da entrada →" : "Analisar risco do bilhete →")
-                  : "Informe o valor da entrada"}
+                  ? (bilhete.length === 1 ? "Analisar aposta →" : "Analisar bilhete →")
+                  : "Informe o valor da aposta"}
               </button>
             </div>
           </div>
@@ -1574,7 +1622,7 @@ export default function AppDashboard() {
                   <div className="ap-geral-action">
                     <div className="ap-geral-action-left">
                       <div className="ap-geral-action-title">Análise Simples</div>
-                      <div className="ap-geral-action-sub">MOTORIA RISK INDEX™ · Probabilidade · EV · Exposição</div>
+                      <div className="ap-geral-action-sub">MOTORIA RISK INDEX™ · Chance · odd justa · banca em jogo</div>
                     </div>
                     <button className="ap-geral-btn" onClick={() => navigate("nova")}>
                       Analisar
@@ -1881,7 +1929,7 @@ export default function AppDashboard() {
                     <div className="ap-panel-hdr">
                       <div className="ap-panel-hdr-left">
                         <div className="ap-panel-mod">ANÁLISE ESPORTIVA</div>
-                        <div className="ap-panel-title">Central de Jogos</div>
+                        <div className="ap-panel-title">Jogos & Risco</div>
                       </div>
                       <div className="jg-hdr-right">
                         <div className="jg-data-badge">
@@ -2033,10 +2081,13 @@ export default function AppDashboard() {
                                   <div className="jg-card-footer-btns">
                                     <button
                                       className="jg-cta-analyze"
-                                      onClick={() => selectGame(m)}
+                                      onClick={() => {
+                                        if (!requirePremiumAccess("game-analysis")) return;
+                                        selectGame(m);
+                                      }}
                                       type="button"
                                     >
-                                      Vale apostar? →
+                                      Ver análise →
                                     </button>
                                     <button
                                       className={`jg-bilhete-btn${inBilhete ? " jg-bilhete-btn-on" : ""}`}
@@ -2057,7 +2108,7 @@ export default function AppDashboard() {
                               <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.3"/>
                               <path d="M7 6.5v3.5M7 4.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
                             </svg>
-                            Ferramenta educativa. Dados de partidas para contexto de análise de risco. Não é recomendação de aposta.
+                            Ferramenta educativa. Os dados dos jogos ajudam a entender melhor o risco.
                           </div>
                         </>
                       );
@@ -2162,7 +2213,7 @@ export default function AppDashboard() {
                                   )}
                                   {bancaIni === 0 && (
                                     <div className="fl-mcard-banca-hint fl-mcard-banca-setup">
-                                      Configure sua banca em Controle de Banca para ver a exposição
+                                      Configure sua banca em Controle de Banca para ver quanto isso pesa
                                     </div>
                                   )}
                                   <button
@@ -2399,18 +2450,18 @@ export default function AppDashboard() {
               // Mensagens de impacto — humanas, diretas, sem números artificiais
               const simTitle = lossesToRuin !== null
                 ? lossesToRuin <= 2
-                  ? `Se você perder ${lossesToRuin} apostas seguidas, sua banca vai acabar.`
+                  ? `Com ${lossesToRuin} perdas seguidas, sua margem fica no limite.`
                   : lossesToRuin <= 5
-                  ? `Com ${lossesToRuin} perdas seguidas, você quebra a banca.`
+                  ? `Com ${lossesToRuin} perdas seguidas, a banca fica pressionada.`
                   : lossesToRuin <= 10
-                  ? `Você aguenta até ${lossesToRuin} perdas seguidas antes de quebrar.`
+                  ? `Você aguenta até ${lossesToRuin} perdas seguidas antes de comprometer a margem.`
                   : `5 perdas seguidas tiram ${sim5LossPct}% da sua banca.`
                 : null;
               const simSub = lossesToRuin !== null
                 ? lossesToRuin <= 2
-                  ? "Reduza o valor por aposta agora."
+                  ? "Um valor menor amplia sua margem de manobra."
                   : lossesToRuin <= 5
-                  ? "Esse valor por aposta é alto para sua banca."
+                  ? "Esse valor por aposta ocupa uma parte relevante da banca."
                   : lossesToRuin <= 10
                   ? "Uma sequência ruim pode mudar tudo rápido."
                   : "Você tem fôlego, mas controle os valores."
@@ -2423,12 +2474,12 @@ export default function AppDashboard() {
                   semDados:   { title: "Você está no caminho certo.", msg: "O valor por aposta cabe bem na sua banca. Continue assim." },
                 },
                 moderado: {
-                  comDados:   { title: "Seu risco já começa a subir.", msg: "Algumas perdas seguidas já machucam bastante. Fique de olho." },
-                  semDados:   { title: "Esse valor já começa a pesar.", msg: "Aposte menos por entrada para ter mais fôlego nas perdas." },
+                  comDados:   { title: "Essa aposta pede atenção.", msg: "Uma sequência ruim pode apertar sua banca." },
+                  semDados:   { title: "Esse valor já começa a pesar.", msg: "Um valor menor deixa mais folga para oscilações." },
                 },
                 agressivo: {
-                  comDados:   { title: "Poucas perdas podem te quebrar.", msg: "Você está arriscando muito por aposta. Reduza antes que seja tarde." },
-                  semDados:   { title: "Você está apostando alto.", msg: "Para o tamanho da sua banca, esse valor por aposta é arriscado." },
+                  comDados:   { title: "Poucas perdas já mudam o jogo.", msg: "O valor por aposta está alto para o tamanho da banca." },
+                  semDados:   { title: "O valor está alto.", msg: "Para sua banca, isso deixa pouca folga." },
                 },
               };
               const aiReading = bancaInicial > 0
@@ -2476,7 +2527,7 @@ export default function AppDashboard() {
                         </div>
                         <div className="lk-divider" />
                         <div className="bk-stats-blur-row">
-                          {["Banca atual","Faixa segura","Winrate","Drawdown"].map(l => (
+                          {["Banca atual","Faixa sugerida","Winrate","Drawdown"].map(l => (
                             <div key={l} className="bk-stat-blur-card">
                               <div className="bk-stat-blur-val">██.█</div>
                               <div className="bk-stat-blur-label">{l}</div>
@@ -2492,7 +2543,7 @@ export default function AppDashboard() {
                             </svg>
                           </div>
                           <div className="lk-lock-title">Controle de banca disponível com acesso</div>
-                          <div className="lk-lock-sub">Registre apostas · acompanhe ROI · proteja seu capital</div>
+                          <div className="lk-lock-sub">Registre apostas · acompanhe ROI · veja sua banca em jogo</div>
                           <a href={KIWIFY_URL} className="lk-cta-btn">Desbloquear acesso completo</a>
                           <div className="lk-price-note">Pagamento único · sem mensalidade · acesso imediato · R$ 27</div>
                         </div>
@@ -2504,7 +2555,7 @@ export default function AppDashboard() {
                       {!bancaInicial && (
                         <div className="bk-setup-panel">
                           <div className="bk-setup-title">Configure sua banca inicial</div>
-                          <div className="bk-setup-sub">Quanto você dedica ao total para apostas? Isso define sua faixa de risco seguro por aposta.</div>
+                          <div className="bk-setup-sub">Quanto você separou para apostar? Isso ajuda a medir quando o valor está pesado.</div>
                           <div className="bk-setup-row">
                             <div className="bk-setup-input-wrap">
                               <span className="bk-currency">R$</span>
@@ -2540,7 +2591,7 @@ export default function AppDashboard() {
                       {bancaInicial > 0 && (
                         <div className="bk-live">
 
-                          {/* Banca atual + faixa segura */}
+                          {/* Banca atual + faixa sugerida */}
                           <div className="bk-live-top">
                             <div className="bk-live-main">
                               <div className="bk-live-label">BANCA ATUAL</div>
@@ -2550,11 +2601,11 @@ export default function AppDashboard() {
                               <div className="bk-live-sub">
                                 {stats
                                   ? `${pctBancaAtual}% da inicial · ${stats.totalApos} apostas`
-                                  : "Proteja seu capital antes de aumentar risco"}
+                                  : "Entenda sua banca antes de aumentar o valor"}
                               </div>
                             </div>
                             <div className="bk-live-stake">
-                              <div className="bk-live-label">VALOR SEGURO POR APOSTA</div>
+                              <div className="bk-live-label">FAIXA SUGERIDA POR APOSTA</div>
                               <div className="bk-live-stake-range">
                                 R$ {fmtBRL(stakeMin)} – R$ {fmtBRL(stakeMax)}
                               </div>
@@ -2582,7 +2633,7 @@ export default function AppDashboard() {
                             <div className="bk-risk-header">
                               <div className="bk-risk-label">SEU RISCO HOJE</div>
                               <div className={`bk-risk-badge bk-risk-badge-${riskZone}`}>
-                                {riskZone === "conservador" ? "Seguro" : riskZone === "moderado" ? "Moderado" : "ALTO RISCO"}
+                                {riskZone === "conservador" ? "Controlado" : riskZone === "moderado" ? "Moderado" : "Valor alto"}
                               </div>
                             </div>
                             <div className="bk-risk-bar">
@@ -2611,7 +2662,7 @@ export default function AppDashboard() {
                           {simTitle && (
                             <div className={`bk-sim bk-sim-${riskZone}`}>
                               <div className="bk-sim-left">
-                                <div className="bk-sim-label">SE VOCÊ PERDER</div>
+                              <div className="bk-sim-label">SIMULAÇÃO DE SEQUÊNCIA</div>
                                 <div className="bk-sim-title">{simTitle}</div>
                                 <div className="bk-sim-detail">{simSub}</div>
                               </div>
@@ -2672,7 +2723,7 @@ export default function AppDashboard() {
                             <div className="bk-card-val" style={{ color: "var(--t1)" }}>
                               R$ {fmtBRL(bancaInicial)}
                             </div>
-                            <div className="bk-card-sub bk-reset-link" onClick={() => { setBkCfg({}); saveBkCfg({}); }}>resetar banca</div>
+                            <div className="bk-card-sub bk-reset-link" onClick={() => { if (!requirePremiumAccess("bankroll-reset")) return; setBkCfg({}); saveBkCfg({}); }}>resetar banca</div>
                           </div>
                         </div>
                       )}
@@ -5670,6 +5721,58 @@ body { overflow: hidden; }
 .bp-confirm-btn:active { transform: translateY(0); }
 .bp-confirm-btn:disabled { opacity: .35; cursor: not-allowed; }
 
+/* Premium action modal */
+.pg-overlay {
+  position: fixed; inset: 0; z-index: 240;
+  display: grid; place-items: center; padding: 18px;
+  background: rgba(0,0,0,.72); backdrop-filter: blur(10px);
+}
+.pg-modal {
+  width: min(420px, 100%);
+  background: #0f1112; border: 1px solid rgba(34,197,94,.24);
+  border-radius: 18px; padding: 28px 24px 24px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.04) inset;
+  position: relative; text-align: center;
+}
+.pg-close {
+  position: absolute; top: 12px; right: 12px;
+  width: 30px; height: 30px; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04);
+  color: var(--t3); cursor: pointer; font: 700 14px/1 inherit;
+}
+.pg-close:hover { color: var(--t1); border-color: rgba(255,255,255,.16); }
+.pg-mark {
+  width: 48px; height: 48px; margin: 0 auto 16px;
+  display: grid; place-items: center; border-radius: 14px;
+  color: var(--green); background: rgba(34,197,94,.1);
+  border: 1px solid rgba(34,197,94,.24);
+}
+.pg-title {
+  margin: 0 0 10px; color: var(--t1);
+  font-size: 22px; line-height: 1.15; font-weight: 900; letter-spacing: -0.01em;
+}
+.pg-text {
+  margin: 0 auto 22px; color: var(--t2);
+  font-size: 14px; line-height: 1.55; max-width: 330px;
+}
+.pg-actions { display: grid; gap: 10px; }
+.pg-primary,
+.pg-secondary {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 46px; border-radius: 12px;
+  font-size: 14px; font-weight: 800; text-decoration: none;
+}
+.pg-primary { background: var(--green); color: #020403; }
+.pg-secondary {
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09);
+  color: var(--t2);
+}
+.pg-secondary:hover { color: var(--t1); border-color: rgba(34,197,94,.24); }
+@media (max-width: 520px) {
+  .pg-overlay { align-items: end; padding: 12px; }
+  .pg-modal { border-radius: 18px 18px 14px 14px; padding: 26px 20px 20px; }
+}
+
 /* ── Bilhete drawer (fixed bottom) ─────────────────────────────────────── */
 @keyframes bd-in {
   from { transform: translateY(100%); opacity: 0; }
@@ -5714,7 +5817,7 @@ body { overflow: hidden; }
   padding: 0 0 0 2px; transition: color .12s; font-family: inherit;
 }
 .bd-sel-remove:hover { color: var(--red); }
-/* Valor da entrada — label + input row */
+/* Valor da aposta — label + input row */
 .bd-valor-label {
   font-size: 9px; font-weight: 800; letter-spacing: .14em;
   color: rgba(34,197,94,.7); text-transform: uppercase; margin-bottom: 4px;

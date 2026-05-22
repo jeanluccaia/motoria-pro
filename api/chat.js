@@ -154,10 +154,10 @@ module.exports = async function handler(req, res) {
       locked: true,
       preview: {
         signals: [
-          "Exposição acima da média detectada",
-          "Mercado exige cautela neste cenário",
+          "Valor alto para a banca detectado",
+          "Mercado pede atenção nessa aposta",
           "Oscilação incomum identificada na odd",
-          "Probabilidade implícita com inconsistência detectada",
+          "Odd não fecha bem com o risco",
         ],
       },
     });

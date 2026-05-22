@@ -47,11 +47,11 @@ const SENTIMENTOS = [
 ];
 
 const LOADING_MSGS = [
-  "Analisando exposição ao risco…",
+  "Medindo o risco da aposta…",
   "Padrões de armadilha identificados…",
-  "Comparando probabilidade implícita…",
-  "Calculando distorção da odd…",
-  "Mapeando viés da casa de apostas…",
+  "Comparando a chance da odd…",
+  "Checando se a odd faz sentido…",
+  "Vendo o corte da casa…",
   "Gerando relatório de risco…",
 ];
 
@@ -71,7 +71,7 @@ function getPartialSignals(math) {
 
   const signals = [];
   if (semaforo === "VERMELHO" || margem >= 7)
-    signals.push("Exposição acima da média detectada");
+    signals.push("Valor alto para a banca detectado");
   else
     signals.push("Mercado exige cautela");
 
@@ -81,12 +81,12 @@ function getPartialSignals(math) {
     signals.push("Oscilação incomum encontrada");
 
   if (kelly === 0)
-    signals.push("Probabilidade implícita inconsistente");
+    signals.push("Odd não fecha bem com o risco");
   else
     signals.push("Padrão de entrada identificado");
 
   if (ruina >= 50)
-    signals.push("Nível de exposição elevado encontrado");
+    signals.push("Valor em jogo alto encontrado");
   else
     signals.push("Análise de viés concluída");
 
@@ -308,9 +308,9 @@ export default function Analisar() {
       `Tipo de aposta: ${s1.tipoAposta}`,
       `Casa de apostas: ${s1.casa}`,
       `Odd: ${s2.odd}`,
-      `Probabilidade implícita: ${math.probImplicita}%`,
-      `Probabilidade real estimada: ${math.probReal}%`,
-      `Margem da casa: ${math.margem}%`,
+      `Chance pela odd: ${math.probImplicita}%`,
+      `Chance estimada: ${math.probReal}%`,
+      `Corte da casa: ${math.margem}%`,
       `Valor considerado: ${s2.valor ? "R$" + s2.valor : "não informado"}`,
       `Frequência: ${s2.frequencia}x por semana`,
       `Sentimento: ${s3.sentimento}`,
@@ -500,7 +500,7 @@ export default function Analisar() {
                   {(s3.sentimento === "tentando_recuperar" || s3.sentimento === "frustrado") && (
                     <div className="an-tilt-alert">
                       <strong>⚠ Atenção: Sinal de tilt detectado.</strong>
-                      <p>Apostadores tentando recuperar perdas ou frustrados perdem, em média, 3.2× mais. Considere pausar suas apostas antes de continuar.</p>
+                      <p>Depois de perda ou frustração, o valor da decisão costuma subir sem perceber. Vale revisar o tamanho antes de seguir.</p>
                     </div>
                   )}
 
@@ -664,12 +664,12 @@ export default function Analisar() {
 
               {/* 8 INDICADORES */}
               <div className="an-ind-grid">
-                <Indicator label="PROBABILIDADE IMPLÍCITA" value={`${result.math.probImplicita}%`} sub="de chance segundo a odd" />
-                <Indicator label="PROBABILIDADE REAL ESTIMADA" value={`${result.math.probReal}%`} sub={`ajustada pela margem da ${s1.casa}`} />
-                <Indicator label="MARGEM DA CASA (VIG)" value={`${result.math.margem}%`} sub="taxa invisível por aposta" highlight={parseFloat(result.math.margem) >= 7 ? "#FF4D2E" : "#FFB020"} />
+                <Indicator label="CHANCE PELA ODD" value={`${result.math.probImplicita}%`} sub="chance que a odd indica" />
+                <Indicator label="CHANCE ESTIMADA" value={`${result.math.probReal}%`} sub={`ajustada pelo corte da ${s1.casa}`} />
+                <Indicator label="CORTE DA CASA" value={`${result.math.margem}%`} sub="parte embutida em cada aposta" highlight={parseFloat(result.math.margem) >= 7 ? "#FF4D2E" : "#FFB020"} />
                 <Indicator label="VALOR ESPERADO (EV)" value={`${parseFloat(result.math.evReais) >= 0 ? "+" : ""}R$${result.math.evReais}`} sub="por aposta no longo prazo" highlight={parseFloat(result.math.evReais) >= 0 ? "#1FCB7A" : "#FF4D2E"} />
                 <Indicator label="PROJEÇÃO 30 DIAS" value={`${parseFloat(result.math.resultado30d) >= 0 ? "+" : ""}R$${result.math.resultado30d}`} sub={`apostando ${s2.frequencia}×/sem`} highlight={parseFloat(result.math.resultado30d) >= 0 ? "#1FCB7A" : "#FF4D2E"} />
-                <Indicator label="PROJEÇÃO 90 DIAS" value={`${parseFloat(result.math.resultado90d) >= 0 ? "+" : ""}R$${result.math.resultado90d}`} sub="cenário esperado" highlight={parseFloat(result.math.resultado90d) >= 0 ? "#1FCB7A" : "#FF4D2E"} />
+                <Indicator label="PROJEÇÃO 90 DIAS" value={`${parseFloat(result.math.resultado90d) >= 0 ? "+" : ""}R$${result.math.resultado90d}`} sub="se repetir esse padrão" highlight={parseFloat(result.math.resultado90d) >= 0 ? "#1FCB7A" : "#FF4D2E"} />
                 <Indicator label="KELLY CRITERION" value={parseFloat(result.math.kelly) === 0 ? "0% — não apostar" : `${result.math.kelly}% da banca`} sub="fração racional sugerida" highlight={parseFloat(result.math.kelly) === 0 ? "#FF4D2E" : undefined} />
                 <Indicator label="RISCO DE RUÍNA (20 APOSTAS)" value={`${result.math.riscoRuina}%`} sub="prob. de zerar essa série" highlight={parseFloat(result.math.riscoRuina) >= 50 ? "#FF4D2E" : "#FFB020"} />
               </div>
@@ -680,7 +680,7 @@ export default function Analisar() {
                   <div className="an-card-label">SIMULAÇÃO — 30 DIAS</div>
                   <SimChart data={result.math.simData} valor={parseFloat(s2.valor)} />
                   <div className="an-chart-legend">
-                    <span className="an-leg an-leg-exp">— Cenário esperado</span>
+                    <span className="an-leg an-leg-exp">— Resultado esperado</span>
                     <span className="an-leg an-leg-opt">-- Otimista (P90)</span>
                     <span className="an-leg an-leg-pes">-- Pessimista (P10)</span>
                   </div>
@@ -696,12 +696,12 @@ export default function Analisar() {
 
               {/* MARGEM DECODIFICADA */}
               <div className="an-card an-card-amber">
-                <div className="an-card-label">MARGEM DA CASA DECODIFICADA</div>
+                <div className="an-card-label">O CORTE DA CASA</div>
                 <p className="an-card-text">
-                  A <strong>{s1.casa}</strong> cobra uma margem de{" "}
-                  <strong>{result.math.margem}%</strong> nesse mercado. Isso significa que de cada{" "}
-                  <strong>R$100 apostados</strong>, R${(parseFloat(result.math.margem)).toFixed(2)} vão para
-                  o lucro da casa <em>antes</em> de qualquer resultado.
+                  A <strong>{s1.casa}</strong> já coloca uma vantagem de{" "}
+                  <strong>{result.math.margem}%</strong> nesse mercado. Em linguagem simples: de cada{" "}
+                  <strong>R$100 apostados</strong>, cerca de R${(parseFloat(result.math.margem)).toFixed(2)} já ficam na conta da casa
+                  antes mesmo do jogo acontecer.
                 </p>
               </div>
 
@@ -730,7 +730,7 @@ export default function Analisar() {
 
               {result.ai.leituraConservadora && (
                 <div className="an-card">
-                  <div className="an-card-label">LEITURA CONSERVADORA</div>
+                  <div className="an-card-label">RESUMO COM CALMA</div>
                   <p className="an-card-text">{result.ai.leituraConservadora}</p>
                 </div>
               )}
@@ -740,7 +740,7 @@ export default function Analisar() {
                 {!decision ? (
                   <div className="an-dec-btns">
                     <button className="an-dec-btn an-dec-avoid" onClick={() => setDecision("evitou")}>
-                      Não apostar — registrar como evitada ✓
+                      Registrar como aposta evitada
                     </button>
                     {s2.valor && parseFloat(result.math.kelly) > 0 && (
                       <button className="an-dec-btn an-dec-reduce" onClick={() => setDecision("reduziu")}>
@@ -748,13 +748,13 @@ export default function Analisar() {
                       </button>
                     )}
                     <button className="an-dec-btn an-dec-proceed" onClick={() => setDecision("apostou")}>
-                      Apostar mesmo assim — registrar no diário
+                      Seguir com decisão — registrar no diário
                     </button>
                   </div>
                 ) : (
                   <div className={`an-dec-confirm ${decision === "evitou" ? "an-dec-confirm-green" : ""}`}>
-                    {decision === "evitou" && "✓ Registrado como aposta evitada. Boa decisão."}
-                    {decision === "reduziu" && `✓ Registrado. Considere apostar no máximo ${result.math.kelly}% da sua banca nessa odd.`}
+                    {decision === "evitou" && "Registrado como aposta evitada."}
+                    {decision === "reduziu" && `Registrado. Kelly indica até ${result.math.kelly}% da banca nessa odd.`}
                     {decision === "apostou" && "Registrado no diário. Acompanhe o resultado depois."}
                   </div>
                 )}
@@ -764,7 +764,7 @@ export default function Analisar() {
                 <div className="an-card-label">⚠ ALERTA FINAL</div>
                 {result.ai.alertaFinal && <p className="an-card-text" style={{ marginBottom: 14 }}>{result.ai.alertaFinal}</p>}
                 <blockquote className="an-quote">
-                  "Se você não aceita perder esse valor, a decisão mais segura é não apostar."
+                  "Se perder esse valor pesa na banca, vale olhar de novo."
                 </blockquote>
               </div>
 

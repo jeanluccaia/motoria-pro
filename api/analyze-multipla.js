@@ -92,20 +92,20 @@ ${selecoes.map((s, i) => `${i + 1}. ${s.jogo} | ${s.mercado} | Odd ${parseFloat(
 DADOS DO BILHETE:
 - Seleções: ${selecoes.length}
 - Odd total: ${parseFloat(oddTotal).toFixed(2)}
-- Chance matemática de acertar: ${parseFloat(chanceReal).toFixed(1)}%
-- Valor apostado: R$${valorTotal || "não informado"}
+- Chance estimada: ${parseFloat(chanceReal).toFixed(1)}%
+- Valor da aposta: R$${valorTotal || "não informado"}
 - Retorno possível: R$${retorno}
 ${pct ? `- Percentual da banca: ${pct}%` : ""}
 
 Regras absolutas:
-- NUNCA use "aposte" ou "não aposte"
+- NUNCA transforme a análise em comando de decisão
 - NUNCA invente estatísticas específicas
-- Seja técnico, direto, sem rodeios
+- Use linguagem popular, direta e fácil de entender
 
 Responda EXATAMENTE neste formato (sem texto extra antes ou depois):
 
 NIVEL_RISCO: [baixo | médio | alto | muito alto]
-DEPENDENCIAS: [frase curta descrevendo a cadeia de dependências deste bilhete — ex: "3 resultados independentes precisam ocorrer em sequência"]
+DEPENDENCIAS: [frase curta e simples descrevendo o que precisa bater no bilhete — ex: "3 resultados precisam dar certo juntos"]
 RISCO_PRINCIPAL: [1-2 frases sobre o maior risco deste bilhete específico]
 O_QUE_PODE_DAR_ERRADO:
 - [primeiro fator concreto de risco]
@@ -217,8 +217,8 @@ module.exports = async function handler(req, res) {
       nivelRisco,
       mensagem: `${selecoes.length} seleções no bilhete. Risco acumulado identificado.`,
       alertas: [
-        `${selecoes.length} dependências simultâneas`,
-        "Uma entrada pode parecer segura sozinha. O risco muda quando você junta várias no mesmo bilhete.",
+        `${selecoes.length} coisas precisam dar certo juntas`,
+        "Uma seleção pode parecer simples sozinha. O risco muda quando você junta várias no mesmo bilhete.",
         "Análise completa de risco bloqueada",
       ],
     });
@@ -232,16 +232,16 @@ module.exports = async function handler(req, res) {
 
   const mensagem =
     chance < 15
-      ? `Apenas ${chance.toFixed(1)}% de chance matemática. Cada seleção errada derruba o bilhete inteiro.`
+      ? `${chance.toFixed(1)}% de chance estimada. Uma única falha encerra o bilhete.`
       : chance < 30
-      ? `${chance.toFixed(1)}% de chance real. Com ${selecoes.length} seleções, o risco se multiplica a cada entrada.`
-      : `${chance.toFixed(1)}% de chance para este bilhete de ${selecoes.length} seleções.`;
+      ? `${chance.toFixed(1)}% de chance estimada. Com ${selecoes.length} seleções, tudo precisa bater junto.`
+      : `${chance.toFixed(1)}% de chance estimada para este bilhete de ${selecoes.length} seleções.`;
 
   const alertaBanca =
     percentualBanca && parseFloat(percentualBanca) > 5
-      ? `${percentualBanca}% da sua banca exposta nessa múltipla — acima do recomendado (máx. 2-3%).`
+      ? `${percentualBanca}% da sua banca nessa múltipla — valor alto para uma aposta só.`
       : percentualBanca && parseFloat(percentualBanca) > 2
-      ? `${percentualBanca}% da banca exposta. Monitore o impacto no longo prazo.`
+      ? `${percentualBanca}% da banca em jogo. Vale olhar o impacto no longo prazo.`
       : null;
 
   return res.status(200).json({

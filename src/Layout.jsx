@@ -28,8 +28,9 @@ export function Header() {
         <span className="ly-logo-tag">· Análise de Risco</span>
       </Link>
       <div className="ly-header-nav">
-        <Link to="/analisar" className="ly-nav-link">Análise</Link>
-        <Link to="/analisar" className="ly-cta-btn">Analisar →</Link>
+        <Link to="/analisar"  className="ly-nav-link">Analisar</Link>
+        <Link to="/importar"  className="ly-nav-link">Importar Bilhete</Link>
+        <Link to="/importar"  className="ly-cta-btn">Importar →</Link>
       </div>
     </header>
   );

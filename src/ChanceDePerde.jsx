@@ -4,10 +4,10 @@ import { buildSafeHeaders } from "./utils/safeHeaders";
 // ─── Constantes ────────────────────────────────────────────────────────────────
 
 const LOADING_MSGS = [
-  "Calculando probabilidade implícita...",
+  "Calculando a chance pela odd...",
   "Identificando fatores de risco...",
-  "Avaliando cenários de perda...",
-  "Preparando análise conservadora...",
+  "Avaliando onde a aposta pode falhar...",
+  "Preparando resumo com calma...",
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -126,7 +126,7 @@ export default function ChanceDePerde() {
       `Jogo: ${jogo.trim()}`,
       `Aposta: ${aposta.trim()}`,
       `Odd: ${odd.trim()}`,
-      `Probabilidade implícita: ${prob}%`,
+      `Chance pela odd: ${prob}%`,
       valor.trim() ? `Valor considerado: R$${valor.trim()}` : "Valor: não informado",
     ].join("\n");
 
@@ -267,8 +267,8 @@ export default function ChanceDePerde() {
               </button>
 
               <p className="cdp-form-note">
-                Esta análise calcula a probabilidade de perda com base na odd
-                informada e no contexto do mercado. Não é palpite nem previsão.
+                Esta análise mostra o risco de perda com base na odd
+                informada e nas informações do jogo.
               </p>
 
             </form>
@@ -288,9 +288,9 @@ export default function ChanceDePerde() {
 
               <button className="cdp-reset" onClick={reset}>← Nova análise</button>
 
-              {/* Card 1 — Probabilidade implícita */}
+              {/* Card 1 — Chance pela odd */}
               <div className="cdp-card">
-                <div className="cdp-clabel">PROBABILIDADE IMPLÍCITA DA ODD</div>
+                <div className="cdp-clabel">CHANCE INDICADA PELA ODD</div>
                 <div className="cdp-prob-row">
                   <span className="cdp-prob-num">{result.prob}%</span>
                   <span className="cdp-prob-caption">
@@ -298,8 +298,8 @@ export default function ChanceDePerde() {
                   </span>
                 </div>
                 <p className="cdp-text cdp-text-muted">
-                  A margem da casa (vig) reduz ainda mais a rentabilidade real.
-                  Na prática, a probabilidade de perda é superior ao que a odd sugere.
+                  A casa sempre fica com uma parte embutida na odd.
+                  Na prática, o risco de perder costuma ser maior do que parece.
                 </p>
               </div>
 
@@ -323,7 +323,7 @@ export default function ChanceDePerde() {
                 </div>
               </div>
 
-              {/* Card 3 — Cenário necessário */}
+              {/* Card 3 — O que precisa acontecer */}
               {result.cenarioNecessario && (
                 <div className="cdp-card">
                   <div className="cdp-clabel">
@@ -345,10 +345,10 @@ export default function ChanceDePerde() {
                 </div>
               )}
 
-              {/* Card 5 — Leitura conservadora */}
+              {/* Card 5 — Resumo com calma */}
               {result.leituraConservadora && (
                 <div className="cdp-card">
-                  <div className="cdp-clabel">LEITURA CONSERVADORA</div>
+                  <div className="cdp-clabel">RESUMO COM CALMA</div>
                   <p className="cdp-text">{result.leituraConservadora}</p>
                 </div>
               )}
@@ -362,14 +362,14 @@ export default function ChanceDePerde() {
                   </p>
                 )}
                 <blockquote className="cdp-quote">
-                  "Se você não aceita perder esse valor, a decisão mais segura é não apostar."
+                  "Se perder esse valor pesa na banca, vale olhar de novo."
                 </blockquote>
               </div>
 
               <p className="cdp-disclaimer">
-                Análise gerada por IA com base em probabilidade matemática e contexto
+                Análise gerada por IA com base na odd, no valor e nas informações
                 de mercado. Não é recomendação de aposta. Todo resultado esportivo é
-                imprevisível. Jogue com responsabilidade — ou não jogue.
+                imprevisível. Use como apoio antes da decisão.
               </p>
 
             </div>

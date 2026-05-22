@@ -20,9 +20,9 @@ const TIPOS = [
 ];
 
 const LOAD_STEPS = [
-  { label: "Calculando a chance real de ganhar…",        pct: 18 },
+  { label: "Calculando a chance estimada…",              pct: 18 },
   { label: "Detectando o corte da casa…",                pct: 36 },
-  { label: "Medindo o nível de perigo da aposta…",       pct: 56 },
+  { label: "Medindo o peso na sua banca…",                pct: 56 },
   { label: "Encontrando o que a plataforma esconde…",    pct: 76 },
   { label: "Preparando sua análise completa…",           pct: 92 },
 ];
@@ -31,6 +31,7 @@ const TOKEN_KEY     = "motoria_token";
 const HISTORY_KEY   = "motoria_hist_v2";
 const MAX_HISTORY   = 8;
 const KIWIFY_URL    = "https://pay.kiwify.com.br/DIVD8zl";
+const CODE_SESSION_KEY = "motoria_code_session";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -97,6 +98,15 @@ function loadHistory() {
 }
 function saveHistory(arr) {
   try { localStorage.setItem(HISTORY_KEY, JSON.stringify(arr)); } catch {}
+}
+
+function getCodeSessionToken() {
+  try {
+    const s = JSON.parse(localStorage.getItem(CODE_SESSION_KEY) || "null");
+    return s?.sessionToken || "";
+  } catch {
+    return "";
+  }
 }
 
 // ─── Componente principal ─────────────────────────────────────────────────────
@@ -213,12 +223,19 @@ export default function Tool() {
       return;
     }
 
+    const codeSessionToken = getCodeSessionToken();
+    if (!token && !codeSessionToken) {
+      console.log("premium gate:", "tool-analysis-api", { path: window.location.pathname });
+      setGateMode("no_access");
+      return;
+    }
+
     const prob  = calcImplicita(oddN);
     const parts = [
       `Jogo: ${jogo.trim()}`,
       `Tipo de aposta: ${tipo}`,
       `Odd: ${odd.trim()}`,
-      `Probabilidade implícita: ${prob.toFixed(1)}%`,
+      `Chance pela odd: ${prob.toFixed(1)}%`,
     ];
     if (valor.trim()) parts.push(`Valor pretendido: R$ ${valor.trim()}`);
     if (obs.trim())   parts.push(`Contexto adicional: ${obs.trim()}`);
@@ -232,6 +249,7 @@ export default function Tool() {
         headers: buildSafeHeaders({
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(codeSessionToken ? { "x-motoria-code-session": codeSessionToken } : {}),
         }),
         body:    JSON.stringify({ tool: "chance_de_perder", userMessage: parts.join("\n") }),
       });
@@ -371,7 +389,7 @@ export default function Tool() {
               </h1>
               <p className="tl-hero-sub">
                 A ferramenta mostra o que a plataforma não mostra:
-                chance de perda, nível de perigo e o que você tende
+                chance estimada, valor em jogo e o que você tende
                 a perder no longo prazo.
               </p>
               <div className="tl-trust-row">
@@ -430,11 +448,14 @@ export default function Tool() {
                   {gateMode === "no_access" ? "Desbloquear agora →" : "Comprar 20 análises — R$27 →"}
                 </a>
                 {gateMode === "no_access" && (
+                  <Link to="/login" className="tl-gate-login">Já tenho código</Link>
+                )}
+                {gateMode === "no_access" && (
                   <p className="tl-gate-payment-note">Pagamento único · Sem mensalidade · Acesso imediato</p>
                 )}
                 <ul className="tl-gate-feats">
                   {(gateMode === "no_access"
-                    ? ["Análise de risco completa por aposta", "Controle de Banca: ROI, saldo e sequência", "Alertas de exposição alta", "20 análises incluídas · Pagamento único"]
+                    ? ["Análise de risco completa por aposta", "Controle de Banca: ROI, saldo e sequência", "Alertas quando o valor pesa na banca", "20 análises incluídas · Pagamento único"]
                     : ["20 análises incluídas", "Nível de risco por aposta", "O que pode dar errado em cada uma", "Recarregável quando precisar"]
                   ).map(f => (
                     <li key={f}><span className="tl-gate-check">✓</span> {f}</li>
@@ -642,7 +663,7 @@ export default function Tool() {
                       className="tl-score-badge"
                       style={{ background: scoreData.color + "18", color: scoreData.color, border: `1px solid ${scoreData.color}40` }}
                     >
-                      {scoreData.score <= 30 ? "Risco baixo — mais segura" : scoreData.score <= 60 ? "Risco moderado — atenção" : scoreData.score <= 80 ? "Risco alto — cuidado" : "Risco crítico — perigo real"}
+                      {scoreData.score <= 30 ? "Risco baixo — aposta controlada" : scoreData.score <= 60 ? "Risco moderado — atenção" : scoreData.score <= 80 ? "Risco alto — pouca folga" : "Risco crítico — valor pesado"}
                     </span>
                     <div className="tl-score-bar-wrap">
                       <div className="tl-score-bar-track">
@@ -661,18 +682,18 @@ export default function Tool() {
                   </div>
                 </div>
                 <p className="tl-score-note">
-                  Calculado a partir da odd e do contexto fornecido. Não recomenda nenhuma entrada — apenas mostra o nível de perigo dessa aposta.
+                  Calculado a partir da odd e das informações que você deu. Não manda você apostar — só mostra o risco com clareza.
                 </p>
               </div>
 
               {/* MÉTRICAS — grid 2×2 */}
               <div className="tl-metrics-grid">
                 <div className="tl-metric-card">
-                  <div className="tl-metric-label">Chance que a casa dá pra você ganhar</div>
+                  <div className="tl-metric-label">Chance estimada pela odd</div>
                   <div className="tl-metric-val" style={{ color: "#1FCB7A" }}>
                     {result.prob.toFixed(1)}%
                   </div>
-                  <div className="tl-metric-hint">o mínimo pra aposta valer a pena</div>
+                  <div className="tl-metric-hint">referência para comparar a aposta</div>
                 </div>
                 <div className="tl-metric-card">
                   <div className="tl-metric-label">Chance de perder</div>
@@ -1424,6 +1445,12 @@ option { background: #111; color: var(--t1); }
   margin-bottom: 20px;
 }
 .tl-gate-btn:hover { opacity: .88; transform: translateY(-1px); }
+.tl-gate-login {
+  display: inline-flex; align-items: center; justify-content: center;
+  margin: -8px auto 14px; color: var(--green);
+  font-size: 13px; font-weight: 700; text-decoration: none;
+}
+.tl-gate-login:hover { text-decoration: underline; text-underline-offset: 3px; }
 .tl-gate-feats {
   list-style: none; display: flex; flex-direction: column;
   gap: 8px; padding: 0; margin: 0 auto 20px;
