@@ -36,16 +36,17 @@ import { AuthProvider } from "./contexts/AuthContext";
   };
 })();
 
-const Landing      = lazy(() => import("./Landing"));
-const Tool         = lazy(() => import("./Tool"));
-const AppDashboard = lazy(() => import("./AppDashboard"));
-const Obrigado     = lazy(() => import("./Obrigado"));
-const AppMembro    = lazy(() => import("./AppMembro"));
-const Login        = lazy(() => import("./Login"));
-const AuthCallback = lazy(() => import("./AuthCallback"));
-const PaywallPage  = lazy(() => import("./PaywallPage"));
-const Multipla     = lazy(() => import("./Multipla"));
-const Invite       = lazy(() => import("./Invite"));
+const Landing          = lazy(() => import("./Landing"));
+const Tool             = lazy(() => import("./Tool"));
+const AppDashboard     = lazy(() => import("./AppDashboard"));
+const Obrigado         = lazy(() => import("./Obrigado"));
+const AppMembro        = lazy(() => import("./AppMembro"));
+const Login            = lazy(() => import("./Login"));
+const AuthCallback     = lazy(() => import("./AuthCallback"));
+const PaywallPage      = lazy(() => import("./PaywallPage"));
+const Multipla         = lazy(() => import("./Multipla"));
+const Invite           = lazy(() => import("./Invite"));
+const ImportarBilhete  = lazy(() => import("./ImportarBilhete"));
 
 function App() {
   const { path } = useRouter();
@@ -58,6 +59,7 @@ function App() {
   if (path === "/app")                return <AppDashboard />;
   if (path === "/analisar")           return <Multipla />;
   if (path === "/multipla")           return <Multipla />;
+  if (path === "/importar")           return <ImportarBilhete />;
   if (path === "/obrigado")           return <Obrigado />;
   if (path === "/membro")             return <AppMembro />;
   if (path === "/pagar") {

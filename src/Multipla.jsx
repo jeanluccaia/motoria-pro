@@ -113,7 +113,7 @@ function readInitialDraft() {
 export default function Multipla() {
   const { session, isPaid } = useAuth();
   const navigate            = useNavigate();
-  const accessGranted       = isPaid || localStorage.getItem(ACCESS_KEY) === "1";
+  const accessGranted       = Boolean(isPaid || localStorage.getItem(ACCESS_KEY) === "1" || getCodeSessionToken());
   const initialDraftRef     = useRef();
   if (initialDraftRef.current === undefined) {
     initialDraftRef.current = readInitialDraft();
@@ -136,6 +136,7 @@ export default function Multipla() {
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState("");
   const [saved,     setSaved]     = useState(false);
+  const [premiumModalOpen, setPremiumModalOpen] = useState(false);
 
   // Computed
   const isMultipla = selecoes.length >= 2;
@@ -182,6 +183,13 @@ export default function Multipla() {
     return { id: Date.now(), jogo: form.jogo.trim(), mercado: form.mercado, odd: oddN, obs: form.obs.trim() };
   }
 
+  function requirePremium(reason = "multipla-action") {
+    if (accessGranted) return true;
+    console.log("premium gate:", reason, { path: window.location.pathname, hasSession: Boolean(session) });
+    setPremiumModalOpen(true);
+    return false;
+  }
+
   // ── Fase 0: analisar entrada simples diretamente ─────────────────────────────
   function handleAnalisarSimples() {
     if (!formValido()) return;
@@ -225,6 +233,7 @@ export default function Multipla() {
   // ── Análise ──────────────────────────────────────────────────────────────────
   async function executarAnalise(sels = selecoes) {
     if (sels.length === 0) return;
+    if (!requirePremium("multipla-analysis-api")) return;
     const oddTot  = sels.reduce((a, s) => a * parseFloat(s.odd), 1);
     const chanceTot = (1 / oddTot) * 100;
     setError("");
@@ -253,6 +262,7 @@ export default function Multipla() {
   }
 
   async function salvarHistorico() {
+    if (!requirePremium("multipla-save-history")) return;
     if (!session?.user?.id || !resultado) return;
     try {
       await saveSlip(session.user.id, {
@@ -277,6 +287,7 @@ export default function Multipla() {
   }
 
   async function marcarResultado(slipId, res) {
+    if (!requirePremium("multipla-update-history")) return;
     setUpdatingId(slipId);
     try {
       await updateSlipResult(slipId, res);
@@ -286,6 +297,7 @@ export default function Multipla() {
   }
 
   async function excluirBilhete(slipId) {
+    if (!requirePremium("multipla-delete-history")) return;
     try {
       await deleteSlip(slipId);
       setHistorico(prev => prev.filter(s => s.id !== slipId));
@@ -300,6 +312,26 @@ export default function Multipla() {
   return (
     <>
       <style>{CSS}</style>
+      {premiumModalOpen && (
+        <div className="mp-premium-overlay" onClick={() => setPremiumModalOpen(false)} role="presentation">
+          <div className="mp-premium-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="mp-premium-title">
+            <button className="mp-premium-close" type="button" onClick={() => setPremiumModalOpen(false)} aria-label="Fechar">x</button>
+            <div className="mp-premium-mark" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="1.7"/>
+                <path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+                <circle cx="12" cy="15" r="1.4" fill="currentColor"/>
+              </svg>
+            </div>
+            <h2 id="mp-premium-title" className="mp-premium-title">Análise completa bloqueada</h2>
+            <p className="mp-premium-text">Você pode explorar os jogos, mas precisa desbloquear para ver risco, banca e leitura completa.</p>
+            <div className="mp-premium-actions">
+              <a href="https://pay.kiwify.com.br/DIVD8zl" className="mp-premium-primary" target="_blank" rel="noopener noreferrer">Desbloquear por R$27</a>
+              <a href="/login" className="mp-premium-secondary">Já tenho código</a>
+            </div>
+          </div>
+        </div>
+      )}
       <LegalBar />
       <Header />
 
@@ -313,9 +345,11 @@ export default function Multipla() {
             </button>
             <button
               className={`mp-tab${tab === "historico" ? " mp-tab-active" : ""}`}
-              onClick={() => setTab("historico")}
-              disabled={!session}
-              title={!session ? "Faça login para ver o histórico" : ""}
+              onClick={() => {
+                if (!requirePremium("multipla-history-tab")) return;
+                setTab("historico");
+              }}
+              title={!accessGranted ? "Desbloqueie para ver o histórico" : ""}
             >
               Histórico
               {historico.length > 0 && <span className="mp-tab-count">{historico.length}</span>}
@@ -330,7 +364,7 @@ export default function Multipla() {
                 <div className="mp-form">
                   <div className="mp-form-head">
                     <h1 className="mp-form-title">Análise de risco</h1>
-                    <p className="mp-form-sub">Preencha os dados da entrada para analisar.</p>
+                    <p className="mp-form-sub">Preencha os dados da aposta para analisar.</p>
                   </div>
 
                   {/* Campos da seleção */}
@@ -415,7 +449,7 @@ export default function Multipla() {
                     onClick={handleAnalisarSimples}
                     disabled={!formValido()}
                   >
-                    Analisar risco da entrada →
+                    Analisar aposta →
                   </button>
 
                   {/* Divisor + opção múltipla */}
@@ -429,6 +463,17 @@ export default function Multipla() {
                       + Adicionar outra seleção
                     </button>
                   </div>
+
+                  {/* Importar print */}
+                  <a href="/importar" className="mp-scan-link">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                      <rect x="1" y="1" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+                      <rect x="9" y="1" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+                      <rect x="1" y="9" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+                      <path d="M9 11h2m2 0h-2m0 0V9m0 2v2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                    </svg>
+                    Tem um print? Importar bilhete automaticamente
+                  </a>
                 </div>
               )}
 
@@ -440,12 +485,12 @@ export default function Multipla() {
                   <div className="mp-sel-head">
                     <div>
                       <h1 className="mp-form-title">
-                        {isMultipla ? "Bilhete múltiplo" : "Sua entrada"}
+                        {isMultipla ? "Bilhete múltiplo" : "Sua aposta"}
                       </h1>
                       <p className="mp-form-sub">
                         {isMultipla
                           ? `${selecoes.length} seleções · Odd total ${allOdd.toFixed(2)}`
-                          : "Pronto para analisar ou adicione outra seleção."}
+                          : "Pronto para analisar ou adicionar outra seleção."}
                       </p>
                     </div>
                     {isMultipla && <span className="mp-multi-badge">Múltipla</span>}
@@ -485,7 +530,7 @@ export default function Multipla() {
                       <div className="mp-dep-alert">
                         <span className="mp-dep-dot" />
                         <span>
-                          <strong>{selecoes.length} dependências</strong> — cada seleção aumenta o risco acumulado.
+                          <strong>{selecoes.length} coisas precisam dar certo</strong> — cada seleção aumenta o risco do bilhete.
                         </span>
                       </div>
                       <button className="mp-add-more" onClick={() => setShowModal(true)}>
@@ -501,7 +546,7 @@ export default function Multipla() {
               {loading && (
                 <div className="mp-loading">
                   <div className="mp-spinner" />
-                  <p>Analisando risco{isMultipla ? " do bilhete" : " da entrada"}…</p>
+                  <p>Analisando {isMultipla ? "o bilhete" : "a aposta"}…</p>
                 </div>
               )}
 
@@ -548,7 +593,7 @@ export default function Multipla() {
                 <div className="mp-bar-stats">
                   <Stat label="SELEÇÕES"  val={selecoes.length} />
                   <Stat label="ODD TOTAL" val={allOdd.toFixed(2)} color={cOdd} />
-                  <Stat label="CHANCE"    val={`${chance.toFixed(1)}%`} color={cChance} />
+                  <Stat label="PROB."     val={`${chance.toFixed(1)}%`} color={cChance} />
                   {retorno && <Stat label="RETORNO" val={`R$${retorno}`} color="#22c55e" />}
                   {pctB    && <Stat label="% BANCA"  val={`${pctB}%`} color={parseFloat(pctB) > 5 ? "#FF4D2E" : "#FFB020"} />}
                 </div>
@@ -557,7 +602,7 @@ export default function Multipla() {
               {/* Entradas financeiras */}
               <div className="mp-bar-inputs">
                 <MoneyInput
-                  placeholder={isMultipla ? "Valor total" : "Valor da entrada"}
+                  placeholder={isMultipla ? "Valor total" : "Valor da aposta"}
                   value={valorTotal}
                   prefix="R$"
                   prefixColor="#22c55e"
@@ -582,7 +627,7 @@ export default function Multipla() {
               )}
 
               <button className="mp-bar-cta" onClick={() => executarAnalise()}>
-                {isMultipla ? "Analisar risco do bilhete →" : "Analisar risco da entrada →"}
+                {isMultipla ? "Analisar bilhete →" : "Analisar aposta →"}
               </button>
             </div>
           </div>
@@ -717,37 +762,37 @@ function ResultBlock({ resultado, accessGranted, isMultipla, selecoes, cOdd, cCh
     <div className="mp-result">
       <div className="mp-res-risk" style={{ borderColor: `${rc}30` }}>
         <div>
-          <div className="mp-res-lbl">{isMultipla ? "RISCO DO BILHETE" : "RISCO DA ENTRADA"}</div>
+          <div className="mp-res-lbl">{isMultipla ? "RISCO DO BILHETE" : "RISCO DA APOSTA"}</div>
           <div className="mp-res-val" style={{ color: rc }}>{(resultado.nivelRisco || "").toUpperCase()}</div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div className="mp-res-lbl">CHANCE REAL</div>
+          <div className="mp-res-lbl">CHANCE ESTIMADA</div>
           <div className="mp-res-val" style={{ color: cChance }}>{resultado.chanceReal}%</div>
         </div>
       </div>
 
       <div className="mp-res-grid">
-        <Card label={isMultipla ? "ODD TOTAL" : "ODD"} val={resultado.oddTotal} color={cOdd} />
-        {isMultipla && <Card label="SELEÇÕES" val={selecoes.length} />}
-        {resultado.retornoPossivel && <Card label="RETORNO" val={`R$${resultado.retornoPossivel}`} color="#22c55e" />}
         {resultado.percentualBanca && (
           <Card label="% DA BANCA" val={`${resultado.percentualBanca}%`}
             color={parseFloat(resultado.percentualBanca) > 5 ? "#FF4D2E" : "#FFB020"} />
         )}
+        {isMultipla && <Card label="SELEÇÕES" val={selecoes.length} />}
+        <Card label={isMultipla ? "ODD TOTAL" : "ODD"} val={resultado.oddTotal} color={cOdd} />
+        {resultado.retornoPossivel && <Card label="RETORNO" val={`R$${resultado.retornoPossivel}`} color="#22c55e" />}
       </div>
 
       {resultado.mensagem && <p className="mp-res-msg">{resultado.mensagem}</p>}
 
       {resultado.dependencias && (
         <div className="mp-res-card mp-card-red">
-          <div className="mp-res-lbl" style={{ color: "#FF4D2E" }}>DEPENDÊNCIAS</div>
+          <div className="mp-res-lbl" style={{ color: "#FF4D2E" }}>O QUE PRECISA BATER</div>
           <p className="mp-card-txt">{resultado.dependencias}</p>
         </div>
       )}
 
       {resultado.riscoPrincipal && (
         <div className="mp-res-card">
-          <div className="mp-res-lbl">RISCO PRINCIPAL</div>
+          <div className="mp-res-lbl">FICA DE OLHO</div>
           <p className="mp-card-txt">{resultado.riscoPrincipal}</p>
         </div>
       )}
@@ -831,7 +876,7 @@ function HistoricoBlock({ session, histLoading, historico, updatingId, onTab, on
             <span>Odd <strong style={{ color: slip.oddTotal < 3 ? "#22c55e" : slip.oddTotal < 6 ? "#FFB020" : "#FF4D2E" }}>
               {parseFloat(slip.oddTotal).toFixed(2)}
             </strong></span>
-            <span>Chance <strong style={{ color: slip.chanceReal < 20 ? "#FF4D2E" : "#FFB020" }}>
+            <span>Prob. <strong style={{ color: slip.chanceReal < 20 ? "#FF4D2E" : "#FFB020" }}>
               {parseFloat(slip.chanceReal).toFixed(1)}%
             </strong></span>
             {slip.stake && <span>Valor <strong>R${parseFloat(slip.stake).toFixed(2)}</strong></span>}
@@ -913,6 +958,8 @@ const CSS = `
 .mp-cta-multi { background: rgba(34,197,94,0.09); border: 1px solid rgba(34,197,94,0.25); color: #22c55e; font-size: 13px; font-weight: 700; font-family: inherit; padding: 9px 14px; border-radius: 9px; cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
 .mp-cta-multi:hover:not(:disabled) { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.45); }
 .mp-cta-multi:disabled { opacity: 0.3; cursor: not-allowed; }
+.mp-scan-link { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 16px; border-radius: 10px; border: 1px dashed #2A2A2C; color: #555; font-size: 12px; font-weight: 600; text-decoration: none; transition: border-color 0.15s, color 0.15s; }
+.mp-scan-link:hover { border-color: rgba(31,203,122,0.3); color: #1FCB7A; }
 
 /* ── Fase 1+: cards ──────────────────────────────────────── */
 .mp-selecoes { display: flex; flex-direction: column; gap: 10px; }
@@ -996,6 +1043,58 @@ const CSS = `
 .mp-modal-ok { flex: 2; padding: 14px; background: #22c55e; border: none; border-radius: 10px; color: #000; font-size: 15px; font-weight: 900; font-family: inherit; cursor: pointer; transition: opacity 0.15s; }
 .mp-modal-ok:hover:not(:disabled) { opacity: 0.88; }
 .mp-modal-ok:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* Premium action modal */
+.mp-premium-overlay {
+  position: fixed; inset: 0; z-index: 140;
+  display: grid; place-items: center; padding: 18px;
+  background: rgba(0,0,0,0.72); backdrop-filter: blur(10px);
+}
+.mp-premium-modal {
+  width: min(420px, 100%);
+  background: #0f1112; border: 1px solid rgba(34,197,94,0.24);
+  border-radius: 18px; padding: 28px 24px 24px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04) inset;
+  position: relative; text-align: center;
+}
+.mp-premium-close {
+  position: absolute; top: 12px; right: 12px;
+  width: 30px; height: 30px; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04);
+  color: #777; cursor: pointer; font: 700 14px/1 inherit;
+}
+.mp-premium-close:hover { color: #f2f2f0; }
+.mp-premium-mark {
+  width: 48px; height: 48px; margin: 0 auto 16px;
+  display: grid; place-items: center; border-radius: 14px;
+  color: #22c55e; background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.24);
+}
+.mp-premium-title {
+  margin: 0 0 10px; color: #f2f2f0;
+  font-size: 22px; line-height: 1.15; font-weight: 900; letter-spacing: -0.01em;
+}
+.mp-premium-text {
+  margin: 0 auto 22px; color: #aaa;
+  font-size: 14px; line-height: 1.55; max-width: 330px;
+}
+.mp-premium-actions { display: grid; gap: 10px; }
+.mp-premium-primary,
+.mp-premium-secondary {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 46px; border-radius: 12px;
+  font-size: 14px; font-weight: 800; text-decoration: none;
+}
+.mp-premium-primary { background: #22c55e; color: #020403; }
+.mp-premium-secondary {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
+  color: #cfcfcf;
+}
+.mp-premium-secondary:hover { color: #f2f2f0; border-color: rgba(34,197,94,0.24); }
+@media (max-width: 520px) {
+  .mp-premium-overlay { align-items: end; padding: 12px; }
+  .mp-premium-modal { border-radius: 18px 18px 14px 14px; padding: 26px 20px 20px; }
+}
 
 /* ── Resultado ─────────────────────────────────────────── */
 .mp-result { display: flex; flex-direction: column; gap: 12px; }
