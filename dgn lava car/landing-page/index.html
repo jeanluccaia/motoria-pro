@@ -27,7 +27,7 @@
       --glow:        rgba(201,168,76,0.32);
     }
 
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; overflow-x: hidden; max-width: 100%; }
 
     body {
       font-family: 'Montserrat', sans-serif;
@@ -1914,6 +1914,184 @@
       letter-spacing: 0.12em; color: rgba(201,168,76,0.38); margin-bottom: 30px;
     }
     .logos-empresas-corp span { color: rgba(201,168,76,0.45); }
+
+    /* =====================================================================
+       MOBILE FIXES — overflow, hero, botões, seções
+    ===================================================================== */
+
+    /* Garantia global anti-overflow */
+    section, .wrap, .plans-section,
+    .lb-section, .secao-leva-traz, .partners-section,
+    .corporate-section, .corporate-banner, .banner-corporativo,
+    .gallery-section, .story-section, .metricas-bar, .metrics-bar {
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    /* Todos os textos longos: nunca escapam do container */
+    p, h1, h2, h3, h4, h5, li, span, a {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    @media (max-width: 768px) {
+
+      /* ── Badge atendimentos: reposicionar e limitar tamanho ── */
+      .badge-atendimentos {
+        top: 72px;
+        right: 14px;
+        width: 84px;
+        height: 84px;
+        font-size: 7.5px;
+        letter-spacing: 0.08em;
+        padding: 10px 8px;
+      }
+
+      /* ── Hero pilares: esconder separadores "|" (2º e 4º filho) ── */
+      .hero-pillars .hero-pillar:nth-child(2),
+      .hero-pillars .hero-pillar:nth-child(4) {
+        display: none;
+      }
+
+      /* ── Hero pilares: coluna limpa ── */
+      .hero-pillars {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        margin: 16px 0 24px;
+      }
+
+      .hero-pillar {
+        font-size: 10px;
+        letter-spacing: 0.1em;
+      }
+
+      /* ── Hero headline ── */
+      .hero-h1 {
+        font-size: clamp(44px, 12vw, 64px) !important;
+      }
+
+      /* ── Botões hero: largura total ── */
+      .hero-content .btn {
+        display: block;
+        width: 100%;
+        text-align: center;
+        white-space: normal;
+        word-break: break-word;
+        font-size: 11px;
+        padding: 15px 16px;
+        letter-spacing: 0.14em;
+      }
+
+      /* ── Urgência micro-text ── */
+      .hero-urgency-micro {
+        font-size: 10.5px;
+        text-align: center;
+      }
+
+      /* ── Seção Leva e Traz: padding seguro ── */
+      .secao-leva-traz { padding: 56px 20px; }
+
+      .lt-titulo { padding: 0; margin-bottom: 44px; }
+
+      .lt-titulo h2 {
+        font-size: clamp(30px, 9vw, 48px) !important;
+      }
+
+      .lt-blocos-wrap { padding: 0; }
+
+      .lt-bloco {
+        margin-bottom: 36px;
+        padding-bottom: 36px;
+        overflow-x: hidden;
+      }
+
+      .lt-bloco h3 {
+        font-size: clamp(14px, 4.5vw, 19px);
+      }
+
+      .lt-bloco p { font-size: 14px; }
+
+      /* ── Botão "VERIFICAR DISPONIBILIDADE" e similares ── */
+      .lt-fora-raio .btn-ghost-lt,
+      .btn-ghost-lt {
+        display: block;
+        width: 100%;
+        white-space: normal;
+        text-align: center;
+        font-size: 11px;
+        padding: 13px 14px;
+        letter-spacing: 0.09em;
+      }
+
+      /* ── Bairros e textos autoridade: sem corte ── */
+      .bairros-atendidos {
+        font-size: 13px;
+        white-space: normal;
+        word-wrap: break-word;
+      }
+
+      .empresas-logos { flex-wrap: wrap; }
+
+      /* ── Todos os botões: sem overflow ── */
+      .btn, button,
+      a[class*="btn"], [class*="btn"] {
+        max-width: 100%;
+        white-space: normal;
+        word-break: break-word;
+      }
+
+      /* ── Section leva-busca existente (seção 3) ── */
+      .lb-section { padding: 56px 20px; }
+      .lb-inner { gap: 36px; }
+      .lb-desc { max-width: 100%; }
+
+      /* ── Plans: largura total mobile ── */
+      .plans-grid { padding: 0; }
+      .plan-card { padding: 28px 20px; }
+
+      /* ── Cards anuais ── */
+      .card-plano { padding: 28px 20px; }
+
+      /* ── Tab switcher: texto menor ── */
+      .planos-tabs .tab {
+        font-size: 9px;
+        padding: 13px 8px;
+        letter-spacing: 0.08em;
+      }
+
+      /* ── Métricas bar: 2 colunas no mobile ── */
+      .metricas-bar { flex-wrap: wrap; }
+      .metricas-bar .metrica { width: 50%; }
+      .metricas-bar .metrica:nth-child(2)::after { display: none; }
+
+      /* ── Como funciona grid: 1 coluna no mobile ── */
+      .como-funciona-grid { grid-template-columns: 1fr !important; }
+
+      /* ── Galeria: 1 coluna ── */
+      .galeria-grid {
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto !important;
+      }
+      .galeria-grid .foto-destaque { grid-row: auto !important; }
+
+      /* ── Wrap sections: padding horizontal seguro ── */
+      .wrap { padding-left: 20px; padding-right: 20px; }
+
+      /* ── Benefit strips: sem overflow ── */
+      .benefit-strip { overflow-x: hidden; }
+
+      /* ── Lote banner ── */
+      .lote-banner { padding: 16px 16px; }
+
+      /* ── Parceiros compact ── */
+      .partner-compact-logos { flex-direction: column; }
+
+      /* ── Banner corporativo ── */
+      .banner-corporativo { padding: 48px 20px; }
+      .logos-empresas-corp { font-size: 11px; }
+
+    } /* fim @media 768px */
 
     /* ── Sticky CTA mobile ── */
     .sticky-cta-mobile {
