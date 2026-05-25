@@ -138,7 +138,7 @@ function VideoSection() {
             muted
             loop
             playsInline
-            preload="metadata"
+            preload="none"
             poster="/hero-risk-awareness.png"
           >
             <source src="/video/motoria-demo.mp4" type="video/mp4" />
@@ -253,10 +253,7 @@ export default function Landing() {
             </p>
             <div className="lp-hero-actions">
               <Link to="/app" className="lp-btn-hero">
-                Explorar jogos
-                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                  <path d="M2.5 7H11.5M11.5 7L8 3.5M11.5 7L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                Analisar minha próxima aposta →
               </Link>
               <a href="#como-funciona" className="lp-btn-ghost">Entender como funciona ↓</a>
             </div>
@@ -273,6 +270,49 @@ export default function Landing() {
                 loading="eager"
               />
             </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ── CONTROLE DE BANCA ────────────────────────────────────────────────── */}
+      <section className="lp-section lp-dark" id="banca">
+        <div className="lp-container">
+          <div className="lp-eyebrow">Controle de Banca</div>
+          <h2 className="lp-h2">Sabe quanto você<br />perdeu esse mês?</h2>
+          <p className="lp-banca-sub">
+            A maioria dos apostadores não vê o quadro completo. O MotorIA Pro mostra resultado, banca e quanto dinheiro ficou em jogo — tudo num lugar só.
+          </p>
+
+          {/* Mock dashboard */}
+          <div className="lp-bk-grid">
+            {[
+              { label: "Saldo Atual",           val: "R$ 1.247",  sub: "+R$247 desde o início",      c: "#22c55e" },
+              { label: "Dinheiro em jogo no mês", val: "R$ 1.240",  sub: "Somando apostas registradas", c: "#f59e0b" },
+              { label: "Rendimento",            val: "+12,4%",    sub: "Sobre o valor apostado",       c: "#22c55e" },
+              { label: "Decisões registradas",  val: "30",        sub: "Total no período",             c: "#e8e8e6" },
+              { label: "Sequência de perdas",   val: "1",         sub: "Sem alerta ativo",             c: "#22c55e" },
+              { label: "Apostado hoje",         val: "R$ 80",     sub: "Dentro do limite diário",      c: "#22c55e" },
+            ].map((c, i) => (
+              <div className="lp-bk-card" key={i}>
+                <div className="lp-bk-label">{c.label}</div>
+                <div className="lp-bk-val" style={{ color: c.c }}>{c.val}</div>
+                <div className="lp-bk-sub">{c.sub}</div>
+              </div>
+            ))}
+          </div>
+
+          <p className="lp-banca-quote">
+            "A maioria só olha a odd.<br />Poucos sabem o quanto já perderam esse mês."
+          </p>
+
+          <div className="lp-img-wrap lp-img-wrap-banca">
+            <img
+              src="/bankroll-control-dashboard.png"
+              alt="Celular mostrando dashboard de controle de banca com saldo e lucro"
+              className="lp-banca-img"
+              loading="lazy"
+            />
           </div>
 
         </div>
@@ -464,51 +504,8 @@ export default function Landing() {
               <a href={KIWIFY_URL} className="lp-risk-cta" target="_blank" rel="noopener noreferrer">
                 Desbloquear análise completa por R$27
               </a>
-              <p className="lp-risk-micro">Pagamento único · sem mensalidade · acesso imediato</p>
+              <p className="lp-risk-micro">🔒 Garantia de 7 dias · Pagamento único · Sem mensalidade</p>
             </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* ── CONTROLE DE BANCA ────────────────────────────────────────────────── */}
-      <section className="lp-section lp-dark" id="banca">
-        <div className="lp-container">
-          <div className="lp-eyebrow">Controle de Banca</div>
-          <h2 className="lp-h2">Sabe quanto você<br />perdeu esse mês?</h2>
-          <p className="lp-banca-sub">
-            A maioria dos apostadores não vê o quadro completo. O MotorIA Pro mostra resultado, banca e quanto dinheiro ficou em jogo — tudo num lugar só.
-          </p>
-
-          {/* Mock dashboard */}
-          <div className="lp-bk-grid">
-            {[
-              { label: "Saldo Atual",           val: "R$ 1.247",  sub: "+R$247 desde o início",      c: "#22c55e" },
-              { label: "Dinheiro em jogo no mês", val: "R$ 1.240",  sub: "Somando apostas registradas", c: "#f59e0b" },
-              { label: "Rendimento",            val: "+12,4%",    sub: "Sobre o valor apostado",       c: "#22c55e" },
-              { label: "Decisões registradas",  val: "30",        sub: "Total no período",             c: "#e8e8e6" },
-              { label: "Sequência de perdas",   val: "1",         sub: "Sem alerta ativo",             c: "#22c55e" },
-              { label: "Apostado hoje",         val: "R$ 80",     sub: "Dentro do limite diário",      c: "#22c55e" },
-            ].map((c, i) => (
-              <div className="lp-bk-card" key={i}>
-                <div className="lp-bk-label">{c.label}</div>
-                <div className="lp-bk-val" style={{ color: c.c }}>{c.val}</div>
-                <div className="lp-bk-sub">{c.sub}</div>
-              </div>
-            ))}
-          </div>
-
-          <p className="lp-banca-quote">
-            "A maioria só olha a odd.<br />Poucos sabem o quanto já perderam esse mês."
-          </p>
-
-          <div className="lp-img-wrap lp-img-wrap-banca">
-            <img
-              src="/bankroll-control-dashboard.png"
-              alt="Celular mostrando dashboard de controle de banca com saldo e lucro"
-              className="lp-banca-img"
-              loading="lazy"
-            />
           </div>
 
         </div>
@@ -591,17 +588,6 @@ export default function Landing() {
                 </div>
               </div>
 
-              {/* Urgency bar */}
-              <div className="lp-urgency">
-                <div className="lp-urgency-top">
-                  <span className="lp-urgency-dot" aria-hidden="true" />
-                  <span className="lp-urgency-txt">Vagas restantes: 153 de 1.000</span>
-                </div>
-                <div className="lp-urgency-track">
-                  <div className="lp-urgency-fill" />
-                </div>
-              </div>
-
               <a
                 href={KIWIFY_URL}
                 className="lp-btn-buy"
@@ -611,6 +597,7 @@ export default function Landing() {
                 Desbloquear por R$27
               </a>
               <p className="lp-btn-micro">Acesso imediato · pagamento único</p>
+              <p className="lp-guarantee-text">🔒 Garantia de 7 dias. Se não gostar, devolvemos tudo.</p>
               <div className="lp-guarantee">
                 <span className="lp-guarantee-icon" aria-hidden="true">✓</span>
                 <span>Não gostou em 7 dias? Devolvo seu dinheiro. Sem burocracia.</span>
@@ -650,7 +637,8 @@ export default function Landing() {
           >
             Desbloquear por R$27 →
           </a>
-          <p className="lp-cta-micro">Acesso imediato · pagamento único · garantia de 7 dias</p>
+          <p className="lp-guarantee-text">🔒 Garantia de 7 dias. Se não gostar, devolvemos tudo.</p>
+          <p className="lp-cta-micro">Acesso imediato · Pagamento único · Sem mensalidade</p>
         </div>
       </section>
 
@@ -1199,6 +1187,10 @@ body { background: var(--bg); color: var(--t1); font-family: -apple-system, Blin
   font-size: 12px; color: var(--t2);
 }
 .lp-guarantee-icon { color: var(--green); font-size: 11px; flex-shrink: 0; }
+.lp-guarantee-text {
+  text-align: center; font-size: 12px; color: #9ca3af; letter-spacing: .01em;
+  margin-top: 10px;
+}
 
 /* ── FAQ ─────────────────────────────────────────────────────────────────────── */
 .lp-faq-wrap { max-width: 700px; }
