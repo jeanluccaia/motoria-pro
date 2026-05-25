@@ -320,100 +320,82 @@ export default function Landing() {
 
       {/* ── IMPORTAR BILHETE ─────────────────────────────────────────────────── */}
       <section className="lp-section lp-dark lp-import-section" id="importar">
-        <div className="lp-container lp-import-layout">
+        <div className="lp-container">
 
-          {/* Left — copy */}
-          <div className="lp-import-left">
-            <div className="lp-eyebrow">Nova funcionalidade</div>
-            <h2 className="lp-h2">
-              IMPORTE O PRINT<br />
-              DO SEU BILHETE.
-            </h2>
-            <p className="lp-import-sub">
-              O MotorIA lê sua aposta, identifica estrutura, mercados e gera
-              uma análise de risco em segundos.
-            </p>
-            <ul className="lp-import-bullets" aria-label="Capacidades de leitura">
-              {[
-                "Detecta apostas múltiplas",
-                "Reconhece linhas asiáticas",
-                "Analisa apostas ao vivo",
-                "Score inteligente contextual",
-                "Estrutura Yankee e proteção parcial",
-                "Leitura automática do bilhete",
-              ].map((b, i) => (
-                <li key={i} className="lp-import-bullet">
-                  <span className="lp-import-check" aria-hidden="true">✓</span>
-                  <span>{b}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="lp-import-tagline">
-              Não é só uma IA lendo odds.<br />
-              <strong>É uma análise estrutural da aposta.</strong>
+          {/* Momento 1 — Headline */}
+          <div className="lp-slip-headline">
+            <h2 className="lp-h2">Tire um print<br />do seu bilhete.</h2>
+            <p className="lp-slip-sub">O MotorIA lê, identifica e analisa em segundos.</p>
+          </div>
+
+          {/* Momento 2 — Bilhete full width */}
+          <div className="lp-mock-slip lp-slip-full">
+            <div className="lp-mock-slip-hdr">
+              <span className="lp-mock-slip-dot" /><span className="lp-mock-slip-dot" />
+              <span className="lp-mock-slip-name">betano</span>
+              <span className="lp-mock-slip-badge">Meu Bilhete</span>
+            </div>
+            {[
+              { match: "Man City x Arsenal",   mkt: "Over 1.0/1.5 Gols",     odd: "1.82" },
+              { match: "Real Madrid x Bayern", mkt: "Ambos Marcam – Sim",    odd: "1.70" },
+              { match: "Liverpool x PSG",      mkt: "Resultado – Liverpool", odd: "2.10" },
+            ].map((r, i) => (
+              <div key={i} className="lp-mock-slip-row">
+                <div className="lp-mock-slip-match">{r.match}</div>
+                <div className="lp-mock-slip-mkt">{r.mkt}</div>
+                <div className="lp-mock-slip-odd">{r.odd}</div>
+              </div>
+            ))}
+            <div className="lp-mock-slip-foot">
+              <span>R$50,00</span>
+              <span className="lp-mock-slip-ret">Retorno: R$323,40</span>
+            </div>
+          </div>
+
+          {/* Momento 3 — Transição visual */}
+          <div className="lp-slip-transition">
+            <div className="lp-slip-transition-line" />
+            <div className="lp-slip-transition-center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+              </svg>
+              <span className="lp-slip-engine">MotorIA Risk Engine™</span>
+            </div>
+            <div className="lp-slip-transition-line" />
+          </div>
+
+          {/* Momento 4 — Resultado full width */}
+          <div className="lp-slip-result">
+            <div className="lp-slip-result-hdr">
+              <span className="lp-slip-result-label">RESULTADO DA ANÁLISE</span>
+              <span className="lp-slip-result-badge">⚠ EXIGE CAUTELA</span>
+            </div>
+            <div className="lp-slip-metrics">
+              <div className="lp-slip-metric">
+                <div className="lp-slip-metric-lbl">RISCO DO BILHETE</div>
+                <div className="lp-slip-metric-val lp-slip-val-red">73/100</div>
+              </div>
+              <div className="lp-slip-metric-divider" aria-hidden="true" />
+              <div className="lp-slip-metric">
+                <div className="lp-slip-metric-lbl">CHANCE DE PERDA</div>
+                <div className="lp-slip-metric-val lp-slip-val-amber">32,4%</div>
+              </div>
+            </div>
+            <p className="lp-slip-result-desc">
+              Múltipla de 3 seleções com linha asiática. Risco real maior do que a odd sugere.
             </p>
           </div>
 
-          {/* Right — mock analysis card */}
-          <div className="lp-import-right" aria-hidden="true">
-            <div className="lp-mock-wrap">
+          {/* Tagline */}
+          <p className="lp-slip-tagline">
+            <em>Não é uma IA lendo odds. É uma análise estrutural da aposta.</em>
+          </p>
 
-              {/* Slip received */}
-              <div className="lp-mock-slip">
-                <div className="lp-mock-slip-hdr">
-                  <span className="lp-mock-slip-dot" /><span className="lp-mock-slip-dot" />
-                  <span className="lp-mock-slip-name">betano</span>
-                  <span className="lp-mock-slip-badge">Meu Bilhete</span>
-                </div>
-                {[
-                  { match: "Man City x Arsenal",     mkt: "Over 1.0/1.5 Gols",       odd: "1.82" },
-                  { match: "Real Madrid x Bayern",   mkt: "Ambos Marcam – Sim",      odd: "1.70" },
-                  { match: "Liverpool x PSG",        mkt: "Resultado – Liverpool",   odd: "2.10" },
-                ].map((r, i) => (
-                  <div key={i} className="lp-mock-slip-row">
-                    <div className="lp-mock-slip-match">{r.match}</div>
-                    <div className="lp-mock-slip-mkt">{r.mkt}</div>
-                    <div className="lp-mock-slip-odd">{r.odd}</div>
-                  </div>
-                ))}
-                <div className="lp-mock-slip-foot">
-                  <span>R$50,00</span>
-                  <span className="lp-mock-slip-ret">Retorno: R$323,40</span>
-                </div>
-              </div>
-
-              {/* Transition indicator */}
-              <div className="lp-mock-transition">
-                <div className="lp-mock-dots">
-                  <span /><span /><span />
-                </div>
-                <span className="lp-mock-lbl">Lendo bilhete…</span>
-              </div>
-
-              {/* Result card */}
-              <div className="lp-mock-result">
-                <div className="lp-mock-result-hdr">
-                  <div>
-                    <div className="lp-mock-result-eyebrow">SCORE DE RISCO</div>
-                    <div className="lp-mock-result-score">68</div>
-                  </div>
-                  <div className="lp-mock-badge-alto">ALTO</div>
-                </div>
-                <div className="lp-mock-veredicto">EXIGE CAUTELA</div>
-                <div className="lp-mock-alerts">
-                  <div className="lp-mock-alert lp-mock-alert-info">
-                    Linha asiática detectada — risco parcialmente diluído
-                  </div>
-                  <div className="lp-mock-alert lp-mock-alert-danger">
-                    3 seleções ao vivo — variância elevada
-                  </div>
-                </div>
-                <div className="lp-mock-analise">
-                  Múltipla de 3 seleções · 11,2% de chance estimada · análise gerada em 4s
-                </div>
-              </div>
-
-            </div>
+          {/* CTA */}
+          <div className="lp-slip-cta-wrap">
+            <a href={KIWIFY_URL} className="lp-btn-buy" target="_blank" rel="noopener noreferrer">
+              Desbloquear por R$27 →
+            </a>
           </div>
 
         </div>
@@ -1322,44 +1304,18 @@ body { background: var(--bg); color: var(--t1); font-family: -apple-system, Blin
   .lp-bk-grid { grid-template-columns: 1fr; }
   .lp-risk-metrics { grid-template-columns: 1fr; }
   .lp-h2 { font-size: clamp(24px, 7vw, 34px); }
-  .lp-import-layout { grid-template-columns: 1fr; gap: 40px; }
   .lp-import-section { padding: 60px 0; }
-  .lp-mock-wrap { max-width: 400px; margin: 0 auto; }
 }
 
 /* ── Import / Scanner section ───────────────────────────────────────────────── */
 .lp-import-section { padding: 72px 0; }
-.lp-import-layout {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 72px; align-items: center;
-}
-.lp-import-sub {
-  font-size: 15px; color: var(--t2); line-height: 1.7;
-  margin-bottom: 28px; max-width: 400px;
-}
-.lp-import-bullets { list-style: none; display: flex; flex-direction: column; gap: 9px; margin-bottom: 26px; }
-.lp-import-bullet  { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--t2); }
-.lp-import-check {
-  width: 19px; height: 19px; border-radius: 50%;
-  background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.22);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 10px; color: var(--green); flex-shrink: 0; font-weight: 900;
-}
-.lp-import-tagline {
-  font-size: 13px; color: var(--t2); line-height: 1.65;
-  border-left: 2px solid rgba(34,197,94,.25); padding-left: 14px;
-  font-style: italic;
-}
-.lp-import-tagline strong { color: var(--t1); font-style: normal; }
 
-/* Mock wrapper */
-.lp-mock-wrap { display: flex; flex-direction: column; gap: 10px; }
-
-/* Slip card */
+/* Slip card (reutilizado nos 4 momentos) */
 .lp-mock-slip {
   background: #0D0D10; border: 1px solid rgba(255,255,255,.07);
   border-radius: 14px; overflow: hidden;
 }
+.lp-slip-full { border-radius: 12px; }
 .lp-mock-slip-hdr {
   display: flex; align-items: center; gap: 7px;
   padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,.05);
@@ -1390,58 +1346,68 @@ body { background: var(--bg); color: var(--t1); font-family: -apple-system, Blin
 }
 .lp-mock-slip-ret { color: #1FCB7A; }
 
-/* Transition */
-.lp-mock-transition {
-  display: flex; flex-direction: column; align-items: center; gap: 5px;
-  padding: 2px 0;
+/* Story moments */
+.lp-slip-headline { margin-bottom: 24px; }
+.lp-slip-sub {
+  font-size: 15px; color: var(--t2); line-height: 1.65; margin-top: 10px;
 }
-.lp-mock-dots { display: flex; gap: 4px; }
-.lp-mock-dots span {
-  width: 4px; height: 4px; border-radius: 50%; background: rgba(31,203,122,.35);
+.lp-slip-transition {
+  display: flex; align-items: center; gap: 14px; padding: 20px 0;
 }
-.lp-mock-dots span:nth-child(2) { background: rgba(31,203,122,.6); }
-.lp-mock-dots span:nth-child(3) { background: rgba(31,203,122,.25); }
-.lp-mock-lbl {
-  font-size: 9.5px; font-weight: 700; letter-spacing: .12em;
-  color: rgba(31,203,122,.5); text-transform: uppercase;
+.lp-slip-transition-line { flex: 1; height: 1px; background: #1f1f1f; }
+.lp-slip-transition-center {
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
 }
-
-/* Result card */
-.lp-mock-result {
-  background: #0D0D10; border: 1px solid rgba(249,115,22,.2);
-  border-radius: 14px; padding: 16px;
-  display: flex; flex-direction: column; gap: 10px;
-  box-shadow: 0 0 28px rgba(249,115,22,.06);
+.lp-slip-engine {
+  font-size: 11px; font-weight: 700; letter-spacing: .1em;
+  color: #22c55e; text-transform: uppercase;
 }
-.lp-mock-result-hdr { display: flex; align-items: flex-start; justify-content: space-between; }
-.lp-mock-result-eyebrow {
-  font-size: 8.5px; font-weight: 800; letter-spacing: .14em; color: var(--t2);
-  margin-bottom: 3px;
+.lp-slip-result {
+  background: #0d0d10; border: 1px solid #1f1f1f;
+  border-radius: 12px; padding: 20px;
+  display: flex; flex-direction: column; gap: 16px;
 }
-.lp-mock-result-score {
-  font-size: 42px; font-weight: 900; line-height: 1; color: #F97316;
-  font-family: 'Courier New', monospace;
+.lp-slip-result-hdr {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
 }
-.lp-mock-badge-alto {
-  font-size: 9px; font-weight: 800; letter-spacing: .12em;
-  color: #F97316; background: rgba(249,115,22,.1);
-  border: 1px solid rgba(249,115,22,.25);
-  border-radius: 99px; padding: 4px 10px;
-  white-space: nowrap; align-self: flex-start; margin-top: 2px;
+.lp-slip-result-label {
+  font-size: 9px; font-weight: 800; letter-spacing: .16em;
+  color: var(--t2); text-transform: uppercase;
 }
-.lp-mock-veredicto {
-  font-size: 9.5px; font-weight: 800; letter-spacing: .15em; color: var(--t2);
-  text-transform: uppercase;
+.lp-slip-result-badge {
+  font-size: 10px; font-weight: 800; letter-spacing: .06em;
+  color: #ef4444; background: rgba(239,68,68,.1);
+  border: 1px solid rgba(239,68,68,.25);
+  border-radius: 99px; padding: 4px 10px; white-space: nowrap;
 }
-.lp-mock-alerts { display: flex; flex-direction: column; gap: 5px; }
-.lp-mock-alert {
-  font-size: 11px; padding: 7px 10px; border-radius: 7px;
-  line-height: 1.4; border-left: 2px solid;
+.lp-slip-metrics {
+  display: flex; align-items: stretch; gap: 0;
 }
-.lp-mock-alert-info   { color: #93C5FD; border-color: #3B82F6; background: rgba(59,130,246,.06); }
-.lp-mock-alert-danger { color: #FCA5A5; border-color: #EF4444; background: rgba(239,68,68,.05); }
-.lp-mock-analise {
-  font-size: 11px; color: var(--t2); line-height: 1.6;
-  padding-top: 6px; border-top: 1px solid rgba(255,255,255,.05);
+.lp-slip-metric {
+  flex: 1; display: flex; flex-direction: column; gap: 6px; padding: 0 16px;
 }
+.lp-slip-metric:first-child { padding-left: 0; }
+.lp-slip-metric:last-child  { padding-right: 0; }
+.lp-slip-metric-divider {
+  width: 1px; background: #1f1f1f; align-self: stretch; flex-shrink: 0;
+}
+.lp-slip-metric-lbl {
+  font-size: 8.5px; font-weight: 800; letter-spacing: .14em;
+  color: var(--t2); text-transform: uppercase;
+}
+.lp-slip-metric-val {
+  font-size: 26px; font-weight: 900; line-height: 1;
+  font-family: 'Courier New', monospace; letter-spacing: .02em;
+}
+.lp-slip-val-red   { color: #ef4444; }
+.lp-slip-val-amber { color: #f59e0b; }
+.lp-slip-result-desc {
+  font-size: 13px; color: #6b7280; line-height: 1.6;
+  border-top: 1px solid #1f1f1f; padding-top: 14px; margin: 0;
+}
+.lp-slip-tagline {
+  font-size: 13px; color: var(--t2); line-height: 1.65;
+  text-align: center; margin-top: 8px;
+}
+.lp-slip-cta-wrap { margin-top: 8px; }
 `;
