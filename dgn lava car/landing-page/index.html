@@ -1889,6 +1889,12 @@
       font-family: 'Bebas Neue', sans-serif; font-size: 11px;
       letter-spacing: 0.2em; color: rgba(201,168,76,0.18);
     }
+    .galeria-grid .g-caption {
+      position: absolute; bottom: 13px; left: 15px;
+      font-size: 9px; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: rgba(255,255,255,0.58);
+      text-shadow: 0 1px 6px rgba(0,0,0,0.8); pointer-events: none;
+    }
 
     /* ── Banner corporativo ── */
     .banner-corporativo {
@@ -2305,12 +2311,17 @@
     .sticky-title { font-size: 11px; font-weight: 700; color: var(--white); text-transform: uppercase; letter-spacing: 0.06em; display: block; }
     .sticky-sub { font-size: 10px; color: var(--gold); display: block; margin-top: 1px; }
 
-    /* ── Galeria 2 fotos compacta ── */
+    /* ── Galeria 2 fotos: composição assimétrica ── */
     @media (min-width: 601px) {
       .galeria-grid.dois-fotos {
-        grid-template-columns: 1fr 1fr !important;
-        grid-template-rows: 300px !important;
+        grid-template-columns: 3fr 2fr !important;
+        grid-template-rows: 360px !important;
+        max-width: 980px !important;
+        gap: 8px !important;
       }
+    }
+    @media (max-width: 600px) {
+      .galeria-grid.dois-fotos .g-foto { min-height: 240px; }
     }
 
     /* ── Compactação geral de espaçamentos ── */
@@ -2653,20 +2664,22 @@
 <!-- ================================================================
      SEÇÃO — ESTRUTURA E AMBIENTE
 ================================================================ -->
-<section class="gallery-section" id="galeria" style="padding:64px 0;">
+<section class="gallery-section" id="galeria">
   <div class="wrap">
     <span class="label-tag fu">Onde acontece</span>
     <h2 class="section-title fu d1">ESTRUTURA REAL.<br>ROTINA MAIS SIMPLES.</h2>
-    <p class="section-sub fu d2">Enquanto o carro recebe o cuidado técnico, a operação acontece em um ambiente organizado, local e preparado para recorrência.</p>
+    <p class="section-sub fu d2">Enquanto seu carro recebe o cuidado técnico, a operação acontece em um ambiente organizado, local e preparado para recorrência.</p>
     <div class="sep-sm"></div>
   </div>
 
-  <div class="galeria-grid dois-fotos fu d2" style="max-width:860px;">
-    <div class="g-foto" style="min-height:260px;">
+  <div class="galeria-grid dois-fotos fu d2">
+    <div class="g-foto foto-destaque">
       <img src="assets/dgn-fachada-premium.jpg" alt="Fachada DGN Club — Jardim Santa Genebra" loading="lazy">
+      <span class="g-caption">Jardim Santa Genebra · Campinas/SP</span>
     </div>
-    <div class="g-foto" style="min-height:260px;">
+    <div class="g-foto">
       <img src="assets/dgn-lounge-real.jpg" alt="Lounge DGN Club" loading="lazy">
+      <span class="g-caption">Ambiente de espera</span>
     </div>
   </div>
 </section>
