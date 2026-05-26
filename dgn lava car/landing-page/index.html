@@ -292,7 +292,7 @@
       justify-content: center;
       text-align: center;
       padding: 100px 20px 72px;
-      overflow: hidden;
+      overflow: clip;
     }
 
     .hero-bg {
@@ -439,7 +439,7 @@
       border-radius: 8px;
       padding: 36px 26px;
       position: relative;
-      overflow: hidden;
+      overflow: clip;
       transition: transform 0.28s, box-shadow 0.28s, border-color 0.28s;
     }
     .v-card::after {
@@ -467,7 +467,7 @@
       border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
       padding: 96px 0;
-      overflow: hidden;
+      overflow: clip;
     }
 
     /* left gold bar */
@@ -545,7 +545,7 @@
     .cmp-wrap {
       border: 1px solid rgba(201,168,76,0.22);
       border-radius: 10px;
-      overflow: hidden;
+      overflow: clip;
       background: rgba(255,255,255,0.025);
     }
 
@@ -580,7 +580,7 @@
 /* =====================================================================
    SECTION 4 — JORNADA DO CLIENTE
 ===================================================================== */
-    .journey { overflow: hidden; }
+    .journey { overflow: clip; }
     .journey-steps { display: flex; flex-direction: column; position: relative; }
 
     /* Timeline vertical connector (desktop) */
@@ -601,7 +601,7 @@
       display: flex;
       flex-direction: column;
       min-height: 100vh;
-      overflow: hidden;
+      overflow: clip;
       border-top: 1px solid rgba(201,168,76,0.14);
     }
 
@@ -638,7 +638,7 @@
       min-height: 240px;
       max-height: 420px;
       flex-shrink: 0;
-      overflow: hidden;
+      overflow: clip;
     }
     .jrn-img img {
       width: 100%;
@@ -1124,7 +1124,7 @@
       position: relative;
       padding: 108px 0;
       text-align: center;
-      overflow: hidden;
+      overflow: clip;
     }
     .cta-section::before {
       content: '';
@@ -1456,7 +1456,7 @@
       background: rgba(255, 255, 255, 0.08);
       margin-top: 10px;
       position: relative;
-      overflow: hidden;
+      overflow: clip;
     }
     .scarcity-fill {
       position: absolute;
@@ -1685,7 +1685,7 @@
       display: flex; max-width: 500px;
       margin: 0 auto 44px;
       border: 1px solid rgba(201,168,76,0.28);
-      border-radius: 4px; overflow: hidden;
+      border-radius: 4px; overflow: clip;
     }
     .planos-tabs .tab {
       flex: 1; padding: 14px 10px;
@@ -1868,7 +1868,7 @@
       .galeria-grid .foto-destaque { grid-row: 1 / 3; }
     }
     .galeria-grid .g-foto {
-      position: relative; overflow: hidden; border-radius: 4px;
+      position: relative; overflow: clip; border-radius: 4px;
       background: var(--card-bg); min-height: 180px;
     }
     .galeria-grid .g-foto img {
@@ -1914,6 +1914,112 @@
       letter-spacing: 0.12em; color: rgba(201,168,76,0.38); margin-bottom: 30px;
     }
     .logos-empresas-corp span { color: rgba(201,168,76,0.45); }
+
+    /* =====================================================================
+       NOVA SEÇÃO — PARA QUEM É O DGN CLUB?
+    ===================================================================== */
+    .publico-section {
+      background: #0a0a0a;
+      padding: 88px 0;
+      border-top: 1px solid rgba(201,168,76,0.14);
+      border-bottom: 1px solid rgba(201,168,76,0.14);
+    }
+
+    .publico-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1px;
+      background: rgba(201,168,76,0.1);
+      border: 1px solid rgba(201,168,76,0.14);
+      border-radius: 6px;
+      overflow: clip;
+      margin-bottom: 28px;
+    }
+
+    @media (min-width: 680px) {
+      .publico-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .publico-card {
+      background: #111;
+      padding: 36px 30px;
+      position: relative;
+      transition: background 0.25s;
+    }
+
+    .publico-card:hover {
+      background: #161616;
+    }
+
+    .publico-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    .publico-card:hover::after {
+      opacity: 1;
+    }
+
+    .publico-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 52px;
+      color: var(--gold);
+      opacity: 0.1;
+      line-height: 1;
+      margin-bottom: 12px;
+      user-select: none;
+    }
+
+    .publico-titulo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 0.05em;
+      color: var(--white);
+      margin-bottom: 5px;
+      line-height: 1.15;
+    }
+
+    .publico-sub {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--gold);
+      margin-bottom: 16px;
+    }
+
+    .publico-body {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.72;
+      font-weight: 300;
+    }
+
+    .publico-disclaimer {
+      text-align: center;
+      font-size: 11.5px;
+      color: rgba(245,245,245,0.28);
+      font-style: italic;
+      line-height: 1.65;
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 16px 20px;
+      border: 1px solid rgba(201,168,76,0.1);
+      border-radius: 4px;
+      background: rgba(201,168,76,0.02);
+    }
+
+    @media (max-width: 680px) {
+      .publico-section { padding: 64px 0; }
+      .publico-card { padding: 28px 22px; }
+      .publico-titulo { font-size: 18px; }
+      .publico-body { font-size: 13px; }
+    }
 
     /* =====================================================================
        MOBILE FIXES — overflow, hero, botões, seções
@@ -1985,12 +2091,38 @@
     #quem-somos { border-top: none; border-bottom: none; }
 
     /* Garantia global anti-overflow */
+    html, body {
+      overflow-x: hidden;
+      max-width: 100%;
+    }
+
     section, .wrap, .plans-section,
     .lb-section, .secao-leva-traz, .partners-section,
     .corporate-section, .corporate-banner, .banner-corporativo,
-    .gallery-section, .story-section, .metricas-bar, .metrics-bar {
+    .gallery-section, .story-section, .metricas-bar, .metrics-bar,
+    .jrn-cta, .cta-section, .publico-section {
       max-width: 100%;
-      overflow-x: hidden;
+    }
+
+    /* Elementos decorativos absolutos não podem vazar */
+    .jrn-bg-num,
+    .lb-section::after,
+    .cta-section::before,
+    .hero-bg {
+      pointer-events: none;
+      overflow: clip;
+    }
+
+    /* Tabela de comparação: scroll interno no mobile, não vaza */
+    @media (max-width: 560px) {
+      .cmp-wrap {
+        overflow-x: auto !important;
+        overflow-y: clip;
+        -webkit-overflow-scrolling: touch;
+      }
+      .cmp-table {
+        min-width: 420px;
+      }
     }
 
     /* Todos os textos longos: nunca escapam do container */
@@ -2068,7 +2200,7 @@
       .lt-bloco {
         margin-bottom: 36px;
         padding-bottom: 36px;
-        overflow-x: hidden;
+        overflow-x: clip;
       }
 
       .lt-bloco h3 {
@@ -2107,7 +2239,9 @@
       }
 
       /* ── Section leva-busca existente (seção 3) ── */
-      .lb-section { padding: 56px 20px; }
+      .lb-section { padding: 56px 20px; overflow: clip; }
+      .lb-section::before { display: none; }
+      .lb-section::after  { display: none; }
       .lb-inner { gap: 36px; }
       .lb-desc { max-width: 100%; }
 
@@ -2125,10 +2259,10 @@
         letter-spacing: 0.08em;
       }
 
-      /* ── Métricas bar: 2 colunas no mobile ── */
+      /* ── Métricas bar: 2 colunas no mobile, sem separadores ── */
       .metricas-bar { flex-wrap: wrap; }
       .metricas-bar .metrica { width: 50%; }
-      .metricas-bar .metrica:nth-child(2)::after { display: none; }
+      .metricas-bar .metrica::after { display: none; }
 
       /* ── Como funciona grid: 1 coluna no mobile ── */
       .como-funciona-grid { grid-template-columns: 1fr !important; }
@@ -2144,7 +2278,7 @@
       .wrap { padding-left: 20px; padding-right: 20px; }
 
       /* ── Benefit strips: sem overflow ── */
-      .benefit-strip { overflow-x: hidden; }
+      .benefit-strip { overflow-x: clip; }
 
       /* ── Lote banner ── */
       .lote-banner { padding: 16px 16px; }
@@ -2170,6 +2304,117 @@
     @media (min-width: 720px) { .sticky-cta-mobile { display: none !important; } }
     .sticky-title { font-size: 11px; font-weight: 700; color: var(--white); text-transform: uppercase; letter-spacing: 0.06em; display: block; }
     .sticky-sub { font-size: 10px; color: var(--gold); display: block; margin-top: 1px; }
+
+    /* ── Galeria 2 fotos compacta ── */
+    @media (min-width: 601px) {
+      .galeria-grid.dois-fotos {
+        grid-template-columns: 1fr 1fr !important;
+        grid-template-rows: 300px !important;
+      }
+    }
+
+    /* ── Compactação geral de espaçamentos ── */
+    .section { padding: 80px 0; }
+    .lb-section { padding: 88px 0; }
+    .gallery-section { padding: 64px 0; }
+    .publico-section { padding: 60px 0; }
+    .section-sub { margin-bottom: 38px; }
+    .sep-sm { margin: 0 auto 36px; }
+    .plan-card { padding: 36px 28px; }
+    @media (max-width: 768px) { .plan-card { padding: 26px 18px; } }
+
+    /* ================================================================
+       ANTI-SCROLLBAR GLOBAL — remove todas as barras internas de rolagem
+       overflow:clip não cria scroll container (ao contrário de hidden)
+    ================================================================ */
+
+    /* Sections nunca criam contexto de scroll interno */
+    section,
+    .section,
+    .lb-section,
+    .plans-section,
+    .secao-leva-traz,
+    .partners-section,
+    .corporate-section,
+    .banner-corporativo,
+    .gallery-section,
+    .publico-section,
+    .metricas-bar,
+    .cta-section,
+    .footer,
+    .hero {
+      overflow-x: clip;
+    }
+
+    /* Containers visuais que usam overflow:hidden só para border-radius —
+       trocar por clip para não criar scroll container */
+    .planos-tabs,
+    .publico-grid,
+    .nav {
+      overflow: clip;
+    }
+
+    /* Wrappers de imagem e card: clip em vez de hidden */
+    .g-foto,
+    .jrn-img,
+    .v-card {
+      overflow: clip;
+    }
+
+    /* Tabela de comparação: apenas mobile, sem scroll no desktop */
+    .cmp-wrap { overflow: clip; }
+    @media (max-width: 560px) {
+      .cmp-wrap {
+        overflow-x: auto !important;
+        overflow-y: clip;
+        -webkit-overflow-scrolling: touch;
+      }
+      .cmp-table { min-width: 420px; }
+    }
+
+    /* Dropdown do seletor de veículos: único scroll interno legítimo */
+    .vs-drop {
+      overflow-x: hidden;
+      overflow-y: auto;
+      /* scrollbar estilizada — fina e discreta no Windows */
+      scrollbar-width: thin;
+      scrollbar-color: rgba(201,168,76,0.25) transparent;
+    }
+    .vs-drop::-webkit-scrollbar       { width: 3px; }
+    .vs-drop::-webkit-scrollbar-track { background: transparent; }
+    .vs-drop::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.25); border-radius: 3px; }
+
+    /* Wrappers internos gerais: nunca scroll */
+    .wrap,
+    .lb-inner,
+    .lt-blocos-wrap,
+    .lt-titulo,
+    .plans-grid,
+    .cards-anuais-grid,
+    .reviews-grid,
+    .stats-row,
+    .value-grid,
+    .galeria-grid,
+    .publico-card,
+    .plan-card,
+    .card-plano,
+    .rev-card,
+    .v-card,
+    .stat-box,
+    .lote-banner,
+    .selo-4ucar,
+    .contador-vagas,
+    .footer-inner,
+    .nav-inner,
+    .cta-inner {
+      overflow: visible;
+    }
+
+    /* Sticky CTA mobile: clip para não vazar lateralmente */
+    .sticky-cta-mobile { overflow: clip; }
+
+    /* Drawer mobile: clip */
+    .nav-drawer { overflow: clip; }
   </style>
 </head>
 <body>
@@ -2240,9 +2485,6 @@
     <div class="fu d3">
       <a href="#planos" class="btn btn-gold btn-lg">GARANTIR MINHA VAGA →</a>
       <p class="hero-urgency-micro">⚠️ Vagas do Lote Fundador — restam apenas 27</p>
-    </div>
-    <div class="fu d4" style="margin-top:14px;">
-      <a href="#planos" class="btn btn-outline" style="font-size:11px;padding:12px 28px;">VER OS PLANOS</a>
     </div>
   </div>
 
@@ -2337,7 +2579,6 @@
 
         <div class="fu d3" style="display:flex;flex-direction:column;align-items:flex-start;gap:14px;">
           <a href="https://wa.me/5519978146936?text=Ol%C3%A1!%20Gostaria%20de%20verificar%20a%20disponibilidade%20do%20Leva%20e%20Traz%20na%20minha%20regi%C3%A3o." target="_blank" rel="noopener" class="btn btn-gold btn-lg">VERIFICAR DISPONIBILIDADE DO LEVA E TRAZ</a>
-          <span style="font-size:11px;color:rgba(245,245,245,0.35);">Disponibilidade sujeita à agenda, região e capacidade operacional.</span>
         </div>
       </div>
 
@@ -2346,8 +2587,8 @@
         <div class="cmp-wrap">
           <div style="padding:28px 24px;">
             <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.2em;color:var(--gold);margin-bottom:14px;">POLO CORPORATIVO ATENDIDO</p>
-            <p style="font-size:14px;color:var(--muted);line-height:1.72;margin-bottom:20px;">Executivos de <strong style="color:var(--white);">Medley, Hunter Douglas, Arcor</strong> e <strong style="color:var(--white);">Luxottica</strong> já fazem parte do Club.</p>
-            <p style="font-size:11.5px;color:var(--gold-l);font-weight:600;line-height:1.55;margin-bottom:18px;">Raio gratuito: Jd. Santa Genebra · Barão Geraldo · Unicamp · Nova Campinas</p>
+            <p style="font-size:14px;color:var(--muted);line-height:1.72;margin-bottom:20px;">Executivos de <strong style="color:var(--white);">Medley, Hunter Douglas, Arcor, Luxottica</strong> e <strong style="color:var(--white);">PC Capital</strong> já fazem parte do Club.</p>
+            <p style="font-size:11.5px;color:var(--gold-l);font-weight:600;line-height:1.55;margin-bottom:18px;">Raio gratuito: Jd. Santa Genebra e região</p>
             <p style="font-size:12px;color:rgba(245,245,245,0.3);font-style:italic;">Fora do raio? Consulte disponibilidade pelo WhatsApp.</p>
           </div>
         </div>
@@ -2374,35 +2615,29 @@
       <div class="v-card" style="padding:32px 26px;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:58px;color:var(--gold);opacity:0.13;line-height:1;margin-bottom:12px;user-select:none;">01</div>
         <h3 class="v-card" style="border:none;padding:0;background:none;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:0.05em;margin-bottom:8px;">ESCOLHA SEU PLANO</h3>
-        <p style="font-size:13px;color:var(--muted);line-height:1.68;font-weight:300;">Acesse e selecione o plano ideal para o seu perfil e frequência de uso.</p>
+        <p style="font-size:13px;color:var(--muted);line-height:1.68;font-weight:300;">Selecione o plano ideal para sua rotina.</p>
       </div>
 
       <div class="v-card" style="padding:32px 26px;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:58px;color:var(--gold);opacity:0.13;line-height:1;margin-bottom:12px;user-select:none;">02</div>
         <h3 style="font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:0.05em;margin-bottom:8px;">AGENDE PELO APP</h3>
-        <p style="font-size:13px;color:var(--muted);line-height:1.68;font-weight:300;">Via plataforma 4UCar, defina seu dia fixo ou escolha o melhor horário disponível — em segundos, sem fila de espera.</p>
+        <p style="font-size:13px;color:var(--muted);line-height:1.68;font-weight:300;">Defina dia e horário em segundos. Via plataforma 4UCar, sem fila de espera.</p>
       </div>
 
       <div class="v-card" style="padding:32px 26px;border-top:2px solid var(--gold);">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:58px;color:var(--gold);opacity:0.13;line-height:1;margin-bottom:12px;user-select:none;">03</div>
         <h3 style="font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:0.05em;margin-bottom:8px;">A GENTE BUSCA <span style="font-size:10px;color:var(--gold);border:1px solid rgba(201,168,76,0.3);padding:2px 7px;border-radius:2px;letter-spacing:0.1em;vertical-align:middle;">PRIORITY</span></h3>
-        <p style="font-size:13px;color:var(--muted);line-height:1.68;font-weight:300;">No seu dia agendado, nossa equipe recolhe o veículo no local combinado, de forma pontual e discreta.</p>
+        <p style="font-size:13px;color:var(--muted);line-height:1.68;font-weight:300;">Retiramos o veículo no local combinado. Pontual e discreto.</p>
       </div>
 
       <div class="v-card" style="padding:32px 26px;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:58px;color:var(--gold);opacity:0.13;line-height:1;margin-bottom:12px;user-select:none;">04</div>
         <h3 style="font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:0.05em;margin-bottom:8px;">PRONTO ANTES DA SAÍDA</h3>
-        <p style="font-size:13px;color:var(--muted);line-height:1.68;font-weight:300;">Seu veículo retorna impecável antes do fim do expediente. Sem você precisar sair de onde está.</p>
+        <p style="font-size:13px;color:var(--muted);line-height:1.68;font-weight:300;">Seu carro volta limpo antes do fim do expediente.</p>
       </div>
 
     </div>
 
-    <div class="fu" style="text-align:center;margin-top:48px;">
-      <a class="btn btn-gold btn-lg"
-         href="https://wa.me/5519978146936?text=Ol%C3%A1%21%20Quero%20conhecer%20os%20planos%20de%20assinatura%20DGN%20CLUB."
-         target="_blank" rel="noopener">ENTRAR PARA A LISTA DE PRIORIDADE</a>
-      <p style="margin-top:12px;font-size:11px;color:rgba(245,245,245,0.3);">Vagas limitadas por capacidade de agenda e pátio.</p>
-    </div>
 
   </div>
 </section>
@@ -2412,6 +2647,29 @@
     .como-funciona-grid { grid-template-columns: 1fr !important; }
   }
 </style>
+
+<div class="sep"></div>
+
+<!-- ================================================================
+     SEÇÃO — ESTRUTURA E AMBIENTE
+================================================================ -->
+<section class="gallery-section" id="galeria" style="padding:64px 0;">
+  <div class="wrap">
+    <span class="label-tag fu">Onde acontece</span>
+    <h2 class="section-title fu d1">ESTRUTURA REAL.<br>ROTINA MAIS SIMPLES.</h2>
+    <p class="section-sub fu d2">Enquanto o carro recebe o cuidado técnico, a operação acontece em um ambiente organizado, local e preparado para recorrência.</p>
+    <div class="sep-sm"></div>
+  </div>
+
+  <div class="galeria-grid dois-fotos fu d2" style="max-width:860px;">
+    <div class="g-foto" style="min-height:260px;">
+      <img src="assets/dgn-fachada-premium.jpg" alt="Fachada DGN Club — Jardim Santa Genebra" loading="lazy">
+    </div>
+    <div class="g-foto" style="min-height:260px;">
+      <img src="assets/dgn-lounge-real.jpg" alt="Lounge DGN Club" loading="lazy">
+    </div>
+  </div>
+</section>
 
 <div class="sep"></div>
 
@@ -2502,7 +2760,7 @@
           <ul class="plan-features">
             <li><span class="ck">✓</span> 2 lavagens técnicas programadas por mês</li>
             <li><span class="ck">✓</span> Autoagendamento via Plataforma 4UCar</li>
-            <li><span class="ck">✓</span> Rotina visual constante</li>
+            <li><span class="ck">✓</span> 7% de desconto em serviços de estética automotiva</li>
             <li><span class="ck">✓</span> Cancelamento sem burocracia</li>
           </ul>
           <div class="plan-note-box">Leva e Traz não incluso neste plano.</div>
@@ -2532,11 +2790,10 @@
             <li class="star"><span class="ck">✓</span> Leva e Traz Incluso (raio até 5km)</li>
             <li><span class="ck">✓</span> Agendamento fixo preferencial</li>
             <li><span class="ck">✓</span> Prioridade total de pátio</li>
+            <li><span class="ck">✓</span> 14% de desconto em serviços de estética automotiva</li>
             <li><span class="ck">✓</span> Painel exclusivo na Plataforma 4UCar</li>
           </ul>
-          <div class="plan-note-box">
-            Este plano cobre lavagens técnicas rápidas e essenciais. Detalhamentos químicos pesados são orçados à parte.
-          </div>
+          <div class="plan-note-box">Detalhamentos avançados orçados separadamente.</div>
           <div style="margin-top:18px;">
             <a class="btn btn-gold plan-wa-btn" data-plan="DGN Priority" style="width:100%;"
                href="https://wa.me/5519978146936?text=Ol%C3%A1!%20Quero%20assinar%20o%20plano%20DGN%20PRIORITY." target="_blank" rel="noopener">
@@ -2567,6 +2824,7 @@
           <p class="micro-preco">Equivalente a apenas R$ 120,00 por mês. Economia real e garantida.</p>
           <ul>
             <li>Todos os benefícios do Smart Mensal</li>
+            <li>7% de desconto em estética automotiva</li>
             <li>Desconto exclusivo de membro fundador</li>
             <li>Checkout seguro integrado 4UCar</li>
             <li>Sem reajuste de preço no período</li>
@@ -2583,6 +2841,7 @@
           <p class="micro-preco">Equivalente a apenas R$ 207,50/mês. Menos de R$ 52,00 por lavagem premium com logística inclusa.</p>
           <ul>
             <li>Todos os benefícios do Priority Mensal</li>
+            <li>14% de desconto em estética automotiva</li>
             <li>Prioridade máxima no pátio de 18h</li>
             <li>Leva e Traz Incluso — sem custo adicional</li>
             <li>Desconto de membro fundador travado</li>
@@ -2600,8 +2859,9 @@
     </div>
 
     <div class="selo-4ucar fu">
-      <p>🔒 <strong style="color:var(--gold)">Agendamento e checkout via Plataforma 4UCar</strong></p>
-      <p class="autonomia">Dia fixo, alterações em segundos — sem fila de WhatsApp.</p>
+      <p style="font-size:9.5px;text-transform:uppercase;letter-spacing:0.22em;color:rgba(245,245,245,0.35);margin-bottom:7px;">Powered by</p>
+      <p style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:0.16em;color:var(--gold);line-height:1;margin-bottom:9px;">4UCar</p>
+      <p class="autonomia">Agendamento, checkout e gestão da assinatura com tecnologia 4UCar.</p>
     </div>
 
     <p class="svc-note" style="margin-top:28px;color:rgba(245,245,245,0.28);font-size:11.5px;text-align:center;">
@@ -2614,9 +2874,59 @@
 
 
 <!-- ================================================================
-     SEÇÃO — LEVA E TRAZ VIP
+     PARA QUEM É O DGN CLUB?
 ================================================================ -->
-<section class="secao-leva-traz" id="leva-e-traz">
+<section class="publico-section" id="para-quem" style="padding:60px 0;">
+  <div class="wrap">
+    <span class="label-tag fu">Pertencimento regional</span>
+    <h2 class="section-title fu d1">PARA QUEM É O DGN CLUB?</h2>
+    <p class="section-sub fu d2" style="max-width:560px;margin-left:auto;margin-right:auto;">Operação focada no Jardim Santa Genebra e região. Quatro perfis. Uma rotina mais simples.</p>
+
+    <div class="publico-grid fu d3">
+
+      <div class="publico-card">
+        <div class="publico-num">01</div>
+        <h3 class="publico-titulo">O Executivo e o Público Corporativo</h3>
+        <p class="publico-sub">A conveniência no trabalho</p>
+        <p class="publico-body">Retiramos seu veículo no estacionamento da empresa durante o expediente — Medley, Hunter Douglas, Arcor, Luxottica, PC Capital — e devolvemos impecável antes do fim do turno.</p>
+      </div>
+
+      <div class="publico-card">
+        <div class="publico-num">02</div>
+        <h3 class="publico-titulo">O Residente e Morador de Condomínios</h3>
+        <p class="publico-sub">A tranquilidade no lar</p>
+        <p class="publico-body">Para moradores do Jardim Santa Genebra que prezam pela praticidade. Agendamento pelo app, retirada na garagem, carro devolvido no padrão de showroom.</p>
+      </div>
+
+      <div class="publico-card">
+        <div class="publico-num">03</div>
+        <h3 class="publico-titulo">Os Membros da Nossa Comunidade</h3>
+        <p class="publico-sub">A confiança da convivência</p>
+        <p class="publico-body">O DGN CLUB nasceu com base em valores compartilhados e convivência local. Cuide do veículo sem abrir mão do que realmente importa: família e comunidade.</p>
+      </div>
+
+      <div class="publico-card">
+        <div class="publico-num">04</div>
+        <h3 class="publico-titulo">O Motorista de Aplicativo</h3>
+        <p class="publico-sub">O padrão profissional rigoroso</p>
+        <p class="publico-body">A assinatura garante higiene interna e estética impecável 365 dias. Mantenha a ferramenta de trabalho sempre no padrão de elite com economia de tempo.</p>
+      </div>
+
+    </div>
+
+    <p class="publico-disclaimer fu">
+      * Não realizamos atendimentos avulsos. Vagas logísticas limitadas por dia para garantir o padrão DGN.
+    </p>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+
+<!-- ================================================================
+     SEÇÃO — LEVA E TRAZ VIP (ocultada — conteúdo já presente na seção principal)
+================================================================ -->
+<section class="secao-leva-traz" id="leva-e-traz" style="display:none;">
 
   <div class="lt-titulo fu">
     <h2>SEU CARRO <span class="gold">PRONTO.</span><br>ENQUANTO VOCÊ PRODUZ.</h2>
@@ -2628,16 +2938,24 @@
     <!-- Bloco 1: Executivo -->
     <div class="lt-bloco fu d1">
       <h3>O CARRO ESTAVA PARADO DE QUALQUER FORMA.</h3>
-      <p>Enquanto você está em reunião, nós buscamos, cuidamos e devolvemos. Antes da sua saída. Sem tirar um minuto do seu dia.</p>
-      <p class="destaque-gold">60% dos assinantes trabalham a menos de 5 minutos do nosso pátio.</p>
+      <p>Enquanto você produz, nós buscamos e devolvemos. Antes da sua saída.</p>
     </div>
 
     <!-- Bloco 2: Raio de Atendimento -->
     <div class="lt-bloco fu d2">
       <h3>RESTRITO POR ESCOLHA. PONTUAL POR PRINCÍPIO.</h3>
+      <p>
+        Limitamos o raio de atendimento do Leva e Traz para garantir precisão logística
+        e pontualidade britânica. É essa restrição que nos permite manter a nota 5.0
+        para executivos das grandes empresas vizinhas.
+      </p>
       <div class="bairros-atendidos">
-        <strong>Raio gratuito:</strong> Jd. Santa Genebra · Barão Geraldo · Unicamp · Nova Campinas
+        <strong>Raio gratuito exclusivo:</strong> Jardim Santa Genebra e região imediata
       </div>
+      <p class="nota-sutil">
+        A restrição existe para proteger a pontualidade de cada membro ativo.
+        Não é limitação — é padrão.
+      </p>
     </div>
 
     <!-- Bloco 3: Prova Social Corporativa -->
@@ -2649,13 +2967,14 @@
         <span>Hunter Douglas</span>
         <span>Arcor</span>
         <span>Luxottica</span>
+        <span>PC Capital</span>
       </div>
     </div>
 
     <!-- Bloco 4: Fora do raio -->
     <div class="lt-bloco lt-fora-raio fu d4">
       <h3>FORA DO RAIO GRATUITO?</h3>
-      <p>Pode existir uma taxa excedente ou análise personalizada. As rotas são definidas por ordem de adesão.</p>
+      <p>Taxa excedente pode ser aplicada. Rotas definidas por ordem de adesão.</p>
       <a href="https://wa.me/5519978146936?text=Ol%C3%A1!%20Gostaria%20de%20verificar%20a%20disponibilidade%20do%20Leva%20e%20Traz%20na%20minha%20regi%C3%A3o." target="_blank" rel="noopener" class="btn-ghost-lt">CONSULTAR DISPONIBILIDADE →</a>
     </div>
 
@@ -2665,41 +2984,18 @@
 <div class="sep"></div>
 
 
-<!-- ================================================================
-     SEÇÃO — PARCEIROS / ECOSSISTEMA (compacto)
-================================================================ -->
-<section class="partners-section" id="parceiros" style="padding:44px 0;">
-  <div class="wrap">
-    <div class="fu" style="max-width:680px;margin:0 auto;border:1px solid var(--border);border-radius:8px;padding:28px 32px;background:rgba(255,255,255,0.018);text-align:center;">
-      <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px;">
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.08em;color:var(--gold);">DGN CLUB</span>
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:rgba(201,168,76,0.3);">×</span>
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.08em;color:var(--gold);">GARAGEM NIHON</span>
-      </div>
-      <p style="font-size:13.5px;color:var(--muted);line-height:1.72;font-weight:300;">
-        DGN cuida da rotina. Para vitrificação, polimento e PPF, a <strong style="color:var(--white);">Garagem Nihon</strong> assume — referência em estética pesada de Campinas.
-      </p>
-    </div>
-  </div>
-</section>
-
-<div class="sep"></div>
 
 
 <!-- ================================================================
      SEÇÃO — STORYTELLING / QUEM SOMOS
 ================================================================ -->
-<section class="section" id="quem-somos" style="background:#0e0e0e;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+<section class="section" id="quem-somos" style="display:none;">
   <div class="wrap">
     <span class="label-tag fu">Nossa história</span>
-    <h2 class="section-title fu d1">A NOSSA EVOLUÇÃO É PÚBLICA.<br>E É INTENCIONAL.</h2>
+    <h2 class="section-title fu d1">UMA OPERAÇÃO LOCAL<br>EM EVOLUÇÃO CONSTANTE.</h2>
     <div class="sep-sm"></div>
 
-    <p class="fu d2" style="font-size:15px;color:var(--muted);line-height:1.7;font-weight:300;max-width:560px;margin:0 auto 36px;text-align:center;">
-      Pátio em expansão. Estrutura crescendo. Uma coisa permanece intocável:
-    </p>
-
-    <div class="fu d3" style="max-width:520px;margin:0 auto 36px;display:flex;flex-direction:column;gap:14px;">
+    <div class="fu d2" style="max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:14px;">
       <div style="display:flex;align-items:flex-start;gap:12px;font-size:15px;color:var(--muted);">
         <span style="color:var(--gold);font-size:17px;flex-shrink:0;margin-top:1px;">→</span>
         <span>Mais de <strong style="color:var(--white);">16.600 atendimentos</strong> realizados.</span>
@@ -2710,24 +3006,9 @@
       </div>
       <div style="display:flex;align-items:flex-start;gap:12px;font-size:15px;color:var(--muted);">
         <span style="color:var(--gold);font-size:17px;flex-shrink:0;margin-top:1px;">→</span>
-        <span>Agilidade técnica que <strong style="color:var(--white);">não negocia padrão.</strong></span>
+        <span>Padrão técnico que <strong style="color:var(--white);">não negocia resultado.</strong></span>
       </div>
     </div>
-
-    <!-- Barra de progresso simbólica -->
-    <div class="fu d3" style="max-width:480px;margin:0 auto;">
-      <div style="display:flex;justify-content:space-between;font-size:9.5px;text-transform:uppercase;letter-spacing:0.13em;color:var(--muted);margin-bottom:8px;">
-        <span>Em construção</span>
-        <span style="color:var(--gold);">Entregando</span>
-      </div>
-      <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;">
-        <div style="height:100%;width:85%;background:linear-gradient(90deg,var(--gold-d),var(--gold),var(--gold-l));border-radius:2px;"></div>
-      </div>
-    </div>
-
-    <p class="fu d4" style="text-align:center;margin-top:32px;font-family:'Bebas Neue',sans-serif;font-size:clamp(18px,3vw,26px);letter-spacing:0.06em;color:var(--muted);">
-      O DGN CLUB não é perfeito. É o mais <span style="color:var(--gold);">comprometido.</span>
-    </p>
   </div>
 </section>
 
@@ -2744,7 +3025,7 @@
     <div class="sep-sm"></div>
 
     <p class="section-sub fu d2" style="max-width:480px;margin:0 auto 36px;">
-      Frota, veículos de diretoria ou benefício para colaboradores.<br>A DGN cuida enquanto a equipe produz.
+      Planos para empresas, frotas leves e executivos do polo corporativo.<br>Consulte condições para colaboradores, diretoria ou veículos recorrentes.
     </p>
 
     <div class="fu d3" style="display:flex;flex-direction:column;align-items:center;gap:12px;">
@@ -2839,38 +3120,6 @@
 <div class="sep"></div>
 
 
-<!-- ================================================================
-     GALERIA DE FOTOS
-================================================================ -->
-<section class="gallery-section" id="galeria">
-  <div class="wrap">
-    <span class="label-tag fu">Nosso padrão</span>
-    <h2 class="section-title fu d1">CADA DETALHE. CADA VISITA.<br>O MESMO PADRÃO.</h2>
-    <div class="sep-sm"></div>
-  </div>
-
-  <div class="galeria-grid fu d2">
-    <!-- Foto principal (ocupa 2 linhas à esquerda) -->
-    <div class="g-foto foto-destaque">
-      <img src="assets/dgn-fachada-premium.jpg" alt="Fachada DGN Club — Jardim Santa Genebra" loading="lazy">
-    </div>
-    <!-- Fotos secundárias -->
-    <div class="g-foto">
-      <img src="assets/dgn-lounge-real.jpg" alt="Lounge DGN Club" loading="lazy">
-    </div>
-    <div class="g-vazio">
-      <span>EM BREVE</span>
-    </div>
-    <div class="g-vazio">
-      <span>EM BREVE</span>
-    </div>
-    <div class="g-vazio">
-      <span>EM BREVE</span>
-    </div>
-  </div>
-</section>
-
-<div class="sep"></div>
 
 
 <!-- ================================================================
@@ -2902,7 +3151,6 @@
         </svg>
         FALAR COM ESPECIALISTA DGN
       </a>
-      <span style="font-size:11px;color:rgba(245,245,245,0.3);">Vagas limitadas por capacidade de agenda e pátio.</span>
     </div>
 
     <p class="cta-loc fu d3">📍 Jardim Santa Genebra — Campinas / SP &nbsp;|&nbsp; DGN CLUB</p>
@@ -2910,20 +3158,6 @@
 </section>
 
 
-<!-- ================================================================
-     BANNER CORPORATIVO
-================================================================ -->
-<section class="banner-corporativo">
-  <div class="wrap">
-    <span class="label-corp">ATENDIMENTO EXCLUSIVO PARA EXECUTIVOS DO POLO CORPORATIVO</span>
-    <h2>Jardim Santa Genebra e arredores — Campinas / SP</h2>
-    <p class="corp-sub">Seu carro pronto antes do fim do expediente. Feito para quem trabalha ao lado de empresas como:</p>
-    <div class="logos-empresas-corp">
-      <span>Medley</span> &nbsp;|&nbsp; <span>Hunter Douglas</span> &nbsp;|&nbsp; <span>Arcor</span> &nbsp;|&nbsp; <span>Luxottica</span>
-    </div>
-    <a href="https://wa.me/5519978146936?text=Ol%C3%A1!%20Tenho%20interesse%20em%20uma%20solu%C3%A7%C3%A3o%20corporativa%20DGN%20CLUB." target="_blank" rel="noopener" class="btn btn-gold btn-lg">CONSULTAR PLANO CORPORATIVO →</a>
-  </div>
-</section>
 
 
 <!-- ================================================================
@@ -2957,6 +3191,12 @@
       </div>
 
       <p class="footer-copy">© 2025 DGN Club. Todos os direitos reservados.</p>
+
+      <!-- Selo 4UCar footer -->
+      <div style="margin-top:28px;padding-top:20px;border-top:1px solid rgba(201,168,76,0.1);text-align:center;">
+        <p style="font-size:9px;text-transform:uppercase;letter-spacing:0.22em;color:rgba(245,245,245,0.25);margin-bottom:5px;">Tecnologia por</p>
+        <p style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.18em;color:rgba(201,168,76,0.45);line-height:1;">4UCar</p>
+      </div>
     </div>
   </div>
 </footer>
