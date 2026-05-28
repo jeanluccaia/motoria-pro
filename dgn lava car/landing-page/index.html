@@ -302,9 +302,9 @@
       /* SUBSTITUIR: nova foto fachada DGN */
       background:
         linear-gradient(180deg,
-          rgba(10,10,10,0.68) 0%,
-          rgba(10,10,10,0.54) 45%,
-          rgba(10,10,10,0.82) 100%),
+          rgba(0,0,0,0.82) 0%,
+          rgba(0,0,0,0.65) 45%,
+          rgba(0,0,0,0.90) 100%),
         url('./assets/dgn-fachada-premium.jpg') center / cover no-repeat,
         linear-gradient(140deg, #14120a, #0a0a0a);
     }
@@ -2475,27 +2475,16 @@
   <div class="badge-atendimentos fu">+ de 16.600 atendimentos realizados</div>
 
   <div class="hero-content">
-    <div class="hero-badge fu">5 ANOS DE MERCADO · CAMPANHA DE ANIVERSÁRIO</div>
+    <div class="hero-badge fu">5 ANOS · CAMPANHA DE ANIVERSÁRIO</div>
 
     <h1 class="hero-h1 fu d1">
-      CLUB <span class="gold">DGN</span>
+      CLUB DGN
     </h1>
 
-    <div class="hero-gold-bar fu d2" aria-hidden="true"></div>
-
-    <p class="fu d2" style="font-size:clamp(13px,2vw,17px);font-weight:600;color:rgba(245,245,245,0.75);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:14px;">Centro de Tratamento e Manutenção Periódica Veicular por Assinatura</p>
-
-    <p class="hero-sub fu d2">Seu veículo sempre no Padrão Showroom, com a conveniência que a sua rotina exige. Logística monitorada com Leva &amp; Traz gratuito e exclusivo para o Jardim Santa Genebra e a Região Corporativa Imediata.</p>
+    <p class="fu d2" style="font-size:clamp(13px,2vw,16px);font-weight:400;color:rgba(245,245,245,0.58);letter-spacing:0.04em;text-transform:uppercase;margin-bottom:36px;">Centro de Tratamento e Manutenção Periódica Veicular por Assinatura · Campinas/SP</p>
 
     <div class="fu d3">
       <a href="#planos" class="btn btn-gold btn-lg">GARANTIR MINHA VAGA NO CLUB</a>
-      <p class="hero-urgency-micro">⚠️ Vagas do Lote Fundador — restam apenas 27</p>
-    </div>
-
-    <!-- Gatilho de autoridade regional -->
-    <div class="fu d4" style="margin-top:28px;padding-top:22px;border-top:1px solid rgba(201,168,76,0.15);">
-      <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.22em;color:rgba(245,245,245,0.3);margin-bottom:10px;">Polo corporativo atendido</p>
-      <p style="font-size:12px;font-weight:500;color:rgba(245,245,245,0.38);letter-spacing:0.06em;">Medley &nbsp;|&nbsp; Hunter Douglas &nbsp;|&nbsp; Arcor &nbsp;|&nbsp; Luxottica</p>
     </div>
   </div>
 
@@ -2507,10 +2496,6 @@
 
 <div class="sep"></div>
 
-<!-- FAIXA URGÊNCIA ANIVERSÁRIO -->
-<div style="background:rgba(201,168,76,0.06);border-top:1px solid rgba(201,168,76,0.22);border-bottom:1px solid rgba(201,168,76,0.22);padding:14px 20px;text-align:center;">
-  <p style="font-size:12px;font-weight:600;color:var(--gold-l);letter-spacing:0.06em;line-height:1.6;">Edição de Aniversário · Lote Fundador. <span style="color:rgba(245,245,245,0.6);font-weight:300;">Condição comemorativa de 5 anos por tempo e vagas limitadas.</span></p>
-</div>
 
 <!-- FAIXA DE MÉTRICAS -->
 <section class="metricas-bar" aria-label="Números DGN Club">
@@ -2545,12 +2530,7 @@
 
     <p style="font-size:15px;color:rgba(245,245,245,0.6);line-height:1.78;max-width:580px;margin:0 auto 28px;font-weight:300;">Para celebrar nossos <strong style="color:var(--white);">5 anos de mercado</strong>, as <strong style="color:var(--gold-l);">50 primeiras assinaturas no Plano Anual</strong> (Smart ou Priority) entram automaticamente no sorteio de um <strong style="color:var(--white);">Polimento Técnico Completo · Padrão Showroom</strong>. Garanta sua vaga no Lote Fundador e já concorra.</p>
 
-    <!-- Contador estático de vagas concorrentes -->
-    <div style="display:inline-block;border:1px solid rgba(201,168,76,0.22);border-radius:6px;padding:16px 32px;margin-bottom:32px;background:rgba(201,168,76,0.025);">
-      <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.2em;color:rgba(245,245,245,0.38);margin-bottom:6px;">Vagas concorrentes</p>
-      <p style="font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--gold);line-height:1;letter-spacing:0.04em;">__ <span style="font-size:20px;color:rgba(245,245,245,0.4);">/ 50</span></p>
-      <p style="font-size:11px;color:rgba(245,245,245,0.3);margin-top:5px;font-style:italic;">Apenas assinaturas anuais participam</p>
-    </div>
+    <p style="font-size:13px;font-weight:600;color:rgba(245,245,245,0.45);letter-spacing:0.06em;margin-bottom:32px;text-transform:uppercase;">Apenas as 50 primeiras assinaturas anuais participam.</p>
 
     <div>
       <a href="#planos" onclick="(function(){var t=document.querySelector('[data-tab=anual]');if(t)t.click();})()" class="btn btn-gold btn-lg">QUERO CONCORRER — ASSINAR O ANUAL</a>
@@ -2570,8 +2550,8 @@
 
     <!-- Tab switcher Mensal / Anual -->
     <div class="planos-tabs fu d2">
-      <button class="tab ativo" data-tab="mensal">PLANOS MENSAIS</button>
-      <button class="tab" data-tab="anual">🏆 ANUAIS — CONCORRE AO SORTEIO</button>
+      <button class="tab" data-tab="mensal">PLANOS MENSAIS</button>
+      <button class="tab ativo" data-tab="anual">🏆 ANUAIS — CONCORRE AO SORTEIO</button>
     </div>
 
     <!-- Seletor de veículo — controla todos os preços -->
@@ -2639,7 +2619,7 @@
     </div>
 
     <!-- ABA MENSAIS -->
-    <div id="tab-mensal" class="tab-content ativo">
+    <div id="tab-mensal" class="tab-content">
       <div class="plans-grid">
 
         <!-- DGN SMART — Mensal -->
@@ -2711,7 +2691,7 @@
     </div><!-- /tab-mensal -->
 
     <!-- ABA ANUAIS -->
-    <div id="tab-anual" class="tab-content">
+    <div id="tab-anual" class="tab-content ativo">
       <div class="lote-banner">
         <h4>🏆 LOTE FUNDADOR · EDIÇÃO DE ANIVERSÁRIO 5 ANOS</h4>
         <p>Condição comemorativa exclusiva. Os <strong style="color:var(--gold-l);">50 primeiros assinantes anuais</strong> concorrem automaticamente ao Sorteio do Polimento Técnico Completo · Padrão Showroom.</p>
@@ -3067,7 +3047,7 @@
       </div>
       <div class="stat-box fu d2">
         <!-- SUBSTITUIR: dado real -->
-        <div class="stat-val">500+</div>
+        <div class="stat-val">16.600+</div>
         <div class="stat-lbl">Lavagens realizadas</div>
       </div>
       <div class="stat-box fu d3">
@@ -3165,7 +3145,7 @@
         </a>
       </div>
 
-      <p class="footer-copy">© 2025 DGN Club. Todos os direitos reservados.</p>
+      <p class="footer-copy">© 2026 DGN Club. Todos os direitos reservados.</p>
 
       <!-- Chancela 4UCar footer -->
       <div style="margin-top:28px;padding-top:20px;border-top:1px solid rgba(201,168,76,0.1);text-align:center;">
