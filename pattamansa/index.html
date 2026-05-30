@@ -1,0 +1,4469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PattaMansa — A Camisa do Povo</title>
+<meta name="description" content="Da empresa que cuida do seu cachorro. Agora na sua camisa. PattaMansa — Adestramento, Hotel Pet e Copa 2026.">
+<meta property="og:title" content="PattaMansa — A Camisa do Povo">
+<meta property="og:description" content="Pra quem ama cachorro de verdade. Copa 2026.">
+<meta property="og:image" content="familia foto lp.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pattamansa.com.br">
+<link rel="canonical" href="https://pattamansa.com.br">
+<link rel="icon" type="image/png" href="Sigla_5.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fraunces:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --verde-deep: #0D1A0E;
+  --verde:      #162318;
+  --verde-md:   #3D5240;
+  --sage:       #B8BC8E;
+  --laranja:    #F5A346;
+  --dourado:    #D4892A;
+  --creme:      #F2EDE0;
+  --preto:      #080D09;
+  --quente:     rgba(212,137,42,.08);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+img, video { display: block; }
+
+body {
+  background: var(--verde-deep);
+  color: var(--sage);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* grain sutil em toda a página */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: .028;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* ─── REVEAL ─── */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity .8s ease, transform .8s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+.section-tag {
+  display: inline-block;
+  font-size: .62rem;
+  font-weight: 500;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--laranja);
+  margin-bottom: 1.1rem;
+}
+
+/* ─── NAV ─── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 500;
+  width: 100vw;
+  max-width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(to bottom, rgba(8,13,9,.95) 0%, transparent 100%);
+}
+
+.nav-logo {
+  display: inline-flex;
+  align-items: center;
+  width: clamp(156px, 15.5vw, 190px);
+  height: 62px;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.nav-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.nav-cta {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: .68rem;
+  font-weight: 500;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--preto);
+  background: var(--laranja);
+  padding: .55rem 1.2rem;
+  border-radius: 2px;
+  text-decoration: none;
+  transition: opacity .2s, transform .15s;
+}
+.nav-cta:hover { opacity: .88; transform: translateY(-1px); }
+
+/* ─── HERO ─── */
+.hero {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
+}
+
+.hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* overlay mais quente — verde tende ao marrom embaixo */
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(8,13,9,.15)  0%,
+    rgba(8,13,9,.0)   28%,
+    rgba(8,13,9,.5)   62%,
+    rgba(8,13,9,.97)  100%
+  );
+  pointer-events: none;
+}
+
+/* botão de som */
+.hero-sound-btn {
+  position: absolute;
+  top: 5rem; right: 1.25rem;
+  z-index: 10;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(184,188,142,.25);
+  background: rgba(8,13,9,.55);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .2s, background .2s;
+  color: var(--sage);
+}
+.hero-sound-btn:hover {
+  border-color: rgba(245,163,70,.5);
+  background: rgba(8,13,9,.8);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 720px;
+  padding: 0 1.5rem 3.5rem;
+  text-align: center;
+}
+
+.hero-eyebrow {
+  display: inline-block;
+  font-size: .6rem;
+  font-weight: 500;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--laranja);
+  margin-bottom: .85rem;
+  opacity: 0;
+  animation: fadeUp .6s .3s forwards;
+}
+
+.hero-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(4.2rem, 17vw, 9rem);
+  line-height: .88;
+  color: var(--creme);
+  letter-spacing: .02em;
+  opacity: 0;
+  animation: fadeUp .75s .5s forwards;
+}
+.hero-title em {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  color: var(--laranja);
+}
+
+.hero-sub {
+  margin-top: 1.25rem;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: rgba(184,188,142,.85);
+  opacity: 0;
+  animation: fadeUp .7s .7s forwards;
+}
+
+.hero-cta-wrap {
+  margin-top: 2.25rem;
+  opacity: 0;
+  animation: fadeUp .7s .9s forwards;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .8rem;
+}
+
+.btn-hero {
+  display: inline-block;
+  font-size: .78rem;
+  font-weight: 500;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--preto);
+  background: var(--laranja);
+  padding: 1.1rem 3rem;
+  border-radius: 2px;
+  text-decoration: none;
+  transition: transform .15s, box-shadow .15s;
+}
+.btn-hero:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(245,163,70,.32);
+}
+
+.hero-cta-sub {
+  font-size: .68rem;
+  color: rgba(184,188,142,.35);
+  letter-spacing: .08em;
+}
+
+.hero-scroll-hint {
+  position: absolute;
+  bottom: 1.15rem; left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+  opacity: 0;
+  animation: fadeIn 1s 1.6s forwards;
+}
+.hero-scroll-hint span {
+  font-size: .56rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(184,188,142,.3);
+}
+.scroll-bar {
+  width: 1px; height: 38px;
+  background: linear-gradient(to bottom, rgba(184,188,142,.45), transparent);
+  animation: scrollPulse 2.2s 2s infinite;
+}
+
+/* ─── COPA TICKER ─── */
+.copa-ticker-wrap {
+  background: var(--verde-md);
+  padding: .65rem 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.copa-ticker {
+  display: inline-flex;
+  gap: 2.5rem;
+  animation: ticker 22s linear infinite;
+}
+.copa-ticker-item {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: .92rem;
+  letter-spacing: .18em;
+  color: var(--sage);
+  opacity: .55;
+}
+.copa-ticker-item.hl { color: var(--laranja); opacity: 1; }
+
+/* ─── ORIGEM (substitui espelho) ─── */
+.origem {
+  padding: 5.5rem 1.5rem 5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.origem::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 800px; height: 500px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(74,96,72,.22) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.origem-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  position: relative; z-index: 1;
+}
+
+.origem-foto {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto 4rem;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+.origem-foto img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: center 30%;
+  display: block;
+  filter: brightness(.88) saturate(.9);
+}
+.origem-foto-legenda {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 1.5rem 1.25rem .9rem;
+  background: linear-gradient(to top, rgba(8,13,9,.85) 0%, transparent 100%);
+  font-size: .72rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(184,188,142,.55);
+  text-align: center;
+}
+
+.origem-statements {
+  margin-bottom: 3rem;
+}
+
+.origem-line {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(1.5rem, 5vw, 2.4rem);
+  line-height: 1.3;
+  padding: .6rem 0;
+  border-bottom: 1px solid rgba(184,188,142,.08);
+  font-weight: 400;
+  color: rgba(184,188,142,.25);
+  transition: color .5s ease;
+  word-break: break-word;
+}
+.origem-line:last-child { border-bottom: none; }
+
+.origem-line.ativo {
+  color: var(--creme);
+}
+.origem-line.ativo em {
+  font-style: italic;
+  color: var(--laranja);
+}
+
+.origem-line em {
+  font-style: italic;
+  color: rgba(245,163,70,.25);
+  transition: color .5s ease;
+}
+
+.origem-corpo {
+  max-width: 440px;
+  margin: 3rem auto 0;
+  font-size: .95rem;
+  line-height: 1.85;
+  color: var(--sage);
+  opacity: .7;
+  text-align: center;
+  font-style: normal;
+  letter-spacing: .01em;
+  border-top: 1px solid rgba(184,188,142,.1);
+  padding-top: 2rem;
+}
+
+/* ─── QUEM SOMOS ─── */
+.quem-somos {
+  background: var(--verde);
+  position: relative;
+  overflow: hidden;
+}
+/* glow laranja no canto */
+.quem-somos::after {
+  content: '';
+  position: absolute;
+  top: -80px; left: -80px;
+  width: 420px; height: 420px;
+  background: radial-gradient(circle, rgba(245,163,70,.07) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.quem-somos-inner {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 5.5rem 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  position: relative; z-index: 1;
+}
+@media (min-width: 720px) {
+  .quem-somos-inner {
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 4rem;
+  }
+}
+
+.quem-video-wrap {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(184,188,142,.1);
+  box-shadow: 0 24px 60px rgba(0,0,0,.45);
+}
+.quem-video-wrap video {
+  width: 100%;
+  display: block;
+}
+
+/* badge sobre o vídeo */
+.quem-video-badge {
+  position: absolute;
+  bottom: 1rem; left: 1rem;
+  font-size: .58rem;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  background: rgba(8,13,9,.75);
+  color: var(--laranja);
+  border: 1px solid rgba(245,163,70,.3);
+  padding: .3rem .75rem;
+  border-radius: 2px;
+  backdrop-filter: blur(4px);
+}
+
+.quem-texto { }
+
+.quem-titulo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.8rem, 8vw, 4rem);
+  line-height: .92;
+  color: var(--creme);
+  letter-spacing: .03em;
+  margin-bottom: 1.5rem;
+}
+.quem-titulo em {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  color: var(--laranja);
+}
+
+.quem-body {
+  font-size: .95rem;
+  line-height: 1.95;
+  color: var(--sage);
+  opacity: .85;
+  margin-bottom: 2rem;
+  max-width: 48ch;
+}
+.quem-body strong {
+  color: var(--creme);
+  font-weight: 500;
+}
+
+.quem-stats {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(184,188,142,.12);
+}
+.quem-stat strong {
+  display: block;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  color: var(--laranja);
+  letter-spacing: .04em;
+  line-height: 1;
+}
+.quem-stat span {
+  font-size: .62rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(184,188,142,.45);
+}
+
+/* ─── PONTE ─── */
+.ponte {
+  padding: 5rem 1.5rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.ponte::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(245,163,70,.06) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.ponte-inner {
+  max-width: 580px;
+  margin: 0 auto;
+  position: relative; z-index: 1;
+}
+
+.ponte-quote {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(1.7rem, 5.5vw, 2.6rem);
+  line-height: 1.3;
+  color: var(--creme);
+  font-weight: 400;
+  margin-bottom: 1.4rem;
+}
+.ponte-quote em { font-style: italic; color: var(--laranja); }
+
+.ponte-body {
+  font-size: .95rem;
+  line-height: 1.95;
+  color: var(--sage);
+  opacity: .8;
+  max-width: 480px;
+  margin: 0 auto 2rem;
+}
+
+.ponte-divisor {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem auto;
+  max-width: 200px;
+}
+.ponte-divisor-line { flex:1; height:1px; background:rgba(184,188,142,.18); }
+.ponte-pata { color: var(--laranja); opacity: .6; }
+
+/* ─── FAMÍLIA COPA ─── */
+.familia-copa {
+  padding: 3.75rem 1.25rem 2.75rem;
+  background: var(--verde-deep);
+  text-align: center;
+}
+.familia-copa-inner {
+  max-width: 980px;
+  margin: 0 auto;
+}
+.familia-copa-title {
+  font-family: 'Bebas Neue', sans-serif;
+  color: var(--creme);
+  font-size: clamp(2.4rem, 9vw, 4.5rem);
+  line-height: .95;
+  margin-bottom: .75rem;
+  letter-spacing: .02em;
+}
+.familia-copa-sub {
+  color: rgba(184,188,142,.75);
+  font-size: .95rem;
+  line-height: 1.7;
+  max-width: 420px;
+  margin: 0 auto 2rem;
+}
+.familia-copa-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  border-radius: 10px;
+  border: 1px solid rgba(184,188,142,.1);
+  box-shadow: 0 24px 60px rgba(0,0,0,.35);
+  filter: brightness(.88) saturate(.95);
+}
+
+/* ─── PRODUTOS ─── */
+.produtos {
+  padding: 4.25rem 1.5rem 5rem;
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+.produtos-header {
+  text-align: center;
+  margin-bottom: 2.4rem;
+}
+
+.produtos-sigla {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+  pointer-events: none;
+}
+.produtos-sigla img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  opacity: .55;
+  filter: none;
+}
+
+.produtos-titulo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.8rem, 10vw, 5rem);
+  color: var(--creme);
+  letter-spacing: .03em;
+  line-height: .95;
+}
+
+.produtos-subtitulo {
+  margin-top: .75rem;
+  font-size: .82rem;
+  color: var(--sage);
+  opacity: .6;
+}
+
+.produtos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: .85rem;
+}
+@media (min-width: 640px) {
+  .produtos-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* CARD */
+.sku-card {
+  background: var(--verde);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(184,188,142,.08);
+  transition: border-color .25s, transform .25s, box-shadow .25s;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+}
+.sku-card:hover {
+  border-color: rgba(245,163,70,.25);
+  transform: translateY(-5px);
+  box-shadow: 0 20px 50px rgba(0,0,0,.4);
+}
+
+.sku-img {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #111a12;
+}
+.sku-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  transition: transform .4s ease;
+}
+.sku-card:hover .sku-img img { transform: scale(1.04); }
+
+/* pata watermark — cards sem foto */
+.sku-pata {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #1e3020 0%, #111a12 100%);
+}
+.sku-pata svg { opacity: .07; }
+
+.sku-badge {
+  position: absolute;
+  top: .7rem; left: .7rem;
+  font-size: .56rem;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  background: var(--laranja);
+  color: var(--preto);
+  padding: .22rem .65rem;
+  border-radius: 2px;
+  z-index: 2;
+}
+.sku-badge.em-breve {
+  background: rgba(184,188,142,.15);
+  color: var(--sage);
+  border: 1px solid rgba(184,188,142,.2);
+}
+
+.sku-info {
+  padding: 1rem 1.1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  flex: 1;
+}
+.sku-nome { font-size: .9rem; font-weight: 500; color: var(--creme); }
+.sku-desc { font-size: .72rem; color: var(--sage); opacity: .55; line-height: 1.4; }
+
+.sku-preco-row {
+  margin-top: auto;
+  padding-top: .65rem;
+  display: flex;
+  align-items: baseline;
+  gap: .5rem;
+}
+.sku-preco-de { font-size: .68rem; color: rgba(184,188,142,.3); text-decoration: line-through; }
+.sku-preco {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.35rem;
+  letter-spacing: .04em;
+  color: var(--laranja);
+}
+
+.sku-card.destaque { grid-column: span 2; }
+.sku-card.destaque .sku-img { aspect-ratio: 4/3; }
+@media (min-width: 640px) {
+  .sku-card.destaque { grid-column: span 1; }
+  .sku-card.destaque .sku-img { aspect-ratio: 1/1; }
+}
+
+/* ─── PROOF ─── */
+.proof {
+  padding: 5rem 1.5rem;
+  background: var(--verde);
+  position: relative;
+  overflow: hidden;
+}
+.proof::before {
+  content: '';
+  position: absolute;
+  bottom: -60px; right: -60px;
+  width: 360px; height: 360px;
+  background: radial-gradient(circle, rgba(245,163,70,.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.proof-inner { max-width: 860px; margin: 0 auto; position: relative; z-index:1; }
+
+.proof-header {
+  max-width: 560px;
+  margin: 0 auto 2.5rem;
+  text-align: center;
+}
+
+.proof-brand {
+  display: block;
+  width: fit-content;
+  margin: 0 auto 1.15rem;
+  padding-bottom: .85rem;
+  position: relative;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.8rem, 8vw, 4.6rem);
+  line-height: .86;
+  letter-spacing: .08em;
+  color: var(--creme);
+  text-transform: uppercase;
+  text-shadow: 0 10px 28px rgba(0,0,0,.34);
+}
+.proof-brand::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: min(150px, 62%);
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(to right, transparent, rgba(245,163,70,.75), transparent);
+}
+
+.proof-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.15rem, 6vw, 3.35rem);
+  color: rgba(242,237,224,.86);
+  letter-spacing: .04em;
+  line-height: .98;
+}
+.proof-title em {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  color: var(--laranja);
+}
+
+.proof-numbers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  justify-content: center;
+  gap: 1rem;
+  max-width: 680px;
+  margin: 0 auto;
+}
+.proof-num {
+  width: 100%;
+  max-width: 210px;
+  min-height: 126px;
+  margin: 0 auto;
+  padding: 1.2rem 1rem 1.05rem;
+  text-align: center;
+  background: rgba(8,13,9,.55);
+  border: 1px solid rgba(184,188,142,.10);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 18px 40px rgba(0,0,0,.16);
+}
+.proof-num strong {
+  display: block;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.3rem, 5vw, 2.8rem);
+  color: var(--laranja);
+  letter-spacing: .04em;
+  line-height: 1;
+}
+.proof-num span {
+  font-size: .62rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(184,188,142,.45);
+  line-height: 1.35;
+  margin-top: .55rem;
+}
+
+/* ─── CTA FINAL ─── */
+.cta-final {
+  padding: 7rem 1.5rem 6rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.cta-final::before {
+  content: '';
+  position: absolute;
+  bottom: -80px; left: 50%;
+  transform: translateX(-50%);
+  width: 700px; height: 500px;
+  background: radial-gradient(ellipse, rgba(61,82,64,.45) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 0;
+}
+.cta-final::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 1px; height: 70px;
+  background: linear-gradient(to bottom, transparent, rgba(184,188,142,.18));
+  z-index: 0;
+}
+
+.cta-final-watermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 0;
+}
+.cta-final-watermark img {
+  width: min(62vw, 420px);
+  height: auto;
+  object-fit: contain;
+  opacity: .035;
+  filter: none;
+}
+
+.cta-final-inner { position: relative; z-index:1; max-width: 640px; margin: 0 auto; }
+
+.cta-final-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3.5rem, 13vw, 7rem);
+  line-height: .88;
+  color: var(--creme);
+  letter-spacing: .02em;
+  margin-bottom: 1.6rem;
+}
+.cta-final-title em { font-family: 'Fraunces', serif; font-style: italic; color: var(--laranja); }
+
+.cta-final-body {
+  font-size: 1rem;
+  line-height: 1.85;
+  color: var(--sage);
+  opacity: .8;
+  margin-bottom: 2.5rem;
+}
+
+.btn-final {
+  display: inline-block;
+  font-size: .8rem;
+  font-weight: 500;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--preto);
+  background: var(--laranja);
+  padding: 1.2rem 3.75rem;
+  border-radius: 2px;
+  text-decoration: none;
+  transition: transform .15s, box-shadow .2s;
+}
+.btn-final:hover { transform: translateY(-2px); box-shadow: 0 14px 44px rgba(245,163,70,.32); }
+
+.cta-urgencia {
+  margin-top: 1.1rem;
+  font-size: .66rem;
+  letter-spacing: .1em;
+  color: rgba(184,188,142,.3);
+}
+
+/* ─── FOOTER ─── */
+footer {
+  border-top: 1px solid rgba(184,188,142,.07);
+  padding: 2.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  text-align: center;
+}
+.footer-sigla img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  opacity: .64;
+  filter: none;
+}
+.footer-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(156px, 18vw, 190px);
+  height: 64px;
+  overflow: hidden;
+}
+.footer-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 1;
+  filter: none;
+}
+.footer-nav { display: flex; gap: 1.75rem; list-style: none; }
+.footer-nav a {
+  font-size: .63rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(184,188,142,.25);
+  text-decoration: none;
+  transition: color .2s;
+}
+.footer-nav a:hover { color: var(--sage); }
+.footer-copy { font-size: .6rem; color: rgba(184,188,142,.15); letter-spacing: .06em; }
+
+/* ─── SELEÇÃO CANINA ─── */
+.sel-canina {
+  background: var(--verde);
+  padding: 6rem 1.5rem 7rem;
+  position: relative;
+  overflow: hidden;
+}
+.sel-canina::before {
+  content: '';
+  position: absolute;
+  top: -100px; right: -120px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(245,163,70,.04) 0%, transparent 65%);
+  pointer-events: none;
+}
+.sc-pre {
+  max-width: 1100px;
+  margin: 0 auto 3rem;
+  text-align: center;
+}
+.sc-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+  position: relative; z-index: 1;
+}
+@media (min-width: 820px) {
+  .sc-inner { grid-template-columns: 11fr 9fr; gap: 5rem; align-items: start; }
+}
+.sc-img-wrap {
+  position: relative;
+  background: rgba(8,13,9,.45);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(184,188,142,.08);
+}
+.sc-img {
+  width: 100%;
+  aspect-ratio: 4/5;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  opacity: 1;
+  transition: opacity .2s ease;
+}
+.sc-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.sc-nome {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3rem, 10vw, 5rem);
+  line-height: .9;
+  color: var(--creme);
+  letter-spacing: .03em;
+}
+.sc-preco {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(1.7rem, 5vw, 2.2rem);
+  color: var(--laranja);
+  letter-spacing: .05em;
+  line-height: 1;
+}
+.sc-desc {
+  font-size: .9rem;
+  line-height: 1.9;
+  color: var(--sage);
+  opacity: .72;
+  max-width: 38ch;
+  border-top: 1px solid rgba(184,188,142,.1);
+  padding-top: 1.2rem;
+}
+.sc-cor-section { display: flex; flex-direction: column; gap: .75rem; }
+.sc-cor-label {
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(184,188,142,.45);
+}
+.sc-cor-label strong { color: var(--creme); font-weight: 500; }
+.sc-swatches { display: flex; flex-wrap: wrap; gap: .48rem; }
+.sc-swatch {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(242,237,224,.18);
+  cursor: pointer; padding: 0; outline: none;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.sc-swatch:hover { transform: scale(1.1); }
+.sc-swatch.active {
+  box-shadow: 0 0 0 2px var(--verde), 0 0 0 4px rgba(245,163,70,.75);
+}
+.sc-swatch[data-light] {
+  box-shadow: inset 0 0 0 1.5px rgba(0,0,0,.13);
+}
+.sc-swatch[data-light].active {
+  box-shadow: inset 0 0 0 1.5px rgba(0,0,0,.08),
+              0 0 0 2px var(--verde),
+              0 0 0 4px rgba(245,163,70,.75);
+}
+.sc-tamanho-section {
+  display: flex; flex-direction: column; gap: .7rem;
+  border-top: 1px solid rgba(184,188,142,.08);
+  padding-top: 1.2rem;
+}
+.sc-sizes { display: flex; flex-wrap: wrap; gap: .36rem; }
+.sc-size-btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: .64rem; font-weight: 500;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--sage);
+  background: transparent;
+  border: 1px solid rgba(184,188,142,.18);
+  border-radius: 3px;
+  padding: .46rem .72rem;
+  cursor: pointer; min-width: 44px; text-align: center;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.sc-size-btn:hover { border-color: rgba(184,188,142,.4); color: var(--creme); }
+.sc-size-btn.active {
+  border-color: var(--laranja);
+  color: var(--laranja);
+  background: rgba(245,163,70,.06);
+}
+.sc-size-guide {
+  font-size: .65rem; letter-spacing: .1em; text-transform: uppercase;
+  color: rgba(184,188,142,.3);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(184,188,142,.15);
+  align-self: flex-start; cursor: pointer;
+  transition: color .2s;
+}
+.sc-size-guide:hover { color: rgba(184,188,142,.6); }
+.sc-cta {
+  display: block; text-align: center;
+  font-size: .75rem; font-weight: 500;
+  letter-spacing: .18em; text-transform: uppercase;
+  color: var(--preto); background: var(--laranja);
+  padding: 1.15rem 2rem; border-radius: 2px;
+  text-decoration: none;
+  transition: transform .15s, box-shadow .2s;
+}
+.sc-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px rgba(245,163,70,.3);
+}
+.sc-microcopy {
+  font-size: .62rem; letter-spacing: .08em;
+  color: rgba(184,188,142,.28);
+  text-align: center; margin-top: -.6rem;
+}
+@media (max-width: 640px) {
+  .sel-canina { padding: 3.5rem 1.25rem 4rem; }
+  .sc-pre { margin-bottom: 2rem; }
+  .sc-inner { gap: 1.75rem; }
+  .sc-nome { font-size: clamp(2.6rem, 10vw, 3.5rem); }
+  .sc-swatch { width: 28px; height: 28px; }
+  .sc-size-btn { padding: .44rem .64rem; font-size: .62rem; min-width: 40px; }
+}
+
+/* ─── GUIA DE MEDIDAS ─── */
+.sg-overlay {
+  position: fixed; inset: 0; z-index: 10000;
+  background: rgba(8,13,9,.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease;
+}
+.sg-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.sg-modal {
+  background: var(--verde);
+  border: 1px solid rgba(184,188,142,.1);
+  border-radius: 10px;
+  width: 100%; max-width: 480px;
+  max-height: 90dvh;
+  overflow-y: auto;
+  padding: 2.25rem 2rem 2rem;
+  position: relative;
+  transform: scale(.95) translateY(10px);
+  opacity: 0;
+  box-shadow: 0 28px 80px rgba(0,0,0,.55);
+  transition: transform .32s cubic-bezier(.32,.72,0,1), opacity .28s ease;
+  scrollbar-width: none;
+}
+.sg-modal::-webkit-scrollbar { display: none; }
+.sg-overlay.open .sg-modal {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+.sg-handle { display: none; }
+
+@media (max-width: 640px) {
+  .sg-overlay { align-items: flex-end; padding: 0; }
+  .sg-modal {
+    border-radius: 14px 14px 0 0;
+    max-width: 100%;
+    max-height: 88dvh;
+    transform: translateY(100%);
+    opacity: 1;
+    padding: .75rem 1.5rem 2.5rem;
+    box-shadow: 0 -8px 40px rgba(0,0,0,.35);
+  }
+  .sg-overlay.open .sg-modal {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .sg-handle {
+    display: block;
+    width: 36px; height: 4px;
+    background: rgba(184,188,142,.2);
+    border-radius: 2px;
+    margin: 0 auto 1.5rem;
+  }
+}
+
+.sg-close {
+  position: absolute;
+  top: 1rem; right: 1rem;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(184,188,142,.14);
+  background: transparent;
+  color: rgba(184,188,142,.4);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .2s, color .2s, background .2s;
+}
+.sg-close:hover {
+  border-color: rgba(184,188,142,.38);
+  color: var(--sage);
+  background: rgba(184,188,142,.06);
+}
+
+.sg-material {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--laranja);
+  margin-bottom: .4rem;
+}
+.sg-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(1.9rem, 6vw, 2.5rem);
+  color: var(--creme);
+  letter-spacing: .03em;
+  line-height: .92;
+  margin-bottom: .75rem;
+}
+.sg-sub {
+  font-size: .82rem;
+  line-height: 1.8;
+  color: var(--sage);
+  opacity: .62;
+  max-width: 38ch;
+  margin-bottom: 1.1rem;
+}
+.sg-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(184,188,142,.08);
+}
+.sg-badge {
+  font-size: .56rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: rgba(184,188,142,.5);
+  border: 1px solid rgba(184,188,142,.16);
+  padding: .26rem .72rem;
+  border-radius: 20px;
+}
+.sg-table-wrap { margin-bottom: 1.5rem; }
+.sg-table { width: 100%; border-collapse: collapse; }
+.sg-table thead th {
+  font-size: .56rem;
+  font-weight: 500;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: rgba(184,188,142,.32);
+  padding: 0 0 .8rem;
+  text-align: left;
+}
+.sg-table thead th:not(:first-child) { text-align: center; }
+.sg-table tbody tr {
+  border-top: 1px solid rgba(184,188,142,.07);
+  transition: background .15s;
+}
+.sg-table tbody tr:hover { background: rgba(184,188,142,.03); }
+.sg-table tbody td {
+  padding: .8rem 0;
+  font-size: .88rem;
+  color: var(--sage);
+  opacity: .8;
+}
+.sg-table tbody td:first-child {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: .06em;
+  color: var(--creme);
+  opacity: 1;
+}
+.sg-table tbody td:not(:first-child) { text-align: center; }
+.sg-measure {
+  background: rgba(8,13,9,.35);
+  border-radius: 6px;
+  padding: 1rem 1.2rem;
+  border: 1px solid rgba(184,188,142,.07);
+}
+.sg-measure-title {
+  font-size: .58rem;
+  font-weight: 500;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(184,188,142,.38);
+  margin-bottom: .55rem;
+}
+.sg-measure-line {
+  font-size: .78rem;
+  color: var(--sage);
+  opacity: .55;
+  line-height: 1.8;
+}
+
+/* ─── DIVISOR MASCULINA ─── */
+.sc-gender-break {
+  background: var(--verde-deep);
+  border-top: 1px solid rgba(184,188,142,.07);
+  border-bottom: 1px solid rgba(184,188,142,.07);
+  padding: 3.25rem 1.5rem 3rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.sc-gender-break::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 55% at 50% 100%, rgba(61,82,64,.28) 0%, transparent 70%);
+  pointer-events: none;
+}
+.sc-gender-inner {
+  position: relative; z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.sc-gender-rule {
+  width: min(140px, 28%);
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(184,188,142,.18), transparent);
+  margin: .75rem auto;
+}
+.sc-gender-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2rem, 7vw, 3.6rem);
+  letter-spacing: .22em;
+  padding-right: .22em;
+  color: rgba(242,237,224,.88);
+  line-height: .88;
+}
+@media (max-width: 640px) {
+  .sc-gender-break { padding: 2.5rem 1.25rem 2.25rem; }
+}
+
+/* ─── ALGODAO PERUANO ─── */
+.algodao-premium {
+  background: var(--verde-deep);
+  border-top: 1px solid rgba(184,188,142,.06);
+  border-bottom: 1px solid rgba(184,188,142,.06);
+  padding: 4.1rem 1.5rem 3.9rem;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.algodao-premium::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(245,163,70,.035), transparent 42%, rgba(61,82,64,.16));
+  pointer-events: none;
+}
+.algodao-premium::after {
+  content: '';
+  position: absolute;
+  top: 7%;
+  right: -10%;
+  width: min(52vw, 660px);
+  height: 86%;
+  background: radial-gradient(ellipse at center, rgba(245,163,70,.13), rgba(61,82,64,.11) 34%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+.algodao-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, .92fr);
+  gap: 2.9rem;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+.algodao-img-wrap {
+  width: min(52vw, 560px);
+  justify-self: end;
+  position: relative;
+  margin-right: -1.25rem;
+  overflow: hidden;
+}
+.algodao-img-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 10% 4% 0 6%;
+  background: radial-gradient(ellipse at center, rgba(245,163,70,.16), transparent 66%);
+  filter: blur(22px);
+  opacity: .7;
+  pointer-events: none;
+  z-index: -1;
+}
+.algodao-img-wrap::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background:
+    radial-gradient(ellipse 76% 70% at 50% 50%, transparent 54%, rgba(13,26,14,.18) 74%, var(--verde-deep) 100%),
+    linear-gradient(to right, var(--verde-deep) 0%, transparent 16%, transparent 84%, var(--verde-deep) 100%),
+    linear-gradient(to bottom, var(--verde-deep) 0%, transparent 14%, transparent 84%, var(--verde-deep) 100%);
+  pointer-events: none;
+}
+.algodao-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  filter: brightness(1) contrast(1.05) saturate(1);
+  -webkit-mask-image: radial-gradient(ellipse 88% 82% at 50% 51%, #000 66%, rgba(0,0,0,.92) 82%, transparent 100%);
+  mask-image: radial-gradient(ellipse 88% 82% at 50% 51%, #000 66%, rgba(0,0,0,.92) 82%, transparent 100%);
+}
+.algodao-micro { margin-top: 1.4rem; font-size: .59rem; letter-spacing: .1em; color: rgba(184,188,142,.26); line-height: 1.7; }
+.algodao-label {
+  display: inline-block;
+  font-size: .62rem;
+  font-weight: 500;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--laranja);
+  margin-bottom: 1rem;
+}
+.algodao-title {
+  max-width: 680px;
+  font-family: 'Fraunces', serif;
+  font-size: clamp(1.8rem, 4.2vw, 3rem);
+  line-height: 1.12;
+  font-weight: 400;
+  color: var(--creme);
+  letter-spacing: 0;
+}
+.algodao-text {
+  max-width: 46ch;
+  margin-top: 1rem;
+  font-size: .96rem;
+  line-height: 1.8;
+  color: rgba(184,188,142,.72);
+}
+.algodao-bullets {
+  list-style: none;
+  display: grid;
+  gap: .85rem;
+}
+.algodao-bullets li {
+  padding: .82rem 0 .78rem;
+  border-top: 1px solid rgba(184,188,142,.13);
+  font-size: .68rem;
+  font-weight: 500;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: rgba(242,237,224,.78);
+}
+.algodao-bullets li:last-child {
+  border-bottom: 1px solid rgba(184,188,142,.13);
+}
+
+/* ─── VITRINE DE COLEÇÃO ─── */
+.vitrine-section { padding: 4.5rem 1.5rem 5rem; max-width: 1040px; margin: 0 auto; }
+.vitrine-header { margin-bottom: 2.25rem; }
+.vitrine-titulo { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.9rem,8vw,4.75rem); color: var(--creme); letter-spacing: .04em; line-height: .88; margin: .35rem 0 .6rem; }
+.vitrine-sub { font-family: 'Fraunces', serif; font-style: italic; font-size: clamp(.88rem,2vw,1.05rem); color: rgba(184,188,142,.5); font-weight: 400; }
+.vitrine-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+@media (min-width: 680px) { .vitrine-grid { grid-template-columns: 1fr 1fr; gap: 1.25rem; } }
+.vitrine-grid-single { max-width: 520px; margin: 0 auto; }
+@media (min-width: 680px) { .vitrine-grid-single { grid-template-columns: 1fr; } }
+.section-anchor {
+  position: relative;
+  top: -90px;
+  display: block;
+  height: 0;
+  overflow: hidden;
+}
+.collection-filters {
+  display: flex;
+  gap: .55rem;
+  margin: -1rem 0 1.3rem;
+  padding: .12rem .1rem .45rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.collection-filters::-webkit-scrollbar { display: none; }
+.collection-filter {
+  flex: 0 0 auto;
+  height: 40px;
+  padding: 0 1rem;
+  border: 1px solid rgba(184,188,142,.16);
+  border-radius: 999px;
+  background: rgba(22,35,24,.72);
+  color: rgba(242,237,224,.68);
+  font-family: 'DM Sans', sans-serif;
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+}
+.collection-filter:hover {
+  border-color: rgba(245,163,70,.44);
+  color: var(--creme);
+}
+.collection-filter.active {
+  background: var(--laranja);
+  border-color: var(--laranja);
+  color: var(--preto);
+  transform: translateY(-1px);
+}
+.collection-grid {
+  transition: min-height .2s ease;
+}
+.collection-grid .vcard {
+  transition: opacity .22s ease, transform .22s ease, border-color .3s ease, box-shadow .3s ease;
+}
+.collection-grid .vcard.is-filtering-out {
+  opacity: 0;
+  transform: translateY(8px) scale(.98);
+  pointer-events: none;
+}
+.collection-grid .vcard[hidden] { display: none; }
+/* VCARD */
+.vcard { background: rgba(22,35,24,.75); border: 1px solid rgba(184,188,142,.1); border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; transition: border-color .3s ease, transform .3s cubic-bezier(.25,.46,.45,.94); }
+.vcard:hover { border-color: rgba(245,163,70,.3); transform: translateY(-4px); }
+.vcard-img-wrap { background: #ECE7DE; overflow: hidden; flex-shrink: 0; }
+.vcard-img { width: 100%; aspect-ratio: 4/5; object-fit: contain; object-position: center; display: block; transition: opacity .2s ease; }
+.vcard-body { padding: .9rem 1rem 1rem; display: flex; flex-direction: column; gap: .62rem; flex: 1; }
+.vcard-meta { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; }
+.vcard-modelagem { font-size: .51rem; letter-spacing: .19em; text-transform: uppercase; color: var(--laranja); font-weight: 500; }
+.vcard-price { font-family: 'Bebas Neue', sans-serif; font-size: .92rem; color: rgba(184,188,142,.4); letter-spacing: .08em; }
+.vcard-cor-label { font-size: .57rem; letter-spacing: .12em; text-transform: uppercase; color: rgba(184,188,142,.32); }
+.vcard-cor-label strong { color: var(--creme); font-weight: 500; }
+.vitrine-section .sc-swatches { gap: .35rem; }
+.vitrine-section .sc-swatch { width: 20px; height: 20px; }
+.vitrine-section .sc-sizes { gap: .28rem; }
+.vitrine-section .sc-size-btn { padding: .36rem .52rem; font-size: .59rem; min-width: 36px; }
+.vcard-actions { display: flex; flex-direction: column; gap: .5rem; margin-top: .1rem; }
+.vcard-guide { font-size: .56rem; letter-spacing: .1em; text-transform: uppercase; color: rgba(184,188,142,.26); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(184,188,142,.1); cursor: pointer; align-self: flex-start; transition: color .2s; }
+.vcard-guide:hover { color: rgba(184,188,142,.55); }
+.vcard-cta { display: block; text-align: center; font-size: .58rem; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--preto); background: var(--laranja); padding: .8rem 1rem; border-radius: 2px; text-decoration: none; transition: transform .15s, box-shadow .2s; }
+.vcard-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(245,163,70,.26); }
+.vitrine-microcopy { font-size: .57rem; letter-spacing: .1em; color: rgba(184,188,142,.18); text-align: center; margin-top: 1.25rem; }
+@media (max-width: 720px) {
+  .algodao-premium::after {
+    top: auto;
+    right: 50%;
+    bottom: 0;
+    width: 120vw;
+    height: 42%;
+    transform: translateX(50%);
+  }
+  .algodao-inner { grid-template-columns: 1fr; gap: 2rem; align-items: start; }
+  .algodao-img-wrap {
+    width: calc(100% + 2.5rem);
+    max-width: none;
+    height: clamp(255px, 72vw, 340px);
+    justify-self: stretch;
+    margin: 1.65rem -1.25rem -1rem;
+  }
+  .algodao-img-wrap::after {
+    background:
+      linear-gradient(to bottom, var(--verde-deep) 0%, rgba(13,26,14,.74) 12%, transparent 28%, transparent 72%, rgba(13,26,14,.82) 88%, var(--verde-deep) 100%),
+      linear-gradient(to right, var(--verde-deep) 0%, transparent 18%, transparent 82%, var(--verde-deep) 100%);
+  }
+  .algodao-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+}
+@media (max-width: 640px) {
+  .algodao-premium { padding: 2.8rem 1.25rem 2.7rem; }
+  .algodao-label { margin-bottom: .75rem; font-size: .58rem; }
+  .algodao-title { font-size: clamp(1.55rem, 7vw, 2.25rem); }
+  .algodao-text { margin-top: .8rem; font-size: .9rem; line-height: 1.75; }
+  .algodao-bullets { gap: .6rem; }
+  .algodao-bullets li { padding: .7rem 0 .64rem; font-size: .62rem; }
+  .vitrine-section { padding: 2.75rem 1.25rem 3.25rem; }
+  .vitrine-header { margin-bottom: 1.4rem; }
+  .vitrine-grid { gap: .85rem; }
+  .vcard-img { aspect-ratio: 3/4; }
+  .vcard-body { padding: .78rem .88rem .9rem; gap: .52rem; }
+}
+
+/* ─── SOCIAL PROOF BAR ─── */
+.social-bar { background: var(--verde); border-top: 1px solid rgba(184,188,142,.07); border-bottom: 1px solid rgba(184,188,142,.07); padding: 1.1rem 1.5rem; display: flex; align-items: center; justify-content: center; gap: 2rem; flex-wrap: wrap; }
+.social-bar-item { display: flex; align-items: center; gap: .6rem; font-size: .6rem; letter-spacing: .14em; text-transform: uppercase; color: rgba(184,188,142,.55); }
+.social-bar-item strong { color: var(--creme); font-weight: 500; }
+.social-bar-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--laranja); opacity: .6; }
+
+/* ─── TV LABEL ─── */
+.tv-label { display: flex; align-items: center; gap: .55rem; color: var(--laranja); font-family: 'DM Sans', sans-serif; font-size: .6rem; font-weight: 400; letter-spacing: .22em; text-transform: uppercase; margin-bottom: .9rem; }
+.tv-dot { width: 7px; height: 7px; background: var(--laranja); border-radius: 50%; animation: tvPulse 1.6s ease-in-out infinite; flex-shrink: 0; }
+@keyframes tvPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.35;transform:scale(.75)} }
+.quem-video-wrap { position: relative; }
+.quem-video-wrap video { border: 2px solid var(--laranja); border-radius: 2px; box-shadow: 6px 6px 0 var(--verde-md); display: block; width: 100%; }
+
+/* ─── ONG / IMPACTO ─── */
+.section-ong { background: var(--verde-md); padding: 5.5rem 1.5rem 5rem; text-align: center; position: relative; overflow: hidden; border-top: 1px solid rgba(184,188,142,.07); }
+.section-ong::before { content: ''; position: absolute; top: -8%; right: -4%; width: 360px; height: 420px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Cellipse cx='28' cy='28' rx='11' ry='15' fill='%23F2EDE0'/%3E%3Cellipse cx='50' cy='18' rx='11' ry='15' fill='%23F2EDE0'/%3E%3Cellipse cx='72' cy='22' rx='11' ry='15' fill='%23F2EDE0'/%3E%3Cpath d='M20 56 Q30 92 50 97 Q70 92 80 56 Q68 44 50 48 Q32 44 20 56Z' fill='%23F2EDE0'/%3E%3C/svg%3E") no-repeat center/contain; opacity: .055; pointer-events: none; }
+.ong-inner { max-width: 620px; margin: 0 auto; position: relative; z-index: 1; }
+.ong-badge { display: inline-block; background: var(--laranja); color: var(--preto); font-size: .58rem; font-weight: 700; letter-spacing: .26em; padding: .42rem 1.1rem; border-radius: 2px; margin-bottom: 1.75rem; }
+.ong-title { font-family: 'Fraunces', serif; font-size: clamp(2.2rem, 7vw, 3.75rem); color: var(--creme); line-height: 1.08; font-weight: 400; margin-bottom: 1.4rem; }
+.ong-body { color: rgba(184,188,142,.72); font-size: .96rem; line-height: 1.8; max-width: 44ch; margin: 0 auto 2.75rem; }
+.ong-body strong { color: var(--creme); font-weight: 500; }
+.ong-counter { display: flex; align-items: center; justify-content: center; gap: 3rem; margin-bottom: 2.75rem; }
+.counter-item { display: flex; flex-direction: column; align-items: center; }
+.counter-number { display: block; font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; color: var(--laranja); line-height: 1; letter-spacing: .03em; }
+.counter-label { font-size: .58rem; letter-spacing: .15em; text-transform: uppercase; color: rgba(184,188,142,.5); margin-top: .4rem; }
+.counter-divider { width: 1px; height: 52px; background: rgba(184,188,142,.2); }
+.ong-cta { display: inline-block; border: 2px solid var(--creme); color: var(--creme); padding: .9rem 2.25rem; font-size: .68rem; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; text-decoration: none; border-radius: 2px; transition: background .22s, color .22s; }
+.ong-cta:hover { background: var(--creme); color: var(--verde-md); }
+@media (max-width: 640px) { .section-ong { padding: 4rem 1.25rem 3.75rem; } .ong-counter { gap: 1.75rem; } .counter-number { font-size: 2.75rem; } .social-bar { gap: 1.1rem; } }
+
+/* ─── KEYFRAMES ─── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@keyframes scrollPulse { 0%,100%{opacity:.3;} 50%{opacity:.7;} }
+@keyframes ticker { from{transform:translateX(0);} to{transform:translateX(-50%);} }
+
+/* ─── MOBILE FIRST ─── */
+@media (max-width: 640px) {
+  /* Hero */
+  nav { position: absolute; padding: .9rem 1.15rem; }
+  .nav-logo { width: 148px; height: 54px; }
+  .nav-cta { font-size: .62rem; padding: .5rem .9rem; }
+  .hero-content { padding: 0 1.25rem 2.4rem; }
+  .hero-title { font-size: clamp(3.15rem, 14vw, 3.85rem); }
+  .hero-sub { font-size: .95rem; }
+  .btn-hero { padding: 1rem 2.25rem; width: 100%; max-width: 320px; text-align: center; }
+
+  /* Origem */
+  .origem { padding: 3.5rem 1.25rem 3rem; }
+  .origem-line { font-size: clamp(1.2rem, 4.8vw, 1.75rem); padding: .7rem 0; }
+  .origem-statements { margin-bottom: 1.75rem; }
+  .origem-corpo { font-size: .9rem; line-height: 1.9; margin-top: 1.75rem; padding-top: 1.5rem; max-width: 100%; }
+
+  /* Quem somos */
+  .quem-somos-inner { padding: 3rem 1.25rem; gap: 2rem; }
+  .quem-titulo { font-size: clamp(2rem, 7.5vw, 3rem); }
+  .quem-body { font-size: .9rem; line-height: 1.9; margin-bottom: 1.5rem; max-width: 100%; }
+  .quem-stats { gap: 1.5rem; }
+  .quem-stat strong { font-size: 1.7rem; }
+
+  /* Ponte */
+  .ponte { padding: 3.5rem 1.25rem; }
+  .ponte-quote { font-size: clamp(1.45rem, 5.5vw, 2rem); }
+  .ponte-body { font-size: .88rem; line-height: 1.85; }
+
+  /* Familia */
+  .familia-copa { padding: 3rem 1.25rem 2.25rem; }
+  .familia-copa-sub { margin-bottom: 1.5rem; }
+
+  /* Produtos */
+  .produtos { padding: 3rem 1.25rem 3.5rem; }
+  .produtos-header { margin-bottom: 2rem; }
+  .produtos-sigla img { width: 34px; height: 34px; opacity: .5; }
+  .produtos-titulo { font-size: clamp(2.4rem, 9vw, 3.5rem); }
+  .produtos-grid { gap: .6rem; }
+  .sku-info { padding: .7rem .85rem .95rem; }
+  .sku-nome { font-size: .84rem; }
+
+  /* Proof */
+  .proof { padding: 3rem 1.25rem 2.75rem; }
+  .proof-header { margin-bottom: 1.5rem; }
+  .proof-brand {
+    margin-bottom: .9rem;
+    padding-bottom: .7rem;
+    font-size: clamp(2.7rem, 14vw, 3.55rem);
+    letter-spacing: .07em;
+  }
+  .proof-title {
+    font-size: clamp(1.9rem, 9.6vw, 2.6rem);
+    line-height: 1;
+  }
+  .proof-numbers {
+    grid-template-columns: 1fr;
+    gap: .75rem;
+    max-width: 360px;
+  }
+  .proof-num {
+    max-width: none;
+    min-height: 104px;
+    padding: 1rem 1rem .9rem;
+  }
+  .proof-num strong { font-size: 2.35rem; }
+  .proof-num span { font-size: .6rem; }
+
+  /* CTA Final */
+  .cta-final { padding: 4.5rem 1.25rem 3.5rem; }
+  .cta-final-watermark img { width: min(76vw, 320px); opacity: .03; }
+  .cta-final-body { font-size: .9rem; }
+  .btn-final { padding: 1rem 2.5rem; width: 100%; max-width: 320px; text-align: center; }
+
+  /* Ticker */
+  .copa-ticker-item { font-size: .82rem; }
+
+  /* Footer */
+  footer { padding: 2rem 1.25rem; }
+  .footer-sigla img { width: 44px; height: 44px; opacity: .58; }
+  .footer-nav { gap: 1.25rem; flex-wrap: wrap; justify-content: center; }
+}
+
+@media (max-width: 380px) {
+  .nav-logo { width: 136px; height: 50px; }
+  .nav-cta { padding: .48rem .72rem; }
+  .hero-title { font-size: 3.5rem; }
+  .origem-line { font-size: 1.1rem; }
+  .quem-titulo { font-size: 2rem; }
+}
+
+/* ═══════════════════════════════════════════════
+   VCARD PREMIUM — REDESIGN
+═══════════════════════════════════════════════ */
+
+/* 1.1 — Container do card */
+.vcard {
+  background: #1A1A1A;
+  border-radius: 16px;
+  border: 1px solid rgba(184,188,138,0.18);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+}
+.vcard:hover {
+  border-color: rgba(245,160,74,.35);
+  transform: translateY(-4px);
+  box-shadow: 0 26px 58px rgba(0,0,0,0.58);
+}
+
+/* 1.2 — Painel da imagem */
+.vcard-img-wrap {
+  background: #111a12;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+/* TODO: trocar mockups por PNG transparente quando possível — fundo escuro + glow radial atrás da camisa deixa mais premium */
+.vcard-img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  transition: opacity .2s ease, transform .4s ease;
+}
+.vcard:hover .vcard-img { transform: scale(1.04); }
+
+/* Badge flutuante */
+.vcard-badge {
+  position: absolute;
+  top: 14px; left: 14px;
+  background: var(--laranja);
+  color: var(--preto);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: 4px;
+  z-index: 2;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* 1.3 — Painel de informações */
+.vcard-body {
+  padding: 22px 20px 24px;
+  gap: .55rem;
+}
+.vcard-nome {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 22px;
+  color: var(--creme);
+  line-height: 1.05;
+  font-weight: 400;
+  margin-bottom: 2px;
+}
+.vcard-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: 2px;
+}
+.vcard-modelagem {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(242,237,228,0.55);
+}
+.vcard-price {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--laranja);
+  letter-spacing: .04em;
+  line-height: 1;
+}
+.vcard-cor-label {
+  font-size: 11px;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  color: rgba(242,237,228,0.60);
+}
+.vcard-cor-label strong { color: var(--creme); font-weight: 500; }
+.vcard-guide {
+  color: rgba(242,237,228,0.50);
+  text-decoration-color: rgba(242,237,228,0.15);
+}
+.vcard-guide:hover { color: rgba(242,237,228,0.8); }
+
+/* 2 — Swatches maiores (36px, alvo real >= 44px com padding) */
+.sc-swatches,
+.vitrine-section .sc-swatches { gap: 12px; }
+
+.sc-swatch,
+.vitrine-section .sc-swatch {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.25);
+  cursor: pointer; padding: 0; outline: none;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.sc-swatch:hover { transform: scale(1.08); }
+.sc-swatch.active {
+  transform: scale(1.12);
+  border-color: var(--laranja);
+  box-shadow: 0 0 0 3px rgba(245,160,74,0.35);
+}
+.sc-swatch[data-light] {
+  box-shadow: inset 0 0 0 1.5px rgba(0,0,0,0.20);
+}
+.sc-swatch[data-light].active {
+  border-color: var(--laranja);
+  box-shadow: inset 0 0 0 1.5px rgba(0,0,0,0.08),
+              0 0 0 3px rgba(245,160,74,0.35);
+}
+
+/* 3 — Botões de tamanho (alvo confortável >= 44px) */
+.sc-sizes,
+.vitrine-section .sc-sizes { gap: 8px; }
+
+.sc-size-btn,
+.vitrine-section .sc-size-btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--creme);
+  background: transparent;
+  border: 1px solid rgba(242,237,228,0.22);
+  border-radius: 8px;
+  min-width: 46px;
+  height: 44px;
+  padding: 0 10px;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.sc-size-btn:hover,
+.vitrine-section .sc-size-btn:hover { border-color: var(--laranja); color: var(--laranja); }
+.sc-size-btn.active,
+.vitrine-section .sc-size-btn.active {
+  background: var(--creme);
+  color: var(--preto);
+  border-color: var(--creme);
+}
+
+/* 4 — CTA premium */
+.vcard-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 54px;
+  border-radius: 10px;
+  background: var(--laranja);
+  color: var(--preto);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  box-shadow: 0 8px 20px rgba(245,160,74,0.3);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.vcard-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(245,160,74,0.4);
+}
+.vcard-cta:active { transform: translateY(0); }
+.vcard-cta[data-nuvemshop-pilot] {
+  width: 100%;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* 5 — Ritmo visual / mobile */
+.vitrine-header { margin-bottom: 28px; }
+.vitrine-grid .vcard.reveal:nth-child(2) { transition-delay: 80ms; }
+.vitrine-grid .vcard.reveal:nth-child(3) { transition-delay: 160ms; }
+@media (min-width: 940px) {
+  .collection-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Galeria compacta do card Cropped */
+.vcard-gallery {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 8px;
+  background: #111a12;
+  border-top: 1px solid rgba(184,188,138,0.12);
+}
+.vcard-thumb {
+  aspect-ratio: 1 / 1;
+  border: 1px solid rgba(242,237,228,0.16);
+  border-radius: 8px;
+  background: #ECE7DE;
+  overflow: hidden;
+  padding: 0;
+  cursor: pointer;
+  opacity: .72;
+  transition: opacity .15s ease, border-color .15s ease, transform .15s ease;
+}
+.vcard-thumb:hover { opacity: 1; transform: translateY(-1px); }
+.vcard-thumb.active {
+  opacity: 1;
+  border-color: var(--laranja);
+  box-shadow: 0 0 0 2px rgba(245,160,74,0.24);
+}
+.vcard-thumb img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center top;
+}
+.colecao-section .vcard-img { aspect-ratio: 1 / 1.06; }
+
+/* 6 — Proof cards coesos */
+.proof-num {
+  border: 1px solid rgba(184,188,138,0.18);
+  border-radius: 12px;
+}
+
+/* Mobile — garantir sem scroll horizontal + swatches 36px mesmo no mobile */
+@media (max-width: 640px) {
+  .vitrine-section { padding: 3rem 1.25rem 3.35rem; }
+  .vitrine-header { margin-bottom: 16px; }
+  .collection-filters {
+    margin: -.55rem -1.25rem 1rem 0;
+    padding-right: 1.25rem;
+    gap: .45rem;
+  }
+  .collection-filter {
+    height: 36px;
+    padding: 0 .82rem;
+    font-size: .6rem;
+  }
+  .vitrine-grid { gap: .72rem; }
+  .colecao-section .vcard-img { aspect-ratio: 1 / .86; }
+  .vcard-body { padding: 13px 14px 15px; gap: .42rem; }
+  .vcard-nome { font-size: 18px; }
+  .vcard-modelagem { font-size: 10px; }
+  .vcard-price { font-size: 20px; }
+  .vcard-cor-label { font-size: 10px; }
+  .sc-swatch,
+  .vitrine-section .sc-swatch { width: 32px; height: 32px; }
+  .sc-size-btn,
+  .vitrine-section .sc-size-btn { min-width: 40px; height: 40px; font-size: 11px; }
+  .vcard-actions { gap: .42rem; }
+  .vcard-guide { font-size: .52rem; }
+  .vcard-cta { height: 48px; }
+  .vcard-gallery {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    padding: 8px;
+    scrollbar-width: none;
+  }
+  .vcard-gallery::-webkit-scrollbar { display: none; }
+  .vcard-thumb { flex: 0 0 48px; }
+}
+
+/* ─── MINI CARRINHO ─── */
+.cart-fab {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.25rem;
+  z-index: 600;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--laranja);
+  color: var(--preto);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  box-shadow: 0 6px 24px rgba(245,163,70,.38);
+  transition: transform .2s ease, box-shadow .2s ease, opacity .2s;
+  padding: 0;
+  font-family: 'DM Sans', sans-serif;
+}
+.cart-fab:hover {
+  transform: scale(1.07) translateY(-2px);
+  box-shadow: 0 10px 32px rgba(245,163,70,.5);
+}
+.cart-fab-label {
+  display: none;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.cart-fab-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--creme);
+  color: var(--preto);
+  font-size: .6rem;
+  font-weight: 700;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--verde-deep);
+  line-height: 1;
+}
+.cart-fab-badge.visible { display: flex; }
+
+@media (min-width: 768px) {
+  .cart-fab {
+    bottom: auto;
+    top: .75rem;
+    right: 10rem;
+    width: auto;
+    height: 36px;
+    border-radius: 4px;
+    padding: 0 .9rem;
+    gap: .45rem;
+  }
+  .cart-fab-label { display: inline; }
+  .cart-fab-badge { top: -6px; right: -6px; }
+}
+
+.cart-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: rgba(8,13,9,.72);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease;
+}
+.cart-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.cart-drawer {
+  position: fixed;
+  z-index: 9001;
+  background: var(--verde);
+  border: 1px solid rgba(184,188,142,.12);
+  display: flex;
+  flex-direction: column;
+  transition: transform .35s cubic-bezier(.4,0,.2,1);
+}
+
+@media (max-width: 767px) {
+  .cart-drawer {
+    bottom: 0; left: 0; right: 0;
+    border-radius: 16px 16px 0 0;
+    max-height: 88svh;
+    transform: translateY(100%);
+  }
+  .cart-drawer.open { transform: translateY(0); }
+}
+@media (min-width: 768px) {
+  .cart-drawer {
+    top: 0; right: 0; bottom: 0;
+    width: min(420px, 90vw);
+    border-radius: 12px 0 0 12px;
+    transform: translateX(100%);
+  }
+  .cart-drawer.open { transform: translateX(0); }
+}
+
+.cart-drag-handle {
+  width: 40px;
+  height: 4px;
+  background: rgba(184,188,142,.22);
+  border-radius: 2px;
+  margin: .75rem auto .25rem;
+  flex-shrink: 0;
+}
+@media (min-width: 768px) { .cart-drag-handle { display: none; } }
+
+.cart-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.5rem .9rem;
+  border-bottom: 1px solid rgba(184,188,142,.1);
+  flex-shrink: 0;
+}
+.cart-drawer-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: .06em;
+  color: var(--creme);
+}
+.cart-drawer-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(184,188,142,.18);
+  background: transparent;
+  color: var(--sage);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color .2s, color .2s;
+}
+.cart-drawer-close:hover { border-color: var(--laranja); color: var(--laranja); }
+
+.cart-items-wrap {
+  flex: 1;
+  overflow-y: auto;
+  padding: .5rem 1.5rem;
+  overscroll-behavior: contain;
+}
+.cart-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;
+  padding: 3.5rem 0;
+  color: rgba(184,188,142,.35);
+  font-size: .82rem;
+  letter-spacing: .04em;
+  text-align: center;
+}
+
+.cart-item {
+  display: flex;
+  gap: .85rem;
+  padding: .85rem 0;
+  border-bottom: 1px solid rgba(184,188,142,.07);
+  align-items: flex-start;
+}
+.cart-item:last-child { border-bottom: none; }
+
+.cart-item-img {
+  width: 62px;
+  height: 62px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #111a12;
+  border: 1px solid rgba(184,188,142,.1);
+}
+.cart-item-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+.cart-item-body { flex: 1; min-width: 0; }
+.cart-item-name {
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--creme);
+  line-height: 1.3;
+  margin-bottom: .18rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cart-item-meta {
+  font-size: .68rem;
+  color: rgba(184,188,142,.48);
+  letter-spacing: .04em;
+  margin-bottom: .5rem;
+}
+.cart-item-controls {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.cart-qty-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  border: 1px solid rgba(184,188,142,.18);
+  background: transparent;
+  color: var(--sage);
+  font-size: .95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: border-color .15s, color .15s;
+}
+.cart-qty-btn:hover { border-color: var(--laranja); color: var(--laranja); }
+.cart-qty-val {
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--creme);
+  min-width: 18px;
+  text-align: center;
+}
+.cart-item-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .5rem;
+  flex-shrink: 0;
+}
+.cart-item-remove {
+  background: transparent;
+  border: none;
+  color: rgba(184,188,142,.28);
+  cursor: pointer;
+  padding: .15rem;
+  border-radius: 4px;
+  transition: color .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cart-item-remove:hover { color: #e05a5a; }
+.cart-item-price {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  color: var(--laranja);
+  letter-spacing: .04em;
+}
+
+.cart-drawer-footer {
+  padding: .9rem 1.5rem 1.5rem;
+  border-top: 1px solid rgba(184,188,142,.1);
+  flex-shrink: 0;
+  background: var(--verde);
+}
+.cart-subtotal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: .9rem;
+}
+.cart-subtotal-label {
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(184,188,142,.45);
+}
+.cart-subtotal-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.7rem;
+  color: var(--creme);
+  letter-spacing: .04em;
+}
+.cart-btn-checkout {
+  width: 100%;
+  height: 52px;
+  background: var(--laranja);
+  color: var(--preto);
+  border: none;
+  border-radius: 8px;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: transform .15s, box-shadow .15s;
+  box-shadow: 0 8px 24px rgba(245,163,70,.3);
+  margin-bottom: .6rem;
+}
+.cart-btn-checkout:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(245,163,70,.4);
+}
+.cart-btn-checkout:active { transform: translateY(0); }
+.cart-btn-checkout:disabled, .cart-btn-checkout.loading {
+  opacity: .55;
+  cursor: not-allowed;
+  transform: none;
+  pointer-events: none;
+}
+.cart-btn-continue {
+  width: 100%;
+  height: 40px;
+  background: transparent;
+  color: rgba(184,188,142,.55);
+  border: 1px solid rgba(184,188,142,.14);
+  border-radius: 8px;
+  font-size: .68rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: border-color .15s, color .15s;
+}
+.cart-btn-continue:hover { border-color: rgba(184,188,142,.32); color: var(--sage); }
+
+.cart-toast {
+  position: fixed;
+  bottom: 5.5rem;
+  right: 1.25rem;
+  z-index: 9002;
+  background: #1c2e1e;
+  border: 1px solid rgba(245,163,70,.3);
+  border-radius: 10px;
+  padding: .8rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  font-size: .78rem;
+  color: var(--creme);
+  box-shadow: 0 12px 36px rgba(0,0,0,.45);
+  transform: translateY(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+  max-width: 270px;
+  line-height: 1.4;
+}
+.cart-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.cart-toast-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--laranja);
+  flex-shrink: 0;
+}
+@media (min-width: 768px) {
+  .cart-toast {
+    bottom: auto;
+    top: 5rem;
+    right: 1.25rem;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <a class="nav-logo" href="#">
+    <img src="Logo_7.png" alt="PattaMansa">
+  </a>
+  <a class="nav-cta" href="#algodao-peruano">Ver Coleção</a>
+</nav>
+
+<!-- ── CARRINHO LOCAL ── -->
+<button class="cart-fab" id="cartFab" aria-label="Abrir carrinho (0 itens)">
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+    <line x1="3" y1="6" x2="21" y2="6"/>
+    <path d="M16 10a4 4 0 01-8 0"/>
+  </svg>
+  <span class="cart-fab-label">Carrinho</span>
+  <span class="cart-fab-badge" id="cartBadge" aria-hidden="true">0</span>
+</button>
+
+<div class="cart-overlay" id="cartOverlay" aria-hidden="true"></div>
+
+<aside class="cart-drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-labelledby="cartDrawerTitle" aria-hidden="true">
+  <div class="cart-drag-handle" aria-hidden="true"></div>
+  <div class="cart-drawer-header">
+    <h2 class="cart-drawer-title" id="cartDrawerTitle">Seu carrinho</h2>
+    <button class="cart-drawer-close" id="cartDrawerClose" aria-label="Fechar carrinho">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <div class="cart-items-wrap" id="cartItemsWrap">
+    <div class="cart-empty-state" id="cartEmptyState">
+      <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+      <span>Seu carrinho está vazio.</span>
+    </div>
+  </div>
+  <div class="cart-drawer-footer" id="cartDrawerFooter" hidden>
+    <div class="cart-subtotal-row">
+      <span class="cart-subtotal-label">Subtotal</span>
+      <span class="cart-subtotal-value" id="cartSubtotal">R$&nbsp;0,00</span>
+    </div>
+    <button class="cart-btn-checkout" id="cartBtnCheckout" type="button">Finalizar compra</button>
+    <button class="cart-btn-continue" id="cartBtnContinue" type="button">Continuar comprando</button>
+  </div>
+</aside>
+
+<div class="cart-toast" id="cartToast" role="status" aria-live="polite" aria-atomic="true">
+  <div class="cart-toast-dot" aria-hidden="true"></div>
+  <span id="cartToastMsg">Produto adicionado ao carrinho.</span>
+</div>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+
+  <video class="hero-video" id="heroVideo" autoplay muted loop playsinline poster="Logo_7.png">
+    <source src="video pata mansa hero.mp4" type="video/mp4">
+  </video>
+
+  <!-- botão de som -->
+  <button class="hero-sound-btn" id="soundBtn" aria-label="Ativar som">
+    <!-- ícone mudo -->
+    <svg id="iconMute" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+      <line x1="23" y1="9" x2="17" y2="15"/>
+      <line x1="17" y1="9" x2="23" y2="15"/>
+    </svg>
+    <!-- ícone som (oculto) -->
+    <svg id="iconSound" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+    </svg>
+  </button>
+
+  <div class="hero-overlay"></div>
+
+  <div class="hero-content">
+    <span class="hero-eyebrow">Copa 2026 · Edição Especial</span>
+    <h1 class="hero-title">
+      A Camisa<br>do <em>Povo</em>
+    </h1>
+    <p class="hero-sub">
+      Estampas pra quem vive com <em style="color:var(--laranja);font-style:normal">pata em casa.</em>
+    </p>
+    <div class="hero-cta-wrap">
+      <a href="#algodao-peruano" class="btn-hero">Quero a minha →</a>
+      <span class="hero-cta-sub">Envio para todo Brasil</span>
+    </div>
+  </div>
+
+  <div class="hero-scroll-hint">
+    <div class="scroll-bar"></div>
+    <span>Rolar</span>
+  </div>
+</section>
+
+<!-- COPA TICKER -->
+<div class="copa-ticker-wrap">
+  <div class="copa-ticker" aria-hidden="true">
+    <span class="copa-ticker-item">Brasil 🇧🇷</span>
+    <span class="copa-ticker-item hl">Copa 2026</span>
+    <span class="copa-ticker-item">Caramelo FC</span>
+    <span class="copa-ticker-item hl">PattaMansa</span>
+    <span class="copa-ticker-item">Futebol & Estilo</span>
+    <span class="copa-ticker-item hl">Edição Limitada</span>
+    <span class="copa-ticker-item">Camisetas com Atitude</span>
+    <span class="copa-ticker-item hl">Adestramento & Hotel 🐾</span>
+    <span class="copa-ticker-item">Brasil 🇧🇷</span>
+    <span class="copa-ticker-item hl">Copa 2026</span>
+    <span class="copa-ticker-item">Caramelo FC</span>
+    <span class="copa-ticker-item hl">PattaMansa</span>
+    <span class="copa-ticker-item">Futebol & Estilo</span>
+    <span class="copa-ticker-item hl">Edição Limitada</span>
+    <span class="copa-ticker-item">Camisetas com Atitude</span>
+    <span class="copa-ticker-item hl">Adestramento & Hotel 🐾</span>
+  </div>
+</div>
+
+<!-- SOCIAL BAR -->
+<div class="social-bar" aria-label="Prova social">
+  <span class="social-bar-item"><strong>+748</strong> clientes que amam seus pets</span>
+  <span class="social-bar-dot" aria-hidden="true"></span>
+  <span class="social-bar-item"><strong>100%</strong> algodão peruano</span>
+  <span class="social-bar-dot" aria-hidden="true"></span>
+  <span class="social-bar-item"><strong>Envio</strong> para todo Brasil</span>
+</div>
+
+<!-- ══ ORIGEM ══ -->
+<section class="origem">
+  <div class="origem-inner">
+
+    <div style="text-align:center; margin-bottom:3rem;" class="reveal">
+      <span class="section-tag">Nossa história</span>
+    </div>
+
+    <div class="origem-statements">
+
+      <p class="origem-line">
+        Treino. Rotina. <em>Convivência.</em>
+      </p>
+
+      <p class="origem-line">
+        Mais de dez anos vivendo o <em>universo dos cães.</em>
+      </p>
+
+      <p class="origem-line">
+        Adestramento, hospedagem e <em>vida real.</em>
+      </p>
+
+      <p class="origem-line">
+        A PattaMansa <em>nasceu no meio disso.</em>
+      </p>
+
+    </div>
+
+    <p class="origem-corpo reveal">
+      A marca surgiu da convivência diária com cães.<br><br>
+      Dos treinos. Da rotina. Das famílias. Do cuidado.<br><br>
+      A camiseta veio como extensão desse universo.
+    </p>
+
+  </div>
+</section>
+
+<!-- ══ QUEM SOMOS ══ -->
+<section class="quem-somos" id="quem-somos">
+  <div class="quem-somos-inner">
+
+    <!-- Vídeo -->
+    <div class="quem-video-wrap reveal">
+      <div class="tv-label" aria-hidden="true">
+        <span class="tv-dot"></span>
+        Ao vivo na cultura pet
+      </div>
+      <video controls poster="Icone_3.png" preload="metadata">
+        <source src="WhatsApp Video 2026-05-25 at 11.40.02 (1).mp4" type="video/mp4">
+      </video>
+      <span class="quem-video-badge">PattaMansa · No campo</span>
+    </div>
+
+    <!-- Texto -->
+    <div class="quem-texto reveal">
+      <span class="section-tag">Quem somos</span>
+
+      <h2 class="quem-titulo reveal">
+        Quem vive isso<br><em>todos os dias.</em>
+      </h2>
+
+      <p class="quem-body reveal">
+        Emerson atua há mais de dez anos com adestramento.<br><br>
+        Leonardo aprofundou sua rotina no universo pet
+        e criou o hotel PattaMansa.<br><br>
+        Hoje, a marca reúne adestramento, hospedagem, rotina com cães
+        e uma coleção feita por quem realmente vive esse universo.
+      </p>
+
+      <div class="quem-stats reveal">
+        <div class="quem-stat">
+          <strong>+10 anos</strong>
+          <span>experiência em adestramento</span>
+        </div>
+        <div class="quem-stat">
+          <strong>Hotel</strong>
+          <span>cuidado e hospedagem</span>
+        </div>
+        <div class="quem-stat">
+          <strong>Lifestyle</strong>
+          <span>cachorro como identidade</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ PONTE ══ -->
+<section class="ponte">
+  <div class="ponte-inner">
+
+    <p class="ponte-quote reveal">
+      O Caramelo não é raça.<br>
+      É o <em>Brasil que anda.</em>
+    </p>
+
+    <p class="ponte-body reveal">
+      Sem pedigree. Sem ingresso.<br>
+      O Caramelo está em todo jogo do Brasil —
+      em todo bar, em todo sofá.
+      Treinar um cachorro assim ensina mais do que qualquer manual.
+      A camiseta carrega esse peso.
+    </p>
+
+    <div class="ponte-divisor reveal" aria-hidden="true">
+      <div class="ponte-divisor-line"></div>
+      <svg class="ponte-pata" width="22" height="26" viewBox="0 0 100 120" fill="currentColor">
+        <ellipse cx="28" cy="28" rx="11" ry="15"/>
+        <ellipse cx="50" cy="18" rx="11" ry="15"/>
+        <ellipse cx="72" cy="22" rx="11" ry="15"/>
+        <path d="M20 56 Q30 92 50 97 Q70 92 80 56 Q68 44 50 48 Q32 44 20 56Z"/>
+      </svg>
+      <div class="ponte-divisor-line"></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ FAMÍLIA COPA ══ -->
+<section class="familia-copa">
+  <div class="familia-copa-inner">
+    <span class="section-tag reveal">No sofá, no bar, na rua</span>
+    <h2 class="familia-copa-title reveal">Tem jogo que ninguém<br>vê sozinho.</h2>
+    <p class="familia-copa-sub reveal">Família, cachorro e Brasil no mesmo momento.</p>
+    <img src="familia foto lp.png" class="familia-copa-img reveal" alt="Família usando camisetas PattaMansa assistindo ao jogo com cachorro caramelo" loading="lazy">
+  </div>
+</section>
+
+<!-- ══ ALGODAO PERUANO ══ -->
+<section class="algodao-premium" id="algodao-peruano">
+  <div class="algodao-inner">
+
+    <div class="algodao-copy reveal">
+      <span class="algodao-label">Qualidade premium</span>
+      <h2 class="algodao-title">Produzida em algodão peruano premium pela Reserva Ink.</h2>
+      <p class="algodao-text">
+        Escolhemos uma base premium com toque extremamente macio, caimento refinado e acabamento de alto nível para transformar a Pattamansa em uma peça que você realmente quer vestir todos os dias.
+      </p>
+      <ul class="algodao-bullets">
+        <li>algodão peruano premium</li>
+        <li>toque ultra macio</li>
+        <li>caimento refinado</li>
+        <li>produção sob demanda</li>
+        <li>acabamento premium</li>
+      </ul>
+      <p class="algodao-micro">Base premium, produção sob demanda e acabamento pensado para durar.</p>
+    </div>
+
+    <div class="algodao-img-wrap reveal">
+      <img src="tv%20pata%20mansa/tv%20patamansa.png"
+           alt="TV retrô Pattamansa e Reserva Ink"
+           class="algodao-img" loading="lazy">
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ COLEÇÃO ══ -->
+<section class="vitrine-section colecao-section" id="selecao-canina">
+  <span id="produtos" class="section-anchor" aria-hidden="true"></span>
+
+  <header class="vitrine-header reveal">
+    <span class="section-tag">Coleção · R$129,00</span>
+    <h2 class="vitrine-titulo">Coleção Pattamansa</h2>
+    <p class="vitrine-sub">Escolha por modelagem, cor e tamanho.</p>
+  </header>
+
+  <div class="collection-filters reveal" role="tablist" aria-label="Filtrar produtos por perfil">
+    <button class="collection-filter active" type="button" role="tab" aria-selected="true" data-filter="todos">Todos</button>
+    <button class="collection-filter" type="button" role="tab" aria-selected="false" data-filter="masculino">Masculino</button>
+    <button class="collection-filter" type="button" role="tab" aria-selected="false" data-filter="feminino">Feminino</button>
+    <button class="collection-filter" type="button" role="tab" aria-selected="false" data-filter="unissex">Unissex</button>
+    <button class="collection-filter" type="button" role="tab" aria-selected="false" data-filter="moletons">Moletons</button>
+  </div>
+
+  <div class="vitrine-grid collection-grid" id="collectionGrid">
+
+    <article class="vcard reveal" data-product-card data-filter="feminino">
+      <div class="vcard-img-wrap">
+        <img id="scImg"
+          src="cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/amarelo%208.webp"
+          alt="Seleção Canina Baby Look Amarelo — PattaMansa"
+          class="vcard-img" loading="eager">
+      </div>
+      <div class="vcard-gallery" id="scGallery" role="list" aria-label="Galeria Seleção Canina Baby Look"></div>
+      <div class="vcard-body">
+        <p class="vcard-nome">Seleção Canina</p>
+        <div class="vcard-meta">
+          <span class="vcard-modelagem">Baby Look · Feminina</span>
+          <span class="vcard-price">R$129,00</span>
+        </div>
+        <p class="vcard-cor-label">Cor: <strong id="scCorNome">Amarelo</strong></p>
+        <div class="sc-swatches" id="scSwatches" role="group" aria-label="Selecionar cor"></div>
+        <div class="sc-sizes" id="scSizes" role="group" aria-label="Selecionar tamanho"></div>
+        <div class="vcard-actions">
+          <span class="vcard-guide" role="button" tabindex="0" data-guide="algodao-peruano">Guia de medidas</span>
+          <a href="#" class="vcard-cta" id="scCta">Garantir a minha</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="vcard reveal" data-product-card data-filter="masculino">
+      <div class="vcard-img-wrap">
+        <img id="smImg"
+          src="COLE%C3%87AO%20selecao%20canina%20feminina/preta%201.webp"
+          alt="Seleção Canina Regular Masculina Preta — PattaMansa"
+          class="vcard-img" loading="lazy">
+      </div>
+      <div class="vcard-gallery" id="smGallery" role="list" aria-label="Galeria Seleção Canina Regular Masculina"></div>
+      <div class="vcard-body">
+        <p class="vcard-nome">Seleção Canina</p>
+        <div class="vcard-meta">
+          <span class="vcard-modelagem">Regular · Masculina</span>
+          <span class="vcard-price">R$129,00</span>
+        </div>
+        <p class="vcard-cor-label">Cor: <strong id="smCorNome">Preta</strong></p>
+        <div class="sc-swatches" id="smSwatches" role="group" aria-label="Selecionar cor"></div>
+        <div class="sc-sizes" id="smSizes" role="group" aria-label="Selecionar tamanho"></div>
+        <div class="vcard-actions">
+          <span class="vcard-guide" role="button" tabindex="0" data-guide="regular-masculina">Guia de medidas</span>
+          <a href="#" class="vcard-cta" id="smCta">Garantir a minha</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="vcard reveal" data-product-card data-filter="unissex">
+      <div class="vcard-img-wrap">
+        <img id="ovImg"
+          src="cole%C3%A7%C3%A3o%20sele%C3%A7%C3%A3o%20canina%20oversize/branca.webp"
+          alt="Clube Seleção Canina Oversized Branco — PattaMansa"
+          class="vcard-img" loading="lazy">
+      </div>
+      <div class="vcard-gallery" id="ovGallery" role="list" aria-label="Galeria Clube Seleção Canina Oversized"></div>
+      <div class="vcard-body">
+        <p class="vcard-nome">Clube Seleção Canina Oversized</p>
+        <div class="vcard-meta">
+          <span class="vcard-modelagem">Unissex · Oversized</span>
+          <span class="vcard-price">R$129,00</span>
+        </div>
+        <p class="vcard-cor-label">Cor: <strong id="ovCorNome">Branco</strong></p>
+        <div class="sc-swatches" id="ovSwatches" role="group" aria-label="Selecionar cor"></div>
+        <div class="sc-sizes" id="ovSizes" role="group" aria-label="Selecionar tamanho"></div>
+        <div class="vcard-actions">
+          <span class="vcard-guide" role="button" tabindex="0" data-guide="camiseta-oversized">Guia de medidas</span>
+          <button type="button" class="vcard-cta" id="ovCta" data-nuvemshop-pilot="oversized">Adicionar ao carrinho</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="vcard reveal" data-product-card data-filter="feminino">
+      <div class="vcard-img-wrap">
+        <img id="ccfImg"
+          src="cole%C3%A7ao%20clube%20canino%20feminino/amarela%201.webp"
+          alt="Clube Canino Baby Look Amarela — PattaMansa"
+          class="vcard-img" loading="lazy">
+      </div>
+      <div class="vcard-gallery" id="ccfGallery" role="list" aria-label="Galeria Clube Canino Baby Look"></div>
+      <div class="vcard-body">
+        <p class="vcard-nome">Clube Canino</p>
+        <div class="vcard-meta">
+          <span class="vcard-modelagem">Baby Look · Feminina</span>
+          <span class="vcard-price">R$129,00</span>
+        </div>
+        <p class="vcard-cor-label">Cor: <strong id="ccfCorNome">Amarela</strong></p>
+        <div class="sc-swatches" id="ccfSwatches" role="group" aria-label="Selecionar cor"></div>
+        <div class="sc-sizes" id="ccfSizes" role="group" aria-label="Selecionar tamanho"></div>
+        <div class="vcard-actions">
+          <span class="vcard-guide" role="button" tabindex="0" data-guide="algodao-peruano">Guia de medidas</span>
+          <a href="#" class="vcard-cta" id="ccfCta">Garantir a minha</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="vcard reveal" data-product-card data-filter="feminino">
+      <div class="vcard-img-wrap">
+        <img id="crImg"
+          src="cole%C3%A7%C3%A3o%20clube%20canino%20croped%20feminino/amarelo.webp"
+          alt="Clube Feminino Cropped Amarelo — PattaMansa"
+          class="vcard-img" loading="lazy">
+      </div>
+      <div class="vcard-gallery" id="crGallery" role="list" aria-label="Galeria Clube Feminino Cropped"></div>
+      <div class="vcard-body">
+        <p class="vcard-nome">Clube Feminino Cropped</p>
+        <div class="vcard-meta">
+          <span class="vcard-modelagem">Feminino · Cropped</span>
+          <span class="vcard-price">R$129,00</span>
+        </div>
+        <p class="vcard-cor-label">Cor: <strong id="crCorNome">Amarelo</strong></p>
+        <div class="sc-swatches" id="crSwatches" role="group" aria-label="Selecionar cor"></div>
+        <div class="sc-sizes" id="crSizes" role="group" aria-label="Selecionar tamanho"></div>
+        <div class="vcard-actions">
+          <span class="vcard-guide" role="button" tabindex="0" data-guide="cropped-feminino">Guia de medidas</span>
+          <a href="#" class="vcard-cta" id="crCta">Garantir a minha</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="vcard reveal" data-product-card data-filter="feminino moletons">
+      <div class="vcard-img-wrap">
+        <img id="cmImg"
+          src="cole%C3%A7%C3%A3o%20clube%20canino%20moletom%20croped%20feminino/branca.webp"
+          alt="Clube Canino Cropped Moletom Branco — PattaMansa"
+          class="vcard-img" loading="lazy">
+      </div>
+      <div class="vcard-gallery" id="cmGallery" role="list" aria-label="Galeria Clube Canino Cropped Moletom"></div>
+      <div class="vcard-body">
+        <p class="vcard-nome">Clube Canino Cropped Moletom</p>
+        <div class="vcard-meta">
+          <span class="vcard-modelagem">Feminino · Cropped Moletom</span>
+          <span class="vcard-price">R$129,00</span>
+        </div>
+        <p class="vcard-cor-label">Cor: <strong id="cmCorNome">Branco</strong></p>
+        <div class="sc-swatches" id="cmSwatches" role="group" aria-label="Selecionar cor"></div>
+        <div class="sc-sizes" id="cmSizes" role="group" aria-label="Selecionar tamanho"></div>
+        <div class="vcard-actions">
+          <span class="vcard-guide" role="button" tabindex="0" data-guide="cropped-moletom">Guia de medidas</span>
+          <a href="#" class="vcard-cta" id="cmCta">Garantir a minha</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="vcard reveal" data-product-card data-filter="masculino">
+      <div class="vcard-img-wrap">
+        <img id="ccmImg"
+          src="cole%C3%A7%C3%A3o%20clube%20canino%20masculino/branca%201.webp"
+          alt="Clube Canino Regular Masculina Branca — PattaMansa"
+          class="vcard-img" loading="lazy">
+      </div>
+      <div class="vcard-gallery" id="ccmGallery" role="list" aria-label="Galeria Clube Canino Regular Masculina"></div>
+      <div class="vcard-body">
+        <p class="vcard-nome">Clube Canino</p>
+        <div class="vcard-meta">
+          <span class="vcard-modelagem">Regular · Masculina</span>
+          <span class="vcard-price">R$129,00</span>
+        </div>
+        <p class="vcard-cor-label">Cor: <strong id="ccmCorNome">Branca</strong></p>
+        <div class="sc-swatches" id="ccmSwatches" role="group" aria-label="Selecionar cor"></div>
+        <div class="sc-sizes" id="ccmSizes" role="group" aria-label="Selecionar tamanho"></div>
+        <div class="vcard-actions">
+          <span class="vcard-guide" role="button" tabindex="0" data-guide="regular-masculina">Guia de medidas</span>
+          <a href="#" class="vcard-cta" id="ccmCta">Garantir a minha</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="vcard reveal" data-product-card data-filter="unissex">
+      <div class="vcard-img-wrap">
+        <img id="cfcImg"
+          src="cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/preta.webp"
+          alt="Caramelo Futebol Clube Regular Unissex Preta — PattaMansa"
+          class="vcard-img" loading="lazy">
+      </div>
+      <div class="vcard-gallery" id="cfcGallery" role="list" aria-label="Galeria Caramelo Futebol Clube"></div>
+      <div class="vcard-body">
+        <p class="vcard-nome">Caramelo FC</p>
+        <div class="vcard-meta">
+          <span class="vcard-modelagem">Regular · Unissex</span>
+          <span class="vcard-price">R$129,00</span>
+        </div>
+        <p class="vcard-cor-label">Cor: <strong id="cfcCorNome">Preta</strong></p>
+        <div class="sc-swatches" id="cfcSwatches" role="group" aria-label="Selecionar cor"></div>
+        <div class="sc-sizes" id="cfcSizes" role="group" aria-label="Selecionar tamanho"></div>
+        <div class="vcard-actions">
+          <span class="vcard-guide" role="button" tabindex="0" data-guide="regular-unissex">Guia de medidas</span>
+          <a href="#" class="vcard-cta" id="cfcCta">Garantir a minha</a>
+        </div>
+      </div>
+    </article>
+
+  </div>
+
+  <p class="vitrine-microcopy reveal">Envio após confirmação do pedido</p>
+
+</section>
+
+<!-- ══ ONG / IMPACTO ══ -->
+<section class="section-ong" id="impacto">
+  <div class="ong-inner">
+
+    <div class="ong-badge reveal">Cada compra importa</div>
+
+    <h2 class="ong-title reveal">
+      Você compra.<br>
+      Um pet agradece.
+    </h2>
+
+    <p class="ong-body reveal">
+      Parte de cada venda vai diretamente para a
+      <strong>[NOME DA ONG]</strong>,<!-- TODO: preencher com o nome real da ONG parceira -->
+      ajudando cães e gatos que ainda esperam por um lar.
+    </p>
+
+    <div class="ong-counter reveal">
+      <div class="counter-item">
+        <span class="counter-number" data-target="0">0</span><!-- TODO: atualizar com número real de pets apoiados -->
+        <span class="counter-label">pets apoiados</span>
+      </div>
+      <div class="counter-divider" aria-hidden="true"></div>
+      <div class="counter-item">
+        <span class="counter-number" data-target="0">0</span><!-- TODO: atualizar com valor total doado -->
+        <span class="counter-label">reais doados</span>
+      </div>
+    </div>
+
+    <a href="#selecao-canina" class="ong-cta reveal">Comprar e ajudar →</a>
+
+  </div>
+</section>
+
+<!-- ══ SOCIAL PROOF ══ -->
+<section class="proof">
+  <div class="proof-inner">
+
+    <div class="proof-header">
+      <span class="section-tag proof-brand reveal">PATTAMANSA</span>
+      <h2 class="proof-title reveal">Pra quem vive<br><em>isso de verdade.</em></h2>
+    </div>
+
+    <div class="proof-numbers reveal">
+      <div class="proof-num">
+        <strong>+10 anos</strong>
+        <span>universo pet</span>
+      </div>
+      <div class="proof-num">
+        <strong>Hotel</strong>
+        <span>hospedagem e rotina</span>
+      </div>
+      <div class="proof-num">
+        <strong>Copa 2026</strong>
+        <span>coleção limitada</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CTA FINAL ══ -->
+<section class="cta-final">
+  <div class="cta-final-watermark" aria-hidden="true">
+    <img src="Sigla_5.png" alt="">
+  </div>
+  <div class="cta-final-inner">
+
+    <h2 class="cta-final-title reveal">
+      Veste o<br><em>Brasil</em><br>com pata.
+    </h2>
+
+    <p class="cta-final-body reveal">
+      Edição Copa 2026.<br>
+      Enquanto o Brasil jogar, a camiseta tá disponível.
+    </p>
+
+    <a href="#algodao-peruano" class="btn-final reveal">Garantir a minha →</a>
+
+    <p class="cta-urgencia reveal">
+      Frete para todo o Brasil · Troca garantida
+    </p>
+
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-sigla" aria-hidden="true">
+    <img src="Sigla_5.png" alt="">
+  </div>
+  <div class="footer-logo">
+    <img src="Logo_7.png" alt="PattaMansa">
+  </div>
+  <ul class="footer-nav">
+    <li><a href="https://instagram.com/pattamansa" target="_blank" rel="noopener">Instagram</a></li>
+    <li><a href="#produtos">Coleção</a></li>
+    <li><a href="#quem-somos">Quem somos</a></li>
+    <li><a href="mailto:contato@pattamansa.com.br">Contato</a></li>
+  </ul>
+  <p class="footer-copy">© 2026 PattaMansa · Camisetas com atitude · pattamansa.com.br</p>
+</footer>
+
+<!-- ── GUIA DE MEDIDAS ── -->
+<div class="sg-overlay" id="sgOverlay" aria-hidden="true">
+  <div class="sg-modal" id="sgModal" role="dialog" aria-modal="true" aria-labelledby="sgTitle">
+    <div class="sg-handle" aria-hidden="true"></div>
+    <button class="sg-close" id="sgClose" aria-label="Fechar guia de medidas">&#215;</button>
+    <div id="sgContent"></div>
+  </div>
+</div>
+
+<script>
+  /* ─── PATTA CART — gerenciador de carrinho local ─── */
+  var PattaCart = (function () {
+    var KEY = 'patta_cart_v1';
+    var items = [];
+
+    function load() {
+      try { items = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { items = []; }
+    }
+
+    function save() {
+      try { localStorage.setItem(KEY, JSON.stringify(items)); } catch (e) {}
+    }
+
+    function add(item) {
+      var idx = items.findIndex(function (i) {
+        return i.productId === item.productId && i.variantId === item.variantId;
+      });
+      if (idx >= 0) {
+        items[idx].quantity += (item.quantity || 1);
+      } else {
+        items.push(Object.assign({}, item, { quantity: item.quantity || 1 }));
+      }
+      save();
+      if (window.PattaCartUI) PattaCartUI.update();
+    }
+
+    function remove(idx) {
+      items.splice(idx, 1);
+      save();
+      if (window.PattaCartUI) PattaCartUI.update();
+    }
+
+    function increment(idx) {
+      if (items[idx]) { items[idx].quantity++; save(); if (window.PattaCartUI) PattaCartUI.update(); }
+    }
+
+    function decrement(idx) {
+      if (!items[idx]) return;
+      items[idx].quantity--;
+      if (items[idx].quantity <= 0) items.splice(idx, 1);
+      save();
+      if (window.PattaCartUI) PattaCartUI.update();
+    }
+
+    function clear() {
+      items = [];
+      save();
+      if (window.PattaCartUI) PattaCartUI.update();
+    }
+
+    function count() {
+      return items.reduce(function (acc, i) { return acc + i.quantity; }, 0);
+    }
+
+    function total() {
+      return items.reduce(function (acc, i) { return acc + (i.price * i.quantity); }, 0);
+    }
+
+    function getItems() { return items.slice(); }
+
+    load();
+    return { add: add, remove: remove, increment: increment, decrement: decrement, clear: clear, count: count, total: total, getItems: getItems };
+  })();
+
+  /* ─── PATTA CART UI ─── */
+  var PattaCartUI = (function () {
+    var fab         = document.getElementById('cartFab');
+    var badge       = document.getElementById('cartBadge');
+    var overlay     = document.getElementById('cartOverlay');
+    var drawer      = document.getElementById('cartDrawer');
+    var closeBtn    = document.getElementById('cartDrawerClose');
+    var wrap        = document.getElementById('cartItemsWrap');
+    var emptyEl     = document.getElementById('cartEmptyState');
+    var footer      = document.getElementById('cartDrawerFooter');
+    var subtotalEl  = document.getElementById('cartSubtotal');
+    var checkoutBtn = document.getElementById('cartBtnCheckout');
+    var continueBtn = document.getElementById('cartBtnContinue');
+    var toastEl     = document.getElementById('cartToast');
+    var toastMsg    = document.getElementById('cartToastMsg');
+    var toastTimer  = null;
+
+    var CART_URL      = 'https://pattamansa.lojavirtualnuvem.com.br/comprar/';
+    var CART_VIEW_URL = 'https://pattamansa.lojavirtualnuvem.com.br/carrinho/';
+
+    function open() {
+      overlay.removeAttribute('aria-hidden');
+      overlay.classList.add('open');
+      drawer.removeAttribute('aria-hidden');
+      drawer.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      if (closeBtn) closeBtn.focus();
+    }
+
+    function close() {
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden', 'true');
+      drawer.classList.remove('open');
+      drawer.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    function showToast(msg) {
+      if (!toastEl) return;
+      toastMsg.textContent = msg || 'Produto adicionado ao carrinho.';
+      toastEl.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 3000);
+    }
+
+    function fmtBRL(v) {
+      return 'R$ ' + v.toFixed(2).replace('.', ',');
+    }
+
+    function renderItems() {
+      var items = PattaCart.getItems();
+
+      wrap.querySelectorAll('.cart-item').forEach(function (el) { el.remove(); });
+
+      if (items.length === 0) {
+        emptyEl.style.display = '';
+        footer.hidden = true;
+        return;
+      }
+
+      emptyEl.style.display = 'none';
+      footer.hidden = false;
+      subtotalEl.textContent = fmtBRL(PattaCart.total());
+
+      items.forEach(function (item, idx) {
+        var row = document.createElement('div');
+        row.className = 'cart-item';
+
+        var imgHtml = item.image
+          ? '<img src="' + item.image + '" alt="' + item.productName + '" loading="lazy">'
+          : '';
+
+        row.innerHTML =
+          '<div class="cart-item-img">' + imgHtml + '</div>' +
+          '<div class="cart-item-body">' +
+            '<div class="cart-item-name">' + item.productName + '</div>' +
+            '<div class="cart-item-meta">' + item.color + ' · ' + item.size + '</div>' +
+            '<div class="cart-item-controls">' +
+              '<button class="cart-qty-btn" data-action="decrement" data-idx="' + idx + '" aria-label="Diminuir quantidade">−</button>' +
+              '<span class="cart-qty-val">' + item.quantity + '</span>' +
+              '<button class="cart-qty-btn" data-action="increment" data-idx="' + idx + '" aria-label="Aumentar quantidade">+</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="cart-item-side">' +
+            '<button class="cart-item-remove" data-action="remove" data-idx="' + idx + '" aria-label="Remover item">' +
+              '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">' +
+                '<polyline points="3 6 5 6 21 6"/>' +
+                '<path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>' +
+                '<path d="M10 11v6M14 11v6"/>' +
+                '<path d="M9 6V4h6v2"/>' +
+              '</svg>' +
+            '</button>' +
+            '<span class="cart-item-price">' + fmtBRL(item.price * item.quantity) + '</span>' +
+          '</div>';
+
+        wrap.appendChild(row);
+      });
+    }
+
+    function update() {
+      var n = PattaCart.count();
+      badge.textContent = n;
+      badge.classList.toggle('visible', n > 0);
+      fab.setAttribute('aria-label', 'Abrir carrinho (' + n + ' ' + (n === 1 ? 'item' : 'itens') + ')');
+      renderItems();
+    }
+
+    /* delegação de eventos nos controles de item */
+    wrap.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      var action = btn.dataset.action;
+      var idx = parseInt(btn.dataset.idx, 10);
+      if (action === 'increment') PattaCart.increment(idx);
+      else if (action === 'decrement') PattaCart.decrement(idx);
+      else if (action === 'remove') PattaCart.remove(idx);
+    });
+
+    if (fab)         fab.addEventListener('click', open);
+    if (closeBtn)    closeBtn.addEventListener('click', close);
+    if (overlay)     overlay.addEventListener('click', close);
+    if (continueBtn) continueBtn.addEventListener('click', close);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && drawer && drawer.classList.contains('open')) close();
+    });
+
+    /* ── Finalizar Compra ── */
+    function addField(form, name, value) {
+      var input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    }
+
+    function buildForm(item, targetName) {
+      var form = document.createElement('form');
+      form.method = 'post';
+      form.action = CART_URL;
+      form.style.display = 'none';
+      if (targetName) form.target = targetName;
+      addField(form, 'add_to_cart', item.cartPayload.add_to_cart);
+      addField(form, 'variation[0]', item.cartPayload['variation[0]']);
+      addField(form, 'variation[1]', item.cartPayload['variation[1]']);
+      addField(form, 'quantity', String(item.quantity));
+      return form;
+    }
+
+    /*
+     * CHECKOUT MÚLTIPLO — Fase 2
+     *
+     * Estratégia: iframe oculto + form POST sequencial.
+     * Cada item é submetido via POST para a Nuvemshop dentro de um iframe,
+     * aguardando o evento `onload` antes de enviar o próximo.
+     *
+     * LIMITAÇÃO CONHECIDA (documentada):
+     * A Nuvemshop provavelmente define cookies de sessão com SameSite=Lax.
+     * POSTs cross-site NÃO enviam cookies Lax automaticamente, o que pode
+     * fazer cada POST iniciar uma sessão separada de carrinho.
+     * Se isso acontecer, apenas o último item chegará na Nuvemshop.
+     *
+     * Fallback seguro: após todas as tentativas, redireciona para /carrinho/.
+     * O usuário verá o que chegou corretamente. Recomendação para produção:
+     * implementar proxy serverless no mesmo domínio ou usar API Nuvemshop.
+     */
+    function checkoutMultiple(items) {
+      var iframeName = 'ptm-checkout-' + Date.now();
+      var iframe = document.createElement('iframe');
+      iframe.name = iframeName;
+      iframe.style.cssText = 'position:fixed;width:1px;height:1px;top:-999px;left:-999px;opacity:0;pointer-events:none;';
+      document.body.appendChild(iframe);
+
+      var idx = 0;
+
+      function sendNext() {
+        if (idx >= items.length) {
+          setTimeout(function () {
+            iframe.remove();
+            window.location.href = CART_VIEW_URL;
+          }, 400);
+          return;
+        }
+
+        var item = items[idx++];
+        var form = buildForm(item, iframeName);
+        document.body.appendChild(form);
+
+        var safeTimeout = setTimeout(function () {
+          iframe.onload = null;
+          form.remove();
+          sendNext();
+        }, 5000);
+
+        iframe.onload = function () {
+          clearTimeout(safeTimeout);
+          iframe.onload = null;
+          form.remove();
+          setTimeout(sendNext, 500);
+        };
+
+        form.submit();
+      }
+
+      sendNext();
+    }
+
+    if (checkoutBtn) {
+      checkoutBtn.addEventListener('click', function () {
+        var items = PattaCart.getItems();
+        if (!items.length) return;
+
+        checkoutBtn.disabled = true;
+        checkoutBtn.classList.add('loading');
+        checkoutBtn.textContent = 'Aguarde…';
+
+        if (items.length === 1) {
+          var form = buildForm(items[0], null);
+          document.body.appendChild(form);
+          form.submit();
+        } else {
+          checkoutMultiple(items);
+        }
+      });
+    }
+
+    update();
+
+    return { update: update, showToast: showToast, open: open, close: close };
+  })();
+
+  /* Scroll Reveal */
+  const observer = new IntersectionObserver(
+    entries => entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+    }),
+    { threshold: 0.08, rootMargin: '0px 0px -30px 0px' }
+  );
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  /* Botão de som do hero */
+  const video    = document.getElementById('heroVideo');
+  const btn      = document.getElementById('soundBtn');
+  const iconMute = document.getElementById('iconMute');
+  const iconSnd  = document.getElementById('iconSound');
+
+  btn.addEventListener('click', () => {
+    video.muted = !video.muted;
+    iconMute.style.display = video.muted ? 'block' : 'none';
+    iconSnd.style.display  = video.muted ? 'none'  : 'block';
+    btn.setAttribute('aria-label', video.muted ? 'Ativar som' : 'Silenciar');
+  });
+
+  function buildVariantGallery(galleryWrap, variants, onSelect, labelPrefix) {
+    if (!galleryWrap) return function () {};
+    galleryWrap.innerHTML = '';
+    variants.forEach(function (v, i) {
+      const btn = document.createElement('button');
+      btn.className = 'vcard-thumb' + (i === 0 ? ' active' : '');
+      btn.type = 'button';
+      btn.setAttribute('role', 'listitem');
+      btn.setAttribute('aria-label', 'Ver ' + labelPrefix + ' ' + v.name);
+      btn.innerHTML = '<img src="' + v.img + '" alt="" loading="lazy">';
+      btn.addEventListener('click', function () { onSelect(i); });
+      galleryWrap.appendChild(btn);
+    });
+    return function (activeIndex) {
+      galleryWrap.querySelectorAll('.vcard-thumb').forEach(function (thumb, i) {
+        thumb.classList.toggle('active', i === activeIndex);
+      });
+    };
+  }
+
+  /* ── Seleção Canina ── */
+  (function () {
+    const WA_NUM = '5500000000000'; // TODO: substituir pelo número real (ex: 5511987654321)
+    const variants = [
+      { name: 'Amarelo',      hex: '#F0C830', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/amarelo%208.webp', light: true },
+      { name: 'Preta',        hex: '#1C1C1C', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/preta%202.webp' },
+      { name: 'Branca',       hex: '#F0EDE5', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/branca%203.webp', light: true },
+      { name: 'Azul Marinho', hex: '#1C2B4A', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/azul%20marinho%204.webp' },
+      { name: 'Cinza',        hex: '#8A8A8A', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/cinza%205.webp' },
+      { name: 'Laranja',      hex: '#E87722', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/laranja%206.webp' },
+      { name: 'Verde Musgo',  hex: '#4A5E3A', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/verde%20musgo%207.webp' },
+      { name: 'Rosa',         hex: '#D4718A', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/rosa%209.webp' },
+    ];
+    const SIZES = ['PP', 'P', 'M', 'G', 'GG', '3G', '4G'];
+
+    const img    = document.getElementById('scImg');
+    const corNome = document.getElementById('scCorNome');
+    const swWrap = document.getElementById('scSwatches');
+    const szWrap = document.getElementById('scSizes');
+    const galleryWrap = document.getElementById('scGallery');
+    const ctaBtn = document.getElementById('scCta');
+
+    if (!img || !swWrap || !szWrap || !ctaBtn) return;
+
+    let activeCor = 0;
+    let activeSz  = null;
+
+    variants.forEach((v, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'sc-swatch' + (i === 0 ? ' active' : '');
+      btn.style.backgroundColor = v.hex;
+      btn.setAttribute('aria-label', v.name);
+      btn.setAttribute('title', v.name);
+      if (v.light) btn.dataset.light = '';
+      btn.addEventListener('click', () => setCor(i));
+      swWrap.appendChild(btn);
+    });
+
+    SIZES.forEach(sz => {
+      const btn = document.createElement('button');
+      btn.className = 'sc-size-btn';
+      btn.textContent = sz;
+      btn.dataset.size = sz;
+      btn.addEventListener('click', () => setSz(sz));
+      szWrap.appendChild(btn);
+    });
+
+    const syncGallery = buildVariantGallery(galleryWrap, variants, setCor, 'Seleção Canina Baby Look');
+
+    function setCor(i) {
+      if (activeCor === i) return;
+      activeCor = i;
+      swWrap.querySelectorAll('.sc-swatch').forEach((s, j) => s.classList.toggle('active', j === i));
+      syncGallery(i);
+      corNome.textContent = variants[i].name;
+      img.style.opacity = '0';
+      setTimeout(function () {
+        img.src = variants[i].img;
+        img.alt = 'Seleção Canina ' + variants[i].name + ' — PattaMansa';
+        img.style.opacity = '1';
+      }, 200);
+      syncCta();
+    }
+
+    function setSz(sz) {
+      activeSz = sz;
+      szWrap.querySelectorAll('.sc-size-btn').forEach(b => b.classList.toggle('active', b.dataset.size === sz));
+      syncCta();
+    }
+
+    function syncCta() {
+      const cor = variants[activeCor].name;
+      const tam = activeSz || '(escolha o tamanho)';
+      ctaBtn.href = 'https://wa.me/' + WA_NUM + '?text=' +
+        encodeURIComponent('Olá! Quero comprar a camiseta Seleção Canina na cor ' + cor + ' e tamanho ' + tam + '.');
+    }
+
+    syncCta();
+  })();
+
+  /* ── Seleção Canina — Masculina ── */
+  (function () {
+    const WA_NUM = '5500000000000'; // TODO: número real
+    const variants = [
+      { name: 'Preta',        hex: '#1C1C1C', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/preta%201.webp' },
+      { name: 'Branca',       hex: '#F0EDE5', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/branca%202.webp', light: true },
+      { name: 'Azul Marinho', hex: '#1C2B4A', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/azul%20marinho%203.webp' },
+      { name: 'Cinza',        hex: '#8A8A8A', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/cinza%204.webp' },
+      { name: 'Laranja',      hex: '#E87722', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/laranja%205.webp' },
+      { name: 'Verde Musgo',  hex: '#4A5E3A', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/verde%20musgo%206.webp' },
+      { name: 'Amarelo',      hex: '#F0C830', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/amarela%207.webp', light: true },
+      { name: 'Rosa',         hex: '#D4718A', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/rosa%208.webp' },
+    ];
+    const SIZES = ['PP', 'P', 'M', 'G', 'GG', '3G', '4G'];
+
+    const img     = document.getElementById('smImg');
+    const corNome = document.getElementById('smCorNome');
+    const swWrap  = document.getElementById('smSwatches');
+    const szWrap  = document.getElementById('smSizes');
+    const galleryWrap = document.getElementById('smGallery');
+    const ctaBtn  = document.getElementById('smCta');
+
+    if (!img || !swWrap || !szWrap || !ctaBtn) return;
+
+    let activeCor = 0;
+    let activeSz  = null;
+
+    variants.forEach((v, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'sc-swatch' + (i === 0 ? ' active' : '');
+      btn.style.backgroundColor = v.hex;
+      btn.setAttribute('aria-label', v.name);
+      btn.setAttribute('title', v.name);
+      if (v.light) btn.dataset.light = '';
+      btn.addEventListener('click', () => setCor(i));
+      swWrap.appendChild(btn);
+    });
+
+    SIZES.forEach(sz => {
+      const btn = document.createElement('button');
+      btn.className = 'sc-size-btn';
+      btn.textContent = sz;
+      btn.dataset.size = sz;
+      btn.addEventListener('click', () => setSz(sz));
+      szWrap.appendChild(btn);
+    });
+
+    const syncGallery = buildVariantGallery(galleryWrap, variants, setCor, 'Seleção Canina Regular Masculina');
+
+    function setCor(i) {
+      if (activeCor === i) return;
+      activeCor = i;
+      swWrap.querySelectorAll('.sc-swatch').forEach((s, j) => s.classList.toggle('active', j === i));
+      syncGallery(i);
+      corNome.textContent = variants[i].name;
+      img.style.opacity = '0';
+      setTimeout(function () {
+        img.src = variants[i].img;
+        img.alt = 'Seleção Canina Masculina ' + variants[i].name + ' — PattaMansa';
+        img.style.opacity = '1';
+      }, 200);
+      syncCta();
+    }
+
+    function setSz(sz) {
+      activeSz = sz;
+      szWrap.querySelectorAll('.sc-size-btn').forEach(b => b.classList.toggle('active', b.dataset.size === sz));
+      syncCta();
+    }
+
+    function syncCta() {
+      const cor = variants[activeCor].name;
+      const tam = activeSz || '(escolha o tamanho)';
+      ctaBtn.href = 'https://wa.me/' + WA_NUM + '?text=' +
+        encodeURIComponent('Olá! Quero comprar a camiseta Seleção Canina Masculina na cor ' + cor + ' e tamanho ' + tam + '.');
+    }
+
+    syncCta();
+  })();
+
+  /* ── Clube Seleção Canina Oversized ── */
+  (function () {
+    const PRODUCT_ID = '347450235';
+    const BASE = 'cole%C3%A7%C3%A3o%20sele%C3%A7%C3%A3o%20canina%20oversize/';
+    const variants = [
+      { name: 'Branco',    cartValue: 'Branco',    code: 'BC', hex: '#F0EDE5', img: BASE + 'branca.webp', light: true },
+      { name: 'Off white', cartValue: 'Off white', code: 'OF', hex: '#E9E1D1', img: BASE + 'offwhite.webp', light: true },
+    ];
+    const gallery = [
+      { label: 'Branco', code: 'BC', img: BASE + 'branca.webp' },
+      { label: 'Off white', code: 'OF', img: BASE + 'offwhite.webp' },
+    ];
+    const SIZES = ['P', 'M', 'G', 'GG', '3g'];
+    const variantIds = {
+      'Off white|P':  '1534201606',
+      'Off white|M':  '1534201608',
+      'Off white|G':  '1534201609',
+      'Off white|GG': '1534201610',
+      'Off white|3g': '1534201612',
+      'Branco|P':     '1534201613',
+      'Branco|M':     '1534201614',
+      'Branco|G':     '1534201615',
+      'Branco|GG':    '1534201616',
+      'Branco|3g':    '1534201617',
+    };
+    const skuVariations = variants.flatMap(function (v) {
+      return SIZES.map(function (size) {
+        return {
+          product: 'Clube Seleção Canina Oversized',
+          category: 'Unissex',
+          model: 'Camiseta Oversized',
+          modelCode: 'OV',
+          color: v.cartValue,
+          colorCode: v.code,
+          size: size,
+          sku: 'PM-BR26-OV-' + v.code + '-' + size,
+          variantId: variantIds[v.cartValue + '|' + size],
+        };
+      });
+    });
+
+    window.PATTAMANSA_OVERSIZED_SKUS = skuVariations;
+
+    const img      = document.getElementById('ovImg');
+    const corNome  = document.getElementById('ovCorNome');
+    const swWrap   = document.getElementById('ovSwatches');
+    const szWrap   = document.getElementById('ovSizes');
+    const galleryWrap = document.getElementById('ovGallery');
+    const ctaBtn   = document.getElementById('ovCta');
+
+    if (!img || !swWrap || !szWrap || !galleryWrap || !ctaBtn) return;
+
+    let activeCor = 0;
+    let activeGallery = 0;
+    let activeSz = null;
+
+    variants.forEach(function (v, i) {
+      const btn = document.createElement('button');
+      btn.className = 'sc-swatch' + (i === 0 ? ' active' : '');
+      btn.style.backgroundColor = v.hex;
+      btn.setAttribute('aria-label', v.name);
+      btn.setAttribute('title', v.name);
+      if (v.light) btn.dataset.light = '';
+      btn.addEventListener('click', function () { setCor(i); });
+      swWrap.appendChild(btn);
+    });
+
+    gallery.forEach(function (item, i) {
+      const btn = document.createElement('button');
+      btn.className = 'vcard-thumb' + (i === 0 ? ' active' : '');
+      btn.type = 'button';
+      btn.setAttribute('role', 'listitem');
+      btn.setAttribute('aria-label', 'Ver Clube Seleção Canina Oversized ' + item.label);
+      btn.innerHTML = '<img src="' + item.img + '" alt="" loading="lazy">';
+      btn.addEventListener('click', function () { setGallery(i); });
+      galleryWrap.appendChild(btn);
+    });
+
+    SIZES.forEach(function (sz) {
+      const btn = document.createElement('button');
+      btn.className = 'sc-size-btn';
+      btn.textContent = sz;
+      btn.dataset.size = sz;
+      btn.addEventListener('click', function () { setSz(sz); });
+      szWrap.appendChild(btn);
+    });
+
+    function setCor(i) {
+      const galleryIndex = gallery.findIndex(function (item) { return item.code === variants[i].code; });
+      setGallery(galleryIndex >= 0 ? galleryIndex : 0);
+    }
+
+    function setGallery(i) {
+      activeGallery = i;
+      const item = gallery[i];
+      const colorIndex = variants.findIndex(function (v) { return v.code === item.code; });
+      if (colorIndex >= 0) activeCor = colorIndex;
+
+      swWrap.querySelectorAll('.sc-swatch').forEach(function (s, j) {
+        s.classList.toggle('active', j === activeCor);
+      });
+      galleryWrap.querySelectorAll('.vcard-thumb').forEach(function (thumb, j) {
+        thumb.classList.toggle('active', j === activeGallery);
+      });
+
+      corNome.textContent = variants[activeCor].name;
+      img.style.opacity = '0';
+      setTimeout(function () {
+        img.src = item.img;
+        img.alt = 'Clube Seleção Canina Oversized ' + item.label + ' — PattaMansa';
+        img.style.opacity = '1';
+      }, 200);
+      syncCta();
+    }
+
+    function setSz(sz) {
+      activeSz = sz;
+      szWrap.querySelectorAll('.sc-size-btn').forEach(function (b) {
+        b.classList.toggle('active', b.dataset.size === sz);
+      });
+      syncCta();
+    }
+
+    function currentSku() {
+      if (!activeSz) return null;
+      const code = variants[activeCor].code;
+      const match = skuVariations.find(function (item) {
+        return item.colorCode === code && item.size === activeSz;
+      });
+      return match ? match.sku : null;
+    }
+
+    function syncCta() {
+      ctaBtn.type = 'button';
+      ctaBtn.removeAttribute('href');
+      ctaBtn.setAttribute('aria-label', 'Adicionar Clube Seleção Canina Oversized ao carrinho');
+    }
+
+    function addToLocalCart(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      const selectedVariant = variants[activeCor];
+      if (!selectedVariant || !selectedVariant.cartValue) {
+        alert('Escolha uma cor antes de adicionar ao carrinho.');
+        return;
+      }
+      if (!activeSz) {
+        alert('Escolha um tamanho antes de adicionar ao carrinho.');
+        return;
+      }
+
+      const variantId = variantIds[selectedVariant.cartValue + '|' + activeSz];
+
+      PattaCart.add({
+        productId:   PRODUCT_ID,
+        productName: 'Clube Seleção Canina Oversized',
+        variantId:   variantId,
+        color:       selectedVariant.cartValue,
+        size:        activeSz,
+        price:       129,
+        image:       selectedVariant.img,
+        cartPayload: {
+          add_to_cart:    PRODUCT_ID,
+          'variation[0]': selectedVariant.cartValue,
+          'variation[1]': activeSz,
+          quantity:       '1',
+        },
+      });
+
+      PattaCartUI.showToast('Produto adicionado ao carrinho.');
+    }
+
+    ctaBtn.onclick = null;
+    ctaBtn.addEventListener('click', addToLocalCart, true);
+    syncCta();
+  })();
+
+  /* ── Clube Canino — Feminina ── */
+  (function () {
+    const WA_NUM = '5500000000000';
+    const variants = [
+      { name: 'Amarela', hex: '#F0C830', img: 'cole%C3%A7ao%20clube%20canino%20feminino/amarela%201.webp', light: true },
+      { name: 'Branca',  hex: '#F0EDE5', img: 'cole%C3%A7ao%20clube%20canino%20feminino/branca%202.webp',  light: true },
+    ];
+    const SIZES = ['PP', 'P', 'M', 'G', 'GG', '3G'];
+
+    const img     = document.getElementById('ccfImg');
+    const corNome = document.getElementById('ccfCorNome');
+    const swWrap  = document.getElementById('ccfSwatches');
+    const szWrap  = document.getElementById('ccfSizes');
+    const galleryWrap = document.getElementById('ccfGallery');
+    const ctaBtn  = document.getElementById('ccfCta');
+
+    if (!img || !swWrap || !szWrap || !ctaBtn) return;
+
+    let activeCor = 0;
+    let activeSz  = null;
+
+    variants.forEach((v, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'sc-swatch' + (i === 0 ? ' active' : '');
+      btn.style.backgroundColor = v.hex;
+      btn.setAttribute('aria-label', v.name);
+      btn.setAttribute('title', v.name);
+      if (v.light) btn.dataset.light = '';
+      btn.addEventListener('click', () => setCor(i));
+      swWrap.appendChild(btn);
+    });
+
+    SIZES.forEach(sz => {
+      const btn = document.createElement('button');
+      btn.className = 'sc-size-btn';
+      btn.textContent = sz;
+      btn.dataset.size = sz;
+      btn.addEventListener('click', () => setSz(sz));
+      szWrap.appendChild(btn);
+    });
+
+    const syncGallery = buildVariantGallery(galleryWrap, variants, setCor, 'Clube Canino Baby Look');
+
+    function setCor(i) {
+      if (activeCor === i) return;
+      activeCor = i;
+      swWrap.querySelectorAll('.sc-swatch').forEach((s, j) => s.classList.toggle('active', j === i));
+      syncGallery(i);
+      corNome.textContent = variants[i].name;
+      img.style.opacity = '0';
+      setTimeout(function () {
+        img.src = variants[i].img;
+        img.alt = 'Clube Canino ' + variants[i].name + ' — PattaMansa';
+        img.style.opacity = '1';
+      }, 200);
+      syncCta();
+    }
+
+    function setSz(sz) {
+      activeSz = sz;
+      szWrap.querySelectorAll('.sc-size-btn').forEach(b => b.classList.toggle('active', b.dataset.size === sz));
+      syncCta();
+    }
+
+    function syncCta() {
+      const cor = variants[activeCor].name;
+      const tam = activeSz || '(escolha o tamanho)';
+      ctaBtn.href = 'https://wa.me/' + WA_NUM + '?text=' +
+        encodeURIComponent('Olá! Quero comprar a camiseta Clube Canino na cor ' + cor + ' e tamanho ' + tam + '.');
+    }
+
+    syncCta();
+  })();
+
+  /* ── Clube Feminino Cropped ── */
+  (function () {
+    const WA_NUM = '5500000000000';
+    const BASE = 'cole%C3%A7%C3%A3o%20clube%20canino%20croped%20feminino/';
+    const variants = [
+      { name: 'Amarelo',      code: 'AM', hex: '#F0C830', img: BASE + 'amarelo.webp', light: true },
+      { name: 'Azul Marinho', code: 'AZ', hex: '#1C2B4A', img: BASE + 'azul%20marinho.webp' },
+      { name: 'Branco',       code: 'BC', hex: '#F0EDE5', img: BASE + 'branca.webp', light: true },
+      { name: 'Cinza',        code: 'CZ', hex: '#8A8A8A', img: BASE + 'cinza.webp' },
+      { name: 'Preto',        code: 'PT', hex: '#1C1C1C', img: BASE + 'preta.webp' },
+      { name: 'Verde',        code: 'VD', hex: '#3F6A44', img: BASE + 'verde.webp' },
+      { name: 'Vermelho',     code: 'VR', hex: '#B82F2F', img: BASE + 'vermelha.webp' },
+    ];
+    const gallery = [
+      { label: 'Amarelo', code: 'AM', img: BASE + 'amarelo.webp' },
+      { label: 'Azul Marinho', code: 'AZ', img: BASE + 'azul%20marinho.webp' },
+      { label: 'Branco', code: 'BC', img: BASE + 'branca.webp' },
+      { label: 'Branco no corpo', code: 'BC', img: BASE + 'branca%20no%20corpo.webp' },
+      { label: 'Cinza', code: 'CZ', img: BASE + 'cinza.webp' },
+      { label: 'Preto', code: 'PT', img: BASE + 'preta.webp' },
+      { label: 'Verde', code: 'VD', img: BASE + 'verde.webp' },
+      { label: 'Vermelho', code: 'VR', img: BASE + 'vermelha.webp' },
+    ];
+    const SIZES = ['P', 'M', 'G', 'GG'];
+    const skuVariations = variants.flatMap(function (v) {
+      return SIZES.map(function (size) {
+        return {
+          product: 'Clube Feminino Cropped',
+          category: 'Feminino',
+          model: 'Cropped',
+          modelCode: 'CR',
+          color: v.name,
+          colorCode: v.code,
+          size: size,
+          sku: 'PM-BR26-CR-' + v.code + '-' + size,
+        };
+      });
+    });
+
+    window.PATTAMANSA_CROPPED_SKUS = skuVariations;
+
+    const img      = document.getElementById('crImg');
+    const corNome  = document.getElementById('crCorNome');
+    const swWrap   = document.getElementById('crSwatches');
+    const szWrap   = document.getElementById('crSizes');
+    const galleryWrap = document.getElementById('crGallery');
+    const ctaBtn   = document.getElementById('crCta');
+
+    if (!img || !swWrap || !szWrap || !galleryWrap || !ctaBtn) return;
+
+    let activeCor = 0;
+    let activeGallery = 0;
+    let activeSz = null;
+
+    variants.forEach(function (v, i) {
+      const btn = document.createElement('button');
+      btn.className = 'sc-swatch' + (i === 0 ? ' active' : '');
+      btn.style.backgroundColor = v.hex;
+      btn.setAttribute('aria-label', v.name);
+      btn.setAttribute('title', v.name);
+      if (v.light) btn.dataset.light = '';
+      btn.addEventListener('click', function () { setCor(i); });
+      swWrap.appendChild(btn);
+    });
+
+    gallery.forEach(function (item, i) {
+      const btn = document.createElement('button');
+      btn.className = 'vcard-thumb' + (i === 0 ? ' active' : '');
+      btn.type = 'button';
+      btn.setAttribute('role', 'listitem');
+      btn.setAttribute('aria-label', 'Ver Clube Feminino Cropped ' + item.label);
+      btn.innerHTML = '<img src="' + item.img + '" alt="" loading="lazy">';
+      btn.addEventListener('click', function () { setGallery(i); });
+      galleryWrap.appendChild(btn);
+    });
+
+    SIZES.forEach(function (sz) {
+      const btn = document.createElement('button');
+      btn.className = 'sc-size-btn';
+      btn.textContent = sz;
+      btn.dataset.size = sz;
+      btn.addEventListener('click', function () { setSz(sz); });
+      szWrap.appendChild(btn);
+    });
+
+    function setCor(i) {
+      const galleryIndex = gallery.findIndex(function (item) { return item.code === variants[i].code; });
+      setGallery(galleryIndex >= 0 ? galleryIndex : 0);
+    }
+
+    function setGallery(i) {
+      activeGallery = i;
+      const item = gallery[i];
+      const colorIndex = variants.findIndex(function (v) { return v.code === item.code; });
+      if (colorIndex >= 0) activeCor = colorIndex;
+
+      swWrap.querySelectorAll('.sc-swatch').forEach(function (s, j) {
+        s.classList.toggle('active', j === activeCor);
+      });
+      galleryWrap.querySelectorAll('.vcard-thumb').forEach(function (thumb, j) {
+        thumb.classList.toggle('active', j === activeGallery);
+      });
+
+      corNome.textContent = variants[activeCor].name;
+      img.style.opacity = '0';
+      setTimeout(function () {
+        img.src = item.img;
+        img.alt = 'Clube Feminino Cropped ' + item.label + ' — PattaMansa';
+        img.style.opacity = '1';
+      }, 200);
+      syncCta();
+    }
+
+    function setSz(sz) {
+      activeSz = sz;
+      szWrap.querySelectorAll('.sc-size-btn').forEach(function (b) {
+        b.classList.toggle('active', b.dataset.size === sz);
+      });
+      syncCta();
+    }
+
+    function currentSku() {
+      if (!activeSz) return null;
+      const code = variants[activeCor].code;
+      const match = skuVariations.find(function (item) {
+        return item.colorCode === code && item.size === activeSz;
+      });
+      return match ? match.sku : null;
+    }
+
+    function syncCta() {
+      const cor = variants[activeCor].name;
+      const tam = activeSz || '(escolha o tamanho)';
+      const sku = currentSku();
+      const skuLine = sku ? ' SKU: ' + sku + '.' : '';
+      ctaBtn.href = 'https://wa.me/' + WA_NUM + '?text=' +
+        encodeURIComponent('Olá! Quero comprar o Clube Feminino Cropped na cor ' + cor + ' e tamanho ' + tam + '.' + skuLine);
+    }
+
+    syncCta();
+  })();
+
+  /* ── Clube Canino Cropped Moletom ── */
+  (function () {
+    const WA_NUM = '5500000000000';
+    const BASE = 'cole%C3%A7%C3%A3o%20clube%20canino%20moletom%20croped%20feminino/';
+    const variants = [
+      { name: 'Branco', code: 'BC', hex: '#F0EDE5', img: BASE + 'branca.webp', light: true },
+      { name: 'Preto',  code: 'PT', hex: '#1C1C1C', img: BASE + 'preto.webp' },
+    ];
+    const gallery = [
+      { label: 'Branco', code: 'BC', img: BASE + 'branca.webp' },
+      { label: 'Branco mostruário uso', code: 'BC', img: BASE + 'branca%20mostruario%20uso.webp' },
+      { label: 'Preto', code: 'PT', img: BASE + 'preto.webp' },
+    ];
+    const SIZES = ['PP', 'P', 'M', 'G', 'GG'];
+    const skuVariations = variants.flatMap(function (v) {
+      return SIZES.map(function (size) {
+        return {
+          product: 'Clube Canino Cropped Moletom',
+          category: 'Feminino',
+          model: 'Cropped Moletom',
+          modelCode: 'CM',
+          color: v.name,
+          colorCode: v.code,
+          size: size,
+          sku: 'PM-BR26-CM-' + v.code + '-' + size,
+        };
+      });
+    });
+
+    window.PATTAMANSA_CROPPED_MOLETOM_SKUS = skuVariations;
+
+    const img      = document.getElementById('cmImg');
+    const corNome  = document.getElementById('cmCorNome');
+    const swWrap   = document.getElementById('cmSwatches');
+    const szWrap   = document.getElementById('cmSizes');
+    const galleryWrap = document.getElementById('cmGallery');
+    const ctaBtn   = document.getElementById('cmCta');
+
+    if (!img || !swWrap || !szWrap || !galleryWrap || !ctaBtn) return;
+
+    let activeCor = 0;
+    let activeGallery = 0;
+    let activeSz = null;
+
+    variants.forEach(function (v, i) {
+      const btn = document.createElement('button');
+      btn.className = 'sc-swatch' + (i === 0 ? ' active' : '');
+      btn.style.backgroundColor = v.hex;
+      btn.setAttribute('aria-label', v.name);
+      btn.setAttribute('title', v.name);
+      if (v.light) btn.dataset.light = '';
+      btn.addEventListener('click', function () { setCor(i); });
+      swWrap.appendChild(btn);
+    });
+
+    gallery.forEach(function (item, i) {
+      const btn = document.createElement('button');
+      btn.className = 'vcard-thumb' + (i === 0 ? ' active' : '');
+      btn.type = 'button';
+      btn.setAttribute('role', 'listitem');
+      btn.setAttribute('aria-label', 'Ver Clube Canino Cropped Moletom ' + item.label);
+      btn.innerHTML = '<img src="' + item.img + '" alt="" loading="lazy">';
+      btn.addEventListener('click', function () { setGallery(i); });
+      galleryWrap.appendChild(btn);
+    });
+
+    SIZES.forEach(function (sz) {
+      const btn = document.createElement('button');
+      btn.className = 'sc-size-btn';
+      btn.textContent = sz;
+      btn.dataset.size = sz;
+      btn.addEventListener('click', function () { setSz(sz); });
+      szWrap.appendChild(btn);
+    });
+
+    function setCor(i) {
+      const galleryIndex = gallery.findIndex(function (item) { return item.code === variants[i].code; });
+      setGallery(galleryIndex >= 0 ? galleryIndex : 0);
+    }
+
+    function setGallery(i) {
+      activeGallery = i;
+      const item = gallery[i];
+      const colorIndex = variants.findIndex(function (v) { return v.code === item.code; });
+      if (colorIndex >= 0) activeCor = colorIndex;
+
+      swWrap.querySelectorAll('.sc-swatch').forEach(function (s, j) {
+        s.classList.toggle('active', j === activeCor);
+      });
+      galleryWrap.querySelectorAll('.vcard-thumb').forEach(function (thumb, j) {
+        thumb.classList.toggle('active', j === activeGallery);
+      });
+
+      corNome.textContent = variants[activeCor].name;
+      img.style.opacity = '0';
+      setTimeout(function () {
+        img.src = item.img;
+        img.alt = 'Clube Canino Cropped Moletom ' + item.label + ' — PattaMansa';
+        img.style.opacity = '1';
+      }, 200);
+      syncCta();
+    }
+
+    function setSz(sz) {
+      activeSz = sz;
+      szWrap.querySelectorAll('.sc-size-btn').forEach(function (b) {
+        b.classList.toggle('active', b.dataset.size === sz);
+      });
+      syncCta();
+    }
+
+    function currentSku() {
+      if (!activeSz) return null;
+      const code = variants[activeCor].code;
+      const match = skuVariations.find(function (item) {
+        return item.colorCode === code && item.size === activeSz;
+      });
+      return match ? match.sku : null;
+    }
+
+    function syncCta() {
+      const cor = variants[activeCor].name;
+      const tam = activeSz || '(escolha o tamanho)';
+      const sku = currentSku();
+      const skuLine = sku ? ' SKU: ' + sku + '.' : '';
+      ctaBtn.href = 'https://wa.me/' + WA_NUM + '?text=' +
+        encodeURIComponent('Olá! Quero comprar o Clube Canino Cropped Moletom na cor ' + cor + ' e tamanho ' + tam + '.' + skuLine);
+    }
+
+    syncCta();
+  })();
+
+  /* ── Clube Canino — Masculina ── */
+  (function () {
+    const WA_NUM = '5500000000000';
+    const variants = [
+      { name: 'Branca',  hex: '#F0EDE5', img: 'cole%C3%A7%C3%A3o%20clube%20canino%20masculino/branca%201.webp',  light: true },
+      { name: 'Amarela', hex: '#F0C830', img: 'cole%C3%A7%C3%A3o%20clube%20canino%20masculino/amarela%202.webp', light: true },
+    ];
+    const SIZES = ['PP', 'P', 'M', 'G', 'GG', '3G', '4G'];
+
+    const img     = document.getElementById('ccmImg');
+    const corNome = document.getElementById('ccmCorNome');
+    const swWrap  = document.getElementById('ccmSwatches');
+    const szWrap  = document.getElementById('ccmSizes');
+    const galleryWrap = document.getElementById('ccmGallery');
+    const ctaBtn  = document.getElementById('ccmCta');
+
+    if (!img || !swWrap || !szWrap || !ctaBtn) return;
+
+    let activeCor = 0;
+    let activeSz  = null;
+
+    variants.forEach((v, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'sc-swatch' + (i === 0 ? ' active' : '');
+      btn.style.backgroundColor = v.hex;
+      btn.setAttribute('aria-label', v.name);
+      btn.setAttribute('title', v.name);
+      if (v.light) btn.dataset.light = '';
+      btn.addEventListener('click', () => setCor(i));
+      swWrap.appendChild(btn);
+    });
+
+    SIZES.forEach(sz => {
+      const btn = document.createElement('button');
+      btn.className = 'sc-size-btn';
+      btn.textContent = sz;
+      btn.dataset.size = sz;
+      btn.addEventListener('click', () => setSz(sz));
+      szWrap.appendChild(btn);
+    });
+
+    const syncGallery = buildVariantGallery(galleryWrap, variants, setCor, 'Clube Canino Regular Masculina');
+
+    function setCor(i) {
+      if (activeCor === i) return;
+      activeCor = i;
+      swWrap.querySelectorAll('.sc-swatch').forEach((s, j) => s.classList.toggle('active', j === i));
+      syncGallery(i);
+      corNome.textContent = variants[i].name;
+      img.style.opacity = '0';
+      setTimeout(function () {
+        img.src = variants[i].img;
+        img.alt = 'Clube Canino Masculino ' + variants[i].name + ' — PattaMansa';
+        img.style.opacity = '1';
+      }, 200);
+      syncCta();
+    }
+
+    function setSz(sz) {
+      activeSz = sz;
+      szWrap.querySelectorAll('.sc-size-btn').forEach(b => b.classList.toggle('active', b.dataset.size === sz));
+      syncCta();
+    }
+
+    function syncCta() {
+      const cor = variants[activeCor].name;
+      const tam = activeSz || '(escolha o tamanho)';
+      ctaBtn.href = 'https://wa.me/' + WA_NUM + '?text=' +
+        encodeURIComponent('Olá! Quero comprar a camiseta Clube Canino na cor ' + cor + ' e tamanho ' + tam + '.');
+    }
+
+    syncCta();
+  })();
+
+  /* ── Caramelo Futebol Clube — Unissex ── */
+  (function () {
+    const WA_NUM = '5500000000000';
+    const variants = [
+      { name: 'Preta',     hex: '#1C1C1C', img: 'cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/preta.webp' },
+      { name: 'Areia',     hex: '#D7C7A5', img: 'cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/areia.webp', light: true },
+      { name: 'Branca',    hex: '#F0EDE5', img: 'cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/branca.webp', light: true },
+      { name: 'Off White', hex: '#E9E1D1', img: 'cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/off%20white.webp', light: true },
+    ];
+    const SIZES = ['PP', 'P', 'M', 'G', 'GG', '3G', '4G'];
+
+    const img     = document.getElementById('cfcImg');
+    const corNome = document.getElementById('cfcCorNome');
+    const swWrap  = document.getElementById('cfcSwatches');
+    const szWrap  = document.getElementById('cfcSizes');
+    const galleryWrap = document.getElementById('cfcGallery');
+    const ctaBtn  = document.getElementById('cfcCta');
+
+    if (!img || !swWrap || !szWrap || !ctaBtn) return;
+
+    let activeCor = 0;
+    let activeSz  = null;
+
+    variants.forEach((v, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'sc-swatch' + (i === 0 ? ' active' : '');
+      btn.style.backgroundColor = v.hex;
+      btn.setAttribute('aria-label', v.name);
+      btn.setAttribute('title', v.name);
+      if (v.light) btn.dataset.light = '';
+      btn.addEventListener('click', () => setCor(i));
+      swWrap.appendChild(btn);
+    });
+
+    SIZES.forEach(sz => {
+      const btn = document.createElement('button');
+      btn.className = 'sc-size-btn';
+      btn.textContent = sz;
+      btn.dataset.size = sz;
+      btn.addEventListener('click', () => setSz(sz));
+      szWrap.appendChild(btn);
+    });
+
+    const syncGallery = buildVariantGallery(galleryWrap, variants, setCor, 'Caramelo Futebol Clube');
+
+    function setCor(i) {
+      if (activeCor === i) return;
+      activeCor = i;
+      swWrap.querySelectorAll('.sc-swatch').forEach((s, j) => s.classList.toggle('active', j === i));
+      syncGallery(i);
+      corNome.textContent = variants[i].name;
+      img.style.opacity = '0';
+      setTimeout(function () {
+        img.src = variants[i].img;
+        img.alt = 'Caramelo Futebol Clube Unissex ' + variants[i].name + ' — PattaMansa';
+        img.style.opacity = '1';
+      }, 200);
+      syncCta();
+    }
+
+    function setSz(sz) {
+      activeSz = sz;
+      szWrap.querySelectorAll('.sc-size-btn').forEach(b => b.classList.toggle('active', b.dataset.size === sz));
+      syncCta();
+    }
+
+    function syncCta() {
+      const cor = variants[activeCor].name;
+      const tam = activeSz || '(escolha o tamanho)';
+      ctaBtn.href = 'https://wa.me/' + WA_NUM + '?text=' +
+        encodeURIComponent('Olá! Quero comprar a camiseta Caramelo Futebol Clube Unissex na cor ' + cor + ' e tamanho ' + tam + '.');
+    }
+
+    syncCta();
+  })();
+
+  /* ── Filtros da coleção ── */
+  (function () {
+    const filters = document.querySelectorAll('.collection-filter');
+    const cards = document.querySelectorAll('[data-product-card]');
+    const grid = document.getElementById('collectionGrid');
+    if (!filters.length || !cards.length || !grid) return;
+
+    function applyFilter(filter) {
+      filters.forEach(function (btn) {
+        const isActive = btn.dataset.filter === filter;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+
+      cards.forEach(function (card) {
+        const groups = (card.dataset.filter || '').split(/\s+/);
+        const shouldShow = filter === 'todos' || groups.includes(filter);
+
+        if (shouldShow) {
+          card.hidden = false;
+          requestAnimationFrame(function () {
+            card.classList.remove('is-filtering-out');
+          });
+        } else {
+          card.classList.add('is-filtering-out');
+          setTimeout(function () {
+            if (card.classList.contains('is-filtering-out')) card.hidden = true;
+          }, 220);
+        }
+      });
+    }
+
+    filters.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        applyFilter(btn.dataset.filter || 'todos');
+      });
+    });
+  })();
+
+  /* ── ONG Counter ── */
+  (function () {
+    const counters = document.querySelectorAll('.counter-number');
+    if (!counters.length) return;
+    const obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        const target = parseInt(el.dataset.target, 10) || 0;
+        if (target === 0) return;
+        const duration = 2000;
+        const start = performance.now();
+        function update(now) {
+          const elapsed = now - start;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          el.textContent = Math.floor(eased * target).toLocaleString('pt-BR');
+          if (progress < 1) requestAnimationFrame(update);
+        }
+        requestAnimationFrame(update);
+        obs.unobserve(el);
+      });
+    }, { threshold: 0.5 });
+    counters.forEach(function (c) { obs.observe(c); });
+  })();
+
+  /* ── Guia de Medidas ── */
+  (function () {
+    const GUIDES = {
+      'algodao-peruano': {
+        material: 'Algodão Peruano',
+        title:    'Modelagem Premium',
+        subtitle: 'Toque extremamente macio, caimento refinado e modelagem confortável.',
+        badges:   ['toque ultra macio', 'caimento refinado', 'acabamento premium'],
+        cols:     ['Tamanho', 'Altura', 'Largura'],
+        rows: [
+          { size: 'P',  vals: ['70 cm', '51 cm'] },
+          { size: 'M',  vals: ['72 cm', '53 cm'] },
+          { size: 'G',  vals: ['74 cm', '55 cm'] },
+          { size: 'GG', vals: ['76 cm', '58 cm'] },
+        ],
+        measure: {
+          title: 'Como medir',
+          lines: [
+            'Altura = medida vertical da peça',
+            'Largura = medida horizontal do tórax',
+          ],
+        },
+      },
+      'regular-masculina': {
+        material: 'Regular Masculina',
+        title:    'Modelagem Clássica',
+        subtitle: 'Caimento confortável com visual versátil para o dia a dia.',
+        badges:   ['conforto premium', 'caimento equilibrado', 'toque macio'],
+        cols:     ['Tamanho', 'Altura', 'Largura'],
+        rows: [
+          { size: 'PP', vals: ['69 cm', '51 cm'] },
+          { size: 'P',  vals: ['71 cm', '53 cm'] },
+          { size: 'M',  vals: ['73 cm', '55 cm'] },
+          { size: 'G',  vals: ['75 cm', '57 cm'] },
+          { size: 'GG', vals: ['77 cm', '59 cm'] },
+          { size: '3G', vals: ['79 cm', '63 cm'] },
+          { size: '4G', vals: ['81 cm', '67 cm'] },
+        ],
+        measure: {
+          title: 'Como medir',
+          lines: [
+            'Altura = medida vertical da peça',
+            'Largura = medida horizontal do tórax',
+          ],
+        },
+      },
+      'regular-unissex': {
+        material: 'Regular Unissex',
+        title:    'Modelagem Clássica',
+        subtitle: 'Caimento confortável com visual versátil para o dia a dia.',
+        badges:   ['conforto premium', 'caimento equilibrado', 'toque macio'],
+        cols:     ['Tamanho', 'Altura', 'Largura'],
+        rows: [
+          { size: 'PP', vals: ['69 cm', '51 cm'] },
+          { size: 'P',  vals: ['71 cm', '53 cm'] },
+          { size: 'M',  vals: ['73 cm', '55 cm'] },
+          { size: 'G',  vals: ['75 cm', '57 cm'] },
+          { size: 'GG', vals: ['77 cm', '59 cm'] },
+          { size: '3G', vals: ['79 cm', '63 cm'] },
+          { size: '4G', vals: ['81 cm', '67 cm'] },
+        ],
+        measure: {
+          title: 'Como medir',
+          lines: [
+            'Altura = medida vertical da peça',
+            'Largura = medida horizontal do tórax',
+          ],
+        },
+      },
+      'camiseta-oversized': {
+        material: 'Camiseta Oversized',
+        title:    'Modelagem Oversized',
+        subtitle: 'Caimento amplo, unissex e confortável para um visual mais solto.',
+        badges:   ['unissex', 'oversized', 'caimento amplo'],
+        cols:     ['Tamanho', 'Altura', 'Largura'],
+        rows: [
+          { size: 'P',  vals: ['72 cm', '58 cm'] },
+          { size: 'M',  vals: ['74 cm', '60 cm'] },
+          { size: 'G',  vals: ['76 cm', '62 cm'] },
+          { size: 'GG', vals: ['78 cm', '64 cm'] },
+          { size: '3G', vals: ['80 cm', '68 cm'] },
+        ],
+        measure: {
+          title: 'Como medir',
+          lines: [
+            'Altura = medida vertical da peça',
+            'Largura = medida horizontal do tórax',
+          ],
+        },
+      },
+      'cropped-feminino': {
+        material: 'Cropped Feminino',
+        title:    'Modelagem Cropped',
+        subtitle: 'Caimento curto, confortável e pensado para acompanhar cintura alta.',
+        badges:   ['feminino', 'cropped', 'toque macio'],
+        cols:     ['Tamanho', 'Altura', 'Largura'],
+        rows: [
+          { size: 'P',  vals: ['42 cm', '47 cm'] },
+          { size: 'M',  vals: ['44 cm', '49 cm'] },
+          { size: 'G',  vals: ['46 cm', '51 cm'] },
+          { size: 'GG', vals: ['48 cm', '53 cm'] },
+        ],
+        measure: {
+          title: 'Como medir',
+          lines: [
+            'Altura = medida vertical da peça',
+            'Largura = medida horizontal do tórax',
+          ],
+        },
+      },
+      'cropped-moletom': {
+        material: 'Cropped Moletom',
+        title:    'Modelagem Cropped Moletom',
+        subtitle: 'Caimento curto com estrutura de moletom e conforto para dias mais frescos.',
+        badges:   ['feminino', 'moletom', 'caimento estruturado'],
+        cols:     ['Tamanho', 'Altura', 'Largura'],
+        rows: [
+          { size: 'PP', vals: ['43 cm', '54 cm'] },
+          { size: 'P',  vals: ['45 cm', '56 cm'] },
+          { size: 'M',  vals: ['47 cm', '58 cm'] },
+          { size: 'G',  vals: ['49 cm', '60 cm'] },
+          { size: 'GG', vals: ['51 cm', '62 cm'] },
+        ],
+        measure: {
+          title: 'Como medir',
+          lines: [
+            'Altura = medida vertical da peça',
+            'Largura = medida horizontal do tórax',
+          ],
+        },
+      },
+      /* Para adicionar nova modelagem, copie o bloco acima e ajuste apenas os dados:
+         'baby-look': { material: '...', title: '...', ... }
+         'oversized':  { ... }
+         'moletom':    { ... }
+      */
+    };
+
+    const overlay  = document.getElementById('sgOverlay');
+    const modal    = document.getElementById('sgModal');
+    const content  = document.getElementById('sgContent');
+    const closeBtn = document.getElementById('sgClose');
+    if (!overlay || !content) return;
+
+    function buildHTML(key) {
+      const g = GUIDES[key];
+      if (!g) return '<p style="color:var(--sage);padding:1rem">Guia não encontrado.</p>';
+      return (
+        '<p class="sg-material">' + g.material + '</p>' +
+        '<h2 class="sg-title" id="sgTitle">' + g.title + '</h2>' +
+        '<p class="sg-sub">' + g.subtitle + '</p>' +
+        '<div class="sg-badges">' +
+          g.badges.map(function(b) { return '<span class="sg-badge">' + b + '</span>'; }).join('') +
+        '</div>' +
+        '<div class="sg-table-wrap"><table class="sg-table">' +
+          '<thead><tr>' +
+            g.cols.map(function(c) { return '<th>' + c + '</th>'; }).join('') +
+          '</tr></thead>' +
+          '<tbody>' +
+            g.rows.map(function(r) {
+              return '<tr><td>' + r.size + '</td>' +
+                r.vals.map(function(v) { return '<td>' + v + '</td>'; }).join('') +
+              '</tr>';
+            }).join('') +
+          '</tbody>' +
+        '</table></div>' +
+        '<div class="sg-measure">' +
+          '<p class="sg-measure-title">' + g.measure.title + '</p>' +
+          g.measure.lines.map(function(l) {
+            return '<p class="sg-measure-line">' + l + '</p>';
+          }).join('') +
+        '</div>'
+      );
+    }
+
+    function open(key) {
+      content.innerHTML = buildHTML(key);
+      overlay.removeAttribute('aria-hidden');
+      overlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      if (closeBtn) closeBtn.focus();
+    }
+
+    function close() {
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) close(); });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && overlay.classList.contains('open')) close();
+    });
+
+    document.addEventListener('click', function(e) {
+      const t = e.target.closest('[data-guide]');
+      if (t) { e.preventDefault(); open(t.dataset.guide); }
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const t = e.target.closest('[data-guide]');
+        if (t) { e.preventDefault(); open(t.dataset.guide); }
+      }
+    });
+  })();
+
+  /* Anima .origem-line conforme scroll */
+  const origemLines = document.querySelectorAll('.origem-line');
+  if (origemLines.length) {
+    const lineObserver = new IntersectionObserver(
+      entries => entries.forEach(e => {
+        e.target.classList.toggle('ativo', e.isIntersecting);
+      }),
+      { threshold: 0.5 }
+    );
+    origemLines.forEach(l => {
+      l.classList.remove('ativo');
+      lineObserver.observe(l);
+    });
+  }
+</script>
+
+</body>
+</html>
