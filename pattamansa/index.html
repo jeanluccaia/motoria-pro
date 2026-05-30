@@ -2005,6 +2005,80 @@ footer {
   .vcard-thumb { flex: 0 0 48px; }
 }
 
+/* ─── CARROSSÉIS DE COLEÇÃO ─── */
+.colecao-section { overflow: hidden; }
+
+.carousel-row { margin-bottom: 2.75rem; }
+.carousel-row:last-of-type { margin-bottom: 0; }
+
+.carousel-row-head {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: .9rem;
+}
+.carousel-row-head::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(184,188,142,.12);
+}
+.carousel-category-label {
+  font-size: .56rem;
+  font-weight: 700;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: rgba(184,188,142,.5);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.carousel-wrap { position: relative; }
+.carousel-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 56px;
+  background: linear-gradient(to right, transparent, var(--verde-deep));
+  pointer-events: none;
+  z-index: 3;
+}
+
+.carousel-track {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 1.5rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 4px 1.5rem 16px;
+  margin: 0 -1.5rem;
+}
+.carousel-track::-webkit-scrollbar { display: none; }
+
+.carousel-track .vcard {
+  flex: 0 0 76vw;
+  min-width: 0;
+  scroll-snap-align: start;
+}
+.carousel-track .vcard-img { aspect-ratio: 4 / 5; }
+
+@media (min-width: 480px) {
+  .carousel-track .vcard { flex-basis: 58vw; }
+}
+@media (min-width: 680px) {
+  .carousel-track .vcard { flex-basis: 44vw; }
+  .carousel-track { gap: 16px; }
+}
+@media (min-width: 940px) {
+  .carousel-track .vcard { flex-basis: 268px; }
+  .carousel-track { gap: 18px; }
+}
+@media (max-width: 640px) {
+  .carousel-track { padding: 4px 1.25rem 16px; margin: 0 -1.25rem; scroll-padding-left: 1.25rem; }
+}
+
 /* ─── MINI CARRINHO ─── */
 .cart-fab {
   position: fixed;
@@ -2872,211 +2946,270 @@ footer {
   <header class="vitrine-header reveal">
     <span class="section-tag">Coleção · R$129,00</span>
     <h2 class="vitrine-titulo">Coleção Pattamansa</h2>
-    <p class="vitrine-sub">Escolha por modelagem, cor e tamanho.</p>
   </header>
 
-  <div class="collection-filters reveal" role="tablist" aria-label="Filtrar produtos por perfil">
-    <button class="collection-filter active" type="button" role="tab" aria-selected="true" data-filter="todos">Todos</button>
-    <button class="collection-filter" type="button" role="tab" aria-selected="false" data-filter="masculino">Masculino</button>
-    <button class="collection-filter" type="button" role="tab" aria-selected="false" data-filter="feminino">Feminino</button>
-    <button class="collection-filter" type="button" role="tab" aria-selected="false" data-filter="unissex">Unissex</button>
-    <button class="collection-filter" type="button" role="tab" aria-selected="false" data-filter="moletons">Moletons</button>
+  <!-- ── Carrossel Masculino ── -->
+  <div class="carousel-row reveal">
+    <div class="carousel-row-head">
+      <span class="carousel-category-label">Masculino</span>
+    </div>
+    <div class="carousel-wrap">
+      <div class="carousel-track" id="carouselMasc">
+
+        <article class="vcard" data-product-card data-filter="masculino">
+          <div class="vcard-img-wrap">
+            <img id="smImg"
+              src="COLE%C3%87AO%20selecao%20canina%20feminina/preta%201.webp"
+              alt="Seleção Canina Regular Masculina Preta — PattaMansa"
+              class="vcard-img" loading="lazy">
+          </div>
+          <div class="vcard-gallery" id="smGallery" role="list" aria-label="Galeria Seleção Canina Regular Masculina"></div>
+          <div class="vcard-body">
+            <p class="vcard-nome">Seleção Canina</p>
+            <div class="vcard-meta">
+              <span class="vcard-modelagem">Regular · Masculina</span>
+              <span class="vcard-price">R$129,00</span>
+            </div>
+            <p class="vcard-cor-label">Cor: <strong id="smCorNome">Preta</strong></p>
+            <div class="sc-swatches" id="smSwatches" role="group" aria-label="Selecionar cor"></div>
+            <div class="sc-sizes" id="smSizes" role="group" aria-label="Selecionar tamanho"></div>
+            <div class="vcard-actions">
+              <span class="vcard-guide" role="button" tabindex="0" data-guide="regular-masculina">Guia de medidas</span>
+              <a href="#" class="vcard-cta" id="smCta">Garantir a minha</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="vcard" data-product-card data-filter="masculino">
+          <div class="vcard-img-wrap">
+            <img id="ccmImg"
+              src="cole%C3%A7%C3%A3o%20clube%20canino%20masculino/branca%201.webp"
+              alt="Clube Canino Regular Masculina Branca — PattaMansa"
+              class="vcard-img" loading="lazy">
+          </div>
+          <div class="vcard-gallery" id="ccmGallery" role="list" aria-label="Galeria Clube Canino Regular Masculina"></div>
+          <div class="vcard-body">
+            <p class="vcard-nome">Clube Canino</p>
+            <div class="vcard-meta">
+              <span class="vcard-modelagem">Regular · Masculina</span>
+              <span class="vcard-price">R$129,00</span>
+            </div>
+            <p class="vcard-cor-label">Cor: <strong id="ccmCorNome">Branca</strong></p>
+            <div class="sc-swatches" id="ccmSwatches" role="group" aria-label="Selecionar cor"></div>
+            <div class="sc-sizes" id="ccmSizes" role="group" aria-label="Selecionar tamanho"></div>
+            <div class="vcard-actions">
+              <span class="vcard-guide" role="button" tabindex="0" data-guide="regular-masculina">Guia de medidas</span>
+              <a href="#" class="vcard-cta" id="ccmCta">Garantir a minha</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="vcard" data-product-card data-filter="unissex">
+          <div class="vcard-img-wrap">
+            <img id="ovImg"
+              src="cole%C3%A7%C3%A3o%20sele%C3%A7%C3%A3o%20canina%20oversize/branca.webp"
+              alt="Clube Seleção Canina Oversized Branco — PattaMansa"
+              class="vcard-img" loading="lazy">
+          </div>
+          <div class="vcard-gallery" id="ovGallery" role="list" aria-label="Galeria Clube Seleção Canina Oversized"></div>
+          <div class="vcard-body">
+            <p class="vcard-nome">Clube Seleção Canina Oversized</p>
+            <div class="vcard-meta">
+              <span class="vcard-modelagem">Unissex · Oversized</span>
+              <span class="vcard-price">R$129,00</span>
+            </div>
+            <p class="vcard-cor-label">Cor: <strong id="ovCorNome">Branco</strong></p>
+            <div class="sc-swatches" id="ovSwatches" role="group" aria-label="Selecionar cor"></div>
+            <div class="sc-sizes" id="ovSizes" role="group" aria-label="Selecionar tamanho"></div>
+            <div class="vcard-actions">
+              <span class="vcard-guide" role="button" tabindex="0" data-guide="camiseta-oversized">Guia de medidas</span>
+              <button type="button" class="vcard-cta" id="ovCta" data-nuvemshop-pilot="oversized">Adicionar ao carrinho</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="vcard" data-product-card data-filter="unissex">
+          <div class="vcard-img-wrap">
+            <img id="cfcImg"
+              src="cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/preta.webp"
+              alt="Caramelo Futebol Clube Regular Unissex Preta — PattaMansa"
+              class="vcard-img" loading="lazy">
+          </div>
+          <div class="vcard-gallery" id="cfcGallery" role="list" aria-label="Galeria Caramelo Futebol Clube"></div>
+          <div class="vcard-body">
+            <p class="vcard-nome">Caramelo FC</p>
+            <div class="vcard-meta">
+              <span class="vcard-modelagem">Regular · Unissex</span>
+              <span class="vcard-price">R$129,00</span>
+            </div>
+            <p class="vcard-cor-label">Cor: <strong id="cfcCorNome">Preta</strong></p>
+            <div class="sc-swatches" id="cfcSwatches" role="group" aria-label="Selecionar cor"></div>
+            <div class="sc-sizes" id="cfcSizes" role="group" aria-label="Selecionar tamanho"></div>
+            <div class="vcard-actions">
+              <span class="vcard-guide" role="button" tabindex="0" data-guide="regular-unissex">Guia de medidas</span>
+              <a href="#" class="vcard-cta" id="cfcCta">Garantir a minha</a>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
   </div>
 
-  <div class="vitrine-grid collection-grid" id="collectionGrid">
+  <!-- ── Carrossel Feminino ── -->
+  <div class="carousel-row reveal">
+    <div class="carousel-row-head">
+      <span class="carousel-category-label">Feminino</span>
+    </div>
+    <div class="carousel-wrap">
+      <div class="carousel-track" id="carouselFem">
 
-    <article class="vcard reveal" data-product-card data-filter="feminino">
-      <div class="vcard-img-wrap">
-        <img id="scImg"
-          src="cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/amarelo%208.webp"
-          alt="Seleção Canina Baby Look Amarelo — PattaMansa"
-          class="vcard-img" loading="eager">
-      </div>
-      <div class="vcard-gallery" id="scGallery" role="list" aria-label="Galeria Seleção Canina Baby Look"></div>
-      <div class="vcard-body">
-        <p class="vcard-nome">Seleção Canina</p>
-        <div class="vcard-meta">
-          <span class="vcard-modelagem">Baby Look · Feminina</span>
-          <span class="vcard-price">R$129,00</span>
-        </div>
-        <p class="vcard-cor-label">Cor: <strong id="scCorNome">Amarelo</strong></p>
-        <div class="sc-swatches" id="scSwatches" role="group" aria-label="Selecionar cor"></div>
-        <div class="sc-sizes" id="scSizes" role="group" aria-label="Selecionar tamanho"></div>
-        <div class="vcard-actions">
-          <span class="vcard-guide" role="button" tabindex="0" data-guide="algodao-peruano">Guia de medidas</span>
-          <a href="#" class="vcard-cta" id="scCta">Garantir a minha</a>
-        </div>
-      </div>
-    </article>
+        <article class="vcard" data-product-card data-filter="feminino">
+          <div class="vcard-img-wrap">
+            <img id="scImg"
+              src="cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/amarelo%208.webp"
+              alt="Seleção Canina Baby Look Amarelo — PattaMansa"
+              class="vcard-img" loading="lazy">
+          </div>
+          <div class="vcard-gallery" id="scGallery" role="list" aria-label="Galeria Seleção Canina Baby Look"></div>
+          <div class="vcard-body">
+            <p class="vcard-nome">Seleção Canina</p>
+            <div class="vcard-meta">
+              <span class="vcard-modelagem">Baby Look · Feminina</span>
+              <span class="vcard-price">R$129,00</span>
+            </div>
+            <p class="vcard-cor-label">Cor: <strong id="scCorNome">Amarelo</strong></p>
+            <div class="sc-swatches" id="scSwatches" role="group" aria-label="Selecionar cor"></div>
+            <div class="sc-sizes" id="scSizes" role="group" aria-label="Selecionar tamanho"></div>
+            <div class="vcard-actions">
+              <span class="vcard-guide" role="button" tabindex="0" data-guide="algodao-peruano">Guia de medidas</span>
+              <a href="#" class="vcard-cta" id="scCta">Garantir a minha</a>
+            </div>
+          </div>
+        </article>
 
-    <article class="vcard reveal" data-product-card data-filter="masculino">
-      <div class="vcard-img-wrap">
-        <img id="smImg"
-          src="COLE%C3%87AO%20selecao%20canina%20feminina/preta%201.webp"
-          alt="Seleção Canina Regular Masculina Preta — PattaMansa"
-          class="vcard-img" loading="lazy">
-      </div>
-      <div class="vcard-gallery" id="smGallery" role="list" aria-label="Galeria Seleção Canina Regular Masculina"></div>
-      <div class="vcard-body">
-        <p class="vcard-nome">Seleção Canina</p>
-        <div class="vcard-meta">
-          <span class="vcard-modelagem">Regular · Masculina</span>
-          <span class="vcard-price">R$129,00</span>
-        </div>
-        <p class="vcard-cor-label">Cor: <strong id="smCorNome">Preta</strong></p>
-        <div class="sc-swatches" id="smSwatches" role="group" aria-label="Selecionar cor"></div>
-        <div class="sc-sizes" id="smSizes" role="group" aria-label="Selecionar tamanho"></div>
-        <div class="vcard-actions">
-          <span class="vcard-guide" role="button" tabindex="0" data-guide="regular-masculina">Guia de medidas</span>
-          <a href="#" class="vcard-cta" id="smCta">Garantir a minha</a>
-        </div>
-      </div>
-    </article>
+        <article class="vcard" data-product-card data-filter="feminino">
+          <div class="vcard-img-wrap">
+            <img id="ccfImg"
+              src="cole%C3%A7ao%20clube%20canino%20feminino/amarela%201.webp"
+              alt="Clube Canino Baby Look Amarela — PattaMansa"
+              class="vcard-img" loading="lazy">
+          </div>
+          <div class="vcard-gallery" id="ccfGallery" role="list" aria-label="Galeria Clube Canino Baby Look"></div>
+          <div class="vcard-body">
+            <p class="vcard-nome">Clube Canino</p>
+            <div class="vcard-meta">
+              <span class="vcard-modelagem">Baby Look · Feminina</span>
+              <span class="vcard-price">R$129,00</span>
+            </div>
+            <p class="vcard-cor-label">Cor: <strong id="ccfCorNome">Amarela</strong></p>
+            <div class="sc-swatches" id="ccfSwatches" role="group" aria-label="Selecionar cor"></div>
+            <div class="sc-sizes" id="ccfSizes" role="group" aria-label="Selecionar tamanho"></div>
+            <div class="vcard-actions">
+              <span class="vcard-guide" role="button" tabindex="0" data-guide="algodao-peruano">Guia de medidas</span>
+              <a href="#" class="vcard-cta" id="ccfCta">Garantir a minha</a>
+            </div>
+          </div>
+        </article>
 
-    <article class="vcard reveal" data-product-card data-filter="unissex">
-      <div class="vcard-img-wrap">
-        <img id="ovImg"
-          src="cole%C3%A7%C3%A3o%20sele%C3%A7%C3%A3o%20canina%20oversize/branca.webp"
-          alt="Clube Seleção Canina Oversized Branco — PattaMansa"
-          class="vcard-img" loading="lazy">
-      </div>
-      <div class="vcard-gallery" id="ovGallery" role="list" aria-label="Galeria Clube Seleção Canina Oversized"></div>
-      <div class="vcard-body">
-        <p class="vcard-nome">Clube Seleção Canina Oversized</p>
-        <div class="vcard-meta">
-          <span class="vcard-modelagem">Unissex · Oversized</span>
-          <span class="vcard-price">R$129,00</span>
-        </div>
-        <p class="vcard-cor-label">Cor: <strong id="ovCorNome">Branco</strong></p>
-        <div class="sc-swatches" id="ovSwatches" role="group" aria-label="Selecionar cor"></div>
-        <div class="sc-sizes" id="ovSizes" role="group" aria-label="Selecionar tamanho"></div>
-        <div class="vcard-actions">
-          <span class="vcard-guide" role="button" tabindex="0" data-guide="camiseta-oversized">Guia de medidas</span>
-          <button type="button" class="vcard-cta" id="ovCta" data-nuvemshop-pilot="oversized">Adicionar ao carrinho</button>
-        </div>
-      </div>
-    </article>
+        <article class="vcard" data-product-card data-filter="feminino">
+          <div class="vcard-img-wrap">
+            <img id="crImg"
+              src="cole%C3%A7%C3%A3o%20clube%20canino%20croped%20feminino/amarelo.webp"
+              alt="Clube Feminino Cropped Amarelo — PattaMansa"
+              class="vcard-img" loading="lazy">
+          </div>
+          <div class="vcard-gallery" id="crGallery" role="list" aria-label="Galeria Clube Feminino Cropped"></div>
+          <div class="vcard-body">
+            <p class="vcard-nome">Clube Feminino Cropped</p>
+            <div class="vcard-meta">
+              <span class="vcard-modelagem">Feminino · Cropped</span>
+              <span class="vcard-price">R$129,00</span>
+            </div>
+            <p class="vcard-cor-label">Cor: <strong id="crCorNome">Amarelo</strong></p>
+            <div class="sc-swatches" id="crSwatches" role="group" aria-label="Selecionar cor"></div>
+            <div class="sc-sizes" id="crSizes" role="group" aria-label="Selecionar tamanho"></div>
+            <div class="vcard-actions">
+              <span class="vcard-guide" role="button" tabindex="0" data-guide="cropped-feminino">Guia de medidas</span>
+              <a href="#" class="vcard-cta" id="crCta">Garantir a minha</a>
+            </div>
+          </div>
+        </article>
 
-    <article class="vcard reveal" data-product-card data-filter="feminino">
-      <div class="vcard-img-wrap">
-        <img id="ccfImg"
-          src="cole%C3%A7ao%20clube%20canino%20feminino/amarela%201.webp"
-          alt="Clube Canino Baby Look Amarela — PattaMansa"
-          class="vcard-img" loading="lazy">
-      </div>
-      <div class="vcard-gallery" id="ccfGallery" role="list" aria-label="Galeria Clube Canino Baby Look"></div>
-      <div class="vcard-body">
-        <p class="vcard-nome">Clube Canino</p>
-        <div class="vcard-meta">
-          <span class="vcard-modelagem">Baby Look · Feminina</span>
-          <span class="vcard-price">R$129,00</span>
-        </div>
-        <p class="vcard-cor-label">Cor: <strong id="ccfCorNome">Amarela</strong></p>
-        <div class="sc-swatches" id="ccfSwatches" role="group" aria-label="Selecionar cor"></div>
-        <div class="sc-sizes" id="ccfSizes" role="group" aria-label="Selecionar tamanho"></div>
-        <div class="vcard-actions">
-          <span class="vcard-guide" role="button" tabindex="0" data-guide="algodao-peruano">Guia de medidas</span>
-          <a href="#" class="vcard-cta" id="ccfCta">Garantir a minha</a>
-        </div>
-      </div>
-    </article>
+        <article class="vcard" data-product-card data-filter="feminino moletons">
+          <div class="vcard-img-wrap">
+            <img id="cmImg"
+              src="cole%C3%A7%C3%A3o%20clube%20canino%20moletom%20croped%20feminino/branca.webp"
+              alt="Clube Canino Cropped Moletom Branco — PattaMansa"
+              class="vcard-img" loading="lazy">
+          </div>
+          <div class="vcard-gallery" id="cmGallery" role="list" aria-label="Galeria Clube Canino Cropped Moletom"></div>
+          <div class="vcard-body">
+            <p class="vcard-nome">Clube Canino Cropped Moletom</p>
+            <div class="vcard-meta">
+              <span class="vcard-modelagem">Feminino · Cropped Moletom</span>
+              <span class="vcard-price">R$129,00</span>
+            </div>
+            <p class="vcard-cor-label">Cor: <strong id="cmCorNome">Branco</strong></p>
+            <div class="sc-swatches" id="cmSwatches" role="group" aria-label="Selecionar cor"></div>
+            <div class="sc-sizes" id="cmSizes" role="group" aria-label="Selecionar tamanho"></div>
+            <div class="vcard-actions">
+              <span class="vcard-guide" role="button" tabindex="0" data-guide="cropped-moletom">Guia de medidas</span>
+              <a href="#" class="vcard-cta" id="cmCta">Garantir a minha</a>
+            </div>
+          </div>
+        </article>
 
-    <article class="vcard reveal" data-product-card data-filter="feminino">
-      <div class="vcard-img-wrap">
-        <img id="crImg"
-          src="cole%C3%A7%C3%A3o%20clube%20canino%20croped%20feminino/amarelo.webp"
-          alt="Clube Feminino Cropped Amarelo — PattaMansa"
-          class="vcard-img" loading="lazy">
-      </div>
-      <div class="vcard-gallery" id="crGallery" role="list" aria-label="Galeria Clube Feminino Cropped"></div>
-      <div class="vcard-body">
-        <p class="vcard-nome">Clube Feminino Cropped</p>
-        <div class="vcard-meta">
-          <span class="vcard-modelagem">Feminino · Cropped</span>
-          <span class="vcard-price">R$129,00</span>
-        </div>
-        <p class="vcard-cor-label">Cor: <strong id="crCorNome">Amarelo</strong></p>
-        <div class="sc-swatches" id="crSwatches" role="group" aria-label="Selecionar cor"></div>
-        <div class="sc-sizes" id="crSizes" role="group" aria-label="Selecionar tamanho"></div>
-        <div class="vcard-actions">
-          <span class="vcard-guide" role="button" tabindex="0" data-guide="cropped-feminino">Guia de medidas</span>
-          <a href="#" class="vcard-cta" id="crCta">Garantir a minha</a>
-        </div>
-      </div>
-    </article>
+        <article class="vcard" data-product-card data-filter="unissex">
+          <div class="vcard-img-wrap">
+            <img id="ov2Img"
+              src="cole%C3%A7%C3%A3o%20sele%C3%A7%C3%A3o%20canina%20oversize/branca.webp"
+              alt="Clube Seleção Canina Oversized Branco — PattaMansa"
+              class="vcard-img" loading="lazy">
+          </div>
+          <div class="vcard-gallery" id="ov2Gallery" role="list" aria-label="Galeria Clube Seleção Canina Oversized"></div>
+          <div class="vcard-body">
+            <p class="vcard-nome">Clube Seleção Canina Oversized</p>
+            <div class="vcard-meta">
+              <span class="vcard-modelagem">Unissex · Oversized</span>
+              <span class="vcard-price">R$129,00</span>
+            </div>
+            <p class="vcard-cor-label">Cor: <strong id="ov2CorNome">Branco</strong></p>
+            <div class="sc-swatches" id="ov2Swatches" role="group" aria-label="Selecionar cor"></div>
+            <div class="sc-sizes" id="ov2Sizes" role="group" aria-label="Selecionar tamanho"></div>
+            <div class="vcard-actions">
+              <span class="vcard-guide" role="button" tabindex="0" data-guide="camiseta-oversized">Guia de medidas</span>
+              <button type="button" class="vcard-cta" id="ov2Cta" data-nuvemshop-pilot="oversized">Adicionar ao carrinho</button>
+            </div>
+          </div>
+        </article>
 
-    <article class="vcard reveal" data-product-card data-filter="feminino moletons">
-      <div class="vcard-img-wrap">
-        <img id="cmImg"
-          src="cole%C3%A7%C3%A3o%20clube%20canino%20moletom%20croped%20feminino/branca.webp"
-          alt="Clube Canino Cropped Moletom Branco — PattaMansa"
-          class="vcard-img" loading="lazy">
-      </div>
-      <div class="vcard-gallery" id="cmGallery" role="list" aria-label="Galeria Clube Canino Cropped Moletom"></div>
-      <div class="vcard-body">
-        <p class="vcard-nome">Clube Canino Cropped Moletom</p>
-        <div class="vcard-meta">
-          <span class="vcard-modelagem">Feminino · Cropped Moletom</span>
-          <span class="vcard-price">R$129,00</span>
-        </div>
-        <p class="vcard-cor-label">Cor: <strong id="cmCorNome">Branco</strong></p>
-        <div class="sc-swatches" id="cmSwatches" role="group" aria-label="Selecionar cor"></div>
-        <div class="sc-sizes" id="cmSizes" role="group" aria-label="Selecionar tamanho"></div>
-        <div class="vcard-actions">
-          <span class="vcard-guide" role="button" tabindex="0" data-guide="cropped-moletom">Guia de medidas</span>
-          <a href="#" class="vcard-cta" id="cmCta">Garantir a minha</a>
-        </div>
-      </div>
-    </article>
+        <article class="vcard" data-product-card data-filter="unissex">
+          <div class="vcard-img-wrap">
+            <img id="cfc2Img"
+              src="cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/preta.webp"
+              alt="Caramelo Futebol Clube Regular Unissex Preta — PattaMansa"
+              class="vcard-img" loading="lazy">
+          </div>
+          <div class="vcard-gallery" id="cfc2Gallery" role="list" aria-label="Galeria Caramelo Futebol Clube"></div>
+          <div class="vcard-body">
+            <p class="vcard-nome">Caramelo FC</p>
+            <div class="vcard-meta">
+              <span class="vcard-modelagem">Regular · Unissex</span>
+              <span class="vcard-price">R$129,00</span>
+            </div>
+            <p class="vcard-cor-label">Cor: <strong id="cfc2CorNome">Preta</strong></p>
+            <div class="sc-swatches" id="cfc2Swatches" role="group" aria-label="Selecionar cor"></div>
+            <div class="sc-sizes" id="cfc2Sizes" role="group" aria-label="Selecionar tamanho"></div>
+            <div class="vcard-actions">
+              <span class="vcard-guide" role="button" tabindex="0" data-guide="regular-unissex">Guia de medidas</span>
+              <a href="#" class="vcard-cta" id="cfc2Cta">Garantir a minha</a>
+            </div>
+          </div>
+        </article>
 
-    <article class="vcard reveal" data-product-card data-filter="masculino">
-      <div class="vcard-img-wrap">
-        <img id="ccmImg"
-          src="cole%C3%A7%C3%A3o%20clube%20canino%20masculino/branca%201.webp"
-          alt="Clube Canino Regular Masculina Branca — PattaMansa"
-          class="vcard-img" loading="lazy">
       </div>
-      <div class="vcard-gallery" id="ccmGallery" role="list" aria-label="Galeria Clube Canino Regular Masculina"></div>
-      <div class="vcard-body">
-        <p class="vcard-nome">Clube Canino</p>
-        <div class="vcard-meta">
-          <span class="vcard-modelagem">Regular · Masculina</span>
-          <span class="vcard-price">R$129,00</span>
-        </div>
-        <p class="vcard-cor-label">Cor: <strong id="ccmCorNome">Branca</strong></p>
-        <div class="sc-swatches" id="ccmSwatches" role="group" aria-label="Selecionar cor"></div>
-        <div class="sc-sizes" id="ccmSizes" role="group" aria-label="Selecionar tamanho"></div>
-        <div class="vcard-actions">
-          <span class="vcard-guide" role="button" tabindex="0" data-guide="regular-masculina">Guia de medidas</span>
-          <a href="#" class="vcard-cta" id="ccmCta">Garantir a minha</a>
-        </div>
-      </div>
-    </article>
-
-    <article class="vcard reveal" data-product-card data-filter="unissex">
-      <div class="vcard-img-wrap">
-        <img id="cfcImg"
-          src="cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/preta.webp"
-          alt="Caramelo Futebol Clube Regular Unissex Preta — PattaMansa"
-          class="vcard-img" loading="lazy">
-      </div>
-      <div class="vcard-gallery" id="cfcGallery" role="list" aria-label="Galeria Caramelo Futebol Clube"></div>
-      <div class="vcard-body">
-        <p class="vcard-nome">Caramelo FC</p>
-        <div class="vcard-meta">
-          <span class="vcard-modelagem">Regular · Unissex</span>
-          <span class="vcard-price">R$129,00</span>
-        </div>
-        <p class="vcard-cor-label">Cor: <strong id="cfcCorNome">Preta</strong></p>
-        <div class="sc-swatches" id="cfcSwatches" role="group" aria-label="Selecionar cor"></div>
-        <div class="sc-sizes" id="cfcSizes" role="group" aria-label="Selecionar tamanho"></div>
-        <div class="vcard-actions">
-          <span class="vcard-guide" role="button" tabindex="0" data-guide="regular-unissex">Guia de medidas</span>
-          <a href="#" class="vcard-cta" id="cfcCta">Garantir a minha</a>
-        </div>
-      </div>
-    </article>
-
+    </div>
   </div>
 
   <p class="vitrine-microcopy reveal">Envio após confirmação do pedido</p>
@@ -4368,6 +4501,229 @@ footer {
     syncCta();
   })();
 
+  /* ── Clube Seleção Canina Oversized — clone Feminino (ov2) ── */
+  (function () {
+    const PRODUCT_ID = '347450235';
+    const BASE = 'cole%C3%A7%C3%A3o%20sele%C3%A7%C3%A3o%20canina%20oversize/';
+    const variants = [
+      { name: 'Branco',    cartValue: 'Branco',    code: 'BC', hex: '#F0EDE5', img: BASE + 'branca.webp', light: true },
+      { name: 'Off white', cartValue: 'Off white', code: 'OF', hex: '#E9E1D1', img: BASE + 'offwhite.webp', light: true },
+    ];
+    const gallery = [
+      { label: 'Branco', code: 'BC', img: BASE + 'branca.webp' },
+      { label: 'Off white', code: 'OF', img: BASE + 'offwhite.webp' },
+    ];
+    const SIZES = ['P', 'M', 'G', 'GG', '3g'];
+    const variantIds = {
+      'Off white|P':  '1534201606',
+      'Off white|M':  '1534201608',
+      'Off white|G':  '1534201609',
+      'Off white|GG': '1534201610',
+      'Off white|3g': '1534201612',
+      'Branco|P':     '1534201613',
+      'Branco|M':     '1534201614',
+      'Branco|G':     '1534201615',
+      'Branco|GG':    '1534201616',
+      'Branco|3g':    '1534201617',
+    };
+
+    const img         = document.getElementById('ov2Img');
+    const corNome     = document.getElementById('ov2CorNome');
+    const swWrap      = document.getElementById('ov2Swatches');
+    const szWrap      = document.getElementById('ov2Sizes');
+    const galleryWrap = document.getElementById('ov2Gallery');
+    const ctaBtn      = document.getElementById('ov2Cta');
+
+    if (!img || !swWrap || !szWrap || !galleryWrap || !ctaBtn) return;
+
+    let activeCor = 0;
+    let activeGallery = 0;
+    let activeSz = null;
+
+    variants.forEach(function (v, i) {
+      const btn = document.createElement('button');
+      btn.className = 'sc-swatch' + (i === 0 ? ' active' : '');
+      btn.style.backgroundColor = v.hex;
+      btn.setAttribute('aria-label', v.name);
+      btn.setAttribute('title', v.name);
+      if (v.light) btn.dataset.light = '';
+      btn.addEventListener('click', function () { setCor(i); });
+      swWrap.appendChild(btn);
+    });
+
+    gallery.forEach(function (item, i) {
+      const btn = document.createElement('button');
+      btn.className = 'vcard-thumb' + (i === 0 ? ' active' : '');
+      btn.type = 'button';
+      btn.setAttribute('role', 'listitem');
+      btn.setAttribute('aria-label', 'Ver Clube Seleção Canina Oversized ' + item.label);
+      btn.innerHTML = '<img src="' + item.img + '" alt="" loading="lazy">';
+      btn.addEventListener('click', function () { setGallery(i); });
+      galleryWrap.appendChild(btn);
+    });
+
+    SIZES.forEach(function (sz) {
+      const btn = document.createElement('button');
+      btn.className = 'sc-size-btn';
+      btn.textContent = sz;
+      btn.dataset.size = sz;
+      btn.addEventListener('click', function () { setSz(sz); });
+      szWrap.appendChild(btn);
+    });
+
+    function setCor(i) {
+      const galleryIndex = gallery.findIndex(function (item) { return item.code === variants[i].code; });
+      setGallery(galleryIndex >= 0 ? galleryIndex : 0);
+    }
+
+    function setGallery(i) {
+      activeGallery = i;
+      const item = gallery[i];
+      const colorIndex = variants.findIndex(function (v) { return v.code === item.code; });
+      if (colorIndex >= 0) activeCor = colorIndex;
+      swWrap.querySelectorAll('.sc-swatch').forEach(function (s, j) {
+        s.classList.toggle('active', j === activeCor);
+      });
+      galleryWrap.querySelectorAll('.vcard-thumb').forEach(function (thumb, j) {
+        thumb.classList.toggle('active', j === activeGallery);
+      });
+      corNome.textContent = variants[activeCor].name;
+      img.style.opacity = '0';
+      setTimeout(function () {
+        img.src = item.img;
+        img.alt = 'Clube Seleção Canina Oversized ' + item.label + ' — PattaMansa';
+        img.style.opacity = '1';
+      }, 200);
+      syncCta();
+    }
+
+    function setSz(sz) {
+      activeSz = sz;
+      szWrap.querySelectorAll('.sc-size-btn').forEach(function (b) {
+        b.classList.toggle('active', b.dataset.size === sz);
+      });
+      syncCta();
+    }
+
+    function syncCta() {
+      ctaBtn.type = 'button';
+      ctaBtn.removeAttribute('href');
+      ctaBtn.setAttribute('aria-label', 'Adicionar Clube Seleção Canina Oversized ao carrinho');
+    }
+
+    function addToLocalCart(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      const selectedVariant = variants[activeCor];
+      if (!selectedVariant || !selectedVariant.cartValue) {
+        alert('Escolha uma cor antes de adicionar ao carrinho.');
+        return;
+      }
+      if (!activeSz) {
+        alert('Escolha um tamanho antes de adicionar ao carrinho.');
+        return;
+      }
+      const variantId = variantIds[selectedVariant.cartValue + '|' + activeSz];
+      PattaCart.add({
+        productId:   PRODUCT_ID,
+        productName: 'Clube Seleção Canina Oversized',
+        variantId:   variantId,
+        color:       selectedVariant.cartValue,
+        size:        activeSz,
+        price:       129,
+        image:       selectedVariant.img,
+        cartPayload: {
+          add_to_cart:    PRODUCT_ID,
+          'variation[0]': selectedVariant.cartValue,
+          'variation[1]': activeSz,
+          quantity:       '1',
+        },
+      });
+      PattaCartUI.showToast('Produto adicionado ao carrinho.');
+    }
+
+    ctaBtn.onclick = null;
+    ctaBtn.addEventListener('click', addToLocalCart, true);
+    syncCta();
+  })();
+
+  /* ── Caramelo Futebol Clube — clone Feminino (cfc2) ── */
+  (function () {
+    const WA_NUM = '5500000000000';
+    const variants = [
+      { name: 'Preta',     hex: '#1C1C1C', img: 'cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/preta.webp' },
+      { name: 'Areia',     hex: '#D7C7A5', img: 'cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/areia.webp', light: true },
+      { name: 'Branca',    hex: '#F0EDE5', img: 'cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/branca.webp', light: true },
+      { name: 'Off White', hex: '#E9E1D1', img: 'cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/off%20white.webp', light: true },
+    ];
+    const SIZES = ['PP', 'P', 'M', 'G', 'GG', '3G', '4G'];
+
+    const img         = document.getElementById('cfc2Img');
+    const corNome     = document.getElementById('cfc2CorNome');
+    const swWrap      = document.getElementById('cfc2Swatches');
+    const szWrap      = document.getElementById('cfc2Sizes');
+    const galleryWrap = document.getElementById('cfc2Gallery');
+    const ctaBtn      = document.getElementById('cfc2Cta');
+
+    if (!img || !swWrap || !szWrap || !ctaBtn) return;
+
+    let activeCor = 0;
+    let activeSz  = null;
+
+    variants.forEach(function (v, i) {
+      const btn = document.createElement('button');
+      btn.className = 'sc-swatch' + (i === 0 ? ' active' : '');
+      btn.style.backgroundColor = v.hex;
+      btn.setAttribute('aria-label', v.name);
+      btn.setAttribute('title', v.name);
+      if (v.light) btn.dataset.light = '';
+      btn.addEventListener('click', function () { setCor(i); });
+      swWrap.appendChild(btn);
+    });
+
+    SIZES.forEach(function (sz) {
+      const btn = document.createElement('button');
+      btn.className = 'sc-size-btn';
+      btn.textContent = sz;
+      btn.dataset.size = sz;
+      btn.addEventListener('click', function () { setSz(sz); });
+      szWrap.appendChild(btn);
+    });
+
+    const syncGallery = buildVariantGallery(galleryWrap, variants, setCor, 'Caramelo Futebol Clube');
+
+    function setCor(i) {
+      if (activeCor === i) return;
+      activeCor = i;
+      swWrap.querySelectorAll('.sc-swatch').forEach(function (s, j) { s.classList.toggle('active', j === i); });
+      syncGallery(i);
+      corNome.textContent = variants[i].name;
+      img.style.opacity = '0';
+      setTimeout(function () {
+        img.src = variants[i].img;
+        img.alt = 'Caramelo Futebol Clube Unissex ' + variants[i].name + ' — PattaMansa';
+        img.style.opacity = '1';
+      }, 200);
+      syncCta();
+    }
+
+    function setSz(sz) {
+      activeSz = sz;
+      szWrap.querySelectorAll('.sc-size-btn').forEach(function (b) { b.classList.toggle('active', b.dataset.size === sz); });
+      syncCta();
+    }
+
+    function syncCta() {
+      const cor = variants[activeCor].name;
+      const tam = activeSz || '(escolha o tamanho)';
+      ctaBtn.href = 'https://wa.me/' + WA_NUM + '?text=' +
+        encodeURIComponent('Olá! Quero comprar a camiseta Caramelo Futebol Clube Unissex na cor ' + cor + ' e tamanho ' + tam + '.');
+    }
+
+    syncCta();
+  })();
+
   /* ── Filtros da coleção ── */
   (function () {
     const filters = document.querySelectorAll('.collection-filter');
@@ -4772,7 +5128,7 @@ footer {
     });
 
     /* ── Trigger: clique na imagem principal do card ── */
-    var grid = document.getElementById('collectionGrid');
+    var grid = document.querySelector('.colecao-section');
     if (grid) {
       grid.addEventListener('click', function (e) {
         // Não disparar se o clique foi dentro da galeria de miniaturas
