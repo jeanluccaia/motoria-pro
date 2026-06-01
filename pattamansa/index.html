@@ -3929,13 +3929,7 @@ footer {
         checkoutBtn.classList.add('loading');
         checkoutBtn.textContent = 'Aguarde…';
 
-        if (items.length === 1) {
-          var form = buildForm(items[0], null);
-          document.body.appendChild(form);
-          form.submit();
-        } else {
-          checkoutMultiple(items);
-        }
+        checkoutMultiple(items);
       });
     }
 
