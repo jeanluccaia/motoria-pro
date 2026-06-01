@@ -5065,6 +5065,16 @@ footer {
       ctaBtn.setAttribute('aria-label', 'Garantir Clube Canino Regular Masculina');
     }
 
+    const ccmVariantIds = {
+      'Amarelo|PP': '1534962518', 'Amarelo|P':  '1534962519',
+      'Amarelo|M':  '1534962520', 'Amarelo|G':  '1534962521',
+      'Amarelo|GG': '1534962523', 'Amarelo|3G': '1534962525',
+      'Amarelo|4G': '1534962526',
+      'Branco|PP':  '1534962527', 'Branco|P':   '1534962528',
+      'Branco|M':   '1534962529', 'Branco|G':   '1534962530',
+      'Branco|GG':  '1534962531', 'Branco|3G':  '1534962532',
+      'Branco|4G':  '1534962533',
+    };
     ctaBtn.onclick = null;
     ctaBtn.addEventListener('click', function (e) {
       e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
@@ -5073,7 +5083,7 @@ footer {
         price: 129, installments: 10,
         defaultImage: variants[0].img,
         colors: variants, sizes: SIZES,
-        productId: PRODUCT_ID,
+        variantIds: ccmVariantIds, productId: PRODUCT_ID,
       });
     }, true);
     syncCta();
