@@ -4102,78 +4102,38 @@ footer {
       form.appendChild(input);
     }
 
-    function buildForm(item, targetName) {
+    /*
+     * CHECKOUT — POST único na janela principal
+     *
+     * 1 item  → formato padrão Nuvemshop: add_to_cart + quantity
+     * N itens → formato array PHP: items[0][add_to_cart], items[1][add_to_cart]…
+     *
+     * Janela principal (não iframe) garante envio de cookies SameSite=Lax,
+     * resolvendo o problema de sessões separadas por item.
+     */
+    function buildCheckoutForm(items) {
       var form = document.createElement('form');
-      form.method = 'post';
+      form.method = 'POST';
       form.action = CART_URL;
       form.style.display = 'none';
-      if (targetName) form.target = targetName;
-      addField(form, 'add_to_cart', item.cartPayload.add_to_cart);
-      var vi = 0;
-      while (item.cartPayload['variation[' + vi + ']'] != null) {
-        addField(form, 'variation[' + vi + ']', item.cartPayload['variation[' + vi + ']']);
-        vi++;
-      }
-      addField(form, 'quantity', String(item.quantity));
-      return form;
-    }
 
-    /*
-     * CHECKOUT MÚLTIPLO — Fase 2
-     *
-     * Estratégia: iframe oculto + form POST sequencial.
-     * Cada item é submetido via POST para a Nuvemshop dentro de um iframe,
-     * aguardando o evento `onload` antes de enviar o próximo.
-     *
-     * LIMITAÇÃO CONHECIDA (documentada):
-     * A Nuvemshop provavelmente define cookies de sessão com SameSite=Lax.
-     * POSTs cross-site NÃO enviam cookies Lax automaticamente, o que pode
-     * fazer cada POST iniciar uma sessão separada de carrinho.
-     * Se isso acontecer, apenas o último item chegará na Nuvemshop.
-     *
-     * Fallback seguro: após todas as tentativas, redireciona para /carrinho/.
-     * O usuário verá o que chegou corretamente. Recomendação para produção:
-     * implementar proxy serverless no mesmo domínio ou usar API Nuvemshop.
-     */
-    function checkoutMultiple(items) {
-      var iframeName = 'ptm-checkout-' + Date.now();
-      var iframe = document.createElement('iframe');
-      iframe.name = iframeName;
-      iframe.style.cssText = 'position:fixed;width:1px;height:1px;top:-999px;left:-999px;opacity:0;pointer-events:none;';
-      document.body.appendChild(iframe);
-
-      var idx = 0;
-
-      function sendNext() {
-        if (idx >= items.length) {
-          setTimeout(function () {
-            iframe.remove();
-            window.location.href = CART_VIEW_URL;
-          }, 400);
-          return;
+      if (items.length === 1) {
+        var item = items[0];
+        addField(form, 'add_to_cart', item.cartPayload.add_to_cart);
+        var vi = 0;
+        while (item.cartPayload['variation[' + vi + ']'] != null) {
+          addField(form, 'variation[' + vi + ']', item.cartPayload['variation[' + vi + ']']);
+          vi++;
         }
-
-        var item = items[idx++];
-        var form = buildForm(item, iframeName);
-        document.body.appendChild(form);
-
-        var safeTimeout = setTimeout(function () {
-          iframe.onload = null;
-          form.remove();
-          sendNext();
-        }, 1500);
-
-        iframe.onload = function () {
-          clearTimeout(safeTimeout);
-          iframe.onload = null;
-          form.remove();
-          setTimeout(sendNext, 500);
-        };
-
-        form.submit();
+        addField(form, 'quantity', String(item.quantity));
+      } else {
+        items.forEach(function (item, i) {
+          addField(form, 'items[' + i + '][add_to_cart]', item.cartPayload.add_to_cart);
+          addField(form, 'items[' + i + '][quantity]',    String(item.quantity));
+        });
       }
 
-      sendNext();
+      return form;
     }
 
     if (checkoutBtn) {
@@ -4185,10 +4145,9 @@ footer {
         checkoutBtn.classList.add('loading');
         checkoutBtn.textContent = 'Aguarde…';
 
-        // Failsafe absoluto: redireciona em 3s se checkoutMultiple travar
-        setTimeout(function () { window.location.href = CART_VIEW_URL; }, 3000);
-
-        checkoutMultiple(items);
+        var form = buildCheckoutForm(items);
+        document.body.appendChild(form);
+        form.submit();
       });
     }
 
