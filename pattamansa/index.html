@@ -4757,8 +4757,8 @@ footer {
   (function () {
     const PRODUCT_ID = '347645720';
     const variants = [
-      { name: 'Branca',  hex: '#F0EDE5', img: 'cole%C3%A7%C3%A3o%20clube%20canino%20masculino/branca%201.webp',  light: true },
-      { name: 'Amarela', hex: '#F0C830', img: 'cole%C3%A7%C3%A3o%20clube%20canino%20masculino/amarela%202.webp', light: true },
+      { name: 'Branca',  cartValue: 'Branco',  hex: '#F0EDE5', img: 'cole%C3%A7%C3%A3o%20clube%20canino%20masculino/branca%201.webp',  light: true },
+      { name: 'Amarela', cartValue: 'Amarelo', hex: '#F0C830', img: 'cole%C3%A7%C3%A3o%20clube%20canino%20masculino/amarela%202.webp', light: true },
     ];
     const SIZES = ['PP', 'P', 'M', 'G', 'GG', '3G', '4G'];
 
@@ -4845,7 +4845,8 @@ footer {
         image:       selectedVariant.img,
         cartPayload: {
           add_to_cart:    PRODUCT_ID,
-          'variation[0]': activeSz,
+          'variation[0]': selectedVariant.cartValue,
+          'variation[1]': activeSz,
           quantity:       '1',
         },
       });
