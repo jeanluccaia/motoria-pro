@@ -2918,6 +2918,59 @@ footer {
   .lb-thumbs { gap: .32rem; padding: .55rem .75rem 1rem; }
   .lb-thumb { width: 38px; height: 38px; }
 }
+
+/* ─── PRODUCT DRAWER ─── */
+#pdvOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9990;opacity:0;pointer-events:none;transition:opacity .3s}
+#pdvOverlay.open{opacity:1;pointer-events:all}
+#pdvDrawer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;max-height:92svh;overflow-y:auto;z-index:9991;transform:translateY(110%);transition:transform .38s cubic-bezier(.32,.72,0,1);padding-bottom:env(safe-area-inset-bottom,16px)}
+#pdvDrawer.open{transform:translateY(0)}
+#cartFab{display:none!important}
+@media(min-width:768px){
+  #pdvDrawer{left:auto;right:0;bottom:0;top:0;width:min(440px,96vw);max-height:100%;border-radius:16px 0 0 16px;transform:translateX(110%)}
+  #pdvDrawer.open{transform:translateX(0)}
+}
+.pdv-handle{width:36px;height:4px;background:#e2e8f0;border-radius:2px;margin:14px auto 0}
+@media(min-width:768px){.pdv-handle{display:none}}
+.pdv-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #f1f5f9}
+.pdv-header-title{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8}
+.pdv-close-btn{width:30px;height:30px;border-radius:50%;background:#f1f5f9;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#475569;font-size:.85rem;transition:background .15s;flex-shrink:0}
+.pdv-close-btn:hover{background:#e2e8f0}
+.pdv-body{padding:20px 20px 28px}
+.pdv-product-row{display:flex;gap:14px;align-items:flex-start;margin-bottom:22px}
+.pdv-thumb{width:84px;height:84px;object-fit:cover;border-radius:12px;background:#f8fafc;flex-shrink:0;transition:opacity .2s}
+.pdv-product-meta{flex:1}
+.pdv-product-name{font-size:.92rem;font-weight:700;color:#1e293b;line-height:1.3;margin-bottom:6px}
+.pdv-price-main{font-size:1.3rem;font-weight:800;color:#1e293b;margin-bottom:2px}
+.pdv-installments{font-size:.78rem;color:#64748b}
+.pdv-section{margin-bottom:18px}
+.pdv-section-lbl{font-size:.72rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#64748b;margin-bottom:9px}
+.pdv-section-lbl em{font-style:normal;color:#1e293b;text-transform:none;letter-spacing:0;font-weight:600}
+.pdv-swatches{display:flex;flex-wrap:wrap;gap:8px}
+.pdv-swatch{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer;outline:none;transition:border-color .15s,transform .15s}
+.pdv-swatch[data-light]{box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.pdv-swatch.active{border-color:#1e293b;transform:scale(1.12)}
+.pdv-sizes{display:flex;flex-wrap:wrap;gap:7px}
+.pdv-sz-btn{min-width:46px;height:36px;padding:0 10px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;color:#475569;font-size:.82rem;font-weight:600;cursor:pointer;transition:border-color .15s,background .15s,color .15s}
+.pdv-sz-btn:hover{border-color:#94a3b8}
+.pdv-sz-btn.active{border-color:#1e293b;background:#1e293b;color:#fff}
+.pdv-qty-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f8fafc;border-radius:10px;margin-bottom:18px}
+.pdv-qty-lbl{font-size:.83rem;font-weight:600;color:#475569}
+.pdv-qty-ctrl{display:flex;align-items:center;gap:14px}
+.pdv-qty-btn{width:30px;height:30px;border-radius:7px;border:1.5px solid #e2e8f0;background:#fff;font-size:1rem;cursor:pointer;transition:border-color .15s;color:#1e293b}
+.pdv-qty-btn:hover{border-color:#94a3b8}
+.pdv-qty-num{font-size:.95rem;font-weight:700;min-width:18px;text-align:center;color:#1e293b}
+.pdv-summary{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid #f1f5f9;border-bottom:1px solid #f1f5f9;margin-bottom:14px}
+.pdv-summary-desc{font-size:.82rem;color:#64748b}
+.pdv-summary-total{font-size:1.05rem;font-weight:800;color:#1e293b}
+.pdv-trust{display:flex;flex-direction:column;gap:5px;margin-bottom:18px}
+.pdv-trust-item{display:flex;align-items:center;gap:8px;font-size:.78rem;color:#475569}
+.pdv-trust-icon{width:18px;height:18px;border-radius:50%;background:#dcfce7;color:#16a34a;font-size:.65rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pdv-err{font-size:.78rem;color:#dc2626;margin-bottom:8px;display:none;text-align:center}
+.pdv-err.visible{display:block}
+.pdv-cta-btn{width:100%;padding:15px;background:#1e293b;color:#fff;border:none;border-radius:12px;font-size:.95rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .2s,transform .1s}
+.pdv-cta-btn:hover{background:#0f172a}
+.pdv-cta-btn:active{transform:scale(.98)}
+.pdv-cta-btn:disabled{background:#94a3b8;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -3324,7 +3377,7 @@ footer {
               <span class="vcard-modelagem">Regular · Masculina</span>
               <span class="vcard-price-stack">
                 <span class="vcard-price">R$129,00</span>
-                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+                <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="smCorNome">Preta</strong></p>
@@ -3351,7 +3404,7 @@ footer {
               <span class="vcard-modelagem">Regular · Masculina</span>
               <span class="vcard-price-stack">
                 <span class="vcard-price">R$129,00</span>
-                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+                <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="ccmCorNome">Branca</strong></p>
@@ -3378,7 +3431,7 @@ footer {
               <span class="vcard-modelagem">Unissex · Oversized</span>
               <span class="vcard-price-stack">
                 <span class="vcard-price">R$129,00</span>
-                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+                <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="ovCorNome">Branco</strong></p>
@@ -3405,7 +3458,7 @@ footer {
               <span class="vcard-modelagem">Regular · Unissex</span>
               <span class="vcard-price-stack">
                 <span class="vcard-price">R$129,00</span>
-                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+                <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="cfcCorNome">Preta</strong></p>
@@ -3444,7 +3497,7 @@ footer {
               <span class="vcard-modelagem">Baby Look · Feminina</span>
               <span class="vcard-price-stack">
                 <span class="vcard-price">R$129,00</span>
-                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+                <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="scCorNome">Amarelo</strong></p>
@@ -3471,7 +3524,7 @@ footer {
               <span class="vcard-modelagem">Baby Look · Feminina</span>
               <span class="vcard-price-stack">
                 <span class="vcard-price">R$129,00</span>
-                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+                <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="ccfCorNome">Amarela</strong></p>
@@ -3498,7 +3551,7 @@ footer {
               <span class="vcard-modelagem">Feminino · Cropped</span>
               <span class="vcard-price-stack">
                 <span class="vcard-price">R$129,00</span>
-                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+                <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="crCorNome">Amarelo</strong></p>
@@ -3525,7 +3578,7 @@ footer {
               <span class="vcard-modelagem">Feminino · Cropped Moletom</span>
               <span class="vcard-price-stack">
                 <span class="vcard-price">R$129,00</span>
-                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+                <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="cmCorNome">Branco</strong></p>
@@ -3552,7 +3605,7 @@ footer {
               <span class="vcard-modelagem">Unissex · Oversized</span>
               <span class="vcard-price-stack">
                 <span class="vcard-price">R$129,00</span>
-                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+                <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="ov2CorNome">Branco</strong></p>
@@ -3579,7 +3632,7 @@ footer {
               <span class="vcard-modelagem">Regular · Unissex</span>
               <span class="vcard-price-stack">
                 <span class="vcard-price">R$129,00</span>
-                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+                <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="cfc2CorNome">Preta</strong></p>
@@ -3776,21 +3829,8 @@ footer {
 </div>
 
 <script>
-  /* Parcelamento discreto calculado a partir do preco visivel do card */
+  /* Parcelamento discreto alinhado ao checkout */
   (function () {
-    function parseBRL(text) {
-      var normalized = String(text || '')
-        .replace(/[^\d,.-]/g, '')
-        .replace(/\./g, '')
-        .replace(',', '.');
-      var value = parseFloat(normalized);
-      return isNaN(value) ? null : value;
-    }
-
-    function fmtBRL(value) {
-      return 'R$ ' + value.toFixed(2).replace('.', ',');
-    }
-
     document.querySelectorAll('[data-product-card]').forEach(function (card) {
       var price = card.querySelector('.vcard-price');
       if (!price) return;
@@ -3810,9 +3850,7 @@ footer {
         stack.appendChild(installments);
       }
 
-      var amount = parseBRL(price.textContent);
-      if (amount === null) return;
-      installments.textContent = '12x de ' + fmtBRL(amount / 12) + ' sem juros';
+      installments.textContent = 'ou 10x de R$ 13,70';
     });
   })();
 
@@ -4108,6 +4146,160 @@ footer {
     update();
 
     return { update: update, showToast: showToast, open: open, close: close };
+  })();
+
+  /* ─── PRODUCT DRAWER ─── */
+  var ProductDrawer = (function () {
+    var overlay   = document.getElementById('pdvOverlay');
+    var drawer    = document.getElementById('pdvDrawer');
+    var closeBtn  = document.getElementById('pdvCloseBtn');
+    var thumbEl   = document.getElementById('pdvThumb');
+    var nameEl    = document.getElementById('pdvName');
+    var priceEl   = document.getElementById('pdvPriceMain');
+    var installEl = document.getElementById('pdvInstallments');
+    var colorSec  = document.getElementById('pdvColorSection');
+    var colorName = document.getElementById('pdvColorName');
+    var swatches  = document.getElementById('pdvSwatches');
+    var sizeSec   = document.getElementById('pdvSizeSection');
+    var sizeBtns  = document.getElementById('pdvSizeBtns');
+    var qtyMinus  = document.getElementById('pdvQtyMinus');
+    var qtyPlus   = document.getElementById('pdvQtyPlus');
+    var qtyNum    = document.getElementById('pdvQtyNum');
+    var summDesc  = document.getElementById('pdvSummaryDesc');
+    var summTotal = document.getElementById('pdvSummaryTotal');
+    var errEl     = document.getElementById('pdvErr');
+    var ctaBtn    = document.getElementById('pdvCtaBtn');
+    var CHECKOUT_URL = 'https://pattamansa.lojavirtualnuvem.com.br/comprar/';
+    var _cfg = null, _cor = 0, _sz = null, _qty = 1;
+
+    function fmt(v) { return 'R$ ' + v.toFixed(2).replace('.', ','); }
+
+    function open(cfg) {
+      _cfg = cfg; _cor = 0; _sz = null; _qty = 1;
+      render();
+      overlay.removeAttribute('aria-hidden'); overlay.classList.add('open');
+      drawer.removeAttribute('aria-hidden');  drawer.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      if (closeBtn) closeBtn.focus();
+    }
+
+    function close() {
+      overlay.classList.remove('open'); overlay.setAttribute('aria-hidden','true');
+      drawer.classList.remove('open');  drawer.setAttribute('aria-hidden','true');
+      document.body.style.overflow = '';
+      if (ctaBtn) { ctaBtn.disabled = false; ctaBtn.textContent = 'Finalizar compra'; }
+    }
+
+    function render() {
+      var c = _cfg.colors ? _cfg.colors[_cor] : null;
+      thumbEl.src = c ? c.img : (_cfg.defaultImage || '');
+      thumbEl.alt = _cfg.name;
+      nameEl.textContent = _cfg.name;
+      priceEl.textContent = fmt(_cfg.price);
+      var inst = (_cfg.price / (_cfg.installments || 10)).toFixed(2).replace('.', ',');
+      installEl.textContent = 'ou ' + (_cfg.installments || 10) + 'x de R$ ' + inst + ' sem juros';
+
+      if (_cfg.colors && _cfg.colors.length > 1) {
+        colorSec.style.display = '';
+        colorName.textContent = _cfg.colors[_cor].name;
+        swatches.innerHTML = '';
+        _cfg.colors.forEach(function (v, i) {
+          var btn = document.createElement('button');
+          btn.className = 'pdv-swatch' + (i === _cor ? ' active' : '');
+          btn.style.backgroundColor = v.hex;
+          btn.setAttribute('aria-label', v.name);
+          btn.setAttribute('title', v.name);
+          if (v.light) btn.dataset.light = '';
+          btn.addEventListener('click', function () { setCor(i); });
+          swatches.appendChild(btn);
+        });
+      } else { colorSec.style.display = 'none'; }
+
+      if (_cfg.sizes && _cfg.sizes.length) {
+        sizeSec.style.display = '';
+        sizeBtns.innerHTML = '';
+        _cfg.sizes.forEach(function (sz) {
+          var btn = document.createElement('button');
+          btn.className = 'pdv-sz-btn';
+          btn.textContent = sz;
+          btn.addEventListener('click', function () { setSz(sz); });
+          sizeBtns.appendChild(btn);
+        });
+      } else { sizeSec.style.display = 'none'; }
+
+      errEl.classList.remove('visible');
+      syncSummary();
+    }
+
+    function setCor(i) {
+      _cor = i;
+      var v = _cfg.colors[i];
+      thumbEl.style.opacity = '0';
+      setTimeout(function () { thumbEl.src = v.img; thumbEl.style.opacity = '1'; }, 150);
+      colorName.textContent = v.name;
+      swatches.querySelectorAll('.pdv-swatch').forEach(function (s, j) { s.classList.toggle('active', j === i); });
+    }
+
+    function setSz(sz) {
+      _sz = sz;
+      sizeBtns.querySelectorAll('.pdv-sz-btn').forEach(function (b) { b.classList.toggle('active', b.textContent === sz); });
+      errEl.classList.remove('visible');
+      syncSummary();
+    }
+
+    function syncSummary() {
+      if (!_cfg) return;
+      qtyNum.textContent = _qty;
+      summDesc.textContent = _qty + ' ' + (_qty === 1 ? 'item' : 'itens');
+      summTotal.textContent = fmt(_cfg.price * _qty);
+    }
+
+    function checkout() {
+      if (_cfg.sizes && _cfg.sizes.length && !_sz) {
+        errEl.classList.add('visible');
+        sizeSec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        return;
+      }
+      ctaBtn.disabled = true;
+      ctaBtn.textContent = 'Aguarde…';
+
+      var cor = _cfg.colors ? _cfg.colors[_cor] : null;
+      var fields = {};
+
+      /* Variant ID direto (mais confiável) */
+      if (_cfg.variantIds && cor && _sz) {
+        var vid = _cfg.variantIds[cor.cartValue + '|' + _sz];
+        if (vid) { fields = { add_to_cart: vid, quantity: String(_qty) }; }
+      }
+
+      /* Fallback: product ID + variações */
+      if (!fields.add_to_cart) {
+        fields = { add_to_cart: _cfg.productId, quantity: String(_qty) };
+        if (cor) fields['variation[0]'] = cor.cartValue;
+        if (_sz)  fields['variation[1]'] = _sz;
+      }
+
+      var form = document.createElement('form');
+      form.method = 'POST'; form.action = CHECKOUT_URL; form.style.display = 'none';
+      Object.keys(fields).forEach(function (k) {
+        var inp = document.createElement('input');
+        inp.type = 'hidden'; inp.name = k; inp.value = fields[k];
+        form.appendChild(inp);
+      });
+      document.body.appendChild(form);
+      form.submit();
+    }
+
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    if (overlay)  overlay.addEventListener('click', close);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && drawer && drawer.classList.contains('open')) close();
+    });
+    if (qtyMinus) qtyMinus.addEventListener('click', function () { if (_qty > 1)  { _qty--; syncSummary(); } });
+    if (qtyPlus)  qtyPlus.addEventListener('click',  function () { if (_qty < 10) { _qty++; syncSummary(); } });
+    if (ctaBtn)   ctaBtn.addEventListener('click', checkout);
+
+    return { open: open, close: close };
   })();
 
   /* Scroll Reveal */
@@ -4441,44 +4633,17 @@ footer {
       ctaBtn.setAttribute('aria-label', 'Adicionar Clube Seleção Canina Oversized ao carrinho');
     }
 
-    function addToLocalCart(event) {
-      event.preventDefault();
-      event.stopPropagation();
-      event.stopImmediatePropagation();
-
-      const selectedVariant = variants[activeCor];
-      if (!selectedVariant || !selectedVariant.cartValue) {
-        alert('Escolha uma cor antes de adicionar ao carrinho.');
-        return;
-      }
-      if (!activeSz) {
-        alert('Escolha um tamanho antes de adicionar ao carrinho.');
-        return;
-      }
-
-      const variantId = variantIds[selectedVariant.cartValue + '|' + activeSz];
-
-      PattaCart.add({
-        productId:   PRODUCT_ID,
-        productName: 'Clube Seleção Canina Oversized',
-        variantId:   variantId,
-        color:       selectedVariant.cartValue,
-        size:        activeSz,
-        price:       129,
-        image:       selectedVariant.img,
-        cartPayload: {
-          add_to_cart:    PRODUCT_ID,
-          'variation[0]': selectedVariant.cartValue,
-          'variation[1]': activeSz,
-          quantity:       '1',
-        },
-      });
-
-      PattaCartUI.showToast('Produto adicionado ao carrinho.');
-    }
-
     ctaBtn.onclick = null;
-    ctaBtn.addEventListener('click', addToLocalCart, true);
+    ctaBtn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      ProductDrawer.open({
+        name: 'Clube Seleção Canina Oversized',
+        price: 129, installments: 10,
+        defaultImage: BASE + 'branca.webp',
+        colors: variants, sizes: SIZES,
+        variantIds: variantIds, productId: PRODUCT_ID,
+      });
+    }, true);
     syncCta();
   })();
 
@@ -4900,39 +5065,17 @@ footer {
       ctaBtn.setAttribute('aria-label', 'Garantir Clube Canino Regular Masculina');
     }
 
-    function addToLocalCart(event) {
-      event.preventDefault();
-      event.stopPropagation();
-      event.stopImmediatePropagation();
-
-      if (!activeSz) {
-        alert('Escolha um tamanho antes de continuar.');
-        return;
-      }
-
-      const selectedVariant = variants[activeCor];
-
-      PattaCart.add({
-        productId:   PRODUCT_ID,
-        productName: 'Clube Canino Regular · Masculina',
-        variantId:   null,
-        color:       selectedVariant.name,
-        size:        activeSz,
-        price:       129,
-        image:       selectedVariant.img,
-        cartPayload: {
-          add_to_cart:    PRODUCT_ID,
-          'variation[0]': selectedVariant.cartValue,
-          'variation[1]': activeSz,
-          quantity:       '1',
-        },
-      });
-
-      PattaCartUI.showToast('Produto adicionado ao carrinho.');
-    }
-
     ctaBtn.onclick = null;
-    ctaBtn.addEventListener('click', addToLocalCart, true);
+    ctaBtn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      ProductDrawer.open({
+        name: 'Clube Canino Regular · Masculina',
+        price: 129, installments: 10,
+        defaultImage: variants[0].img,
+        colors: variants, sizes: SIZES,
+        productId: PRODUCT_ID,
+      });
+    }, true);
     syncCta();
   })();
 
@@ -5122,40 +5265,17 @@ footer {
       ctaBtn.setAttribute('aria-label', 'Adicionar Clube Seleção Canina Oversized ao carrinho');
     }
 
-    function addToLocalCart(event) {
-      event.preventDefault();
-      event.stopPropagation();
-      event.stopImmediatePropagation();
-      const selectedVariant = variants[activeCor];
-      if (!selectedVariant || !selectedVariant.cartValue) {
-        alert('Escolha uma cor antes de adicionar ao carrinho.');
-        return;
-      }
-      if (!activeSz) {
-        alert('Escolha um tamanho antes de adicionar ao carrinho.');
-        return;
-      }
-      const variantId = variantIds[selectedVariant.cartValue + '|' + activeSz];
-      PattaCart.add({
-        productId:   PRODUCT_ID,
-        productName: 'Clube Seleção Canina Oversized',
-        variantId:   variantId,
-        color:       selectedVariant.cartValue,
-        size:        activeSz,
-        price:       129,
-        image:       selectedVariant.img,
-        cartPayload: {
-          add_to_cart:    PRODUCT_ID,
-          'variation[0]': selectedVariant.cartValue,
-          'variation[1]': activeSz,
-          quantity:       '1',
-        },
-      });
-      PattaCartUI.showToast('Produto adicionado ao carrinho.');
-    }
-
     ctaBtn.onclick = null;
-    ctaBtn.addEventListener('click', addToLocalCart, true);
+    ctaBtn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      ProductDrawer.open({
+        name: 'Clube Seleção Canina Oversized',
+        price: 129, installments: 10,
+        defaultImage: BASE + 'branca.webp',
+        colors: variants, sizes: SIZES,
+        variantIds: variantIds, productId: PRODUCT_ID,
+      });
+    }, true);
     syncCta();
   })();
 
@@ -5668,6 +5788,53 @@ footer {
     });
   }
 </script>
+
+<!-- ── Product Drawer ── -->
+<div id="pdvOverlay" aria-hidden="true"></div>
+<aside id="pdvDrawer" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="pdvHeaderTitle">
+  <div class="pdv-handle"></div>
+  <div class="pdv-header">
+    <span class="pdv-header-title" id="pdvHeaderTitle">Sua seleção</span>
+    <button class="pdv-close-btn" id="pdvCloseBtn" aria-label="Fechar">✕</button>
+  </div>
+  <div class="pdv-body">
+    <div class="pdv-product-row">
+      <img id="pdvThumb" class="pdv-thumb" src="" alt="" loading="lazy">
+      <div class="pdv-product-meta">
+        <div class="pdv-product-name" id="pdvName"></div>
+        <div class="pdv-price-main" id="pdvPriceMain"></div>
+        <div class="pdv-installments" id="pdvInstallments"></div>
+      </div>
+    </div>
+    <div class="pdv-section" id="pdvColorSection">
+      <div class="pdv-section-lbl">Cor: <em id="pdvColorName"></em></div>
+      <div class="pdv-swatches" id="pdvSwatches"></div>
+    </div>
+    <div class="pdv-section" id="pdvSizeSection">
+      <div class="pdv-section-lbl">Tamanho</div>
+      <div class="pdv-sizes" id="pdvSizeBtns"></div>
+    </div>
+    <div class="pdv-qty-row">
+      <span class="pdv-qty-lbl">Quantidade</span>
+      <div class="pdv-qty-ctrl">
+        <button class="pdv-qty-btn" id="pdvQtyMinus" aria-label="Diminuir">−</button>
+        <span class="pdv-qty-num" id="pdvQtyNum">1</span>
+        <button class="pdv-qty-btn" id="pdvQtyPlus" aria-label="Aumentar">+</button>
+      </div>
+    </div>
+    <div class="pdv-summary">
+      <span class="pdv-summary-desc" id="pdvSummaryDesc">1 item</span>
+      <span class="pdv-summary-total" id="pdvSummaryTotal">R$ 129,00</span>
+    </div>
+    <div class="pdv-trust">
+      <div class="pdv-trust-item"><span class="pdv-trust-icon">✓</span>Primeira troca grátis</div>
+      <div class="pdv-trust-item"><span class="pdv-trust-icon">✓</span>Pagamento 100% seguro</div>
+      <div class="pdv-trust-item"><span class="pdv-trust-icon">✓</span>Atendimento humano</div>
+    </div>
+    <p class="pdv-err" id="pdvErr">Selecione um tamanho para continuar.</p>
+    <button class="pdv-cta-btn" id="pdvCtaBtn">Finalizar compra</button>
+  </div>
+</aside>
 
 </body>
 </html>
