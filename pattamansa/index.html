@@ -3870,7 +3870,7 @@ footer {
       <div class="pdv-trust-item"><span class="pdv-trust-icon">✓</span>Atendimento humano</div>
     </div>
     <p class="pdv-err" id="pdvErr">Selecione um tamanho para continuar.</p>
-    <button class="pdv-cta-btn" id="pdvCtaBtn">Finalizar compra</button>
+    <button class="pdv-cta-btn" id="pdvCtaBtn">Adicionar ao carrinho</button>
   </div>
 </aside>
 
@@ -4233,7 +4233,7 @@ footer {
       overlay.classList.remove('open'); overlay.setAttribute('aria-hidden','true');
       drawer.classList.remove('open');  drawer.setAttribute('aria-hidden','true');
       document.body.style.overflow = '';
-      if (ctaBtn) { ctaBtn.disabled = false; ctaBtn.textContent = 'Finalizar compra'; }
+      if (ctaBtn) { ctaBtn.disabled = false; ctaBtn.textContent = 'Adicionar ao carrinho'; }
     }
 
     function render() {
@@ -4299,45 +4299,41 @@ footer {
       summTotal.textContent = fmt(_cfg.price * _qty);
     }
 
-    function checkout() {
+    function addToCart() {
       if (_cfg.sizes && _cfg.sizes.length && !_sz) {
         errEl.classList.add('visible');
         sizeSec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         return;
       }
-      ctaBtn.disabled = true;
-      ctaBtn.textContent = 'Aguarde…';
 
       var cor = _cfg.colors ? _cfg.colors[_cor] : null;
+      var variantId = (_cfg.variantIds && cor && _sz)
+        ? (_cfg.variantIds[cor.cartValue + '|' + _sz] || null)
+        : null;
 
-      /* Modo redirect: vai para a página do produto com variante pré-selecionada */
-      if (_cfg.productUrl) {
-        var vid = (_cfg.variantIds && cor && _sz) ? _cfg.variantIds[cor.cartValue + '|' + _sz] : null;
-        window.location.href = _cfg.productUrl + (vid ? '?variant=' + vid : '');
-        return;
+      var cartPayload = { quantity: '1' };
+      if (variantId) {
+        cartPayload.add_to_cart = variantId;
+      } else {
+        cartPayload.add_to_cart = _cfg.productId;
+        if (cor) cartPayload['variation[0]'] = cor.cartValue;
+        if (_sz)  cartPayload['variation[1]'] = _sz;
       }
 
-      /* Modo POST direto ao /comprar/ com variant ID */
-      var fields = {};
-      if (_cfg.variantIds && cor && _sz) {
-        var vid2 = _cfg.variantIds[cor.cartValue + '|' + _sz];
-        if (vid2) { fields = { add_to_cart: vid2, quantity: String(_qty) }; }
-      }
-      if (!fields.add_to_cart) {
-        fields = { add_to_cart: _cfg.productId, quantity: String(_qty) };
-        if (cor) fields['variation[0]'] = cor.cartValue;
-        if (_sz)  fields['variation[1]'] = _sz;
-      }
-
-      var form = document.createElement('form');
-      form.method = 'POST'; form.action = CHECKOUT_URL; form.style.display = 'none';
-      Object.keys(fields).forEach(function (k) {
-        var inp = document.createElement('input');
-        inp.type = 'hidden'; inp.name = k; inp.value = fields[k];
-        form.appendChild(inp);
+      PattaCart.add({
+        productId:   _cfg.productId,
+        productName: _cfg.name,
+        variantId:   variantId,
+        color:       cor ? cor.name : '',
+        size:        _sz || '',
+        price:       _cfg.price,
+        image:       cor ? cor.img : (_cfg.defaultImage || ''),
+        quantity:    _qty,
+        cartPayload: cartPayload,
       });
-      document.body.appendChild(form);
-      form.submit();
+
+      if (window.PattaCartUI) PattaCartUI.showToast('Produto adicionado ao carrinho.');
+      close();
     }
 
     if (closeBtn) closeBtn.addEventListener('click', close);
@@ -4347,7 +4343,7 @@ footer {
     });
     if (qtyMinus) qtyMinus.addEventListener('click', function () { if (_qty > 1)  { _qty--; syncSummary(); } });
     if (qtyPlus)  qtyPlus.addEventListener('click',  function () { if (_qty < 10) { _qty++; syncSummary(); } });
-    if (ctaBtn)   ctaBtn.addEventListener('click', checkout);
+    if (ctaBtn)   ctaBtn.addEventListener('click', addToCart);
 
     return { open: open, close: close };
   })();
