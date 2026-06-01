@@ -4021,6 +4021,9 @@ footer {
         checkoutBtn.classList.add('loading');
         checkoutBtn.textContent = 'Aguarde…';
 
+        // Failsafe absoluto: redireciona em 3s se checkoutMultiple travar
+        setTimeout(function () { window.location.href = CART_VIEW_URL; }, 3000);
+
         checkoutMultiple(items);
       });
     }
