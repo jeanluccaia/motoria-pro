@@ -74,9 +74,79 @@ body::after {
 }
 
 /* ─── NAV ─── */
-nav {
+.support-strip {
   position: fixed;
   top: 0; left: 0; right: 0;
+  z-index: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .36rem 1.05rem;
+  flex-wrap: wrap;
+  height: 2.05rem;
+  padding: 0 1.25rem;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(13,26,14,.97), rgba(8,13,9,.93));
+  border-bottom: 1px solid rgba(245,163,70,.12);
+  box-shadow: inset 0 -1px 0 rgba(184,188,142,.05);
+  backdrop-filter: blur(12px);
+  font-size: .62rem;
+  line-height: 1;
+}
+.support-strip-copy {
+  color: rgba(184,188,142,.62);
+  font-size: .58rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.support-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .34rem;
+  min-height: 1.34rem;
+  padding: .18rem .54rem;
+  border: 1px solid rgba(184,188,142,.16);
+  border-radius: 999px;
+  background: rgba(242,237,224,.045);
+  color: rgba(242,237,224,.8);
+  text-decoration: none;
+  letter-spacing: .02em;
+  transition: color .2s, border-color .2s, background .2s;
+}
+.support-link:hover,
+.support-link:focus-visible {
+  color: var(--creme);
+  border-color: rgba(245,163,70,.42);
+  background: rgba(245,163,70,.08);
+  outline: none;
+}
+.support-icon {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  color: var(--laranja);
+  opacity: .9;
+}
+.support-link-label {
+  color: rgba(184,188,142,.7);
+  font-size: .52rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+.support-link-value {
+  color: rgba(242,237,224,.82);
+  font-weight: 400;
+}
+.support-link-short { display: none; }
+.support-link:hover .support-link-value,
+.support-link:focus-visible .support-link-value {
+  color: var(--creme);
+}
+
+nav {
+  position: fixed;
+  top: 2.05rem; left: 0; right: 0;
   z-index: 500;
   width: 100vw;
   max-width: 100vw;
@@ -156,7 +226,7 @@ nav {
 /* botão de som */
 .hero-sound-btn {
   position: absolute;
-  top: 5rem; right: 1.25rem;
+  top: 8.1rem; right: 1.25rem;
   z-index: 10;
   width: 40px; height: 40px;
   border-radius: 50%;
@@ -251,6 +321,18 @@ nav {
   color: rgba(184,188,142,.35);
   letter-spacing: .08em;
 }
+.hero-trust-line {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .32rem .85rem;
+  max-width: 520px;
+  font-size: .62rem;
+  line-height: 1.45;
+  letter-spacing: .07em;
+  color: rgba(184,188,142,.5);
+}
+.hero-trust-line span { white-space: nowrap; }
 
 .hero-scroll-hint {
   position: absolute;
@@ -959,8 +1041,80 @@ footer {
   opacity: 1;
   filter: none;
 }
-.footer-nav { display: flex; gap: 1.75rem; list-style: none; }
+.footer-support {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .65rem;
+  max-width: 780px;
+  color: rgba(184,188,142,.48);
+}
+.footer-block-title {
+  flex-basis: 100%;
+  color: var(--laranja);
+  font-size: .58rem;
+  font-weight: 500;
+  letter-spacing: .22em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+.footer-support-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .65rem;
+  min-height: 46px;
+  padding: .65rem .82rem;
+  border: 1px solid rgba(184,188,142,.13);
+  border-radius: 4px;
+  background: rgba(242,237,224,.035);
+  color: rgba(242,237,224,.7);
+  text-decoration: none;
+  transition: color .2s, border-color .2s, background .2s, transform .2s;
+}
+.footer-support-link:hover,
+.footer-support-link:focus-visible {
+  color: var(--creme);
+  border-color: rgba(245,163,70,.32);
+  background: rgba(245,163,70,.065);
+  transform: translateY(-1px);
+  outline: none;
+}
+.footer-support-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  color: var(--laranja);
+}
+.footer-support-text {
+  display: grid;
+  gap: .1rem;
+  text-align: left;
+}
+.footer-support-text strong {
+  color: var(--creme);
+  font-size: .6rem;
+  font-weight: 500;
+  letter-spacing: .16em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.footer-support-text small {
+  color: rgba(184,188,142,.58);
+  font-size: .72rem;
+  letter-spacing: .02em;
+}
+.footer-nav {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .8rem 1.75rem;
+  max-width: 860px;
+  list-style: none;
+}
 .footer-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: .38rem;
   font-size: .63rem;
   letter-spacing: .12em;
   text-transform: uppercase;
@@ -969,6 +1123,19 @@ footer {
   transition: color .2s;
 }
 .footer-nav a:hover { color: var(--sage); }
+.footer-legal {
+  display: grid;
+  justify-items: center;
+  gap: .75rem;
+}
+.footer-nav-legal a { color: rgba(184,188,142,.46); }
+.footer-nav-legal a:hover { color: var(--creme); }
+.footer-link-icon {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  color: rgba(245,163,70,.72);
+}
 .footer-copy { font-size: .6rem; color: rgba(184,188,142,.15); letter-spacing: .06em; }
 
 /* ─── SELEÇÃO CANINA ─── */
@@ -1641,13 +1808,39 @@ footer {
 /* ─── MOBILE FIRST ─── */
 @media (max-width: 640px) {
   /* Hero */
-  nav { position: absolute; padding: .9rem 1.15rem; }
+  .support-strip {
+    position: absolute;
+    height: 3.55rem;
+    padding: .4rem .8rem;
+    gap: .28rem .45rem;
+    font-size: .56rem;
+    align-content: center;
+  }
+  .support-strip-copy {
+    flex-basis: 100%;
+    text-align: center;
+    font-size: .52rem;
+  }
+  .support-link {
+    min-height: 1.3rem;
+    padding: .18rem .52rem;
+    gap: .32rem;
+  }
+  .support-icon { width: 12px; height: 12px; }
+  .support-link-label,
+  .support-link-full {
+    display: none;
+  }
+  .support-link-short { display: inline; }
+  nav { position: absolute; top: 3.55rem; padding: .9rem 1.15rem; }
   .nav-logo { width: 148px; height: 54px; }
   .nav-cta { font-size: .62rem; padding: .5rem .9rem; }
+  .hero-sound-btn { top: 8.55rem; }
   .hero-content { padding: 0 1.25rem 2.4rem; }
   .hero-title { font-size: clamp(3.15rem, 14vw, 3.85rem); }
   .hero-sub { font-size: .95rem; }
   .btn-hero { padding: 1rem 2.25rem; width: 100%; max-width: 320px; text-align: center; }
+  .hero-trust-line { max-width: 315px; font-size: .56rem; gap: .25rem .55rem; }
 
   /* Origem */
   .origem { padding: 3.5rem 1.25rem 3rem; }
@@ -1719,6 +1912,14 @@ footer {
   footer { padding: 2rem 1.25rem; }
   .footer-sigla img { width: 44px; height: 44px; opacity: .58; }
   .footer-nav { gap: 1.25rem; flex-wrap: wrap; justify-content: center; }
+  .footer-support { gap: .55rem; }
+  .footer-support-link {
+    width: 100%;
+    max-width: 330px;
+    justify-content: flex-start;
+  }
+  .footer-support-text small { font-size: .68rem; }
+  .footer-block-title { font-size: .54rem; }
 }
 
 @media (max-width: 380px) {
@@ -2005,8 +2206,11 @@ footer {
   .vcard-thumb { flex: 0 0 48px; }
 }
 
-/* ─── CARROSSÉIS DE COLEÇÃO ─── */
-.colecao-section { overflow: hidden; }
+/* ─── GRADE / CARROSSEL DE COLEÇÃO ─── */
+.colecao-section {
+  max-width: 1180px;
+  /* sem overflow-x: clip — o grid contém tudo sem cortar */
+}
 
 .carousel-row { margin-bottom: 2.75rem; }
 .carousel-row:last-of-type { margin-bottom: 0; }
@@ -2034,49 +2238,74 @@ footer {
 }
 
 .carousel-wrap { position: relative; }
-.carousel-wrap::after {
-  content: '';
-  position: absolute;
-  top: 0; right: 0; bottom: 0;
-  width: 56px;
-  background: linear-gradient(to right, transparent, var(--verde-deep));
-  pointer-events: none;
-  z-index: 3;
-}
 
+/* Desktop / Tablet: grid limpo — sem scroll, sem corte */
 .carousel-track {
-  display: flex;
-  gap: 14px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-padding-left: 1.5rem;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding: 4px 1.5rem 16px;
-  margin: 0 -1.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
 }
-.carousel-track::-webkit-scrollbar { display: none; }
 
 .carousel-track .vcard {
-  flex: 0 0 76vw;
+  width: 100%;
   min-width: 0;
-  scroll-snap-align: start;
 }
+
 .carousel-track .vcard-img { aspect-ratio: 4 / 5; }
 
-@media (min-width: 480px) {
-  .carousel-track .vcard { flex-basis: 58vw; }
+/* Tablet: 3 colunas a partir de 820px */
+@media (min-width: 820px) {
+  .carousel-track {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
 }
-@media (min-width: 680px) {
-  .carousel-track .vcard { flex-basis: 44vw; }
-  .carousel-track { gap: 16px; }
+
+/* Desktop: 4 colunas a partir de 1100px */
+@media (min-width: 1100px) {
+  .carousel-track {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 22px;
+  }
 }
-@media (min-width: 940px) {
-  .carousel-track .vcard { flex-basis: 268px; }
-  .carousel-track { gap: 18px; }
-}
+
+/* Mobile ≤640px: carrossel horizontal com scroll-snap */
 @media (max-width: 640px) {
-  .carousel-track { padding: 4px 1.25rem 16px; margin: 0 -1.25rem; scroll-padding-left: 1.25rem; }
+  .carousel-wrap {
+    overflow: hidden; /* impede scrollbar horizontal na página */
+  }
+  .carousel-wrap::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 16px;
+    width: 52px;
+    background: linear-gradient(to right, transparent, var(--verde-deep));
+    pointer-events: none;
+    z-index: 3;
+  }
+  .carousel-track {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 1.25rem;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x;
+    scrollbar-width: none;
+    padding: 4px 1.25rem 16px;
+    margin: 0 -1.25rem;
+  }
+  .carousel-track::-webkit-scrollbar { display: none; }
+  .carousel-track .vcard {
+    flex: 0 0 min(78vw, 300px);
+    width: auto;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
 }
 
 /* ─── MINI CARRINHO ─── */
@@ -2135,7 +2364,7 @@ footer {
 @media (min-width: 768px) {
   .cart-fab {
     bottom: auto;
-    top: .75rem;
+    top: 2.8rem;
     right: 10rem;
     width: auto;
     height: 36px;
@@ -2622,12 +2851,34 @@ footer {
 </head>
 <body>
 
+<div class="support-strip" aria-label="Atendimento PattaMansa">
+  <span class="support-strip-copy">Dúvidas? Fale com nossa equipe.</span>
+  <a class="support-link" href="https://wa.me/5519982174323" aria-label="Falar com a PattaMansa pelo WhatsApp">
+    <svg class="support-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L4 20l1.2-4.4A8.4 8.4 0 1 1 21 11.5Z"/>
+      <path d="M9.1 8.4c.2-.4.4-.4.7-.4h.5c.2 0 .4.1.5.4l.7 1.6c.1.2.1.4-.1.6l-.4.5c.6 1 1.4 1.8 2.5 2.4l.5-.4c.2-.2.4-.2.6-.1l1.5.7c.3.1.4.3.4.6v.4c0 .3-.1.6-.4.8-.4.3-.9.5-1.5.4-2.8-.5-5.2-2.6-6-5.3-.2-.6-.1-1.2.2-1.8Z"/>
+    </svg>
+    <span class="support-link-label">WhatsApp</span>
+    <span class="support-link-value support-link-full">+55 19 98217-4323</span>
+    <span class="support-link-value support-link-short">WhatsApp</span>
+  </a>
+  <a class="support-link" href="mailto:contato@pattamansa.com.br" aria-label="Enviar e-mail para contato@pattamansa.com.br">
+    <svg class="support-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="3.5" y="5.5" width="17" height="13" rx="2"/>
+      <path d="m5 8 7 5 7-5"/>
+    </svg>
+    <span class="support-link-label">E-mail</span>
+    <span class="support-link-value support-link-full">contato@pattamansa.com.br</span>
+    <span class="support-link-value support-link-short">E-mail</span>
+  </a>
+</div>
+
 <!-- ── NAV ── -->
 <nav>
   <a class="nav-logo" href="#">
     <img src="Logo_7.png" alt="PattaMansa">
   </a>
-  <a class="nav-cta" href="#algodao-peruano">Ver Coleção</a>
+  <a class="nav-cta" href="#produtos">Ver Coleção</a>
 </nav>
 
 <!-- ── CARRINHO LOCAL ── -->
@@ -2740,7 +2991,11 @@ footer {
     </p>
     <div class="hero-cta-wrap">
       <a href="#algodao-peruano" class="btn-hero">Quero a minha →</a>
-      <span class="hero-cta-sub">Envio para todo Brasil</span>
+      <div class="hero-trust-line" aria-label="Condições de compra">
+        <span>&#10003; Primeira troca grátis</span>
+        <span>&#10003; Troca em até 30 dias</span>
+        <span>&#10003; Atendimento humano</span>
+      </div>
     </div>
   </div>
 
@@ -2948,7 +3203,7 @@ footer {
     <h2 class="vitrine-titulo">Coleção Pattamansa</h2>
   </header>
 
-  <!-- ── Carrossel Masculino ── -->
+  <!-- ── Grade Masculino / carrossel no mobile ── -->
   <div class="carousel-row reveal">
     <div class="carousel-row-head">
       <span class="carousel-category-label">Masculino</span>
@@ -2999,7 +3254,7 @@ footer {
             <div class="sc-sizes" id="ccmSizes" role="group" aria-label="Selecionar tamanho"></div>
             <div class="vcard-actions">
               <span class="vcard-guide" role="button" tabindex="0" data-guide="regular-masculina">Guia de medidas</span>
-              <a href="#" class="vcard-cta" id="ccmCta">Garantir a minha</a>
+              <button type="button" class="vcard-cta" id="ccmCta">Garantir a minha</button>
             </div>
           </div>
         </article>
@@ -3056,7 +3311,7 @@ footer {
     </div>
   </div>
 
-  <!-- ── Carrossel Feminino ── -->
+  <!-- ── Grade Feminino / carrossel no mobile ── -->
   <div class="carousel-row reveal">
     <div class="carousel-row-head">
       <span class="carousel-category-label">Feminino</span>
@@ -3309,12 +3564,76 @@ footer {
   <div class="footer-logo">
     <img src="Logo_7.png" alt="PattaMansa">
   </div>
+  <div class="footer-support" aria-label="Atendimento PattaMansa">
+    <span class="footer-block-title">Atendimento humano</span>
+    <a class="footer-support-link" href="https://wa.me/5519982174323">
+      <svg class="footer-support-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L4 20l1.2-4.4A8.4 8.4 0 1 1 21 11.5Z"/>
+        <path d="M9.1 8.4c.2-.4.4-.4.7-.4h.5c.2 0 .4.1.5.4l.7 1.6c.1.2.1.4-.1.6l-.4.5c.6 1 1.4 1.8 2.5 2.4l.5-.4c.2-.2.4-.2.6-.1l1.5.7c.3.1.4.3.4.6v.4c0 .3-.1.6-.4.8-.4.3-.9.5-1.5.4-2.8-.5-5.2-2.6-6-5.3-.2-.6-.1-1.2.2-1.8Z"/>
+      </svg>
+      <span class="footer-support-text">
+        <strong>WhatsApp</strong>
+        <small>+55 19 98217-4323</small>
+      </span>
+    </a>
+    <a class="footer-support-link" href="mailto:contato@pattamansa.com.br">
+      <svg class="footer-support-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3.5" y="5.5" width="17" height="13" rx="2"/>
+        <path d="m5 8 7 5 7-5"/>
+      </svg>
+      <span class="footer-support-text">
+        <strong>E-mail</strong>
+        <small>contato@pattamansa.com.br</small>
+      </span>
+    </a>
+  </div>
   <ul class="footer-nav">
     <li><a href="https://instagram.com/pattamansa" target="_blank" rel="noopener">Instagram</a></li>
     <li><a href="#produtos">Coleção</a></li>
     <li><a href="#quem-somos">Quem somos</a></li>
-    <li><a href="mailto:contato@pattamansa.com.br">Contato</a></li>
   </ul>
+  <div class="footer-legal">
+    <span class="footer-block-title">Institucional</span>
+    <ul class="footer-nav footer-nav-legal" aria-label="Links institucionais">
+      <li>
+        <a href="/trocas-e-devolucoes">
+          <svg class="footer-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M7 7h10l-3-3"/>
+            <path d="M17 17H7l3 3"/>
+          </svg>
+          Trocas e Devoluções
+        </a>
+      </li>
+      <li>
+        <a href="/politica-de-privacidade">
+          <svg class="footer-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3 19 6v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6l7-3Z"/>
+            <path d="M9.5 12.2 11.2 14l3.5-4"/>
+          </svg>
+          Política de Privacidade
+        </a>
+      </li>
+      <li>
+        <a href="/termos-de-uso">
+          <svg class="footer-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M7 3.8h7l3 3V20H7V3.8Z"/>
+            <path d="M14 3.8V7h3"/>
+            <path d="M9.5 11h5"/>
+            <path d="M9.5 14h5"/>
+          </svg>
+          Termos de Uso
+        </a>
+      </li>
+      <li>
+        <a href="/contato">
+          <svg class="footer-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L4 20l1.2-4.4A8.4 8.4 0 1 1 21 11.5Z"/>
+          </svg>
+          Contato
+        </a>
+      </li>
+    </ul>
+  </div>
   <p class="footer-copy">© 2026 PattaMansa · Camisetas com atitude · pattamansa.com.br</p>
 </footer>
 
@@ -3410,7 +3729,7 @@ footer {
     var toastTimer  = null;
 
     var CART_URL      = 'https://pattamansa.lojavirtualnuvem.com.br/comprar/';
-    var CART_VIEW_URL = 'https://pattamansa.lojavirtualnuvem.com.br/carrinho/';
+    var CART_VIEW_URL = 'https://pattamansa.lojavirtualnuvem.com.br/comprar/';
 
     function open() {
       overlay.removeAttribute('aria-hidden');
@@ -3534,8 +3853,11 @@ footer {
       form.style.display = 'none';
       if (targetName) form.target = targetName;
       addField(form, 'add_to_cart', item.cartPayload.add_to_cart);
-      addField(form, 'variation[0]', item.cartPayload['variation[0]']);
-      addField(form, 'variation[1]', item.cartPayload['variation[1]']);
+      var vi = 0;
+      while (item.cartPayload['variation[' + vi + ']'] != null) {
+        addField(form, 'variation[' + vi + ']', item.cartPayload['variation[' + vi + ']']);
+        vi++;
+      }
       addField(form, 'quantity', String(item.quantity));
       return form;
     }
@@ -3746,7 +4068,7 @@ footer {
 
   /* ── Seleção Canina — Masculina ── */
   (function () {
-    const WA_NUM = '5500000000000'; // TODO: número real
+    /* TODO: cadastrar produto na Nuvemshop e preencher PRODUCT_ID */
     const variants = [
       { name: 'Preta',        hex: '#1C1C1C', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/preta%201.webp' },
       { name: 'Branca',       hex: '#F0EDE5', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/branca%202.webp', light: true },
@@ -3759,12 +4081,12 @@ footer {
     ];
     const SIZES = ['PP', 'P', 'M', 'G', 'GG', '3G', '4G'];
 
-    const img     = document.getElementById('smImg');
-    const corNome = document.getElementById('smCorNome');
-    const swWrap  = document.getElementById('smSwatches');
-    const szWrap  = document.getElementById('smSizes');
+    const img         = document.getElementById('smImg');
+    const corNome     = document.getElementById('smCorNome');
+    const swWrap      = document.getElementById('smSwatches');
+    const szWrap      = document.getElementById('smSizes');
     const galleryWrap = document.getElementById('smGallery');
-    const ctaBtn  = document.getElementById('smCta');
+    const ctaBtn      = document.getElementById('smCta');
 
     if (!img || !swWrap || !szWrap || !ctaBtn) return;
 
@@ -3805,23 +4127,14 @@ footer {
         img.alt = 'Seleção Canina Masculina ' + variants[i].name + ' — PattaMansa';
         img.style.opacity = '1';
       }, 200);
-      syncCta();
     }
 
     function setSz(sz) {
       activeSz = sz;
       szWrap.querySelectorAll('.sc-size-btn').forEach(b => b.classList.toggle('active', b.dataset.size === sz));
-      syncCta();
     }
 
-    function syncCta() {
-      const cor = variants[activeCor].name;
-      const tam = activeSz || '(escolha o tamanho)';
-      ctaBtn.href = 'https://wa.me/' + WA_NUM + '?text=' +
-        encodeURIComponent('Olá! Quero comprar a camiseta Seleção Canina Masculina na cor ' + cor + ' e tamanho ' + tam + '.');
-    }
-
-    syncCta();
+    if (ctaBtn) ctaBtn.href = '#';
   })();
 
   /* ── Clube Seleção Canina Oversized ── */
@@ -4353,19 +4666,19 @@ footer {
 
   /* ── Clube Canino — Masculina ── */
   (function () {
-    const WA_NUM = '5500000000000';
+    const PRODUCT_ID = '347645720';
     const variants = [
       { name: 'Branca',  hex: '#F0EDE5', img: 'cole%C3%A7%C3%A3o%20clube%20canino%20masculino/branca%201.webp',  light: true },
       { name: 'Amarela', hex: '#F0C830', img: 'cole%C3%A7%C3%A3o%20clube%20canino%20masculino/amarela%202.webp', light: true },
     ];
     const SIZES = ['PP', 'P', 'M', 'G', 'GG', '3G', '4G'];
 
-    const img     = document.getElementById('ccmImg');
-    const corNome = document.getElementById('ccmCorNome');
-    const swWrap  = document.getElementById('ccmSwatches');
-    const szWrap  = document.getElementById('ccmSizes');
+    const img         = document.getElementById('ccmImg');
+    const corNome     = document.getElementById('ccmCorNome');
+    const swWrap      = document.getElementById('ccmSwatches');
+    const szWrap      = document.getElementById('ccmSizes');
     const galleryWrap = document.getElementById('ccmGallery');
-    const ctaBtn  = document.getElementById('ccmCta');
+    const ctaBtn      = document.getElementById('ccmCta');
 
     if (!img || !swWrap || !szWrap || !ctaBtn) return;
 
@@ -4416,12 +4729,43 @@ footer {
     }
 
     function syncCta() {
-      const cor = variants[activeCor].name;
-      const tam = activeSz || '(escolha o tamanho)';
-      ctaBtn.href = 'https://wa.me/' + WA_NUM + '?text=' +
-        encodeURIComponent('Olá! Quero comprar a camiseta Clube Canino na cor ' + cor + ' e tamanho ' + tam + '.');
+      ctaBtn.type = 'button';
+      ctaBtn.removeAttribute('href');
+      ctaBtn.setAttribute('aria-label', 'Garantir Clube Canino Regular Masculina');
     }
 
+    function addToLocalCart(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      if (!activeSz) {
+        alert('Escolha um tamanho antes de continuar.');
+        return;
+      }
+
+      const selectedVariant = variants[activeCor];
+
+      PattaCart.add({
+        productId:   PRODUCT_ID,
+        productName: 'Clube Canino Regular · Masculina',
+        variantId:   null,
+        color:       selectedVariant.name,
+        size:        activeSz,
+        price:       129,
+        image:       selectedVariant.img,
+        cartPayload: {
+          add_to_cart:    PRODUCT_ID,
+          'variation[0]': activeSz,
+          quantity:       '1',
+        },
+      });
+
+      PattaCartUI.showToast('Produto adicionado ao carrinho.');
+    }
+
+    ctaBtn.onclick = null;
+    ctaBtn.addEventListener('click', addToLocalCart, true);
     syncCta();
   })();
 
