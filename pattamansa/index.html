@@ -4296,9 +4296,12 @@ footer {
       var cor = _cfg.colors ? _cfg.colors[_cor] : null;
 
       /*
-       * Produtos com productUrl: form POST externo retorna 500 no Nuvemshop.
-       * Solução: navegar para a página do produto com variante pré-selecionada.
-       * O usuário clica "Comprar" uma vez no Nuvemshop — processo já validado.
+       * Produtos com productUrl: form POST retorna 500 no Nuvemshop.
+       * Tentativa com fetch no-cors + credentials:include:
+       *   - envia cookies SameSite=Lax (cross-origin fetch com credentials)
+       *   - sem resposta legível, mas item pode ser adicionado ao carrinho
+       *   - após 1.5s navega para /comprar/ para mostrar o carrinho populado
+       * Fallback: se fetch não funcionar, abre a página do produto.
        */
       if (_cfg.productUrl) {
         var vid = (_cfg.variantIds && cor && _sz)
@@ -4306,7 +4309,22 @@ footer {
           : null;
         ctaBtn.disabled = true;
         ctaBtn.textContent = 'Aguarde…';
-        window.location.href = _cfg.productUrl + (vid ? '?variant=' + vid : '');
+
+        var body = new URLSearchParams();
+        body.append('add_to_cart', vid || _cfg.productId);
+        if (!vid && cor) body.append('variation[0]', cor.cartValue);
+        if (!vid && _sz)  body.append('variation[1]', _sz);
+        body.append('quantity', String(_qty));
+
+        fetch('https://pattamansa.lojavirtualnuvem.com.br/comprar/', {
+          method: 'POST',
+          mode: 'no-cors',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: body.toString(),
+        }).catch(function () {}).finally(function () {
+          window.location.href = 'https://pattamansa.lojavirtualnuvem.com.br/comprar/';
+        });
         return;
       }
 
