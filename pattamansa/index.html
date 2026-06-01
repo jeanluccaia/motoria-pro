@@ -3828,6 +3828,53 @@ footer {
   </div>
 </div>
 
+<!-- ── Product Drawer ── -->
+<div id="pdvOverlay" aria-hidden="true"></div>
+<aside id="pdvDrawer" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="pdvHeaderTitle">
+  <div class="pdv-handle"></div>
+  <div class="pdv-header">
+    <span class="pdv-header-title" id="pdvHeaderTitle">Sua seleção</span>
+    <button class="pdv-close-btn" id="pdvCloseBtn" aria-label="Fechar">✕</button>
+  </div>
+  <div class="pdv-body">
+    <div class="pdv-product-row">
+      <img id="pdvThumb" class="pdv-thumb" src="" alt="" loading="lazy">
+      <div class="pdv-product-meta">
+        <div class="pdv-product-name" id="pdvName"></div>
+        <div class="pdv-price-main" id="pdvPriceMain"></div>
+        <div class="pdv-installments" id="pdvInstallments"></div>
+      </div>
+    </div>
+    <div class="pdv-section" id="pdvColorSection">
+      <div class="pdv-section-lbl">Cor: <em id="pdvColorName"></em></div>
+      <div class="pdv-swatches" id="pdvSwatches"></div>
+    </div>
+    <div class="pdv-section" id="pdvSizeSection">
+      <div class="pdv-section-lbl">Tamanho</div>
+      <div class="pdv-sizes" id="pdvSizeBtns"></div>
+    </div>
+    <div class="pdv-qty-row">
+      <span class="pdv-qty-lbl">Quantidade</span>
+      <div class="pdv-qty-ctrl">
+        <button class="pdv-qty-btn" id="pdvQtyMinus" aria-label="Diminuir">−</button>
+        <span class="pdv-qty-num" id="pdvQtyNum">1</span>
+        <button class="pdv-qty-btn" id="pdvQtyPlus" aria-label="Aumentar">+</button>
+      </div>
+    </div>
+    <div class="pdv-summary">
+      <span class="pdv-summary-desc" id="pdvSummaryDesc">1 item</span>
+      <span class="pdv-summary-total" id="pdvSummaryTotal">R$ 129,00</span>
+    </div>
+    <div class="pdv-trust">
+      <div class="pdv-trust-item"><span class="pdv-trust-icon">✓</span>Primeira troca grátis</div>
+      <div class="pdv-trust-item"><span class="pdv-trust-icon">✓</span>Pagamento 100% seguro</div>
+      <div class="pdv-trust-item"><span class="pdv-trust-icon">✓</span>Atendimento humano</div>
+    </div>
+    <p class="pdv-err" id="pdvErr">Selecione um tamanho para continuar.</p>
+    <button class="pdv-cta-btn" id="pdvCtaBtn">Finalizar compra</button>
+  </div>
+</aside>
+
 <script>
   /* Parcelamento discreto alinhado ao checkout */
   (function () {
@@ -5804,52 +5851,6 @@ footer {
   }
 </script>
 
-<!-- ── Product Drawer ── -->
-<div id="pdvOverlay" aria-hidden="true"></div>
-<aside id="pdvDrawer" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="pdvHeaderTitle">
-  <div class="pdv-handle"></div>
-  <div class="pdv-header">
-    <span class="pdv-header-title" id="pdvHeaderTitle">Sua seleção</span>
-    <button class="pdv-close-btn" id="pdvCloseBtn" aria-label="Fechar">✕</button>
-  </div>
-  <div class="pdv-body">
-    <div class="pdv-product-row">
-      <img id="pdvThumb" class="pdv-thumb" src="" alt="" loading="lazy">
-      <div class="pdv-product-meta">
-        <div class="pdv-product-name" id="pdvName"></div>
-        <div class="pdv-price-main" id="pdvPriceMain"></div>
-        <div class="pdv-installments" id="pdvInstallments"></div>
-      </div>
-    </div>
-    <div class="pdv-section" id="pdvColorSection">
-      <div class="pdv-section-lbl">Cor: <em id="pdvColorName"></em></div>
-      <div class="pdv-swatches" id="pdvSwatches"></div>
-    </div>
-    <div class="pdv-section" id="pdvSizeSection">
-      <div class="pdv-section-lbl">Tamanho</div>
-      <div class="pdv-sizes" id="pdvSizeBtns"></div>
-    </div>
-    <div class="pdv-qty-row">
-      <span class="pdv-qty-lbl">Quantidade</span>
-      <div class="pdv-qty-ctrl">
-        <button class="pdv-qty-btn" id="pdvQtyMinus" aria-label="Diminuir">−</button>
-        <span class="pdv-qty-num" id="pdvQtyNum">1</span>
-        <button class="pdv-qty-btn" id="pdvQtyPlus" aria-label="Aumentar">+</button>
-      </div>
-    </div>
-    <div class="pdv-summary">
-      <span class="pdv-summary-desc" id="pdvSummaryDesc">1 item</span>
-      <span class="pdv-summary-total" id="pdvSummaryTotal">R$ 129,90</span>
-    </div>
-    <div class="pdv-trust">
-      <div class="pdv-trust-item"><span class="pdv-trust-icon">✓</span>Primeira troca grátis</div>
-      <div class="pdv-trust-item"><span class="pdv-trust-icon">✓</span>Pagamento 100% seguro</div>
-      <div class="pdv-trust-item"><span class="pdv-trust-icon">✓</span>Atendimento humano</div>
-    </div>
-    <p class="pdv-err" id="pdvErr">Selecione um tamanho para continuar.</p>
-    <button class="pdv-cta-btn" id="pdvCtaBtn">Finalizar compra</button>
-  </div>
-</aside>
 
 </body>
 </html>
