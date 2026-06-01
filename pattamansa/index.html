@@ -3062,6 +3062,34 @@ footer {
     </p>
     <div class="hero-cta-wrap">
       <a href="#algodao-peruano" class="btn-hero">Quero a minha →</a>
+      <div class="hero-payment-line" aria-label="Pagamento seguro com Pix, Visa, Mastercard e Elo">
+        <span class="hero-payment-copy">
+          <svg class="hero-payment-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="5" y="10" width="14" height="10" rx="2"/>
+            <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+          </svg>
+          Pagamento seguro
+        </span>
+        <span class="hero-payment-methods" aria-hidden="true">
+          <span class="hero-payment-mark">
+            <svg class="hero-payment-pix-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+              <path d="M12 3 21 12 12 21 3 12z"/>
+              <path d="M8 12h8"/>
+              <path d="M12 8v8"/>
+            </svg>
+            Pix
+          </span>
+          <span class="hero-payment-mark">Visa</span>
+          <span class="hero-payment-mark">
+            <svg class="hero-payment-master-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="9" cy="12" r="5" stroke="currentColor" stroke-width="1.6"/>
+              <circle cx="15" cy="12" r="5" stroke="currentColor" stroke-width="1.6"/>
+            </svg>
+            Mastercard
+          </span>
+          <span class="hero-payment-mark">Elo</span>
+        </span>
+      </div>
       <div class="hero-trust-line" aria-label="Condições de compra">
         <span>&#10003; Primeira troca grátis</span>
         <span>&#10003; Troca em até 30 dias</span>
@@ -4894,8 +4922,8 @@ footer {
         image:       selectedVariant.img,
         cartPayload: {
           add_to_cart:    PRODUCT_ID,
-          'variation[0]': activeSz,
-          'variation[1]': selectedVariant.cartValue,
+          'variation[0]': selectedVariant.cartValue,
+          'variation[1]': activeSz,
           quantity:       '1',
         },
       });
