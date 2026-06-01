@@ -295,7 +295,7 @@ nav {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: .8rem;
+  gap: .62rem;
 }
 
 .btn-hero {
@@ -320,6 +320,52 @@ nav {
   font-size: .68rem;
   color: rgba(184,188,142,.35);
   letter-spacing: .08em;
+}
+.hero-payment-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .36rem .62rem;
+  max-width: 520px;
+  font-size: .56rem;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgba(242,237,228,.48);
+}
+.hero-payment-copy,
+.hero-payment-methods,
+.hero-payment-mark {
+  display: inline-flex;
+  align-items: center;
+}
+.hero-payment-copy {
+  gap: .3rem;
+  white-space: nowrap;
+}
+.hero-payment-methods { gap: .34rem; }
+.hero-payment-lock,
+.hero-payment-pix-icon,
+.hero-payment-master-icon {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+}
+.hero-payment-lock { opacity: .72; }
+.hero-payment-pix-icon,
+.hero-payment-master-icon { opacity: .62; }
+.hero-payment-mark {
+  gap: .18rem;
+  min-height: 16px;
+  padding: .12rem .28rem;
+  border: 1px solid rgba(242,237,228,.12);
+  border-radius: 2px;
+  font-size: .48rem;
+  line-height: 1;
+  color: rgba(242,237,228,.42);
+  white-space: nowrap;
 }
 .hero-trust-line {
   display: flex;
@@ -1840,6 +1886,9 @@ footer {
   .hero-title { font-size: clamp(3.15rem, 14vw, 3.85rem); }
   .hero-sub { font-size: .95rem; }
   .btn-hero { padding: 1rem 2.25rem; width: 100%; max-width: 320px; text-align: center; }
+  .hero-payment-line { max-width: 315px; font-size: .5rem; gap: .32rem .46rem; }
+  .hero-payment-methods { gap: .26rem; }
+  .hero-payment-mark { font-size: .45rem; padding: .1rem .22rem; }
   .hero-trust-line { max-width: 315px; font-size: .56rem; gap: .25rem .55rem; }
 
   /* Origem */
@@ -4845,8 +4894,8 @@ footer {
         image:       selectedVariant.img,
         cartPayload: {
           add_to_cart:    PRODUCT_ID,
-          'variation[0]': selectedVariant.cartValue,
-          'variation[1]': activeSz,
+          'variation[0]': activeSz,
+          'variation[1]': selectedVariant.cartValue,
           quantity:       '1',
         },
       });
