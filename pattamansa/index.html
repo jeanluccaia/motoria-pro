@@ -3351,7 +3351,7 @@ footer {
   <span id="produtos" class="section-anchor" aria-hidden="true"></span>
 
   <header class="vitrine-header reveal">
-    <span class="section-tag">Coleção · R$129,00</span>
+    <span class="section-tag">Coleção · R$129,90</span>
     <h2 class="vitrine-titulo">Coleção Pattamansa</h2>
   </header>
 
@@ -3376,7 +3376,7 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Regular · Masculina</span>
               <span class="vcard-price-stack">
-                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-price">R$129,90</span>
                 <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
@@ -3403,7 +3403,7 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Regular · Masculina</span>
               <span class="vcard-price-stack">
-                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-price">R$129,90</span>
                 <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
@@ -3430,7 +3430,7 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Unissex · Oversized</span>
               <span class="vcard-price-stack">
-                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-price">R$129,90</span>
                 <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
@@ -3457,7 +3457,7 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Regular · Unissex</span>
               <span class="vcard-price-stack">
-                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-price">R$129,90</span>
                 <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
@@ -3496,7 +3496,7 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Baby Look · Feminina</span>
               <span class="vcard-price-stack">
-                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-price">R$129,90</span>
                 <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
@@ -3523,7 +3523,7 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Baby Look · Feminina</span>
               <span class="vcard-price-stack">
-                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-price">R$129,90</span>
                 <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
@@ -3550,7 +3550,7 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Feminino · Cropped</span>
               <span class="vcard-price-stack">
-                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-price">R$129,90</span>
                 <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
@@ -3577,7 +3577,7 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Feminino · Cropped Moletom</span>
               <span class="vcard-price-stack">
-                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-price">R$129,90</span>
                 <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
@@ -3604,7 +3604,7 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Unissex · Oversized</span>
               <span class="vcard-price-stack">
-                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-price">R$129,90</span>
                 <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
@@ -3631,7 +3631,7 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Regular · Unissex</span>
               <span class="vcard-price-stack">
-                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-price">R$129,90</span>
                 <span class="vcard-installments">ou 10x de R$ 13,70</span>
               </span>
             </div>
@@ -4196,8 +4196,7 @@ footer {
       thumbEl.alt = _cfg.name;
       nameEl.textContent = _cfg.name;
       priceEl.textContent = fmt(_cfg.price);
-      var inst = (_cfg.price / (_cfg.installments || 10)).toFixed(2).replace('.', ',');
-      installEl.textContent = 'ou ' + (_cfg.installments || 10) + 'x de R$ ' + inst + ' sem juros';
+      installEl.textContent = 'ou 10x de R$ 13,70';
 
       if (_cfg.colors && _cfg.colors.length > 1) {
         colorSec.style.display = '';
@@ -4264,15 +4263,20 @@ footer {
       ctaBtn.textContent = 'Aguarde…';
 
       var cor = _cfg.colors ? _cfg.colors[_cor] : null;
-      var fields = {};
 
-      /* Variant ID direto (mais confiável) */
-      if (_cfg.variantIds && cor && _sz) {
-        var vid = _cfg.variantIds[cor.cartValue + '|' + _sz];
-        if (vid) { fields = { add_to_cart: vid, quantity: String(_qty) }; }
+      /* Modo redirect: vai para a página do produto com variante pré-selecionada */
+      if (_cfg.productUrl) {
+        var vid = (_cfg.variantIds && cor && _sz) ? _cfg.variantIds[cor.cartValue + '|' + _sz] : null;
+        window.location.href = _cfg.productUrl + (vid ? '?variant=' + vid : '');
+        return;
       }
 
-      /* Fallback: product ID + variações */
+      /* Modo POST direto ao /comprar/ com variant ID */
+      var fields = {};
+      if (_cfg.variantIds && cor && _sz) {
+        var vid2 = _cfg.variantIds[cor.cartValue + '|' + _sz];
+        if (vid2) { fields = { add_to_cart: vid2, quantity: String(_qty) }; }
+      }
       if (!fields.add_to_cart) {
         fields = { add_to_cart: _cfg.productId, quantity: String(_qty) };
         if (cor) fields['variation[0]'] = cor.cartValue;
@@ -4638,7 +4642,7 @@ footer {
       e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
       ProductDrawer.open({
         name: 'Clube Seleção Canina Oversized',
-        price: 129, installments: 10,
+        price: 129.90, installments: 10,
         defaultImage: BASE + 'branca.webp',
         colors: variants, sizes: SIZES,
         variantIds: variantIds, productId: PRODUCT_ID,
@@ -5084,6 +5088,7 @@ footer {
         defaultImage: variants[0].img,
         colors: variants, sizes: SIZES,
         variantIds: ccmVariantIds, productId: PRODUCT_ID,
+        productUrl: 'https://pattamansa.lojavirtualnuvem.com.br/produtos/selecao-canina-regular-masculina-1eyx5/',
       });
     }, true);
     syncCta();
@@ -5280,7 +5285,7 @@ footer {
       e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
       ProductDrawer.open({
         name: 'Clube Seleção Canina Oversized',
-        price: 129, installments: 10,
+        price: 129.90, installments: 10,
         defaultImage: BASE + 'branca.webp',
         colors: variants, sizes: SIZES,
         variantIds: variantIds, productId: PRODUCT_ID,
@@ -5834,7 +5839,7 @@ footer {
     </div>
     <div class="pdv-summary">
       <span class="pdv-summary-desc" id="pdvSummaryDesc">1 item</span>
-      <span class="pdv-summary-total" id="pdvSummaryTotal">R$ 129,00</span>
+      <span class="pdv-summary-total" id="pdvSummaryTotal">R$ 129,90</span>
     </div>
     <div class="pdv-trust">
       <div class="pdv-trust-item"><span class="pdv-trust-icon">✓</span>Primeira troca grátis</div>
