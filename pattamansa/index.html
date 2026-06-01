@@ -2924,7 +2924,6 @@ footer {
 #pdvOverlay.open{opacity:1;pointer-events:all}
 #pdvDrawer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;max-height:92svh;overflow-y:auto;z-index:9991;transform:translateY(110%);transition:transform .38s cubic-bezier(.32,.72,0,1);padding-bottom:env(safe-area-inset-bottom,16px)}
 #pdvDrawer.open{transform:translateY(0)}
-#cartFab{display:none!important}
 @media(min-width:768px){
   #pdvDrawer{left:auto;right:0;bottom:0;top:0;width:min(440px,96vw);max-height:100%;border-radius:16px 0 0 16px;transform:translateX(110%)}
   #pdvDrawer.open{transform:translateX(0)}
@@ -4477,16 +4476,15 @@ footer {
 
   /* ── Seleção Canina — Masculina ── */
   (function () {
-    /* TODO: cadastrar produto na Nuvemshop e preencher PRODUCT_ID */
+    const PRODUCT_ID = '347777758';
     const variants = [
-      { name: 'Preta',        hex: '#1C1C1C', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/preta%201.webp' },
-      { name: 'Branca',       hex: '#F0EDE5', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/branca%202.webp', light: true },
-      { name: 'Azul Marinho', hex: '#1C2B4A', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/azul%20marinho%203.webp' },
-      { name: 'Cinza',        hex: '#8A8A8A', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/cinza%204.webp' },
-      { name: 'Laranja',      hex: '#E87722', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/laranja%205.webp' },
-      { name: 'Verde Musgo',  hex: '#4A5E3A', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/verde%20musgo%206.webp' },
-      { name: 'Amarelo',      hex: '#F0C830', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/amarela%207.webp', light: true },
-      { name: 'Rosa',         hex: '#D4718A', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/rosa%208.webp' },
+      { name: 'Preta',        cartValue: 'Preto',        hex: '#1C1C1C', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/preta%201.webp' },
+      { name: 'Branca',       cartValue: 'Branco',       hex: '#F0EDE5', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/branca%202.webp', light: true },
+      { name: 'Azul Marinho', cartValue: 'Azul Marinho', hex: '#1C2B4A', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/azul%20marinho%203.webp' },
+      { name: 'Cinza',        cartValue: 'Cinza',        hex: '#8A8A8A', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/cinza%204.webp' },
+      { name: 'Laranja',      cartValue: 'Laranja',      hex: '#E87722', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/laranja%205.webp' },
+      { name: 'Verde Musgo',  cartValue: 'Verde Musgo',  hex: '#4A5E3A', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/verde%20musgo%206.webp' },
+      { name: 'Amarelo',      cartValue: 'Amarelo',      hex: '#F0C830', img: 'COLE%C3%87AO%20selecao%20canina%20feminina/amarela%207.webp', light: true },
     ];
     const SIZES = ['PP', 'P', 'M', 'G', 'GG', '3G', '4G'];
 
@@ -4543,7 +4541,37 @@ footer {
       szWrap.querySelectorAll('.sc-size-btn').forEach(b => b.classList.toggle('active', b.dataset.size === sz));
     }
 
-    if (ctaBtn) ctaBtn.href = '#';
+    const smVariantIds = {
+      'Preto|PP':'1535414899','Preto|P':'1535414900','Preto|M':'1535414902',
+      'Preto|G':'1535414904','Preto|GG':'1535414905','Preto|3G':'1535414906','Preto|4G':'1535414907',
+      'Branco|PP':'1535414908','Branco|P':'1535414910','Branco|M':'1535414911',
+      'Branco|G':'1535414912','Branco|GG':'1535414913','Branco|3G':'1535414914','Branco|4G':'1535414915',
+      'Cinza|PP':'1535414916','Cinza|P':'1535414917','Cinza|M':'1535414918',
+      'Cinza|G':'1535414920','Cinza|GG':'1535414922','Cinza|3G':'1535414923','Cinza|4G':'1535414925',
+      'Laranja|PP':'1535414926','Laranja|P':'1535414927','Laranja|M':'1535414928',
+      'Laranja|G':'1535414929','Laranja|GG':'1535414930','Laranja|3G':'1535414931','Laranja|4G':'1535414932',
+      'Amarelo|PP':'1535414934','Amarelo|P':'1535414935','Amarelo|M':'1535414937',
+      'Amarelo|G':'1535414939','Amarelo|GG':'1535414940','Amarelo|3G':'1535414941','Amarelo|4G':'1535414943',
+      'Azul Marinho|PP':'1535414944','Azul Marinho|P':'1535414945','Azul Marinho|M':'1535414946',
+      'Azul Marinho|G':'1535414947','Azul Marinho|GG':'1535414950','Azul Marinho|3G':'1535414951','Azul Marinho|4G':'1535414952',
+      'Verde Musgo|PP':'1535414954','Verde Musgo|P':'1535414956','Verde Musgo|M':'1535414957',
+      'Verde Musgo|G':'1535414958','Verde Musgo|GG':'1535414959','Verde Musgo|3G':'1535414960','Verde Musgo|4G':'1535414961',
+    };
+
+    if (ctaBtn) {
+      ctaBtn.onclick = null;
+      ctaBtn.addEventListener('click', function (e) {
+        e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+        ProductDrawer.open({
+          name: 'Seleção Canina Regular · Masculina',
+          price: 129, installments: 10,
+          defaultImage: variants[0].img,
+          colors: variants, sizes: SIZES,
+          variantIds: smVariantIds, productId: PRODUCT_ID,
+          productUrl: 'https://pattamansa.lojavirtualnuvem.com.br/produtos/selecao-canina-regular-masculina-14z6l/',
+        });
+      }, true);
+    }
   })();
 
   /* ── Clube Seleção Canina Oversized ── */
