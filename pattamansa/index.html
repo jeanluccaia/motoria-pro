@@ -4103,36 +4103,30 @@ footer {
     }
 
     /*
-     * CHECKOUT — POST único na janela principal
+     * CHECKOUT
      *
-     * 1 item  → formato padrão Nuvemshop: add_to_cart + quantity
-     * N itens → formato array PHP: items[0][add_to_cart], items[1][add_to_cart]…
+     * 1 item  → POST direto na janela principal (formato padrão Nuvemshop).
+     * N itens → janela nomeada 'ptm_cart' para cada item com delay de 1.5s.
      *
-     * Janela principal (não iframe) garante envio de cookies SameSite=Lax,
-     * resolvendo o problema de sessões separadas por item.
+     * Por que janela nomeada?
+     *   - Iframes bloqueiam cookies SameSite=Lax → sessões separadas por item.
+     *   - Janela nomeada é top-level navigation: cookies SameSite=Lax enviados.
+     *   - Reuso do mesmo nome 'ptm_cart' mantém a mesma sessão Nuvemshop.
+     *   - Após N*1.5s, a janela principal navega para /comprar/ com todos os itens.
      */
-    function buildCheckoutForm(items) {
+    function buildItemForm(item, targetName) {
       var form = document.createElement('form');
       form.method = 'POST';
       form.action = CART_URL;
       form.style.display = 'none';
-
-      if (items.length === 1) {
-        var item = items[0];
-        addField(form, 'add_to_cart', item.cartPayload.add_to_cart);
-        var vi = 0;
-        while (item.cartPayload['variation[' + vi + ']'] != null) {
-          addField(form, 'variation[' + vi + ']', item.cartPayload['variation[' + vi + ']']);
-          vi++;
-        }
-        addField(form, 'quantity', String(item.quantity));
-      } else {
-        items.forEach(function (item, i) {
-          addField(form, 'items[' + i + '][add_to_cart]', item.cartPayload.add_to_cart);
-          addField(form, 'items[' + i + '][quantity]',    String(item.quantity));
-        });
+      if (targetName) form.target = targetName;
+      addField(form, 'add_to_cart', item.cartPayload.add_to_cart);
+      var vi = 0;
+      while (item.cartPayload['variation[' + vi + ']'] != null) {
+        addField(form, 'variation[' + vi + ']', item.cartPayload['variation[' + vi + ']']);
+        vi++;
       }
-
+      addField(form, 'quantity', String(item.quantity));
       return form;
     }
 
@@ -4145,9 +4139,40 @@ footer {
         checkoutBtn.classList.add('loading');
         checkoutBtn.textContent = 'Aguarde…';
 
-        var form = buildCheckoutForm(items);
-        document.body.appendChild(form);
-        form.submit();
+        if (items.length === 1) {
+          /* — 1 item: POST direto na janela principal — */
+          var form = buildItemForm(items[0], null);
+          document.body.appendChild(form);
+          form.submit();
+
+        } else {
+          /* — N itens: janela nomeada com delay entre cada POST — */
+          var DELAY = 1800; // ms entre cada item (tempo para Nuvemshop processar)
+
+          // Item 0: enviado imediatamente dentro do handler (gesto do usuário)
+          // → garante que o popup não seja bloqueado
+          var f0 = buildItemForm(items[0], 'ptm_cart');
+          document.body.appendChild(f0);
+          f0.submit();
+          f0.remove();
+
+          // Itens 1..N-1: enviados com delay, reusando a janela 'ptm_cart'
+          for (var i = 1; i < items.length; i++) {
+            (function (item, delay) {
+              setTimeout(function () {
+                var f = buildItemForm(item, 'ptm_cart');
+                document.body.appendChild(f);
+                f.submit();
+                f.remove();
+              }, delay);
+            })(items[i], i * DELAY);
+          }
+
+          // Após todos os itens, navega a janela principal para o carrinho
+          setTimeout(function () {
+            window.location.href = CART_VIEW_URL;
+          }, items.length * DELAY);
+        }
       });
     }
 
