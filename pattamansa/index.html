@@ -1998,7 +1998,7 @@ footer {
 }
 .vcard-meta {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
   gap: .5rem;
   margin-bottom: 2px;
@@ -2009,6 +2009,17 @@ footer {
   letter-spacing: .12em;
   text-transform: uppercase;
   color: rgba(242,237,228,0.55);
+  line-height: 1.25;
+  min-width: 0;
+}
+.vcard-price-stack {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  margin-left: auto;
+  text-align: right;
 }
 .vcard-price {
   font-family: 'Bebas Neue', sans-serif;
@@ -2017,6 +2028,15 @@ footer {
   color: var(--laranja);
   letter-spacing: .04em;
   line-height: 1;
+}
+.vcard-installments {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: 0;
+  color: rgba(242,237,228,0.46);
+  white-space: nowrap;
 }
 .vcard-cor-label {
   font-size: 11px;
@@ -2187,6 +2207,8 @@ footer {
   .vcard-nome { font-size: 18px; }
   .vcard-modelagem { font-size: 10px; }
   .vcard-price { font-size: 20px; }
+  .vcard-price-stack { gap: 2px; }
+  .vcard-installments { font-size: 9px; line-height: 1.1; }
   .vcard-cor-label { font-size: 10px; }
   .sc-swatch,
   .vitrine-section .sc-swatch { width: 32px; height: 32px; }
@@ -3223,7 +3245,10 @@ footer {
             <p class="vcard-nome">Seleção Canina</p>
             <div class="vcard-meta">
               <span class="vcard-modelagem">Regular · Masculina</span>
-              <span class="vcard-price">R$129,00</span>
+              <span class="vcard-price-stack">
+                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+              </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="smCorNome">Preta</strong></p>
             <div class="sc-swatches" id="smSwatches" role="group" aria-label="Selecionar cor"></div>
@@ -3247,7 +3272,10 @@ footer {
             <p class="vcard-nome">Clube Canino</p>
             <div class="vcard-meta">
               <span class="vcard-modelagem">Regular · Masculina</span>
-              <span class="vcard-price">R$129,00</span>
+              <span class="vcard-price-stack">
+                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+              </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="ccmCorNome">Branca</strong></p>
             <div class="sc-swatches" id="ccmSwatches" role="group" aria-label="Selecionar cor"></div>
@@ -3271,7 +3299,10 @@ footer {
             <p class="vcard-nome">Clube Seleção Canina Oversized</p>
             <div class="vcard-meta">
               <span class="vcard-modelagem">Unissex · Oversized</span>
-              <span class="vcard-price">R$129,00</span>
+              <span class="vcard-price-stack">
+                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+              </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="ovCorNome">Branco</strong></p>
             <div class="sc-swatches" id="ovSwatches" role="group" aria-label="Selecionar cor"></div>
@@ -3295,7 +3326,10 @@ footer {
             <p class="vcard-nome">Caramelo FC</p>
             <div class="vcard-meta">
               <span class="vcard-modelagem">Regular · Unissex</span>
-              <span class="vcard-price">R$129,00</span>
+              <span class="vcard-price-stack">
+                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+              </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="cfcCorNome">Preta</strong></p>
             <div class="sc-swatches" id="cfcSwatches" role="group" aria-label="Selecionar cor"></div>
@@ -3331,7 +3365,10 @@ footer {
             <p class="vcard-nome">Seleção Canina</p>
             <div class="vcard-meta">
               <span class="vcard-modelagem">Baby Look · Feminina</span>
-              <span class="vcard-price">R$129,00</span>
+              <span class="vcard-price-stack">
+                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+              </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="scCorNome">Amarelo</strong></p>
             <div class="sc-swatches" id="scSwatches" role="group" aria-label="Selecionar cor"></div>
@@ -3355,7 +3392,10 @@ footer {
             <p class="vcard-nome">Clube Canino</p>
             <div class="vcard-meta">
               <span class="vcard-modelagem">Baby Look · Feminina</span>
-              <span class="vcard-price">R$129,00</span>
+              <span class="vcard-price-stack">
+                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+              </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="ccfCorNome">Amarela</strong></p>
             <div class="sc-swatches" id="ccfSwatches" role="group" aria-label="Selecionar cor"></div>
@@ -3379,7 +3419,10 @@ footer {
             <p class="vcard-nome">Clube Feminino Cropped</p>
             <div class="vcard-meta">
               <span class="vcard-modelagem">Feminino · Cropped</span>
-              <span class="vcard-price">R$129,00</span>
+              <span class="vcard-price-stack">
+                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+              </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="crCorNome">Amarelo</strong></p>
             <div class="sc-swatches" id="crSwatches" role="group" aria-label="Selecionar cor"></div>
@@ -3403,7 +3446,10 @@ footer {
             <p class="vcard-nome">Clube Canino Cropped Moletom</p>
             <div class="vcard-meta">
               <span class="vcard-modelagem">Feminino · Cropped Moletom</span>
-              <span class="vcard-price">R$129,00</span>
+              <span class="vcard-price-stack">
+                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+              </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="cmCorNome">Branco</strong></p>
             <div class="sc-swatches" id="cmSwatches" role="group" aria-label="Selecionar cor"></div>
@@ -3427,7 +3473,10 @@ footer {
             <p class="vcard-nome">Clube Seleção Canina Oversized</p>
             <div class="vcard-meta">
               <span class="vcard-modelagem">Unissex · Oversized</span>
-              <span class="vcard-price">R$129,00</span>
+              <span class="vcard-price-stack">
+                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+              </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="ov2CorNome">Branco</strong></p>
             <div class="sc-swatches" id="ov2Swatches" role="group" aria-label="Selecionar cor"></div>
@@ -3451,7 +3500,10 @@ footer {
             <p class="vcard-nome">Caramelo FC</p>
             <div class="vcard-meta">
               <span class="vcard-modelagem">Regular · Unissex</span>
-              <span class="vcard-price">R$129,00</span>
+              <span class="vcard-price-stack">
+                <span class="vcard-price">R$129,00</span>
+                <span class="vcard-installments">12x de R$ 10,75 sem juros</span>
+              </span>
             </div>
             <p class="vcard-cor-label">Cor: <strong id="cfc2CorNome">Preta</strong></p>
             <div class="sc-swatches" id="cfc2Swatches" role="group" aria-label="Selecionar cor"></div>
@@ -3647,6 +3699,46 @@ footer {
 </div>
 
 <script>
+  /* Parcelamento discreto calculado a partir do preco visivel do card */
+  (function () {
+    function parseBRL(text) {
+      var normalized = String(text || '')
+        .replace(/[^\d,.-]/g, '')
+        .replace(/\./g, '')
+        .replace(',', '.');
+      var value = parseFloat(normalized);
+      return isNaN(value) ? null : value;
+    }
+
+    function fmtBRL(value) {
+      return 'R$ ' + value.toFixed(2).replace('.', ',');
+    }
+
+    document.querySelectorAll('[data-product-card]').forEach(function (card) {
+      var price = card.querySelector('.vcard-price');
+      if (!price) return;
+
+      var stack = price.closest('.vcard-price-stack');
+      if (!stack) {
+        stack = document.createElement('span');
+        stack.className = 'vcard-price-stack';
+        price.parentNode.insertBefore(stack, price);
+        stack.appendChild(price);
+      }
+
+      var installments = stack.querySelector('.vcard-installments');
+      if (!installments) {
+        installments = document.createElement('span');
+        installments.className = 'vcard-installments';
+        stack.appendChild(installments);
+      }
+
+      var amount = parseBRL(price.textContent);
+      if (amount === null) return;
+      installments.textContent = '12x de ' + fmtBRL(amount / 12) + ' sem juros';
+    });
+  })();
+
   /* ─── PATTA CART — gerenciador de carrinho local ─── */
   var PattaCart = (function () {
     var KEY = 'patta_cart_v1';
@@ -3905,7 +3997,7 @@ footer {
           iframe.onload = null;
           form.remove();
           sendNext();
-        }, 5000);
+        }, 1500);
 
         iframe.onload = function () {
           clearTimeout(safeTimeout);
