@@ -4294,6 +4294,22 @@ footer {
       }
 
       var cor = _cfg.colors ? _cfg.colors[_cor] : null;
+
+      /*
+       * Produtos com productUrl: form POST externo retorna 500 no Nuvemshop.
+       * Solução: navegar para a página do produto com variante pré-selecionada.
+       * O usuário clica "Comprar" uma vez no Nuvemshop — processo já validado.
+       */
+      if (_cfg.productUrl) {
+        var vid = (_cfg.variantIds && cor && _sz)
+          ? (_cfg.variantIds[cor.cartValue + '|' + _sz] || null)
+          : null;
+        ctaBtn.disabled = true;
+        ctaBtn.textContent = 'Aguarde…';
+        window.location.href = _cfg.productUrl + (vid ? '?variant=' + vid : '');
+        return;
+      }
+
       var variantId = (_cfg.variantIds && cor && _sz)
         ? (_cfg.variantIds[cor.cartValue + '|' + _sz] || null)
         : null;
@@ -4550,7 +4566,7 @@ footer {
           price: 129, installments: 10,
           defaultImage: variants[0].img,
           colors: variants, sizes: SIZES,
-          productId: PRODUCT_ID,
+          variantIds: smVariantIds, productId: PRODUCT_ID,
           productUrl: 'https://pattamansa.lojavirtualnuvem.com.br/produtos/selecao-canina-regular-masculina-14z6l/',
         });
       }, true);
