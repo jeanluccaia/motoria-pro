@@ -3003,194 +3003,52 @@ footer {
 
 /* ─── BONUS EBOOK SECTION ─── */
 .bonus-ebook {
-  padding: 6rem 1.5rem 6.5rem;
+  padding: 5rem 1.5rem 5.5rem;
   position: relative;
   overflow: hidden;
-  background: var(--verde);
+  background: var(--verde-deep);
+  border-top: 1px solid rgba(184,188,142,.07);
 }
 .bonus-ebook::before {
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse 55% 60% at 85% 50%, rgba(245,163,70,.055) 0%, transparent 70%),
-    radial-gradient(ellipse 45% 50% at 15% 50%, rgba(61,82,64,.3) 0%, transparent 70%);
+  background: radial-gradient(ellipse 50% 55% at 82% 55%, rgba(245,163,70,.036) 0%, transparent 70%);
   pointer-events: none;
 }
-.bonus-ebook::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 50%;
-  transform: translateX(-50%);
-  width: 1px; height: 64px;
-  background: linear-gradient(to bottom, transparent, rgba(184,188,142,.15));
-}
 .bonus-ebook-inner {
-  max-width: 1040px;
+  max-width: 960px;
   margin: 0 auto;
   position: relative; z-index: 1;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
+  grid-template-columns: 1fr 190px;
+  gap: 4.5rem;
   align-items: center;
 }
 @media (max-width: 760px) {
   .bonus-ebook-inner {
     grid-template-columns: 1fr;
-    gap: 3rem;
+    gap: 2.5rem;
   }
 }
 
-/* ── Lado esquerdo: livro composto ── */
-.bonus-ebook-visual {
+/* ── Copy (esquerda, protagonista) ── */
+.bonus-ebook-copy {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-  width: 100%;
+  gap: 1.3rem;
 }
-.bonus-ebook-book-wrap {
-  position: relative;
-  width: 100%;
-  max-width: 300px;
-}
-.bonus-ebook-shadow {
-  position: absolute;
-  bottom: -22px;
-  left: 50%; transform: translateX(-50%);
-  width: 80%;
-  height: 36px;
-  background: radial-gradient(ellipse, rgba(0,0,0,.6) 0%, transparent 70%);
-  pointer-events: none;
-}
-.bonus-ebook-book {
-  width: 100%;
-  aspect-ratio: 2 / 3;
-  border-radius: 4px 10px 10px 4px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transform: perspective(900px) rotateY(-8deg) rotateX(2deg);
-  transition: transform .4s ease;
-  box-shadow:
-    5px 3px 0 1px rgba(0,0,0,.4),
-    0 28px 70px rgba(0,0,0,.55),
-    0 0 0 1px rgba(184,188,142,.1);
-}
-.bonus-ebook-book-wrap:hover .bonus-ebook-book {
-  transform: perspective(900px) rotateY(-3deg) rotateX(1deg) translateY(-6px);
-}
-.bonus-ebook-book-photo {
-  flex: 0 0 56%;
-  overflow: hidden;
-  position: relative;
-  background: var(--verde-deep);
-}
-.bonus-ebook-book-dog {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 40% 35%;
-  display: block;
-  filter: brightness(.88) saturate(.9);
-  transition: transform .4s ease;
-}
-.bonus-ebook-book-wrap:hover .bonus-ebook-book-dog {
-  transform: scale(1.04);
-}
-.bonus-ebook-book-photo-fade {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 48%;
-  background: linear-gradient(to bottom, transparent, #0d1a0e);
-  pointer-events: none;
-}
-.bonus-ebook-book-content {
-  flex: 1;
-  background: #0d1a0e;
-  padding: .7rem 1rem 1rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: .28rem;
-  border-top: 1px solid rgba(245,163,70,.18);
-}
-.bonus-ebook-book-brand {
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-size: .68rem;
-  color: var(--laranja);
-  letter-spacing: .04em;
-  opacity: .9;
-}
-.bonus-ebook-book-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.18rem;
-  line-height: .95;
-  letter-spacing: .03em;
-  color: var(--creme);
-  margin: 0;
-}
-.bonus-ebook-book-subtitle {
-  font-size: .55rem;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--sage);
-  opacity: .45;
-  margin-top: .18rem;
-}
-.bonus-ebook-valor {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  padding: .7rem 1.35rem;
-  border: 1px solid rgba(245,163,70,.2);
-  border-radius: 6px;
-  background: rgba(8,13,9,.5);
-  backdrop-filter: blur(8px);
-}
-.bonus-ebook-valor-de {
-  font-size: .72rem;
-  color: rgba(184,188,142,.32);
-  text-decoration: line-through;
-  letter-spacing: .04em;
-}
-.bonus-ebook-valor-sep {
-  width: 1px; height: 22px;
-  background: rgba(184,188,142,.15);
-}
-.bonus-ebook-valor-gratis {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.1rem;
-  letter-spacing: .1em;
-  color: var(--laranja);
-  line-height: 1;
-}
-.bonus-ebook-valor-label {
-  font-size: .55rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: rgba(184,188,142,.45);
-  line-height: 1.2;
-}
-
-/* ── Lado direito: copy ── */
-.bonus-ebook-copy { display: flex; flex-direction: column; gap: 1.5rem; }
-
 .bonus-ebook-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: .45rem;
-  font-size: .58rem;
+  font-size: .57rem;
   font-weight: 500;
   letter-spacing: .2em;
   text-transform: uppercase;
   color: var(--laranja);
+  opacity: .82;
 }
-
 .bonus-ebook-titulo {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(2.6rem, 7vw, 3.8rem);
+  font-size: clamp(2.4rem, 5.8vw, 3.4rem);
   line-height: .92;
   color: var(--creme);
   letter-spacing: .02em;
@@ -3200,101 +3058,206 @@ footer {
   font-style: italic;
   color: var(--laranja);
 }
-
-.bonus-ebook-sub {
-  font-size: .95rem;
-  line-height: 1.8;
-  color: var(--sage);
-  opacity: .78;
-  max-width: 46ch;
-}
-
 .bonus-ebook-nome {
   font-family: 'Fraunces', serif;
-  font-size: clamp(1.05rem, 2.5vw, 1.25rem);
+  font-size: clamp(.95rem, 2.1vw, 1.1rem);
   font-style: italic;
-  color: var(--creme);
-  line-height: 1.35;
-  padding: .85rem 1.2rem;
-  border-left: 2px solid rgba(245,163,70,.5);
-  background: rgba(245,163,70,.04);
-  border-radius: 0 4px 4px 0;
+  color: rgba(242,237,224,.65);
+  line-height: 1.45;
+  padding: .7rem 1rem;
+  border-left: 2px solid rgba(245,163,70,.35);
+  background: rgba(245,163,70,.03);
+  border-radius: 0 3px 3px 0;
 }
-
-.bonus-ebook-desc {
-  font-size: .9rem;
-  line-height: 1.75;
-  color: var(--sage);
-  opacity: .7;
-  max-width: 48ch;
+.bonus-ebook-gratis-row {
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  flex-wrap: wrap;
 }
-
+.bonus-ebook-gratis-de {
+  font-size: .85rem;
+  color: rgba(184,188,142,.28);
+  text-decoration: line-through;
+  letter-spacing: .03em;
+}
+.bonus-ebook-gratis-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(1.75rem, 4.2vw, 2.3rem);
+  letter-spacing: .08em;
+  color: var(--laranja);
+  line-height: 1;
+}
+.bonus-ebook-gratis-hint {
+  font-size: .58rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(184,188,142,.35);
+  align-self: center;
+}
 .bonus-ebook-bullets {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: .55rem;
+  gap: .42rem;
 }
 .bonus-ebook-bullets li {
   display: flex;
   align-items: flex-start;
-  gap: .62rem;
-  font-size: .87rem;
-  line-height: 1.55;
+  gap: .58rem;
+  font-size: .83rem;
+  line-height: 1.5;
   color: var(--sage);
-  opacity: .82;
+  opacity: .72;
 }
 .bonus-ebook-bullets li::before {
   content: '';
   flex: 0 0 auto;
-  width: 5px; height: 5px;
-  margin-top: .5rem;
+  width: 4px; height: 4px;
+  margin-top: .52rem;
   border-radius: 50%;
   background: var(--laranja);
-  opacity: .7;
+  opacity: .55;
 }
-
+.bonus-ebook-cta-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  padding-top: .2rem;
+}
 .bonus-ebook-cta {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: .6rem;
-  font-size: .76rem;
+  font-size: .72rem;
   font-weight: 500;
   letter-spacing: .16em;
   text-transform: uppercase;
   color: var(--preto);
   background: var(--laranja);
-  padding: 1.1rem 2.5rem;
+  padding: 1rem 2.25rem;
   border-radius: 2px;
   text-decoration: none;
-  align-self: flex-start;
+  flex-shrink: 0;
   transition: transform .15s, box-shadow .2s;
 }
 .bonus-ebook-cta:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(245,163,70,.32);
-}
-.bonus-ebook-cta-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: .55rem;
+  box-shadow: 0 10px 36px rgba(245,163,70,.3);
 }
 .bonus-ebook-cta-hint {
-  font-size: .6rem;
+  font-size: .57rem;
   letter-spacing: .08em;
-  color: rgba(184,188,142,.3);
+  color: rgba(184,188,142,.28);
+}
+
+/* ── Visual (direita, suporte) ── */
+.bonus-ebook-visual {
+  display: flex;
+  justify-content: center;
+}
+.bonus-ebook-book-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 190px;
+}
+.bonus-ebook-shadow {
+  position: absolute;
+  bottom: -16px;
+  left: 50%; transform: translateX(-50%);
+  width: 72%;
+  height: 26px;
+  background: radial-gradient(ellipse, rgba(0,0,0,.52) 0%, transparent 70%);
+  pointer-events: none;
+}
+.bonus-ebook-book {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 3px 8px 8px 3px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform: perspective(800px) rotateY(-6deg) rotateX(1.5deg);
+  transition: transform .4s ease;
+  box-shadow:
+    4px 2px 0 1px rgba(0,0,0,.32),
+    0 18px 50px rgba(0,0,0,.48),
+    0 0 0 1px rgba(184,188,142,.08);
+}
+.bonus-ebook-book-wrap:hover .bonus-ebook-book {
+  transform: perspective(800px) rotateY(-2deg) rotateX(.5deg) translateY(-5px);
+}
+.bonus-ebook-book-photo {
+  flex: 0 0 62%;
+  overflow: hidden;
+  position: relative;
+  background: var(--verde-deep);
+}
+.bonus-ebook-book-dog {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 40% 30%;
+  display: block;
+  filter: brightness(.9) saturate(.85);
+  transition: transform .4s ease;
+}
+.bonus-ebook-book-wrap:hover .bonus-ebook-book-dog {
+  transform: scale(1.05);
+}
+.bonus-ebook-book-photo-fade {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(to bottom, transparent, #0a1410);
+  pointer-events: none;
+}
+.bonus-ebook-book-content {
+  flex: 1;
+  background: linear-gradient(to bottom, #0a1410, #0d1a0e);
+  padding: .55rem .8rem .8rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: .2rem;
+  border-top: 2px solid rgba(245,163,70,.32);
+}
+.bonus-ebook-book-brand {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: .6rem;
+  color: var(--laranja);
+  letter-spacing: .03em;
+  opacity: .85;
+}
+.bonus-ebook-book-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.05rem;
+  line-height: .93;
+  letter-spacing: .03em;
+  color: var(--creme);
+  margin: 0;
+}
+.bonus-ebook-book-subtitle {
+  font-size: .48rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--sage);
+  opacity: .38;
+  margin-top: .14rem;
 }
 
 @media (max-width: 760px) {
-  .bonus-ebook { padding: 4.5rem 1.25rem 5rem; }
-  .bonus-ebook-book-wrap { max-width: 240px; }
-  .bonus-ebook-titulo { font-size: clamp(2.2rem, 9vw, 3rem); }
-  .bonus-ebook-cta { align-self: stretch; text-align: center; width: 100%; }
+  .bonus-ebook { padding: 4rem 1.25rem 4.5rem; }
+  .bonus-ebook-visual { order: -1; }
+  .bonus-ebook-book-wrap { max-width: 150px; margin: 0 auto; }
+  .bonus-ebook-titulo { font-size: clamp(2rem, 8vw, 2.8rem); }
+  .bonus-ebook-cta { width: 100%; justify-content: center; }
+  .bonus-ebook-cta-wrap { flex-direction: column; align-items: flex-start; }
 }
 @media (max-width: 420px) {
-  .bonus-ebook-book-wrap { max-width: 200px; }
-  .bonus-ebook-book-title { font-size: 1rem; }
+  .bonus-ebook-book-wrap { max-width: 130px; }
+  .bonus-ebook-book-title { font-size: .9rem; }
 }
 </style>
 </head>
@@ -3673,10 +3636,40 @@ footer {
 </section>
 
 <!-- ══ BÔNUS E-BOOK ══ -->
-<section class="bonus-ebook" id="bonus-ebook" aria-label="Presente da PattaMansa: e-book gratuito">
+<section class="bonus-ebook" id="bonus-ebook" aria-label="E-book gratuito com sua compra">
   <div class="bonus-ebook-inner">
 
-    <!-- Mockup de livro composto (cão dentro da capa) -->
+    <!-- Copy (protagonista) -->
+    <div class="bonus-ebook-copy reveal">
+      <span class="bonus-ebook-tag">🎁 Bônus exclusivo · Criado por adestradores</span>
+
+      <h2 class="bonus-ebook-titulo">
+        Junto com a camiseta,<br>um guia <em>exclusivo</em><br>de adestramento.
+      </h2>
+
+      <p class="bonus-ebook-nome">"O Guia Completo para Cães Bem-Comportados"</p>
+
+      <div class="bonus-ebook-gratis-row">
+        <span class="bonus-ebook-gratis-de">R$47</span>
+        <span class="bonus-ebook-gratis-label">GRÁTIS</span>
+        <span class="bonus-ebook-gratis-hint">em qualquer compra</span>
+      </div>
+
+      <ul class="bonus-ebook-bullets">
+        <li>Primeiros comandos de obediência básica</li>
+        <li>Técnicas de reforço positivo</li>
+        <li>Dicas para melhorar a convivência</li>
+        <li>Erros comuns que tutores devem evitar</li>
+        <li>Orientações práticas para o dia a dia</li>
+      </ul>
+
+      <div class="bonus-ebook-cta-wrap">
+        <a href="#produtos" class="bonus-ebook-cta">Quero a minha →</a>
+        <span class="bonus-ebook-cta-hint">Digital · Enviado após a compra</span>
+      </div>
+    </div>
+
+    <!-- Livro (suporte visual) -->
     <div class="bonus-ebook-visual reveal">
       <div class="bonus-ebook-book-wrap">
         <div class="bonus-ebook-book" aria-label="Capa do e-book: O Guia Completo para Cães Bem-Comportados">
@@ -3691,56 +3684,10 @@ footer {
           <div class="bonus-ebook-book-content">
             <span class="bonus-ebook-book-brand">PattaMansa</span>
             <p class="bonus-ebook-book-title">O Guia Completo<br>para Cães<br>Bem-Comportados</p>
-            <span class="bonus-ebook-book-subtitle">Adestramento de Obediência Básica</span>
+            <span class="bonus-ebook-book-subtitle">Adestramento · Obediência Básica</span>
           </div>
         </div>
         <div class="bonus-ebook-shadow"></div>
-      </div>
-      <div class="bonus-ebook-valor">
-        <div>
-          <div class="bonus-ebook-valor-de">R$47</div>
-          <div class="bonus-ebook-valor-label">Valor normal</div>
-        </div>
-        <div class="bonus-ebook-valor-sep"></div>
-        <div>
-          <div class="bonus-ebook-valor-gratis">GRÁTIS</div>
-          <div class="bonus-ebook-valor-label">Em qualquer compra</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Copy -->
-    <div class="bonus-ebook-copy reveal">
-      <span class="bonus-ebook-tag">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
-        Presente para a Matilha PattaMansa
-      </span>
-
-      <h2 class="bonus-ebook-titulo">
-        Na compra de<br>qualquer camiseta,<br>você leva <em>de graça:</em>
-      </h2>
-
-      <p class="bonus-ebook-sub">
-        Na compra de qualquer camiseta, você recebe gratuitamente nosso e-book exclusivo:
-      </p>
-
-      <p class="bonus-ebook-nome">"O Guia Completo para Cães Bem-Comportados"</p>
-
-      <p class="bonus-ebook-desc">
-        Um material criado pela PattaMansa para ajudar tutores a iniciarem uma relação mais leve, respeitosa e segura com seus cães.
-      </p>
-
-      <ul class="bonus-ebook-bullets">
-        <li>Primeiros comandos de obediência básica</li>
-        <li>Técnicas de reforço positivo</li>
-        <li>Dicas para melhorar a convivência</li>
-        <li>Erros comuns que tutores devem evitar</li>
-        <li>Orientações práticas para o dia a dia</li>
-      </ul>
-
-      <div class="bonus-ebook-cta-wrap">
-        <a href="#produtos" class="bonus-ebook-cta">Quero minha camiseta + e-book →</a>
-        <span class="bonus-ebook-cta-hint">Enviado digitalmente após a compra</span>
       </div>
     </div>
 
