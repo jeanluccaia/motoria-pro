@@ -328,12 +328,12 @@ nav {
   flex-wrap: wrap;
   gap: .36rem .62rem;
   max-width: 520px;
-  font-size: .56rem;
+  font-size: .64rem;
   font-weight: 500;
   line-height: 1.2;
   letter-spacing: .08em;
   text-transform: uppercase;
-  color: rgba(242,237,228,.48);
+  color: rgba(242,237,228,.82);
 }
 .hero-payment-copy,
 .hero-payment-methods,
@@ -353,9 +353,9 @@ nav {
   height: 12px;
   flex: 0 0 auto;
 }
-.hero-payment-lock { opacity: .72; }
+.hero-payment-lock { opacity: .92; }
 .hero-payment-pix-icon,
-.hero-payment-master-icon { opacity: .62; }
+.hero-payment-master-icon { opacity: .88; }
 .hero-payment-mark {
   gap: .18rem;
   min-height: 16px;
@@ -364,7 +364,7 @@ nav {
   border-radius: 2px;
   font-size: .48rem;
   line-height: 1;
-  color: rgba(242,237,228,.42);
+  color: rgba(242,237,228,.75);
   white-space: nowrap;
 }
 .hero-trust-line {
@@ -373,10 +373,10 @@ nav {
   flex-wrap: wrap;
   gap: .32rem .85rem;
   max-width: 520px;
-  font-size: .62rem;
+  font-size: .7rem;
   line-height: 1.45;
   letter-spacing: .07em;
-  color: rgba(184,188,142,.5);
+  color: rgba(184,188,142,.88);
 }
 .hero-trust-line span { white-space: nowrap; }
 
@@ -1702,12 +1702,12 @@ footer {
 }
 .collection-filters {
   display: flex;
+  flex-wrap: wrap;
   gap: .55rem;
   margin: -1rem 0 1.3rem;
   padding: .12rem .1rem .45rem;
-  overflow-x: auto;
+  overflow: visible;
   scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
 }
 .collection-filters::-webkit-scrollbar { display: none; }
 .collection-filter {
@@ -1886,10 +1886,10 @@ footer {
   .hero-title { font-size: clamp(3.15rem, 14vw, 3.85rem); }
   .hero-sub { font-size: .95rem; }
   .btn-hero { padding: 1rem 2.25rem; width: 100%; max-width: 320px; text-align: center; }
-  .hero-payment-line { max-width: 315px; font-size: .5rem; gap: .32rem .46rem; }
+  .hero-payment-line { max-width: 315px; font-size: .58rem; gap: .32rem .46rem; }
   .hero-payment-methods { gap: .26rem; }
-  .hero-payment-mark { font-size: .45rem; padding: .1rem .22rem; }
-  .hero-trust-line { max-width: 315px; font-size: .56rem; gap: .25rem .55rem; }
+  .hero-payment-mark { font-size: .5rem; padding: .1rem .22rem; }
+  .hero-trust-line { max-width: 315px; font-size: .64rem; gap: .25rem .55rem; }
 
   /* Origem */
   .origem { padding: 3.5rem 1.25rem 3rem; }
@@ -2267,14 +2267,19 @@ footer {
   .vcard-guide { font-size: .52rem; }
   .vcard-cta { height: 48px; }
   .vcard-gallery {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
     gap: 7px;
-    overflow-x: auto;
+    overflow: visible;
     padding: 8px;
     scrollbar-width: none;
+    touch-action: auto;
   }
   .vcard-gallery::-webkit-scrollbar { display: none; }
-  .vcard-thumb { flex: 0 0 48px; }
+  .vcard-thumb {
+    min-width: 0;
+    touch-action: manipulation;
+  }
 }
 
 /* ─── GRADE / CARROSSEL DE COLEÇÃO ─── */
@@ -2340,10 +2345,10 @@ footer {
   }
 }
 
-/* Mobile ≤640px: carrossel horizontal com scroll-snap */
+/* Mobile ≤640px: carrossel horizontal nativo, liberando scroll vertical */
 @media (max-width: 640px) {
   .carousel-wrap {
-    overflow: hidden; /* impede scrollbar horizontal na página */
+    overflow: hidden;
   }
   .carousel-wrap::after {
     content: '';
@@ -2361,11 +2366,13 @@ footer {
     display: flex;
     gap: 14px;
     overflow-x: auto;
+    overflow-y: hidden;
     scroll-snap-type: x mandatory;
     scroll-padding-left: 1.25rem;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
-    touch-action: pan-x;
+    overscroll-behavior-y: auto;
+    touch-action: pan-x pan-y;
     scrollbar-width: none;
     padding: 4px 1.25rem 16px;
     margin: 0 -1.25rem;
@@ -2374,8 +2381,15 @@ footer {
   .carousel-track .vcard {
     flex: 0 0 min(78vw, 300px);
     width: auto;
+    min-width: 0;
     scroll-snap-align: start;
     scroll-snap-stop: always;
+    touch-action: pan-x pan-y;
+  }
+  .carousel-track .vcard button,
+  .carousel-track .vcard a,
+  .carousel-track .vcard-guide {
+    touch-action: manipulation;
   }
 }
 
@@ -3046,11 +3060,12 @@ footer {
 .bonus-ebook-checks li { display: flex; align-items: flex-start; gap: .52rem; font-size: .82rem; color: var(--sage); opacity: .78; line-height: 1.45; }
 .bonus-ebook-checks li::before { content: '✓'; flex-shrink: 0; font-size: .75rem; color: var(--laranja); opacity: .85; margin-top: .06rem; }
 .bonus-ebook-value { display: flex; align-items: baseline; gap: .75rem; flex-wrap: wrap; border-top: 1px solid rgba(184,188,142,.07); padding-top: 1.1rem; }
-.bonus-ebook-value-de { font-size: .72rem; color: rgba(184,188,142,.2); text-decoration: line-through; letter-spacing: .03em; }
+.bonus-ebook-value-de { font-size: .78rem; color: rgba(184,188,142,.58); text-decoration: line-through; letter-spacing: .03em; }
 .bonus-ebook-value-label { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.2rem, 4.5vw, 3rem); letter-spacing: .07em; color: var(--laranja); line-height: 1; text-shadow: 0 0 48px rgba(245,163,70,.22); }
 .bonus-ebook-value-hint { font-size: .6rem; letter-spacing: .1em; text-transform: uppercase; color: rgba(184,188,142,.35); align-self: center; }
 .bonus-ebook-cta { display: inline-flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--preto); background: var(--laranja); padding: 1.1rem 2.25rem; border-radius: 2px; text-decoration: none; transition: transform .15s, box-shadow .2s; align-self: flex-start; min-height: 48px; }
 .bonus-ebook-cta:hover { transform: translateY(-2px); box-shadow: 0 10px 34px rgba(245,163,70,.3); }
+.bonus-ebook-delivery { font-size: .62rem; color: rgba(184,188,142,.5); letter-spacing: .05em; margin-top: .6rem; line-height: 1.5; }
 
 @media (max-width: 720px) {
   .bonus-ebook { padding: 3rem 1.25rem 3.5rem; }
@@ -3068,13 +3083,12 @@ footer {
 
 <div class="support-strip" aria-label="Atendimento PattaMansa">
   <span class="support-strip-copy">Dúvidas? Fale com nossa equipe.</span>
-  <a class="support-link" href="https://wa.me/5519982174323" aria-label="Falar com a PattaMansa pelo WhatsApp">
+  <a class="support-link" href="https://wa.me/5519982174323?text=Vim%20pela%20Copa%2C%20quero%20saber%20sobre%20a%20camiseta" aria-label="Falar com a PattaMansa pelo WhatsApp" target="_blank" rel="noopener">
     <svg class="support-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L4 20l1.2-4.4A8.4 8.4 0 1 1 21 11.5Z"/>
       <path d="M9.1 8.4c.2-.4.4-.4.7-.4h.5c.2 0 .4.1.5.4l.7 1.6c.1.2.1.4-.1.6l-.4.5c.6 1 1.4 1.8 2.5 2.4l.5-.4c.2-.2.4-.2.6-.1l1.5.7c.3.1.4.3.4.6v.4c0 .3-.1.6-.4.8-.4.3-.9.5-1.5.4-2.8-.5-5.2-2.6-6-5.3-.2-.6-.1-1.2.2-1.8Z"/>
     </svg>
     <span class="support-link-label">WhatsApp</span>
-    <span class="support-link-value support-link-full">+55 19 98217-4323</span>
     <span class="support-link-value support-link-short">WhatsApp</span>
   </a>
   <a class="support-link" href="mailto:contato@pattamansa.com.br" aria-label="Enviar e-mail para contato@pattamansa.com.br">
@@ -3197,7 +3211,7 @@ footer {
   <div class="hero-overlay"></div>
 
   <div class="hero-content">
-    <span class="hero-eyebrow">Copa 2026 · Edição Especial</span>
+    <span class="hero-eyebrow" id="js-theme-eyebrow">Copa 2026 · Edição Especial</span>
     <h1 class="hero-title">
       A Camisa<br>do <em>Povo</em>
     </h1>
@@ -3482,6 +3496,7 @@ footer {
         <span class="bonus-ebook-value-hint">em qualquer compra</span>
       </div>
       <a href="#produtos" class="bonus-ebook-cta">Quero minha camiseta + guia →</a>
+      <p class="bonus-ebook-delivery">Enviado por e-mail/link de download após a confirmação da compra.</p>
     </div>
 
   </div>
@@ -3527,7 +3542,7 @@ footer {
             <div class="vcard-actions">
               <span class="vcard-guide" role="button" tabindex="0" data-guide="algodao-peruano">Guia de medidas</span>
               <a href="#" class="vcard-cta" id="scCta">Garantir a minha</a>
-              <span class="vcard-ebook-hint">🎁 Inclui e-book gratuito de adestramento básico</span>
+              <span class="vcard-ebook-hint">🎁 Inclui e-book gratuito · enviado por e-mail após a compra</span>
             </div>
           </div>
         </article>
@@ -3555,7 +3570,7 @@ footer {
             <div class="vcard-actions">
               <span class="vcard-guide" role="button" tabindex="0" data-guide="algodao-peruano">Guia de medidas</span>
               <a href="#" class="vcard-cta" id="ccfCta">Garantir a minha</a>
-              <span class="vcard-ebook-hint">🎁 Inclui e-book gratuito de adestramento básico</span>
+              <span class="vcard-ebook-hint">🎁 Inclui e-book gratuito · enviado por e-mail após a compra</span>
             </div>
           </div>
         </article>
@@ -3583,7 +3598,7 @@ footer {
             <div class="vcard-actions">
               <span class="vcard-guide" role="button" tabindex="0" data-guide="cropped-feminino">Guia de medidas</span>
               <a href="#" class="vcard-cta" id="crCta">Garantir a minha</a>
-              <span class="vcard-ebook-hint">🎁 Inclui e-book gratuito de adestramento básico</span>
+              <span class="vcard-ebook-hint">🎁 Inclui e-book gratuito · enviado por e-mail após a compra</span>
             </div>
           </div>
         </article>
@@ -3611,7 +3626,7 @@ footer {
             <div class="vcard-actions">
               <span class="vcard-guide" role="button" tabindex="0" data-guide="cropped-moletom">Guia de medidas</span>
               <a href="#" class="vcard-cta" id="cmCta">Garantir a minha</a>
-              <span class="vcard-ebook-hint">🎁 Inclui e-book gratuito de adestramento básico</span>
+              <span class="vcard-ebook-hint">🎁 Inclui e-book gratuito · enviado por e-mail após a compra</span>
             </div>
           </div>
         </article>
@@ -3651,7 +3666,7 @@ footer {
             <div class="vcard-actions">
               <span class="vcard-guide" role="button" tabindex="0" data-guide="regular-masculina">Guia de medidas</span>
               <a href="#" class="vcard-cta" id="smCta">Garantir a minha</a>
-              <span class="vcard-ebook-hint">🎁 Inclui e-book gratuito de adestramento básico</span>
+              <span class="vcard-ebook-hint">🎁 Inclui e-book gratuito · enviado por e-mail após a compra</span>
             </div>
           </div>
         </article>
@@ -3679,7 +3694,7 @@ footer {
             <div class="vcard-actions">
               <span class="vcard-guide" role="button" tabindex="0" data-guide="regular-masculina">Guia de medidas</span>
               <button type="button" class="vcard-cta" id="ccmCta">Garantir a minha</button>
-              <span class="vcard-ebook-hint">🎁 Inclui e-book gratuito de adestramento básico</span>
+              <span class="vcard-ebook-hint">🎁 Inclui e-book gratuito · enviado por e-mail após a compra</span>
             </div>
           </div>
         </article>
@@ -3707,7 +3722,7 @@ footer {
             <div class="vcard-actions">
               <span class="vcard-guide" role="button" tabindex="0" data-guide="camiseta-oversized">Guia de medidas</span>
               <button type="button" class="vcard-cta" id="ovCta" data-nuvemshop-pilot="oversized">Adicionar ao carrinho</button>
-              <span class="vcard-ebook-hint">🎁 Inclui e-book gratuito de adestramento básico</span>
+              <span class="vcard-ebook-hint">🎁 Inclui e-book gratuito · enviado por e-mail após a compra</span>
             </div>
           </div>
         </article>
@@ -3735,7 +3750,7 @@ footer {
             <div class="vcard-actions">
               <span class="vcard-guide" role="button" tabindex="0" data-guide="regular-unissex">Guia de medidas</span>
               <a href="#" class="vcard-cta" id="cfcCta">Garantir a minha</a>
-              <span class="vcard-ebook-hint">🎁 Inclui e-book gratuito de adestramento básico</span>
+              <span class="vcard-ebook-hint">🎁 Inclui e-book gratuito · enviado por e-mail após a compra</span>
             </div>
           </div>
         </article>
@@ -3819,7 +3834,7 @@ footer {
       Veste o<br><em>Brasil</em><br>com pata.
     </h2>
 
-    <p class="cta-final-body reveal">
+    <p class="cta-final-body reveal" id="js-theme-tagline">
       Edição Copa 2026.<br>
       Enquanto o Brasil jogar, a camiseta tá disponível.
     </p>
@@ -3843,14 +3858,13 @@ footer {
   </div>
   <div class="footer-support" aria-label="Atendimento PattaMansa">
     <span class="footer-block-title">Atendimento humano</span>
-    <a class="footer-support-link" href="https://wa.me/5519982174323">
+    <a class="footer-support-link" href="https://wa.me/5519982174323?text=Vim%20pela%20Copa%2C%20quero%20saber%20sobre%20a%20camiseta" target="_blank" rel="noopener">
       <svg class="footer-support-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L4 20l1.2-4.4A8.4 8.4 0 1 1 21 11.5Z"/>
         <path d="M9.1 8.4c.2-.4.4-.4.7-.4h.5c.2 0 .4.1.5.4l.7 1.6c.1.2.1.4-.1.6l-.4.5c.6 1 1.4 1.8 2.5 2.4l.5-.4c.2-.2.4-.2.6-.1l1.5.7c.3.1.4.3.4.6v.4c0 .3-.1.6-.4.8-.4.3-.9.5-1.5.4-2.8-.5-5.2-2.6-6-5.3-.2-.6-.1-1.2.2-1.8Z"/>
       </svg>
       <span class="footer-support-text">
         <strong>WhatsApp</strong>
-        <small>+55 19 98217-4323</small>
       </span>
     </a>
     <a class="footer-support-link" href="mailto:contato@pattamansa.com.br">
@@ -3971,6 +3985,51 @@ footer {
 </aside>
 
 <script>
+  /* ── TEMA COPA 2026 ─────────────────────────────────────────────
+   * Para remover o tema Copa após 19/07/2026:
+   *   1. Mude  copa: true  →  copa: false
+   *   2. Ajuste os textos _off abaixo se quiser mensagem diferente
+   *   3. Republique — não precisa reescrever a página.
+   * ─────────────────────────────────────────────────────────────── */
+  var SITE_THEME = {
+    copa: true,
+    eyebrow:        'Copa 2026 · Edição Especial',
+    tagline:        'Edição Copa 2026.',
+    taglineSub:     'Enquanto o Brasil jogar, a camiseta tá disponível.',
+    eyebrow_off:    'Coleção Especial',
+    tagline_off:    '',
+    taglineSub_off: 'Disponível enquanto durar o estoque.',
+  };
+  (function () {
+    var t = SITE_THEME;
+    if (t.copa) return;
+    var eyebrow = document.getElementById('js-theme-eyebrow');
+    var taglinePara = document.getElementById('js-theme-tagline');
+    if (eyebrow) eyebrow.textContent = t.eyebrow_off;
+    if (taglinePara) {
+      var body = (t.tagline_off ? t.tagline_off + '<br>' : '') + (t.taglineSub_off || '');
+      taglinePara.innerHTML = body;
+      if (!body) taglinePara.style.display = 'none';
+    }
+  })();
+
+  /* ── VÍDEO HERO — lazy-load mobile ──────────────────────────────
+   * Em mobile, o vídeo de fundo é diferido para depois do idle,
+   * evitando que concorra com o LCP e o carregamento inicial.
+   * ─────────────────────────────────────────────────────────────── */
+  (function () {
+    var v = document.getElementById('heroVideo');
+    if (!v || window.innerWidth >= 768) return;
+    v.removeAttribute('autoplay');
+    v.preload = 'none';
+    var go = function () { v.load(); v.play().catch(function () {}); };
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(go, { timeout: 2000 });
+    } else {
+      setTimeout(go, 1500);
+    }
+  })();
+
   /* Parcelamento discreto alinhado ao checkout */
   (function () {
     document.querySelectorAll('[data-product-card]').forEach(function (card) {
