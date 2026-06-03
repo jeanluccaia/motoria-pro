@@ -2265,10 +2265,28 @@
         letter-spacing: 0.08em;
       }
 
-      /* ── Métricas bar: 2 colunas no mobile, sem separadores ── */
-      .metricas-bar { flex-wrap: wrap; }
-      .metricas-bar .metrica { width: 50%; }
+      /* ── Métricas bar: 2 colunas no mobile ── */
+      .metricas-bar {
+        flex-wrap: wrap;
+        padding: 0;
+      }
+      .metricas-bar .metrica {
+        width: 50%;
+        padding: 22px 12px;
+        box-sizing: border-box;
+        justify-content: center;
+        border-bottom: 1px solid rgba(201,168,76,0.08);
+      }
+      .metricas-bar .metrica:nth-child(odd) {
+        border-right: 1px solid rgba(201,168,76,0.08);
+      }
+      .metricas-bar .metrica:nth-child(3),
+      .metricas-bar .metrica:nth-child(4) {
+        border-bottom: none;
+      }
       .metricas-bar .metrica::after { display: none; }
+      .metricas-bar .num { font-size: clamp(26px, 6vw, 36px); }
+      .metricas-bar .label { font-size: 9px; letter-spacing: 0.1em; }
 
       /* ── Como funciona grid: 1 coluna no mobile ── */
       .como-funciona-grid { grid-template-columns: 1fr !important; }
@@ -2480,6 +2498,7 @@
     <div class="fu d1">
       <a href="#planos" class="btn btn-gold btn-lg">GARANTIR MINHA VAGA NO CLUB</a>
     </div>
+
   </div>
 
   <div class="hero-scroll" aria-hidden="true">
@@ -2511,29 +2530,6 @@
   </div>
 </section>
 
-<!-- BLOCO SORTEIO DE ANIVERSÁRIO -->
-<section style="background:linear-gradient(135deg,#0e0c06,#111008);border-top:1px solid rgba(201,168,76,0.28);border-bottom:1px solid rgba(201,168,76,0.28);padding:72px 0;" id="sorteio">
-  <div class="wrap" style="text-align:center;">
-
-    <div style="display:inline-flex;align-items:center;gap:9px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.35);border-radius:3px;padding:8px 20px;margin-bottom:28px;">
-      <span style="font-size:18px;">🏆</span>
-      <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.22em;color:var(--gold);">SORTEIO DE 5 ANOS</span>
-    </div>
-
-    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(32px,6vw,58px);letter-spacing:0.04em;line-height:1.05;margin-bottom:18px;">Os 50 Primeiros Assinantes Anuais<br><span style="color:var(--gold);">Concorrem a um Polimento Técnico Completo</span></h2>
-
-    <p style="font-size:15px;color:rgba(245,245,245,0.6);line-height:1.78;max-width:580px;margin:0 auto 28px;font-weight:300;">Para celebrar nossos <strong style="color:var(--white);">5 anos de mercado</strong>, as <strong style="color:var(--gold-l);">50 primeiras assinaturas no Plano Anual</strong> (Smart ou Priority) entram automaticamente no sorteio de um <strong style="color:var(--white);">Polimento Técnico Completo · Padrão Showroom</strong>. Garanta sua vaga no Lote Fundador e já concorra.</p>
-
-    <p style="font-size:13px;font-weight:600;color:rgba(245,245,245,0.45);letter-spacing:0.06em;margin-bottom:32px;text-transform:uppercase;">Apenas as 50 primeiras assinaturas anuais participam.</p>
-
-    <div>
-      <a href="#planos" onclick="(function(){var t=document.querySelector('[data-tab=anual]');if(t)t.click();})()" class="btn btn-gold btn-lg">QUERO CONCORRER — ASSINAR O ANUAL</a>
-      <p style="margin-top:10px;font-size:11px;color:rgba(245,245,245,0.3);font-style:italic;">* Regulamento disponível mediante solicitação</p>
-    </div>
-
-  </div>
-</section>
-
 <div class="sep"></div>
 
 <section class="plans-section" id="planos">
@@ -2545,7 +2541,7 @@
     <!-- Tab switcher Mensal / Anual -->
     <div class="planos-tabs fu d2">
       <button class="tab" data-tab="mensal">PLANOS MENSAIS</button>
-      <button class="tab ativo" data-tab="anual">🏆 ANUAIS — CONCORRE AO SORTEIO</button>
+      <button class="tab ativo" data-tab="anual">PLANOS ANUAIS</button>
     </div>
 
     <!-- Seletor de veículo — controla todos os preços -->
@@ -2623,7 +2619,7 @@
           <p class="plan-focus">Disciplina mínima, eficiência e valorização do ativo.</p>
           <div class="plan-price-block">
             <div class="plan-price-value">
-              <span class="price-val" data-prices="150,165,185,210,230" data-suffix="/mês">R$ 150,00</span>
+              <span class="price-val" data-prices="130,150,170,190,190" data-suffix="/mês">R$ 150,00</span>
             </div>
             <div class="plan-price-period">por mês · cobrado mensalmente</div>
           </div>
@@ -2652,7 +2648,7 @@
           <p class="plan-focus">Frequência semanal, conveniência absoluta e prioridade máxima de pátio.</p>
           <div class="plan-price-block">
             <div class="plan-price-value">
-              <span class="price-val" data-prices="280,310,340,380,420" data-suffix="/mês">R$ 310,00</span>
+              <span class="price-val" data-prices="220,250,270,300,300" data-suffix="/mês">R$ 250,00</span>
             </div>
             <div class="plan-price-period">por mês · cobrado mensalmente</div>
           </div>
@@ -2686,23 +2682,14 @@
 
     <!-- ABA ANUAIS -->
     <div id="tab-anual" class="tab-content ativo">
-      <div class="lote-banner">
-        <h4>🏆 LOTE FUNDADOR · EDIÇÃO DE ANIVERSÁRIO 5 ANOS</h4>
-        <p>Condição comemorativa exclusiva. Os <strong style="color:var(--gold-l);">50 primeiros assinantes anuais</strong> concorrem automaticamente ao Sorteio do Polimento Técnico Completo · Padrão Showroom.</p>
-      </div>
-
       <div class="cards-anuais-grid">
 
         <!-- Smart Anual -->
         <div class="card-plano fu d1">
-          <span class="badge-plano">MEMBRO FUNDADOR · ANIVERSÁRIO</span>
+          <span class="badge-plano">MELHOR CUSTO-BENEFÍCIO</span>
           <h3>DGN SMART ANUAL</h3>
-          <div class="preco">10x de R$ 144,00</div>
+          <div class="preco"><span class="price-val" data-prices="1240,1440,1640,1840,1840">R$ 1.440,00</span></div>
           <p class="micro-preco">O equivalente a apenas <strong style="color:var(--white);">R$ 120,00 por mês</strong> para proteger o seu patrimônio contra a depreciação.</p>
-          <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.25);border-radius:3px;padding:6px 12px;margin-bottom:16px;">
-            <span style="font-size:13px;">🏆</span>
-            <span style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;">Concorre ao Sorteio de 5 Anos · Polimento Showroom</span>
-          </div>
           <ul>
             <li>2 atendimentos técnicos/mês — Lavagem Simples + Aspiração Integral</li>
             <li>Espaço de co-working para dias de acompanhamento</li>
@@ -2711,20 +2698,16 @@
             <li>Sem reajuste de preço no período contratado</li>
             <li>Checkout seguro integrado 4UCar</li>
           </ul>
-          <button onclick="window.open('https://wa.me/5519978146936?text=Ol%C3%A1!%20Quero%20assinar%20o%20plano%20DGN%20SMART%20Anual%20-%20Lote%20Fundador%20Anivers%C3%A1rio.','_blank')">QUERO O PLANO SMART ANUAL</button>
+          <button onclick="window.open('https://wa.me/5519978146936?text=Ol%C3%A1!%20Quero%20assinar%20o%20plano%20DGN%20SMART%20Anual.','_blank')">QUERO O PLANO SMART ANUAL</button>
           <p class="plan-micro-cta">Leva &amp; Traz não incluso neste plano</p>
         </div>
 
         <!-- Priority Anual -->
         <div class="card-plano destaque fu d2">
-          <span class="badge-plano">EXCLUSIVO — LOTE FUNDADOR ANIVERSÁRIO</span>
+          <span class="badge-plano">MAIS POPULAR · RECOMENDADO</span>
           <h3>DGN PRIORITY ANUAL</h3>
-          <div class="preco">10x de R$ 249,00</div>
+          <div class="preco"><span class="price-val" data-prices="2190,2390,2690,2990,2990">R$ 2.390,00</span></div>
           <p class="micro-preco">O equivalente a <strong style="color:var(--white);">R$ 207,50 por mês</strong>. Cuidado semanal VIP por apenas <strong style="color:var(--gold-l);">R$ 51,80 por atendimento</strong>, com Leva &amp; Traz 100% incluso!</p>
-          <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.35);border-radius:3px;padding:6px 12px;margin-bottom:16px;">
-            <span style="font-size:13px;">🏆</span>
-            <span style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;">Concorre ao Sorteio de 5 Anos · Polimento Showroom</span>
-          </div>
           <ul>
             <li>Frequência semanal garantida — Lavagem Simples DGN</li>
             <li>🚗 Leva &amp; Traz monitorado 100% GRATUITO (Jd. Santa Genebra e região corporativa)</li>
@@ -2733,7 +2716,7 @@
             <li>Prioridade absoluta de pátio e agendamento preferencial</li>
             <li>Checkout seguro integrado 4UCar</li>
           </ul>
-          <button onclick="window.open('https://wa.me/5519978146936?text=Ol%C3%A1!%20Quero%20assinar%20o%20plano%20DGN%20PRIORITY%20Anual%20-%20Lote%20Fundador%20Anivers%C3%A1rio.','_blank')">GARANTIR MEU PRIORITY ANUAL</button>
+          <button onclick="window.open('https://wa.me/5519978146936?text=Ol%C3%A1!%20Quero%20assinar%20o%20plano%20DGN%20PRIORITY%20Anual.','_blank')">GARANTIR MEU PRIORITY ANUAL</button>
           <p class="plan-micro-cta">⚠️ Grade de agenda limitada</p>
         </div>
 
@@ -2750,13 +2733,7 @@
 
     <!-- Contador de vagas + Selo 4UCar (fixo nas duas abas) -->
     <div class="contador-vagas fu">
-      ⚠️ LOTE FUNDADOR — Restam apenas <span class="num-vagas">27</span> vagas com estas condições de pátio e agenda.
-    </div>
-
-    <div class="selo-4ucar fu">
-      <p style="font-size:9.5px;text-transform:uppercase;letter-spacing:0.22em;color:rgba(245,245,245,0.35);margin-bottom:7px;">Powered by</p>
-      <p style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:0.16em;color:var(--gold);line-height:1;margin-bottom:9px;">4UCar</p>
-      <p class="autonomia">Agendamento, checkout e gestão da assinatura com tecnologia 4UCar.</p>
+      ⚠️ Restam apenas <span class="num-vagas">27</span> vagas com estas condições de pátio e agenda.
     </div>
 
     <p class="svc-note" style="margin-top:28px;color:rgba(245,245,245,0.28);font-size:11.5px;text-align:center;">
@@ -2808,6 +2785,31 @@
 <style>
   @media (max-width: 540px) {
     .como-funciona-grid { grid-template-columns: 1fr !important; }
+  }
+
+  /* ── Fixes mobile gerais ── */
+  @media (max-width: 480px) {
+    .corporate-section { padding: 56px 0; }
+    .stat-lbl { font-size: 9px; }
+    .rev-card, .stat-box { padding: 20px 14px; }
+    .section { padding: 60px 0; }
+    .sep-sm { margin-bottom: 28px; }
+    /* Textos longos em depoimentos: reduz levemente */
+    .rev-text { font-size: 13px; }
+    .rev-name { font-size: 12px; }
+  }
+
+  /* ── Stats row: 2+1 em telas muito pequenas ── */
+  @media (max-width: 420px) {
+    .stats-row {
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .stats-row .stat-box:last-child {
+      grid-column: 1 / -1;
+    }
+    .stat-val { font-size: clamp(22px, 6.5vw, 36px) !important; }
+    .stat-lbl { font-size: 8.5px; letter-spacing: 0.06em; }
   }
 </style>
 
@@ -2880,8 +2882,8 @@
       <div class="fu d2">
         <div class="cmp-wrap">
           <div style="padding:28px 24px;">
-            <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.2em;color:var(--gold);margin-bottom:14px;">POLO CORPORATIVO ATENDIDO</p>
-            <p style="font-size:14px;color:var(--muted);line-height:1.72;margin-bottom:20px;">Executivos de <strong style="color:var(--white);">Medley, Hunter Douglas, Arcor, Luxottica</strong> e <strong style="color:var(--white);">PC Capital</strong> já fazem parte do Club.</p>
+            <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.2em;color:var(--gold);margin-bottom:14px;">ATENDIMENTO REGIONAL</p>
+            <p style="font-size:14px;color:var(--muted);line-height:1.72;margin-bottom:20px;">Leva &amp; Traz disponível para Jardim Santa Genebra e região corporativa próxima.</p>
             <p style="font-size:11.5px;color:var(--gold-l);font-weight:600;line-height:1.55;margin-bottom:18px;">Raio gratuito: Jd. Santa Genebra e região</p>
             <p style="font-size:12px;color:rgba(245,245,245,0.3);font-style:italic;">Fora do raio? Consulte disponibilidade pelo WhatsApp.</p>
           </div>
@@ -3039,15 +3041,14 @@
         <div class="stat-val">50+</div>
         <div class="stat-lbl">Assinantes ativos</div>
       </div>
-      <div class="stat-box fu d2">
-        <!-- SUBSTITUIR: dado real -->
-        <div class="stat-val">16.600+</div>
-        <div class="stat-lbl">Lavagens realizadas</div>
+      <div class="stat-box fu d2" style="border-color:rgba(201,168,76,0.32);">
+        <div class="stat-val">+16.600</div>
+        <div class="stat-lbl">Atendimentos realizados</div>
       </div>
-      <div class="stat-box fu d3">
-        <div class="stat-val" style="font-size:clamp(18px,3.5vw,26px);letter-spacing:1px;">★★★★★</div>
-        <!-- SUBSTITUIR: dado real -->
-        <div class="stat-lbl">Avaliação média</div>
+      <div class="stat-box fu d3" style="border-color:rgba(201,168,76,0.32);">
+        <div class="stat-val" style="font-size:clamp(22px,4vw,38px);letter-spacing:1px;color:var(--gold-l);">⭐ 5.0</div>
+        <div class="stat-lbl" style="margin-bottom:4px;">Avaliação média</div>
+        <div style="font-size:10.5px;font-weight:700;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;">no Google</div>
       </div>
     </div>
   </div>
@@ -3141,12 +3142,7 @@
 
       <p class="footer-copy">© 2026 DGN Club. Todos os direitos reservados.</p>
 
-      <!-- Chancela 4UCar footer -->
-      <div style="margin-top:28px;padding-top:20px;border-top:1px solid rgba(201,168,76,0.1);text-align:center;">
-        <p style="font-size:10px;text-transform:uppercase;letter-spacing:0.2em;color:rgba(245,245,245,0.28);margin-bottom:6px;">Powered by 4UCar</p>
-        <p style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.2em;color:rgba(201,168,76,0.5);line-height:1;margin-bottom:5px;">4UCar</p>
-        <p style="font-size:10.5px;color:rgba(245,245,245,0.22);letter-spacing:0.04em;">Gestão e Agendamento 100% Autônomos via Espaço do Assinante</p>
-      </div>
+      <p style="font-size:10px;color:rgba(245,245,245,0.18);letter-spacing:0.04em;margin-top:16px;">Powered by 4UCar &nbsp;·&nbsp; Gestão e Agendamento Digital</p>
     </div>
   </div>
 </footer>
@@ -3159,7 +3155,7 @@
 <div class="sticky-cta-mobile" id="js-sticky-mobile">
   <div>
     <span class="sticky-title">Garantir minha vaga</span>
-    <span class="sticky-sub">⚠️ Restam 27 vagas do Lote Fundador</span>
+    <span class="sticky-sub">⚠️ Vagas limitadas por região</span>
   </div>
   <a href="https://wa.me/5519978146936?text=Ol%C3%A1!%20Quero%20conhecer%20os%20planos%20DGN%20CLUB."
      target="_blank" rel="noopener"
