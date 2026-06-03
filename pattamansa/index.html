@@ -192,6 +192,7 @@ nav {
 .hero {
   position: relative;
   width: 100%;
+  min-height: 100vh;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -1842,6 +1843,67 @@ footer {
 .ong-cta:hover { background: var(--creme); color: var(--verde-md); }
 @media (max-width: 640px) { .section-ong { padding: 4rem 1.25rem 3.75rem; } .ong-counter { gap: 1.75rem; } .counter-number { font-size: 2.75rem; } .social-bar { gap: 1.1rem; } }
 
+/* ─── TRUST STRIP (antes dos produtos) ─── */
+.trust-strip {
+  background: var(--verde-deep);
+  padding: 3rem 1.5rem 3.25rem;
+  border-top: 1px solid rgba(184,188,142,.08);
+  border-bottom: 1px solid rgba(184,188,142,.08);
+}
+.trust-strip-inner {
+  max-width: 380px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .7rem;
+}
+.trust-strip-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+}
+.trust-strip-lock {
+  width: 13px; height: 13px;
+  flex: 0 0 auto;
+  color: var(--laranja);
+  opacity: .9;
+}
+.trust-strip-title {
+  font-size: .62rem;
+  font-weight: 500;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: rgba(242,237,224,.82);
+}
+.trust-strip-methods {
+  font-size: .54rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: rgba(184,188,142,.38);
+  margin: 0;
+  position: relative;
+  padding-top: .55rem;
+}
+.trust-strip-methods::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 28px; height: 1px;
+  background: rgba(184,188,142,.12);
+}
+.trust-strip-exchanges {
+  display: flex;
+  gap: .22rem 1.1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  font-size: .6rem;
+  letter-spacing: .07em;
+  color: rgba(184,188,142,.45);
+  padding-top: .15rem;
+}
+
 /* ─── KEYFRAMES ─── */
 @keyframes fadeUp {
   from { opacity:0; transform:translateY(20px); }
@@ -1856,17 +1918,15 @@ footer {
   /* Hero */
   .support-strip {
     position: absolute;
-    height: 3.55rem;
-    padding: .4rem .8rem;
-    gap: .28rem .45rem;
+    height: 1.85rem;
+    padding: 0 1.25rem;
+    gap: 0 .85rem;
     font-size: .56rem;
-    align-content: center;
+    flex-wrap: nowrap;
+    background: linear-gradient(180deg, rgba(13,26,14,.72), rgba(8,13,9,.65));
+    border-bottom-color: transparent;
   }
-  .support-strip-copy {
-    flex-basis: 100%;
-    text-align: center;
-    font-size: .52rem;
-  }
+  .support-strip-copy { display: none; }
   .support-link {
     min-height: 1.3rem;
     padding: .18rem .52rem;
@@ -1878,18 +1938,22 @@ footer {
     display: none;
   }
   .support-link-short { display: inline; }
-  nav { position: absolute; top: 3.55rem; padding: .9rem 1.15rem; }
+  nav { position: absolute; top: 1.85rem; padding: .9rem 1.15rem; }
   .nav-logo { width: 148px; height: 54px; }
-  .nav-cta { font-size: .62rem; padding: .5rem .9rem; }
-  .hero-sound-btn { top: 8.55rem; }
-  .hero-content { padding: 0 1.25rem 2.4rem; }
+  .nav-cta { display: none; }
+  .hero-sound-btn {
+    top: 7.2rem;
+    width: 32px;
+    height: 32px;
+    opacity: .38;
+  }
+  .hero-content { padding: 0 1.25rem 3rem; }
   .hero-title { font-size: clamp(3.15rem, 14vw, 3.85rem); }
-  .hero-sub { font-size: .95rem; }
+  .hero-sub { font-size: .95rem; margin-top: 1.5rem; }
+  .hero-cta-wrap { gap: 1.05rem; margin-top: 2rem; }
   .btn-hero { padding: 1rem 2.25rem; width: 100%; max-width: 320px; text-align: center; }
-  .hero-payment-line { max-width: 315px; font-size: .58rem; gap: .32rem .46rem; }
-  .hero-payment-methods { gap: .26rem; }
-  .hero-payment-mark { font-size: .5rem; padding: .1rem .22rem; }
-  .hero-trust-line { max-width: 315px; font-size: .64rem; gap: .25rem .55rem; }
+  .trust-strip { padding: 2.5rem 1.25rem 2.75rem; }
+  .hero-scroll-hint { display: none; }
 
   /* Origem */
   .origem { padding: 3.5rem 1.25rem 3rem; }
@@ -2185,6 +2249,43 @@ footer {
   border: 0;
   font-family: inherit;
   cursor: pointer;
+}
+.vcard-cta.cartx-buy-button {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+.cartpanda-fallback-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.vcard-cta.cartx-buy-button iframe {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  min-height: 54px;
+  border: 0;
+  opacity: 0;
+}
+.vcard-cta.cartx-buy-button.cartpanda-ready {
+  background: transparent;
+  box-shadow: none;
+}
+.vcard-cta.cartx-buy-button.cartpanda-ready .cartpanda-fallback-label {
+  display: none;
+}
+.vcard-cta.cartx-buy-button.cartpanda-ready iframe {
+  position: static;
+  display: block;
+  opacity: 1;
 }
 
 /* 5 — Ritmo visual / mobile */
@@ -3083,7 +3184,7 @@ footer {
 
 <div class="support-strip" aria-label="Atendimento PattaMansa">
   <span class="support-strip-copy">Dúvidas? Fale com nossa equipe.</span>
-  <a class="support-link" href="https://wa.me/5519982174323?text=Vim%20pela%20Copa%2C%20quero%20saber%20sobre%20a%20camiseta" aria-label="Falar com a PattaMansa pelo WhatsApp" target="_blank" rel="noopener">
+  <a class="support-link" href="https://wa.me/5519995433638?text=Vim%20pela%20Copa%2C%20quero%20saber%20sobre%20a%20camiseta" aria-label="Falar com a PattaMansa pelo WhatsApp" target="_blank" rel="noopener">
     <svg class="support-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L4 20l1.2-4.4A8.4 8.4 0 1 1 21 11.5Z"/>
       <path d="M9.1 8.4c.2-.4.4-.4.7-.4h.5c.2 0 .4.1.5.4l.7 1.6c.1.2.1.4-.1.6l-.4.5c.6 1 1.4 1.8 2.5 2.4l.5-.4c.2-.2.4-.2.6-.1l1.5.7c.3.1.4.3.4.6v.4c0 .3-.1.6-.4.8-.4.3-.9.5-1.5.4-2.8-.5-5.2-2.6-6-5.3-.2-.6-.1-1.2.2-1.8Z"/>
@@ -3221,39 +3322,6 @@ footer {
     <div class="hero-cta-wrap">
       <a href="#algodao-peruano" class="btn-hero">Quero a minha →</a>
       <span class="hero-ebook-badge">🎁 E-book de adestramento grátis em todas as compras</span>
-      <div class="hero-payment-line" aria-label="Pagamento seguro com Pix, Visa, Mastercard e Elo">
-        <span class="hero-payment-copy">
-          <svg class="hero-payment-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="5" y="10" width="14" height="10" rx="2"/>
-            <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
-          </svg>
-          Pagamento seguro
-        </span>
-        <span class="hero-payment-methods" aria-hidden="true">
-          <span class="hero-payment-mark">
-            <svg class="hero-payment-pix-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
-              <path d="M12 3 21 12 12 21 3 12z"/>
-              <path d="M8 12h8"/>
-              <path d="M12 8v8"/>
-            </svg>
-            Pix
-          </span>
-          <span class="hero-payment-mark">Visa</span>
-          <span class="hero-payment-mark">
-            <svg class="hero-payment-master-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle cx="9" cy="12" r="5" stroke="currentColor" stroke-width="1.6"/>
-              <circle cx="15" cy="12" r="5" stroke="currentColor" stroke-width="1.6"/>
-            </svg>
-            Mastercard
-          </span>
-          <span class="hero-payment-mark">Elo</span>
-        </span>
-      </div>
-      <div class="hero-trust-line" aria-label="Condições de compra">
-        <span>&#10003; Primeira troca grátis</span>
-        <span>&#10003; Troca em até 30 dias</span>
-        <span>&#10003; Atendimento humano</span>
-      </div>
     </div>
   </div>
 
@@ -3341,8 +3409,8 @@ footer {
         <span class="tv-dot"></span>
         Ao vivo na cultura pet
       </div>
-      <video controls poster="Icone_3.png" preload="metadata">
-        <source src="WhatsApp Video 2026-05-25 at 11.40.02 (1).mp4" type="video/mp4">
+      <video controls preload="metadata" playsinline>
+        <source src="video de apresentação.mp4" type="video/mp4">
       </video>
       <span class="quem-video-badge">PattaMansa · No campo</span>
     </div>
@@ -3422,6 +3490,24 @@ footer {
     <img src="familia foto lp.png" class="familia-copa-img reveal" alt="Família usando camisetas PattaMansa assistindo ao jogo com cachorro caramelo" loading="lazy">
   </div>
 </section>
+
+<!-- ══ TRUST STRIP ══ -->
+<div class="trust-strip" aria-label="Segurança de compra">
+  <div class="trust-strip-inner">
+    <div class="trust-strip-badge">
+      <svg class="trust-strip-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="5" y="10" width="14" height="10" rx="2"/>
+        <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+      </svg>
+      <span class="trust-strip-title">Compra segura</span>
+    </div>
+    <p class="trust-strip-methods">PIX · VISA · MASTERCARD</p>
+    <div class="trust-strip-exchanges">
+      <span>&#10003; Primeira troca grátis</span>
+      <span>&#10003; Troca em até 30 dias</span>
+    </div>
+  </div>
+</div>
 
 <!-- ══ ALGODAO PERUANO ══ -->
 <section class="algodao-premium" id="algodao-peruano">
@@ -3749,7 +3835,9 @@ footer {
             <div class="sc-sizes" id="cfcSizes" role="group" aria-label="Selecionar tamanho"></div>
             <div class="vcard-actions">
               <span class="vcard-guide" role="button" tabindex="0" data-guide="regular-unissex">Guia de medidas</span>
-              <a href="#" class="vcard-cta" id="cfcCta">Garantir a minha</a>
+              <div class="vcard-cta cartx-buy-button" id="cfcCta" role="button" tabindex="0" data-buy-button="f122b187-0da6-47e6-b90d-042e5f799c58" data-shop-url="https://pattamansa.mycartpanda.com/" aria-label="Comprar Caramelo FC no checkout CartPanda">
+                <span class="cartpanda-fallback-label">Garantir a minha</span>
+              </div>
               <span class="vcard-ebook-hint">🎁 Inclui e-book gratuito · enviado por e-mail após a compra</span>
             </div>
           </div>
@@ -3858,7 +3946,7 @@ footer {
   </div>
   <div class="footer-support" aria-label="Atendimento PattaMansa">
     <span class="footer-block-title">Atendimento humano</span>
-    <a class="footer-support-link" href="https://wa.me/5519982174323?text=Vim%20pela%20Copa%2C%20quero%20saber%20sobre%20a%20camiseta" target="_blank" rel="noopener">
+    <a class="footer-support-link" href="https://wa.me/5519995433638?text=Vim%20pela%20Copa%2C%20quero%20saber%20sobre%20a%20camiseta" target="_blank" rel="noopener">
       <svg class="footer-support-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L4 20l1.2-4.4A8.4 8.4 0 1 1 21 11.5Z"/>
         <path d="M9.1 8.4c.2-.4.4-.4.7-.4h.5c.2 0 .4.1.5.4l.7 1.6c.1.2.1.4-.1.6l-.4.5c.6 1 1.4 1.8 2.5 2.4l.5-.4c.2-.2.4-.2.6-.1l1.5.7c.3.1.4.3.4.6v.4c0 .3-.1.6-.4.8-.4.3-.9.5-1.5.4-2.8-.5-5.2-2.6-6-5.3-.2-.6-.1-1.2.2-1.8Z"/>
@@ -4013,20 +4101,18 @@ footer {
     }
   })();
 
-  /* ── VÍDEO HERO — lazy-load mobile ──────────────────────────────
-   * Em mobile, o vídeo de fundo é diferido para depois do idle,
-   * evitando que concorra com o LCP e o carregamento inicial.
+  /* ── VÍDEO HERO — autoplay nativo (muted + playsinline) ─────────
+   * Deixa o browser gerenciar autoplay nativamente.
+   * Força play() apenas como fallback seguro após idle.
    * ─────────────────────────────────────────────────────────────── */
   (function () {
     var v = document.getElementById('heroVideo');
-    if (!v || window.innerWidth >= 768) return;
-    v.removeAttribute('autoplay');
-    v.preload = 'none';
-    var go = function () { v.load(); v.play().catch(function () {}); };
+    if (!v) return;
+    var go = function () { v.play().catch(function () {}); };
     if ('requestIdleCallback' in window) {
-      requestIdleCallback(go, { timeout: 2000 });
+      requestIdleCallback(go, { timeout: 1000 });
     } else {
-      setTimeout(go, 1500);
+      setTimeout(go, 800);
     }
   })();
 
@@ -4529,7 +4615,7 @@ footer {
 
   /* ── Seleção Canina ── */
   (function () {
-    const WA_NUM = '5500000000000'; // TODO: substituir pelo número real (ex: 5511987654321)
+    const WA_NUM = '5519995433638';
     const variants = [
       { name: 'Amarelo',      hex: '#F0C830', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/amarelo%208.webp', light: true },
       { name: 'Preta',        hex: '#1C1C1C', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/preta%202.webp' },
@@ -5304,7 +5390,6 @@ footer {
 
   /* ── Caramelo Futebol Clube — Unissex ── */
   (function () {
-    const WA_NUM = '5500000000000';
     const variants = [
       { name: 'Preta',     hex: '#1C1C1C', img: 'cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/preta.webp' },
       { name: 'Areia',     hex: '#D7C7A5', img: 'cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/areia.webp', light: true },
@@ -5371,8 +5456,7 @@ footer {
     function syncCta() {
       const cor = variants[activeCor].name;
       const tam = activeSz || '(escolha o tamanho)';
-      ctaBtn.href = 'https://wa.me/' + WA_NUM + '?text=' +
-        encodeURIComponent('Olá! Quero comprar a camiseta Caramelo Futebol Clube Unissex na cor ' + cor + ' e tamanho ' + tam + '.');
+      ctaBtn.setAttribute('aria-label', 'Comprar Caramelo Futebol Clube Unissex pelo checkout CartPanda na cor ' + cor + ' e tamanho ' + tam);
     }
 
     syncCta();
@@ -5812,6 +5896,74 @@ footer {
   }
 </script>
 
+<script>
+  (function () {
+    var src = 'https://pattamansa.mycartpanda.com/js/buy-button.min.js';
+
+    function markCartPandaReady() {
+      document.querySelectorAll('.cartx-buy-button').forEach(function (button) {
+        var iframe = button.querySelector('iframe.buy-button-frame');
+        if (!iframe) return;
+
+        try {
+          var body = iframe.contentDocument && iframe.contentDocument.body;
+          if (iframe.style.display !== 'none' && body && body.children.length) {
+            button.classList.add('cartpanda-ready');
+          }
+        } catch (e) {}
+      });
+    }
+
+    function watchCartPandaReady() {
+      var attempts = 0;
+      markCartPandaReady();
+      var timer = setInterval(function () {
+        attempts += 1;
+        markCartPandaReady();
+        if (attempts >= 12) clearInterval(timer);
+      }, 500);
+    }
+
+    document.addEventListener('click', function (e) {
+      var button = e.target.closest('#cfcCta.cartx-buy-button');
+      if (!button || button.classList.contains('cartpanda-ready')) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      var iframe = button.querySelector('iframe.buy-button-frame');
+      try {
+        var doc = iframe && iframe.contentDocument;
+        var clickable = doc && doc.querySelector('button, a, input[type="submit"], [role="button"]');
+        if (clickable) {
+          clickable.click();
+          return;
+        }
+      } catch (err) {}
+
+      window.open(button.dataset.shopUrl || 'https://pattamansa.mycartpanda.com/', '_blank', 'noopener');
+    }, true);
+
+    document.addEventListener('keydown', function (e) {
+      var button = e.target.closest('#cfcCta.cartx-buy-button');
+      if (!button || (e.key !== 'Enter' && e.key !== ' ')) return;
+      e.preventDefault();
+      button.click();
+    });
+
+    if (document.querySelector('script[src="' + src + '"]')) {
+      watchCartPandaReady();
+      return;
+    }
+
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = src;
+    script.async = true;
+    script.onload = watchCartPandaReady;
+    document.body.appendChild(script);
+  })();
+</script>
 
 </body>
 </html>
