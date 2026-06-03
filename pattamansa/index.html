@@ -3041,40 +3041,103 @@ footer {
   }
 }
 
-/* ── Lado esquerdo: mockup ── */
+/* ── Lado esquerdo: livro composto ── */
 .bonus-ebook-visual {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.25rem;
+  gap: 1.5rem;
+  width: 100%;
 }
-.bonus-ebook-mockup {
+.bonus-ebook-book-wrap {
   position: relative;
   width: 100%;
-  max-width: 320px;
+  max-width: 300px;
 }
 .bonus-ebook-shadow {
   position: absolute;
-  bottom: -24px;
+  bottom: -22px;
   left: 50%; transform: translateX(-50%);
-  width: 78%;
-  height: 40px;
-  background: radial-gradient(ellipse, rgba(0,0,0,.55) 0%, transparent 70%);
+  width: 80%;
+  height: 36px;
+  background: radial-gradient(ellipse, rgba(0,0,0,.6) 0%, transparent 70%);
   pointer-events: none;
 }
-.bonus-ebook-cover {
+.bonus-ebook-book {
   width: 100%;
-  display: block;
-  border-radius: 8px;
+  aspect-ratio: 2 / 3;
+  border-radius: 4px 10px 10px 4px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform: perspective(900px) rotateY(-8deg) rotateX(2deg);
+  transition: transform .4s ease;
   box-shadow:
-    0 4px 0 rgba(0,0,0,.18),
-    0 24px 60px rgba(0,0,0,.45),
+    5px 3px 0 1px rgba(0,0,0,.4),
+    0 28px 70px rgba(0,0,0,.55),
     0 0 0 1px rgba(184,188,142,.1);
-  transform: perspective(900px) rotateY(-6deg) rotateX(2deg);
+}
+.bonus-ebook-book-wrap:hover .bonus-ebook-book {
+  transform: perspective(900px) rotateY(-3deg) rotateX(1deg) translateY(-6px);
+}
+.bonus-ebook-book-photo {
+  flex: 0 0 56%;
+  overflow: hidden;
+  position: relative;
+  background: var(--verde-deep);
+}
+.bonus-ebook-book-dog {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 40% 35%;
+  display: block;
+  filter: brightness(.88) saturate(.9);
   transition: transform .4s ease;
 }
-.bonus-ebook-mockup:hover .bonus-ebook-cover {
-  transform: perspective(900px) rotateY(-2deg) rotateX(1deg) translateY(-4px);
+.bonus-ebook-book-wrap:hover .bonus-ebook-book-dog {
+  transform: scale(1.04);
+}
+.bonus-ebook-book-photo-fade {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 48%;
+  background: linear-gradient(to bottom, transparent, #0d1a0e);
+  pointer-events: none;
+}
+.bonus-ebook-book-content {
+  flex: 1;
+  background: #0d1a0e;
+  padding: .7rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: .28rem;
+  border-top: 1px solid rgba(245,163,70,.18);
+}
+.bonus-ebook-book-brand {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: .68rem;
+  color: var(--laranja);
+  letter-spacing: .04em;
+  opacity: .9;
+}
+.bonus-ebook-book-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.18rem;
+  line-height: .95;
+  letter-spacing: .03em;
+  color: var(--creme);
+  margin: 0;
+}
+.bonus-ebook-book-subtitle {
+  font-size: .55rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--sage);
+  opacity: .45;
+  margin-top: .18rem;
 }
 .bonus-ebook-valor {
   display: flex;
@@ -3225,15 +3288,13 @@ footer {
 
 @media (max-width: 760px) {
   .bonus-ebook { padding: 4.5rem 1.25rem 5rem; }
-  .bonus-ebook-visual { flex-direction: row; align-items: flex-end; gap: 1.25rem; }
-  .bonus-ebook-mockup { max-width: 200px; }
-  .bonus-ebook-cover { transform: perspective(700px) rotateY(-4deg); }
+  .bonus-ebook-book-wrap { max-width: 240px; }
   .bonus-ebook-titulo { font-size: clamp(2.2rem, 9vw, 3rem); }
   .bonus-ebook-cta { align-self: stretch; text-align: center; width: 100%; }
 }
 @media (max-width: 420px) {
-  .bonus-ebook-visual { flex-direction: column; align-items: center; }
-  .bonus-ebook-mockup { max-width: 220px; }
+  .bonus-ebook-book-wrap { max-width: 200px; }
+  .bonus-ebook-book-title { font-size: 1rem; }
 }
 </style>
 </head>
@@ -3615,14 +3676,24 @@ footer {
 <section class="bonus-ebook" id="bonus-ebook" aria-label="Presente da PattaMansa: e-book gratuito">
   <div class="bonus-ebook-inner">
 
-    <!-- Mockup da capa -->
+    <!-- Mockup de livro composto (cão dentro da capa) -->
     <div class="bonus-ebook-visual reveal">
-      <div class="bonus-ebook-mockup">
-        <img
-          src="ebook%20adestramento%20pattamansa/__current_pages/page_01.png"
-          alt="Capa do e-book: O Guia Completo para Cães Bem-Comportados — PattaMansa"
-          class="bonus-ebook-cover"
-          loading="lazy">
+      <div class="bonus-ebook-book-wrap">
+        <div class="bonus-ebook-book" aria-label="Capa do e-book: O Guia Completo para Cães Bem-Comportados">
+          <div class="bonus-ebook-book-photo">
+            <img
+              src="ebook%20adestramento%20pattamansa/fotos%20ebook/file_000000000c9c720e989cfab41a4fb176.png"
+              alt="Cão caramelo em sessão de adestramento — PattaMansa"
+              class="bonus-ebook-book-dog"
+              loading="lazy">
+            <div class="bonus-ebook-book-photo-fade"></div>
+          </div>
+          <div class="bonus-ebook-book-content">
+            <span class="bonus-ebook-book-brand">PattaMansa</span>
+            <p class="bonus-ebook-book-title">O Guia Completo<br>para Cães<br>Bem-Comportados</p>
+            <span class="bonus-ebook-book-subtitle">Adestramento de Obediência Básica</span>
+          </div>
+        </div>
         <div class="bonus-ebook-shadow"></div>
       </div>
       <div class="bonus-ebook-valor">
