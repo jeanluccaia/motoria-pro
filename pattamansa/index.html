@@ -3018,7 +3018,7 @@ footer {
   position: relative; z-index: 1;
   display: grid;
   grid-template-columns: 260px 1fr;
-  gap: 5rem;
+  gap: 4rem;
   align-items: center;
 }
 
@@ -3026,38 +3026,41 @@ footer {
 .bonus-ebook-visual { display: flex; justify-content: center; }
 .bonus-ebook-book-wrap { position: relative; width: 100%; max-width: 260px; }
 .bonus-ebook-shadow { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); width: 72%; height: 28px; background: radial-gradient(ellipse, rgba(0,0,0,.5) 0%, transparent 70%); pointer-events: none; }
-.bonus-ebook-book { width: 100%; aspect-ratio: 2/3; border-radius: 3px 8px 8px 3px; overflow: hidden; display: flex; flex-direction: column; transform: perspective(800px) rotateY(-5deg) rotateX(1deg); transition: transform .4s ease; box-shadow: 4px 2px 0 rgba(0,0,0,.28), 0 20px 56px rgba(0,0,0,.5), 0 0 0 1px rgba(184,188,142,.08); }
+.bonus-ebook-book { width: 100%; aspect-ratio: 2/3; border-radius: 3px 8px 8px 3px; overflow: hidden; display: flex; flex-direction: column; transform: perspective(800px) rotateY(-5deg) rotateX(1deg); transition: transform .4s ease; box-shadow: 4px 2px 0 rgba(0,0,0,.28), 0 22px 60px rgba(0,0,0,.52), 0 0 0 1px rgba(184,188,142,.08); }
 .bonus-ebook-book-wrap:hover .bonus-ebook-book { transform: perspective(800px) rotateY(-2deg) rotateX(.4deg) translateY(-5px); }
-.bonus-ebook-book-photo { flex: 0 0 62%; overflow: hidden; position: relative; background: var(--verde-deep); }
-.bonus-ebook-book-dog { width: 100%; height: 100%; object-fit: cover; object-position: 40% 28%; display: block; filter: brightness(.88) saturate(.82); transition: transform .4s ease; }
+.bonus-ebook-book-photo { flex: 0 0 65%; overflow: hidden; position: relative; background: var(--verde-deep); }
+.bonus-ebook-book-dog { width: 100%; height: 100%; object-fit: cover; object-position: 40% 22%; display: block; filter: brightness(.92) saturate(.88) contrast(1.04); transition: transform .4s ease; }
 .bonus-ebook-book-wrap:hover .bonus-ebook-book-dog { transform: scale(1.04); }
-.bonus-ebook-book-photo-fade { position: absolute; bottom: 0; left: 0; right: 0; height: 52%; background: linear-gradient(to bottom, transparent, #090f0a); pointer-events: none; }
-.bonus-ebook-book-content { flex: 1; background: #090f0a; padding: .65rem .95rem .9rem; display: flex; flex-direction: column; justify-content: flex-end; gap: .22rem; border-top: 1px solid rgba(245,163,70,.28); }
-.bonus-ebook-book-brand { font-family: 'Fraunces', serif; font-style: italic; font-size: .68rem; color: var(--laranja); opacity: .82; }
-.bonus-ebook-book-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; line-height: .93; letter-spacing: .03em; color: var(--creme); margin: 0; }
-.bonus-ebook-book-subtitle { font-size: .5rem; letter-spacing: .1em; text-transform: uppercase; color: var(--sage); opacity: .35; margin-top: .12rem; }
+.bonus-ebook-book-photo-fade { position: absolute; bottom: 0; left: 0; right: 0; height: 55%; background: linear-gradient(to bottom, transparent 20%, #090f0a); pointer-events: none; }
+.bonus-ebook-book-content { flex: 1; background: linear-gradient(160deg, #0e1a10, #090f0a); padding: .65rem .95rem .9rem; display: flex; flex-direction: column; justify-content: flex-end; gap: .22rem; border-top: 2px solid rgba(245,163,70,.42); }
+.bonus-ebook-book-brand { font-family: 'Fraunces', serif; font-style: italic; font-size: .72rem; letter-spacing: .05em; color: var(--laranja); opacity: .88; }
+.bonus-ebook-book-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; line-height: .93; letter-spacing: .04em; color: var(--creme); margin: 0; }
+.bonus-ebook-book-subtitle { font-size: .5rem; letter-spacing: .11em; text-transform: uppercase; color: var(--sage); opacity: .38; margin-top: .14rem; }
 
 /* ── Copy (direita) ── */
-.bonus-ebook-copy { display: flex; flex-direction: column; gap: 1.35rem; }
-.bonus-ebook-seal { font-size: .54rem; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: rgba(184,188,142,.5); }
-.bonus-ebook-titulo { font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.9rem, 3.8vw, 2.6rem); line-height: .95; color: var(--creme); letter-spacing: .02em; }
-.bonus-ebook-sub { font-size: clamp(.86rem, 1.7vw, .98rem); line-height: 1.75; color: rgba(242,237,224,.5); max-width: 44ch; margin: 0; }
-.bonus-ebook-checks { list-style: none; display: flex; flex-direction: column; gap: .48rem; padding: 0; margin: 0; border-top: 1px solid rgba(184,188,142,.07); padding-top: 1.15rem; }
+.bonus-ebook-copy { display: flex; flex-direction: column; gap: 1.2rem; }
+.bonus-ebook-seal { font-size: .54rem; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: rgba(184,188,142,.58); }
+.bonus-ebook-titulo { font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.85rem, 3.8vw, 2.55rem); line-height: .95; color: var(--creme); letter-spacing: .02em; margin-top: .1rem; }
+.bonus-ebook-sub { font-size: clamp(.86rem, 1.7vw, .96rem); line-height: 1.72; color: rgba(242,237,224,.48); max-width: 44ch; margin: 0; }
+.bonus-ebook-checks { list-style: none; display: flex; flex-direction: column; gap: .5rem; padding: 0; margin: 0; border-top: 1px solid rgba(184,188,142,.07); padding-top: 1.1rem; }
 .bonus-ebook-checks li { display: flex; align-items: flex-start; gap: .52rem; font-size: .82rem; color: var(--sage); opacity: .78; line-height: 1.45; }
 .bonus-ebook-checks li::before { content: '✓'; flex-shrink: 0; font-size: .75rem; color: var(--laranja); opacity: .85; margin-top: .06rem; }
-.bonus-ebook-value { display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap; border-top: 1px solid rgba(184,188,142,.07); padding-top: 1.15rem; }
-.bonus-ebook-value-de { font-size: .8rem; color: rgba(184,188,142,.3); text-decoration: line-through; letter-spacing: .03em; }
-.bonus-ebook-value-label { font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.85rem, 3.8vw, 2.4rem); letter-spacing: .07em; color: var(--laranja); line-height: 1; }
-.bonus-ebook-value-hint { font-size: .58rem; letter-spacing: .1em; text-transform: uppercase; color: rgba(184,188,142,.32); align-self: center; }
-.bonus-ebook-cta { display: inline-flex; align-items: center; font-size: .72rem; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--preto); background: var(--laranja); padding: 1rem 2.25rem; border-radius: 2px; text-decoration: none; transition: transform .15s, box-shadow .2s; align-self: flex-start; }
+.bonus-ebook-value { display: flex; align-items: baseline; gap: .75rem; flex-wrap: wrap; border-top: 1px solid rgba(184,188,142,.07); padding-top: 1.1rem; }
+.bonus-ebook-value-de { font-size: .72rem; color: rgba(184,188,142,.2); text-decoration: line-through; letter-spacing: .03em; }
+.bonus-ebook-value-label { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.2rem, 4.5vw, 3rem); letter-spacing: .07em; color: var(--laranja); line-height: 1; text-shadow: 0 0 48px rgba(245,163,70,.22); }
+.bonus-ebook-value-hint { font-size: .6rem; letter-spacing: .1em; text-transform: uppercase; color: rgba(184,188,142,.35); align-self: center; }
+.bonus-ebook-cta { display: inline-flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--preto); background: var(--laranja); padding: 1.1rem 2.25rem; border-radius: 2px; text-decoration: none; transition: transform .15s, box-shadow .2s; align-self: flex-start; min-height: 48px; }
 .bonus-ebook-cta:hover { transform: translateY(-2px); box-shadow: 0 10px 34px rgba(245,163,70,.3); }
 
 @media (max-width: 720px) {
-  .bonus-ebook { padding: 3.5rem 1.25rem 4rem; }
-  .bonus-ebook-inner { grid-template-columns: 1fr; gap: 2rem; }
-  .bonus-ebook-book-wrap { max-width: 200px; margin: 0 auto; }
-  .bonus-ebook-titulo { font-size: clamp(1.75rem, 7vw, 2.2rem); }
-  .bonus-ebook-cta { align-self: stretch; justify-content: center; }
+  .bonus-ebook { padding: 3rem 1.25rem 3.5rem; }
+  .bonus-ebook-inner { grid-template-columns: 1fr; gap: 1.75rem; }
+  .bonus-ebook-book-wrap { max-width: 185px; margin: 0 auto; }
+  .bonus-ebook-copy { gap: 1.1rem; }
+  .bonus-ebook-titulo { font-size: clamp(1.75rem, 7.5vw, 2.2rem); }
+  .bonus-ebook-checks { padding-top: .95rem; }
+  .bonus-ebook-value { padding-top: .95rem; }
+  .bonus-ebook-cta { align-self: stretch; padding: 1.2rem 2rem; }
 }
 </style>
 </head>
@@ -3464,8 +3467,8 @@ footer {
     <!-- Copy (direita no desktop) -->
     <div class="bonus-ebook-copy reveal">
       <span class="bonus-ebook-seal">🐾 Criado por adestradores profissionais</span>
-      <h2 class="bonus-ebook-titulo">🎁 Ganhe gratuitamente nosso Guia de Adestramento Básico</h2>
-      <p class="bonus-ebook-sub">Na compra de qualquer camiseta PattaMansa, você recebe gratuitamente um guia criado por profissionais que trabalham com cães todos os dias.</p>
+      <h2 class="bonus-ebook-titulo">🎁 Um presente para quem faz parte da matilha.</h2>
+      <p class="bonus-ebook-sub">Na compra de qualquer camiseta PattaMansa, você leva gratuitamente nosso Guia de Adestramento Básico.</p>
       <ul class="bonus-ebook-checks">
         <li>Primeiros comandos</li>
         <li>Técnicas de reforço positivo</li>
