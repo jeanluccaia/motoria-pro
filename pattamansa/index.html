@@ -3856,9 +3856,7 @@ footer {
             <div class="sc-sizes" id="cfcSizes" role="group" aria-label="Selecionar tamanho"></div>
             <div class="vcard-actions">
               <span class="vcard-guide" role="button" tabindex="0" data-guide="regular-unissex">Guia de medidas</span>
-              <div class="vcard-cta cartx-buy-button" id="cfcCta" role="button" tabindex="0" data-buy-button="f122b187-0da6-47e6-b90d-042e5f799c58" data-shop-url="https://pattamansa.mycartpanda.com/" aria-label="Comprar Caramelo FC no checkout CartPanda">
-                <span class="cartpanda-fallback-label">Garantir a minha</span>
-              </div>
+              <button type="button" class="vcard-cta" id="cfcCta" aria-label="Adicionar Caramelo Futebol Clube ao carrinho">Adicionar ao carrinho</button>
               <span class="vcard-ebook-hint">🎁 Inclui e-book gratuito · enviado por e-mail após a compra</span>
             </div>
           </div>
@@ -4162,7 +4160,7 @@ footer {
 
   /* ─── PATTA CART — gerenciador de carrinho local ─── */
   var PattaCart = (function () {
-    var KEY = 'patta_cart_v1';
+    var KEY = 'patta_cart_v2';
     var items = [];
 
     function load() {
@@ -4241,8 +4239,7 @@ footer {
     var toastMsg    = document.getElementById('cartToastMsg');
     var toastTimer  = null;
 
-    var CART_URL      = 'https://pattamansa.lojavirtualnuvem.com.br/comprar/';
-    var CART_VIEW_URL = 'https://pattamansa.lojavirtualnuvem.com.br/comprar/';
+    var SHOPIFY_DOMAIN = 'unmtvj-cr.myshopify.com';
 
     function open() {
       overlay.removeAttribute('aria-hidden');
@@ -4350,86 +4347,30 @@ footer {
       if (e.key === 'Escape' && drawer && drawer.classList.contains('open')) close();
     });
 
-    /* ── Finalizar Compra ── */
-    function addField(form, name, value) {
-      var input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = name;
-      input.value = value;
-      form.appendChild(input);
-    }
-
-    /*
-     * CHECKOUT
-     *
-     * 1 item  → POST direto na janela principal (formato padrão Nuvemshop).
-     * N itens → janela nomeada 'ptm_cart' para cada item com delay de 1.5s.
-     *
-     * Por que janela nomeada?
-     *   - Iframes bloqueiam cookies SameSite=Lax → sessões separadas por item.
-     *   - Janela nomeada é top-level navigation: cookies SameSite=Lax enviados.
-     *   - Reuso do mesmo nome 'ptm_cart' mantém a mesma sessão Nuvemshop.
-     *   - Após N*1.5s, a janela principal navega para /comprar/ com todos os itens.
-     */
-    function buildItemForm(item, targetName) {
-      var form = document.createElement('form');
-      form.method = 'POST';
-      form.action = CART_URL;
-      form.style.display = 'none';
-      if (targetName) form.target = targetName;
-      addField(form, 'add_to_cart', item.cartPayload.add_to_cart);
-      var vi = 0;
-      while (item.cartPayload['variation[' + vi + ']'] != null) {
-        addField(form, 'variation[' + vi + ']', item.cartPayload['variation[' + vi + ']']);
-        vi++;
-      }
-      addField(form, 'quantity', String(item.quantity));
-      return form;
-    }
-
+    /* ── Finalizar Compra — Shopify cart permalink ── */
     if (checkoutBtn) {
       checkoutBtn.addEventListener('click', function () {
         var items = PattaCart.getItems();
         if (!items.length) return;
 
+        if (window.fbq) {
+          fbq('track', 'InitiateCheckout', {
+            content_ids: items.map(function (i) { return i.variantId; }),
+            num_items: PattaCart.count(),
+            value: PattaCart.total(),
+            currency: 'BRL'
+          });
+        }
+
         checkoutBtn.disabled = true;
         checkoutBtn.classList.add('loading');
-        checkoutBtn.textContent = 'Aguarde…';
+        checkoutBtn.textContent = 'Redirecionando…';
 
-        if (items.length === 1) {
-          /* — 1 item: POST direto na janela principal — */
-          var form = buildItemForm(items[0], null);
-          document.body.appendChild(form);
-          form.submit();
+        var lineItems = items.map(function (item) {
+          return item.variantId + ':' + item.quantity;
+        }).join(',');
 
-        } else {
-          /* — N itens: janela nomeada com delay entre cada POST — */
-          var DELAY = 1800; // ms entre cada item (tempo para Nuvemshop processar)
-
-          // Item 0: enviado imediatamente dentro do handler (gesto do usuário)
-          // → garante que o popup não seja bloqueado
-          var f0 = buildItemForm(items[0], 'ptm_cart');
-          document.body.appendChild(f0);
-          f0.submit();
-          f0.remove();
-
-          // Itens 1..N-1: enviados com delay, reusando a janela 'ptm_cart'
-          for (var i = 1; i < items.length; i++) {
-            (function (item, delay) {
-              setTimeout(function () {
-                var f = buildItemForm(item, 'ptm_cart');
-                document.body.appendChild(f);
-                f.submit();
-                f.remove();
-              }, delay);
-            })(items[i], i * DELAY);
-          }
-
-          // Após todos os itens, navega a janela principal para o carrinho
-          setTimeout(function () {
-            window.location.href = CART_VIEW_URL;
-          }, items.length * DELAY);
-        }
+        window.location.href = 'https://' + SHOPIFY_DOMAIN + '/cart/' + lineItems;
       });
     }
 
@@ -4459,8 +4400,6 @@ footer {
     var summTotal = document.getElementById('pdvSummaryTotal');
     var errEl     = document.getElementById('pdvErr');
     var ctaBtn    = document.getElementById('pdvCtaBtn');
-    /* URL base do carrinho Nuvemshop — usado como GET para add_to_cart */
-    var NUVEMSHOP_CART = 'https://pattamansa.lojavirtualnuvem.com.br/comprar/';
     var _cfg = null, _cor = 0, _sz = null, _qty = 1;
 
     function fmt(v) { return 'R$ ' + v.toFixed(2).replace('.', ','); }
@@ -4478,7 +4417,7 @@ footer {
       overlay.classList.remove('open'); overlay.setAttribute('aria-hidden','true');
       drawer.classList.remove('open');  drawer.setAttribute('aria-hidden','true');
       document.body.style.overflow = '';
-      if (ctaBtn) { ctaBtn.disabled = false; ctaBtn.textContent = 'Garantir agora'; }
+      if (ctaBtn) { ctaBtn.disabled = false; ctaBtn.textContent = 'Adicionar ao carrinho'; }
     }
 
     function render() {
@@ -4544,13 +4483,7 @@ footer {
       summTotal.textContent = fmt(_cfg.price * _qty);
     }
 
-    /*
-     * irParaCheckout — mecanismo oficial Nuvemshop
-     * GET navigation: /comprar/?add_to_cart=VARIANT_ID&quantity=N
-     * NUNCA usa fetch/XHR; window.location.href é o que grava o cookie de
-     * sessão e garante o item no carrinho.
-     */
-    function irParaCheckout() {
+    function addToCart() {
       if (_cfg.sizes && _cfg.sizes.length && !_sz) {
         errEl.classList.add('visible');
         sizeSec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -4565,19 +4498,41 @@ footer {
       if (!variantId) {
         errEl.textContent = 'Combinação indisponível. Escolha outra opção.';
         errEl.classList.add('visible');
-        console.error('[PattaMansa] Variante não mapeada:', {
+        console.error('[PattaMansa] Variante Shopify não mapeada:', {
           product: _cfg.name, cor: cor && cor.cartValue, tamanho: _sz
         });
         return;
       }
 
       ctaBtn.disabled = true;
-      ctaBtn.textContent = 'Aguarde…';
+      ctaBtn.textContent = 'Adicionando…';
 
-      /* Navegação top-level — envia cookie SameSite=Lax, item persiste no carrinho */
-      window.location.href = NUVEMSHOP_CART
-        + '?add_to_cart=' + encodeURIComponent(variantId)
-        + '&quantity='    + _qty;
+      PattaCart.add({
+        productId: _cfg.productId,
+        variantId: variantId,
+        productName: _cfg.name,
+        color: cor ? cor.name : '',
+        size: _sz,
+        quantity: _qty,
+        price: _cfg.price,
+        image: cor ? cor.img : (_cfg.defaultImage || ''),
+      });
+
+      if (window.fbq) {
+        fbq('track', 'AddToCart', {
+          content_ids: [variantId],
+          content_name: _cfg.name,
+          content_type: 'product',
+          value: _cfg.price * _qty,
+          currency: 'BRL'
+        });
+      }
+
+      close();
+      if (window.PattaCartUI) {
+        PattaCartUI.showToast(_cfg.name + ' adicionado ao carrinho.');
+        PattaCartUI.open();
+      }
     }
 
     if (closeBtn) closeBtn.addEventListener('click', close);
@@ -4587,7 +4542,7 @@ footer {
     });
     if (qtyMinus) qtyMinus.addEventListener('click', function () { if (_qty > 1)  { _qty--; syncSummary(); } });
     if (qtyPlus)  qtyPlus.addEventListener('click',  function () { if (_qty < 10) { _qty++; syncSummary(); } });
-    if (ctaBtn)   ctaBtn.addEventListener('click', irParaCheckout);
+    if (ctaBtn)   ctaBtn.addEventListener('click', addToCart);
 
     return { open: open, close: close };
   })();
@@ -4636,18 +4591,36 @@ footer {
 
   /* ── Seleção Canina ── */
   (function () {
-    const WA_NUM = '5519995433638';
+    const PRODUCT_ID = '10286662156589';
     const variants = [
-      { name: 'Amarelo',      hex: '#F0C830', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/amarelo%208.webp', light: true },
-      { name: 'Preta',        hex: '#1C1C1C', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/preta%202.webp' },
-      { name: 'Branca',       hex: '#F0EDE5', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/branca%203.webp', light: true },
-      { name: 'Azul Marinho', hex: '#1C2B4A', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/azul%20marinho%204.webp' },
-      { name: 'Cinza',        hex: '#8A8A8A', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/cinza%205.webp' },
-      { name: 'Laranja',      hex: '#E87722', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/laranja%206.webp' },
-      { name: 'Verde Musgo',  hex: '#4A5E3A', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/verde%20musgo%207.webp' },
-      { name: 'Rosa',         hex: '#D4718A', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/rosa%209.webp' },
+      { name: 'Amarelo',      cartValue: 'Amarelo',      hex: '#F0C830', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/amarelo%208.webp', light: true },
+      { name: 'Preta',        cartValue: 'Preto',        hex: '#1C1C1C', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/preta%202.webp' },
+      { name: 'Branca',       cartValue: 'Branco',       hex: '#F0EDE5', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/branca%203.webp', light: true },
+      { name: 'Azul Marinho', cartValue: 'Azul Marinho', hex: '#1C2B4A', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/azul%20marinho%204.webp' },
+      { name: 'Cinza',        cartValue: 'Cinza',        hex: '#8A8A8A', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/cinza%205.webp' },
+      { name: 'Laranja',      cartValue: 'Laranja',      hex: '#E87722', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/laranja%206.webp' },
+      { name: 'Verde Musgo',  cartValue: 'Verde Musgo',  hex: '#4A5E3A', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/verde%20musgo%207.webp' },
+      { name: 'Rosa',         cartValue: 'Rosa',         hex: '#D4718A', img: 'cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/rosa%209.webp' },
     ];
     const SIZES = ['PP', 'P', 'M', 'G', 'GG', '3G', '4G'];
+    const scBlVariantIds = {
+      'Amarelo|PP':'52109569851693','Amarelo|P':'52109569884461','Amarelo|M':'52109569917229',
+      'Amarelo|G':'52109569949997','Amarelo|GG':'52109569982765','Amarelo|3G':'52109570015533','Amarelo|4G':'52109570048301',
+      'Preto|PP':'52109570081069','Preto|P':'52109570113837','Preto|M':'52109570146605',
+      'Preto|G':'52109570179373','Preto|GG':'52109570212141','Preto|3G':'52109570244909','Preto|4G':'52109570277677',
+      'Branco|PP':'52109570310445','Branco|P':'52109570343213','Branco|M':'52109570375981',
+      'Branco|G':'52109570408749','Branco|GG':'52109570441517','Branco|3G':'52109570474285','Branco|4G':'52109570507053',
+      'Azul Marinho|PP':'52109570539821','Azul Marinho|P':'52109570572589','Azul Marinho|M':'52109570605357',
+      'Azul Marinho|G':'52109570638125','Azul Marinho|GG':'52109570670893','Azul Marinho|3G':'52109570703661','Azul Marinho|4G':'52109570736429',
+      'Cinza|PP':'52109570769197','Cinza|P':'52109570801965','Cinza|M':'52109570834733',
+      'Cinza|G':'52109570867501','Cinza|GG':'52109570900269','Cinza|3G':'52109570933037','Cinza|4G':'52109570965805',
+      'Laranja|PP':'52109570998573','Laranja|P':'52109571031341','Laranja|M':'52109571064109',
+      'Laranja|G':'52109571096877','Laranja|GG':'52109571129645','Laranja|3G':'52109571162413','Laranja|4G':'52109571195181',
+      'Verde Musgo|PP':'52109571227949','Verde Musgo|P':'52109571260717','Verde Musgo|M':'52109571293485',
+      'Verde Musgo|G':'52109571326253','Verde Musgo|GG':'52109571359021','Verde Musgo|3G':'52109571391789','Verde Musgo|4G':'52109571424557',
+      'Rosa|PP':'52109571457325','Rosa|P':'52109571490093','Rosa|M':'52109571522861',
+      'Rosa|G':'52109571555629','Rosa|GG':'52109571588397','Rosa|3G':'52109571621165','Rosa|4G':'52109571653933',
+    };
 
     const img    = document.getElementById('scImg');
     const corNome = document.getElementById('scCorNome');
@@ -4705,12 +4678,21 @@ footer {
     }
 
     function syncCta() {
-      const cor = variants[activeCor].name;
-      const tam = activeSz || '(escolha o tamanho)';
-      ctaBtn.href = 'https://wa.me/' + WA_NUM + '?text=' +
-        encodeURIComponent('Olá! Quero comprar a camiseta Seleção Canina na cor ' + cor + ' e tamanho ' + tam + '.');
+      ctaBtn.removeAttribute('href');
+      ctaBtn.type = 'button';
     }
 
+    ctaBtn.onclick = null;
+    ctaBtn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      ProductDrawer.open({
+        name: 'Seleção Canina · Baby Look · Feminina',
+        price: 129.90, installments: 10, installmentText: 'ou 10x de R$13,51',
+        defaultImage: variants[0].img,
+        colors: variants, sizes: SIZES,
+        variantIds: scBlVariantIds, productId: PRODUCT_ID,
+      });
+    }, true);
     syncCta();
   })();
 
@@ -4782,20 +4764,20 @@ footer {
     }
 
     const smVariantIds = {
-      'Preto|PP':'1535414899','Preto|P':'1535414900','Preto|M':'1535414902',
-      'Preto|G':'1535414904','Preto|GG':'1535414905','Preto|3G':'1535414906','Preto|4G':'1535414907',
-      'Branco|PP':'1535414908','Branco|P':'1535414910','Branco|M':'1535414911',
-      'Branco|G':'1535414912','Branco|GG':'1535414913','Branco|3G':'1535414914','Branco|4G':'1535414915',
-      'Cinza|PP':'1535414916','Cinza|P':'1535414917','Cinza|M':'1535414918',
-      'Cinza|G':'1535414920','Cinza|GG':'1535414922','Cinza|3G':'1535414923','Cinza|4G':'1535414925',
-      'Laranja|PP':'1535414926','Laranja|P':'1535414927','Laranja|M':'1535414928',
-      'Laranja|G':'1535414929','Laranja|GG':'1535414930','Laranja|3G':'1535414931','Laranja|4G':'1535414932',
-      'Amarelo|PP':'1535414934','Amarelo|P':'1535414935','Amarelo|M':'1535414937',
-      'Amarelo|G':'1535414939','Amarelo|GG':'1535414940','Amarelo|3G':'1535414941','Amarelo|4G':'1535414943',
-      'Azul Marinho|PP':'1535414944','Azul Marinho|P':'1535414945','Azul Marinho|M':'1535414946',
-      'Azul Marinho|G':'1535414947','Azul Marinho|GG':'1535414950','Azul Marinho|3G':'1535414951','Azul Marinho|4G':'1535414952',
-      'Verde Musgo|PP':'1535414954','Verde Musgo|P':'1535414956','Verde Musgo|M':'1535414957',
-      'Verde Musgo|G':'1535414958','Verde Musgo|GG':'1535414959','Verde Musgo|3G':'1535414960','Verde Musgo|4G':'1535414961',
+      'Preto|PP':'52109574242605','Preto|P':'52109574275373','Preto|M':'52109574308141',
+      'Preto|G':'52109574340909','Preto|GG':'52109574373677','Preto|3G':'52109574406445','Preto|4G':'52109574439213',
+      'Branco|PP':'52109574471981','Branco|P':'52109574504749','Branco|M':'52109574537517',
+      'Branco|G':'52109574570285','Branco|GG':'52109574603053','Branco|3G':'52109574635821','Branco|4G':'52109574668589',
+      'Azul Marinho|PP':'52109574701357','Azul Marinho|P':'52109574734125','Azul Marinho|M':'52109574766893',
+      'Azul Marinho|G':'52109574799661','Azul Marinho|GG':'52109574832429','Azul Marinho|3G':'52109574865197','Azul Marinho|4G':'52109574897965',
+      'Cinza|PP':'52109574930733','Cinza|P':'52109574963501','Cinza|M':'52109574996269',
+      'Cinza|G':'52109575029037','Cinza|GG':'52109575061805','Cinza|3G':'52109575094573','Cinza|4G':'52109575127341',
+      'Laranja|PP':'52109575160109','Laranja|P':'52109575192877','Laranja|M':'52109575225645',
+      'Laranja|G':'52109575258413','Laranja|GG':'52109575291181','Laranja|3G':'52109575323949','Laranja|4G':'52109575356717',
+      'Verde Musgo|PP':'52109575389485','Verde Musgo|P':'52109575422253','Verde Musgo|M':'52109575455021',
+      'Verde Musgo|G':'52109575487789','Verde Musgo|GG':'52109575520557','Verde Musgo|3G':'52109575553325','Verde Musgo|4G':'52109575586093',
+      'Amarelo|PP':'52109575618861','Amarelo|P':'52109575651629','Amarelo|M':'52109575684397',
+      'Amarelo|G':'52109575717165','Amarelo|GG':'52109575749933','Amarelo|3G':'52109575782701','Amarelo|4G':'52109575815469',
     };
 
     if (ctaBtn) {
@@ -4807,8 +4789,7 @@ footer {
           price: 129.90, installments: 10, installmentText: 'ou 10x de R$13,51',
           defaultImage: variants[0].img,
           colors: variants, sizes: SIZES,
-          variantIds: smVariantIds, productId: PRODUCT_ID,
-          productUrl: 'https://pattamansa.lojavirtualnuvem.com.br/produtos/selecao-canina-regular-masculina-14z6l/',
+          variantIds: smVariantIds, productId: '10286662484269',
         });
       }, true);
     }
@@ -4816,28 +4797,28 @@ footer {
 
   /* ── Clube Seleção Canina ── */
   (function () {
-    const PRODUCT_ID = '347450235';
+    const PRODUCT_ID = '10286662648109';
     const BASE = 'cole%C3%A7%C3%A3o%20sele%C3%A7%C3%A3o%20canina%20oversize/';
     const variants = [
       { name: 'Branco',    cartValue: 'Branco',    code: 'BC', hex: '#F0EDE5', img: BASE + 'branca.webp', light: true },
-      { name: 'Off white', cartValue: 'Off white', code: 'OF', hex: '#E9E1D1', img: BASE + 'offwhite.webp', light: true },
+      { name: 'Off White', cartValue: 'Off White', code: 'OF', hex: '#E9E1D1', img: BASE + 'offwhite.webp', light: true },
     ];
     const gallery = [
-      { label: 'Branco', code: 'BC', img: BASE + 'branca.webp' },
-      { label: 'Off white', code: 'OF', img: BASE + 'offwhite.webp' },
+      { label: 'Branco',    code: 'BC', img: BASE + 'branca.webp' },
+      { label: 'Off White', code: 'OF', img: BASE + 'offwhite.webp' },
     ];
-    const SIZES = ['P', 'M', 'G', 'GG', '3g'];
+    const SIZES = ['P', 'M', 'G', 'GG', '3G'];
     const variantIds = {
-      'Off white|P':  '1534201606',
-      'Off white|M':  '1534201608',
-      'Off white|G':  '1534201609',
-      'Off white|GG': '1534201610',
-      'Off white|3g': '1534201612',
-      'Branco|P':     '1534201613',
-      'Branco|M':     '1534201614',
-      'Branco|G':     '1534201615',
-      'Branco|GG':    '1534201616',
-      'Branco|3g':    '1534201617',
+      'Branco|P':     '52109576470829',
+      'Branco|M':     '52109576503597',
+      'Branco|G':     '52109576536365',
+      'Branco|GG':    '52109576569133',
+      'Branco|3G':    '52109576601901',
+      'Off White|P':  '52109576634669',
+      'Off White|M':  '52109576667437',
+      'Off White|G':  '52109576700205',
+      'Off White|GG': '52109576732973',
+      'Off White|3G': '52109576765741',
     };
     const skuVariations = variants.flatMap(function (v) {
       return SIZES.map(function (size) {
@@ -4968,12 +4949,18 @@ footer {
 
   /* ── Clube Canino — Feminina ── */
   (function () {
-    const WA_NUM = '5500000000000';
+    const PRODUCT_ID = '10286662189357';
     const variants = [
-      { name: 'Amarela', hex: '#F0C830', img: 'cole%C3%A7ao%20clube%20canino%20feminino/amarela%201.webp', light: true },
-      { name: 'Branca',  hex: '#F0EDE5', img: 'cole%C3%A7ao%20clube%20canino%20feminino/branca%202.webp',  light: true },
+      { name: 'Amarela', cartValue: 'Amarela', hex: '#F0C830', img: 'cole%C3%A7ao%20clube%20canino%20feminino/amarela%201.webp', light: true },
+      { name: 'Branca',  cartValue: 'Branca',  hex: '#F0EDE5', img: 'cole%C3%A7ao%20clube%20canino%20feminino/branca%202.webp',  light: true },
     ];
     const SIZES = ['PP', 'P', 'M', 'G', 'GG', '3G'];
+    const ccfVariantIds = {
+      'Amarela|PP':'52109571719469','Amarela|P':'52109571752237','Amarela|M':'52109571785005',
+      'Amarela|G':'52109571817773','Amarela|GG':'52109571850541','Amarela|3G':'52109571883309',
+      'Branca|PP':'52109571916077','Branca|P':'52109571948845','Branca|M':'52109571981613',
+      'Branca|G':'52109572014381','Branca|GG':'52109572047149','Branca|3G':'52109572079917',
+    };
 
     const img     = document.getElementById('ccfImg');
     const corNome = document.getElementById('ccfCorNome');
@@ -5031,28 +5018,46 @@ footer {
     }
 
     function syncCta() {
-      const cor = variants[activeCor].name;
-      const tam = activeSz || '(escolha o tamanho)';
-      ctaBtn.href = 'https://wa.me/' + WA_NUM + '?text=' +
-        encodeURIComponent('Olá! Quero comprar a camiseta Clube Canino na cor ' + cor + ' e tamanho ' + tam + '.');
+      ctaBtn.removeAttribute('href');
+      ctaBtn.type = 'button';
     }
 
+    ctaBtn.onclick = null;
+    ctaBtn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      ProductDrawer.open({
+        name: 'Clube Canino · Baby Look · Feminina',
+        price: 129.90, installments: 10, installmentText: 'ou 10x de R$13,51',
+        defaultImage: variants[0].img,
+        colors: variants, sizes: SIZES,
+        variantIds: ccfVariantIds, productId: PRODUCT_ID,
+      });
+    }, true);
     syncCta();
   })();
 
   /* ── Clube Feminino ── */
   (function () {
-    const WA_NUM = '5500000000000';
+    const PRODUCT_ID = '10286662353197';
     const BASE = 'cole%C3%A7%C3%A3o%20clube%20canino%20croped%20feminino/';
     const variants = [
-      { name: 'Amarelo',      code: 'AM', hex: '#F0C830', img: BASE + 'amarelo.webp', light: true },
-      { name: 'Azul Marinho', code: 'AZ', hex: '#1C2B4A', img: BASE + 'azul%20marinho.webp' },
-      { name: 'Branco',       code: 'BC', hex: '#F0EDE5', img: BASE + 'branca.webp', light: true },
-      { name: 'Cinza',        code: 'CZ', hex: '#8A8A8A', img: BASE + 'cinza.webp' },
-      { name: 'Preto',        code: 'PT', hex: '#1C1C1C', img: BASE + 'preta.webp' },
-      { name: 'Verde',        code: 'VD', hex: '#3F6A44', img: BASE + 'verde.webp' },
-      { name: 'Vermelho',     code: 'VR', hex: '#B82F2F', img: BASE + 'vermelha.webp' },
+      { name: 'Amarelo',      cartValue: 'Amarelo',      code: 'AM', hex: '#F0C830', img: BASE + 'amarelo.webp', light: true },
+      { name: 'Azul Marinho', cartValue: 'Azul Marinho', code: 'AZ', hex: '#1C2B4A', img: BASE + 'azul%20marinho.webp' },
+      { name: 'Branco',       cartValue: 'Branco',       code: 'BC', hex: '#F0EDE5', img: BASE + 'branca.webp', light: true },
+      { name: 'Cinza',        cartValue: 'Cinza',        code: 'CZ', hex: '#8A8A8A', img: BASE + 'cinza.webp' },
+      { name: 'Preto',        cartValue: 'Preto',        code: 'PT', hex: '#1C1C1C', img: BASE + 'preta.webp' },
+      { name: 'Verde',        cartValue: 'Verde',        code: 'VD', hex: '#3F6A44', img: BASE + 'verde.webp' },
+      { name: 'Vermelho',     cartValue: 'Vermelho',     code: 'VR', hex: '#B82F2F', img: BASE + 'vermelha.webp' },
     ];
+    const crVariantIds = {
+      'Amarelo|P':'52109572866349','Amarelo|M':'52109572899117','Amarelo|G':'52109572931885','Amarelo|GG':'52109572964653',
+      'Azul Marinho|P':'52109572997421','Azul Marinho|M':'52109573030189','Azul Marinho|G':'52109573062957','Azul Marinho|GG':'52109573095725',
+      'Branco|P':'52109573128493','Branco|M':'52109573161261','Branco|G':'52109573194029','Branco|GG':'52109573226797',
+      'Cinza|P':'52109573259565','Cinza|M':'52109573292333','Cinza|G':'52109573325101','Cinza|GG':'52109573357869',
+      'Preto|P':'52109573390637','Preto|M':'52109573423405','Preto|G':'52109573456173','Preto|GG':'52109573488941',
+      'Verde|P':'52109573521709','Verde|M':'52109573554477','Verde|G':'52109573587245','Verde|GG':'52109573620013',
+      'Vermelho|P':'52109573652781','Vermelho|M':'52109573685549','Vermelho|G':'52109573718317','Vermelho|GG':'52109573751085',
+    };
     const gallery = [
       { label: 'Amarelo', code: 'AM', img: BASE + 'amarelo.webp' },
       { label: 'Azul Marinho', code: 'AZ', img: BASE + 'azul%20marinho.webp' },
@@ -5171,25 +5176,38 @@ footer {
     }
 
     function syncCta() {
-      const cor = variants[activeCor].name;
-      const tam = activeSz || '(escolha o tamanho)';
-      const sku = currentSku();
-      const skuLine = sku ? ' SKU: ' + sku + '.' : '';
-      ctaBtn.href = 'https://wa.me/' + WA_NUM + '?text=' +
-        encodeURIComponent('Olá! Quero comprar o Clube Feminino na cor ' + cor + ' e tamanho ' + tam + '.' + skuLine);
+      ctaBtn.removeAttribute('href');
+      ctaBtn.type = 'button';
     }
 
+    ctaBtn.onclick = null;
+    ctaBtn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      ProductDrawer.open({
+        name: 'Clube Feminino · Cropped · Feminino',
+        price: 119.90, installments: 10, installmentText: 'ou 10x de R$12,47',
+        defaultImage: BASE + 'amarelo.webp',
+        colors: variants, sizes: ['P', 'M', 'G', 'GG'],
+        variantIds: crVariantIds, productId: PRODUCT_ID,
+      });
+    }, true);
     syncCta();
   })();
 
   /* ── Clube Canino Cropped Moletom ── */
   (function () {
-    const WA_NUM = '5500000000000';
+    const PRODUCT_ID = '10286662418733';
     const BASE = 'cole%C3%A7%C3%A3o%20clube%20canino%20moletom%20croped%20feminino/';
     const variants = [
-      { name: 'Branco', code: 'BC', hex: '#F0EDE5', img: BASE + 'branca.webp', light: true },
-      { name: 'Preto',  code: 'PT', hex: '#1C1C1C', img: BASE + 'preto.webp' },
+      { name: 'Branco', cartValue: 'Branco', code: 'BC', hex: '#F0EDE5', img: BASE + 'branca.webp', light: true },
+      { name: 'Preto',  cartValue: 'Preto',  code: 'PT', hex: '#1C1C1C', img: BASE + 'preto.webp' },
     ];
+    const cmVariantIds = {
+      'Branco|PP':'52109573783853','Branco|P':'52109573816621','Branco|M':'52109573849389',
+      'Branco|G':'52109573882157','Branco|GG':'52109573914925',
+      'Preto|PP':'52109573947693','Preto|P':'52109573980461','Preto|M':'52109574013229',
+      'Preto|G':'52109574045997','Preto|GG':'52109574078765',
+    };
     const gallery = [
       { label: 'Branco', code: 'BC', img: BASE + 'branca.webp' },
       { label: 'Branco mostruário uso', code: 'BC', img: BASE + 'branca%20mostruario%20uso.webp' },
@@ -5303,20 +5321,27 @@ footer {
     }
 
     function syncCta() {
-      const cor = variants[activeCor].name;
-      const tam = activeSz || '(escolha o tamanho)';
-      const sku = currentSku();
-      const skuLine = sku ? ' SKU: ' + sku + '.' : '';
-      ctaBtn.href = 'https://wa.me/' + WA_NUM + '?text=' +
-        encodeURIComponent('Olá! Quero comprar o Clube Canino Cropped Moletom na cor ' + cor + ' e tamanho ' + tam + '.' + skuLine);
+      ctaBtn.removeAttribute('href');
+      ctaBtn.type = 'button';
     }
 
+    ctaBtn.onclick = null;
+    ctaBtn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      ProductDrawer.open({
+        name: 'Clube Canino · Cropped Moletom · Feminino',
+        price: 179.90, installments: 10, installmentText: 'ou 10x de R$18,70',
+        defaultImage: BASE + 'branca.webp',
+        colors: variants, sizes: ['PP', 'P', 'M', 'G', 'GG'],
+        variantIds: cmVariantIds, productId: PRODUCT_ID,
+      });
+    }, true);
     syncCta();
   })();
 
   /* ── Clube Canino — Masculina ── */
   (function () {
-    const PRODUCT_ID = '347777758';
+    const PRODUCT_ID = '10286662517037';
     const variants = [
       { name: 'Branca',  cartValue: 'Branco',  hex: '#F0EDE5', img: 'cole%C3%A7%C3%A3o%20clube%20canino%20masculino/branca%201.webp',  light: true },
       { name: 'Amarela', cartValue: 'Amarelo', hex: '#F0C830', img: 'cole%C3%A7%C3%A3o%20clube%20canino%20masculino/amarela%202.webp', light: true },
@@ -5385,14 +5410,14 @@ footer {
     }
 
     const ccmVariantIds = {
-      'Amarelo|PP': '1535414934', 'Amarelo|P':  '1535414935',
-      'Amarelo|M':  '1535414937', 'Amarelo|G':  '1535414939',
-      'Amarelo|GG': '1535414940', 'Amarelo|3G': '1535414941',
-      'Amarelo|4G': '1535414943',
-      'Branco|PP':  '1535414908', 'Branco|P':   '1535414910',
-      'Branco|M':   '1535414911', 'Branco|G':   '1535414912',
-      'Branco|GG':  '1535414913', 'Branco|3G':  '1535414914',
-      'Branco|4G':  '1535414915',
+      'Branco|PP':  '52109575881005', 'Branco|P':   '52109575913773',
+      'Branco|M':   '52109575946541', 'Branco|G':   '52109575979309',
+      'Branco|GG':  '52109576012077', 'Branco|3G':  '52109576044845',
+      'Branco|4G':  '52109576077613',
+      'Amarelo|PP': '52109576110381', 'Amarelo|P':  '52109576143149',
+      'Amarelo|M':  '52109576175917', 'Amarelo|G':  '52109576208685',
+      'Amarelo|GG': '52109576241453', 'Amarelo|3G': '52109576274221',
+      'Amarelo|4G': '52109576306989',
     };
     ctaBtn.onclick = null;
     ctaBtn.addEventListener('click', function (e) {
@@ -5403,7 +5428,6 @@ footer {
         defaultImage: variants[0].img,
         colors: variants, sizes: SIZES,
         variantIds: ccmVariantIds, productId: PRODUCT_ID,
-        productUrl: 'https://pattamansa.lojavirtualnuvem.com.br/produtos/selecao-canina-regular-masculina-14z6l/',
       });
     }, true);
     syncCta();
@@ -5411,13 +5435,24 @@ footer {
 
   /* ── Caramelo Futebol Clube — Unissex ── */
   (function () {
+    const PRODUCT_ID = '10286662943021';
     const variants = [
-      { name: 'Preta',     hex: '#1C1C1C', img: 'cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/preta.webp' },
-      { name: 'Areia',     hex: '#D7C7A5', img: 'cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/areia.webp', light: true },
-      { name: 'Branca',    hex: '#F0EDE5', img: 'cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/branca.webp', light: true },
-      { name: 'Off White', hex: '#E9E1D1', img: 'cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/off%20white.webp', light: true },
+      { name: 'Preta',     cartValue: 'Preto',     hex: '#1C1C1C', img: 'cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/preta.webp' },
+      { name: 'Areia',     cartValue: 'Areia',     hex: '#D7C7A5', img: 'cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/areia.webp', light: true },
+      { name: 'Branca',    cartValue: 'Branco',    hex: '#F0EDE5', img: 'cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/branca.webp', light: true },
+      { name: 'Off White', cartValue: 'Off White', hex: '#E9E1D1', img: 'cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/off%20white.webp', light: true },
     ];
     const SIZES = ['PP', 'P', 'M', 'G', 'GG', '3G', '4G'];
+    const cfcVariantIds = {
+      'Preto|PP':'52109577126189','Preto|P':'52109577158957','Preto|M':'52109577191725',
+      'Preto|G':'52109577224493','Preto|GG':'52109577257261','Preto|3G':'52109577290029','Preto|4G':'52109577322797',
+      'Areia|PP':'52109577355565','Areia|P':'52109577388333','Areia|M':'52109577421101',
+      'Areia|G':'52109577453869','Areia|GG':'52109577486637','Areia|3G':'52109577519405','Areia|4G':'52109577552173',
+      'Branco|PP':'52109577584941','Branco|P':'52109577617709','Branco|M':'52109577650477',
+      'Branco|G':'52109577683245','Branco|GG':'52109577716013','Branco|3G':'52109577748781','Branco|4G':'52109577781549',
+      'Off White|PP':'52109577814317','Off White|P':'52109577847085','Off White|M':'52109577879853',
+      'Off White|G':'52109577912621','Off White|GG':'52109577945389','Off White|3G':'52109577978157','Off White|4G':'52109578010925',
+    };
 
     const img     = document.getElementById('cfcImg');
     const corNome = document.getElementById('cfcCorNome');
@@ -5475,11 +5510,21 @@ footer {
     }
 
     function syncCta() {
-      const cor = variants[activeCor].name;
-      const tam = activeSz || '(escolha o tamanho)';
-      ctaBtn.setAttribute('aria-label', 'Comprar Caramelo Futebol Clube Unissex pelo checkout CartPanda na cor ' + cor + ' e tamanho ' + tam);
+      ctaBtn.removeAttribute('href');
+      ctaBtn.type = 'button';
     }
 
+    ctaBtn.onclick = null;
+    ctaBtn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      ProductDrawer.open({
+        name: 'Caramelo Futebol Clube · Regular · Unissex',
+        price: 129.90, installments: 10, installmentText: 'ou 10x de R$13,51',
+        defaultImage: variants[0].img,
+        colors: variants, sizes: SIZES,
+        variantIds: cfcVariantIds, productId: PRODUCT_ID,
+      });
+    }, true);
     syncCta();
   })();
 
@@ -5917,74 +5962,6 @@ footer {
   }
 </script>
 
-<script>
-  (function () {
-    var src = 'https://pattamansa.mycartpanda.com/js/buy-button.min.js';
-
-    function markCartPandaReady() {
-      document.querySelectorAll('.cartx-buy-button').forEach(function (button) {
-        var iframe = button.querySelector('iframe.buy-button-frame');
-        if (!iframe) return;
-
-        try {
-          var body = iframe.contentDocument && iframe.contentDocument.body;
-          if (iframe.style.display !== 'none' && body && body.children.length) {
-            button.classList.add('cartpanda-ready');
-          }
-        } catch (e) {}
-      });
-    }
-
-    function watchCartPandaReady() {
-      var attempts = 0;
-      markCartPandaReady();
-      var timer = setInterval(function () {
-        attempts += 1;
-        markCartPandaReady();
-        if (attempts >= 12) clearInterval(timer);
-      }, 500);
-    }
-
-    document.addEventListener('click', function (e) {
-      var button = e.target.closest('#cfcCta.cartx-buy-button');
-      if (!button || button.classList.contains('cartpanda-ready')) return;
-
-      e.preventDefault();
-      e.stopPropagation();
-
-      var iframe = button.querySelector('iframe.buy-button-frame');
-      try {
-        var doc = iframe && iframe.contentDocument;
-        var clickable = doc && doc.querySelector('button, a, input[type="submit"], [role="button"]');
-        if (clickable) {
-          clickable.click();
-          return;
-        }
-      } catch (err) {}
-
-      window.open(button.dataset.shopUrl || 'https://pattamansa.mycartpanda.com/', '_blank', 'noopener');
-    }, true);
-
-    document.addEventListener('keydown', function (e) {
-      var button = e.target.closest('#cfcCta.cartx-buy-button');
-      if (!button || (e.key !== 'Enter' && e.key !== ' ')) return;
-      e.preventDefault();
-      button.click();
-    });
-
-    if (document.querySelector('script[src="' + src + '"]')) {
-      watchCartPandaReady();
-      return;
-    }
-
-    var script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = src;
-    script.async = true;
-    script.onload = watchCartPandaReady;
-    document.body.appendChild(script);
-  })();
-</script>
 
 </body>
 </html>
