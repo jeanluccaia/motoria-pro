@@ -4239,7 +4239,9 @@ footer {
     var toastMsg    = document.getElementById('cartToastMsg');
     var toastTimer  = null;
 
-    var SHOPIFY_DOMAIN = 'unmtvj-cr.myshopify.com';
+    var SHOPIFY_DOMAIN      = 'unmtvj-cr.myshopify.com';
+    var STOREFRONT_TOKEN    = 'atkn_8610ed3d396f9b531a6e1399ad8ebd9925ca69f8e77de124f27d8632b95ce0ea';
+    var STOREFRONT_API_URL  = 'https://' + SHOPIFY_DOMAIN + '/api/2024-10/graphql.json';
 
     function open() {
       overlay.removeAttribute('aria-hidden');
@@ -4347,7 +4349,7 @@ footer {
       if (e.key === 'Escape' && drawer && drawer.classList.contains('open')) close();
     });
 
-    /* ── Finalizar Compra — Shopify cart permalink ── */
+    /* ── Finalizar Compra — Storefront API cartCreate → /checkouts/ (bypassa senha) ── */
     if (checkoutBtn) {
       checkoutBtn.addEventListener('click', function () {
         var items = PattaCart.getItems();
@@ -4366,11 +4368,39 @@ footer {
         checkoutBtn.classList.add('loading');
         checkoutBtn.textContent = 'Redirecionando…';
 
-        var lineItems = items.map(function (item) {
-          return item.variantId + ':' + item.quantity;
-        }).join(',');
+        var lines = items.map(function (item) {
+          return {
+            merchandiseId: 'gid://shopify/ProductVariant/' + item.variantId,
+            quantity: item.quantity
+          };
+        });
 
-        window.location.href = 'https://' + SHOPIFY_DOMAIN + '/cart/' + lineItems;
+        fetch(STOREFRONT_API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Shopify-Storefront-Access-Token': STOREFRONT_TOKEN
+          },
+          body: JSON.stringify({
+            query: 'mutation cartCreate($input: CartInput!) { cartCreate(input: $input) { cart { checkoutUrl } userErrors { field message } } }',
+            variables: { input: { lines: lines } }
+          })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          var cart = data && data.data && data.data.cartCreate && data.data.cartCreate.cart;
+          if (cart && cart.checkoutUrl) {
+            window.location.href = cart.checkoutUrl;
+          } else {
+            throw new Error('checkout URL ausente');
+          }
+        })
+        .catch(function () {
+          checkoutBtn.disabled = false;
+          checkoutBtn.classList.remove('loading');
+          checkoutBtn.textContent = 'Finalizar compra';
+          alert('Não foi possível abrir o checkout. Tente novamente.');
+        });
       });
     }
 
