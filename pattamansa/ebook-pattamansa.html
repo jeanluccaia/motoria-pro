@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adestramento de Obediência Básica · PattaMansa</title>
+
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+
+fbq('init', '1645504430077594');
+fbq('track', 'PageView');
+</script>
+
+<noscript>
+<img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1645504430077594&ev=PageView&noscript=1"/>
+</noscript>
+<!-- End Meta Pixel Code -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+
+/* =========================================
+   VARIÁVEIS E RESET
+========================================= */
+:root {
+  --g:    #78B85C;
+  --gd:   #4d8a30;
+  --gdd:  #1a3d10;
+  --gl:   #e8f5dc;
+  --gp:   #f4fbf0;
+  --dk:   #1c2018;
+  --dk2:  #0f1509;
+  --tx:   #3d4a38;
+  --tl:   #7a8a72;
+  --wh:   #ffffff;
+  --cr:   #faf9f6;
+  --bd:   #daecc8;
+  --warn: #f0b830;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Lato', system-ui, sans-serif;
+  background: #2a2a2a;
+}
+
+/* =========================================
+   READER — container principal
+========================================= */
+.reader {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(480px, 100vw);
+  height: 100svh;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--wh);
+  box-shadow: 0 0 80px rgba(0,0,0,.45);
+}
+
+/* =========================================
+   PAGES
+========================================= */
+.page {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity .3s ease, transform .3s ease;
+  pointer-events: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gl) transparent;
+}
+
+.page::-webkit-scrollbar { width: 3px; }
+.page::-webkit-scrollbar-thumb { background: var(--gl); }
+
+.page.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  z-index: 1;
+}
+
+.page.exiting {
+  opacity: 0;
+  transform: translateY(-20px);
+  pointer-events: none;
+}
+
+/* =========================================
+   NAVEGAÇÃO
+========================================= */
+.reader-nav {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--g);
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(78,184,92,.35);
+  transition: background .2s, transform .15s, opacity .2s;
+  line-height: 1;
+}
+.nav-btn:hover  { background: var(--gd); transform: scale(1.1); }
+.nav-btn:disabled { opacity: .25; pointer-events: none; }
+
+.dots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  max-height: 200px;
+  overflow: hidden;
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255,255,255,.3);
+  cursor: pointer;
+  transition: background .25s, height .25s, transform .25s;
+  flex-shrink: 0;
+}
+
+.dot.active {
+  background: var(--g);
+  height: 16px;
+}
+
+.dot:hover:not(.active) { background: rgba(255,255,255,.6); }
+
+.pg-counter {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,.4);
+  background: rgba(0,0,0,.3);
+  padding: 3px 10px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
+}
+
+/* =========================================
+   ÁTOMOS COMPARTILHADOS
+========================================= */
+
+/* Marca d'água numérica */
+.wm {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(88px, 22vw, 112px);
+  font-weight: 900;
+  color: var(--gl);
+  position: absolute;
+  top: 8px;
+  right: -6px;
+  line-height: 1;
+  user-select: none;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.wm-white { color: rgba(255,255,255,.12); }
+
+/* Labels / etiquetas */
+.lbl {
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--g);
+}
+
+.lbl-white { color: rgba(255,255,255,.55); }
+
+/* Título de capítulo */
+.chap {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(21px, 5.5vw, 27px);
+  font-weight: 700;
+  color: var(--dk);
+  line-height: 1.2;
+}
+
+.chap-white { color: #fff; }
+
+/* Divisor verde */
+.div-g {
+  width: 36px;
+  height: 3px;
+  background: var(--g);
+  border-radius: 2px;
+  margin: 10px 0;
+}
+
+.div-white {
+  background: rgba(255,255,255,.4);
+}
+
+/* Texto corpo */
+.body-txt {
+  font-size: 13.5px;
+  line-height: 1.78;
+  color: var(--tx);
+}
+
+/* Sub-título verde */
+.sub-h {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gd);
+  margin: 14px 0 7px;
+}
+
+/* Bullet list */
+ul.bl {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+ul.bl li {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--tx);
+  padding-left: 17px;
+  position: relative;
+}
+
+ul.bl li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--g);
+  flex-shrink: 0;
+}
+
+ul.bl li strong { color: var(--dk); }
+
+/* Numbered steps list */
+ol.sl {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+ol.sl li {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--tx);
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.sn {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--g);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+/* Image placeholder */
+.iph {
+  background: linear-gradient(140deg, var(--gp) 0%, var(--gl) 100%);
+  border: 1.5px dashed var(--g);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--gd);
+  text-align: center;
+  font-size: 11.5px;
+  padding: 14px;
+}
+
+.iph .ico { font-size: 28px; line-height: 1; }
+.iph small { font-size: 10px; color: var(--tl); }
+
+.iph-dark {
+  background: linear-gradient(140deg, #1a3d10, #2d5a1f);
+  border-color: rgba(120,184,92,.4);
+  color: rgba(255,255,255,.45);
+}
+
+.iph-dark small { color: rgba(255,255,255,.25); }
+
+/* Card branco com sombra */
+.card {
+  background: var(--wh);
+  border-radius: 10px;
+  padding: 14px;
+  box-shadow: 0 2px 16px rgba(0,0,0,.07);
+}
+
+/* Card verde destaque */
+.card-g {
+  background: var(--gp);
+  border-left: 3px solid var(--g);
+  border-radius: 0 8px 8px 0;
+  padding: 12px 14px;
+}
+
+/* Highlight / destaque amarelo */
+.highlight {
+  background: linear-gradient(135deg, #fffdf0, #fff8d4);
+  border-left: 4px solid var(--warn);
+  border-radius: 0 8px 8px 0;
+  padding: 12px 14px;
+}
+
+.highlight p {
+  font-size: 13px;
+  line-height: 1.65;
+  color: #4a3800;
+}
+
+/* 2 colunas */
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* 3 colunas (mini cards) */
+.three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; }
+
+.mini-card {
+  background: var(--wh);
+  border-radius: 10px;
+  padding: 12px 10px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.07);
+  border-top: 3px solid var(--g);
+}
+
+.mini-card h4 {
+  font-family: 'Lato', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gd);
+  margin-bottom: 6px;
+  line-height: 1.35;
+}
+
+.mini-card p {
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--tl);
+}
+
+/* Rodapé da marca em páginas de conteúdo */
+.bfooter {
+  text-align: center;
+  padding-top: 14px;
+  border-top: 1px solid var(--bd);
+  margin-top: 16px;
+}
+
+.bmark {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: var(--g);
+  text-transform: uppercase;
+}
+
+/* Template de página de conteúdo */
+.cp {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--wh);
+}
+
+.cp-hdr {
+  padding: 24px 28px 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.cp-body {
+  padding: 4px 28px 28px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================================
+   P1 — CAPA
+========================================= */
+#p1 {
+  display: flex;
+  flex-direction: column;
+  background: var(--dk2);
+}
+
+#p1 .cover-img {
+  flex: 1;
+  min-height: 52%;
+  border-radius: 0;
+  border: none;
+  border-bottom: 4px solid var(--g);
+  background: linear-gradient(170deg, #0d2108 0%, #1e4a12 50%, #2d6218 100%);
+}
+
+#p1 .cover-img .ico { font-size: 44px; opacity: .4; }
+#p1 .cover-img span { font-size: 12px; }
+#p1 .cover-img small { font-size: 10px; }
+
+#p1 .cover-box {
+  background: var(--dk);
+  padding: 22px 28px 26px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+#p1 .cover-box::after {
+  content: '🐾';
+  position: absolute;
+  bottom: -28px;
+  right: -14px;
+  font-size: 150px;
+  opacity: .04;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* logo nos lugares certos */
+.logo-img {
+  display: block;
+  width: auto;
+  max-width: 180px;
+  height: auto;
+}
+
+.logo-dark {
+  filter: brightness(0) invert(1);
+  opacity: .92;
+}
+
+.logo-green {
+  filter: brightness(0) saturate(100%) invert(62%) sepia(40%) saturate(500%) hue-rotate(70deg) brightness(95%);
+}
+
+#p1 .cover-brand {
+  margin-bottom: 6px;
+}
+
+#p1 .cover-tagline {
+  font-size: 10px;
+  color: rgba(255,255,255,.28);
+  letter-spacing: 1.5px;
+  margin-bottom: 16px;
+}
+
+#p1 .cover-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(25px, 7vw, 31px);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.15;
+  margin-bottom: 8px;
+}
+
+#p1 .cover-line {
+  width: 44px;
+  height: 2px;
+  background: var(--g);
+  margin: 12px 0;
+}
+
+#p1 .cover-subtitle {
+  font-size: 13.5px;
+  color: var(--g);
+  font-weight: 300;
+  letter-spacing: .5px;
+  margin-bottom: 12px;
+}
+
+#p1 .cover-note {
+  font-size: 10px;
+  color: rgba(255,255,255,.22);
+  font-style: italic;
+}
+
+/* =========================================
+   P2 — ÍNDICE
+========================================= */
+#p2 { background: var(--cr); }
+
+#p2 .idx-hdr {
+  background: var(--dk);
+  padding: 28px 28px 22px;
+  position: relative;
+  overflow: hidden;
+}
+
+#p2 .idx-hdr::after {
+  content: '🐾';
+  position: absolute;
+  right: -8px;
+  top: -10px;
+  font-size: 90px;
+  opacity: .05;
+  pointer-events: none;
+}
+
+#p2 .idx-label {
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--g);
+  margin-bottom: 4px;
+}
+
+#p2 .idx-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 36px;
+  font-weight: 900;
+  color: #fff;
+}
+
+#p2 ul {
+  list-style: none;
+  padding: 12px 24px 8px;
+}
+
+#p2 .idx-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--bd);
+  gap: 10px;
+  cursor: pointer;
+  transition: opacity .2s;
+}
+
+#p2 .idx-item:hover { opacity: .7; }
+#p2 .idx-item:last-child { border-bottom: none; }
+
+#p2 .idx-num {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: var(--g);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#p2 .idx-name {
+  flex: 1;
+  font-size: 13px;
+  color: var(--tx);
+}
+
+#p2 .idx-pg {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--g);
+}
+
+#p2 .idx-footer {
+  padding: 10px 24px 18px;
+  text-align: center;
+}
+
+/* =========================================
+   P3 — SOBRE A PATTAMANSA
+========================================= */
+#p3 { background: var(--gp); }
+
+#p3 .sobre-hdr {
+  background: var(--g);
+  padding: 26px 28px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+#p3 .sobre-body {
+  padding: 18px 28px 24px;
+}
+
+#p3 .mbox {
+  background: var(--wh);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 10px;
+  border-left: 4px solid var(--g);
+  box-shadow: 0 2px 10px rgba(0,0,0,.05);
+}
+
+#p3 .mbox h4 {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--g);
+  margin-bottom: 5px;
+}
+
+#p3 .mbox p {
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--tx);
+}
+
+/* =========================================
+   P15 — CONCLUSÃO
+========================================= */
+#p15 {
+  background: var(--gdd);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 36px 30px;
+  position: relative;
+  overflow: hidden;
+}
+
+#p15::before {
+  content: '';
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(120,184,92,.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+#p15 .c-label {
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.35);
+  margin-bottom: 8px;
+}
+
+#p15 .c-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 38px;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+#p15 .c-text {
+  font-size: 13px;
+  line-height: 1.78;
+  color: rgba(255,255,255,.68);
+  margin-bottom: 12px;
+  max-width: 360px;
+}
+
+#p15 .c-em { color: var(--g); font-weight: 700; }
+
+#p15 .c-divider {
+  width: 36px;
+  height: 2px;
+  background: var(--g);
+  margin: 18px auto;
+}
+
+#p15 .c-thanks {
+  font-size: 13px;
+  font-style: italic;
+  color: rgba(255,255,255,.45);
+  margin-bottom: 8px;
+}
+
+#p15 .c-brand {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--g);
+}
+
+#p15 .c-paw {
+  font-size: 36px;
+  margin-top: 20px;
+  opacity: .3;
+}
+
+/* =========================================
+   P16 — CTA
+========================================= */
+#p16 {
+  background: var(--dk);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  padding: 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+#p16::before {
+  content: '🐾';
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  font-size: 180px;
+  opacity: .04;
+  pointer-events: none;
+}
+
+#p16 .cta-eyebrow {
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--g);
+  margin-bottom: 12px;
+}
+
+#p16 .cta-main {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(19px, 5.5vw, 23px);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.3;
+  margin-bottom: 20px;
+}
+
+#p16 .cta-em { color: var(--g); }
+
+#p16 .cta-lead {
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: rgba(255,255,255,.42);
+  margin-bottom: 20px;
+  max-width: 300px;
+}
+
+#p16 .cta-social {
+  line-height: 2.4;
+  margin-bottom: 20px;
+}
+
+#p16 .cta-social a {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--g);
+  text-decoration: none;
+  letter-spacing: .5px;
+}
+
+#p16 .cta-social a:hover { text-decoration: underline; }
+
+#p16 .cta-divider {
+  width: 30px;
+  height: 2px;
+  background: rgba(255,255,255,.12);
+  margin: 4px auto 16px;
+}
+
+#p16 .cta-tagline {
+  font-size: 11px;
+  color: rgba(255,255,255,.25);
+  font-style: italic;
+  margin-bottom: 12px;
+}
+
+#p16 .cta-brand {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: rgba(120,184,92,.6);
+}
+
+/* =========================================
+   BOTÃO SALVAR PDF
+========================================= */
+.btn-pdf {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  z-index: 200;
+  background: var(--g);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-family: 'Lato', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(120,184,92,.45);
+  transition: background .2s, transform .15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-pdf:hover { background: var(--gd); transform: scale(1.05); }
+
+/* =========================================
+   MODO IMPRESSÃO (via JS + @media print)
+========================================= */
+body.printing,
+body.printing html {
+  overflow: auto !important;
+  height: auto !important;
+  background: white !important;
+}
+
+body.printing .reader {
+  position: static !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  box-shadow: none !important;
+  transform: none !important;
+  left: 0 !important;
+  overflow: visible !important;
+}
+
+body.printing .page {
+  position: static !important;
+  opacity: 1 !important;
+  transform: none !important;
+  pointer-events: auto !important;
+  height: auto !important;
+  min-height: 100vh !important;
+  overflow: visible !important;
+  z-index: auto !important;
+  page-break-after: always;
+  break-after: page;
+}
+
+body.printing .reader-nav,
+body.printing .pg-counter,
+body.printing .btn-pdf { display: none !important; }
+
+@media print {
+  html, body {
+    background: white !important;
+    overflow: auto !important;
+    height: auto !important;
+  }
+
+  .reader {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    box-shadow: none !important;
+    transform: none !important;
+    left: 0 !important;
+    overflow: visible !important;
+  }
+
+  .page {
+    position: static !important;
+    opacity: 1 !important;
+    transform: none !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    overflow: visible !important;
+    z-index: auto !important;
+  }
+
+  .reader-nav,
+  .pg-counter,
+  .btn-pdf { display: none !important; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="reader">
+
+<!-- ════════════════════════════════════════
+  P1 · CAPA
+════════════════════════════════════════ -->
+<section class="page" id="p1">
+  <div class="cover-img" style="flex:1;min-height:52%;border-radius:0;border:none;border-bottom:4px solid var(--g);overflow:hidden;display:block">
+    <img src="ebook adestramento pattamansa/fotos ebook/file_00000000157c720e9cbecf4abe5bfa8d.png" alt="Cão feliz PattaMansa" style="width:100%;height:100%;object-fit:cover;object-position:center 12%;display:block">
+  </div>
+  <div class="cover-box">
+    <div class="cover-brand">
+      <img src="Logo_7.png" alt="PattaMansa" class="logo-img logo-dark" style="max-width:160px">
+    </div>
+    <div class="cover-tagline">Vestuário Pet &amp; Estilo de Vida</div>
+    <div class="cover-title">O Guia Completo<br>para Cães<br>Bem-Comportados</div>
+    <div class="cover-line"></div>
+    <div class="cover-subtitle">Adestramento de Obediência Básica</div>
+    <div class="cover-note">Ebook exclusivo · Um presente da PattaMansa para você</div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+  P2 · ÍNDICE
+════════════════════════════════════════ -->
+<section class="page" id="p2">
+  <div class="idx-hdr">
+    <div class="idx-label">Conteúdo</div>
+    <div class="idx-title">Índice</div>
+  </div>
+  <ul>
+    <li class="idx-item" onclick="ebook.go(2)">
+      <span class="idx-num">01</span>
+      <span class="idx-name">Sobre a PattaMansa</span>
+      <span class="idx-pg">03</span>
+    </li>
+    <li class="idx-item" onclick="ebook.go(3)">
+      <span class="idx-num">02</span>
+      <span class="idx-name">Introdução</span>
+      <span class="idx-pg">04</span>
+    </li>
+    <li class="idx-item" onclick="ebook.go(4)">
+      <span class="idx-num">03</span>
+      <span class="idx-name">A Importância do Adestramento</span>
+      <span class="idx-pg">05</span>
+    </li>
+    <li class="idx-item" onclick="ebook.go(5)">
+      <span class="idx-num">04</span>
+      <span class="idx-name">Preparação para o Treinamento</span>
+      <span class="idx-pg">06</span>
+    </li>
+    <li class="idx-item" onclick="ebook.go(6)">
+      <span class="idx-num">05</span>
+      <span class="idx-name">Comandos Básicos — Parte 1</span>
+      <span class="idx-pg">07</span>
+    </li>
+    <li class="idx-item" onclick="ebook.go(7)">
+      <span class="idx-num">06</span>
+      <span class="idx-name">Comandos Básicos — Parte 2</span>
+      <span class="idx-pg">08</span>
+    </li>
+    <li class="idx-item" onclick="ebook.go(8)">
+      <span class="idx-num">07</span>
+      <span class="idx-name">Dicas para Treinamento Eficaz</span>
+      <span class="idx-pg">09</span>
+    </li>
+    <li class="idx-item" onclick="ebook.go(10)">
+      <span class="idx-num">08</span>
+      <span class="idx-name">Resolvendo Problemas Comuns</span>
+      <span class="idx-pg">12</span>
+    </li>
+    <li class="idx-item" onclick="ebook.go(13)">
+      <span class="idx-num">09</span>
+      <span class="idx-name">Mantendo o Aprendizado</span>
+      <span class="idx-pg">14</span>
+    </li>
+    <li class="idx-item" onclick="ebook.go(14)">
+      <span class="idx-num">10</span>
+      <span class="idx-name">Conclusão</span>
+      <span class="idx-pg">15</span>
+    </li>
+  </ul>
+  <div class="idx-footer">
+    <img src="Logo_7.png" alt="PattaMansa" class="logo-img" style="height:24px;width:auto;margin:0 auto;opacity:.7">
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+  P3 · SOBRE A PATTAMANSA
+════════════════════════════════════════ -->
+<section class="page" id="p3">
+  <div class="sobre-hdr">
+    <div class="wm wm-white">03</div>
+    <div class="lbl lbl-white">Página 03</div>
+    <div class="div-g div-white"></div>
+    <div class="chap chap-white">Sobre a<br>PattaMansa</div>
+  </div>
+  <div class="sobre-body">
+    <div style="text-align:center;padding:16px 0 12px">
+      <img src="Logo_7.png" alt="PattaMansa" class="logo-img" style="max-width:200px;margin:0 auto">
+    </div>
+    <p class="body-txt" style="margin-bottom:11px">
+      A PattaMansa é uma marca feita por quem ama cães e acredita que cada rotina pode
+      ficar mais leve quando o tutor encontra segurança e respeito na relação com o pet.
+    </p>
+    <p class="body-txt" style="margin-bottom:16px">
+      Este ebook é um presente exclusivo para clientes PattaMansa — com dicas simples
+      e práticas para fortalecer o carinho e a convivência no dia a dia.
+    </p>
+    <div class="mbox">
+      <h4>Missão</h4>
+      <p>Ajudar tutores a construir uma relação mais harmoniosa, segura e afetuosa com seus cães, onde cuidado e bem-estar caminham juntos.</p>
+    </div>
+    <div class="mbox">
+      <h4>Valores</h4>
+      <p>Empatia, respeito aos limites animais, reforço positivo e construção de relacionamentos genuínos entre humanos e pets.</p>
+    </div>
+    <div class="bfooter">
+      <img src="Logo_7.png" alt="PattaMansa" class="logo-img" style="height:22px;width:auto;margin:0 auto;opacity:.65">
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+  P4 · INTRODUÇÃO
+════════════════════════════════════════ -->
+<section class="page cp" id="p4">
+  <div class="cp-hdr" style="background:var(--gp);border-bottom:2px solid var(--bd)">
+    <div class="wm">04</div>
+    <div class="lbl">Página 04</div>
+    <div class="div-g"></div>
+    <div class="chap">Introdução</div>
+  </div>
+  <div class="cp-body" style="padding-top:14px">
+    <p class="body-txt" style="margin-bottom:13px">
+      O adestramento de obediência básica é uma parte fundamental da vida de um cão e do
+      relacionamento com seu tutor. Ensinar comandos simples não apenas melhora o comportamento
+      do seu pet, mas também fortalece o vínculo entre vocês e garante a segurança do cão.
+    </p>
+    <p class="body-txt" style="margin-bottom:13px">
+      Na PattaMansa, acreditamos que o cuidado com o cão faz parte do estilo de vida: quando
+      ele se sente seguro e respeitado, a convivência se torna mais tranquila e mais feliz.
+    </p>
+    <p class="body-txt" style="margin-bottom:16px">
+      Neste ebook, você encontrará técnicas eficazes, dicas práticas e um passo a passo para
+      ensinar seu cão a obedecer comandos básicos. Com paciência, consistência e amor, você
+      transformará a experiência de convivência com seu companheiro de quatro patas.
+    </p>
+    <div style="height:160px;border-radius:10px;overflow:hidden">
+      <img src="ebook adestramento pattamansa/fotos ebook/file_00000000d3d4720ea622aa6e19613814.png" alt="Tutora e cão juntos felizes" style="width:100%;height:100%;object-fit:cover;object-position:center 28%;border-radius:10px;display:block">
+    </div>
+    <div class="bfooter">
+      <img src="Logo_7.png" alt="PattaMansa" class="logo-img" style="height:22px;width:auto;margin:0 auto;opacity:.65">
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+  P5 · CAP 1 — IMPORTÂNCIA DO ADESTRAMENTO
+════════════════════════════════════════ -->
+<section class="page cp" id="p5">
+  <div class="cp-hdr" style="border-left:5px solid var(--g)">
+    <div class="wm">01</div>
+    <div class="lbl">Capítulo 01</div>
+    <div class="div-g"></div>
+    <div class="chap">A Importância<br>do Adestramento</div>
+  </div>
+  <div class="cp-body" style="padding-top:12px">
+    <div class="sub-h" style="margin-top:0">Benefícios do Adestramento</div>
+    <ul class="bl" style="margin-bottom:16px">
+      <li><strong>Segurança:</strong> Cães bem treinados são menos propensos a se envolver em situações perigosas.</li>
+      <li><strong>Socialização:</strong> O adestramento ajuda os cães a se comportarem adequadamente em ambientes sociais.</li>
+      <li><strong>Vínculo:</strong> Treinar juntos fortalece o relacionamento entre cão e seu tutor.</li>
+    </ul>
+    <div class="sub-h">O Que Esperar</div>
+    <ul class="bl" style="margin-bottom:16px">
+      <li><strong>Tempo e Paciência:</strong> O aprendizado pode levar tempo — cada cão aprende em seu próprio ritmo.</li>
+      <li><strong>Reforço Positivo:</strong> A técnica mais eficaz envolve recompensas para comportamentos desejados.</li>
+    </ul>
+    <div style="height:140px;border-radius:10px;overflow:hidden">
+      <img src="ebook adestramento pattamansa/fotos ebook/file_000000000c9c720e989cfab41a4fb176.png" alt="Cão obedecendo ao comando" style="width:100%;height:100%;object-fit:cover;object-position:28% 45%;border-radius:10px;display:block">
+    </div>
+    <div class="bfooter">
+      <img src="Logo_7.png" alt="PattaMansa" class="logo-img" style="height:22px;width:auto;margin:0 auto;opacity:.65">
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+  P6 · CAP 2 — PREPARAÇÃO
+════════════════════════════════════════ -->
+<section class="page cp" id="p6">
+  <div class="cp-hdr" style="background:var(--cr);border-bottom:2px solid var(--bd)">
+    <div class="wm">02</div>
+    <div class="lbl">Capítulo 02</div>
+    <div class="div-g"></div>
+    <div class="chap">Preparação para<br>o Treinamento</div>
+  </div>
+  <div class="cp-body" style="padding-top:16px">
+    <div class="two" style="margin-bottom:14px">
+      <div class="card">
+        <div class="sub-h" style="margin-top:0;font-size:14px">🎒 Equipamentos</div>
+        <ul class="bl">
+          <li><strong>Coleira &amp; Guia:</strong> Coleira confortável e guia de 1,5 a 2 m.</li>
+          <li><strong>Petiscos:</strong> Pequenos e muito saborosos.</li>
+          <li><strong>Brinquedos:</strong> Como recompensa no treino.</li>
+        </ul>
+        <div style="height:70px;margin-top:10px;border-radius:8px;overflow:hidden">
+          <img src="ebook adestramento pattamansa/fotos ebook/file_00000000c0c471f5b00099d52f48a1ab.png" alt="Coleira e petiscos de treino" style="width:100%;height:100%;object-fit:cover;object-position:center 55%;border-radius:8px;display:block">
+        </div>
+      </div>
+      <div class="card">
+        <div class="sub-h" style="margin-top:0;font-size:14px">🌿 Ambiente</div>
+        <ul class="bl">
+          <li><strong>Local Calmo:</strong> Livre de distrações para as sessões.</li>
+          <li><strong>Duração:</strong> 5 a 10 minutos por sessão.</li>
+        </ul>
+        <div style="height:70px;margin-top:10px;border-radius:8px;overflow:hidden">
+          <img src="ebook adestramento pattamansa/fotos ebook/file_0000000084c4720eb7afb8174221d0d3.png" alt="Ambiente de treino" style="width:100%;height:100%;object-fit:cover;object-position:55% 35%;border-radius:8px;display:block">
+        </div>
+      </div>
+    </div>
+    <div class="card-g">
+      <p style="font-size:12.5px;line-height:1.65;color:var(--tx)">
+        💡 <strong>Dica:</strong> Comece sempre em local sem distrações. Conforme o cão aprende,
+        vá aumentando o nível de dificuldade do ambiente.
+      </p>
+    </div>
+    <div class="bfooter">
+      <img src="Logo_7.png" alt="PattaMansa" class="logo-img" style="height:22px;width:auto;margin:0 auto;opacity:.65">
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+  P7 · CAP 3 — COMANDOS BÁSICOS (A)
+════════════════════════════════════════ -->
+<section class="page cp" id="p7">
+  <div class="cp-hdr">
+    <div class="wm">03</div>
+    <div class="lbl">Capítulo 03</div>
+    <div class="div-g"></div>
+    <div class="chap">Comandos<br>Básicos</div>
+  </div>
+  <div class="cp-body" style="padding-top:12px">
+    <div class="card-g" style="margin-bottom:13px">
+      <div class="sub-h" style="margin-top:0;margin-bottom:9px;color:var(--dk);font-size:15px">🐾 Sentar</div>
+      <ol class="sl">
+        <li><span class="sn">1</span><span><strong>Atraia a Atenção:</strong> Mostre um petisco ao seu cão.</span></li>
+        <li><span class="sn">2</span><span><strong>Movimente:</strong> Levante o petisco acima do nariz e mova para trás.</span></li>
+        <li><span class="sn">3</span><span><strong>Reforço:</strong> Assim que sentar, elogie e ofereça o petisco.</span></li>
+        <li><span class="sn">4</span><span><strong>Repetição:</strong> Repita até ele associar o comando à ação.</span></li>
+      </ol>
+    </div>
+    <div class="card-g">
+      <div class="sub-h" style="margin-top:0;margin-bottom:9px;color:var(--dk);font-size:15px">✋ Fica</div>
+      <ol class="sl">
+        <li><span class="sn">1</span><span><strong>Inicial:</strong> Peça para o cão se sentar.</span></li>
+        <li><span class="sn">2</span><span><strong>Comando:</strong> Diga "fica" e dê um passo para trás.</span></li>
+        <li><span class="sn">3</span><span><strong>Reforço:</strong> Se permanecer, volte e recompense.</span></li>
+        <li><span class="sn">4</span><span><strong>Distância:</strong> Aumente gradualmente a distância e o tempo.</span></li>
+      </ol>
+    </div>
+    <div class="bfooter">
+      <img src="Logo_7.png" alt="PattaMansa" class="logo-img" style="height:22px;width:auto;margin:0 auto;opacity:.65">
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+  P8 · CAP 3 — COMANDOS BÁSICOS (B)
+════════════════════════════════════════ -->
+<section class="page cp" id="p8">
+  <div class="cp-hdr" style="background:var(--gp);border-bottom:2px solid var(--bd)">
+    <div class="lbl">Capítulo 03 · continuação</div>
+    <div class="div-g"></div>
+    <div class="chap">Mais Comandos<br>Básicos</div>
+  </div>
+  <div class="cp-body" style="padding-top:12px">
+    <div class="card-g" style="margin-bottom:10px">
+      <div class="sub-h" style="margin-top:0;margin-bottom:8px;color:var(--dk);font-size:14px">📣 "Vem"</div>
+      <ol class="sl">
+        <li><span class="sn">1</span><span>Afaste-se alguns passos e chame pelo nome + "vem".</span></li>
+        <li><span class="sn">2</span><span>Mostre um petisco para incentivar.</span></li>
+        <li><span class="sn">3</span><span>Ao chegar, elogie e recompense imediatamente.</span></li>
+        <li><span class="sn">4</span><span>Pratique em diferentes locais e situações.</span></li>
+      </ol>
+    </div>
+    <div class="card-g" style="margin-bottom:10px">
+      <div class="sub-h" style="margin-top:0;margin-bottom:8px;color:var(--dk);font-size:14px">😴 "Deitar"</div>
+      <ol class="sl">
+        <li><span class="sn">1</span><span>Comece com o cão sentado.</span></li>
+        <li><span class="sn">2</span><span>Leve o petisco ao chão, próximo ao nariz, e mova para frente.</span></li>
+        <li><span class="sn">3</span><span>Ao deitar, elogie e recompense.</span></li>
+        <li><span class="sn">4</span><span>Após várias repetições, introduza o comando verbal "deita".</span></li>
+      </ol>
+    </div>
+    <div class="card-g">
+      <div class="sub-h" style="margin-top:0;margin-bottom:8px;color:var(--dk);font-size:14px">🎾 "Solta"</div>
+      <ol class="sl">
+        <li><span class="sn">1</span><span>Ofereça um brinquedo que o cão goste.</span></li>
+        <li><span class="sn">2</span><span>Diga "solta" e ofereça um petisco em troca.</span></li>
+        <li><span class="sn">3</span><span>Ao soltar, elogie e dê o petisco.</span></li>
+        <li><span class="sn">4</span><span>Pratique até ele aprender a soltar quando pedido.</span></li>
+      </ol>
+    </div>
+    <div class="bfooter">
+      <img src="Logo_7.png" alt="PattaMansa" class="logo-img" style="height:22px;width:auto;margin:0 auto;opacity:.65">
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+  P9 · CAP 4 — DICAS (A): REFORÇO + CONSISTÊNCIA
+════════════════════════════════════════ -->
+<section class="page cp" id="p9">
+  <div class="cp-hdr" style="background:var(--gp);border-bottom:2px solid var(--bd)">
+    <div class="wm">04</div>
+    <div class="lbl">Capítulo 04</div>
+    <div class="div-g"></div>
+    <div class="chap">Dicas para um<br>Treinamento Eficaz</div>
+  </div>
+  <div class="cp-body" style="padding-top:12px">
+    <div class="sub-h" style="margin-top:0">🏆 Reforço Positivo</div>
+    <ul class="bl" style="margin-bottom:14px">
+      <li><strong>Elogios e Recompensas:</strong> Sempre que obedecer, elogie com entusiasmo e ofereça uma recompensa imediata.</li>
+      <li><strong>Varie as Recompensas:</strong> Use petiscos, brinquedos ou carinho para manter o interesse do cão.</li>
+    </ul>
+    <div class="two">
+      <div>
+        <div class="sub-h" style="font-size:14px;margin-top:0">🔄 Consistência</div>
+        <ul class="bl">
+          <li><strong>Mesmos Comandos:</strong> Sempre use as mesmas palavras e entonação.</li>
+          <li><strong>Rotina Diária:</strong> Mantenha regularidade no treino.</li>
+        </ul>
+      </div>
+      <div style="height:140px;border-radius:10px;overflow:hidden">
+        <img src="ebook adestramento pattamansa/fotos ebook/file_00000000c0c471f5b00099d52f48a1ab (1).png" alt="Petiscos e recompensas de treino" style="width:100%;height:100%;object-fit:cover;object-position:center 50%;border-radius:10px;display:block">
+      </div>
+    </div>
+    <div class="bfooter">
+      <img src="Logo_7.png" alt="PattaMansa" class="logo-img" style="height:22px;width:auto;margin:0 auto;opacity:.65">
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+  P10 · CAP 4 — DICAS (B): PACIÊNCIA + AMBIENTE
+════════════════════════════════════════ -->
+<section class="page cp" id="p10">
+  <div class="cp-hdr">
+    <div class="lbl">Capítulo 04 · continuação</div>
+    <div class="div-g"></div>
+    <div class="chap">Seja Paciente<br>e Flexível</div>
+  </div>
+  <div class="cp-body" style="padding-top:12px">
+    <ul class="bl" style="margin-bottom:14px">
+      <li><strong>Respeite o Ritmo:</strong> Cada cão aprende em seu próprio tempo. Ajuste suas expectativas.</li>
+    </ul>
+    <div class="highlight" style="margin-bottom:14px">
+      <p>✅ <strong>Nunca puna</strong> seu cão por não obedecer. Em vez disso, concentre-se em <strong>recompensar os comportamentos corretos</strong>.</p>
+    </div>
+    <div class="sub-h">🌿 Ambiente Livre de Distrações</div>
+    <ul class="bl" style="margin-bottom:14px">
+      <li><strong>Local Adequado:</strong> Comece em ambiente tranquilo, vá aumentando o nível de dificuldade gradualmente.</li>
+      <li><strong>Minimize Interrupções:</strong> Mantenha o ambiente calmo durante cada sessão.</li>
+    </ul>
+    <div style="height:140px;border-radius:10px;overflow:hidden">
+      <img src="ebook adestramento pattamansa/fotos ebook/file_0000000084c4720eb7afb8174221d0d3.png" alt="Ambiente calmo de treino" style="width:100%;height:100%;object-fit:cover;object-position:center 35%;border-radius:10px;display:block">
+    </div>
+    <div class="bfooter">
+      <img src="Logo_7.png" alt="PattaMansa" class="logo-img" style="height:22px;width:auto;margin:0 auto;opacity:.65">
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+  P11 · CAP 4 — DICAS (C): SOCIALIZAÇÃO
+════════════════════════════════════════ -->
+<section class="page cp" id="p11">
+  <div class="cp-hdr" style="background:var(--cr);border-bottom:2px solid var(--bd)">
+    <div class="lbl">Capítulo 04 · continuação</div>
+    <div class="div-g"></div>
+    <div class="chap">Socialização</div>
+  </div>
+  <div class="cp-body" style="padding-top:14px">
+    <p class="body-txt" style="margin-bottom:14px">
+      A socialização é crucial para o desenvolvimento de um cão equilibrado. Apresente-o
+      a diferentes pessoas, ambientes e outros cães desde cedo.
+    </p>
+    <ul class="bl" style="margin-bottom:16px">
+      <li><strong>Novas Experiências:</strong> Exponha seu cão a novos estímulos de forma segura e positiva, sem forçar.</li>
+      <li><strong>Treinos em Grupo:</strong> Considere aulas de obediência em grupo para praticar em ambiente com mais desafios.</li>
+    </ul>
+    <div style="height:170px;border-radius:10px;overflow:hidden">
+      <img src="ebook adestramento pattamansa/fotos ebook/file_00000000e9c8720eaf628ec7cef7c150.png" alt="Cães socializando" style="width:100%;height:100%;object-fit:cover;object-position:center 40%;border-radius:10px;display:block">
+    </div>
+    <div class="bfooter">
+      <img src="Logo_7.png" alt="PattaMansa" class="logo-img" style="height:22px;width:auto;margin:0 auto;opacity:.65">
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+  P12 · CAP 5 — PROBLEMAS (A): CONCENTRAÇÃO + RESISTÊNCIA
+════════════════════════════════════════ -->
+<section class="page cp" id="p12">
+  <div class="cp-hdr">
+    <div class="wm">05</div>
+    <div class="lbl">Capítulo 05</div>
+    <div class="div-g"></div>
+    <div class="chap">Resolvendo<br>Problemas Comuns</div>
+  </div>
+  <div class="cp-body" style="padding-top:14px">
+    <div class="two" style="margin-bottom:14px">
+      <div class="card">
+        <div class="sub-h" style="margin-top:0;font-size:14px;margin-bottom:8px">😕 Concentração</div>
+        <ul class="bl">
+          <li><strong>Sessões Curtas:</strong> Reduza a duração se parecer desinteressado.</li>
+          <li><strong>Brincadeiras:</strong> Inclua jogos para tornar o treino mais divertido.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="sub-h" style="margin-top:0;font-size:14px;margin-bottom:8px">🚫 Resistência</div>
+        <ul class="bl">
+          <li><strong>Ambiente:</strong> Pode haver distrações. Mude para local mais calmo.</li>
+          <li><strong>Revisão:</strong> Volte a comandos que ele já domina e recompense.</li>
+        </ul>
+      </div>
+    </div>
+    <div style="height:145px;border-radius:10px;overflow:hidden">
+      <img src="ebook adestramento pattamansa/fotos ebook/file_000000000c9c720e989cfab41a4fb176.png" alt="Cão concentrado durante treino" style="width:100%;height:100%;object-fit:cover;object-position:28% 42%;border-radius:10px;display:block">
+    </div>
+    <div class="bfooter">
+      <img src="Logo_7.png" alt="PattaMansa" class="logo-img" style="height:22px;width:auto;margin:0 auto;opacity:.65">
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+  P13 · CAP 5 — PROBLEMAS (B): COMPORTAMENTOS INDESEJADOS
+════════════════════════════════════════ -->
+<section class="page cp" id="p13">
+  <div class="cp-hdr" style="background:var(--gp);border-bottom:2px solid var(--bd)">
+    <div class="lbl">Capítulo 05 · continuação</div>
+    <div class="div-g"></div>
+    <div class="chap">Comportamentos<br>Indesejados</div>
+  </div>
+  <div class="cp-body" style="padding-top:14px">
+    <p class="body-txt" style="margin-bottom:14px">
+      Observe o que pode estar causando os comportamentos indesejados — falta de exercício,
+      ansiedade ou falta de atenção são causas frequentes.
+    </p>
+    <ul class="bl" style="margin-bottom:14px">
+      <li><strong>Identifique as Causas:</strong> Analise o contexto. O comportamento sempre tem um motivo que pode ser corrigido.</li>
+      <li><strong>Redirecione a Atenção:</strong> Use comandos ou brinquedos para direcionar o cão para comportamentos mais desejáveis.</li>
+    </ul>
+    <div class="card-g" style="margin-bottom:14px">
+      <p style="font-size:12.5px;line-height:1.65;color:var(--tx)">
+        💡 <strong>Lembre-se:</strong> Em vez de punir, redirecione. Cães respondem muito melhor
+        ao reforço positivo do que à correção.
+      </p>
+    </div>
+    <div style="height:150px;border-radius:10px;overflow:hidden">
+      <img src="ebook adestramento pattamansa/fotos ebook/file_000000008fe8720ea14df9ae7e9221ca.png" alt="Redirecionamento positivo" style="width:100%;height:100%;object-fit:cover;object-position:center 22%;border-radius:10px;display:block">
+    </div>
+    <div class="bfooter">
+      <img src="Logo_7.png" alt="PattaMansa" class="logo-img" style="height:22px;width:auto;margin:0 auto;opacity:.65">
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+  P14 · CAP 6 — MANTENDO O APRENDIZADO
+════════════════════════════════════════ -->
+<section class="page cp" id="p14">
+  <div class="cp-hdr" style="background:var(--g);padding-bottom:18px">
+    <div class="wm wm-white">06</div>
+    <div class="lbl lbl-white">Capítulo 06</div>
+    <div class="div-g div-white"></div>
+    <div class="chap chap-white">Mantendo<br>o Aprendizado</div>
+  </div>
+  <div class="cp-body" style="padding-top:16px">
+    <div class="three" style="margin-bottom:16px">
+      <div class="mini-card">
+        <h4>🔁 Prática<br>Contínua</h4>
+        <p>Continue praticando mesmo após o aprendizado. Reforce em diferentes ambientes.</p>
+      </div>
+      <div class="mini-card">
+        <h4>🎯 Novos<br>Desafios</h4>
+        <p>Após o básico, introduza comandos avançados e circuitos de obstáculos.</p>
+      </div>
+      <div class="mini-card">
+        <h4>📣 Compar-<br>tilhe</h4>
+        <p>Registre o progresso em vídeos. Compartilhe com família e amigos.</p>
+      </div>
+    </div>
+    <div style="height:160px;border-radius:10px;overflow:hidden">
+      <img src="ebook adestramento pattamansa/fotos ebook/file_00000000137c720ea78d4e227428996a (1).png" alt="Cão dominando comando avançado" style="width:100%;height:100%;object-fit:cover;object-position:center 18%;border-radius:10px;display:block">
+    </div>
+    <div class="bfooter">
+      <img src="Logo_7.png" alt="PattaMansa" class="logo-img" style="height:22px;width:auto;margin:0 auto;opacity:.65">
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+  P15 · CONCLUSÃO
+════════════════════════════════════════ -->
+<section class="page" id="p15">
+  <div class="c-label">Página 15</div>
+  <div class="c-title">Conclusão</div>
+  <div class="c-divider"></div>
+  <p class="c-text">
+    O adestramento de obediência básica é uma jornada gratificante que beneficia tanto
+    o cão quanto o tutor. Seguindo as técnicas apresentadas neste ebook, você estará no
+    caminho certo para ter um cão mais seguro, equilibrado e feliz.
+  </p>
+  <p class="c-text">
+    Cada passo do treinamento é também um passo para conhecer melhor o seu cão.
+    Pequenas conquistas diárias se transformam em um relacionamento profundo de confiança.
+  </p>
+  <p class="c-text">
+    A paciência, a consistência e o carinho fazem parte do que chamamos de
+    <span class="c-em">cuidado PattaMansa</span>: simples, cuidadoso e sempre voltado
+    para o bem-estar do seu pet.
+  </p>
+  <div class="c-divider"></div>
+  <div class="c-thanks">Obrigado por escolher</div>
+  <div style="margin:8px auto 0">
+    <img src="Logo_7.png" alt="PattaMansa" class="logo-img logo-dark" style="max-width:150px;margin:0 auto">
+  </div>
+  <div class="c-paw">🐾</div>
+</section>
+
+<!-- ════════════════════════════════════════
+  P16 · CTA — MATILHA PATTAMANSA
+════════════════════════════════════════ -->
+<section class="page" id="p16">
+  <!-- Imagem hero — ocupa metade superior da página -->
+  <div style="width:100%;height:52%;min-height:260px;overflow:hidden;position:relative;flex-shrink:0">
+    <img src="ebook adestramento pattamansa/fotos ebook/file_00000000157c720e9cbecf4abe5bfa8d.png" alt="Cão com produto PattaMansa" style="width:100%;height:100%;object-fit:cover;object-position:center 14%;display:block">
+    <!-- Gradiente suave na base para transição com o texto -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:80px;background:linear-gradient(to bottom,transparent,var(--dk))"></div>
+  </div>
+  <!-- Conteúdo sobre fundo escuro -->
+  <div style="padding:18px 28px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;flex:1">
+    <div class="cta-eyebrow" style="margin-bottom:4px">Você agora faz parte da</div>
+    <div class="cta-main" style="margin-bottom:12px">
+      Matilha<br><span class="cta-em">PattaMansa</span>
+    </div>
+    <p class="cta-lead" style="margin-bottom:16px">
+      Continue sua jornada com dicas e inspirações para o dia a dia do seu cão.
+    </p>
+    <div class="cta-social" style="margin-bottom:14px">
+      <a href="https://instagram.com/pattamansa" target="_blank">📸 @pattamansa</a>
+      <a href="https://www.pattamansa.com.br" target="_blank">🌐 www.pattamansa.com.br</a>
+    </div>
+    <div class="cta-divider"></div>
+    <div class="cta-tagline">Seu cão merece o melhor — em estilo e educação.</div>
+    <div style="margin-top:14px">
+      <img src="Logo_7.png" alt="PattaMansa" class="logo-img logo-dark" style="max-width:150px;margin:0 auto;opacity:.75">
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+  NAVEGAÇÃO
+════════════════════════════════════════ -->
+<nav class="reader-nav">
+  <button class="nav-btn" id="navPrev" title="Página anterior">&#8593;</button>
+  <div class="dots" id="dots"></div>
+  <button class="nav-btn" id="navNext" title="Próxima página">&#8595;</button>
+</nav>
+
+<div class="pg-counter" id="pgCounter">1 / 16</div>
+
+</div><!-- /reader -->
+
+<button class="btn-pdf" onclick="salvarPDF()" title="Salvar como PDF">
+  ⬇ Salvar PDF
+</button>
+
+<!-- ════════════════════════════════════════
+  JAVASCRIPT
+════════════════════════════════════════ -->
+<script>
+const ebook = (() => {
+  const pages   = [...document.querySelectorAll('.page')];
+  const dotsEl  = document.getElementById('dots');
+  const counter = document.getElementById('pgCounter');
+  const btnPrev = document.getElementById('navPrev');
+  const btnNext = document.getElementById('navNext');
+  let cur = 0;
+
+  // Cria dots
+  pages.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    d.addEventListener('click', () => go(i));
+    dotsEl.appendChild(d);
+  });
+
+  function go(idx) {
+    if (idx < 0 || idx >= pages.length || idx === cur) return;
+
+    // Remove active da página atual
+    pages[cur].classList.remove('active');
+    pages[cur].classList.add('exiting');
+    const leaving = cur;
+    setTimeout(() => pages[leaving].classList.remove('exiting'), 350);
+
+    cur = idx;
+
+    // Ativa nova página
+    pages[cur].classList.add('active');
+    pages[cur].scrollTop = 0;
+
+    update();
+  }
+
+  function update() {
+    [...dotsEl.children].forEach((d, i) => d.classList.toggle('active', i === cur));
+    counter.textContent = (cur + 1) + ' / ' + pages.length;
+    btnPrev.disabled = cur === 0;
+    btnNext.disabled = cur === pages.length - 1;
+  }
+
+  // Teclado
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown'  || e.key === 'ArrowRight') go(cur + 1);
+    if (e.key === 'ArrowUp'    || e.key === 'ArrowLeft')  go(cur - 1);
+  });
+
+  // Swipe touch
+  let ty0 = 0, tx0 = 0;
+  const reader = document.querySelector('.reader');
+
+  reader.addEventListener('touchstart', e => {
+    ty0 = e.touches[0].clientY;
+    tx0 = e.touches[0].clientX;
+  }, { passive: true });
+
+  reader.addEventListener('touchend', e => {
+    const dy = ty0 - e.changedTouches[0].clientY;
+    const dx = tx0 - e.changedTouches[0].clientX;
+    if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 55) {
+      dy > 0 ? go(cur + 1) : go(cur - 1);
+    }
+  });
+
+  // Botões
+  btnPrev.addEventListener('click', () => go(cur - 1));
+  btnNext.addEventListener('click', () => go(cur + 1));
+
+  // Inicia na primeira página
+  go(0);
+
+  return { prev: () => go(cur - 1), next: () => go(cur + 1), go };
+})();
+
+function salvarPDF() {
+  document.body.classList.add('printing');
+
+  // Garante que o browser renderizou tudo antes de imprimir
+  setTimeout(() => {
+    window.print();
+
+    // Remove o modo impressão após fechar o diálogo
+    window.addEventListener('afterprint', () => {
+      document.body.classList.remove('printing');
+    }, { once: true });
+
+    // Fallback: remove após 3s caso afterprint não dispare
+    setTimeout(() => {
+      document.body.classList.remove('printing');
+    }, 3000);
+  }, 200);
+}
+</script>
+
+</body>
+</html>
