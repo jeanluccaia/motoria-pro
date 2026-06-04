@@ -16,19 +16,17 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'items required' });
   }
 
-  const lineItems = items.map(function (i) {
+  const lines = items.map(function (i) {
     return {
-      variantId: 'gid://shopify/ProductVariant/' + i.variantId,
+      merchandiseId: 'gid://shopify/ProductVariant/' + i.variantId,
       quantity: Number(i.quantity)
     };
   });
 
   const query = `
-    mutation draftOrderCreate($input: DraftOrderInput!) {
-      draftOrderCreate(input: $input) {
-        draftOrder {
-          invoiceUrl
-        }
+    mutation cartCreate($input: CartInput!) {
+      cartCreate(input: $input) {
+        cart { checkoutUrl }
         userErrors { field message }
       }
     }
@@ -36,24 +34,24 @@ module.exports = async function handler(req, res) {
 
   try {
     const r = await fetch(
-      'https://' + SHOPIFY_DOMAIN + '/admin/api/' + SHOPIFY_API_VERSION + '/graphql.json',
+      'https://' + SHOPIFY_DOMAIN + '/api/' + SHOPIFY_API_VERSION + '/graphql.json',
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Shopify-Access-Token': process.env.SHOPIFY_ADMIN_TOKEN
+          'X-Shopify-Storefront-Access-Token': process.env.SHOPIFY_STOREFRONT_TOKEN
         },
-        body: JSON.stringify({ query: query, variables: { input: { lineItems: lineItems } } })
+        body: JSON.stringify({ query: query, variables: { input: { lines: lines } } })
       }
     );
 
     const data = await r.json();
-    const draftOrder = data && data.data && data.data.draftOrderCreate && data.data.draftOrderCreate.draftOrder;
-    const userErrors = data && data.data && data.data.draftOrderCreate && data.data.draftOrderCreate.userErrors;
+    const cart = data && data.data && data.data.cartCreate && data.data.cartCreate.cart;
+    const userErrors = data && data.data && data.data.cartCreate && data.data.cartCreate.userErrors;
     const graphqlErrors = data && data.errors;
 
-    if (draftOrder && draftOrder.invoiceUrl) {
-      return res.status(200).json({ checkoutUrl: draftOrder.invoiceUrl });
+    if (cart && cart.checkoutUrl) {
+      return res.status(200).json({ checkoutUrl: cart.checkoutUrl });
     }
 
     return res.status(500).json({
