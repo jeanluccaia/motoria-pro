@@ -1785,7 +1785,7 @@ footer {
 .vitrine-section .sc-swatch { width: 20px; height: 20px; }
 .vitrine-section .sc-sizes { gap: .28rem; }
 .vitrine-section .sc-size-btn { padding: .36rem .52rem; font-size: .59rem; min-width: 36px; }
-.vcard-actions { display: flex; flex-direction: column; gap: .5rem; margin-top: .1rem; }
+.vcard-actions { display: flex; flex-direction: column; gap: .5rem; margin-top: auto; }
 .vcard-guide { font-size: .56rem; letter-spacing: .1em; text-transform: uppercase; color: rgba(184,188,142,.26); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(184,188,142,.1); cursor: pointer; align-self: flex-start; transition: color .2s; }
 .vcard-guide:hover { color: rgba(184,188,142,.55); }
 .vcard-cta { display: block; text-align: center; font-size: .58rem; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--preto); background: var(--laranja); padding: .8rem 1rem; border-radius: 2px; text-decoration: none; transition: transform .15s, box-shadow .2s; }
@@ -3059,7 +3059,7 @@ footer {
 #cartFab{display:flex!important;visibility:visible!important;opacity:1!important;z-index:9980!important;pointer-events:auto!important;}
 @keyframes patta-badge-pulse{0%{transform:scale(1)}35%{transform:scale(1.6)}70%{transform:scale(.88)}100%{transform:scale(1)}}
 .cart-fab-badge.pulse{animation:patta-badge-pulse .5s ease forwards}
-.pdv-note{font-size:.72rem;color:#64748b;text-align:center;margin-top:10px;line-height:1.4}
+.pdv-note{font-size:.72rem;font-weight:500;color:rgba(212,137,42,.75);background:rgba(212,137,42,.07);border:1px solid rgba(212,137,42,.18);border-radius:8px;text-align:center;margin-top:10px;padding:.42rem .9rem;line-height:1.4}
 
 /* ─── PRODUCT DRAWER ─── */
 #pdvOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9990;opacity:0;pointer-events:none;transition:opacity .3s}
@@ -3135,12 +3135,27 @@ footer {
 }
 
 /* ─── VCARD EBOOK HINT ─── */
+@keyframes patta-hint-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212,137,42,0); }
+  50% { box-shadow: 0 0 0 5px rgba(212,137,42,.13); }
+}
 .vcard-ebook-hint {
-  font-size: .55rem;
-  letter-spacing: .07em;
-  color: rgba(184,188,142,.32);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  gap: .28rem;
+  font-size: .57rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  color: rgba(212,137,42,.82);
+  background: rgba(212,137,42,.09);
+  border: 1px solid rgba(212,137,42,.22);
+  border-radius: 20px;
+  padding: .32rem .72rem;
   text-align: center;
   line-height: 1.3;
+  animation: patta-hint-pulse 2.8s ease-in-out infinite;
 }
 .vcard-cta-sub {
   font-size: .53rem;
