@@ -3055,6 +3055,19 @@ footer {
   .lb-thumb { width: 38px; height: 38px; }
 }
 
+/* ─── COMUNIDADE ─── */
+@media (max-width: 640px) {
+  #comunidade-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+}
+@media (max-width: 400px) {
+  #comunidade-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* ── Cart FAB — força visibilidade acima de tudo ── */
 #cartFab{display:flex!important;visibility:visible!important;opacity:1!important;z-index:9980!important;pointer-events:auto!important;}
 @keyframes patta-badge-pulse{0%{transform:scale(1)}35%{transform:scale(1.6)}70%{transform:scale(.88)}100%{transform:scale(1)}}
@@ -3585,6 +3598,40 @@ footer {
            class="algodao-img" loading="lazy">
     </div>
 
+  </div>
+</section>
+
+<!-- ══ COMUNIDADE ══ -->
+<section id="comunidade" style="background:#0d1a0e;padding:80px 0 64px;overflow:hidden;">
+  <div style="text-align:center;padding:0 24px;margin-bottom:48px;">
+    <p style="font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:#b8bc8e;opacity:.6;margin-bottom:16px;">Comunidade</p>
+    <h2 style="font-family:'DM Sans',sans-serif;font-size:clamp(1.8rem,5vw,2.8rem);font-weight:800;color:#f2ede0;line-height:1.15;margin:0;">
+      Quem já vive a<br>
+      <em style="color:#F5A346;font-style:italic;">PattaMansa</em>
+    </h2>
+    <p style="font-family:'DM Sans',sans-serif;font-size:15px;color:#b8bc8e;margin-top:16px;opacity:.75;max-width:420px;margin-left:auto;margin-right:auto;line-height:1.6;">
+      Uma marca criada por quem vive cachorro todos os dias.
+    </p>
+  </div>
+
+  <div style="max-width:860px;margin:0 auto 16px;padding:0 24px;">
+    <img src="comunidade/hero.webp" alt="Menina com Golden Retriever apontando para a estampa PattaMansa" loading="lazy" style="width:100%;height:auto;max-height:600px;object-fit:cover;object-position:top center;border-radius:4px;display:block;">
+    <p style="font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#b8bc8e;opacity:.45;margin-top:10px;text-align:right;">Clientes reais</p>
+  </div>
+
+  <div id="comunidade-grid" style="max-width:860px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">
+    <div>
+      <img src="comunidade/foto-01.webp" alt="PattaMansa no Oculus de Nova York" loading="lazy" style="width:100%;aspect-ratio:3/4;object-fit:cover;object-position:center;border-radius:4px;display:block;">
+    </div>
+    <div>
+      <img src="comunidade/foto-02.webp" alt="Família usando PattaMansa no parque" loading="lazy" style="width:100%;aspect-ratio:3/4;object-fit:cover;object-position:top center;border-radius:4px;display:block;">
+    </div>
+    <div>
+      <img src="comunidade/foto-03.webp" alt="Evento PattaMansa com banner da marca" loading="lazy" style="width:100%;aspect-ratio:3/4;object-fit:cover;object-position:top center;border-radius:4px;display:block;">
+    </div>
+    <div>
+      <img src="comunidade/foto-04.webp" alt="Cliente PattaMansa com Golden Retriever no parque" loading="lazy" style="width:100%;aspect-ratio:3/4;object-fit:cover;object-position:top center;border-radius:4px;display:block;">
+    </div>
   </div>
 </section>
 
