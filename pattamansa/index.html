@@ -34,8 +34,15 @@ src="https://www.facebook.com/tr?id=1645504430077594&ev=PageView&noscript=1"/>
 </noscript>
 <!-- End Meta Pixel Code -->
 
+<!-- Preload hero poster — LCP candidate -->
+<link rel="preload" as="image" href="hero-poster.webp" fetchpriority="high">
+
+<!-- Fonts: preconnect both googleapis and gstatic (actual font files) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fraunces:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Non-blocking font load via print media trick -->
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fraunces:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fraunces:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"></noscript>
 
 <style>
 :root {
@@ -181,8 +188,8 @@ nav {
 .nav-logo {
   display: inline-flex;
   align-items: center;
-  width: clamp(156px, 15.5vw, 190px);
-  height: 62px;
+  width: clamp(174px, 18vw, 220px);
+  height: 74px;
   overflow: hidden;
   flex: 0 0 auto;
 }
@@ -250,7 +257,7 @@ nav {
   position: absolute;
   top: 8.1rem; right: 1.25rem;
   z-index: 10;
-  width: 40px; height: 40px;
+  width: 44px; height: 44px;
   border-radius: 50%;
   border: 1px solid rgba(184,188,142,.25);
   background: rgba(8,13,9,.55);
@@ -259,6 +266,12 @@ nav {
   display: flex; align-items: center; justify-content: center;
   transition: border-color .2s, background .2s;
   color: var(--sage);
+}
+/* Expand invisible touch area without changing visual size */
+.hero-sound-btn::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
 }
 .hero-sound-btn:hover {
   border-color: rgba(245,163,70,.5);
@@ -1079,26 +1092,20 @@ nav {
 /* ─── FOOTER ─── */
 footer {
   border-top: 1px solid rgba(184,188,142,.07);
-  padding: 2.5rem 1.5rem;
+  padding: 3rem 1.5rem 3.35rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.1rem;
+  gap: 1.15rem;
   text-align: center;
-}
-.footer-sigla img {
-  width: 50px;
-  height: 50px;
-  object-fit: contain;
-  opacity: .64;
-  filter: none;
+  background: linear-gradient(180deg, rgba(8,13,9,.08), rgba(8,13,9,.35));
 }
 .footer-logo {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: clamp(156px, 18vw, 190px);
-  height: 64px;
+  width: clamp(220px, 42vw, 286px);
+  height: 96px;
   overflow: hidden;
 }
 .footer-logo img {
@@ -1106,7 +1113,7 @@ footer {
   height: 100%;
   object-fit: cover;
   object-position: center;
-  opacity: 1;
+  opacity: .82;
   filter: none;
 }
 .footer-support {
@@ -1860,9 +1867,12 @@ footer {
 .counter-number { display: block; font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; color: var(--laranja); line-height: 1; letter-spacing: .03em; }
 .counter-label { font-size: .58rem; letter-spacing: .15em; text-transform: uppercase; color: rgba(184,188,142,.5); margin-top: .4rem; }
 .counter-divider { width: 1px; height: 52px; background: rgba(184,188,142,.2); }
+.ong-actions { display: flex; align-items: center; justify-content: center; gap: .85rem; flex-wrap: wrap; }
 .ong-cta { display: inline-block; border: 2px solid var(--creme); color: var(--creme); padding: .9rem 2.25rem; font-size: .68rem; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; text-decoration: none; border-radius: 2px; transition: background .22s, color .22s; }
 .ong-cta:hover { background: var(--creme); color: var(--verde-md); }
-@media (max-width: 640px) { .section-ong { padding: 4rem 1.25rem 3.75rem; } .ong-counter { gap: 1.75rem; } .counter-number { font-size: 2.75rem; } .social-bar { gap: 1.1rem; } }
+.ong-cta-secondary { border-color: rgba(184,188,142,.45); color: rgba(242,237,224,.82); }
+.ong-cta-secondary:hover { background: rgba(242,237,224,.12); border-color: var(--creme); color: var(--creme); }
+@media (max-width: 640px) { .section-ong { padding: 4rem 1.25rem 3.75rem; } .ong-counter { gap: 1.75rem; } .counter-number { font-size: 2.75rem; } .ong-actions { flex-direction: column; } .ong-cta { width: min(100%, 280px); } .social-bar { gap: 1.1rem; } }
 
 /* ─── TRUST STRIP (antes dos produtos) ─── */
 .trust-strip {
@@ -1960,13 +1970,13 @@ footer {
   }
   .support-link-short { display: inline; }
   nav { position: absolute; top: 1.85rem; padding: .9rem 1.15rem; }
-  .nav-logo { width: 148px; height: 54px; }
+  .nav-logo { width: 184px; height: 66px; }
   .nav-cta { display: none; }
   .hero-sound-btn {
     top: 7.2rem;
-    width: 32px;
-    height: 32px;
-    opacity: .38;
+    width: 44px;
+    height: 44px;
+    opacity: .55;
   }
   .hero-content { padding: 0 1.25rem 3rem; }
   .hero-title { font-size: clamp(3.15rem, 14vw, 3.85rem); }
@@ -2043,8 +2053,9 @@ footer {
   .copa-ticker-item { font-size: .82rem; }
 
   /* Footer */
-  footer { padding: 2rem 1.25rem; }
-  .footer-sigla img { width: 44px; height: 44px; opacity: .58; }
+  footer { padding: 2.4rem 1.25rem 2.75rem; gap: 1rem; }
+  .footer-logo { width: min(74vw, 244px); height: 82px; }
+  .footer-logo img { opacity: .78; }
   .footer-nav { gap: 1.25rem; flex-wrap: wrap; justify-content: center; }
   .footer-support { gap: .55rem; }
   .footer-support-link {
@@ -2057,7 +2068,8 @@ footer {
 }
 
 @media (max-width: 380px) {
-  .nav-logo { width: 136px; height: 50px; }
+  .nav-logo { width: 172px; height: 62px; }
+  .footer-logo { width: min(78vw, 226px); height: 76px; }
   .nav-cta { padding: .48rem .72rem; }
   .hero-title { font-size: 3.5rem; }
   .origem-line { font-size: 1.1rem; }
@@ -3056,10 +3068,71 @@ footer {
 }
 
 /* ─── COMUNIDADE ─── */
+#comunidade-grid {
+  align-items: start;
+}
+.comunidade-hero-wrap {
+  max-width: 860px;
+  margin: 0 auto 16px;
+  padding: 0 24px;
+  text-align: center;
+}
+.comunidade-hero-img {
+  width: min(100%, 540px);
+  height: auto;
+  object-fit: contain;
+  object-position: center center;
+  border-radius: 4px;
+  display: block;
+  margin: 0 auto;
+}
+.comunidade-caption {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #b8bc8e;
+  opacity: .45;
+  margin-top: 10px;
+  text-align: right;
+}
+.comunidade-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  display: block;
+  background: #111d12;
+}
+.comunidade-frame {
+  aspect-ratio: 3 / 4;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #0d1a0e;
+}
+.comunidade-frame .comunidade-photo {
+  border-radius: 0;
+}
+.comunidade-photo--standard {
+  object-fit: cover;
+  object-position: center center;
+}
+.comunidade-photo--event {
+  object-position: center center;
+}
+.comunidade-photo--vertical {
+  object-fit: contain;
+  object-position: center center;
+  background: #0d1a0e;
+}
 @media (max-width: 640px) {
+  .comunidade-hero-wrap {
+    padding: 0 18px;
+    margin-bottom: 12px;
+  }
   #comunidade-grid {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 8px !important;
+    padding: 0 18px !important;
   }
 }
 @media (max-width: 400px) {
@@ -3352,8 +3425,8 @@ footer {
 <!-- ══ HERO ══ -->
 <section class="hero">
 
-  <video class="hero-video" id="heroVideo" autoplay muted loop playsinline poster="Logo_7.png">
-    <source src="video pata mansa hero.mp4" type="video/mp4">
+  <video class="hero-video" id="heroVideo" muted loop playsinline poster="hero-poster.webp" preload="none">
+    <source data-src="video-hero-opt2.mp4" type="video/mp4">
   </video>
 
   <!-- botão de som -->
@@ -3472,7 +3545,7 @@ footer {
         <span class="tv-dot"></span>
         Ao vivo na cultura pet
       </div>
-      <video controls preload="metadata" playsinline>
+      <video controls preload="none" playsinline>
         <source src="video de apresentação.mp4" type="video/mp4">
       </video>
       <span class="quem-video-badge">PattaMansa · No campo</span>
@@ -3550,7 +3623,7 @@ footer {
     <span class="section-tag reveal">No sofá, no bar, na rua</span>
     <h2 class="familia-copa-title reveal">Tem jogo que ninguém<br>vê sozinho.</h2>
     <p class="familia-copa-sub reveal">Família, cachorro e Brasil no mesmo momento.</p>
-    <img src="familia foto lp.png" class="familia-copa-img reveal" alt="Família usando camisetas PattaMansa assistindo ao jogo com cachorro caramelo" loading="lazy">
+    <img src="familia-foto-lp.webp" class="familia-copa-img reveal" alt="Família usando camisetas PattaMansa assistindo ao jogo com cachorro caramelo" loading="lazy" width="1400" height="1120">
   </div>
 </section>
 
@@ -3593,9 +3666,9 @@ footer {
     </div>
 
     <div class="algodao-img-wrap reveal">
-      <img src="tv%20pata%20mansa/tv%20patamansa.png"
+      <img src="tv-patamansa.webp"
            alt="TV retrô Pattamansa e Reserva Ink"
-           class="algodao-img" loading="lazy">
+           class="algodao-img" loading="lazy" width="1300" height="1157">
     </div>
 
   </div>
@@ -3614,23 +3687,23 @@ footer {
     </p>
   </div>
 
-  <div style="max-width:860px;margin:0 auto 16px;padding:0 24px;">
-    <img src="comunidade/hero.webp" alt="Menina com Golden Retriever apontando para a estampa PattaMansa" loading="lazy" style="width:100%;height:auto;max-height:600px;object-fit:cover;object-position:top center;border-radius:4px;display:block;">
-    <p style="font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#b8bc8e;opacity:.45;margin-top:10px;text-align:right;">Clientes reais</p>
+  <div class="comunidade-hero-wrap">
+    <img src="comunidade/hero.webp" alt="Menina com Golden Retriever apontando para a estampa PattaMansa" loading="lazy" width="720" height="1280" class="comunidade-hero-img">
+    <p class="comunidade-caption">Clientes reais</p>
   </div>
 
   <div id="comunidade-grid" style="max-width:860px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">
-    <div>
-      <img src="comunidade/foto-01.webp" alt="PattaMansa no Oculus de Nova York" loading="lazy" style="width:100%;aspect-ratio:3/4;object-fit:cover;object-position:center;border-radius:4px;display:block;">
+    <div class="comunidade-frame">
+      <img src="comunidade/foto-01.webp" alt="PattaMansa no Oculus de Nova York" loading="lazy" width="900" height="1200" class="comunidade-photo comunidade-photo--standard">
     </div>
-    <div>
-      <img src="comunidade/foto-02.webp" alt="Família usando PattaMansa no parque" loading="lazy" style="width:100%;aspect-ratio:3/4;object-fit:cover;object-position:top center;border-radius:4px;display:block;">
+    <div class="comunidade-frame">
+      <img src="comunidade/foto-02.webp" alt="Família usando PattaMansa no parque" loading="lazy" width="900" height="1600" class="comunidade-photo comunidade-photo--vertical">
     </div>
-    <div>
-      <img src="comunidade/foto-03.webp" alt="Evento PattaMansa com banner da marca" loading="lazy" style="width:100%;aspect-ratio:3/4;object-fit:cover;object-position:top center;border-radius:4px;display:block;">
+    <div class="comunidade-frame">
+      <img src="comunidade/foto-03.webp" alt="Evento PattaMansa com banner da marca" loading="lazy" width="900" height="1200" class="comunidade-photo comunidade-photo--standard comunidade-photo--event">
     </div>
-    <div>
-      <img src="comunidade/foto-04.webp" alt="Cliente PattaMansa com Golden Retriever no parque" loading="lazy" style="width:100%;aspect-ratio:3/4;object-fit:cover;object-position:top center;border-radius:4px;display:block;">
+    <div class="comunidade-frame">
+      <img src="comunidade/foto-04.webp" alt="Cliente PattaMansa com Golden Retriever no parque" loading="lazy" width="800" height="1422" class="comunidade-photo comunidade-photo--vertical">
     </div>
   </div>
 </section>
@@ -3645,10 +3718,10 @@ footer {
         <div class="bonus-ebook-book" aria-label="Guia de Adestramento Básico — PattaMansa">
           <div class="bonus-ebook-book-photo">
             <img
-              src="ebook%20adestramento%20pattamansa/fotos%20ebook/file_000000000c9c720e989cfab41a4fb176.png"
+              src="ebook-dog-photo.webp"
               alt="Cão caramelo em sessão de adestramento — PattaMansa"
               class="bonus-ebook-book-dog"
-              loading="lazy">
+              loading="lazy" width="1400" height="1120">
             <div class="bonus-ebook-book-photo-fade"></div>
           </div>
           <div class="bonus-ebook-book-content">
@@ -3688,7 +3761,7 @@ footer {
 <!-- ══ CTA URGÊNCIA ══ -->
 <section class="cta-final">
   <div class="cta-final-watermark" aria-hidden="true">
-    <img src="Sigla_5.png" alt="">
+    <img src="sigla.webp" alt="" width="200" height="199" loading="lazy">
   </div>
   <div class="cta-final-inner">
 
@@ -3726,6 +3799,34 @@ footer {
     </div>
     <div class="carousel-wrap">
       <div class="carousel-track" id="carouselFem">
+
+        <article class="vcard" data-product-card data-filter="feminino">
+          <div class="vcard-img-wrap">
+            <img id="cfc2Img"
+              src="cole%C3%A7%C3%A3o%20caramelo%20fc%20feminino/preta.webp"
+              alt="Caramelo FC Baby Look Feminina Preta — PattaMansa"
+              class="vcard-img" loading="lazy">
+          </div>
+          <div class="vcard-gallery" id="cfc2Gallery" role="list" aria-label="Galeria Caramelo FC Baby Look Feminina"></div>
+          <div class="vcard-body">
+            <p class="vcard-nome">Caramelo FC</p>
+            <div class="vcard-meta">
+              <span class="vcard-modelagem">Baby Look · Feminina</span>
+              <span class="vcard-price-stack">
+                <span class="vcard-price">R$129,90</span>
+                <span class="vcard-installments">ou 10x de R$13,51</span>
+              </span>
+            </div>
+            <p class="vcard-cor-label">Cor: <strong id="cfc2CorNome">Preta</strong><span style="font-size:11px;opacity:.52;display:block;margin-top:2px;font-weight:400;letter-spacing:.04em;text-transform:none;">Ver todas as cores no próximo passo</span></p>
+            <div class="sc-swatches" id="cfc2Swatches" role="group" aria-label="Selecionar cor"></div>
+            <div class="sc-sizes" id="cfc2Sizes" role="group" aria-label="Selecionar tamanho"></div>
+            <div class="vcard-actions">
+              <a href="#" class="vcard-cta" id="cfc2Cta">Ver opções</a>
+              <span class="vcard-cta-sub">Escolha cor e tamanho no próximo passo</span>
+              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
+            </div>
+          </div>
+        </article>
 
         <article class="vcard" data-product-card data-filter="feminino">
           <div class="vcard-img-wrap">
@@ -3984,23 +4085,28 @@ footer {
 
     <p class="ong-body reveal">
       Parte de cada venda vai diretamente para a
-      <strong>[NOME DA ONG]</strong>,<!-- TODO: preencher com o nome real da ONG parceira -->
+      <strong>GAAR Campinas</strong>,
       ajudando cães e gatos que ainda esperam por um lar.
     </p>
 
     <div class="ong-counter reveal">
       <div class="counter-item">
-        <span class="counter-number" data-target="0">0</span><!-- TODO: atualizar com número real de pets apoiados -->
+        <span class="counter-number" data-target="12">0</span>
         <span class="counter-label">pets apoiados</span>
       </div>
       <div class="counter-divider" aria-hidden="true"></div>
       <div class="counter-item">
-        <span class="counter-number" data-target="0">0</span><!-- TODO: atualizar com valor total doado -->
+        <span class="counter-number" data-target="480" data-prefix="R$ ">R$ 0</span>
         <span class="counter-label">reais doados</span>
       </div>
     </div>
 
-    <a href="#selecao-canina" class="ong-cta reveal">Comprar e ajudar →</a>
+    <div class="ong-actions reveal">
+      <a href="#produtos" class="ong-cta">Comprar e ajudar</a>
+      <a href="https://www.instagram.com/gaarcampinas?igsh=NWVraGk2OTdxbmox" class="ong-cta ong-cta-secondary" target="_blank" rel="noopener noreferrer">
+        Conhecer a ONG parceira
+      </a>
+    </div>
 
   </div>
 </section>
@@ -4033,11 +4139,8 @@ footer {
 
 <!-- ── FOOTER ── -->
 <footer>
-  <div class="footer-sigla" aria-hidden="true">
-    <img src="Sigla_5.png" alt="">
-  </div>
-  <div class="footer-logo">
-    <img src="Logo_7.png" alt="PattaMansa">
+  <div class="footer-logo" aria-hidden="true">
+    <img src="Logo_7.png" alt="" width="1081" height="1081" loading="lazy">
   </div>
   <div class="footer-support" aria-label="Atendimento PattaMansa">
     <span class="footer-block-title">Atendimento humano</span>
@@ -4198,20 +4301,19 @@ footer {
     }
   })();
 
-  /* ── VÍDEO HERO — autoplay nativo (muted + playsinline) ─────────
-   * Deixa o browser gerenciar autoplay nativamente.
-   * Força play() apenas como fallback seguro após idle.
-   * ─────────────────────────────────────────────────────────────── */
-  (function () {
+  /* ── VÍDEO HERO — carrega src só após window.load para não bloquear LCP ── */
+  window.addEventListener('load', function () {
     var v = document.getElementById('heroVideo');
     if (!v) return;
+    var s = v.querySelector('source[data-src]');
+    if (s) { s.setAttribute('src', s.getAttribute('data-src')); v.load(); }
     var go = function () { v.play().catch(function () {}); };
     if ('requestIdleCallback' in window) {
-      requestIdleCallback(go, { timeout: 1000 });
+      requestIdleCallback(go, { timeout: 400 });
     } else {
-      setTimeout(go, 800);
+      setTimeout(go, 300);
     }
-  })();
+  });
 
   /* Parcelamento discreto alinhado ao checkout */
   (function () {
@@ -4682,7 +4784,14 @@ footer {
   const iconSnd  = document.getElementById('iconSound');
 
   btn.addEventListener('click', () => {
-    video.muted = !video.muted;
+    if (video.muted) {
+      video.muted  = false;
+      video.volume = 1;
+      // iOS Safari requires play() after unmute to actually route audio
+      video.play().catch(() => { video.muted = true; });
+    } else {
+      video.muted = true;
+    }
     iconMute.style.display = video.muted ? 'block' : 'none';
     iconSnd.style.display  = video.muted ? 'none'  : 'block';
     btn.setAttribute('aria-label', video.muted ? 'Ativar som' : 'Silenciar');
@@ -4810,6 +4919,105 @@ footer {
         defaultImage: variants[0].img,
         colors: variants, sizes: SIZES,
         variantIds: scBlVariantIds, productId: PRODUCT_ID,
+        guide: 'algodao-peruano',
+      });
+    }, true);
+    syncCta();
+  })();
+
+  /* ── Caramelo FC — Baby Look · Feminina ── */
+  (function () {
+    const PRODUCT_ID = '10290103943469';
+    const variants = [
+      { name: 'Preta',        cartValue: 'Preto',        hex: '#1C1C1C', img: 'cole%C3%A7%C3%A3o%20caramelo%20fc%20feminino/preta.webp' },
+      { name: 'Branca',       cartValue: 'Branco',       hex: '#F0EDE5', img: 'cole%C3%A7%C3%A3o%20caramelo%20fc%20feminino/branca.webp', light: true },
+      { name: 'Azul Marinho', cartValue: 'Azul Marinho', hex: '#1C2B4A', img: 'cole%C3%A7%C3%A3o%20caramelo%20fc%20feminino/azul%20marinho.webp' },
+      { name: 'Cinza',        cartValue: 'Cinza',        hex: '#8A8A8A', img: 'cole%C3%A7%C3%A3o%20caramelo%20fc%20feminino/cinza.webp' },
+      { name: 'Verde Escuro', cartValue: 'Verde Escuro', hex: '#1E3D1E', img: 'cole%C3%A7%C3%A3o%20caramelo%20fc%20feminino/verde%20escuro.webp' },
+    ];
+    const SIZES = ['PP', 'P', 'M', 'G', 'GG', '3G'];
+    const cfc2VariantIds = {
+      'Preto|PP':'52125859971373','Preto|P':'52125860004141','Preto|M':'52125860036909',
+      'Preto|G':'52125860069677','Preto|GG':'52125860102445','Preto|3G':'52125860135213',
+      'Branco|PP':'52125860167981','Branco|P':'52125860200749','Branco|M':'52125860233517',
+      'Branco|G':'52125860266285','Branco|GG':'52125860299053','Branco|3G':'52125860331821',
+      'Azul Marinho|PP':'52125860364589','Azul Marinho|P':'52125860397357','Azul Marinho|M':'52125860430125',
+      'Azul Marinho|G':'52125860462893','Azul Marinho|GG':'52125860495661','Azul Marinho|3G':'52125860528429',
+      'Cinza|PP':'52125860561197','Cinza|P':'52125860593965','Cinza|M':'52125860626733',
+      'Cinza|G':'52125860659501','Cinza|GG':'52125860692269','Cinza|3G':'52125860725037',
+      'Verde Escuro|PP':'52125860757805','Verde Escuro|P':'52125860790573','Verde Escuro|M':'52125860823341',
+      'Verde Escuro|G':'52125860856109','Verde Escuro|GG':'52125860888877','Verde Escuro|3G':'52125860921645',
+    };
+
+    const img      = document.getElementById('cfc2Img');
+    const corNome  = document.getElementById('cfc2CorNome');
+    const swWrap   = document.getElementById('cfc2Swatches');
+    const szWrap   = document.getElementById('cfc2Sizes');
+    const galleryWrap = document.getElementById('cfc2Gallery');
+    const ctaBtn   = document.getElementById('cfc2Cta');
+
+    if (!img || !swWrap || !szWrap || !ctaBtn) return;
+
+    let activeCor = 0;
+    let activeSz  = null;
+
+    variants.forEach((v, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'sc-swatch' + (i === 0 ? ' active' : '');
+      btn.style.backgroundColor = v.hex;
+      btn.setAttribute('aria-label', v.name);
+      btn.setAttribute('title', v.name);
+      if (v.light) btn.dataset.light = '';
+      btn.addEventListener('click', () => setCor(i));
+      swWrap.appendChild(btn);
+    });
+
+    SIZES.forEach(sz => {
+      const btn = document.createElement('button');
+      btn.className = 'sc-size-btn';
+      btn.textContent = sz;
+      btn.dataset.size = sz;
+      btn.addEventListener('click', () => setSz(sz));
+      szWrap.appendChild(btn);
+    });
+
+    const syncGallery = buildVariantGallery(galleryWrap, variants, setCor, 'Caramelo FC Baby Look');
+
+    function setCor(i) {
+      if (activeCor === i) return;
+      activeCor = i;
+      swWrap.querySelectorAll('.sc-swatch').forEach((s, j) => s.classList.toggle('active', j === i));
+      syncGallery(i);
+      corNome.textContent = variants[i].name;
+      img.style.opacity = '0';
+      setTimeout(function () {
+        img.src = variants[i].img;
+        img.alt = 'Caramelo FC Baby Look ' + variants[i].name + ' — PattaMansa';
+        img.style.opacity = '1';
+      }, 200);
+      syncCta();
+    }
+
+    function setSz(sz) {
+      activeSz = sz;
+      szWrap.querySelectorAll('.sc-size-btn').forEach(b => b.classList.toggle('active', b.dataset.size === sz));
+      syncCta();
+    }
+
+    function syncCta() {
+      ctaBtn.removeAttribute('href');
+      ctaBtn.type = 'button';
+    }
+
+    ctaBtn.onclick = null;
+    ctaBtn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      ProductDrawer.open({
+        name: 'Caramelo FC · Baby Look · Feminina',
+        price: 129.90, installments: 10, installmentText: 'ou 10x de R$13,51',
+        defaultImage: variants[0].img,
+        colors: variants, sizes: SIZES,
+        variantIds: cfc2VariantIds, productId: PRODUCT_ID,
         guide: 'algodao-peruano',
       });
     }, true);
@@ -5703,6 +5911,7 @@ footer {
         if (!entry.isIntersecting) return;
         const el = entry.target;
         const target = parseInt(el.dataset.target, 10) || 0;
+        const prefix = el.dataset.prefix || '';
         if (target === 0) return;
         const duration = 2000;
         const start = performance.now();
@@ -5710,7 +5919,7 @@ footer {
           const elapsed = now - start;
           const progress = Math.min(elapsed / duration, 1);
           const eased = 1 - Math.pow(1 - progress, 3);
-          el.textContent = Math.floor(eased * target).toLocaleString('pt-BR');
+          el.textContent = prefix + Math.floor(eased * target).toLocaleString('pt-BR');
           if (progress < 1) requestAnimationFrame(update);
         }
         requestAnimationFrame(update);
