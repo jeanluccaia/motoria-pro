@@ -1914,7 +1914,9 @@ footer {
   background: rgba(22,35,24,.92);
   border-top: 1px solid rgba(184,188,142,.09);
   border-bottom: 1px solid rgba(184,188,142,.09);
-  padding: .85rem 1.25rem;
+  padding: .5rem 1rem;
+  overflow: hidden;
+  max-width: 100%;
 }
 .trust-faixa-inner {
   max-width: 1100px;
@@ -1922,26 +1924,34 @@ footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: .5rem 2.5rem;
+  gap: .3rem 1.5rem;
   flex-wrap: wrap;
 }
 .trust-faixa-item {
   display: inline-flex;
   align-items: center;
-  gap: .4rem;
-  font-size: .72rem;
+  gap: .3rem;
+  font-size: .65rem;
   color: rgba(184,188,142,.72);
   letter-spacing: .02em;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 .trust-faixa-item strong { color: var(--creme); font-weight: 500; }
-.trust-faixa-icon { font-size: .88rem; flex-shrink: 0; }
+.trust-faixa-icon { font-size: .78rem; flex-shrink: 0; }
 @media (max-width: 767px) {
+  .trust-faixa { padding: .45rem .75rem; }
   .trust-faixa-inner {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: .55rem 1rem;
+    gap: .38rem .6rem;
     justify-items: start;
+    width: 100%;
+  }
+  .trust-faixa-item {
+    font-size: .6rem;
+    max-width: 100%;
+    min-width: 0;
   }
 }
 
@@ -3888,19 +3898,19 @@ footer {
   <div class="trust-faixa-inner">
     <div class="trust-faixa-item">
       <span class="trust-faixa-icon" aria-hidden="true">🚚</span>
-      <span>Envio para todo o Brasil em até <strong>5</strong> dias úteis</span>
+      <span>Frete expresso <strong>Brasil</strong></span>
     </div>
     <div class="trust-faixa-item">
       <span class="trust-faixa-icon" aria-hidden="true">🔁</span>
-      <span>Primeira troca grátis <strong>(até 30 dias)</strong></span>
+      <span>Primeira troca <strong>grátis</strong></span>
     </div>
     <div class="trust-faixa-item">
       <span class="trust-faixa-icon" aria-hidden="true">💳</span>
-      <span>Em até <strong>10x no cartão</strong> · PIX</span>
+      <span>Até <strong>10x</strong> no cartão</span>
     </div>
     <div class="trust-faixa-item">
       <span class="trust-faixa-icon" aria-hidden="true">🎁</span>
-      <span>E-book de adestramento <strong>incluso</strong></span>
+      <span>E-book <strong>incluso</strong></span>
     </div>
   </div>
 </div>
