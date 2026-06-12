@@ -2889,6 +2889,44 @@ footer {
   color: var(--creme);
   letter-spacing: .04em;
 }
+.cart-installments-hint {
+  font-size: .72rem;
+  color: rgba(184,188,142,.5);
+  text-align: center;
+  margin: -.1rem 0 .55rem;
+}
+.cart-ebook-bonus {
+  font-size: .72rem;
+  font-weight: 500;
+  color: rgba(212,137,42,.8);
+  background: rgba(212,137,42,.07);
+  border: 1px solid rgba(212,137,42,.18);
+  border-radius: 8px;
+  text-align: center;
+  padding: .38rem .8rem;
+  margin-bottom: .75rem;
+}
+.cart-checkout-err {
+  margin-bottom: .6rem;
+  text-align: center;
+}
+.cart-checkout-err-msg {
+  font-size: .76rem;
+  color: rgba(184,188,142,.6);
+  margin-bottom: .45rem;
+}
+.cart-checkout-wpp {
+  display: inline-block;
+  padding: .5rem 1.2rem;
+  background: #25D366;
+  color: #fff;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-decoration: none;
+  border-radius: 8px;
+  text-transform: uppercase;
+}
 .cart-btn-checkout {
   width: 100%;
   height: 52px;
@@ -3720,7 +3758,14 @@ footer {
       <span class="cart-subtotal-label">Subtotal</span>
       <span class="cart-subtotal-value" id="cartSubtotal">R$&nbsp;0,00</span>
     </div>
+    <p class="cart-installments-hint" id="cartInstallmentsHint" aria-live="polite"></p>
+    <p class="cart-ebook-bonus">🎁 Guia de adestramento incluso</p>
     <button class="cart-btn-checkout" id="cartBtnCheckout" type="button">Finalizar compra</button>
+    <div class="cart-checkout-err" id="cartCheckoutErr" hidden>
+      <p class="cart-checkout-err-msg">Não foi possível abrir o checkout.</p>
+      <a href="https://wa.me/5519995433638?text=Quero%20finalizar%20minha%20compra%20PattaMansa"
+         class="cart-checkout-wpp" target="_blank" rel="noopener noreferrer">Finalizar pelo WhatsApp</a>
+    </div>
     <button class="cart-btn-continue" id="cartBtnContinue" type="button">Continuar comprando</button>
   </div>
 </aside>
@@ -4685,18 +4730,20 @@ footer {
   var PattaCartUI = (function () {
     var fab         = document.getElementById('cartFab');
     var badge       = document.getElementById('cartBadge');
-    var overlay     = document.getElementById('cartOverlay');
-    var drawer      = document.getElementById('cartDrawer');
-    var closeBtn    = document.getElementById('cartDrawerClose');
-    var wrap        = document.getElementById('cartItemsWrap');
-    var emptyEl     = document.getElementById('cartEmptyState');
-    var footer      = document.getElementById('cartDrawerFooter');
-    var subtotalEl  = document.getElementById('cartSubtotal');
-    var checkoutBtn = document.getElementById('cartBtnCheckout');
-    var continueBtn = document.getElementById('cartBtnContinue');
-    var toastEl     = document.getElementById('cartToast');
-    var toastMsg    = document.getElementById('cartToastMsg');
-    var toastTimer  = null;
+    var overlay         = document.getElementById('cartOverlay');
+    var drawer          = document.getElementById('cartDrawer');
+    var closeBtn        = document.getElementById('cartDrawerClose');
+    var wrap            = document.getElementById('cartItemsWrap');
+    var emptyEl         = document.getElementById('cartEmptyState');
+    var footer          = document.getElementById('cartDrawerFooter');
+    var subtotalEl      = document.getElementById('cartSubtotal');
+    var installmentsEl  = document.getElementById('cartInstallmentsHint');
+    var checkoutBtn     = document.getElementById('cartBtnCheckout');
+    var checkoutErrEl   = document.getElementById('cartCheckoutErr');
+    var continueBtn     = document.getElementById('cartBtnContinue');
+    var toastEl         = document.getElementById('cartToast');
+    var toastMsg        = document.getElementById('cartToastMsg');
+    var toastTimer      = null;
 
     var CHECKOUT_API_URL = '/api/checkout';
 
@@ -4715,6 +4762,7 @@ footer {
       drawer.classList.remove('open');
       drawer.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
+      if (checkoutErrEl) checkoutErrEl.hidden = true;
     }
 
     function showToast(msg) {
@@ -4742,7 +4790,11 @@ footer {
 
       emptyEl.style.display = 'none';
       footer.hidden = false;
-      subtotalEl.textContent = fmtBRL(PattaCart.total());
+      var total = PattaCart.total();
+      subtotalEl.textContent = fmtBRL(total);
+      if (installmentsEl) {
+        installmentsEl.textContent = 'ou 10x de ' + fmtBRL(total / 10);
+      }
 
       items.forEach(function (item, idx) {
         var row = document.createElement('div');
@@ -4854,7 +4906,7 @@ footer {
           checkoutBtn.disabled = false;
           checkoutBtn.classList.remove('loading');
           checkoutBtn.textContent = 'Finalizar compra';
-          alert('Não foi possível abrir o checkout. Tente novamente.');
+          if (checkoutErrEl) checkoutErrEl.hidden = false;
         });
       });
     }
