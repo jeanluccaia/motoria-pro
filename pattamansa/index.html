@@ -3207,6 +3207,54 @@ footer {
   }
 }
 
+/* ─── STICKY CTA MOBILE ─── */
+.sticky-cta-mobile {
+  display: none; /* JS mostra via classe .visible */
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 9960;
+  padding: .75rem 1rem calc(.75rem + env(safe-area-inset-bottom, 0px));
+  background: var(--verde-deep);
+  border-top: 1px solid rgba(184,188,142,.14);
+  backdrop-filter: blur(10px);
+  transform: translateY(100%);
+  transition: transform .35s ease, opacity .35s ease;
+  opacity: 0;
+}
+.sticky-cta-mobile.visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+.sticky-cta-mobile-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.sticky-cta-mobile-label {
+  font-size: .82rem;
+  color: rgba(184,188,142,.8);
+  line-height: 1.3;
+}
+.sticky-cta-mobile-label strong { color: var(--laranja); }
+.sticky-cta-mobile-btn {
+  flex-shrink: 0;
+  display: inline-block;
+  padding: .58rem 1.2rem;
+  background: var(--laranja);
+  color: var(--verde-deep);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+@media (min-width: 768px) { .sticky-cta-mobile { display: none !important; } }
+
 /* ── Cart FAB — força visibilidade acima de tudo ── */
 #cartFab{display:flex!important;visibility:visible!important;opacity:1!important;z-index:9980!important;pointer-events:auto!important;}
 @keyframes patta-badge-pulse{0%{transform:scale(1)}35%{transform:scale(1.6)}70%{transform:scale(.88)}100%{transform:scale(1)}}
@@ -4413,6 +4461,14 @@ footer {
   </div>
   <p class="footer-copy">© 2026 PattaMansa · Camisetas com atitude · pattamansa.com.br</p>
 </footer>
+
+<!-- ── STICKY CTA MOBILE ── -->
+<div class="sticky-cta-mobile" id="stickyCta" aria-hidden="true">
+  <div class="sticky-cta-mobile-inner">
+    <span class="sticky-cta-mobile-label">Coleção Copa 2026 · a partir de <strong>R$ 119,90</strong></span>
+    <a href="#selecao-canina" class="sticky-cta-mobile-btn" id="stickyCta__btn">Ver coleção</a>
+  </div>
+</div>
 
 <!-- ── GUIA DE MEDIDAS ── -->
 <div class="sg-overlay" id="sgOverlay" aria-hidden="true">
@@ -6498,6 +6554,48 @@ footer {
         open(vcard);
       });
     }
+  })();
+
+  /* ── Sticky CTA Mobile ── */
+  (function () {
+    var bar = document.getElementById('stickyCta');
+    if (!bar || window.innerWidth >= 768) return;
+
+    var hero    = document.querySelector('.hero');
+    var vitrine = document.getElementById('selecao-canina');
+    var pdvDrw  = document.getElementById('pdvDrawer');
+    var cartDrw = document.getElementById('cartDrawer');
+
+    var heroVisible    = true;
+    var vitrineVisible = false;
+
+    function update() {
+      var drawersOpen = (pdvDrw && pdvDrw.classList.contains('open')) ||
+                        (cartDrw && cartDrw.classList.contains('open'));
+      if (heroVisible || vitrineVisible || drawersOpen) {
+        bar.classList.remove('visible');
+      } else {
+        bar.style.display = 'block';
+        bar.classList.add('visible');
+      }
+    }
+
+    var heroObs = new IntersectionObserver(function (entries) {
+      heroVisible = entries[0].isIntersecting;
+      update();
+    }, { threshold: 0.1 });
+    if (hero) heroObs.observe(hero);
+
+    var vitrineObs = new IntersectionObserver(function (entries) {
+      vitrineVisible = entries[0].isIntersecting;
+      update();
+    }, { threshold: 0.15 });
+    if (vitrine) vitrineObs.observe(vitrine);
+
+    /* Re-check when drawers open/close */
+    document.addEventListener('click', function () {
+      setTimeout(update, 50);
+    });
   })();
 </script>
 
