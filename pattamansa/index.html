@@ -1810,12 +1810,15 @@ footer {
 /* VCARD */
 .vcard { background: rgba(22,35,24,.75); border: 1px solid rgba(184,188,142,.1); border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; transition: border-color .3s ease, transform .3s cubic-bezier(.25,.46,.45,.94); }
 .vcard:hover { border-color: rgba(245,163,70,.3); transform: translateY(-4px); }
-.vcard-img-wrap { background: #ECE7DE; overflow: hidden; flex-shrink: 0; }
+.vcard-img-wrap { background: #ECE7DE; overflow: hidden; flex-shrink: 0; position: relative; }
 .vcard-img { width: 100%; aspect-ratio: 4/5; object-fit: contain; object-position: center; display: block; transition: opacity .2s ease; }
 .vcard-body { padding: .9rem 1rem 1rem; display: flex; flex-direction: column; gap: .62rem; flex: 1; }
 .vcard-meta { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; }
 .vcard-modelagem { font-size: .51rem; letter-spacing: .19em; text-transform: uppercase; color: var(--laranja); font-weight: 500; }
 .vcard-price { font-family: 'Bebas Neue', sans-serif; font-size: .92rem; color: rgba(184,188,142,.4); letter-spacing: .08em; }
+.vcard-price-de { font-size: .68rem; color: rgba(184,188,142,.38); text-decoration: line-through; letter-spacing: .04em; display: block; margin-bottom: .1rem; }
+.vcard-badge-wrap { position: absolute; top: .6rem; left: .6rem; z-index: 2; pointer-events: none; }
+.vcard-badge-best { display: inline-block; padding: .2rem .55rem; background: var(--laranja); color: var(--verde-deep); font-size: .56rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; border-radius: 999px; }
 .vcard-cor-label { font-size: .57rem; letter-spacing: .12em; text-transform: uppercase; color: rgba(184,188,142,.32); }
 .vcard-cor-label strong { color: var(--creme); font-weight: 500; }
 .vitrine-section .sc-swatches { gap: .35rem; }
@@ -3884,6 +3887,8 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Baby Look · Feminina</span>
               <span class="vcard-price-stack">
+                <!-- ANCORA_PRECO: de R$ [PRECO_CHEIO] (apagar este comentario e descomentar a linha abaixo quando definir o preco cheio) -->
+                <!-- <span class="vcard-price-de">de R$ [PRECO_CHEIO]</span> -->
                 <span class="vcard-price">R$129,90</span>
                 <span class="vcard-installments">ou 10x de R$13,51</span>
               </span>
@@ -3892,15 +3897,14 @@ footer {
             <div class="sc-swatches" id="cfc2Swatches" role="group" aria-label="Selecionar cor"></div>
             <div class="sc-sizes" id="cfc2Sizes" role="group" aria-label="Selecionar tamanho"></div>
             <div class="vcard-actions">
-              <a href="#" class="vcard-cta" id="cfc2Cta">Ver opções</a>
-              <span class="vcard-cta-sub">Escolha cor e tamanho no próximo passo</span>
-              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
+              <a href="#" class="vcard-cta" id="cfc2Cta">Escolher cor e tamanho</a>              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
             </div>
           </div>
         </article>
 
         <article class="vcard" data-product-card data-filter="feminino">
           <div class="vcard-img-wrap">
+            <div class="vcard-badge-wrap"><span class="vcard-badge-best">Mais vendida</span></div>
             <img id="scImg"
               src="cole%C3%A7%C3%A3o%20SELE%C3%87%C3%83O%20CANINA%20FEMININA%20BABY%20LOOK/amarelo%208.webp"
               alt="Seleção Canina Baby Look Amarelo — PattaMansa"
@@ -3912,6 +3916,8 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Baby Look · Feminina</span>
               <span class="vcard-price-stack">
+                <!-- ANCORA_PRECO: de R$ [PRECO_CHEIO] (apagar este comentario e descomentar a linha abaixo quando definir o preco cheio) -->
+                <!-- <span class="vcard-price-de">de R$ [PRECO_CHEIO]</span> -->
                 <span class="vcard-price">R$129,90</span>
                 <span class="vcard-installments">ou 10x de R$13,51</span>
               </span>
@@ -3920,9 +3926,7 @@ footer {
             <div class="sc-swatches" id="scSwatches" role="group" aria-label="Selecionar cor"></div>
             <div class="sc-sizes" id="scSizes" role="group" aria-label="Selecionar tamanho"></div>
             <div class="vcard-actions">
-              <a href="#" class="vcard-cta" id="scCta">Ver opções</a>
-              <span class="vcard-cta-sub">Escolha cor e tamanho no próximo passo</span>
-              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
+              <a href="#" class="vcard-cta" id="scCta">Escolher cor e tamanho</a>              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
             </div>
           </div>
         </article>
@@ -3940,6 +3944,8 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Baby Look · Feminina</span>
               <span class="vcard-price-stack">
+                <!-- ANCORA_PRECO: de R$ [PRECO_CHEIO] (apagar este comentario e descomentar a linha abaixo quando definir o preco cheio) -->
+                <!-- <span class="vcard-price-de">de R$ [PRECO_CHEIO]</span> -->
                 <span class="vcard-price">R$129,90</span>
                 <span class="vcard-installments">ou 10x de R$13,51</span>
               </span>
@@ -3948,9 +3954,7 @@ footer {
             <div class="sc-swatches" id="ccfSwatches" role="group" aria-label="Selecionar cor"></div>
             <div class="sc-sizes" id="ccfSizes" role="group" aria-label="Selecionar tamanho"></div>
             <div class="vcard-actions">
-              <a href="#" class="vcard-cta" id="ccfCta">Ver opções</a>
-              <span class="vcard-cta-sub">Escolha cor e tamanho no próximo passo</span>
-              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
+              <a href="#" class="vcard-cta" id="ccfCta">Escolher cor e tamanho</a>              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
             </div>
           </div>
         </article>
@@ -3968,6 +3972,8 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Cropped · Feminino</span>
               <span class="vcard-price-stack">
+                <!-- ANCORA_PRECO: de R$ [PRECO_CHEIO] (apagar este comentario e descomentar a linha abaixo quando definir o preco cheio) -->
+                <!-- <span class="vcard-price-de">de R$ [PRECO_CHEIO]</span> -->
                 <span class="vcard-price">R$119,90</span>
                 <span class="vcard-installments">ou 10x de R$12,47</span>
               </span>
@@ -3976,9 +3982,7 @@ footer {
             <div class="sc-swatches" id="crSwatches" role="group" aria-label="Selecionar cor"></div>
             <div class="sc-sizes" id="crSizes" role="group" aria-label="Selecionar tamanho"></div>
             <div class="vcard-actions">
-              <a href="#" class="vcard-cta" id="crCta">Ver opções</a>
-              <span class="vcard-cta-sub">Escolha cor e tamanho no próximo passo</span>
-              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
+              <a href="#" class="vcard-cta" id="crCta">Escolher cor e tamanho</a>              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
             </div>
           </div>
         </article>
@@ -3996,6 +4000,8 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Feminino · Cropped Moletom</span>
               <span class="vcard-price-stack">
+                <!-- ANCORA_PRECO: de R$ [PRECO_CHEIO] (apagar este comentario e descomentar a linha abaixo quando definir o preco cheio) -->
+                <!-- <span class="vcard-price-de">de R$ [PRECO_CHEIO]</span> -->
                 <span class="vcard-price">R$179,90</span>
                 <span class="vcard-installments">ou 10x de R$18,71</span>
               </span>
@@ -4004,9 +4010,7 @@ footer {
             <div class="sc-swatches" id="cmSwatches" role="group" aria-label="Selecionar cor"></div>
             <div class="sc-sizes" id="cmSizes" role="group" aria-label="Selecionar tamanho"></div>
             <div class="vcard-actions">
-              <a href="#" class="vcard-cta" id="cmCta">Ver opções</a>
-              <span class="vcard-cta-sub">Escolha cor e tamanho no próximo passo</span>
-              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
+              <a href="#" class="vcard-cta" id="cmCta">Escolher cor e tamanho</a>              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
             </div>
           </div>
         </article>
@@ -4036,6 +4040,8 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Regular · Masculina</span>
               <span class="vcard-price-stack">
+                <!-- ANCORA_PRECO: de R$ [PRECO_CHEIO] (apagar este comentario e descomentar a linha abaixo quando definir o preco cheio) -->
+                <!-- <span class="vcard-price-de">de R$ [PRECO_CHEIO]</span> -->
                 <span class="vcard-price">R$129,90</span>
                 <span class="vcard-installments">ou 10x de R$13,51</span>
               </span>
@@ -4044,9 +4050,7 @@ footer {
             <div class="sc-swatches" id="smSwatches" role="group" aria-label="Selecionar cor"></div>
             <div class="sc-sizes" id="smSizes" role="group" aria-label="Selecionar tamanho"></div>
             <div class="vcard-actions">
-              <a href="#" class="vcard-cta" id="smCta">Ver opções</a>
-              <span class="vcard-cta-sub">Escolha cor e tamanho no próximo passo</span>
-              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
+              <a href="#" class="vcard-cta" id="smCta">Escolher cor e tamanho</a>              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
             </div>
           </div>
         </article>
@@ -4064,6 +4068,8 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Regular · Masculina</span>
               <span class="vcard-price-stack">
+                <!-- ANCORA_PRECO: de R$ [PRECO_CHEIO] (apagar este comentario e descomentar a linha abaixo quando definir o preco cheio) -->
+                <!-- <span class="vcard-price-de">de R$ [PRECO_CHEIO]</span> -->
                 <span class="vcard-price">R$129,90</span>
                 <span class="vcard-installments">ou 10x de R$13,51</span>
               </span>
@@ -4072,9 +4078,7 @@ footer {
             <div class="sc-swatches" id="ccmSwatches" role="group" aria-label="Selecionar cor"></div>
             <div class="sc-sizes" id="ccmSizes" role="group" aria-label="Selecionar tamanho"></div>
             <div class="vcard-actions">
-              <button type="button" class="vcard-cta" id="ccmCta">Ver opções</button>
-              <span class="vcard-cta-sub">Escolha cor e tamanho no próximo passo</span>
-              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
+              <button type="button" class="vcard-cta" id="ccmCta">Escolher cor e tamanho</button>              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
             </div>
           </div>
         </article>
@@ -4092,6 +4096,8 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Unissex · Oversized</span>
               <span class="vcard-price-stack">
+                <!-- ANCORA_PRECO: de R$ [PRECO_CHEIO] (apagar este comentario e descomentar a linha abaixo quando definir o preco cheio) -->
+                <!-- <span class="vcard-price-de">de R$ [PRECO_CHEIO]</span> -->
                 <span class="vcard-price">R$149,90</span>
                 <span class="vcard-installments">ou 10x de R$15,59</span>
               </span>
@@ -4100,15 +4106,14 @@ footer {
             <div class="sc-swatches" id="ovSwatches" role="group" aria-label="Selecionar cor"></div>
             <div class="sc-sizes" id="ovSizes" role="group" aria-label="Selecionar tamanho"></div>
             <div class="vcard-actions">
-              <button type="button" class="vcard-cta" id="ovCta" data-nuvemshop-pilot="oversized">Ver opções</button>
-              <span class="vcard-cta-sub">Escolha cor e tamanho no próximo passo</span>
-              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
+              <button type="button" class="vcard-cta" id="ovCta" data-nuvemshop-pilot="oversized">Escolher cor e tamanho</button>              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
             </div>
           </div>
         </article>
 
         <article class="vcard" data-product-card data-filter="unissex">
           <div class="vcard-img-wrap">
+            <div class="vcard-badge-wrap"><span class="vcard-badge-best">Mais vendida</span></div>
             <img id="cfcImg"
               src="cole%C3%A7e%C3%A7%C3%A3o%20caramelo%20futebol%20clube/preta.webp"
               alt="Caramelo Futebol Clube Regular Unissex Preta — PattaMansa"
@@ -4120,6 +4125,8 @@ footer {
             <div class="vcard-meta">
               <span class="vcard-modelagem">Regular · Unissex</span>
               <span class="vcard-price-stack">
+                <!-- ANCORA_PRECO: de R$ [PRECO_CHEIO] (apagar este comentario e descomentar a linha abaixo quando definir o preco cheio) -->
+                <!-- <span class="vcard-price-de">de R$ [PRECO_CHEIO]</span> -->
                 <span class="vcard-price">R$129,90</span>
                 <span class="vcard-installments">ou 10x de R$13,51</span>
               </span>
@@ -4128,9 +4135,7 @@ footer {
             <div class="sc-swatches" id="cfcSwatches" role="group" aria-label="Selecionar cor"></div>
             <div class="sc-sizes" id="cfcSizes" role="group" aria-label="Selecionar tamanho"></div>
             <div class="vcard-actions">
-              <button type="button" class="vcard-cta" id="cfcCta" aria-label="Ver opções Caramelo Futebol Clube">Ver opções</button>
-              <span class="vcard-cta-sub">Escolha cor e tamanho no próximo passo</span>
-              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
+              <button type="button" class="vcard-cta" id="cfcCta" aria-label="Escolher cor e tamanho Caramelo Futebol Clube">Escolher cor e tamanho</button>              <span class="vcard-ebook-hint">+ Guia de adestramento incluso</span>
             </div>
           </div>
         </article>
