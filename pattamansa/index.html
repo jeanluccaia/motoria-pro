@@ -3317,6 +3317,17 @@ footer {
 .pdv-cta-btn:disabled{background:#94a3b8;cursor:not-allowed}
 
 /* ─── HERO EBOOK BADGE ─── */
+.hero-urgencia {
+  display: inline-block;
+  margin-bottom: .9rem;
+  padding: .35rem .9rem;
+  background: rgba(245,163,70,.12);
+  border: 1px solid rgba(245,163,70,.3);
+  border-radius: 999px;
+  font-size: .72rem;
+  color: var(--laranja);
+  letter-spacing: .03em;
+}
 .hero-ebook-badge {
   display: inline-flex;
   align-items: center;
@@ -3774,6 +3785,9 @@ footer {
     <p class="hero-sub">
       Estampas pra quem vive com <em style="color:var(--laranja);font-style:normal">pata em casa.</em>
     </p>
+    <div class="hero-urgencia">
+      🇧🇷 A Copa começou — receba antes do próximo jogo do Brasil<span id="js-hero-jogo-date"></span>
+    </div>
     <div class="hero-cta-wrap">
       <a href="#produtos" class="btn-hero">Quero a minha →</a>
       <span class="hero-ebook-badge">🎁 E-book de adestramento grátis em todas as compras</span>
@@ -4372,7 +4386,7 @@ footer {
 
     <p class="cta-final-body reveal" id="js-theme-tagline">
       Edição Copa 2026.<br>
-      Enquanto o Brasil jogar, a camiseta tá disponível.
+      Edição limitada — disponível só durante a Copa.
     </p>
 
     <a href="#produtos" class="btn-final reveal">Garantir a minha →</a>
@@ -4529,6 +4543,18 @@ footer {
 </aside>
 
 <script>
+  /* ── URGÊNCIA COPA — próximo jogo do Brasil ────────────────────
+   * Atualizar DATA_PROXIMO_JOGO a cada rodada (formato "dd/mm").
+   * Deixar vazio ('') para não exibir data específica.
+   * ─────────────────────────────────────────────────────────────── */
+  var DATA_PROXIMO_JOGO = '[DATA_PROXIMO_JOGO]'; /* PLACEHOLDER — preencha a data do próximo jogo */
+  (function () {
+    var el = document.getElementById('js-hero-jogo-date');
+    if (el && DATA_PROXIMO_JOGO && DATA_PROXIMO_JOGO !== '[DATA_PROXIMO_JOGO]') {
+      el.textContent = ' (' + DATA_PROXIMO_JOGO + ')';
+    }
+  })();
+
   /* ── TEMA COPA 2026 ─────────────────────────────────────────────
    * Para remover o tema Copa após 19/07/2026:
    *   1. Mude  copa: true  →  copa: false
@@ -4539,7 +4565,7 @@ footer {
     copa: true,
     eyebrow:        'Copa 2026 · Edição Especial',
     tagline:        'Edição Copa 2026.',
-    taglineSub:     'Enquanto o Brasil jogar, a camiseta tá disponível.',
+    taglineSub:     'Edição limitada — disponível só durante a Copa.',
     eyebrow_off:    'Coleção Especial',
     tagline_off:    '',
     taglineSub_off: 'Disponível enquanto durar o estoque.',
