@@ -1893,7 +1893,9 @@ footer {
 .ong-inner { max-width: 620px; margin: 0 auto; position: relative; z-index: 1; }
 .ong-badge { display: inline-block; background: var(--laranja); color: var(--preto); font-size: .58rem; font-weight: 700; letter-spacing: .26em; padding: .42rem 1.1rem; border-radius: 2px; margin-bottom: 1.75rem; }
 .ong-title { font-family: 'Fraunces', serif; font-size: clamp(2.2rem, 7vw, 3.75rem); color: var(--creme); line-height: 1.08; font-weight: 400; margin-bottom: 1.4rem; }
-.ong-body { color: rgba(184,188,142,.72); font-size: .96rem; line-height: 1.8; max-width: 44ch; margin: 0 auto 2.75rem; }
+.ong-body { color: rgba(184,188,142,.72); font-size: .96rem; line-height: 1.8; max-width: 44ch; margin: 0 auto 1.5rem; }
+.ong-compromisso { font-size: 1.1rem; color: var(--creme); margin: 0 auto 2.25rem; max-width: 40ch; line-height: 1.5; }
+.ong-compromisso strong { color: var(--laranja); }
 .ong-body strong { color: var(--creme); font-weight: 500; }
 .ong-counter { display: flex; align-items: center; justify-content: center; gap: 3rem; margin-bottom: 2.75rem; }
 .counter-item { display: flex; flex-direction: column; align-items: center; }
@@ -4350,22 +4352,12 @@ footer {
     </h2>
 
     <p class="ong-body reveal">
-      Parte de cada venda vai diretamente para a
-      <strong>GAAR Campinas</strong>,
-      ajudando cães e gatos que ainda esperam por um lar.
+      Ajudando cães e gatos que ainda esperam por um lar.
     </p>
 
-    <div class="ong-counter reveal">
-      <div class="counter-item">
-        <span class="counter-number" data-target="12">0</span>
-        <span class="counter-label">pets apoiados</span>
-      </div>
-      <div class="counter-divider" aria-hidden="true"></div>
-      <div class="counter-item">
-        <span class="counter-number" data-target="480" data-prefix="R$ ">R$ 0</span>
-        <span class="counter-label">reais doados</span>
-      </div>
-    </div>
+    <p class="ong-compromisso reveal">
+      <strong>[PERCENTUAL]%</strong> de cada venda vai diretamente para a <strong>GAAR Campinas</strong>.<!-- PLACEHOLDER: defina o percentual antes de publicar -->
+    </p>
 
     <div class="ong-actions reveal">
       <a href="#produtos" class="ong-cta">Comprar e ajudar</a>
@@ -6207,32 +6199,7 @@ footer {
     });
   })();
 
-  /* ── ONG Counter ── */
-  (function () {
-    const counters = document.querySelectorAll('.counter-number');
-    if (!counters.length) return;
-    const obs = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        const el = entry.target;
-        const target = parseInt(el.dataset.target, 10) || 0;
-        const prefix = el.dataset.prefix || '';
-        if (target === 0) return;
-        const duration = 2000;
-        const start = performance.now();
-        function update(now) {
-          const elapsed = now - start;
-          const progress = Math.min(elapsed / duration, 1);
-          const eased = 1 - Math.pow(1 - progress, 3);
-          el.textContent = prefix + Math.floor(eased * target).toLocaleString('pt-BR');
-          if (progress < 1) requestAnimationFrame(update);
-        }
-        requestAnimationFrame(update);
-        obs.unobserve(el);
-      });
-    }, { threshold: 0.5 });
-    counters.forEach(function (c) { obs.observe(c); });
-  })();
+  /* ONG Counter removido na Tarefa 7 — secao agora usa linha de compromisso */
 
   /* ── Guia de Medidas ── */
   (function () {
