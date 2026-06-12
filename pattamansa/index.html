@@ -1909,12 +1909,12 @@ footer {
 .ong-cta-secondary:hover { background: rgba(242,237,224,.12); border-color: var(--creme); color: var(--creme); }
 @media (max-width: 640px) { .section-ong { padding: 4rem 1.25rem 3.75rem; } .ong-counter { gap: 1.75rem; } .counter-number { font-size: 2.75rem; } .ong-actions { flex-direction: column; } .ong-cta { width: min(100%, 280px); } .social-bar { gap: 1.1rem; } }
 
-/* ─── FAIXA DE CONFIANÇA (após hero) ─── */
+/* ─── FAIXA DE CONFIANÇA (após coleção) ─── */
 .trust-faixa {
-  background: rgba(22,35,24,.92);
-  border-top: 1px solid rgba(184,188,142,.09);
-  border-bottom: 1px solid rgba(184,188,142,.09);
-  padding: .5rem 1rem;
+  background: rgba(22,35,24,.7);
+  border-top: 1px solid rgba(184,188,142,.07);
+  border-bottom: 1px solid rgba(184,188,142,.07);
+  padding: .32rem .75rem;
   overflow: hidden;
   max-width: 100%;
 }
@@ -1924,32 +1924,32 @@ footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: .3rem 1.5rem;
+  gap: .2rem 1.25rem;
   flex-wrap: wrap;
 }
 .trust-faixa-item {
   display: inline-flex;
   align-items: center;
-  gap: .3rem;
-  font-size: .65rem;
-  color: rgba(184,188,142,.72);
+  gap: .22rem;
+  font-size: .58rem;
+  color: rgba(184,188,142,.6);
   letter-spacing: .02em;
   white-space: normal;
   overflow-wrap: break-word;
 }
-.trust-faixa-item strong { color: var(--creme); font-weight: 500; }
-.trust-faixa-icon { font-size: .78rem; flex-shrink: 0; }
+.trust-faixa-item strong { color: rgba(242,237,224,.75); font-weight: 500; }
+.trust-faixa-icon { font-size: .62rem; flex-shrink: 0; }
 @media (max-width: 767px) {
-  .trust-faixa { padding: .45rem .75rem; }
+  .trust-faixa { padding: .28rem .75rem; }
   .trust-faixa-inner {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: .38rem .6rem;
+    gap: .28rem .5rem;
     justify-items: start;
     width: 100%;
   }
   .trust-faixa-item {
-    font-size: .6rem;
+    font-size: .55rem;
     max-width: 100%;
     min-width: 0;
   }
@@ -3877,36 +3877,6 @@ footer {
   </div>
 </div>
 
-<!-- SOCIAL BAR -->
-<div class="social-bar" aria-label="Prova social">
-  <span class="social-bar-item"><strong>+748</strong> clientes que amam seus pets</span>
-  <span class="social-bar-dot" aria-hidden="true"></span>
-  <span class="social-bar-item"><strong>100%</strong> algodão peruano</span>
-</div>
-
-
-<!-- ══ FAIXA DE CONFIANÇA ══ -->
-<div class="trust-faixa" aria-label="Informações de entrega e segurança">
-  <div class="trust-faixa-inner">
-    <div class="trust-faixa-item">
-      <span class="trust-faixa-icon" aria-hidden="true">🔁</span>
-      <span>Primeira troca <strong>grátis</strong></span>
-    </div>
-    <div class="trust-faixa-item">
-      <span class="trust-faixa-icon" aria-hidden="true">💳</span>
-      <span>Até <strong>10x</strong> no cartão</span>
-    </div>
-    <div class="trust-faixa-item">
-      <span class="trust-faixa-icon" aria-hidden="true">🎁</span>
-      <span>E-book <strong>incluso</strong></span>
-    </div>
-    <div class="trust-faixa-item">
-      <span class="trust-faixa-icon" aria-hidden="true">🔒</span>
-      <span>Compra <strong>segura</strong></span>
-    </div>
-  </div>
-</div>
-
 <!-- ══ COLEÇÃO ══ -->
 <section class="vitrine-section colecao-section" id="selecao-canina">
 
@@ -4198,7 +4168,27 @@ footer {
 
 </section>
 
-
+<!-- ══ FAIXA DE CONFIANÇA ══ -->
+<div class="trust-faixa" aria-label="Informações de entrega e segurança">
+  <div class="trust-faixa-inner">
+    <div class="trust-faixa-item">
+      <span class="trust-faixa-icon" aria-hidden="true">🔁</span>
+      <span>Primeira troca <strong>grátis</strong></span>
+    </div>
+    <div class="trust-faixa-item">
+      <span class="trust-faixa-icon" aria-hidden="true">💳</span>
+      <span>Até <strong>10x</strong> no cartão</span>
+    </div>
+    <div class="trust-faixa-item">
+      <span class="trust-faixa-icon" aria-hidden="true">🎁</span>
+      <span>E-book <strong>incluso</strong></span>
+    </div>
+    <div class="trust-faixa-item">
+      <span class="trust-faixa-icon" aria-hidden="true">🔒</span>
+      <span>Compra <strong>segura</strong></span>
+    </div>
+  </div>
+</div>
 
 <!-- ══ AUTORIDADE / E-BOOK ══ -->
 <section class="bonus-ebook" id="bonus-ebook" aria-label="Guia de adestramento gratuito com sua compra">
