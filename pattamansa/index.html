@@ -1904,6 +1904,42 @@ footer {
 .ong-cta-secondary:hover { background: rgba(242,237,224,.12); border-color: var(--creme); color: var(--creme); }
 @media (max-width: 640px) { .section-ong { padding: 4rem 1.25rem 3.75rem; } .ong-counter { gap: 1.75rem; } .counter-number { font-size: 2.75rem; } .ong-actions { flex-direction: column; } .ong-cta { width: min(100%, 280px); } .social-bar { gap: 1.1rem; } }
 
+/* ─── FAIXA DE CONFIANÇA (após hero) ─── */
+.trust-faixa {
+  background: rgba(22,35,24,.92);
+  border-top: 1px solid rgba(184,188,142,.09);
+  border-bottom: 1px solid rgba(184,188,142,.09);
+  padding: .85rem 1.25rem;
+}
+.trust-faixa-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem 2.5rem;
+  flex-wrap: wrap;
+}
+.trust-faixa-item {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .72rem;
+  color: rgba(184,188,142,.72);
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+.trust-faixa-item strong { color: var(--creme); font-weight: 500; }
+.trust-faixa-icon { font-size: .88rem; flex-shrink: 0; }
+@media (max-width: 767px) {
+  .trust-faixa-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .55rem 1rem;
+    justify-items: start;
+  }
+}
+
 /* ─── TRUST STRIP (antes dos produtos) ─── */
 .trust-strip {
   background: var(--verde-deep);
@@ -3735,7 +3771,26 @@ footer {
 
 
 <!-- ══ FAIXA DE CONFIANÇA ══ -->
-<!-- TODO TAREFA 3: faixa de confiança -->
+<div class="trust-faixa" aria-label="Informações de entrega e segurança">
+  <div class="trust-faixa-inner">
+    <div class="trust-faixa-item">
+      <span class="trust-faixa-icon" aria-hidden="true">🚚</span>
+      <span>Envio para todo o Brasil em até <strong>[PRAZO_DIAS_UTEIS]</strong> dias úteis</span>
+    </div>
+    <div class="trust-faixa-item">
+      <span class="trust-faixa-icon" aria-hidden="true">🔁</span>
+      <span>Primeira troca grátis <strong>(até 30 dias)</strong></span>
+    </div>
+    <div class="trust-faixa-item">
+      <span class="trust-faixa-icon" aria-hidden="true">💳</span>
+      <span>Em até <strong>10x no cartão</strong> · PIX</span>
+    </div>
+    <div class="trust-faixa-item">
+      <span class="trust-faixa-icon" aria-hidden="true">🎁</span>
+      <span>E-book de adestramento <strong>incluso</strong></span>
+    </div>
+  </div>
+</div>
 
 <!-- ══ COLEÇÃO ══ -->
 <section class="vitrine-section colecao-section" id="selecao-canina">
