@@ -1909,50 +1909,68 @@ footer {
 .ong-cta-secondary:hover { background: rgba(242,237,224,.12); border-color: var(--creme); color: var(--creme); }
 @media (max-width: 640px) { .section-ong { padding: 4rem 1.25rem 3.75rem; } .ong-counter { gap: 1.75rem; } .counter-number { font-size: 2.75rem; } .ong-actions { flex-direction: column; } .ong-cta { width: min(100%, 280px); } .social-bar { gap: 1.1rem; } }
 
-/* ─── FAIXA DE CONFIANÇA (após coleção) ─── */
-.trust-faixa {
-  background: rgba(22,35,24,.7);
+/* ─── COMPRE COM TRANQUILIDADE ─── */
+.trust-calm {
+  padding: 3rem 1.5rem 3.25rem;
+  background: var(--verde-deep);
   border-top: 1px solid rgba(184,188,142,.07);
   border-bottom: 1px solid rgba(184,188,142,.07);
-  padding: .32rem .75rem;
   overflow: hidden;
-  max-width: 100%;
 }
-.trust-faixa-inner {
-  max-width: 1100px;
+.trust-calm-inner {
+  max-width: 880px;
   margin: 0 auto;
+}
+.trust-calm-heading {
+  font-size: .6rem;
+  font-weight: 500;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(184,188,142,.32);
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+.trust-calm-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .65rem;
+}
+.trust-calm-card {
+  padding: 1.2rem 1rem 1.1rem;
+  border: 1px solid rgba(184,188,142,.1);
+  border-radius: 3px;
+  background: rgba(22,35,24,.5);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: .2rem 1.25rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .5rem;
+  min-width: 0;
 }
-.trust-faixa-item {
-  display: inline-flex;
-  align-items: center;
-  gap: .22rem;
+.trust-calm-icon {
+  width: 17px;
+  height: 17px;
+  color: rgba(184,188,142,.42);
+  flex-shrink: 0;
+}
+.trust-calm-card-title {
+  font-size: .7rem;
+  font-weight: 500;
+  letter-spacing: .01em;
+  color: rgba(242,237,224,.8);
+  line-height: 1.25;
+}
+.trust-calm-card-sub {
   font-size: .58rem;
-  color: rgba(184,188,142,.6);
-  letter-spacing: .02em;
-  white-space: normal;
-  overflow-wrap: break-word;
+  color: rgba(184,188,142,.42);
+  letter-spacing: .03em;
+  line-height: 1.3;
 }
-.trust-faixa-item strong { color: rgba(242,237,224,.75); font-weight: 500; }
-.trust-faixa-icon { font-size: .62rem; flex-shrink: 0; }
-@media (max-width: 767px) {
-  .trust-faixa { padding: .28rem .75rem; }
-  .trust-faixa-inner {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: .28rem .5rem;
-    justify-items: start;
-    width: 100%;
-  }
-  .trust-faixa-item {
-    font-size: .55rem;
-    max-width: 100%;
-    min-width: 0;
-  }
+@media (max-width: 640px) {
+  .trust-calm { padding: 2.25rem 1.25rem 2.5rem; }
+  .trust-calm-grid { grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .trust-calm-card { padding: 1rem .85rem .9rem; }
+  .trust-calm-card-title { font-size: .66rem; }
+  .trust-calm-card-sub { font-size: .55rem; }
 }
 
 /* ─── TRUST STRIP (antes dos produtos) ─── */
@@ -4168,27 +4186,51 @@ footer {
 
 </section>
 
-<!-- ══ FAIXA DE CONFIANÇA ══ -->
-<div class="trust-faixa" aria-label="Informações de entrega e segurança">
-  <div class="trust-faixa-inner">
-    <div class="trust-faixa-item">
-      <span class="trust-faixa-icon" aria-hidden="true">🔁</span>
-      <span>Primeira troca <strong>grátis</strong></span>
-    </div>
-    <div class="trust-faixa-item">
-      <span class="trust-faixa-icon" aria-hidden="true">💳</span>
-      <span>Até <strong>10x</strong> no cartão</span>
-    </div>
-    <div class="trust-faixa-item">
-      <span class="trust-faixa-icon" aria-hidden="true">🎁</span>
-      <span>E-book <strong>incluso</strong></span>
-    </div>
-    <div class="trust-faixa-item">
-      <span class="trust-faixa-icon" aria-hidden="true">🔒</span>
-      <span>Compra <strong>segura</strong></span>
+<!-- ══ COMPRE COM TRANQUILIDADE ══ -->
+<section class="trust-calm" aria-label="Garantias de compra">
+  <div class="trust-calm-inner">
+    <p class="trust-calm-heading">Compre com tranquilidade</p>
+    <div class="trust-calm-grid">
+
+      <div class="trust-calm-card">
+        <svg class="trust-calm-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <p class="trust-calm-card-title">Compra segura</p>
+        <p class="trust-calm-card-sub">Pagamento protegido</p>
+      </div>
+
+      <div class="trust-calm-card">
+        <svg class="trust-calm-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 1 0 .49-4.51"/>
+        </svg>
+        <p class="trust-calm-card-title">Primeira troca grátis</p>
+        <p class="trust-calm-card-sub">Até 30 dias</p>
+      </div>
+
+      <div class="trust-calm-card">
+        <svg class="trust-calm-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="1" y="4" width="22" height="16" rx="2"/>
+          <line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+        <p class="trust-calm-card-title">Até 10x no cartão</p>
+        <p class="trust-calm-card-sub">PIX disponível</p>
+      </div>
+
+      <div class="trust-calm-card">
+        <svg class="trust-calm-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+        <p class="trust-calm-card-title">E-book incluso</p>
+        <p class="trust-calm-card-sub">Em todas as compras</p>
+      </div>
+
     </div>
   </div>
-</div>
+</section>
 
 <!-- ══ AUTORIDADE / E-BOOK ══ -->
 <section class="bonus-ebook" id="bonus-ebook" aria-label="Guia de adestramento gratuito com sua compra">
