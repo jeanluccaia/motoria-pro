@@ -40,7 +40,11 @@ src="https://www.facebook.com/tr?id=27064727209858805&ev=PageView&noscript=1"/>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-WCKKTLPXYP');
+  gtag('config', 'G-WCKKTLPXYP', {
+    linker: {
+      domains: ['pattamansa.com.br', 'unmtvj-cr.myshopify.com']
+    }
+  });
 </script>
 <!-- End Google Analytics 4 -->
 
@@ -4697,6 +4701,129 @@ footer {
     });
   })();
 
+  /* ─── GA4 ECOMMERCE — dataLayer + gtag ─── */
+  var PattaAnalytics = (function () {
+    var MEASUREMENT_ID = 'G-WCKKTLPXYP';
+    var CURRENCY = 'BRL';
+
+    function toNumber(value) {
+      var number = Number(value);
+      return Number.isFinite(number) ? Number(number.toFixed(2)) : 0;
+    }
+
+    function clean(obj) {
+      var out = {};
+      Object.keys(obj).forEach(function (key) {
+        var value = obj[key];
+        if (value !== undefined && value !== null && value !== '') out[key] = value;
+      });
+      return out;
+    }
+
+    function itemVariant(color, size) {
+      return [color, size].filter(Boolean).join(' / ');
+    }
+
+    function productToGaItem(cfg, index) {
+      return clean({
+        item_id: String(cfg.productId || cfg.variantId || cfg.name || ''),
+        item_name: cfg.name || cfg.productName || '',
+        affiliation: 'PattaMansa',
+        item_brand: 'PattaMansa',
+        item_category: 'Vestuario',
+        price: toNumber(cfg.price),
+        quantity: Number(cfg.quantity || 1),
+        index: index || 0
+      });
+    }
+
+    function cartToGaItem(item, index) {
+      return clean({
+        item_id: String(item.variantId || item.productId || item.productName || ''),
+        item_name: item.productName || item.name || '',
+        affiliation: 'PattaMansa',
+        item_brand: 'PattaMansa',
+        item_category: 'Vestuario',
+        item_variant: itemVariant(item.color, item.size),
+        price: toNumber(item.price),
+        quantity: Number(item.quantity || 1),
+        index: index || 0
+      });
+    }
+
+    function push(eventName, ecommerce) {
+      var payload = Object.assign({ currency: CURRENCY }, ecommerce || {});
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ ecommerce: null });
+      window.dataLayer.push({
+        event: eventName,
+        ecommerce: payload
+      });
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', eventName, payload);
+      }
+    }
+
+    function trackViewItem(cfg) {
+      if (!cfg) return;
+      push('view_item', {
+        value: toNumber(cfg.price),
+        items: [productToGaItem(cfg, 0)]
+      });
+    }
+
+    function trackAddToCart(item) {
+      if (!item) return;
+      push('add_to_cart', {
+        value: toNumber((item.price || 0) * (item.quantity || 1)),
+        items: [cartToGaItem(item, 0)]
+      });
+    }
+
+    function trackBeginCheckout(items, total) {
+      if (!items || !items.length) return;
+      push('begin_checkout', {
+        value: toNumber(total),
+        items: items.map(cartToGaItem)
+      });
+    }
+
+    function appendQuery(url, query) {
+      if (!query) return url;
+      return url + (url.indexOf('?') === -1 ? '?' : '&') + query;
+    }
+
+    function decorateCheckoutUrl(url, callback) {
+      var finished = false;
+      function done(nextUrl) {
+        if (finished) return;
+        finished = true;
+        callback(nextUrl || url);
+      }
+
+      if (typeof window.gtag !== 'function') {
+        done(url);
+        return;
+      }
+
+      try {
+        window.gtag('get', MEASUREMENT_ID, 'linker_param', function (linkerParam) {
+          done(appendQuery(url, linkerParam));
+        });
+        setTimeout(function () { done(url); }, 500);
+      } catch (e) {
+        done(url);
+      }
+    }
+
+    return {
+      trackViewItem: trackViewItem,
+      trackAddToCart: trackAddToCart,
+      trackBeginCheckout: trackBeginCheckout,
+      decorateCheckoutUrl: decorateCheckoutUrl
+    };
+  })();
+
   /* ─── PATTA CART — gerenciador de carrinho local ─── */
   var PattaCart = (function () {
     var KEY = 'patta_cart_v2';
@@ -4893,11 +5020,15 @@ footer {
       if (e.key === 'Escape' && drawer && drawer.classList.contains('open')) close();
     });
 
-    /* ── Finalizar Compra — proxy /api/checkout → Shopify draftOrderCreate ── */
+    /* ── Finalizar Compra — proxy /api/checkout → Shopify cartCreate ── */
     if (checkoutBtn) {
       checkoutBtn.addEventListener('click', function () {
         var items = PattaCart.getItems();
         if (!items.length) return;
+
+        if (window.PattaAnalytics) {
+          PattaAnalytics.trackBeginCheckout(items, PattaCart.total());
+        }
 
         if (window.fbq) {
           fbq('track', 'InitiateCheckout', {
@@ -4930,7 +5061,13 @@ footer {
               });
             }
             PattaCart.clear();
-            window.location.href = data.checkoutUrl;
+            if (window.PattaAnalytics) {
+              PattaAnalytics.decorateCheckoutUrl(data.checkoutUrl, function (checkoutUrl) {
+                window.location.href = checkoutUrl;
+              });
+            } else {
+              window.location.href = data.checkoutUrl;
+            }
           } else {
             console.error('[PattaCart] checkout error:', data);
             throw new Error('checkout URL ausente');
@@ -5003,6 +5140,9 @@ footer {
       drawer.removeAttribute('aria-hidden');  drawer.classList.add('open');
       document.body.style.overflow = 'hidden';
       if (closeBtn) closeBtn.focus();
+      if (window.PattaAnalytics) {
+        PattaAnalytics.trackViewItem(cfg);
+      }
       if (window.fbq) {
         fbq('track', 'ViewContent', {
           content_ids: [cfg.productId],
@@ -5112,7 +5252,7 @@ footer {
       ctaBtn.disabled = true;
       ctaBtn.textContent = 'Adicionando…';
 
-      PattaCart.add({
+      var cartItem = {
         productId: _cfg.productId,
         variantId: variantId,
         productName: _cfg.name,
@@ -5121,7 +5261,13 @@ footer {
         quantity: _qty,
         price: _cfg.price,
         image: cor ? cor.img : (_cfg.defaultImage || ''),
-      });
+      };
+
+      PattaCart.add(cartItem);
+
+      if (window.PattaAnalytics) {
+        PattaAnalytics.trackAddToCart(cartItem);
+      }
 
       if (window.fbq) {
         fbq('track', 'AddToCart', {
