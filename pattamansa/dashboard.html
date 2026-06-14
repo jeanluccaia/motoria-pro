@@ -7,187 +7,107 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-
 :root{
-  --bg:#09090b;
-  --card:#111115;
-  --card2:#18181f;
-  --border:rgba(255,255,255,0.07);
-  --bh:rgba(255,255,255,0.12);
-  --text:#fafafa;
-  --t2:#a1a1aa;
-  --t3:#52525b;
-  --green:#22c55e;
-  --gdim:rgba(34,197,94,0.1);
-  --amber:#f59e0b;
-  --adim:rgba(245,158,11,0.1);
-  --red:#ef4444;
-  --rdim:rgba(239,68,68,0.1);
-  --purple:#818cf8;
-  --pdim:rgba(129,140,248,0.12);
+  --bg:#09090b;--card:#111115;--card2:#18181f;
+  --border:rgba(255,255,255,.07);--bh:rgba(255,255,255,.12);
+  --text:#fafafa;--t2:#a1a1aa;--t3:#52525b;
+  --green:#22c55e;--gdim:rgba(34,197,94,.1);
+  --amber:#f59e0b;--adim:rgba(245,158,11,.1);
+  --red:#ef4444;--rdim:rgba(239,68,68,.1);
+  --blue:#3b82f6;--bdim:rgba(59,130,246,.1);
+  --purple:#818cf8;--pdim:rgba(129,140,248,.12);
   --r:16px;--rs:10px;
 }
-
 html{scroll-behavior:smooth}
 body{
   font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',system-ui,sans-serif;
   background:var(--bg);color:var(--text);
-  min-height:100vh;-webkit-font-smoothing:antialiased;
-  line-height:1.5;font-size:15px;
+  min-height:100vh;-webkit-font-smoothing:antialiased;line-height:1.5;font-size:15px;
 }
 
 /* ── HEADER ── */
 header{
-  padding:18px 20px 14px;
-  border-bottom:1px solid var(--border);
+  padding:18px 20px 14px;border-bottom:1px solid var(--border);
   position:sticky;top:0;z-index:100;
-  background:rgba(9,9,11,0.92);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  background:rgba(9,9,11,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 }
 .hdr-logo{
-  font-size:16px;font-weight:700;
-  letter-spacing:-0.03em;color:var(--text);
-  display:flex;align-items:center;gap:8px;
-  margin-bottom:4px;
+  font-size:16px;font-weight:700;letter-spacing:-.03em;
+  display:flex;align-items:center;gap:8px;margin-bottom:4px;
 }
 .hdr-pulse{
-  width:7px;height:7px;border-radius:50%;
-  background:var(--green);flex-shrink:0;
+  width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;
   animation:pulse 2.4s infinite;
 }
-@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,.4)}60%{opacity:.7;box-shadow:0 0 0 5px rgba(34,197,94,0)}}
-.hdr-meta{font-size:12px;color:var(--t3)}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,.4)}60%{box-shadow:0 0 0 5px rgba(34,197,94,0)}}
+.hdr-sub{font-size:12px;color:var(--t3)}
 
 /* ── LAYOUT ── */
-main{
-  max-width:700px;margin:0 auto;
-  padding:28px 16px 80px;
-  display:flex;flex-direction:column;gap:36px;
-}
+main{max-width:700px;margin:0 auto;padding:28px 16px 40px;display:flex;flex-direction:column;gap:36px}
 
 /* ── SECTION LABEL ── */
-.sec-lbl{
-  font-size:11px;font-weight:600;
-  text-transform:uppercase;letter-spacing:.08em;
-  color:var(--t3);margin-bottom:12px;padding-left:1px;
-}
+.sec-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.sec-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t3)}
+.sec-src{font-size:10px;color:var(--t3);opacity:.7}
 
-/* ── KPI GRID (resumo) ── */
-.kpi-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(min-width:560px){.kpi-grid{grid-template-columns:repeat(4,1fr)}}
-
-.kpi{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:var(--r);padding:22px 18px;
-  transition:border-color .15s;
-}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:22px 18px;transition:border-color .15s}
 .kpi:hover{border-color:var(--bh)}
-.kpi-lbl{
-  font-size:11px;font-weight:500;color:var(--t3);
-  text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;
-}
-.kpi-val{
-  font-size:clamp(24px,5vw,32px);
-  font-weight:800;letter-spacing:-0.04em;
-  line-height:1;font-variant-numeric:tabular-nums;
-}
-.kpi-val.g{color:var(--green)}
-.kpi-val.p{color:var(--purple)}
+.kpi-lbl{font-size:11px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.kpi-val{font-size:clamp(22px,5vw,30px);font-weight:800;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.kpi-val.g{color:var(--green)}.kpi-val.p{color:var(--purple)}.kpi-val.d{color:var(--t3)}
 .kpi-sub{font-size:11px;color:var(--t3);margin-top:6px}
+.kpi-note{font-size:10px;color:var(--amber);margin-top:5px;display:flex;align-items:center;gap:4px}
 
 /* ── MEDIA GRID ── */
 .media-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.media-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px 18px;position:relative}
+.media-name{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--t2);text-transform:uppercase;display:flex;align-items:center;gap:7px;margin-bottom:14px}
+.mdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.mdot-meta{background:#1877f2}.mdot-google{background:#4285f4}.mdot-ga4{background:#e34234}
+.media-row{font-size:12px;color:var(--t2);margin-bottom:3px}
+.media-row.muted{color:var(--t3);font-style:italic}
+.media-roas{font-size:clamp(20px,5vw,26px);font-weight:800;letter-spacing:-.03em;margin:10px 0;font-variant-numeric:tabular-nums}
+.media-roas.ok{color:var(--green)}.media-roas.na{color:var(--t3)}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px}
+.bg{background:var(--gdim);color:var(--green)}.bn{background:var(--card2);color:var(--t3)}
+.ba{background:var(--adim);color:var(--amber)}.br{background:var(--rdim);color:var(--red)}
+.bb{background:var(--bdim);color:var(--blue)}
+.media-disclaimer{
+  font-size:10.5px;color:var(--amber);line-height:1.5;
+  margin-top:12px;padding-top:10px;border-top:1px solid var(--border);
+  display:flex;gap:6px;align-items:flex-start;
+}
 
-.media-card{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:var(--r);padding:20px 18px;
-}
-.media-name{
-  font-size:11px;font-weight:700;letter-spacing:.04em;
-  color:var(--t2);text-transform:uppercase;
-  display:flex;align-items:center;gap:7px;margin-bottom:14px;
-}
-.mdot{width:8px;height:8px;border-radius:50%}
-.mdot-meta{background:#1877f2}
-.mdot-google{background:#4285f4}
-.media-row{font-size:12px;color:var(--t3);margin-bottom:2px}
-.media-roas{
-  font-size:clamp(22px,5vw,28px);font-weight:800;
-  letter-spacing:-0.03em;margin:10px 0 10px;
-  font-variant-numeric:tabular-nums;
-}
-.media-roas.ok{color:var(--green)}
-.media-roas.na{color:var(--t3)}
-.badge{
-  display:inline-flex;align-items:center;gap:4px;
-  font-size:11px;font-weight:600;padding:3px 9px;
-  border-radius:20px;
-}
-.bg{background:var(--gdim);color:var(--green)}
-.bn{background:var(--card2);color:var(--t3)}
-.ba{background:var(--adim);color:var(--amber)}
-.br{background:var(--rdim);color:var(--red)}
+/* ── MEDIA GRID 3-COL ── */
+@media(min-width:560px){.media-grid-3{grid-template-columns:repeat(3,1fr)!important}}
 
 /* ── ABANDON CARD ── */
 .abandon{
-  background:var(--card);
-  border:1px solid rgba(245,158,11,.22);
-  border-radius:var(--r);
-  padding:24px 20px;position:relative;overflow:hidden;
+  background:var(--card);border:1px solid rgba(245,158,11,.22);
+  border-radius:var(--r);padding:24px 20px;position:relative;overflow:hidden;
 }
-.abandon::before{
-  content:'';position:absolute;
-  top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,var(--amber),rgba(245,158,11,0));
-}
-.abandon-top{
-  display:flex;align-items:flex-start;
-  justify-content:space-between;gap:16px;
-  margin-bottom:22px;
-}
-.abandon-title{
-  font-size:12px;font-weight:700;color:var(--amber);
-  text-transform:uppercase;letter-spacing:.05em;
-  display:flex;align-items:center;gap:6px;
-}
+.abandon::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--amber),rgba(245,158,11,0))}
+.abandon-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}
+.abandon-title{font-size:12px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:6px}
 .abandon-big{text-align:right}
 .abandon-big-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
-.abandon-big-val{
-  font-size:clamp(22px,5vw,28px);font-weight:800;
-  color:var(--amber);letter-spacing:-0.03em;
-  font-variant-numeric:tabular-nums;
-}
-.abandon-stats{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
-  padding:18px 0;
-  border-top:1px solid rgba(245,158,11,.12);
-  border-bottom:1px solid rgba(245,158,11,.12);
-  margin-bottom:16px;
-}
+.abandon-big-val{font-size:clamp(20px,5vw,26px);font-weight:800;color:var(--amber);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.abandon-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px 0;border-top:1px solid rgba(245,158,11,.12);border-bottom:1px solid rgba(245,158,11,.12);margin-bottom:14px}
 .ast-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
-.ast-val{font-size:clamp(20px,5vw,26px);font-weight:800;letter-spacing:-0.03em;font-variant-numeric:tabular-nums}
+.ast-val{font-size:clamp(18px,5vw,24px);font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .ast-val.r{color:var(--red)}
-.abandon-hint{font-size:13px;color:var(--t2);line-height:1.6}
+.abandon-hint{font-size:12.5px;color:var(--t2);line-height:1.6}
 
 /* ── PRODUCTS ── */
 .prod-list{display:flex;flex-direction:column;gap:8px}
-.prod-item{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:var(--rs);padding:16px 18px;
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  transition:border-color .15s;
-}
+.prod-item{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:border-color .15s}
 .prod-item:hover{border-color:var(--bh)}
 .prod-name{font-size:13px;font-weight:500}
 .prod-sub{font-size:11px;color:var(--t3);margin-top:2px}
-.prod-rev{
-  font-size:18px;font-weight:800;color:var(--green);
-  white-space:nowrap;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;
-}
+.prod-rev{font-size:18px;font-weight:800;color:var(--green);white-space:nowrap;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 
 /* ── IG GRID ── */
 .ig-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -195,74 +115,76 @@ main{
 
 /* ── DIAGNOSIS ── */
 .diag-list{display:flex;flex-direction:column;gap:8px}
-.diag{
-  border-radius:var(--r);padding:18px 18px;
-  display:flex;gap:14px;align-items:flex-start;
-}
+.diag{border-radius:var(--r);padding:18px;display:flex;gap:14px;align-items:flex-start}
 .diag.ok{background:var(--gdim);border:1px solid rgba(34,197,94,.18)}
 .diag.warn{background:var(--adim);border:1px solid rgba(245,158,11,.18)}
 .diag.act{background:var(--pdim);border:1px solid rgba(129,140,248,.18)}
+.diag.info{background:var(--bdim);border:1px solid rgba(59,130,246,.18)}
 .diag-ico{font-size:20px;flex-shrink:0;line-height:1.3}
 .diag-txt{font-size:13px;color:var(--text);line-height:1.6}
 .diag-txt strong{font-weight:700}
 
-/* ── TECHNICAL (details) ── */
-details{
-  border:1px solid var(--border);
-  border-radius:var(--r);overflow:hidden;
+/* ── PIXEL ALERT ── */
+.pixel-alert{
+  background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);
+  border-radius:var(--r);padding:16px 18px;
+  display:flex;gap:12px;align-items:flex-start;
 }
+.pixel-alert-title{font-size:12px;font-weight:700;color:var(--red);margin-bottom:3px}
+.pixel-alert-txt{font-size:12px;color:var(--t2);line-height:1.5}
+
+/* ── TECHNICAL (details) ── */
+details{border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
 summary{
-  padding:15px 20px;
-  font-size:11px;font-weight:600;
+  padding:15px 20px;font-size:11px;font-weight:600;
   text-transform:uppercase;letter-spacing:.07em;color:var(--t3);
   cursor:pointer;background:var(--card);
-  display:flex;align-items:center;gap:8px;
-  user-select:none;list-style:none;transition:color .15s;
+  display:flex;align-items:center;gap:8px;user-select:none;list-style:none;transition:color .15s;
 }
 summary::-webkit-details-marker{display:none}
-.sum-arr{
-  font-size:14px;transition:transform .2s;
-  display:inline-block;color:var(--t3);
-}
+.sum-arr{font-size:14px;transition:transform .2s;display:inline-block}
 details[open] .sum-arr{transform:rotate(90deg)}
 summary:hover{color:var(--t2)}
-.tech-body{
-  background:var(--card);border-top:1px solid var(--border);
-  padding:20px;display:flex;flex-direction:column;gap:24px;
-}
+.tech-body{background:var(--card);border-top:1px solid var(--border);padding:20px;display:flex;flex-direction:column;gap:24px}
 .tech-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:10px}
 
 /* ── TABLE ── */
 .tbl{overflow-x:auto;border-radius:var(--rs);border:1px solid var(--border)}
 table{width:100%;border-collapse:collapse;font-size:12px}
-thead th{
-  padding:9px 12px;text-align:left;
-  font-size:10px;font-weight:600;color:var(--t3);
-  text-transform:uppercase;letter-spacing:.05em;
-  background:var(--card2);border-bottom:1px solid var(--border);
-  white-space:nowrap;
-}
+thead th{padding:9px 12px;text-align:left;font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;background:var(--card2);border-bottom:1px solid var(--border);white-space:nowrap}
 tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:var(--card2)}
 td{padding:10px 12px;white-space:nowrap;color:var(--t2);font-variant-numeric:tabular-nums}
-td.hi{color:var(--text);font-weight:500}
-td.gr{color:var(--green);font-weight:600}
+td.hi{color:var(--text);font-weight:500}.td.gr{color:var(--green);font-weight:600}
+.gr{color:var(--green);font-weight:600}
 
 /* ── FUNNEL ── */
 .funnel{display:flex;align-items:center;gap:6px;overflow-x:auto;padding:4px 0}
-.f-box{
-  flex:1;min-width:72px;text-align:center;
-  background:var(--card2);border:1px solid var(--border);
-  border-radius:var(--rs);padding:10px 6px;
-}
+.f-box{flex:1;min-width:72px;text-align:center;background:var(--card2);border:1px solid var(--border);border-radius:var(--rs);padding:10px 6px}
 .f-lbl{font-size:9px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
-.f-num{font-size:17px;font-weight:800;letter-spacing:-0.03em;font-variant-numeric:tabular-nums}
+.f-num{font-size:17px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .f-rate{font-size:10px;font-weight:600;margin-top:5px}
 .f-arr{color:var(--t3);font-size:14px;flex-shrink:0}
 
 /* ── CHART ── */
 .chart-box{position:relative;height:180px}
+
+/* ── FOOTER ── */
+footer{
+  max-width:700px;margin:0 auto;
+  padding:16px 16px 40px;
+  border-top:1px solid var(--border);
+  font-size:11px;color:var(--t3);
+  display:flex;flex-direction:column;gap:6px;
+}
+.footer-sources{display:flex;flex-wrap:wrap;gap:10px}
+.footer-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--card);border:1px solid var(--border);
+  padding:3px 10px;border-radius:20px;font-size:10px;color:var(--t3);
+}
+.footer-dot{width:5px;height:5px;border-radius:50%}
 
 /* ── MISC ── */
 ::-webkit-scrollbar{width:4px;height:4px}
@@ -272,63 +194,76 @@ td.gr{color:var(--green);font-weight:600}
 <body>
 
 <header>
-  <div class="hdr-logo">
-    <div class="hdr-pulse"></div>
-    PattaMansa Analytics
-  </div>
-  <div class="hdr-meta" id="hdrMeta">—</div>
+  <div class="hdr-logo"><div class="hdr-pulse"></div>PattaMansa Analytics</div>
+  <div class="hdr-sub" id="hdrSub">—</div>
 </header>
 
 <main>
 
   <!-- 1 · RESUMO -->
   <section>
-    <div class="sec-lbl">Resumo do período</div>
+    <div class="sec-row">
+      <div class="sec-lbl">Resumo do período</div>
+      <div class="sec-src">Shopify Admin API</div>
+    </div>
     <div class="kpi-grid" id="kpiGrid"></div>
   </section>
 
   <!-- 2 · MÍDIA PAGA -->
   <section>
-    <div class="sec-lbl">Mídia paga</div>
-    <div class="media-grid" id="mediaGrid"></div>
+    <div class="sec-row">
+      <div class="sec-lbl">Mídia paga</div>
+      <div class="sec-src">Metricool · Meta Ads</div>
+    </div>
+    <div class="media-grid media-grid-3" id="mediaGrid"></div>
   </section>
 
-  <!-- 3 · CARRINHOS ABANDONADOS -->
+  <!-- 3 · PIXEL ALERT (se houver problema) -->
+  <div id="pixelAlertWrap"></div>
+
+  <!-- 4 · CARRINHOS ABANDONADOS -->
   <section>
-    <div class="sec-lbl">Carrinhos abandonados</div>
+    <div class="sec-row">
+      <div class="sec-lbl">Carrinhos abandonados</div>
+      <div class="sec-src">Shopify Sessions</div>
+    </div>
     <div class="abandon" id="abandonCard"></div>
   </section>
 
-  <!-- 4 · PRODUTOS VENDIDOS -->
+  <!-- 5 · PRODUTOS VENDIDOS -->
   <section>
-    <div class="sec-lbl">Produtos vendidos</div>
+    <div class="sec-row">
+      <div class="sec-lbl">Produtos vendidos</div>
+      <div class="sec-src">Shopify Admin API</div>
+    </div>
     <div class="prod-list" id="prodList"></div>
   </section>
 
-  <!-- 5 · INSTAGRAM -->
+  <!-- 6 · INSTAGRAM -->
   <section>
-    <div class="sec-lbl">Instagram</div>
+    <div class="sec-row">
+      <div class="sec-lbl">Instagram</div>
+      <div class="sec-src">Metricool · Instagram API</div>
+    </div>
     <div class="ig-grid" id="igGrid"></div>
   </section>
 
-  <!-- 6 · DIAGNÓSTICO -->
+  <!-- 7 · DIAGNÓSTICO -->
   <section>
-    <div class="sec-lbl">Diagnóstico</div>
+    <div class="sec-row"><div class="sec-lbl">Diagnóstico</div></div>
     <div class="diag-list" id="diagList"></div>
   </section>
 
-  <!-- 7 · DADOS TÉCNICOS -->
+  <!-- 8 · DADOS TÉCNICOS (colapsado) -->
   <details>
     <summary><span class="sum-arr">›</span> Ver dados técnicos</summary>
     <div class="tech-body">
-
       <div>
-        <div class="tech-lbl">Funil de conversão</div>
+        <div class="tech-lbl">Funil de conversão — Shopify Sessions</div>
         <div class="funnel" id="funnelRow"></div>
       </div>
-
       <div>
-        <div class="tech-lbl">Campanhas Meta Ads</div>
+        <div class="tech-lbl">Campanhas Meta Ads — Metricool</div>
         <div class="tbl">
           <table>
             <thead>
@@ -339,60 +274,103 @@ td.gr{color:var(--green);font-weight:600}
                 <th>Impressões</th>
                 <th>CTR</th>
                 <th>CPC</th>
-                <th>AddToCart</th>
-                <th>Purchase</th>
-                <th>ROAS</th>
+                <th>AddToCart (pixel)</th>
+                <th>Purchase (pixel)</th>
+                <th>Valor atribuído (Meta)</th>
               </tr>
             </thead>
             <tbody id="techTbl"></tbody>
           </table>
         </div>
+        <div style="font-size:10px;color:var(--t3);margin-top:8px;line-height:1.5">
+          * Dados via Metricool / Meta Marketing API. Conversões atribuídas pelo pixel Meta podem diferir dos pedidos reais na Shopify.
+        </div>
       </div>
-
       <div>
-        <div class="tech-lbl">Instagram — views e alcance diário (Junho)</div>
+        <div class="tech-lbl">Instagram — Views e alcance diário (Junho) — Metricool</div>
         <div class="chart-box"><canvas id="igChart"></canvas></div>
       </div>
-
     </div>
   </details>
 
 </main>
 
+<footer>
+  <div>Fontes de dados conectadas:</div>
+  <div class="footer-sources" id="footerSources"></div>
+  <div style="margin-top:4px">Os dados são atualizados manualmente. Última atualização: <span id="footerUpdated">—</span></div>
+</footer>
+
 <script>
-// ══════════════════════════════════════════════
-//  DATA — atualize aqui após cada pull
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+//  DATA — todos os valores abaixo vêm de APIs reais.
+//  Fontes: Shopify Admin API, Meta Ads via Metricool, Instagram via Metricool.
+//  Atualizar após cada pull.
+// ══════════════════════════════════════════════════════════
 const DATA = {
   period:      '15 Mai – 14 Jun 2026',
   lastUpdated: '14/06/2026 às 20:30',
 
-  overview: {
-    revenue:       239.15,
-    orders:        2,
-    avgOrderValue: 119.58,
-  },
-
-  metaAds: {
-    spent:   36.86,
-    revenue: 239.15,
-  },
-
-  googleAds: {
-    active: false,
-  },
-
+  // ── Shopify Admin API ──────────────────────────────────
   shopify: {
-    abandonedCarts:     24,
-    initiatedCheckouts: 26,
-    orders:             2,
+    revenue:            239.15,   // gross_sales (2 pedidos pagos)
+    orders:             2,        // pedidos com pagamento confirmado
+    avgOrderValue:      119.58,   // revenue / orders
+    sessions:           67,       // sessões na Shopify
+    initiatedCheckouts: 27,       // sessions_that_reached_checkout
+    completedCheckouts: 2,        // sessions_that_completed_checkout
+    abandonedCarts:     25,       // initiated - completed
+    conversionRate:     2.99,     // % de sessões que compraram
+    // Contexto dos pedidos — importante para entender ROAS
+    orders_detail: [
+      { date:'07/06/2026', revenue:128.12, note:'Anterior às campanhas Meta (início: 08/06) → provavelmente orgânico' },
+      { date:'12/06/2026', revenue:111.03, note:'Durante campanhas Meta → possivelmente atribuído ao Meta' },
+    ],
   },
 
+  // ── Meta Ads via Metricool ─────────────────────────────
+  metaAds: {
+    spent: 36.86,
+    campaigns: [
+      { name:'PATTA | Vendas | AddToCart | 11-06', status:'Ativa', objective:'Conversão',
+        spent:13.72, impressions:274, clicks:21,
+        addToCart_pixel:3, purchase_pixel:3,
+        // purchase_pixel=3 com allConversionsValue=null → pixel disparando sem valor ← bug
+        allConversionsValue: null,
+        note:'Pixel dispara Purchase mas sem valor monetário. Verificar configuração.' },
+      { name:'TESTE | Tráfego | Diagnóstico | 10-06', status:'Ativa', objective:'Tráfego',
+        spent:23.14, impressions:3491, clicks:349,
+        addToCart_pixel:0, purchase_pixel:1,
+        allConversionsValue: 129.90,
+        note:'' },
+      { name:'PATTA | Caramelo FC | Conversão | 08-06', status:'Pausada', objective:'Conversão',
+        spent:0, impressions:1, clicks:0,
+        addToCart_pixel:0, purchase_pixel:0,
+        allConversionsValue: null,
+        note:'' },
+    ],
+    // Receita que a Meta ATRIBUI às campanhas (via pixel):
+    // Campanha 1: null (pixel sem valor) | Campanha 2: R$129,90
+    metaAttributedRevenue: 129.90,
+  },
+
+  // ── Google Ads ─────────────────────────────────────────
+  googleAds: {
+    connected: false,   // sem conta Google Ads conectada
+  },
+
+  // ── GA4 ───────────────────────────────────────────────
+  ga4: {
+    connected: false,   // GA4 não integrado ao dashboard ainda
+  },
+
+  // ── Produtos — Shopify Admin API ──────────────────────
   products: [
-    { name:'Clube Seleção Canina · Oversized · Unissex', orders:1, revenue:128.12 },
-    { name:'Clube Canino · Regular · Masculina',         orders:1, revenue:111.03 },
+    { name:'Clube Seleção Canina · Oversized · Unissex', orders:1, revenue:128.12, date:'07/06' },
+    { name:'Clube Canino · Regular · Masculina',         orders:1, revenue:111.03, date:'12/06' },
   ],
 
+  // ── Instagram — Metricool / Instagram Graph API ───────
   instagram: {
     followers:      758,
     followsGained:  13,
@@ -400,22 +378,13 @@ const DATA = {
     bestEngagement: 23.73,
   },
 
-  // — seção técnica —
+  // ── Técnico: funil e gráfico ──────────────────────────
   funnel: [
-    { label:'Alcance',   value:3178 },
-    { label:'Cliques',   value:370  },
-    { label:'Sessões',   value:66   },
-    { label:'Checkout',  value:26   },
-    { label:'Compras',   value:2    },
-  ],
-
-  campaigns: [
-    { name:'PATTA | Vendas | AddToCart', status:'Ativa',
-      spent:13.72, impressions:274,  clicks:21,  addToCart:3, purchase:1, convVal:128.12 },
-    { name:'TESTE | Tráfego | Diagnóstico', status:'Ativa',
-      spent:23.14, impressions:3491, clicks:349, addToCart:0, purchase:1, convVal:111.03 },
-    { name:'PATTA | Caramelo FC | Conversão', status:'Pausada',
-      spent:0,     impressions:1,    clicks:0,   addToCart:0, purchase:0, convVal:0 },
+    { label:'Alcance Ads', value:3178, src:'Meta Ads'     },
+    { label:'Cliques',     value:370,  src:'Meta Ads'     },
+    { label:'Sessões',     value:67,   src:'Shopify'      },
+    { label:'Checkout',    value:27,   src:'Shopify'      },
+    { label:'Compras',     value:2,    src:'Shopify'      },
   ],
 
   igChart: {
@@ -425,33 +394,37 @@ const DATA = {
   },
 };
 
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 //  HELPERS
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 const R  = v => 'R$ ' + Number(v).toFixed(2).replace('.', ',');
 const N  = v => Number(v).toLocaleString('pt-BR');
 const Pf = v => Number(v).toFixed(1) + '%';
 
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 //  HEADER
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 function renderHeader() {
-  document.getElementById('hdrMeta').textContent =
+  document.getElementById('hdrSub').textContent =
     DATA.period + '  ·  Atualizado ' + DATA.lastUpdated;
+  document.getElementById('footerUpdated').textContent = DATA.lastUpdated;
 }
 
-// ══════════════════════════════════════════════
-//  1 · RESUMO
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+//  1 · RESUMO (Shopify)
+// ══════════════════════════════════════════════════════════
 function renderKPIs() {
-  const { overview, metaAds } = DATA;
-  const roas = overview.revenue / metaAds.spent;
+  const s = DATA.shopify;
+  // ROAS calculado: receita Shopify total / invest. Meta
+  // OBS: 1 pedido (R$128,12) foi anterior às campanhas Meta → ROAS estimado
+  const roasEstimado = s.revenue / DATA.metaAds.spent;
 
   const cards = [
-    { lbl:'Receita',      val:R(overview.revenue),      cls:'g', sub:'período total'          },
-    { lbl:'Pedidos pagos',val:overview.orders,           cls:'',  sub:'concluídos'             },
-    { lbl:'ROAS',         val:roas.toFixed(2) + 'x',    cls:'p', sub:'retorno do investimento' },
-    { lbl:'Ticket médio', val:R(overview.avgOrderValue), cls:'',  sub:'por pedido'             },
+    { lbl:'Receita',       val:R(s.revenue),          cls:'g', sub:'Shopify — pedidos pagos'             },
+    { lbl:'Pedidos pagos', val:s.orders,               cls:'',  sub:'concluídos no período'               },
+    { lbl:'ROAS estimado', val:roasEstimado.toFixed(2)+'x', cls:'p',
+      sub:'Shopify ÷ Meta spend', note:'Inclui pedido orgânico de 07/06' },
+    { lbl:'Ticket médio',  val:R(s.avgOrderValue),     cls:'',  sub:'por pedido'                          },
   ];
 
   document.getElementById('kpiGrid').innerHTML = cards.map(c =>
@@ -459,44 +432,81 @@ function renderKPIs() {
       <div class="kpi-lbl">${c.lbl}</div>
       <div class="kpi-val ${c.cls}">${c.val}</div>
       <div class="kpi-sub">${c.sub}</div>
+      ${c.note ? `<div class="kpi-note">⚠ ${c.note}</div>` : ''}
     </div>`
   ).join('');
 }
 
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 //  2 · MÍDIA PAGA
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 function renderMedia() {
-  const { metaAds, googleAds } = DATA;
-  const roas = metaAds.revenue / metaAds.spent;
+  const m = DATA.metaAds;
+  const s = DATA.shopify;
+  const roasEstimado = s.revenue / m.spent;
+  // Receita atribuída pelo pixel Meta (campanha 2 attribution)
+  const metaAttr = m.metaAttributedRevenue;
+  const roasMeta = metaAttr ? (metaAttr / m.spent).toFixed(2) : null;
 
   const metaCard = `
     <div class="media-card">
       <div class="media-name"><div class="mdot mdot-meta"></div>Meta Ads</div>
-      <div class="media-row">Investido: ${R(metaAds.spent)}</div>
-      <div class="media-row">Receita atribuída: ${R(metaAds.revenue)}</div>
-      <div class="media-roas ok">${roas.toFixed(2)}x</div>
-      <div class="badge bg">✓ Lucrativo</div>
+      <div class="media-row">Investido: <strong>${R(m.spent)}</strong></div>
+      <div class="media-row">Receita Shopify (período): <strong>${R(s.revenue)}</strong></div>
+      <div class="media-roas ok">${roasEstimado.toFixed(2)}x</div>
+      <div class="badge bg">✓ Campanhas ativas</div>
+      <div class="media-disclaimer">
+        <span>⚠</span>
+        <span>ROAS estimado: toda receita Shopify ÷ Meta spend. Pedido de 07/06 (${R(128.12)}) é anterior às campanhas — pode ser orgânico. Receita atribuída pelo Meta Pixel: ${R(metaAttr ?? 0)}.</span>
+      </div>
     </div>`;
 
   const googleCard = `
     <div class="media-card">
       <div class="media-name"><div class="mdot mdot-google"></div>Google Ads</div>
-      <div class="media-row" style="color:var(--t3);margin-top:4px">Sem dados ainda</div>
+      <div class="media-row muted">Sem dados conectados</div>
       <div class="media-roas na">—</div>
-      <div class="badge bn">Aguardando</div>
+      <div class="badge bn">Sem integração</div>
     </div>`;
 
-  document.getElementById('mediaGrid').innerHTML = metaCard + googleCard;
+  const ga4Card = `
+    <div class="media-card">
+      <div class="media-name"><div class="mdot mdot-ga4"></div>Google Analytics 4</div>
+      <div class="media-row muted">Sem dados conectados</div>
+      <div class="media-roas na">—</div>
+      <div class="badge bn">Sem integração</div>
+    </div>`;
+
+  document.getElementById('mediaGrid').innerHTML = metaCard + googleCard + ga4Card;
 }
 
-// ══════════════════════════════════════════════
-//  3 · CARRINHOS ABANDONADOS
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+//  3 · PIXEL ALERT
+// ══════════════════════════════════════════════════════════
+function renderPixelAlert() {
+  const bugCamp = DATA.metaAds.campaigns.find(c => c.purchase_pixel > 0 && !c.allConversionsValue);
+  if (!bugCamp) return;
+  document.getElementById('pixelAlertWrap').innerHTML = `
+    <div class="pixel-alert">
+      <span style="font-size:18px;flex-shrink:0">🔴</span>
+      <div>
+        <div class="pixel-alert-title">Problema detectado no Meta Pixel</div>
+        <div class="pixel-alert-txt">
+          Campanha "${bugCamp.name.split('|')[0].trim()}" registrou ${bugCamp.purchase_pixel} evento(s) Purchase no pixel, mas sem valor monetário (allConversionsValue = null).
+          O pixel está disparando, mas sem o valor da compra → o Meta não consegue calcular ROAS real nem otimizar para conversão.
+          <br><strong>Verificar:</strong> configuração do valor no shopify-meta-custom-pixel.js.
+        </div>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════
+//  4 · CARRINHOS ABANDONADOS (Shopify Sessions)
+// ══════════════════════════════════════════════════════════
 function renderAbandoned() {
   const s = DATA.shopify;
-  const potential  = s.abandonedCarts * DATA.overview.avgOrderValue;
-  const abandRate  = Math.round(s.abandonedCarts / s.initiatedCheckouts * 100);
+  const potential = s.abandonedCarts * s.avgOrderValue;
+  const rate = Math.round(s.abandonedCarts / s.initiatedCheckouts * 100);
 
   document.getElementById('abandonCard').innerHTML = `
     <div class="abandon-top">
@@ -507,49 +517,40 @@ function renderAbandoned() {
       </div>
     </div>
     <div class="abandon-stats">
-      <div>
-        <div class="ast-lbl">Checkouts</div>
-        <div class="ast-val">${s.initiatedCheckouts}</div>
-      </div>
-      <div>
-        <div class="ast-lbl">Abandonos</div>
-        <div class="ast-val r">${s.abandonedCarts}</div>
-      </div>
-      <div>
-        <div class="ast-lbl">Taxa</div>
-        <div class="ast-val r">${abandRate}%</div>
-      </div>
+      <div><div class="ast-lbl">Checkouts</div><div class="ast-val">${s.initiatedCheckouts}</div></div>
+      <div><div class="ast-lbl">Abandonos</div><div class="ast-val r">${s.abandonedCarts}</div></div>
+      <div><div class="ast-lbl">Taxa</div><div class="ast-val r">${rate}%</div></div>
     </div>
     <div class="abandon-hint">
       Existem clientes que chegaram até o pagamento e não finalizaram. Vale ativar recuperação de carrinho.
     </div>`;
 }
 
-// ══════════════════════════════════════════════
-//  4 · PRODUTOS
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+//  5 · PRODUTOS (Shopify Admin API)
+// ══════════════════════════════════════════════════════════
 function renderProducts() {
   document.getElementById('prodList').innerHTML = DATA.products.map(p =>
     `<div class="prod-item">
       <div>
         <div class="prod-name">${p.name}</div>
-        <div class="prod-sub">${p.orders} pedido${p.orders > 1 ? 's' : ''}</div>
+        <div class="prod-sub">${p.orders} pedido · ${p.date}</div>
       </div>
       <div class="prod-rev">${R(p.revenue)}</div>
     </div>`
   ).join('');
 }
 
-// ══════════════════════════════════════════════
-//  5 · INSTAGRAM
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+//  6 · INSTAGRAM (Metricool / Instagram Graph API)
+// ══════════════════════════════════════════════════════════
 function renderIG() {
   const ig = DATA.instagram;
   const cards = [
-    { lbl:'Seguidores',   val:N(ig.followers),          sub:'hoje'         },
-    { lbl:'Ganho',        val:'+' + ig.followsGained,   sub:'no período'   },
-    { lbl:'Reels',        val:ig.reelsPublished,         sub:'publicados'   },
-    { lbl:'Engajamento',  val:Pf(ig.bestEngagement),    sub:'melhor post'  },
+    { lbl:'Seguidores',    val:N(ig.followers),         sub:'hoje'          },
+    { lbl:'Ganho',         val:'+' + ig.followsGained,  sub:'no período'    },
+    { lbl:'Reels',         val:ig.reelsPublished,        sub:'publicados'    },
+    { lbl:'Engajamento',   val:Pf(ig.bestEngagement),   sub:'melhor post'   },
   ];
   document.getElementById('igGrid').innerHTML = cards.map(c =>
     `<div class="kpi">
@@ -560,27 +561,25 @@ function renderIG() {
   ).join('');
 }
 
-// ══════════════════════════════════════════════
-//  6 · DIAGNÓSTICO
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+//  7 · DIAGNÓSTICO
+// ══════════════════════════════════════════════════════════
 function renderDiag() {
-  const roas  = (DATA.overview.revenue / DATA.metaAds.spent).toFixed(2);
-  const rate  = Math.round(DATA.shopify.abandonedCarts / DATA.shopify.initiatedCheckouts * 100);
-  const pot   = R(DATA.shopify.abandonedCarts * DATA.overview.avgOrderValue);
+  const s    = DATA.shopify;
+  const m    = DATA.metaAds;
+  const roas = (s.revenue / m.spent).toFixed(2);
+  const rate = Math.round(s.abandonedCarts / s.initiatedCheckouts * 100);
+  const pot  = R(s.abandonedCarts * s.avgOrderValue);
 
   const items = [
-    {
-      cls:'ok', ico:'✅',
-      txt:`As campanhas estão <strong>gerando receita acima do investimento</strong>. ROAS de ${roas}x — para cada R$&nbsp;1 investido, R$&nbsp;${roas} retornou em vendas.`,
-    },
-    {
-      cls:'warn', ico:'⚠️',
-      txt:`O abandono de checkout está alto — <strong>${rate}% dos clientes não finalizaram</strong>. São ${DATA.shopify.abandonedCarts} pessoas que chegaram até o pagamento e saíram.`,
-    },
-    {
-      cls:'act', ico:'🎯',
-      txt:`<strong>Próxima ação:</strong> Ativar recuperação automática de carrinho na Shopify (Admin → Marketing → Automações). Potencial de recuperar parte dos ${pot} perdidos.`,
-    },
+    { cls:'ok',   ico:'✅',
+      txt:`As campanhas estão ativas e <strong>a receita Shopify supera o investimento Meta</strong>. ROAS estimado de ${roas}x — para cada R$&nbsp;1 investido, a loja faturou R$&nbsp;${roas} no período.` },
+    { cls:'warn', ico:'⚠️',
+      txt:`O abandono de checkout está alto — <strong>${rate}% dos clientes não finalizaram</strong>. ${s.abandonedCarts} pessoas chegaram até o pagamento e saíram sem comprar.` },
+    { cls:'act',  ico:'🎯',
+      txt:`<strong>Próxima ação:</strong> Ativar recuperação automática de carrinho no Shopify (Admin → Marketing → Automações). Potencial de recuperar parte dos ${pot} perdidos.` },
+    { cls:'info', ico:'🔧',
+      txt:`<strong>Técnico:</strong> O Meta Pixel está disparando eventos Purchase sem valor monetário. Isso impede o Meta de otimizar campanhas por conversão e distorce o ROAS na plataforma. Corrigir com prioridade.` },
   ];
 
   document.getElementById('diagList').innerHTML = items.map(i =>
@@ -591,9 +590,9 @@ function renderDiag() {
   ).join('');
 }
 
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 //  TÉCNICO: FUNIL
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 function renderFunnel() {
   const steps = DATA.funnel;
   let html = '';
@@ -610,67 +609,87 @@ function renderFunnel() {
   document.getElementById('funnelRow').innerHTML = html;
 }
 
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 //  TÉCNICO: TABELA CAMPANHAS
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 function renderTechTable() {
-  document.getElementById('techTbl').innerHTML = DATA.campaigns.map(c => {
+  document.getElementById('techTbl').innerHTML = DATA.metaAds.campaigns.map(c => {
     const ctr  = c.impressions > 0 ? Pf(c.clicks / c.impressions * 100) : '—';
     const cpc  = c.clicks > 0 ? R(c.spent / c.clicks) : '—';
-    const roas = c.spent > 0 && c.convVal > 0 ? (c.convVal / c.spent).toFixed(2) + 'x' : '—';
+    const attrVal = c.allConversionsValue != null ? R(c.allConversionsValue) : '<span style="color:var(--red)">null ⚠</span>';
     return `<tr>
-      <td class="hi" style="max-width:150px;overflow:hidden;text-overflow:ellipsis">${c.name.split('|')[0].trim()}</td>
+      <td class="hi" style="max-width:160px;overflow:hidden;text-overflow:ellipsis">${c.name.split('|')[0].trim()}</td>
       <td>${c.status}</td>
       <td>${R(c.spent)}</td>
       <td>${N(c.impressions)}</td>
       <td>${ctr}</td>
       <td>${cpc}</td>
-      <td>${c.addToCart || '—'}</td>
-      <td class="${c.purchase > 0 ? 'gr' : ''}">${c.purchase || '—'}</td>
-      <td class="${roas !== '—' ? 'gr' : ''}">${roas}</td>
+      <td>${c.addToCart_pixel || '—'}</td>
+      <td class="${c.purchase_pixel > 0 ? 'gr' : ''}">${c.purchase_pixel || '—'}</td>
+      <td>${attrVal}</td>
     </tr>`;
   }).join('');
 }
 
-// ══════════════════════════════════════════════
-//  TÉCNICO: GRÁFICO
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+//  TÉCNICO: GRÁFICO INSTAGRAM
+// ══════════════════════════════════════════════════════════
 function renderChart() {
   const { labels, views, reach } = DATA.igChart;
   new Chart(document.getElementById('igChart').getContext('2d'), {
-    type: 'line',
-    data: {
+    type:'line',
+    data:{
       labels,
-      datasets: [
+      datasets:[
         { label:'Views', data:views, borderColor:'#818cf8', backgroundColor:'rgba(129,140,248,.07)',
           borderWidth:2, pointRadius:2, tension:.35, fill:true },
         { label:'Alcance', data:reach, borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,.05)',
           borderWidth:2, pointRadius:2, tension:.35, fill:true },
       ],
     },
-    options: {
-      responsive:true, maintainAspectRatio:false,
-      interaction:{ mode:'index', intersect:false },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
       plugins:{
-        legend:{ labels:{ color:'#71717a', font:{ size:11 }, boxWidth:10 } },
-        tooltip:{ backgroundColor:'#18181f', borderColor:'rgba(255,255,255,.06)', borderWidth:1,
-          titleColor:'#fafafa', bodyColor:'#a1a1aa', padding:10 },
+        legend:{labels:{color:'#71717a',font:{size:11},boxWidth:10}},
+        tooltip:{backgroundColor:'#18181f',borderColor:'rgba(255,255,255,.06)',borderWidth:1,
+          titleColor:'#fafafa',bodyColor:'#a1a1aa',padding:10},
       },
       scales:{
-        x:{ grid:{ color:'rgba(255,255,255,.04)' }, ticks:{ color:'#52525b', font:{ size:10 }, maxTicksLimit:7 } },
-        y:{ grid:{ color:'rgba(255,255,255,.04)' }, ticks:{ color:'#52525b', font:{ size:10 } } },
+        x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#52525b',font:{size:10},maxTicksLimit:7}},
+        y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#52525b',font:{size:10}}},
       },
     },
   });
 }
 
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+//  FOOTER SOURCES
+// ══════════════════════════════════════════════════════════
+function renderFooter() {
+  const sources = [
+    { label:'Shopify Admin API', color:'#96bf48', connected:true  },
+    { label:'Meta Ads (Metricool)', color:'#1877f2', connected:true  },
+    { label:'Instagram (Metricool)', color:'#e1306c', connected:true  },
+    { label:'Google Ads', color:'#4285f4', connected:false },
+    { label:'GA4', color:'#e34234', connected:false },
+  ];
+  document.getElementById('footerSources').innerHTML = sources.map(s =>
+    `<div class="footer-badge" style="opacity:${s.connected ? 1 : 0.45}">
+      <div class="footer-dot" style="background:${s.color}"></div>
+      ${s.label}${s.connected ? '' : ' — sem dados'}
+    </div>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════════════════════
 //  INIT
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 function init() {
   renderHeader();
   renderKPIs();
   renderMedia();
+  renderPixelAlert();
   renderAbandoned();
   renderProducts();
   renderIG();
@@ -678,6 +697,7 @@ function init() {
   renderFunnel();
   renderTechTable();
   renderChart();
+  renderFooter();
 }
 
 document.addEventListener('DOMContentLoaded', init);
