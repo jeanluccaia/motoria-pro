@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PattaMansa Analytics</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#09090b;
+  --card:#111115;
+  --card2:#18181f;
+  --border:rgba(255,255,255,0.07);
+  --bh:rgba(255,255,255,0.12);
+  --text:#fafafa;
+  --t2:#a1a1aa;
+  --t3:#52525b;
+  --green:#22c55e;
+  --gdim:rgba(34,197,94,0.1);
+  --amber:#f59e0b;
+  --adim:rgba(245,158,11,0.1);
+  --red:#ef4444;
+  --rdim:rgba(239,68,68,0.1);
+  --purple:#818cf8;
+  --pdim:rgba(129,140,248,0.12);
+  --r:16px;--rs:10px;
+}
+
+html{scroll-behavior:smooth}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',system-ui,sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;-webkit-font-smoothing:antialiased;
+  line-height:1.5;font-size:15px;
+}
+
+/* ── HEADER ── */
+header{
+  padding:18px 20px 14px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100;
+  background:rgba(9,9,11,0.92);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+}
+.hdr-logo{
+  font-size:16px;font-weight:700;
+  letter-spacing:-0.03em;color:var(--text);
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:4px;
+}
+.hdr-pulse{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--green);flex-shrink:0;
+  animation:pulse 2.4s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,.4)}60%{opacity:.7;box-shadow:0 0 0 5px rgba(34,197,94,0)}}
+.hdr-meta{font-size:12px;color:var(--t3)}
+
+/* ── LAYOUT ── */
+main{
+  max-width:700px;margin:0 auto;
+  padding:28px 16px 80px;
+  display:flex;flex-direction:column;gap:36px;
+}
+
+/* ── SECTION LABEL ── */
+.sec-lbl{
+  font-size:11px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.08em;
+  color:var(--t3);margin-bottom:12px;padding-left:1px;
+}
+
+/* ── KPI GRID (resumo) ── */
+.kpi-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+@media(min-width:560px){.kpi-grid{grid-template-columns:repeat(4,1fr)}}
+
+.kpi{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:22px 18px;
+  transition:border-color .15s;
+}
+.kpi:hover{border-color:var(--bh)}
+.kpi-lbl{
+  font-size:11px;font-weight:500;color:var(--t3);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;
+}
+.kpi-val{
+  font-size:clamp(24px,5vw,32px);
+  font-weight:800;letter-spacing:-0.04em;
+  line-height:1;font-variant-numeric:tabular-nums;
+}
+.kpi-val.g{color:var(--green)}
+.kpi-val.p{color:var(--purple)}
+.kpi-sub{font-size:11px;color:var(--t3);margin-top:6px}
+
+/* ── MEDIA GRID ── */
+.media-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.media-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:20px 18px;
+}
+.media-name{
+  font-size:11px;font-weight:700;letter-spacing:.04em;
+  color:var(--t2);text-transform:uppercase;
+  display:flex;align-items:center;gap:7px;margin-bottom:14px;
+}
+.mdot{width:8px;height:8px;border-radius:50%}
+.mdot-meta{background:#1877f2}
+.mdot-google{background:#4285f4}
+.media-row{font-size:12px;color:var(--t3);margin-bottom:2px}
+.media-roas{
+  font-size:clamp(22px,5vw,28px);font-weight:800;
+  letter-spacing:-0.03em;margin:10px 0 10px;
+  font-variant-numeric:tabular-nums;
+}
+.media-roas.ok{color:var(--green)}
+.media-roas.na{color:var(--t3)}
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;font-weight:600;padding:3px 9px;
+  border-radius:20px;
+}
+.bg{background:var(--gdim);color:var(--green)}
+.bn{background:var(--card2);color:var(--t3)}
+.ba{background:var(--adim);color:var(--amber)}
+.br{background:var(--rdim);color:var(--red)}
+
+/* ── ABANDON CARD ── */
+.abandon{
+  background:var(--card);
+  border:1px solid rgba(245,158,11,.22);
+  border-radius:var(--r);
+  padding:24px 20px;position:relative;overflow:hidden;
+}
+.abandon::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--amber),rgba(245,158,11,0));
+}
+.abandon-top{
+  display:flex;align-items:flex-start;
+  justify-content:space-between;gap:16px;
+  margin-bottom:22px;
+}
+.abandon-title{
+  font-size:12px;font-weight:700;color:var(--amber);
+  text-transform:uppercase;letter-spacing:.05em;
+  display:flex;align-items:center;gap:6px;
+}
+.abandon-big{text-align:right}
+.abandon-big-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.abandon-big-val{
+  font-size:clamp(22px,5vw,28px);font-weight:800;
+  color:var(--amber);letter-spacing:-0.03em;
+  font-variant-numeric:tabular-nums;
+}
+.abandon-stats{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
+  padding:18px 0;
+  border-top:1px solid rgba(245,158,11,.12);
+  border-bottom:1px solid rgba(245,158,11,.12);
+  margin-bottom:16px;
+}
+.ast-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.ast-val{font-size:clamp(20px,5vw,26px);font-weight:800;letter-spacing:-0.03em;font-variant-numeric:tabular-nums}
+.ast-val.r{color:var(--red)}
+.abandon-hint{font-size:13px;color:var(--t2);line-height:1.6}
+
+/* ── PRODUCTS ── */
+.prod-list{display:flex;flex-direction:column;gap:8px}
+.prod-item{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--rs);padding:16px 18px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  transition:border-color .15s;
+}
+.prod-item:hover{border-color:var(--bh)}
+.prod-name{font-size:13px;font-weight:500}
+.prod-sub{font-size:11px;color:var(--t3);margin-top:2px}
+.prod-rev{
+  font-size:18px;font-weight:800;color:var(--green);
+  white-space:nowrap;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;
+}
+
+/* ── IG GRID ── */
+.ig-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(min-width:480px){.ig-grid{grid-template-columns:repeat(4,1fr)}}
+
+/* ── DIAGNOSIS ── */
+.diag-list{display:flex;flex-direction:column;gap:8px}
+.diag{
+  border-radius:var(--r);padding:18px 18px;
+  display:flex;gap:14px;align-items:flex-start;
+}
+.diag.ok{background:var(--gdim);border:1px solid rgba(34,197,94,.18)}
+.diag.warn{background:var(--adim);border:1px solid rgba(245,158,11,.18)}
+.diag.act{background:var(--pdim);border:1px solid rgba(129,140,248,.18)}
+.diag-ico{font-size:20px;flex-shrink:0;line-height:1.3}
+.diag-txt{font-size:13px;color:var(--text);line-height:1.6}
+.diag-txt strong{font-weight:700}
+
+/* ── TECHNICAL (details) ── */
+details{
+  border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;
+}
+summary{
+  padding:15px 20px;
+  font-size:11px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.07em;color:var(--t3);
+  cursor:pointer;background:var(--card);
+  display:flex;align-items:center;gap:8px;
+  user-select:none;list-style:none;transition:color .15s;
+}
+summary::-webkit-details-marker{display:none}
+.sum-arr{
+  font-size:14px;transition:transform .2s;
+  display:inline-block;color:var(--t3);
+}
+details[open] .sum-arr{transform:rotate(90deg)}
+summary:hover{color:var(--t2)}
+.tech-body{
+  background:var(--card);border-top:1px solid var(--border);
+  padding:20px;display:flex;flex-direction:column;gap:24px;
+}
+.tech-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:10px}
+
+/* ── TABLE ── */
+.tbl{overflow-x:auto;border-radius:var(--rs);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{
+  padding:9px 12px;text-align:left;
+  font-size:10px;font-weight:600;color:var(--t3);
+  text-transform:uppercase;letter-spacing:.05em;
+  background:var(--card2);border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--card2)}
+td{padding:10px 12px;white-space:nowrap;color:var(--t2);font-variant-numeric:tabular-nums}
+td.hi{color:var(--text);font-weight:500}
+td.gr{color:var(--green);font-weight:600}
+
+/* ── FUNNEL ── */
+.funnel{display:flex;align-items:center;gap:6px;overflow-x:auto;padding:4px 0}
+.f-box{
+  flex:1;min-width:72px;text-align:center;
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:var(--rs);padding:10px 6px;
+}
+.f-lbl{font-size:9px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.f-num{font-size:17px;font-weight:800;letter-spacing:-0.03em;font-variant-numeric:tabular-nums}
+.f-rate{font-size:10px;font-weight:600;margin-top:5px}
+.f-arr{color:var(--t3);font-size:14px;flex-shrink:0}
+
+/* ── CHART ── */
+.chart-box{position:relative;height:180px}
+
+/* ── MISC ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--card2);border-radius:4px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr-logo">
+    <div class="hdr-pulse"></div>
+    PattaMansa Analytics
+  </div>
+  <div class="hdr-meta" id="hdrMeta">—</div>
+</header>
+
+<main>
+
+  <!-- 1 · RESUMO -->
+  <section>
+    <div class="sec-lbl">Resumo do período</div>
+    <div class="kpi-grid" id="kpiGrid"></div>
+  </section>
+
+  <!-- 2 · MÍDIA PAGA -->
+  <section>
+    <div class="sec-lbl">Mídia paga</div>
+    <div class="media-grid" id="mediaGrid"></div>
+  </section>
+
+  <!-- 3 · CARRINHOS ABANDONADOS -->
+  <section>
+    <div class="sec-lbl">Carrinhos abandonados</div>
+    <div class="abandon" id="abandonCard"></div>
+  </section>
+
+  <!-- 4 · PRODUTOS VENDIDOS -->
+  <section>
+    <div class="sec-lbl">Produtos vendidos</div>
+    <div class="prod-list" id="prodList"></div>
+  </section>
+
+  <!-- 5 · INSTAGRAM -->
+  <section>
+    <div class="sec-lbl">Instagram</div>
+    <div class="ig-grid" id="igGrid"></div>
+  </section>
+
+  <!-- 6 · DIAGNÓSTICO -->
+  <section>
+    <div class="sec-lbl">Diagnóstico</div>
+    <div class="diag-list" id="diagList"></div>
+  </section>
+
+  <!-- 7 · DADOS TÉCNICOS -->
+  <details>
+    <summary><span class="sum-arr">›</span> Ver dados técnicos</summary>
+    <div class="tech-body">
+
+      <div>
+        <div class="tech-lbl">Funil de conversão</div>
+        <div class="funnel" id="funnelRow"></div>
+      </div>
+
+      <div>
+        <div class="tech-lbl">Campanhas Meta Ads</div>
+        <div class="tbl">
+          <table>
+            <thead>
+              <tr>
+                <th>Campanha</th>
+                <th>Status</th>
+                <th>Gasto</th>
+                <th>Impressões</th>
+                <th>CTR</th>
+                <th>CPC</th>
+                <th>AddToCart</th>
+                <th>Purchase</th>
+                <th>ROAS</th>
+              </tr>
+            </thead>
+            <tbody id="techTbl"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <div class="tech-lbl">Instagram — views e alcance diário (Junho)</div>
+        <div class="chart-box"><canvas id="igChart"></canvas></div>
+      </div>
+
+    </div>
+  </details>
+
+</main>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATA — atualize aqui após cada pull
+// ══════════════════════════════════════════════
+const DATA = {
+  period:      '15 Mai – 14 Jun 2026',
+  lastUpdated: '14/06/2026 às 20:30',
+
+  overview: {
+    revenue:       239.15,
+    orders:        2,
+    avgOrderValue: 119.58,
+  },
+
+  metaAds: {
+    spent:   36.86,
+    revenue: 239.15,
+  },
+
+  googleAds: {
+    active: false,
+  },
+
+  shopify: {
+    abandonedCarts:     24,
+    initiatedCheckouts: 26,
+    orders:             2,
+  },
+
+  products: [
+    { name:'Clube Seleção Canina · Oversized · Unissex', orders:1, revenue:128.12 },
+    { name:'Clube Canino · Regular · Masculina',         orders:1, revenue:111.03 },
+  ],
+
+  instagram: {
+    followers:      758,
+    followsGained:  13,
+    reelsPublished: 8,
+    bestEngagement: 23.73,
+  },
+
+  // — seção técnica —
+  funnel: [
+    { label:'Alcance',   value:3178 },
+    { label:'Cliques',   value:370  },
+    { label:'Sessões',   value:66   },
+    { label:'Checkout',  value:26   },
+    { label:'Compras',   value:2    },
+  ],
+
+  campaigns: [
+    { name:'PATTA | Vendas | AddToCart', status:'Ativa',
+      spent:13.72, impressions:274,  clicks:21,  addToCart:3, purchase:1, convVal:128.12 },
+    { name:'TESTE | Tráfego | Diagnóstico', status:'Ativa',
+      spent:23.14, impressions:3491, clicks:349, addToCart:0, purchase:1, convVal:111.03 },
+    { name:'PATTA | Caramelo FC | Conversão', status:'Pausada',
+      spent:0,     impressions:1,    clicks:0,   addToCart:0, purchase:0, convVal:0 },
+  ],
+
+  igChart: {
+    labels:['01/06','02/06','03/06','04/06','05/06','06/06','07/06','08/06','09/06','10/06','11/06','12/06','13/06'],
+    views: [75,  278, 320, 302, 332, 560, 258, 289, 408, 513, 1599, 1237, 2184],
+    reach: [43,  146, 139, 138, 125, 173,  82, 124,  97, 197,  340,  439, 1497],
+  },
+};
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+const R  = v => 'R$ ' + Number(v).toFixed(2).replace('.', ',');
+const N  = v => Number(v).toLocaleString('pt-BR');
+const Pf = v => Number(v).toFixed(1) + '%';
+
+// ══════════════════════════════════════════════
+//  HEADER
+// ══════════════════════════════════════════════
+function renderHeader() {
+  document.getElementById('hdrMeta').textContent =
+    DATA.period + '  ·  Atualizado ' + DATA.lastUpdated;
+}
+
+// ══════════════════════════════════════════════
+//  1 · RESUMO
+// ══════════════════════════════════════════════
+function renderKPIs() {
+  const { overview, metaAds } = DATA;
+  const roas = overview.revenue / metaAds.spent;
+
+  const cards = [
+    { lbl:'Receita',      val:R(overview.revenue),      cls:'g', sub:'período total'          },
+    { lbl:'Pedidos pagos',val:overview.orders,           cls:'',  sub:'concluídos'             },
+    { lbl:'ROAS',         val:roas.toFixed(2) + 'x',    cls:'p', sub:'retorno do investimento' },
+    { lbl:'Ticket médio', val:R(overview.avgOrderValue), cls:'',  sub:'por pedido'             },
+  ];
+
+  document.getElementById('kpiGrid').innerHTML = cards.map(c =>
+    `<div class="kpi">
+      <div class="kpi-lbl">${c.lbl}</div>
+      <div class="kpi-val ${c.cls}">${c.val}</div>
+      <div class="kpi-sub">${c.sub}</div>
+    </div>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════════
+//  2 · MÍDIA PAGA
+// ══════════════════════════════════════════════
+function renderMedia() {
+  const { metaAds, googleAds } = DATA;
+  const roas = metaAds.revenue / metaAds.spent;
+
+  const metaCard = `
+    <div class="media-card">
+      <div class="media-name"><div class="mdot mdot-meta"></div>Meta Ads</div>
+      <div class="media-row">Investido: ${R(metaAds.spent)}</div>
+      <div class="media-row">Receita atribuída: ${R(metaAds.revenue)}</div>
+      <div class="media-roas ok">${roas.toFixed(2)}x</div>
+      <div class="badge bg">✓ Lucrativo</div>
+    </div>`;
+
+  const googleCard = `
+    <div class="media-card">
+      <div class="media-name"><div class="mdot mdot-google"></div>Google Ads</div>
+      <div class="media-row" style="color:var(--t3);margin-top:4px">Sem dados ainda</div>
+      <div class="media-roas na">—</div>
+      <div class="badge bn">Aguardando</div>
+    </div>`;
+
+  document.getElementById('mediaGrid').innerHTML = metaCard + googleCard;
+}
+
+// ══════════════════════════════════════════════
+//  3 · CARRINHOS ABANDONADOS
+// ══════════════════════════════════════════════
+function renderAbandoned() {
+  const s = DATA.shopify;
+  const potential  = s.abandonedCarts * DATA.overview.avgOrderValue;
+  const abandRate  = Math.round(s.abandonedCarts / s.initiatedCheckouts * 100);
+
+  document.getElementById('abandonCard').innerHTML = `
+    <div class="abandon-top">
+      <div class="abandon-title">🛒 Receita sendo perdida</div>
+      <div class="abandon-big">
+        <div class="abandon-big-lbl">Potencial perdido</div>
+        <div class="abandon-big-val">${R(potential)}</div>
+      </div>
+    </div>
+    <div class="abandon-stats">
+      <div>
+        <div class="ast-lbl">Checkouts</div>
+        <div class="ast-val">${s.initiatedCheckouts}</div>
+      </div>
+      <div>
+        <div class="ast-lbl">Abandonos</div>
+        <div class="ast-val r">${s.abandonedCarts}</div>
+      </div>
+      <div>
+        <div class="ast-lbl">Taxa</div>
+        <div class="ast-val r">${abandRate}%</div>
+      </div>
+    </div>
+    <div class="abandon-hint">
+      Existem clientes que chegaram até o pagamento e não finalizaram. Vale ativar recuperação de carrinho.
+    </div>`;
+}
+
+// ══════════════════════════════════════════════
+//  4 · PRODUTOS
+// ══════════════════════════════════════════════
+function renderProducts() {
+  document.getElementById('prodList').innerHTML = DATA.products.map(p =>
+    `<div class="prod-item">
+      <div>
+        <div class="prod-name">${p.name}</div>
+        <div class="prod-sub">${p.orders} pedido${p.orders > 1 ? 's' : ''}</div>
+      </div>
+      <div class="prod-rev">${R(p.revenue)}</div>
+    </div>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════════
+//  5 · INSTAGRAM
+// ══════════════════════════════════════════════
+function renderIG() {
+  const ig = DATA.instagram;
+  const cards = [
+    { lbl:'Seguidores',   val:N(ig.followers),          sub:'hoje'         },
+    { lbl:'Ganho',        val:'+' + ig.followsGained,   sub:'no período'   },
+    { lbl:'Reels',        val:ig.reelsPublished,         sub:'publicados'   },
+    { lbl:'Engajamento',  val:Pf(ig.bestEngagement),    sub:'melhor post'  },
+  ];
+  document.getElementById('igGrid').innerHTML = cards.map(c =>
+    `<div class="kpi">
+      <div class="kpi-lbl">${c.lbl}</div>
+      <div class="kpi-val">${c.val}</div>
+      <div class="kpi-sub">${c.sub}</div>
+    </div>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════════
+//  6 · DIAGNÓSTICO
+// ══════════════════════════════════════════════
+function renderDiag() {
+  const roas  = (DATA.overview.revenue / DATA.metaAds.spent).toFixed(2);
+  const rate  = Math.round(DATA.shopify.abandonedCarts / DATA.shopify.initiatedCheckouts * 100);
+  const pot   = R(DATA.shopify.abandonedCarts * DATA.overview.avgOrderValue);
+
+  const items = [
+    {
+      cls:'ok', ico:'✅',
+      txt:`As campanhas estão <strong>gerando receita acima do investimento</strong>. ROAS de ${roas}x — para cada R$&nbsp;1 investido, R$&nbsp;${roas} retornou em vendas.`,
+    },
+    {
+      cls:'warn', ico:'⚠️',
+      txt:`O abandono de checkout está alto — <strong>${rate}% dos clientes não finalizaram</strong>. São ${DATA.shopify.abandonedCarts} pessoas que chegaram até o pagamento e saíram.`,
+    },
+    {
+      cls:'act', ico:'🎯',
+      txt:`<strong>Próxima ação:</strong> Ativar recuperação automática de carrinho na Shopify (Admin → Marketing → Automações). Potencial de recuperar parte dos ${pot} perdidos.`,
+    },
+  ];
+
+  document.getElementById('diagList').innerHTML = items.map(i =>
+    `<div class="diag ${i.cls}">
+      <div class="diag-ico">${i.ico}</div>
+      <div class="diag-txt">${i.txt}</div>
+    </div>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════════
+//  TÉCNICO: FUNIL
+// ══════════════════════════════════════════════
+function renderFunnel() {
+  const steps = DATA.funnel;
+  let html = '';
+  steps.forEach((s, i) => {
+    const rate = i > 0 ? s.value / steps[i-1].value * 100 : null;
+    const rc   = rate === null ? '' : rate >= 10 ? 'var(--green)' : rate >= 3 ? 'var(--amber)' : 'var(--red)';
+    html += `<div class="f-box">
+      <div class="f-lbl">${s.label}</div>
+      <div class="f-num">${N(s.value)}</div>
+      ${rate !== null ? `<div class="f-rate" style="color:${rc}">${Pf(rate)}</div>` : ''}
+    </div>`;
+    if (i < steps.length - 1) html += `<div class="f-arr">›</div>`;
+  });
+  document.getElementById('funnelRow').innerHTML = html;
+}
+
+// ══════════════════════════════════════════════
+//  TÉCNICO: TABELA CAMPANHAS
+// ══════════════════════════════════════════════
+function renderTechTable() {
+  document.getElementById('techTbl').innerHTML = DATA.campaigns.map(c => {
+    const ctr  = c.impressions > 0 ? Pf(c.clicks / c.impressions * 100) : '—';
+    const cpc  = c.clicks > 0 ? R(c.spent / c.clicks) : '—';
+    const roas = c.spent > 0 && c.convVal > 0 ? (c.convVal / c.spent).toFixed(2) + 'x' : '—';
+    return `<tr>
+      <td class="hi" style="max-width:150px;overflow:hidden;text-overflow:ellipsis">${c.name.split('|')[0].trim()}</td>
+      <td>${c.status}</td>
+      <td>${R(c.spent)}</td>
+      <td>${N(c.impressions)}</td>
+      <td>${ctr}</td>
+      <td>${cpc}</td>
+      <td>${c.addToCart || '—'}</td>
+      <td class="${c.purchase > 0 ? 'gr' : ''}">${c.purchase || '—'}</td>
+      <td class="${roas !== '—' ? 'gr' : ''}">${roas}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+//  TÉCNICO: GRÁFICO
+// ══════════════════════════════════════════════
+function renderChart() {
+  const { labels, views, reach } = DATA.igChart;
+  new Chart(document.getElementById('igChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label:'Views', data:views, borderColor:'#818cf8', backgroundColor:'rgba(129,140,248,.07)',
+          borderWidth:2, pointRadius:2, tension:.35, fill:true },
+        { label:'Alcance', data:reach, borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,.05)',
+          borderWidth:2, pointRadius:2, tension:.35, fill:true },
+      ],
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend:{ labels:{ color:'#71717a', font:{ size:11 }, boxWidth:10 } },
+        tooltip:{ backgroundColor:'#18181f', borderColor:'rgba(255,255,255,.06)', borderWidth:1,
+          titleColor:'#fafafa', bodyColor:'#a1a1aa', padding:10 },
+      },
+      scales:{
+        x:{ grid:{ color:'rgba(255,255,255,.04)' }, ticks:{ color:'#52525b', font:{ size:10 }, maxTicksLimit:7 } },
+        y:{ grid:{ color:'rgba(255,255,255,.04)' }, ticks:{ color:'#52525b', font:{ size:10 } } },
+      },
+    },
+  });
+}
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+function init() {
+  renderHeader();
+  renderKPIs();
+  renderMedia();
+  renderAbandoned();
+  renderProducts();
+  renderIG();
+  renderDiag();
+  renderFunnel();
+  renderTechTable();
+  renderChart();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
