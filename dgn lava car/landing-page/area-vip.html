@@ -758,7 +758,7 @@
 
         <div class="plan-price-block">
           <div class="plan-price-value">
-            <span class="js-price" data-prices="620,720,820,920">R$ 620</span>
+            <span class="js-price" data-prices="103.33,120.00,136.67,153.33">6x de R$ 103,33</span>
           </div>
           <p class="plan-price-note">À vista ou em até 6x no cartão · plano semestral</p>
         </div>
@@ -791,7 +791,7 @@
 
         <div class="plan-price-block">
           <div class="plan-price-value">
-            <span class="js-price" data-prices="1095,1195,1395,1495">R$ 1.095</span>
+            <span class="js-price" data-prices="182.50,199.17,232.50,249.17">6x de R$ 182,50</span>
           </div>
           <p class="plan-price-note">À vista ou em até 6x no cartão · plano semestral</p>
         </div>
@@ -971,8 +971,8 @@
   (function () {
     var tabs = document.querySelectorAll('.vtab');
     var priceEls = document.querySelectorAll('.js-price');
-    function formatBRL(n) {
-      return 'R$ ' + n.toLocaleString('pt-BR');
+    function formatInstallment(val) {
+      return '6x de R$ ' + parseFloat(val).toFixed(2).replace('.', ',');
     }
     tabs.forEach(function (tab) {
       tab.addEventListener('click', function () {
@@ -981,7 +981,7 @@
         var cat = parseInt(tab.dataset.cat, 10);
         priceEls.forEach(function (el) {
           var prices = el.dataset.prices.split(',');
-          el.textContent = formatBRL(parseInt(prices[cat], 10));
+          el.textContent = formatInstallment(prices[cat]);
         });
       });
     });
