@@ -627,6 +627,37 @@
     }
 
     /* =====================================================================
+       VEHICLE TABS
+    ===================================================================== */
+    .vehicle-tabs {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .vtab {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 9px 20px;
+      border: 1px solid rgba(201,168,76,0.22);
+      background: transparent;
+      color: var(--muted);
+      border-radius: 2px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+    .vtab:hover { border-color: var(--gold); color: var(--white); }
+    .vtab.active {
+      background: rgba(201,168,76,0.1);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    /* =====================================================================
        MISC
     ===================================================================== */
     .gold { color: var(--gold); }
@@ -709,25 +740,35 @@
     <p class="section-sub fu d2">Condição disponível apenas para clientes selecionados da DGN Lavacar.</p>
     <div class="sep-sm"></div>
 
+    <!-- Seletor de categoria de veículo -->
+    <div class="vehicle-tabs fu d2" role="group" aria-label="Categoria do veículo">
+      <button class="vtab active" data-cat="0">Hatch</button>
+      <button class="vtab" data-cat="1">Sedan</button>
+      <button class="vtab" data-cat="2">SUV</button>
+      <button class="vtab" data-cat="3">SUV 7 Lugares</button>
+    </div>
+
     <div class="plans-grid">
 
-      <!-- SMART Semestral -->
+      <!-- SMART SEMESTRAL -->
       <div class="plan-card fu d1">
         <div class="plan-period-chip">SEMESTRAL</div>
-        <div class="plan-name">SMART Semestral</div>
-        <p class="plan-focus">2 lavagens por mês + aspiração</p>
+        <div class="plan-name">SMART SEMESTRAL</div>
+        <p class="plan-focus">Disciplina mínima, eficiência e valorização do ativo.</p>
 
         <div class="plan-price-block">
-          <div class="plan-price-value">10x de R$ 124</div>
-          <p class="plan-price-note">parcelado no cartão · plano semestral</p>
+          <div class="plan-price-value">
+            <span class="js-price" data-prices="620,720,820,920">R$ 620</span>
+          </div>
+          <p class="plan-price-note">À vista ou em até 6x no cartão · plano semestral</p>
         </div>
 
         <ul class="plan-features">
-          <li><span class="ck">✓</span> 2 lavagens por mês</li>
-          <li><span class="ck">✓</span> Aspiração inclusa</li>
-          <li><span class="ck">✓</span> Atendimento com padrão DGN</li>
-          <li><span class="ck">✓</span> Plano semestral</li>
-          <li><span class="ck">✓</span> Ideal para quem quer manter o carro sempre limpo</li>
+          <li><span class="ck">✓</span> 2 atendimentos técnicos por mês — Lavagem Simples de 40 min + Aspiração Integral</li>
+          <li><span class="ck">✓</span> Espaço de co-working e área de espera para dias de acompanhamento</li>
+          <li><span class="ck">✓</span> 7% de desconto exclusivo em estética pesada e películas</li>
+          <li><span class="ck">✓</span> Cronograma e agendamento digital fixo na grade</li>
+          <li><span class="ck">✓</span> Leva &amp; Traz gratuito na região atendida</li>
         </ul>
 
         <div class="plan-cta-wrap">
@@ -735,30 +776,32 @@
              target="_blank" rel="noopener"
              class="btn btn-outline"
              style="width:100%;">
-            Escolher SMART Semestral
+            QUERO O PLANO SMART
           </a>
-          <p class="plan-micro-cta">Vagas limitadas</p>
+          <p class="plan-micro-cta">Vagas limitadas por região</p>
         </div>
       </div>
 
-      <!-- PRIORITY Semestral — DESTAQUE -->
+      <!-- PRIORITY SEMESTRAL — DESTAQUE -->
       <div class="plan-card featured fu d2">
-        <div class="plan-pop-badge">Mais escolhido</div>
+        <div class="plan-pop-badge">RECOMENDADO · ELITE REGIONAL</div>
         <div class="plan-period-chip">SEMESTRAL</div>
-        <div class="plan-name">PRIORITY Semestral</div>
-        <p class="plan-focus">2 lavagens por mês + aspiração + prioridade</p>
+        <div class="plan-name">PRIORITY SEMESTRAL</div>
+        <p class="plan-focus">Frequência semanal, conveniência absoluta e prioridade máxima de pátio.</p>
 
         <div class="plan-price-block">
-          <div class="plan-price-value">R$ 219/mês</div>
-          <p class="plan-price-note">cobrado mensalmente · plano semestral</p>
+          <div class="plan-price-value">
+            <span class="js-price" data-prices="1095,1195,1395,1495">R$ 1.095</span>
+          </div>
+          <p class="plan-price-note">À vista ou em até 6x no cartão · plano semestral</p>
         </div>
 
         <ul class="plan-features">
-          <li><span class="ck">✓</span> 2 lavagens por mês</li>
-          <li><span class="ck">✓</span> Aspiração inclusa</li>
-          <li><span class="ck">✓</span> Atendimento prioritário</li>
-          <li><span class="ck">✓</span> Plano semestral</li>
-          <li><span class="ck">✓</span> Melhor escolha para quem valoriza tempo e conveniência</li>
+          <li class="star"><span class="ck">✓</span> Frequência semanal garantida — Lavagem Simples DGN</li>
+          <li class="star"><span class="ck">✓</span> 🚗 Leva &amp; Traz monitorado 100% GRATUITO (Jd. Santa Genebra e região corporativa)</li>
+          <li><span class="ck">✓</span> Espaço de co-working e área de espera à disposição</li>
+          <li><span class="ck">✓</span> 15% de desconto exclusivo em estética pesada e películas Nano Cerâmicas</li>
+          <li><span class="ck">✓</span> Prioridade absoluta de pátio e agendamento preferencial</li>
         </ul>
 
         <div class="plan-cta-wrap">
@@ -766,9 +809,9 @@
              target="_blank" rel="noopener"
              class="btn btn-gold"
              style="width:100%;">
-            Escolher PRIORITY Semestral
+            QUERO O PLANO PRIORITY
           </a>
-          <p class="plan-micro-cta">Agenda prioritária · vagas limitadas</p>
+          <p class="plan-micro-cta">⚠️ Agenda prioritária · vagas limitadas</p>
         </div>
       </div>
 
@@ -922,6 +965,26 @@
       if (window.scrollY > threshold) { sticky.classList.add('visible'); }
       else { sticky.classList.remove('visible'); }
     }, { passive: true });
+  })();
+
+  /* Vehicle category price switcher */
+  (function () {
+    var tabs = document.querySelectorAll('.vtab');
+    var priceEls = document.querySelectorAll('.js-price');
+    function formatBRL(n) {
+      return 'R$ ' + n.toLocaleString('pt-BR');
+    }
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        tabs.forEach(function (t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var cat = parseInt(tab.dataset.cat, 10);
+        priceEls.forEach(function (el) {
+          var prices = el.dataset.prices.split(',');
+          el.textContent = formatBRL(parseInt(prices[cat], 10));
+        });
+      });
+    });
   })();
 </script>
 
