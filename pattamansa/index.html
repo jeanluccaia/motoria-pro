@@ -1246,6 +1246,7 @@ footer {
   color: rgba(245,163,70,.72);
 }
 .footer-copy { font-size: .6rem; color: rgba(184,188,142,.15); letter-spacing: .06em; }
+.footer-cnpj { text-align: center; font-size: .65rem; color: rgba(184,188,142,.62); letter-spacing: .04em; margin-top: 1.75rem; line-height: 1.65; }
 
 /* ─── SELEÇÃO CANINA ─── */
 .sel-canina {
@@ -2939,6 +2940,69 @@ footer {
   padding: .38rem .8rem;
   margin-bottom: .75rem;
 }
+.cart-shipping {
+  margin-bottom: .75rem;
+}
+.cart-shipping-row {
+  display: flex;
+  gap: .4rem;
+  margin-bottom: .35rem;
+}
+.cart-shipping-input {
+  flex: 1;
+  height: 38px;
+  padding: 0 .7rem;
+  background: rgba(184,188,142,.07);
+  border: 1px solid rgba(184,188,142,.2);
+  border-radius: 8px;
+  color: var(--creme);
+  font-size: .76rem;
+  font-family: inherit;
+  outline: none;
+}
+.cart-shipping-input::placeholder { color: rgba(184,188,142,.3); }
+.cart-shipping-input:focus { border-color: rgba(184,188,142,.45); }
+.cart-shipping-btn {
+  height: 38px;
+  padding: 0 .9rem;
+  background: rgba(184,188,142,.1);
+  border: 1px solid rgba(184,188,142,.25);
+  border-radius: 8px;
+  color: var(--creme);
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .2s;
+}
+.cart-shipping-btn:hover { background: rgba(184,188,142,.18); }
+.cart-shipping-btn:disabled { opacity: .5; cursor: not-allowed; }
+.cart-shipping-results {
+  display: none;
+  flex-direction: column;
+  gap: .28rem;
+}
+.cart-shipping-results.visible { display: flex; }
+.cart-shipping-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .38rem .65rem;
+  background: rgba(184,188,142,.06);
+  border: 1px solid rgba(184,188,142,.15);
+  border-radius: 7px;
+  font-size: .73rem;
+  color: rgba(184,188,142,.8);
+}
+.cart-shipping-price { font-weight: 700; color: var(--creme); }
+.cart-shipping-free { font-weight: 700; color: #6fcf97; }
+.cart-shipping-err {
+  font-size: .7rem;
+  color: rgba(255,120,120,.75);
+  text-align: center;
+}
 .cart-checkout-err {
   margin-bottom: .6rem;
   text-align: center;
@@ -3793,6 +3857,13 @@ footer {
     </div>
     <p class="cart-installments-hint" id="cartInstallmentsHint" aria-live="polite"></p>
     <p class="cart-ebook-bonus">🎁 Guia de adestramento incluso</p>
+    <div class="cart-shipping" id="cartShipping">
+      <div class="cart-shipping-row">
+        <input class="cart-shipping-input" id="cartShippingZip" type="text" inputmode="numeric" maxlength="9" placeholder="CEP (00000-000)" aria-label="CEP para calcular frete">
+        <button class="cart-shipping-btn" id="cartShippingBtn" type="button">Calcular frete</button>
+      </div>
+      <div class="cart-shipping-results" id="cartShippingResults" aria-live="polite"></div>
+    </div>
     <button class="cart-btn-checkout" id="cartBtnCheckout" type="button">Finalizar compra</button>
     <div class="cart-checkout-err" id="cartCheckoutErr" hidden>
       <p class="cart-checkout-err-msg">Não foi possível abrir o checkout.</p>
@@ -4606,6 +4677,7 @@ footer {
       </li>
     </ul>
   </div>
+  <p class="footer-cnpj">PattaMansa Comércio de Vestuário<br>CNPJ: 63.931.735/0001-59</p>
   <p class="footer-copy">© 2026 PattaMansa · Camisetas com atitude · pattamansa.com.br</p>
 </footer>
 
@@ -4960,6 +5032,83 @@ footer {
     var toastTimer      = null;
 
     var CHECKOUT_API_URL = '/api/checkout';
+    var SHIPPING_API_URL = '/api/shipping';
+
+    var shippingZip     = document.getElementById('cartShippingZip');
+    var shippingBtn     = document.getElementById('cartShippingBtn');
+    var shippingResults = document.getElementById('cartShippingResults');
+
+    function resetShipping() {
+      if (shippingResults) { shippingResults.innerHTML = ''; shippingResults.classList.remove('visible'); }
+    }
+
+    function renderShippingOptions(options) {
+      if (!shippingResults) return;
+      shippingResults.innerHTML = '';
+      if (!options || !options.length) {
+        shippingResults.innerHTML = '<span class="cart-shipping-err">Nenhuma opção de frete disponível para este CEP.</span>';
+      } else {
+        options.forEach(function (opt) {
+          var el = document.createElement('div');
+          el.className = 'cart-shipping-option';
+          var cost = opt.estimatedCost && parseFloat(opt.estimatedCost.amount);
+          var priceHtml = (cost === 0)
+            ? '<span class="cart-shipping-free">Grátis</span>'
+            : '<span class="cart-shipping-price">R$ ' + cost.toFixed(2).replace('.', ',') + '</span>';
+          el.innerHTML = '<span>' + opt.title + '</span>' + priceHtml;
+          shippingResults.appendChild(el);
+        });
+      }
+      shippingResults.classList.add('visible');
+    }
+
+    if (shippingZip) {
+      shippingZip.addEventListener('input', function () {
+        var raw = shippingZip.value.replace(/\D/g, '').slice(0, 8);
+        shippingZip.value = raw.length > 5 ? raw.slice(0, 5) + '-' + raw.slice(5) : raw;
+        resetShipping();
+      });
+    }
+
+    if (shippingBtn) {
+      shippingBtn.addEventListener('click', function () {
+        var zip = shippingZip ? shippingZip.value.replace(/\D/g, '') : '';
+        if (zip.length !== 8) {
+          shippingResults.innerHTML = '<span class="cart-shipping-err">Digite um CEP válido com 8 dígitos.</span>';
+          shippingResults.classList.add('visible');
+          return;
+        }
+        var items = PattaCart.getItems();
+        if (!items.length) return;
+
+        shippingBtn.disabled = true;
+        shippingBtn.textContent = '…';
+        resetShipping();
+
+        fetch(SHIPPING_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: items, zip: zip })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          shippingBtn.disabled = false;
+          shippingBtn.textContent = 'Calcular frete';
+          if (data.options) {
+            renderShippingOptions(data.options);
+          } else {
+            shippingResults.innerHTML = '<span class="cart-shipping-err">' + (data.error || 'Não foi possível calcular o frete.') + '</span>';
+            shippingResults.classList.add('visible');
+          }
+        })
+        .catch(function () {
+          shippingBtn.disabled = false;
+          shippingBtn.textContent = 'Calcular frete';
+          shippingResults.innerHTML = '<span class="cart-shipping-err">Erro ao calcular frete. Tente novamente.</span>';
+          shippingResults.classList.add('visible');
+        });
+      });
+    }
 
     function open() {
       overlay.removeAttribute('aria-hidden');
@@ -4999,6 +5148,7 @@ footer {
       if (items.length === 0) {
         emptyEl.style.display = '';
         footer.hidden = true;
+        resetShipping();
         return;
       }
 
