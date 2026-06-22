@@ -8,13 +8,27 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
 const presentationDir = path.join(rootDir, "apresentacao");
 const sourceHtml = path.join(presentationDir, "loudfit-2.0.html");
-const outputPdf = path.join(presentationDir, "loudfit-2.0.pdf");
 const tempDir = path.join(presentationDir, ".pdf-export-tmp");
-const tempHtml = path.join(tempDir, "pdf-pages.html");
-
-const width = 1920;
-const height = 1080;
 const slideCount = 6;
+
+const exportsToCreate = [
+  {
+    name: "mobile",
+    outputPdf: path.join(presentationDir, "loudfit-2.0.pdf"),
+    title: "LoudFit 2.0 Mobile PDF",
+    viewport: { width: 430, height: 932 },
+    deviceScaleFactor: 3,
+    pageSize: { width: 1080, height: 2340 },
+  },
+  {
+    name: "16x9",
+    outputPdf: path.join(presentationDir, "loudfit-2.0-16x9.pdf"),
+    title: "LoudFit 2.0 16x9 PDF",
+    viewport: { width: 1920, height: 1080 },
+    deviceScaleFactor: 1,
+    pageSize: { width: 1920, height: 1080 },
+  },
+];
 
 function findChromeExecutable() {
   const candidates = [
@@ -49,7 +63,8 @@ async function countPdfPages(pdfPath) {
   return matches?.length || 0;
 }
 
-function buildPdfHtml(slideImages) {
+function buildPdfHtml(slideImages, config) {
+  const { width, height } = config.pageSize;
   const pages = slideImages
     .map((image) => `<section class="page"><img src="${image}" alt=""></section>`)
     .join("\n");
@@ -58,7 +73,7 @@ function buildPdfHtml(slideImages) {
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <title>LoudFit 2.0 PDF Export</title>
+  <title>${config.title}</title>
   <style>
     @page {
       size: ${width}px ${height}px;
@@ -108,17 +123,97 @@ ${pages}
 </html>`;
 }
 
+async function renderSlideImages(browser, config, sourceUrl) {
+  const page = await browser.newPage({
+    viewport: config.viewport,
+    deviceScaleFactor: config.deviceScaleFactor,
+  });
+
+  await page.emulateMedia({ media: "screen" });
+  const slideImages = [];
+
+  for (let index = 1; index <= slideCount; index += 1) {
+    await page.goto(`${sourceUrl}#slide-${index}`, { waitUntil: "load" });
+    await page.addStyleTag({
+      content: `
+        *, *::before, *::after {
+          animation-duration: 0s !important;
+          animation-delay: 0s !important;
+          transition-duration: 0s !important;
+        }
+
+        .progress,
+        .nav,
+        .mobile-nav,
+        .slide-nav {
+          display: none !important;
+        }
+      `,
+    });
+    await waitForSlideAssets(page);
+    await page.waitForTimeout(250);
+
+    const activeSlide = await page.evaluate(() => document.querySelector(".slide.is-active")?.id);
+    if (activeSlide !== `slide-${index}`) {
+      throw new Error(`Wrong active slide: expected slide-${index}, got ${activeSlide || "none"}.`);
+    }
+
+    const screenshot = await page.screenshot({
+      type: "png",
+      fullPage: false,
+      animations: "disabled",
+    });
+
+    slideImages.push(`data:image/png;base64,${screenshot.toString("base64")}`);
+    console.log(`${config.name}: slide ${index}/${slideCount} rendered.`);
+  }
+
+  await page.close();
+  return slideImages;
+}
+
+async function createPdf(browser, config, slideImages) {
+  const htmlPath = path.join(tempDir, `${config.name}.html`);
+  await writeFile(htmlPath, buildPdfHtml(slideImages, config), "utf8");
+
+  const page = await browser.newPage({
+    viewport: config.pageSize,
+    deviceScaleFactor: 1,
+  });
+
+  await page.goto(pathToFileURL(htmlPath).href, { waitUntil: "load" });
+  await page.waitForFunction(() => Array.from(document.images).every((image) => image.complete));
+
+  await page.pdf({
+    path: config.outputPdf,
+    width: `${config.pageSize.width}px`,
+    height: `${config.pageSize.height}px`,
+    printBackground: true,
+    preferCSSPageSize: true,
+    margin: { top: 0, right: 0, bottom: 0, left: 0 },
+  });
+
+  await page.close();
+
+  const pages = await countPdfPages(config.outputPdf);
+  if (pages !== slideCount) {
+    throw new Error(`${config.name}: expected ${slideCount} pages, got ${pages}.`);
+  }
+
+  console.log(`${config.name}: exported ${pages} pages to ${config.outputPdf}`);
+}
+
 async function main() {
   if (!existsSync(sourceHtml)) {
-    throw new Error(`Arquivo HTML não encontrado: ${sourceHtml}`);
+    throw new Error(`HTML file not found: ${sourceHtml}`);
   }
 
   await rm(tempDir, { recursive: true, force: true });
+  await mkdir(tempDir, { recursive: true });
 
-  const executablePath = findChromeExecutable();
   const browser = await chromium.launch({
     headless: true,
-    executablePath,
+    executablePath: findChromeExecutable(),
     args: [
       "--allow-file-access-from-files",
       "--disable-gpu",
@@ -128,75 +223,11 @@ async function main() {
 
   try {
     const sourceUrl = pathToFileURL(sourceHtml).href;
-    const renderPage = await browser.newPage({
-      viewport: { width, height },
-      deviceScaleFactor: 1,
-    });
 
-    await renderPage.emulateMedia({ media: "screen" });
-    const slideImages = [];
-
-    for (let index = 1; index <= slideCount; index += 1) {
-      await renderPage.goto(`${sourceUrl}#slide-${index}`, { waitUntil: "load" });
-      await renderPage.addStyleTag({
-        content: `
-          *, *::before, *::after {
-            animation-duration: 0s !important;
-            animation-delay: 0s !important;
-            transition-duration: 0s !important;
-          }
-
-          .nav,
-          .mobile-nav,
-          .slide-nav {
-            display: none !important;
-          }
-        `,
-      });
-      await waitForSlideAssets(renderPage);
-      await renderPage.waitForTimeout(250);
-
-      const activeSlide = await renderPage.evaluate(() => document.querySelector(".slide.is-active")?.id);
-      if (activeSlide !== `slide-${index}`) {
-        throw new Error(`Slide ativo incorreto: esperado slide-${index}, recebido ${activeSlide || "nenhum"}`);
-      }
-
-      const screenshot = await renderPage.screenshot({
-        type: "png",
-        fullPage: false,
-        animations: "disabled",
-      });
-
-      slideImages.push(`data:image/png;base64,${screenshot.toString("base64")}`);
-      console.log(`Slide ${index}/${slideCount} renderizado.`);
+    for (const config of exportsToCreate) {
+      const slideImages = await renderSlideImages(browser, config, sourceUrl);
+      await createPdf(browser, config, slideImages);
     }
-
-    await mkdir(tempDir, { recursive: true });
-    await writeFile(tempHtml, buildPdfHtml(slideImages), "utf8");
-
-    const pdfPage = await browser.newPage({
-      viewport: { width, height },
-      deviceScaleFactor: 1,
-    });
-
-    await pdfPage.goto(pathToFileURL(tempHtml).href, { waitUntil: "load" });
-    await pdfPage.waitForFunction(() => Array.from(document.images).every((image) => image.complete));
-
-    await pdfPage.pdf({
-      path: outputPdf,
-      width: `${width}px`,
-      height: `${height}px`,
-      printBackground: true,
-      preferCSSPageSize: true,
-      margin: { top: 0, right: 0, bottom: 0, left: 0 },
-    });
-
-    const pages = await countPdfPages(outputPdf);
-    if (pages !== slideCount) {
-      throw new Error(`PDF inválido: esperado ${slideCount} páginas, gerado com ${pages}.`);
-    }
-
-    console.log(`PDF exportado com ${pages} páginas: ${outputPdf}`);
   } finally {
     await browser.close();
     await rm(tempDir, { recursive: true, force: true });
