@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>LoudFit 2.0 — A casa digital oficial da LoudFit</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,6 +16,9 @@
       --accent: #F2E205;
       --ease: cubic-bezier(.22, 1, .36, 1);
       --progress: 16.6667%;
+      --safe-x: clamp(80px, 7vw, 148px);
+      --safe-top: 80px;
+      --safe-bottom: 132px;
     }
 
     * {
@@ -89,6 +92,7 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      object-position: center center;
       transform: scale(1.01);
       transition: transform 10s var(--ease);
       will-change: transform;
@@ -123,10 +127,11 @@
     .content {
       position: relative;
       z-index: 3;
-      width: min(100%, 1720px);
+      width: 100%;
+      max-width: 1720px;
       height: 100%;
       margin: 0 auto;
-      padding: clamp(72px, 7vw, 136px) clamp(74px, 7.2vw, 148px);
+      padding: var(--safe-top) var(--safe-x) var(--safe-bottom);
       display: grid;
       align-items: center;
     }
@@ -301,9 +306,9 @@
     .footer {
       position: absolute;
       z-index: 4;
-      left: clamp(36px, 5vw, 96px);
-      right: clamp(36px, 5vw, 96px);
-      bottom: clamp(30px, 3.4vw, 56px);
+      left: var(--safe-x);
+      right: var(--safe-x);
+      bottom: 80px;
       display: flex;
       justify-content: space-between;
       gap: 24px;
@@ -348,6 +353,34 @@
       right: clamp(12px, 1.6vw, 26px);
     }
 
+    .mobile-nav {
+      display: none;
+    }
+
+    .slide-1 img {
+      object-position: 58% center;
+    }
+
+    .slide-2 img {
+      object-position: center center;
+    }
+
+    .slide-3 img {
+      object-position: center center;
+    }
+
+    .slide-4 img {
+      object-position: 56% center;
+    }
+
+    .slide-5 img {
+      object-position: 65% center;
+    }
+
+    .slide-6 img {
+      object-position: center center;
+    }
+
     .slide-1::before {
       background:
         linear-gradient(90deg, rgba(10, 10, 10, 1) 0%, rgba(10, 10, 10, .99) 46%, rgba(10, 10, 10, .34) 72%, rgba(10, 10, 10, .2) 100%),
@@ -356,7 +389,7 @@
 
     .slide-1 .content {
       align-items: end;
-      padding-bottom: clamp(124px, 12vw, 190px);
+      padding-bottom: max(var(--safe-bottom), clamp(112px, 10vw, 164px));
     }
 
     .slide-1 .copy {
@@ -453,11 +486,31 @@
     }
 
     .slide-5 .copy {
-      max-width: 1080px;
+      max-width: 980px;
     }
 
     .slide-5 .body {
-      max-width: 1060px;
+      max-width: 820px;
+    }
+
+    .slide-5 h1 {
+      font-size: clamp(2.7rem, 5.35vw, 5.1rem);
+    }
+
+    .slide-5 .tagline {
+      margin-top: clamp(22px, 2.4vw, 38px);
+      font-size: clamp(3rem, 6.15vw, 6.05rem);
+    }
+
+    .slide-5 .body,
+    .slide-5 .message {
+      margin-top: clamp(20px, 2.1vw, 32px);
+      font-size: clamp(1rem, 1.25vw, 1.28rem);
+      line-height: 1.36;
+    }
+
+    .slide-5 .message {
+      max-width: 860px;
     }
 
     .slide-6::before {
@@ -467,140 +520,388 @@
     }
 
     .slide-6 .steps {
-      width: min(100%, 1020px);
+      width: min(100%, 960px);
       margin-inline: auto;
       text-align: left;
+      gap: clamp(12px, 1.35vw, 22px);
+      margin-top: clamp(26px, 2.6vw, 42px);
+    }
+
+    .slide-6 .steps li {
+      grid-template-columns: clamp(76px, 7.6vw, 124px) 1fr;
+      gap: clamp(20px, 2.4vw, 36px);
+      font-size: clamp(1rem, 1.35vw, 1.42rem);
+    }
+
+    .slide-6 .steps span {
+      font-size: clamp(4rem, 6.2vw, 6.5rem);
+    }
+
+    .slide-6 h1 {
+      font-size: clamp(2.75rem, 6.15vw, 5.4rem);
     }
 
     .slide-6 .message {
-      max-width: 1080px;
+      max-width: 940px;
       margin-inline: auto;
+      margin-top: clamp(26px, 2.8vw, 44px);
       color: var(--text);
-      font-size: clamp(1.45rem, 2.35vw, 2.65rem);
-      line-height: 1.12;
+      font-size: clamp(1.38rem, 2vw, 2.2rem);
+      line-height: 1.16;
       text-wrap: balance;
     }
 
-    @media (max-width: 760px) {
-      .content {
-        padding: 82px 34px 96px;
+    @media screen and (min-width: 761px) and (max-height: 820px) {
+      :root {
+        --safe-bottom: 120px;
       }
 
       h1 {
-        font-size: clamp(2.1rem, 9.6vw, 3.15rem);
-        line-height: .94;
+        font-size: clamp(2.55rem, 5.75vw, 5.05rem);
       }
 
       .display {
-        font-size: clamp(3.2rem, 15vw, 5.1rem);
+        font-size: clamp(3.55rem, 8vw, 7.2rem);
       }
 
       .tagline {
-        font-size: clamp(2.35rem, 10.6vw, 3.75rem);
+        margin-top: clamp(20px, 2.1vw, 34px);
       }
 
       .body,
       .support,
       .message,
       .intro {
-        max-width: calc(100vw - 96px);
-        font-size: clamp(.96rem, 3.9vw, 1.12rem);
-        line-height: 1.36;
-      }
-
-      h1,
-      .tagline {
-        max-width: calc(100vw - 96px);
-        overflow-wrap: break-word;
+        margin-top: clamp(18px, 1.9vw, 30px);
       }
 
       .list,
       .steps {
-        max-width: calc(100vw - 96px);
-        gap: 14px;
-        margin-top: 28px;
+        gap: clamp(12px, 1.15vw, 20px);
+        margin-top: clamp(24px, 2.5vw, 40px);
+      }
+
+      .slide-5 h1 {
+        font-size: clamp(2.35rem, 4.65vw, 4.35rem);
+      }
+
+      .slide-5 .tagline {
+        font-size: clamp(2.7rem, 5.4vw, 5.05rem);
+      }
+
+      .slide-5 .body,
+      .slide-5 .message {
+        margin-top: clamp(16px, 1.7vw, 26px);
+        font-size: clamp(.92rem, 1.08vw, 1.1rem);
+        line-height: 1.32;
+      }
+
+      .slide-6 .steps {
+        gap: clamp(8px, 1vw, 16px);
+        margin-top: clamp(20px, 2vw, 32px);
+      }
+
+      .slide-6 .steps li {
+        grid-template-columns: clamp(64px, 6.1vw, 96px) 1fr;
+        font-size: clamp(.92rem, 1.1vw, 1.14rem);
+      }
+
+      .slide-6 .steps span {
+        font-size: clamp(3.45rem, 5.15vw, 5.2rem);
+      }
+
+      .slide-6 .message {
+        margin-top: clamp(20px, 2vw, 32px);
+        font-size: clamp(1.18rem, 1.7vw, 1.72rem);
+      }
+    }
+
+    @media screen and (max-width: 760px) {
+      html,
+      body {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100svh;
+        overflow: hidden;
+        overscroll-behavior: none;
+      }
+
+      .deck,
+      .slide {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100svh;
+        overflow: hidden;
+      }
+
+      @supports (height: 100dvh) {
+        html,
+        body,
+        .deck,
+        .slide {
+          height: 100dvh;
+        }
+      }
+
+      .progress {
+        height: 4px;
+      }
+
+      .slide::before {
+        background:
+          linear-gradient(90deg, rgba(10, 10, 10, .92) 0%, rgba(10, 10, 10, .64) 54%, rgba(10, 10, 10, .3) 100%),
+          linear-gradient(0deg, rgba(10, 10, 10, .96) 0%, rgba(10, 10, 10, .58) 34%, rgba(10, 10, 10, .18) 62%, rgba(10, 10, 10, .62) 100%);
+      }
+
+      .slide::after {
+        background:
+          radial-gradient(circle at 78% 24%, rgba(242, 226, 5, .15), transparent 34%),
+          linear-gradient(0deg, rgba(10, 10, 10, .42), transparent 42%);
+      }
+
+      .slide img,
+      .slide.is-active img {
+        transform: scale(1.035);
+      }
+
+      .slide-1 img {
+        object-position: 63% center;
+      }
+
+      .slide-2 img {
+        object-position: 58% center;
+      }
+
+      .slide-4 img {
+        object-position: 56% center;
+      }
+
+      .slide-5 img {
+        object-position: 62% center;
+      }
+
+      .slide-6 img {
+        object-position: center center;
+      }
+
+      .content {
+        width: min(390px, 100vw);
+        max-width: none;
+        margin: 0;
+        padding: clamp(54px, 7vh, 72px) 28px 126px;
+        align-items: center;
+        justify-items: center;
+        text-align: left;
+      }
+
+      .copy {
+        width: 100%;
+        max-width: none;
+      }
+
+      h1,
+      .tagline {
+        max-width: 100%;
+        line-height: .91;
+        overflow-wrap: normal;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 8.7vw, 2.55rem);
+      }
+
+      .display {
+        font-size: clamp(3rem, 13vw, 4.1rem);
+      }
+
+      .tagline {
+        margin-top: 16px;
+        font-size: clamp(2.55rem, 11.2vw, 3.4rem);
+      }
+
+      .subtitle {
+        margin-top: 16px;
+        font-size: clamp(1.08rem, 4.4vw, 1.34rem);
+      }
+
+      .rule {
+        width: 104px;
+        height: 3px;
+        margin-top: 22px;
+      }
+
+      .body,
+      .support,
+      .message,
+      .intro {
+        max-width: 100%;
+        margin-top: 16px;
+        font-size: clamp(.94rem, 3.7vw, 1.08rem);
+        line-height: 1.34;
+      }
+
+      .list,
+      .steps {
+        max-width: 100%;
+        gap: 11px;
+        margin-top: 20px;
       }
 
       .list li {
-        max-width: calc(100vw - 112px);
-        padding-left: 32px;
-        font-size: clamp(.94rem, 3.7vw, 1.05rem);
+        max-width: 100%;
+        padding-left: 28px;
+        font-size: clamp(.88rem, 3.55vw, 1rem);
+        line-height: 1.25;
+      }
+
+      .list li::before {
+        top: .62em;
+        width: 18px;
       }
 
       .slide-1 .content {
-        padding-bottom: 118px;
+        align-items: center;
+        padding-top: 104px;
+        padding-bottom: 142px;
+      }
+
+      .slide-1 .copy {
+        max-width: none;
+      }
+
+      .slide-2 .list li:first-child {
+        font-size: clamp(1rem, 4.3vw, 1.18rem);
+      }
+
+      .slide-3 .content {
+        text-align: center;
+      }
+
+      .slide-3 .content,
+      .slide-6 .content {
+        justify-items: center;
+      }
+
+      .slide-3 .copy {
+        max-width: none;
+      }
+
+      .slide-3 .body {
+        margin-inline: auto;
+        font-size: clamp(.98rem, 3.95vw, 1.12rem);
       }
 
       .slide-4 .content,
       .slide-5 .content,
       .slide-6 .content {
-        padding-left: 38px;
-        padding-right: 38px;
-      }
-
-      .slide-4 .copy,
-      .slide-5 .copy,
-      .slide-6 .copy {
-        max-width: calc(100vw - 76px);
+        padding-left: 28px;
+        padding-right: 28px;
       }
 
       .slide-4 h1 {
-        font-size: clamp(2rem, 9vw, 2.9rem);
+        font-size: clamp(2rem, 8.4vw, 2.38rem);
+      }
+
+      .slide-4 .list {
+        gap: 11px;
+      }
+
+      .slide-4 .list li {
+        font-size: clamp(.82rem, 3.55vw, .95rem);
+      }
+
+      .slide-5 .copy {
+        max-width: none;
+      }
+
+      .slide-5 h1 {
+        font-size: clamp(1.72rem, 7vw, 2.04rem);
+      }
+
+      .slide-5 .tagline {
+        margin-top: 16px;
+        font-size: clamp(2.25rem, 9.4vw, 2.78rem);
       }
 
       .slide-5 .body,
       .slide-5 .message {
-        max-width: 280px;
-        font-size: .82rem;
-        line-height: 1.34;
+        max-width: 100%;
+        margin-top: 15px;
+        font-size: clamp(.82rem, 3.3vw, .96rem);
+        line-height: 1.32;
       }
 
-      .slide-5 h1 {
-        font-size: 2.28rem;
-      }
-
-      .slide-5 .tagline {
-        font-size: 2.72rem;
-      }
-
-      .slide-3 .content,
-      .slide-6 .content {
-        text-align: left;
-        justify-items: stretch;
-      }
-
-      .slide-6 .steps {
-        margin-inline: 0;
-        max-width: 280px;
+      .slide-6 .copy {
+        max-width: none;
       }
 
       .slide-6 h1 {
-        max-width: 280px;
-        font-size: 2.08rem;
+        max-width: 100%;
+        font-size: clamp(1.92rem, 8vw, 2.24rem);
       }
 
-      .steps li {
-        grid-template-columns: 54px minmax(0, 1fr);
+      .slide-6 .steps {
+        max-width: 100%;
+        margin-inline: auto;
+        gap: 9px;
+        margin-top: 18px;
+      }
+
+      .slide-6 .steps li {
+        grid-template-columns: 52px minmax(0, 1fr);
         gap: 14px;
-        font-size: .82rem;
+        font-size: clamp(.8rem, 3.25vw, .92rem);
+        line-height: 1.18;
       }
 
-      .steps span {
-        font-size: 4.6rem;
+      .slide-6 .steps span {
+        font-size: clamp(3.55rem, 15.4vw, 4.5rem);
       }
 
       .slide-6 .message {
-        max-width: 280px;
-        font-size: 1.08rem;
+        max-width: 100%;
+        margin-top: 18px;
+        font-size: clamp(1.02rem, 4.1vw, 1.24rem);
+        line-height: 1.16;
       }
 
       .footer {
-        left: 28px;
-        right: 28px;
+        left: 30px;
+        right: auto;
+        width: min(330px, calc(100vw - 60px));
+        transform: none;
+        bottom: 84px;
+        font-size: .68rem;
       }
 
       .nav {
         display: none;
+      }
+
+      .mobile-nav {
+        position: fixed;
+        z-index: 42;
+        left: 18px;
+        right: auto;
+        bottom: 18px;
+        width: min(324px, calc(100vw - 36px));
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        transform: none;
+      }
+
+      .mobile-nav button {
+        min-height: 46px;
+        border: 1px solid rgba(244, 244, 244, .16);
+        border-radius: 999px;
+        background: rgba(10, 10, 10, .62);
+        color: rgba(244, 244, 244, .82);
+        font: 700 .76rem/1 "Inter", Arial, sans-serif;
+        white-space: nowrap;
+        backdrop-filter: blur(10px);
       }
     }
 
@@ -633,37 +934,44 @@
     @media print {
       html,
       body {
-        width: 297mm;
-        height: auto;
-        overflow: visible;
-        background: var(--black);
+        position: static !important;
+        width: 297mm !important;
+        height: auto !important;
+        overflow: visible !important;
+        background: var(--black) !important;
       }
 
       .deck {
-        width: 297mm;
-        height: auto;
+        position: static !important;
+        display: block !important;
+        width: 297mm !important;
+        height: auto !important;
+        overflow: visible !important;
       }
 
       .progress,
-      .nav {
+      .nav,
+      .mobile-nav {
         display: none;
       }
 
       .slide {
-        position: relative;
-        inset: auto;
-        display: block;
-        width: 297mm;
-        height: 210mm;
-        opacity: 1;
-        pointer-events: auto;
-        page-break-after: always;
-        break-after: page;
+        position: relative !important;
+        inset: auto !important;
+        display: block !important;
+        width: 297mm !important;
+        height: 210mm !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        overflow: hidden !important;
       }
 
       .slide:last-child {
-        page-break-after: auto;
-        break-after: auto;
+        page-break-after: auto !important;
+        break-after: auto !important;
       }
 
       .slide img,
@@ -775,6 +1083,10 @@
 
     <button class="nav prev" type="button" aria-label="Anterior">‹</button>
     <button class="nav next" type="button" aria-label="Próximo">›</button>
+    <div class="mobile-nav" aria-label="Navegação da apresentação">
+      <button class="mobile-prev" type="button">&#9664;&#65038; Anterior</button>
+      <button class="mobile-next" type="button">Próximo &#9654;&#65038;</button>
+    </div>
   </main>
 
   <script>
@@ -783,10 +1095,15 @@
       const progress = document.querySelector(".progress span");
       const prevButton = document.querySelector(".prev");
       const nextButton = document.querySelector(".next");
+      const mobilePrevButton = document.querySelector(".mobile-prev");
+      const mobileNextButton = document.querySelector(".mobile-next");
       const hashSlide = window.location.hash.match(/^#slide-(\d+)$/);
       const requested = hashSlide ? Number(hashSlide[1]) : Number(new URLSearchParams(window.location.search).get("slide"));
       const initial = Number.isInteger(requested) ? Math.max(0, Math.min(slides.length - 1, requested - 1)) : 0;
+      const coarsePointer = window.matchMedia("(pointer: coarse)");
       let current = 0;
+      let touchStartX = 0;
+      let touchStartY = 0;
 
       function show(index) {
         const next = Math.max(0, Math.min(slides.length - 1, index));
@@ -834,6 +1151,10 @@
           return;
         }
 
+        if (coarsePointer.matches) {
+          return;
+        }
+
         if (event.clientX >= window.innerWidth / 2) {
           next();
         } else {
@@ -843,6 +1164,30 @@
 
       prevButton.addEventListener("click", previous);
       nextButton.addEventListener("click", next);
+      mobilePrevButton.addEventListener("click", previous);
+      mobileNextButton.addEventListener("click", next);
+
+      document.addEventListener("touchstart", (event) => {
+        const touch = event.changedTouches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+      }, { passive: true });
+
+      document.addEventListener("touchend", (event) => {
+        const touch = event.changedTouches[0];
+        const deltaX = touch.clientX - touchStartX;
+        const deltaY = touch.clientY - touchStartY;
+
+        if (Math.abs(deltaX) < 48 || Math.abs(deltaX) < Math.abs(deltaY) * 1.2) {
+          return;
+        }
+
+        if (deltaX < 0) {
+          next();
+        } else {
+          previous();
+        }
+      }, { passive: true });
     })();
   </script>
 </body>
