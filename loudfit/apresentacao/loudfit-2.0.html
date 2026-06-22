@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LoudFit 2.0 — A casa digital oficial da LoudFit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black: #0A0A0A;
+      --deep: #161616;
+      --text: #F4F4F4;
+      --muted: #A1A1A1;
+      --accent: #F2E205;
+      --ease: cubic-bezier(.22, 1, .36, 1);
+      --progress: 16.6667%;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background: var(--black);
+      color: var(--text);
+      overflow: hidden;
+      font-family: "Inter", Arial, sans-serif;
+    }
+
+    body {
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    .deck {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: var(--black);
+      isolation: isolate;
+    }
+
+    .progress {
+      position: fixed;
+      z-index: 30;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: rgba(244, 244, 244, .08);
+    }
+
+    .progress span {
+      display: block;
+      width: var(--progress);
+      height: 100%;
+      background: var(--accent);
+      box-shadow: 0 0 18px rgba(242, 226, 5, .55);
+      transition: width 520ms var(--ease);
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      opacity: 0;
+      pointer-events: none;
+      overflow: hidden;
+      background: var(--deep);
+      transition: opacity 620ms var(--ease);
+    }
+
+    .slide.is-active {
+      opacity: 1;
+      pointer-events: auto;
+      z-index: 2;
+    }
+
+    .slide img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.01);
+      transition: transform 10s var(--ease);
+      will-change: transform;
+    }
+
+    .slide.is-active img {
+      transform: scale(1.05);
+    }
+
+    .slide::before,
+    .slide::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .slide::before {
+      background:
+        linear-gradient(90deg, rgba(10, 10, 10, .94) 0%, rgba(10, 10, 10, .72) 35%, rgba(10, 10, 10, .18) 72%, rgba(10, 10, 10, .48) 100%),
+        linear-gradient(0deg, rgba(10, 10, 10, .88) 0%, rgba(10, 10, 10, .22) 42%, rgba(10, 10, 10, .42) 100%);
+    }
+
+    .slide::after {
+      background:
+        radial-gradient(circle at 72% 50%, rgba(242, 226, 5, .12), transparent 30%),
+        linear-gradient(0deg, rgba(10, 10, 10, .55), transparent 32%);
+      mix-blend-mode: normal;
+    }
+
+    .content {
+      position: relative;
+      z-index: 3;
+      width: min(100%, 1720px);
+      height: 100%;
+      margin: 0 auto;
+      padding: clamp(72px, 7vw, 136px) clamp(74px, 7.2vw, 148px);
+      display: grid;
+      align-items: center;
+    }
+
+    .copy {
+      width: 100%;
+      max-width: 920px;
+      min-width: 0;
+    }
+
+    .copy > * {
+      opacity: 0;
+      transform: translateY(22px);
+    }
+
+    .slide.is-active .copy > * {
+      animation: fade-up 720ms var(--ease) forwards;
+    }
+
+    .slide.is-active .copy > *:nth-child(2) {
+      animation-delay: 80ms;
+    }
+
+    .slide.is-active .copy > *:nth-child(3) {
+      animation-delay: 150ms;
+    }
+
+    .slide.is-active .copy > *:nth-child(4) {
+      animation-delay: 220ms;
+    }
+
+    .slide.is-active .copy > *:nth-child(5) {
+      animation-delay: 290ms;
+    }
+
+    @keyframes fade-up {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h1,
+    .tagline {
+      margin: 0;
+      font-family: "Anton", Impact, sans-serif;
+      font-weight: 400;
+      line-height: .9;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      text-wrap: balance;
+      color: var(--text);
+      text-shadow: 0 10px 42px rgba(0, 0, 0, .62);
+    }
+
+    h1 {
+      max-width: 1100px;
+      font-size: clamp(2.75rem, 6.5vw, 5.75rem);
+    }
+
+    .display {
+      font-size: clamp(3.8rem, 9vw, 8.1rem);
+    }
+
+    .tagline {
+      margin-top: clamp(32px, 3.2vw, 58px);
+      color: var(--accent);
+      font-size: clamp(2.9rem, 7.05vw, 6.85rem);
+      max-width: 1120px;
+    }
+
+    .subtitle {
+      margin: clamp(26px, 2.5vw, 44px) 0 0;
+      color: var(--text);
+      font-size: clamp(1.16rem, 2vw, 2.15rem);
+      font-weight: 700;
+      line-height: 1.16;
+      text-wrap: balance;
+    }
+
+    .body,
+    .support,
+    .message,
+    .intro {
+      margin: clamp(28px, 2.6vw, 48px) 0 0;
+      color: var(--text);
+      font-size: clamp(1.08rem, 1.55vw, 1.55rem);
+      line-height: 1.46;
+      font-weight: 500;
+      max-width: 880px;
+      text-wrap: pretty;
+    }
+
+    .support,
+    .intro {
+      color: var(--muted);
+    }
+
+    .message {
+      color: var(--accent);
+      font-weight: 800;
+      max-width: 900px;
+    }
+
+    .rule {
+      width: clamp(86px, 8vw, 150px);
+      height: 4px;
+      margin-top: clamp(26px, 3vw, 48px);
+      background: var(--accent);
+      box-shadow: 0 0 22px rgba(242, 226, 5, .36);
+    }
+
+    .accent {
+      color: var(--accent);
+    }
+
+    .list,
+    .steps {
+      display: grid;
+      gap: clamp(18px, 1.6vw, 28px);
+      margin: clamp(36px, 3.8vw, 64px) 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .list li {
+      position: relative;
+      padding-left: 34px;
+      max-width: 100%;
+      min-width: 0;
+      color: var(--text);
+      font-size: clamp(1.08rem, 1.5vw, 1.65rem);
+      font-weight: 700;
+      line-height: 1.24;
+      overflow-wrap: break-word;
+    }
+
+    .list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: .65em;
+      width: 18px;
+      height: 3px;
+      background: var(--accent);
+      box-shadow: 0 0 16px rgba(242, 226, 5, .45);
+    }
+
+    .steps li {
+      display: grid;
+      grid-template-columns: clamp(92px, 10vw, 156px) 1fr;
+      gap: clamp(24px, 3vw, 48px);
+      align-items: center;
+      color: var(--text);
+      font-size: clamp(1.08rem, 1.65vw, 1.75rem);
+      line-height: 1.24;
+      font-weight: 700;
+    }
+
+    .steps span {
+      font-family: "Anton", Impact, sans-serif;
+      color: var(--accent);
+      font-size: clamp(5rem, 10.4vw, 9.5rem);
+      line-height: .72;
+    }
+
+    .steps strong {
+      min-width: 0;
+      overflow-wrap: break-word;
+    }
+
+    .footer {
+      position: absolute;
+      z-index: 4;
+      left: clamp(36px, 5vw, 96px);
+      right: clamp(36px, 5vw, 96px);
+      bottom: clamp(30px, 3.4vw, 56px);
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      color: rgba(161, 161, 161, .68);
+      font-size: clamp(.72rem, .82vw, .9rem);
+      font-weight: 600;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .nav {
+      position: fixed;
+      z-index: 35;
+      top: 50%;
+      width: clamp(38px, 4vw, 54px);
+      height: clamp(54px, 5vw, 74px);
+      border: 1px solid rgba(244, 244, 244, .16);
+      border-radius: 999px;
+      background: rgba(10, 10, 10, .28);
+      color: rgba(244, 244, 244, .66);
+      font-size: clamp(2rem, 3vw, 3.2rem);
+      line-height: 1;
+      cursor: pointer;
+      opacity: .34;
+      transform: translateY(-50%);
+      transition: opacity 220ms ease, background 220ms ease, border-color 220ms ease;
+    }
+
+    .nav:hover,
+    .nav:focus-visible {
+      opacity: .92;
+      background: rgba(10, 10, 10, .62);
+      border-color: rgba(242, 226, 5, .42);
+      outline: none;
+    }
+
+    .prev {
+      left: clamp(12px, 1.6vw, 26px);
+    }
+
+    .next {
+      right: clamp(12px, 1.6vw, 26px);
+    }
+
+    .slide-1::before {
+      background:
+        linear-gradient(90deg, rgba(10, 10, 10, 1) 0%, rgba(10, 10, 10, .99) 46%, rgba(10, 10, 10, .34) 72%, rgba(10, 10, 10, .2) 100%),
+        linear-gradient(0deg, rgba(10, 10, 10, .92) 0%, rgba(10, 10, 10, .18) 54%, rgba(10, 10, 10, .28) 100%);
+    }
+
+    .slide-1 .content {
+      align-items: end;
+      padding-bottom: clamp(124px, 12vw, 190px);
+    }
+
+    .slide-1 .copy {
+      max-width: 960px;
+    }
+
+    .slide-1 .subtitle {
+      font-size: clamp(1.35rem, 2.4vw, 2.7rem);
+    }
+
+    .slide-2::before {
+      background:
+        linear-gradient(90deg, rgba(10, 10, 10, .98) 0%, rgba(10, 10, 10, .88) 42%, rgba(10, 10, 10, .22) 78%, rgba(10, 10, 10, .48) 100%),
+        linear-gradient(0deg, rgba(10, 10, 10, .84), rgba(10, 10, 10, .08) 48%, rgba(10, 10, 10, .42));
+    }
+
+    .slide-2 .list li:first-child {
+      color: var(--text);
+      font-size: clamp(1.3rem, 1.95vw, 2.05rem);
+      font-weight: 800;
+    }
+
+    .slide-2 .list li:first-child::before {
+      width: 30px;
+      height: 4px;
+      top: .58em;
+    }
+
+    .slide-2 .list li:not(:first-child) {
+      color: rgba(244, 244, 244, .82);
+    }
+
+    .slide-3::before {
+      background:
+        linear-gradient(90deg, rgba(10, 10, 10, .9), rgba(10, 10, 10, .6) 45%, rgba(10, 10, 10, .35)),
+        radial-gradient(circle at 50% 50%, rgba(10, 10, 10, .18), rgba(10, 10, 10, .9) 78%);
+    }
+
+    .slide-3 .content,
+    .slide-6 .content {
+      justify-items: center;
+      text-align: center;
+    }
+
+    .slide-3 .copy,
+    .slide-6 .copy {
+      max-width: 1080px;
+    }
+
+    .slide-3 .body {
+      margin-inline: auto;
+      max-width: 860px;
+      font-size: clamp(1.18rem, 1.75vw, 1.8rem);
+    }
+
+    .slide-4::before {
+      background:
+        linear-gradient(90deg, rgba(10, 10, 10, .98) 0%, rgba(10, 10, 10, .82) 38%, rgba(10, 10, 10, .5) 63%, rgba(10, 10, 10, .7) 100%),
+        linear-gradient(0deg, rgba(10, 10, 10, .92), rgba(10, 10, 10, .22) 48%, rgba(10, 10, 10, .62));
+    }
+
+    .slide-4 img {
+      filter: brightness(.72);
+    }
+
+    .slide-4 .content,
+    .slide-5 .content,
+    .slide-6 .content {
+      padding-left: clamp(92px, 8.8vw, 176px);
+      padding-right: clamp(92px, 8.8vw, 176px);
+    }
+
+    .slide-4 .copy {
+      max-width: 820px;
+    }
+
+    .slide-4 h1 {
+      font-size: clamp(2.55rem, 5.5vw, 4.85rem);
+    }
+
+    .slide-4 .list {
+      max-width: 820px;
+      gap: clamp(16px, 1.45vw, 24px);
+    }
+
+    .slide-4 .list li {
+      font-size: clamp(1rem, 1.28vw, 1.42rem);
+    }
+
+    .slide-5::before {
+      background:
+        linear-gradient(90deg, rgba(10, 10, 10, .96) 0%, rgba(10, 10, 10, .78) 46%, rgba(10, 10, 10, .3) 74%, rgba(10, 10, 10, .62) 100%),
+        linear-gradient(0deg, rgba(10, 10, 10, .92), rgba(10, 10, 10, .1) 50%, rgba(10, 10, 10, .46));
+    }
+
+    .slide-5 .copy {
+      max-width: 1080px;
+    }
+
+    .slide-5 .body {
+      max-width: 1060px;
+    }
+
+    .slide-6::before {
+      background:
+        linear-gradient(90deg, rgba(10, 10, 10, .9), rgba(10, 10, 10, .58) 34%, rgba(10, 10, 10, .36) 68%, rgba(10, 10, 10, .62)),
+        linear-gradient(0deg, rgba(10, 10, 10, .92), rgba(10, 10, 10, .28) 54%, rgba(10, 10, 10, .4));
+    }
+
+    .slide-6 .steps {
+      width: min(100%, 1020px);
+      margin-inline: auto;
+      text-align: left;
+    }
+
+    .slide-6 .message {
+      max-width: 1080px;
+      margin-inline: auto;
+      color: var(--text);
+      font-size: clamp(1.45rem, 2.35vw, 2.65rem);
+      line-height: 1.12;
+      text-wrap: balance;
+    }
+
+    @media (max-width: 760px) {
+      .content {
+        padding: 82px 34px 96px;
+      }
+
+      h1 {
+        font-size: clamp(2.1rem, 9.6vw, 3.15rem);
+        line-height: .94;
+      }
+
+      .display {
+        font-size: clamp(3.2rem, 15vw, 5.1rem);
+      }
+
+      .tagline {
+        font-size: clamp(2.35rem, 10.6vw, 3.75rem);
+      }
+
+      .body,
+      .support,
+      .message,
+      .intro {
+        max-width: calc(100vw - 96px);
+        font-size: clamp(.96rem, 3.9vw, 1.12rem);
+        line-height: 1.36;
+      }
+
+      h1,
+      .tagline {
+        max-width: calc(100vw - 96px);
+        overflow-wrap: break-word;
+      }
+
+      .list,
+      .steps {
+        max-width: calc(100vw - 96px);
+        gap: 14px;
+        margin-top: 28px;
+      }
+
+      .list li {
+        max-width: calc(100vw - 112px);
+        padding-left: 32px;
+        font-size: clamp(.94rem, 3.7vw, 1.05rem);
+      }
+
+      .slide-1 .content {
+        padding-bottom: 118px;
+      }
+
+      .slide-4 .content,
+      .slide-5 .content,
+      .slide-6 .content {
+        padding-left: 38px;
+        padding-right: 38px;
+      }
+
+      .slide-4 .copy,
+      .slide-5 .copy,
+      .slide-6 .copy {
+        max-width: calc(100vw - 76px);
+      }
+
+      .slide-4 h1 {
+        font-size: clamp(2rem, 9vw, 2.9rem);
+      }
+
+      .slide-5 .body,
+      .slide-5 .message {
+        max-width: 280px;
+        font-size: .82rem;
+        line-height: 1.34;
+      }
+
+      .slide-5 h1 {
+        font-size: 2.28rem;
+      }
+
+      .slide-5 .tagline {
+        font-size: 2.72rem;
+      }
+
+      .slide-3 .content,
+      .slide-6 .content {
+        text-align: left;
+        justify-items: stretch;
+      }
+
+      .slide-6 .steps {
+        margin-inline: 0;
+        max-width: 280px;
+      }
+
+      .slide-6 h1 {
+        max-width: 280px;
+        font-size: 2.08rem;
+      }
+
+      .steps li {
+        grid-template-columns: 54px minmax(0, 1fr);
+        gap: 14px;
+        font-size: .82rem;
+      }
+
+      .steps span {
+        font-size: 4.6rem;
+      }
+
+      .slide-6 .message {
+        max-width: 280px;
+        font-size: 1.08rem;
+      }
+
+      .footer {
+        left: 28px;
+        right: 28px;
+      }
+
+      .nav {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .slide,
+      .progress span,
+      .slide img,
+      .nav {
+        transition: none;
+      }
+
+      .slide img,
+      .slide.is-active img {
+        transform: scale(1.01);
+      }
+
+      .copy > *,
+      .slide.is-active .copy > * {
+        opacity: 1;
+        transform: none;
+        animation: none;
+      }
+    }
+
+    @page {
+      size: A4 landscape;
+      margin: 0;
+    }
+
+    @media print {
+      html,
+      body {
+        width: 297mm;
+        height: auto;
+        overflow: visible;
+        background: var(--black);
+      }
+
+      .deck {
+        width: 297mm;
+        height: auto;
+      }
+
+      .progress,
+      .nav {
+        display: none;
+      }
+
+      .slide {
+        position: relative;
+        inset: auto;
+        display: block;
+        width: 297mm;
+        height: 210mm;
+        opacity: 1;
+        pointer-events: auto;
+        page-break-after: always;
+        break-after: page;
+      }
+
+      .slide:last-child {
+        page-break-after: auto;
+        break-after: auto;
+      }
+
+      .slide img,
+      .slide.is-active img {
+        transition: none;
+        transform: scale(1.01);
+      }
+
+      .copy > *,
+      .slide.is-active .copy > * {
+        opacity: 1;
+        transform: none;
+        animation: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" aria-live="polite">
+    <div class="progress" aria-hidden="true"><span></span></div>
+
+    <section class="slide slide-1 is-active" aria-label="01 / 06">
+      <img src="imagens/slide1.png" alt="">
+      <div class="content">
+        <div class="copy">
+          <h1 class="display">LOUDFIT <span class="accent">2.0</span></h1>
+          <p class="subtitle">A casa digital oficial da LoudFit</p>
+          <div class="rule" aria-hidden="true"></div>
+          <p class="support">Uma estrutura para fortalecer a marca e preparar a expansão.</p>
+        </div>
+      </div>
+      <footer class="footer"><span>LoudFit 2.0</span><span>01 / 06</span></footer>
+    </section>
+
+    <section class="slide slide-2" aria-label="02 / 06">
+      <img src="imagens/slide2.png" alt="">
+      <div class="content">
+        <div class="copy">
+          <h1>A OPERAÇÃO JÁ EXISTE.</h1>
+          <ul class="list">
+            <li>5 unidades em operação</li>
+            <li>Marca forte</li>
+            <li>Comunidade ativa</li>
+            <li>Pronta para expandir</li>
+          </ul>
+          <p class="message">Agora a presença digital precisa acompanhar o tamanho da ambição.</p>
+        </div>
+      </div>
+      <footer class="footer"><span>LoudFit 2.0</span><span>02 / 06</span></footer>
+    </section>
+
+    <section class="slide slide-3" aria-label="03 / 06">
+      <img src="imagens/slide3.png" alt="">
+      <div class="content">
+        <div class="copy">
+          <h1>HOJE, A LOUDFIT APARECE EM PEDAÇOS.</h1>
+          <p class="body">Hoje a LoudFit ainda aparece de forma fragmentada.<br>Quem procura a marca encontra informações espalhadas.</p>
+          <p class="message">Quem pensa em investir alto precisa encontrar confiança rápido.</p>
+        </div>
+      </div>
+      <footer class="footer"><span>LoudFit 2.0</span><span>03 / 06</span></footer>
+    </section>
+
+    <section class="slide slide-4" aria-label="04 / 06">
+      <img src="imagens/slide4.png" alt="">
+      <div class="content">
+        <div class="copy">
+          <h1>CONSTRUIR A CASA OFICIAL DA LOUDFIT.</h1>
+          <p class="intro">Um lugar único onde tudo se junta:</p>
+          <ul class="list">
+            <li>o aluno encontra a unidade certa</li>
+            <li>o investidor entende a oportunidade — com a franquia dentro da própria casa</li>
+            <li>a marca é encontrada com facilidade</li>
+            <li>os interessados certos são atraídos e acompanhados até a reunião</li>
+          </ul>
+        </div>
+      </div>
+      <footer class="footer"><span>LoudFit 2.0</span><span>04 / 06</span></footer>
+    </section>
+
+    <section class="slide slide-5" aria-label="05 / 06">
+      <img src="imagens/slide5.png" alt="">
+      <div class="content">
+        <div class="copy">
+          <h1>O FRANQUEADO NÃO COMEÇA DO ZERO.</h1>
+          <p class="tagline">SUA ACADEMIA NÃO ABRE VAZIA.</p>
+          <p class="body">Cada nova unidade já nasce com uma estrutura pronta para ser encontrada, despertar interesse e começar forte desde o primeiro dia.</p>
+          <p class="message">A LoudFit vende mais que uma academia — vende um caminho mais seguro para abrir com alunos já chegando.</p>
+        </div>
+      </div>
+      <footer class="footer"><span>LoudFit 2.0</span><span>05 / 06</span></footer>
+    </section>
+
+    <section class="slide slide-6" aria-label="06 / 06">
+      <img src="imagens/slide6.png" alt="">
+      <div class="content">
+        <div class="copy">
+          <h1>COMEÇAR PELA BASE.</h1>
+          <ol class="steps">
+            <li><span>1</span><strong>a casa oficial — site com a franquia dentro dele</strong></li>
+            <li><span>2</span><strong>atrair e acompanhar os interessados certos</strong></li>
+            <li><span>3</span><strong>presença forte no Google</strong></li>
+          </ol>
+          <p class="message">A LoudFit já construiu uma grande operação.<br>Agora é hora da marca <span class="accent">crescer no mesmo ritmo</span>.</p>
+        </div>
+      </div>
+      <footer class="footer"><span>LoudFit 2.0</span><span>06 / 06</span></footer>
+    </section>
+
+    <button class="nav prev" type="button" aria-label="Anterior">‹</button>
+    <button class="nav next" type="button" aria-label="Próximo">›</button>
+  </main>
+
+  <script>
+    (() => {
+      const slides = Array.from(document.querySelectorAll(".slide"));
+      const progress = document.querySelector(".progress span");
+      const prevButton = document.querySelector(".prev");
+      const nextButton = document.querySelector(".next");
+      const hashSlide = window.location.hash.match(/^#slide-(\d+)$/);
+      const requested = hashSlide ? Number(hashSlide[1]) : Number(new URLSearchParams(window.location.search).get("slide"));
+      const initial = Number.isInteger(requested) ? Math.max(0, Math.min(slides.length - 1, requested - 1)) : 0;
+      let current = 0;
+
+      function show(index) {
+        const next = Math.max(0, Math.min(slides.length - 1, index));
+        if (next === current && slides[current].classList.contains("is-active")) {
+          return;
+        }
+
+        slides[current].classList.remove("is-active");
+        slides[current].setAttribute("aria-hidden", "true");
+        current = next;
+        slides[current].classList.add("is-active");
+        slides[current].setAttribute("aria-hidden", "false");
+        progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+      }
+
+      function next() {
+        show(current + 1);
+      }
+
+      function previous() {
+        show(current - 1);
+      }
+
+      slides.forEach((slide, index) => {
+        slide.setAttribute("aria-hidden", index === 0 ? "false" : "true");
+      });
+
+      progress.style.width = `${(1 / slides.length) * 100}%`;
+      show(initial);
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowRight" || event.key === " ") {
+          event.preventDefault();
+          next();
+        }
+
+        if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          previous();
+        }
+      });
+
+      document.addEventListener("click", (event) => {
+        if (event.target.closest("button")) {
+          return;
+        }
+
+        if (event.clientX >= window.innerWidth / 2) {
+          next();
+        } else {
+          previous();
+        }
+      });
+
+      prevButton.addEventListener("click", previous);
+      nextButton.addEventListener("click", next);
+    })();
+  </script>
+</body>
+</html>
