@@ -19,6 +19,8 @@
       --safe-x: clamp(80px, 7vw, 148px);
       --safe-top: 80px;
       --safe-bottom: 132px;
+      --app-height: 100svh;
+      --app-width: 100vw;
     }
 
     * {
@@ -86,6 +88,12 @@
       z-index: 2;
     }
 
+    .slide:target {
+      opacity: 1;
+      pointer-events: auto;
+      z-index: 5;
+    }
+
     .slide img {
       position: absolute;
       inset: 0;
@@ -99,6 +107,10 @@
     }
 
     .slide.is-active img {
+      transform: scale(1.05);
+    }
+
+    .slide:target img {
       transform: scale(1.05);
     }
 
@@ -163,7 +175,27 @@
       animation-delay: 220ms;
     }
 
-    .slide.is-active .copy > *:nth-child(5) {
+      .slide.is-active .copy > *:nth-child(5) {
+        animation-delay: 290ms;
+      }
+
+    .slide:target .copy > * {
+      animation: fade-up 720ms var(--ease) forwards;
+    }
+
+    .slide:target .copy > *:nth-child(2) {
+      animation-delay: 80ms;
+    }
+
+    .slide:target .copy > *:nth-child(3) {
+      animation-delay: 150ms;
+    }
+
+    .slide:target .copy > *:nth-child(4) {
+      animation-delay: 220ms;
+    }
+
+    .slide:target .copy > *:nth-child(5) {
       animation-delay: 290ms;
     }
 
@@ -354,6 +386,10 @@
     }
 
     .mobile-nav {
+      display: none;
+    }
+
+    .slide-nav {
       display: none;
     }
 
@@ -619,30 +655,57 @@
     @media screen and (max-width: 760px) {
       html,
       body {
-        position: fixed;
+        position: fixed !important;
         inset: 0;
-        width: 100%;
+        width: 100vw;
+        width: var(--app-width);
+        max-width: 100vw;
+        max-width: var(--app-width);
+        height: 100vh;
         height: 100svh;
-        overflow: hidden;
+        height: var(--app-height);
+        min-height: 100vh;
+        min-height: 100svh;
+        min-height: var(--app-height);
+        max-height: 100vh;
+        max-height: 100svh;
+        max-height: var(--app-height);
+        overflow: hidden !important;
         overscroll-behavior: none;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        touch-action: none;
       }
 
       .deck,
       .slide {
-        position: fixed;
+        position: fixed !important;
         inset: 0;
-        width: 100%;
+        width: 100vw;
+        width: var(--app-width);
+        max-width: 100vw;
+        max-width: var(--app-width);
+        height: 100vh;
         height: 100svh;
-        overflow: hidden;
+        height: var(--app-height);
+        min-height: 100vh;
+        min-height: 100svh;
+        min-height: var(--app-height);
+        max-height: 100vh;
+        max-height: 100svh;
+        max-height: var(--app-height);
+        overflow: hidden !important;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
       }
 
-      @supports (height: 100dvh) {
-        html,
-        body,
-        .deck,
-        .slide {
-          height: 100dvh;
-        }
+      html::-webkit-scrollbar,
+      body::-webkit-scrollbar,
+      .deck::-webkit-scrollbar,
+      .slide::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
       }
 
       .progress {
@@ -687,10 +750,10 @@
       }
 
       .content {
-        width: min(390px, 100vw);
+        width: min(390px, var(--app-width));
         max-width: none;
         margin: 0;
-        padding: clamp(54px, 7vh, 72px) 28px 126px;
+        padding: clamp(54px, 7vh, 72px) 28px 88px;
         align-items: center;
         justify-items: center;
         text-align: left;
@@ -764,7 +827,7 @@
       .slide-1 .content {
         align-items: center;
         padding-top: 104px;
-        padding-bottom: 142px;
+        padding-bottom: 108px;
       }
 
       .slide-1 .copy {
@@ -872,12 +935,66 @@
         right: auto;
         width: min(330px, calc(100vw - 60px));
         transform: none;
-        bottom: 84px;
+        bottom: max(22px, calc(env(safe-area-inset-bottom) + 14px));
         font-size: .68rem;
       }
 
       .nav {
         display: none;
+      }
+
+      .mobile-nav {
+        display: none;
+      }
+
+      .slide-nav {
+        position: fixed;
+        z-index: 48;
+        top: 50%;
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 52px;
+        border: 1px solid rgba(244, 244, 244, .16);
+        border-radius: 999px;
+        background: rgba(10, 10, 10, .34);
+        color: rgba(244, 244, 244, .82);
+        font-family: "Inter", Arial, sans-serif;
+        font-size: 2.25rem;
+        font-weight: 500;
+        line-height: 1;
+        text-decoration: none;
+        opacity: .78;
+        transform: translateY(-50%);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+      }
+
+      .slide-nav:active {
+        opacity: 1;
+        background: rgba(10, 10, 10, .68);
+        border-color: rgba(242, 226, 5, .45);
+      }
+
+      .slide-nav-prev {
+        left: calc(var(--app-width) - 52px);
+        left: calc(var(--app-width) - 52px - env(safe-area-inset-right));
+        right: auto;
+        top: calc(50% - 34px);
+      }
+
+      .slide-nav-next {
+        left: calc(var(--app-width) - 52px);
+        left: calc(var(--app-width) - 52px - env(safe-area-inset-right));
+        right: auto;
+        top: calc(50% + 34px);
+      }
+
+      .slide-1 .slide-nav-next,
+      .slide-6 .slide-nav-prev {
+        top: 50%;
       }
 
       .mobile-nav {
@@ -902,6 +1019,11 @@
         font: 700 .76rem/1 "Inter", Arial, sans-serif;
         white-space: nowrap;
         backdrop-filter: blur(10px);
+      }
+
+      .mobile-nav,
+      .mobile-nav button {
+        display: none !important;
       }
     }
 
@@ -993,7 +1115,7 @@
   <main class="deck" aria-live="polite">
     <div class="progress" aria-hidden="true"><span></span></div>
 
-    <section class="slide slide-1 is-active" aria-label="01 / 06">
+    <section id="slide-1" class="slide slide-1 is-active" aria-label="01 / 06">
       <img src="imagens/slide1.png" alt="">
       <div class="content">
         <div class="copy">
@@ -1004,9 +1126,10 @@
         </div>
       </div>
       <footer class="footer"><span>LoudFit 2.0</span><span>01 / 06</span></footer>
+      <a class="slide-nav slide-nav-next" href="#slide-2" data-target-slide="2" aria-label="Próximo slide">›</a>
     </section>
 
-    <section class="slide slide-2" aria-label="02 / 06">
+    <section id="slide-2" class="slide slide-2" aria-label="02 / 06">
       <img src="imagens/slide2.png" alt="">
       <div class="content">
         <div class="copy">
@@ -1021,9 +1144,11 @@
         </div>
       </div>
       <footer class="footer"><span>LoudFit 2.0</span><span>02 / 06</span></footer>
+      <a class="slide-nav slide-nav-prev" href="#slide-1" data-target-slide="1" aria-label="Slide anterior">‹</a>
+      <a class="slide-nav slide-nav-next" href="#slide-3" data-target-slide="3" aria-label="Próximo slide">›</a>
     </section>
 
-    <section class="slide slide-3" aria-label="03 / 06">
+    <section id="slide-3" class="slide slide-3" aria-label="03 / 06">
       <img src="imagens/slide3.png" alt="">
       <div class="content">
         <div class="copy">
@@ -1033,9 +1158,11 @@
         </div>
       </div>
       <footer class="footer"><span>LoudFit 2.0</span><span>03 / 06</span></footer>
+      <a class="slide-nav slide-nav-prev" href="#slide-2" data-target-slide="2" aria-label="Slide anterior">‹</a>
+      <a class="slide-nav slide-nav-next" href="#slide-4" data-target-slide="4" aria-label="Próximo slide">›</a>
     </section>
 
-    <section class="slide slide-4" aria-label="04 / 06">
+    <section id="slide-4" class="slide slide-4" aria-label="04 / 06">
       <img src="imagens/slide4.png" alt="">
       <div class="content">
         <div class="copy">
@@ -1050,9 +1177,11 @@
         </div>
       </div>
       <footer class="footer"><span>LoudFit 2.0</span><span>04 / 06</span></footer>
+      <a class="slide-nav slide-nav-prev" href="#slide-3" data-target-slide="3" aria-label="Slide anterior">‹</a>
+      <a class="slide-nav slide-nav-next" href="#slide-5" data-target-slide="5" aria-label="Próximo slide">›</a>
     </section>
 
-    <section class="slide slide-5" aria-label="05 / 06">
+    <section id="slide-5" class="slide slide-5" aria-label="05 / 06">
       <img src="imagens/slide5.png" alt="">
       <div class="content">
         <div class="copy">
@@ -1063,9 +1192,11 @@
         </div>
       </div>
       <footer class="footer"><span>LoudFit 2.0</span><span>05 / 06</span></footer>
+      <a class="slide-nav slide-nav-prev" href="#slide-4" data-target-slide="4" aria-label="Slide anterior">‹</a>
+      <a class="slide-nav slide-nav-next" href="#slide-6" data-target-slide="6" aria-label="Próximo slide">›</a>
     </section>
 
-    <section class="slide slide-6" aria-label="06 / 06">
+    <section id="slide-6" class="slide slide-6" aria-label="06 / 06">
       <img src="imagens/slide6.png" alt="">
       <div class="content">
         <div class="copy">
@@ -1079,6 +1210,7 @@
         </div>
       </div>
       <footer class="footer"><span>LoudFit 2.0</span><span>06 / 06</span></footer>
+      <a class="slide-nav slide-nav-prev" href="#slide-5" data-target-slide="5" aria-label="Slide anterior">‹</a>
     </section>
 
     <button class="nav prev" type="button" aria-label="Anterior">‹</button>
@@ -1097,17 +1229,47 @@
       const nextButton = document.querySelector(".next");
       const mobilePrevButton = document.querySelector(".mobile-prev");
       const mobileNextButton = document.querySelector(".mobile-next");
+      const slideLinks = Array.from(document.querySelectorAll("[data-target-slide]"));
       const hashSlide = window.location.hash.match(/^#slide-(\d+)$/);
       const requested = hashSlide ? Number(hashSlide[1]) : Number(new URLSearchParams(window.location.search).get("slide"));
       const initial = Number.isInteger(requested) ? Math.max(0, Math.min(slides.length - 1, requested - 1)) : 0;
       const coarsePointer = window.matchMedia("(pointer: coarse)");
+      const mobileViewport = window.matchMedia("(max-width: 760px)");
       let current = 0;
       let touchStartX = 0;
       let touchStartY = 0;
 
-      function show(index) {
+      function setAppHeight() {
+        const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        const viewportWidth = [window.visualViewport?.width, window.innerWidth, window.outerWidth]
+          .filter((value) => Number.isFinite(value) && value > 0)
+          .reduce((smallest, value) => Math.min(smallest, value), Number.POSITIVE_INFINITY);
+        document.documentElement.style.setProperty("--app-height", `${Math.max(320, Math.round(viewportHeight))}px`);
+        document.documentElement.style.setProperty("--app-width", `${Math.max(320, Math.round(viewportWidth))}px`);
+        window.scrollTo(0, 0);
+      }
+
+      function syncHash(index) {
+        const hash = `#slide-${index + 1}`;
+
+        if (window.location.hash === hash) {
+          return;
+        }
+
+        try {
+          window.history.replaceState(null, "", hash);
+        } catch (error) {
+          window.location.hash = hash;
+        }
+      }
+
+      function show(index, updateHash = false) {
         const next = Math.max(0, Math.min(slides.length - 1, index));
         if (next === current && slides[current].classList.contains("is-active")) {
+          if (updateHash) {
+            syncHash(next);
+          }
+
           return;
         }
 
@@ -1117,14 +1279,19 @@
         slides[current].classList.add("is-active");
         slides[current].setAttribute("aria-hidden", "false");
         progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+        window.scrollTo(0, 0);
+
+        if (updateHash) {
+          syncHash(current);
+        }
       }
 
       function next() {
-        show(current + 1);
+        show(current + 1, mobileViewport.matches);
       }
 
       function previous() {
-        show(current - 1);
+        show(current - 1, mobileViewport.matches);
       }
 
       slides.forEach((slide, index) => {
@@ -1132,7 +1299,16 @@
       });
 
       progress.style.width = `${(1 / slides.length) * 100}%`;
+      setAppHeight();
       show(initial);
+
+      window.addEventListener("resize", setAppHeight, { passive: true });
+      window.addEventListener("scroll", () => window.scrollTo(0, 0), { passive: true });
+
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", setAppHeight, { passive: true });
+        window.visualViewport.addEventListener("scroll", setAppHeight, { passive: true });
+      }
 
       document.addEventListener("keydown", (event) => {
         if (event.key === "ArrowRight" || event.key === " ") {
@@ -1147,7 +1323,7 @@
       });
 
       document.addEventListener("click", (event) => {
-        if (event.target.closest("button")) {
+        if (event.target.closest("button, a")) {
           return;
         }
 
@@ -1164,14 +1340,47 @@
 
       prevButton.addEventListener("click", previous);
       nextButton.addEventListener("click", next);
-      mobilePrevButton.addEventListener("click", previous);
-      mobileNextButton.addEventListener("click", next);
+
+      if (mobilePrevButton) {
+        mobilePrevButton.addEventListener("click", previous);
+      }
+
+      if (mobileNextButton) {
+        mobileNextButton.addEventListener("click", next);
+      }
+
+      slideLinks.forEach((link) => {
+        link.addEventListener("click", (event) => {
+          const target = Number(link.dataset.targetSlide);
+
+          if (!Number.isInteger(target)) {
+            return;
+          }
+
+          event.preventDefault();
+          show(target - 1, true);
+        });
+      });
+
+      window.addEventListener("hashchange", () => {
+        const match = window.location.hash.match(/^#slide-(\d+)$/);
+
+        if (match) {
+          show(Number(match[1]) - 1);
+        }
+      });
 
       document.addEventListener("touchstart", (event) => {
         const touch = event.changedTouches[0];
         touchStartX = touch.clientX;
         touchStartY = touch.clientY;
       }, { passive: true });
+
+      document.addEventListener("touchmove", (event) => {
+        if (mobileViewport.matches) {
+          event.preventDefault();
+        }
+      }, { passive: false });
 
       document.addEventListener("touchend", (event) => {
         const touch = event.changedTouches[0];
