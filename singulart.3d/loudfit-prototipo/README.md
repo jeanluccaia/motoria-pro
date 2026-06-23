@@ -36,16 +36,15 @@ A interface calcula automaticamente:
 
 ## Onde trocar imagens
 
-As imagens ficam em `assets/images/`. A base atual usa fotografias reais de academia premium como placeholder visual:
+As imagens ficam em `assets/images/`. A base visual prioriza fotografias públicas reais da LoudFit, com fotografia real premium apenas como fallback quando não houver imagem específica da marca:
 
-- `real-hero-gym.jpg`
-- `real-floor.jpg`
-- `real-cardio.jpg`
-- `real-training.jpg`
-- `real-community.jpg`
+- `loudfit-real-facade.jpg`
+- `loudfit-real-machines.jpg`
+- `loudfit-real-studio.jpg`
+- `loudfit-real-weights.jpg`
 - `real-opening.jpg`
 
-Prioridade final: substituir por fotografias reais oficiais da LoudFit quando houver material aprovado. Para substituir, mantenha os mesmos nomes de arquivo ou ajuste os caminhos em `content/units.js` e nos HTMLs.
+Prioridade final: substituir/expandir por fotografias oficiais aprovadas da LoudFit quando houver material interno disponível. Para substituir, mantenha os mesmos nomes de arquivo ou ajuste os caminhos em `content/units.js` e nos HTMLs.
 
 ## Formulário de franquia
 
