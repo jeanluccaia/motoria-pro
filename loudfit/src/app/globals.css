@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+:root {
+  /* Superfícies */
+  --lf-black:    #0A0A0A;
+  --lf-graphite: #161616;
+  --lf-surface:  #1F1F1F;
+  --lf-line:     #2E2E2E;
+
+  /* Texto */
+  --lf-text:     #F4F4F4;
+  --lf-muted:    #A1A1A1;
+
+  /* Acento — confirmar hex oficial com a marca */
+  --lf-volt:     #F2E205;
+  --lf-volt-deep:#C9BE04;
+
+  /* Movimento */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur:  0.6s;
+}
+
+@theme inline {
+  --color-lf-black:    var(--lf-black);
+  --color-lf-graphite: var(--lf-graphite);
+  --color-lf-surface:  var(--lf-surface);
+  --color-lf-line:     var(--lf-line);
+  --color-lf-text:     var(--lf-text);
+  --color-lf-muted:    var(--lf-muted);
+  --color-lf-volt:     var(--lf-volt);
+  --color-lf-volt-deep:var(--lf-volt-deep);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--lf-black);
+  color: var(--lf-text);
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display, system-ui, sans-serif);
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
