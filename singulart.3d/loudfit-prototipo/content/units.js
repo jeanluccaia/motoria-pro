@@ -10,7 +10,7 @@ window.LOUDFIT_UNITS = [
     instagram: "#",
     status: "em_operacao",
     statusLabel: "Em operação",
-    image: "../assets/images/franchise-floor.png"
+    image: "../assets/images/real-floor.jpg"
   },
   {
     name: "Mogi Mirim",
@@ -23,7 +23,7 @@ window.LOUDFIT_UNITS = [
     instagram: "#",
     status: "em_operacao",
     statusLabel: "Em operação",
-    image: "../assets/images/community-training.png"
+    image: "../assets/images/real-community.jpg"
   },
   {
     name: "Anchieta",
@@ -36,7 +36,7 @@ window.LOUDFIT_UNITS = [
     instagram: "#",
     status: "em_operacao",
     statusLabel: "Em operação",
-    image: "../assets/images/hero-gym.png"
+    image: "../assets/images/real-hero-gym.jpg"
   },
   {
     name: "Moreiras",
@@ -49,7 +49,7 @@ window.LOUDFIT_UNITS = [
     instagram: "#",
     status: "em_operacao",
     statusLabel: "Em operação",
-    image: "../assets/images/franchise-floor.png"
+    image: "../assets/images/real-cardio.jpg"
   },
   {
     name: "Ribeirao Industrial",
@@ -62,7 +62,7 @@ window.LOUDFIT_UNITS = [
     instagram: "#",
     status: "em_operacao",
     statusLabel: "Em operação",
-    image: "../assets/images/community-training.png"
+    image: "../assets/images/real-training.jpg"
   },
   {
     name: "6ª Unidade LoudFit",
@@ -76,6 +76,6 @@ window.LOUDFIT_UNITS = [
     status: "em_inauguracao",
     statusLabel: "Em inauguração",
     badge: "6ª unidade",
-    image: "../assets/images/opening-unit.png"
+    image: "../assets/images/real-opening.jpg"
   }
 ];

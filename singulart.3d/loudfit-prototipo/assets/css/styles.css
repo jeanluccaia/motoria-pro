@@ -64,7 +64,8 @@ textarea {
 }
 
 .container {
-  width: min(100% - 40px, 1180px);
+  width: calc(100% - 40px);
+  max-width: 1180px;
   margin: 0 auto;
 }
 
@@ -213,6 +214,7 @@ textarea {
   height: 100%;
   object-fit: cover;
   transform: scale(1.02);
+  filter: saturate(.9) contrast(1.08) brightness(.92);
 }
 
 .hero__media::after {
@@ -561,6 +563,7 @@ p {
   height: 100%;
   min-height: inherit;
   object-fit: cover;
+  filter: saturate(.9) contrast(1.08) brightness(.94);
 }
 
 .photo-panel::after {
@@ -1299,7 +1302,7 @@ p {
 
 @media (max-width: 640px) {
   .container {
-    width: min(100% - 28px, 1180px);
+    width: calc(100% - 28px);
   }
 
   .brand {
@@ -1375,6 +1378,12 @@ p {
     flex-direction: column;
     border-radius: 18px;
     padding: 16px;
+    min-width: 0;
+  }
+
+  .locator-card__search .button {
+    width: 100%;
+    white-space: normal;
   }
 
   .growth-number {
