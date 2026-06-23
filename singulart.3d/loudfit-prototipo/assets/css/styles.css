@@ -640,6 +640,17 @@ p {
   min-height: 720px;
 }
 
+.image-chapter--facade > img {
+  object-position: center 44%;
+  filter: saturate(1.04) contrast(1.14) brightness(.84);
+}
+
+.image-chapter--facade::after {
+  background:
+    linear-gradient(90deg, rgba(10, 10, 10, .9), rgba(10, 10, 10, .28) 48%, rgba(10, 10, 10, .58)),
+    linear-gradient(0deg, var(--bg), rgba(10, 10, 10, .06) 46%, rgba(10, 10, 10, .36));
+}
+
 .stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
