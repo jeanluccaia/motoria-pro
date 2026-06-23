@@ -370,8 +370,13 @@ p {
 .locator-strip {
   position: relative;
   z-index: 2;
-  margin-top: -28px;
-  padding-bottom: 0;
+  margin-top: 0;
+  border-top: 1px solid rgba(242, 226, 5, .16);
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  background:
+    linear-gradient(90deg, rgba(242, 226, 5, .08), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, 0));
+  padding: clamp(46px, 6vw, 76px) 0;
 }
 
 .locator-strip--page {
@@ -380,38 +385,47 @@ p {
 
 .locator-card {
   display: grid;
-  grid-template-columns: minmax(0, .9fr) minmax(360px, .8fr);
-  gap: 32px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(32px, 7vw, 92px);
   align-items: center;
-  border-top: 1px solid rgba(242, 226, 5, .24);
-  border-bottom: 1px solid rgba(255, 255, 255, .1);
+  border: 0;
   border-radius: 0;
-  background:
-    linear-gradient(90deg, rgba(242, 226, 5, .08), transparent 36%),
-    rgba(12, 13, 15, .74);
-  backdrop-filter: blur(18px);
-  padding: 24px 0;
+  background: none;
+  backdrop-filter: none;
+  padding: 0;
   box-shadow: none;
 }
 
-.locator-card h2 {
-  font-family: "Anton", Impact, sans-serif;
-  font-size: 36px;
-  line-height: 1;
-  text-transform: uppercase;
+.locator-card__copy {
+  max-width: 760px;
 }
 
-.locator-card__search {
+.locator-card h2 {
+  margin: 12px 0 0;
+  font-family: "Anton", Impact, sans-serif;
+  font-size: clamp(58px, 6.4vw, 88px);
+  line-height: .94;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.locator-card__copy p {
+  margin: 18px 0 0;
+  max-width: 500px;
+  color: var(--muted);
+  font-size: clamp(17px, 1.45vw, 20px);
+}
+
+.locator-card__action {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  min-height: 62px;
-  border: 1px solid rgba(255, 255, 255, .1);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, .035);
-  padding: 7px 8px 7px 22px;
-  color: var(--muted);
+  justify-content: flex-end;
+  justify-self: end;
+}
+
+.locator-card__action .button {
+  min-width: 178px;
 }
 
 .growth-panel {
@@ -1661,6 +1675,10 @@ p {
     grid-template-columns: 1fr;
   }
 
+  .locator-card__action {
+    justify-self: start;
+  }
+
   .growth-panel__caption {
     grid-column: 1 / -1;
   }
@@ -1775,31 +1793,30 @@ p {
   }
 
   .locator-strip {
-    margin-top: -34px;
+    margin-top: 0;
+    padding: 42px 0 48px;
   }
 
   .locator-card {
-    gap: 18px;
-    padding: 22px 0;
+    gap: 22px;
+    padding: 0;
   }
 
   .locator-card h2 {
-    font-size: 34px;
+    font-size: clamp(44px, 13vw, 58px);
   }
 
-  .locator-card__search {
-    align-items: stretch;
-    flex-direction: column;
-    border-radius: 18px;
-    padding: 16px;
-    width: 100%;
-    min-width: 0;
-    overflow: hidden;
+  .locator-card__copy p {
+    font-size: 16px;
   }
 
-  .locator-card__search .button {
+  .locator-card__action {
+    justify-self: stretch;
     width: 100%;
-    white-space: normal;
+  }
+
+  .locator-card__action .button {
+    width: 100%;
   }
 
   .growth-number {
@@ -1951,7 +1968,7 @@ p {
     gap: 10px;
   }
 
-  .locator-card__search .button {
+  .locator-card__action .button {
     width: 100%;
   }
 
