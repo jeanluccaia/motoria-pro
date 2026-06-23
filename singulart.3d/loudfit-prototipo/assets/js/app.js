@@ -15,24 +15,63 @@
     return path;
   }
 
+  function getUnitStats(units) {
+    var operating = units.filter(function (unit) { return unit.status === "em_operacao"; }).length;
+    var opening = units.filter(function (unit) { return unit.status === "em_inauguracao"; }).length;
+    return {
+      total: operating + opening,
+      operating: operating,
+      opening: opening
+    };
+  }
+
+  function sortUnits(units) {
+    return units.slice().sort(function (a, b) {
+      if (a.status === b.status) return 0;
+      return a.status === "em_inauguracao" ? 1 : -1;
+    });
+  }
+
+  function renderNetworkStats() {
+    var stats = getUnitStats(window.LOUDFIT_UNITS || []);
+    document.querySelectorAll("[data-network-total]").forEach(function (item) {
+      item.textContent = stats.total;
+    });
+    document.querySelectorAll("[data-network-operating]").forEach(function (item) {
+      item.textContent = stats.operating;
+    });
+    document.querySelectorAll("[data-network-opening]").forEach(function (item) {
+      item.textContent = stats.opening;
+    });
+  }
+
   function renderUnits() {
-    var units = window.LOUDFIT_UNITS || [];
+    var units = sortUnits(window.LOUDFIT_UNITS || []);
     document.querySelectorAll("[data-units-grid]").forEach(function (grid) {
       var limit = Number(grid.dataset.limit || units.length);
       grid.innerHTML = units.slice(0, limit).map(function (unit) {
+        var isOpening = unit.status === "em_inauguracao";
+        var target = document.body.dataset.depth === "root" ? "./unidades/" : "../unidades/";
+        var actions = isOpening
+          ? '<span class="icon-link icon-link--quiet">Em breve</span>'
+          : [
+              '<a class="icon-link" href="' + unit.whatsapp + '" aria-label="WhatsApp da unidade ' + unit.name + '">WhatsApp</a>',
+              '<a class="icon-link" href="' + unit.instagram + '" aria-label="Instagram da unidade ' + unit.name + '">Instagram</a>',
+              '<a class="icon-link" href="' + target + '">Ver unidade</a>'
+            ].join("");
+
         return [
-          '<article class="unit-card reveal">',
-          '  <a class="unit-card__media" href="' + (document.body.dataset.depth === "root" ? "./unidades/" : "../unidades/") + '">',
+          '<article class="unit-card ' + (isOpening ? 'unit-card--opening ' : '') + 'reveal">',
+          '  <a class="unit-card__media" href="' + target + '">',
           '    <img src="' + unitImagePath(unit.image) + '" alt="Unidade LoudFit ' + unit.name + '" loading="lazy">',
+          (isOpening ? '    <span class="status-badge"><span class="pulse-dot"></span>' + (unit.badge || unit.statusLabel) + '</span>' : ''),
           '  </a>',
           '  <div class="unit-card__body">',
-          '    <span class="eyebrow">Unidade</span>',
+          '    <span class="unit-status ' + (isOpening ? 'unit-status--opening' : '') + '">' + unit.statusLabel + '</span>',
           '    <h3>' + unit.name + '</h3>',
           '    <p>' + unit.district + ' · ' + unit.city + '</p>',
           '    <div class="unit-card__actions">',
-          '      <a class="icon-link" href="' + unit.whatsapp + '" aria-label="WhatsApp da unidade ' + unit.name + '">WhatsApp</a>',
-          '      <a class="icon-link" href="' + unit.instagram + '" aria-label="Instagram da unidade ' + unit.name + '">Instagram</a>',
-          '      <a class="icon-link" href="' + (document.body.dataset.depth === "root" ? "./unidades/" : "../unidades/") + '">Ver unidade</a>',
+          actions,
           '    </div>',
           '  </div>',
           '</article>'
@@ -47,12 +86,8 @@
     var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     function animate(counter) {
-      var target = Number(counter.dataset.count || 0);
-      if (target < 10) {
-        counter.textContent = target;
-        return;
-      }
-      if (reduced) {
+      var target = Number(counter.dataset.count || counter.textContent || 0);
+      if (target < 10 || reduced) {
         counter.textContent = target;
         return;
       }
@@ -128,6 +163,7 @@
   }
 
   renderUnits();
+  renderNetworkStats();
   setupCounters();
   setupReveal();
   setupFaq();

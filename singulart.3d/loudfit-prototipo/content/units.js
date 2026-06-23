@@ -8,6 +8,8 @@ window.LOUDFIT_UNITS = [
     hours: "[preencher]",
     whatsapp: "#",
     instagram: "#",
+    status: "em_operacao",
+    statusLabel: "Em operação",
     image: "../assets/images/franchise-floor.png"
   },
   {
@@ -19,6 +21,8 @@ window.LOUDFIT_UNITS = [
     hours: "[preencher]",
     whatsapp: "#",
     instagram: "#",
+    status: "em_operacao",
+    statusLabel: "Em operação",
     image: "../assets/images/community-training.png"
   },
   {
@@ -30,6 +34,8 @@ window.LOUDFIT_UNITS = [
     hours: "[preencher]",
     whatsapp: "#",
     instagram: "#",
+    status: "em_operacao",
+    statusLabel: "Em operação",
     image: "../assets/images/hero-gym.png"
   },
   {
@@ -41,6 +47,8 @@ window.LOUDFIT_UNITS = [
     hours: "[preencher]",
     whatsapp: "#",
     instagram: "#",
+    status: "em_operacao",
+    statusLabel: "Em operação",
     image: "../assets/images/franchise-floor.png"
   },
   {
@@ -52,6 +60,22 @@ window.LOUDFIT_UNITS = [
     hours: "[preencher]",
     whatsapp: "#",
     instagram: "#",
+    status: "em_operacao",
+    statusLabel: "Em operação",
     image: "../assets/images/community-training.png"
+  },
+  {
+    name: "6ª Unidade LoudFit",
+    slug: "sexta-unidade",
+    city: "[preencher]",
+    district: "Em inauguração",
+    address: "[preencher]",
+    hours: "[preencher]",
+    whatsapp: "#",
+    instagram: "#",
+    status: "em_inauguracao",
+    statusLabel: "Em inauguração",
+    badge: "6ª unidade",
+    image: "../assets/images/opening-unit.png"
   }
 ];

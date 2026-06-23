@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>LoudFit | Casa digital oficial</title>
-  <meta name="description" content="Protótipo da casa digital oficial da LoudFit, uma rede de academias em expansão.">
+  <title>LoudFit | A rede que treina alto</title>
+  <meta name="description" content="Concept car digital da LoudFit: uma rede de academias com energia, identidade e expansão em movimento.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/styles.css?v=20260622-2">
+  <link rel="stylesheet" href="./assets/css/styles.css?v=20260623-1">
 </head>
 <body class="page" data-depth="root">
   <nav class="nav" data-nav>
@@ -18,52 +18,59 @@
       <div class="nav__links" data-menu>
         <a href="./" aria-current="page">Home</a>
         <a href="./unidades/">Unidades</a>
+        <a href="./modalidades/">Modalidades</a>
         <a href="./franquias/">Franquias</a>
-        <a class="button button--volt" href="./franquias/">Quero ser franqueado</a>
+        <a class="button button--volt" href="./unidades/">Encontrar unidade</a>
       </div>
     </div>
   </nav>
 
   <main>
-    <section class="hero">
+    <section class="hero hero--showpiece">
       <div class="hero__media" aria-hidden="true">
         <img src="./assets/images/hero-gym.png" alt="">
       </div>
       <div class="container hero__content reveal">
-        <span class="eyebrow">Casa digital oficial</span>
+        <span class="kicker-muted">Rede em expansão</span>
         <h1 class="display">A rede que treina alto.</h1>
-        <p class="hero__lead">Academias com energia, estrutura e identidade forte. Agora em expansão.</p>
+        <p class="hero__lead">Academias com energia, estrutura e identidade forte. Em expansão pelo Brasil.</p>
         <div class="hero__actions">
           <a class="button button--volt" href="./unidades/">Encontrar uma unidade</a>
           <a class="button button--outline" href="./franquias/">Quero ser franqueado</a>
         </div>
-        <div class="cred-line" aria-label="Indicadores da rede">
-          <span>5 unidades em operação</span>
-          <span>presença local forte</span>
-          <span>expansão por franquias</span>
+        <div class="live-line" aria-label="Crescimento da rede">
+          <span><strong data-network-operating>5</strong> unidades em operação</span>
+          <span><i class="pulse-dot"></i><strong data-network-opening>1</strong> em inauguração</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="locator-strip">
+      <div class="container locator-card reveal">
+        <div>
+          <span class="section__kicker">Localizador</span>
+          <h2>Encontre sua LoudFit.</h2>
+        </div>
+        <div class="locator-card__search" role="search">
+          <span>Cidade, bairro ou unidade</span>
+          <a class="button button--volt" href="./unidades/">Buscar unidade</a>
         </div>
       </div>
     </section>
 
     <section class="section section--surface">
       <div class="container">
-        <div class="stats reveal">
-          <div class="stat">
-            <div class="stat__number" data-count="5">0</div>
-            <p class="stat__label">unidades em operação</p>
+        <div class="growth-panel reveal">
+          <div class="growth-panel__main">
+            <span class="section__kicker">Rede em movimento</span>
+            <div class="growth-number"><span data-network-total>6</span></div>
+            <p>unidades próprias</p>
           </div>
-          <div class="stat">
-            <div class="stat__number">+</div>
-            <p class="stat__label">presença local forte</p>
+          <div class="growth-panel__detail">
+            <div><strong data-network-operating>5</strong><span>em operação</span></div>
+            <div><strong>+<span data-network-opening>1</span></strong><span><i class="pulse-dot"></i>em inauguração</span></div>
           </div>
-          <div class="stat">
-            <div class="stat__number">LF</div>
-            <p class="stat__label">identidade proprietária</p>
-          </div>
-          <div class="stat">
-            <div class="stat__number">BR</div>
-            <p class="stat__label">pronta para expansão</p>
-          </div>
+          <div class="growth-panel__caption">A marca segue abrindo suas próprias unidades enquanto prepara a expansão por franquias.</div>
         </div>
       </div>
     </section>
@@ -71,9 +78,9 @@
     <section class="section">
       <div class="container split">
         <div class="manifest reveal">
-          <span class="section__kicker">A tese da marca</span>
+          <span class="section__kicker">Uma rede em crescimento</span>
           <h2 class="manifest__line">Ambiente muda treino.</h2>
-          <p>A LoudFit não é só uma academia. É uma rede com identidade, energia e experiência: um lugar que motiva quem treina e cria pertencimento.</p>
+          <p>A LoudFit transforma a energia da sala, o ritmo do treino e o orgulho de pertencer. É estrutura, intensidade e comunidade no mesmo lugar.</p>
           <div class="section__actions">
             <a class="button button--outline" href="./franquias/">Ver visão de expansão</a>
           </div>
@@ -88,34 +95,66 @@
       <div class="container">
         <div class="section__head reveal">
           <div>
-            <span class="section__kicker">Presença real</span>
-            <h2 class="section__title">Cinco unidades. Uma mesma energia.</h2>
+            <span class="section__kicker">Experiência LoudFit</span>
+            <h2 class="section__title">O que se sente antes de ler.</h2>
           </div>
-          <p class="section__copy">A rede aparece como rede: unidades padronizadas, presença digital organizada e uma marca que sustenta expansão.</p>
+          <p class="section__copy">Ambiente, energia, estrutura e comunidade aparecem como produto. A marca fica maior porque a experiência parece maior.</p>
         </div>
-        <div class="grid grid--3" data-units-grid data-limit="3"></div>
+        <div class="experience-grid">
+          <article class="experience-card experience-card--wide reveal"><img src="./assets/images/franchise-floor.png" alt="Recepção e sala de treino LoudFit"><span>Ambiente</span></article>
+          <article class="experience-card reveal"><img src="./assets/images/community-training.png" alt="Comunidade LoudFit após treino"><span>Comunidade</span></article>
+          <article class="experience-card reveal"><img src="./assets/images/hero-gym.png" alt="Área de treino LoudFit"><span>Estrutura</span></article>
+          <article class="experience-card experience-card--wide reveal"><img src="./assets/images/opening-unit.png" alt="Nova unidade LoudFit em fase de inauguração"><span>Expansão</span></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="modalidades">
+      <div class="container">
+        <div class="section__head reveal">
+          <div>
+            <span class="section__kicker">Modalidades</span>
+            <h2 class="section__title">Um universo de treino.</h2>
+          </div>
+          <p class="section__copy">Força, condicionamento, funcional e comunidade. Profundidade suficiente para a LoudFit parecer um ecossistema, não uma unidade isolada.</p>
+        </div>
+        <div class="marquee reveal" aria-hidden="true">
+          <span>Musculação</span><span>Funcional</span><span>HIIT</span><span>Personal</span><span>Cardio</span><span>Comunidade</span>
+        </div>
+        <div class="grid grid--4">
+          <article class="feature-card reveal"><span class="feature-card__num">01</span><h3>Força</h3><p>Estrutura para treino intenso e progressivo.</p></article>
+          <article class="feature-card reveal"><span class="feature-card__num">02</span><h3>Cardio</h3><p>Ritmo, constância e energia na rotina.</p></article>
+          <article class="feature-card reveal"><span class="feature-card__num">03</span><h3>Funcional</h3><p>Movimento, grupo e presença de treino.</p></article>
+          <article class="feature-card reveal"><span class="feature-card__num">04</span><h3>Performance</h3><p>Ambiente que puxa o aluno para cima.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--surface">
+      <div class="container">
+        <div class="section__head reveal">
+          <div>
+            <span class="section__kicker">A rede</span>
+            <h2 class="section__title">Operação hoje. Próxima unidade nascendo.</h2>
+          </div>
+          <p class="section__copy">As unidades aparecem como parte de uma mesma marca. A 6ª entra no fim da lista, com presença discreta de inauguração.</p>
+        </div>
+        <div class="grid grid--3" data-units-grid data-limit="6"></div>
         <div class="section__actions">
-          <a class="button button--outline" href="./unidades/">Ver todas as unidades</a>
+          <a class="button button--outline" href="./unidades/">Ver localizador completo</a>
         </div>
       </div>
     </section>
 
     <section class="section">
-      <div class="container">
-        <div class="section__head reveal">
-          <div>
-            <span class="section__kicker">Diferenciais</span>
-            <h2 class="section__title">O que faz a LoudFit parecer maior.</h2>
-          </div>
-          <p class="section__copy">Não é volume de texto. É consistência: ambiente, atendimento, energia e uma experiência que o aluno sente antes de comparar preço.</p>
+      <div class="container split">
+        <div class="photo-panel reveal">
+          <img src="./assets/images/community-training.png" alt="Comunidade LoudFit treinando junto">
         </div>
-        <div class="grid grid--3">
-          <article class="feature-card reveal"><span class="feature-card__num">01</span><h3>Ambiente</h3><p>Visual forte, escuro e memorável.</p></article>
-          <article class="feature-card reveal"><span class="feature-card__num">02</span><h3>Energia</h3><p>Treino com intensidade e presença.</p></article>
-          <article class="feature-card reveal"><span class="feature-card__num">03</span><h3>Comunidade</h3><p>Aluno sente que faz parte de algo.</p></article>
-          <article class="feature-card reveal"><span class="feature-card__num">04</span><h3>Estrutura</h3><p>Unidade preparada para operar com padrão.</p></article>
-          <article class="feature-card reveal"><span class="feature-card__num">05</span><h3>Atendimento</h3><p>Contato simples, direto e próximo.</p></article>
-          <article class="feature-card reveal"><span class="feature-card__num">06</span><h3>Crescimento</h3><p>Modelo pronto para ganhar novas praças.</p></article>
+        <div class="manifest reveal">
+          <span class="section__kicker">Comunidade</span>
+          <h2 class="manifest__line">A energia vira pertencimento.</h2>
+          <p>A LoudFit não compete só por equipamento ou preço. Ela constrói um ambiente que dá vontade de voltar, treinar junto e carregar a marca no peito.</p>
         </div>
       </div>
     </section>
@@ -124,32 +163,32 @@
       <div class="container">
         <div class="cta-band reveal">
           <h2>A LoudFit está crescendo. Você pode crescer junto.</h2>
-          <p>Uma marca com energia real, operação em movimento e espaço para novos investidores entrarem no próximo capítulo.</p>
+          <p>Uma marca com operação própria em movimento e espaço para investidores entrarem no próximo capítulo.</p>
           <div class="section__actions">
-            <a class="button button--volt" href="./franquias/">Conheça a franquia</a>
+            <a class="button button--volt" href="./franquias/">Conheça a oportunidade de franquia</a>
           </div>
         </div>
       </div>
     </section>
   </main>
 
-  <footer class="footer">
+  <footer class="footer footer--large">
     <div class="container footer__grid">
       <div>
         <a class="brand" href="./"><span class="brand__mark"></span>LoudFit</a>
-        <p>CNPJ: [preencher]. Casa digital oficial da LoudFit. Conteúdo de protótipo para apresentação institucional.</p>
+        <p>CNPJ: [preencher]. Concept car digital para apresentar a visão de crescimento da LoudFit.</p>
       </div>
-      <div class="footer__links">
-        <a href="./unidades/">Unidades</a>
-        <a href="./franquias/">Franquias</a>
-        <a href="#">Instagram</a>
-        <a href="#">Política de dados</a>
+      <div class="footer__columns">
+        <div><strong>Marca</strong><a href="./sobre/">Sobre</a><a href="./modalidades/">Modalidades</a><a href="./unidades/">Unidades</a></div>
+        <div><strong>Expansão</strong><a href="./franquias/">Franquias</a><a href="#">Indique um ponto</a><a href="#">Investidores</a></div>
+        <div><strong>Institucional</strong><a href="#">Imprensa</a><a href="#">Trabalhe conosco</a><a href="./contato/">Contato</a></div>
+        <div><strong>Social</strong><a href="#">Instagram</a><a href="#">TikTok</a><a href="#">Privacidade</a></div>
       </div>
     </div>
   </footer>
 
-  <script src="./content/site.js?v=20260622-2"></script>
-  <script src="./content/units.js?v=20260622-2"></script>
-  <script src="./assets/js/app.js?v=20260622-2"></script>
+  <script src="./content/site.js?v=20260623-1"></script>
+  <script src="./content/units.js?v=20260623-1"></script>
+  <script src="./assets/js/app.js?v=20260623-1"></script>
 </body>
 </html>
