@@ -63,4 +63,4 @@ Em hospedagem estática, mantenha a estrutura de pastas para preservar essas rot
 
 ## Observações
 
-Campos com `[preencher]` devem ser completados pela LoudFit antes de publicação final. Nenhum número financeiro foi inventado no protótipo.
+Informações ainda não validadas devem permanecer vazias ou ser resolvidas pela composição visual. Nenhum número financeiro foi inventado no protótipo.

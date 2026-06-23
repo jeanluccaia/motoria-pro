@@ -15,6 +15,15 @@
     return path;
   }
 
+  function cleanValue(value) {
+    if (!value || value.charAt(0) === "[") return "";
+    return value;
+  }
+
+  function unitLocation(unit) {
+    return [cleanValue(unit.district), cleanValue(unit.city)].filter(Boolean).join(" · ") || unit.statusLabel;
+  }
+
   function getUnitStats(units) {
     var operating = units.filter(function (unit) { return unit.status === "em_operacao"; }).length;
     var opening = units.filter(function (unit) { return unit.status === "em_inauguracao"; }).length;
@@ -69,7 +78,7 @@
           '  <div class="unit-card__body">',
           '    <span class="unit-status ' + (isOpening ? 'unit-status--opening' : '') + '">' + unit.statusLabel + '</span>',
           '    <h3>' + unit.name + '</h3>',
-          '    <p>' + unit.district + ' · ' + unit.city + '</p>',
+          '    <p>' + unitLocation(unit) + '</p>',
           '    <div class="unit-card__actions">',
           actions,
           '    </div>',

@@ -464,6 +464,50 @@ p {
   font-size: 18px;
 }
 
+.section--quiet {
+  background: var(--bg);
+  padding: 132px 0;
+}
+
+.network-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(220px, .72fr);
+  gap: 56px;
+  align-items: end;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 58px 0;
+}
+
+.network-stage__number {
+  color: var(--volt);
+  font-family: "Anton", Impact, sans-serif;
+  font-size: clamp(130px, 18vw, 240px);
+  line-height: .76;
+}
+
+.network-stage__split {
+  display: grid;
+  gap: 18px;
+}
+
+.network-stage__split > span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.network-stage__split strong {
+  color: var(--text);
+  font-family: "Anton", Impact, sans-serif;
+  font-size: 42px;
+  line-height: 1;
+}
+
 .section {
   padding: 104px 0;
   background: var(--bg);
@@ -509,6 +553,64 @@ p {
 .section__copy {
   color: var(--muted);
   font-size: 18px;
+}
+
+.section__head--loose {
+  margin-bottom: 72px;
+}
+
+.image-chapter {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: 780px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.image-chapter > img {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(.9) contrast(1.08) brightness(.86);
+}
+
+.image-chapter::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(10, 10, 10, .88), rgba(10, 10, 10, .34) 58%, rgba(10, 10, 10, .72)),
+    linear-gradient(0deg, var(--bg), rgba(10, 10, 10, .1) 44%, rgba(10, 10, 10, .5));
+}
+
+.image-chapter__content {
+  padding: 0 0 96px;
+}
+
+.image-chapter__content h2 {
+  max-width: 780px;
+  margin-top: 16px;
+  font-family: "Anton", Impact, sans-serif;
+  font-size: clamp(58px, 8vw, 116px);
+  line-height: .92;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.image-chapter__content p {
+  max-width: 560px;
+  margin-top: 24px;
+  color: #d4d4d8;
+  font-size: 20px;
+}
+
+.image-chapter--franchise {
+  min-height: 720px;
 }
 
 .stats {
@@ -851,6 +953,235 @@ p {
 
 .marquee span:nth-child(even) {
   color: rgba(242, 226, 5, .22);
+}
+
+.modality-suite {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 430px;
+  gap: 18px;
+}
+
+.modality-product {
+  position: relative;
+  overflow: hidden;
+  background: #080808;
+  min-height: 430px;
+}
+
+.modality-product--wide {
+  grid-column: 1 / -1;
+  min-height: 560px;
+}
+
+.modality-product img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(.9) contrast(1.08) brightness(.86);
+  transition: transform .7s var(--ease);
+}
+
+.modality-product::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(0deg, rgba(10, 10, 10, .82), rgba(10, 10, 10, .1) 58%),
+    linear-gradient(90deg, rgba(10, 10, 10, .4), transparent 55%);
+}
+
+.modality-product div {
+  position: absolute;
+  z-index: 2;
+  right: 34px;
+  bottom: 30px;
+  left: 34px;
+}
+
+.modality-product span {
+  color: var(--volt);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.modality-product h3 {
+  max-width: 720px;
+  margin-top: 10px;
+  font-family: "Anton", Impact, sans-serif;
+  font-size: clamp(48px, 7vw, 104px);
+  line-height: .92;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.modality-product:not(.modality-product--wide) h3 {
+  font-size: clamp(42px, 4.8vw, 72px);
+}
+
+.modality-product:hover img {
+  transform: scale(1.045);
+}
+
+.network-minimal {
+  display: grid;
+  grid-template-columns: minmax(260px, .75fr) minmax(0, 1fr);
+  gap: 76px;
+  align-items: center;
+  min-height: 420px;
+}
+
+.network-minimal__mark {
+  position: relative;
+  color: var(--volt);
+  font-family: "Anton", Impact, sans-serif;
+  line-height: .82;
+}
+
+.network-minimal__mark strong {
+  display: block;
+  font-size: clamp(128px, 17vw, 230px);
+  font-weight: 400;
+}
+
+.network-minimal__mark span {
+  display: block;
+  margin-top: 12px;
+  color: var(--text);
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.network-minimal__mark em {
+  position: absolute;
+  right: 8%;
+  bottom: 16%;
+  color: var(--text);
+  font-style: normal;
+  font-size: clamp(52px, 8vw, 104px);
+}
+
+.quiet-cta {
+  display: grid;
+  gap: 28px;
+  justify-items: start;
+  border-top: 1px solid rgba(242, 226, 5, .24);
+  border-bottom: 1px solid rgba(242, 226, 5, .24);
+  padding: 76px 0;
+}
+
+.quiet-cta h2 {
+  max-width: 900px;
+  font-family: "Anton", Impact, sans-serif;
+  font-size: clamp(56px, 9vw, 126px);
+  line-height: .9;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.franchise-signal {
+  display: grid;
+  grid-template-columns: minmax(160px, .32fr) minmax(160px, .32fr) minmax(0, 1fr);
+  gap: 42px;
+  align-items: end;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 56px 0;
+}
+
+.franchise-signal strong {
+  display: block;
+  color: var(--volt);
+  font-family: "Anton", Impact, sans-serif;
+  font-size: clamp(86px, 10vw, 156px);
+  font-weight: 400;
+  line-height: .8;
+}
+
+.franchise-signal > div > span,
+.franchise-signal p {
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.franchise-signal > div > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.franchise-signal p {
+  max-width: 560px;
+  font-size: 22px;
+}
+
+.investor-proof {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(280px, 1fr);
+  gap: 70px;
+  align-items: start;
+}
+
+.investor-proof__lines {
+  display: grid;
+  border-top: 1px solid var(--line);
+}
+
+.investor-proof__lines p {
+  border-bottom: 1px solid var(--line);
+  padding: 28px 0;
+  color: var(--text);
+  font-size: clamp(28px, 4vw, 52px);
+  font-weight: 800;
+  line-height: 1.05;
+}
+
+.trajectory {
+  display: grid;
+  gap: 42px;
+}
+
+.trajectory__line {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--line);
+}
+
+.trajectory__line div {
+  min-height: 190px;
+  border-right: 1px solid var(--line);
+  padding: 28px 28px 0 0;
+}
+
+.trajectory__line div:last-child {
+  border-right: 0;
+}
+
+.trajectory__line strong {
+  display: block;
+  color: var(--volt);
+  font-family: "Anton", Impact, sans-serif;
+  font-size: 46px;
+  font-weight: 400;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.trajectory__line span {
+  display: block;
+  max-width: 240px;
+  margin-top: 16px;
+  color: var(--muted);
+}
+
+.split--form {
+  align-items: start;
 }
 
 .momentum-bar {
@@ -1269,7 +1600,11 @@ p {
   .franchise-table,
   .timeline,
   .momentum-bar,
-  .growth-panel {
+  .growth-panel,
+  .network-stage,
+  .network-minimal,
+  .franchise-signal,
+  .investor-proof {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -1285,6 +1620,20 @@ p {
 
   .experience-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .modality-suite,
+  .trajectory__line {
+    grid-template-columns: 1fr;
+  }
+
+  .modality-product--wide {
+    grid-column: auto;
+  }
+
+  .trajectory__line div {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
   }
 
   .grid--3 {
@@ -1357,7 +1706,11 @@ p {
   .momentum-bar,
   .growth-panel,
   .growth-panel__detail,
-  .experience-grid {
+  .experience-grid,
+  .network-stage,
+  .network-minimal,
+  .franchise-signal,
+  .investor-proof {
     grid-template-columns: 1fr;
   }
 
@@ -1388,6 +1741,72 @@ p {
 
   .growth-number {
     font-size: 92px;
+  }
+
+  .section--quiet {
+    padding: 86px 0;
+  }
+
+  .network-stage {
+    gap: 28px;
+    padding: 36px 0;
+  }
+
+  .network-stage__number {
+    font-size: 118px;
+  }
+
+  .image-chapter {
+    min-height: 620px;
+  }
+
+  .image-chapter__content {
+    padding-bottom: 70px;
+  }
+
+  .image-chapter__content p {
+    font-size: 16px;
+  }
+
+  .modality-suite {
+    grid-auto-rows: auto;
+  }
+
+  .modality-product,
+  .modality-product--wide {
+    min-height: 360px;
+  }
+
+  .modality-product div {
+    right: 22px;
+    bottom: 22px;
+    left: 22px;
+  }
+
+  .network-minimal {
+    gap: 34px;
+    min-height: auto;
+  }
+
+  .network-minimal__mark em {
+    right: 18%;
+  }
+
+  .quiet-cta {
+    padding: 52px 0;
+  }
+
+  .franchise-signal {
+    gap: 28px;
+    padding: 38px 0;
+  }
+
+  .franchise-signal p {
+    font-size: 18px;
+  }
+
+  .investor-proof {
+    gap: 34px;
   }
 
   .experience-grid {

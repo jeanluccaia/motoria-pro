@@ -2,16 +2,16 @@ window.LOUDFIT_SITE = {
   brand: "LoudFit",
   tagline: "A rede que treina alto.",
   contact: {
-    cnpj: "[preencher]",
+    cnpj: "",
     instagram: "#",
     whatsapp: "#",
-    email: "[preencher]"
+    email: ""
   },
   franchise: {
-    years: "[X]",
-    investment: "[preencher]",
-    fee: "[preencher]",
-    payback: "[preencher]",
+    years: "",
+    investment: "",
+    fee: "",
+    payback: "",
     support: "incluido"
   }
 };
