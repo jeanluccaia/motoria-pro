@@ -52,9 +52,9 @@ window.LOUDFIT_UNITS = [
     image: "../assets/images/loudfit-real-facade.jpg"
   },
   {
-    name: "Ribeirao Industrial",
+    name: "Ribeirão Industrial",
     slug: "ribeirao-industrial",
-    city: "Ribeirao",
+    city: "Ribeirão",
     district: "Industrial",
     address: "",
     hours: "",
@@ -65,17 +65,17 @@ window.LOUDFIT_UNITS = [
     image: "../assets/images/loudfit-real-machines.jpg"
   },
   {
-    name: "6ª Unidade LoudFit",
+    name: "Nova unidade LoudFit",
     slug: "sexta-unidade",
     city: "",
-    district: "Em inauguração",
+    district: "Em implantação",
     address: "",
     hours: "",
     whatsapp: "#",
     instagram: "#",
     status: "em_inauguracao",
-    statusLabel: "Em inauguração",
-    badge: "6ª unidade",
+    statusLabel: "Em implantação",
+    badge: "Implantação",
     image: "../assets/images/real-opening.jpg"
   }
 ];
