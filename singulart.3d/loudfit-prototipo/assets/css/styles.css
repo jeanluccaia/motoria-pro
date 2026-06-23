@@ -370,8 +370,8 @@ p {
 .locator-strip {
   position: relative;
   z-index: 2;
-  margin-top: -34px;
-  padding-bottom: 56px;
+  margin-top: -28px;
+  padding-bottom: 0;
 }
 
 .locator-strip--page {
@@ -380,8 +380,8 @@ p {
 
 .locator-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 520px);
-  gap: 28px;
+  grid-template-columns: minmax(0, .9fr) minmax(360px, .8fr);
+  gap: 32px;
   align-items: center;
   border-top: 1px solid rgba(242, 226, 5, .24);
   border-bottom: 1px solid rgba(255, 255, 255, .1);
@@ -390,13 +390,13 @@ p {
     linear-gradient(90deg, rgba(242, 226, 5, .08), transparent 36%),
     rgba(12, 13, 15, .74);
   backdrop-filter: blur(18px);
-  padding: 28px 0;
+  padding: 24px 0;
   box-shadow: none;
 }
 
 .locator-card h2 {
   font-family: "Anton", Impact, sans-serif;
-  font-size: 40px;
+  font-size: 36px;
   line-height: 1;
   text-transform: uppercase;
 }
@@ -479,7 +479,7 @@ p {
 
 .section--quiet {
   background: var(--bg);
-  padding: 132px 0;
+  padding: 78px 0 112px;
 }
 
 .network-stage {
