@@ -1095,15 +1095,15 @@ p {
 .network-minimal {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(460px, .78fr);
-  gap: clamp(36px, 4.8vw, 64px);
+  grid-template-columns: minmax(0, .88fr) minmax(580px, 1fr);
+  gap: clamp(34px, 4vw, 52px);
   align-items: center;
   min-height: 560px;
 }
 
 .network-minimal__media {
   position: relative;
-  min-height: 560px;
+  min-height: 590px;
   margin: 0;
   overflow: hidden;
   border-top: 1px solid rgba(242, 226, 5, .22);
@@ -1118,7 +1118,7 @@ p {
   height: 100%;
   object-fit: cover;
   object-position: center;
-  filter: saturate(1.02) contrast(1.1) brightness(.82);
+  filter: saturate(1.06) contrast(1.12) brightness(.9);
   transform: scale(1.02);
 }
 
@@ -1128,8 +1128,8 @@ p {
   z-index: 1;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(8, 8, 8, .1), rgba(8, 8, 8, .62)),
-    linear-gradient(0deg, rgba(8, 8, 8, .78), transparent 48%);
+    linear-gradient(90deg, rgba(8, 8, 8, .04), rgba(8, 8, 8, .46)),
+    linear-gradient(0deg, rgba(8, 8, 8, .58), transparent 54%);
 }
 
 .network-minimal__media::after {
@@ -1150,16 +1150,16 @@ p {
 }
 
 .section--brand-system .section__title {
-  max-width: 720px;
+  max-width: 640px;
   margin-top: 18px;
-  font-size: clamp(50px, 4.72vw, 68px);
-  line-height: 1.12;
+  font-size: clamp(44px, 3.92vw, 54px);
+  line-height: 1.18;
   letter-spacing: .005em;
 }
 
 .section--brand-system .section__title span {
   display: block;
-  padding-bottom: .04em;
+  padding-bottom: .06em;
 }
 
 .section--brand-system .section__copy {
@@ -1175,33 +1175,34 @@ p {
 .network-minimal__mark {
   position: absolute;
   z-index: 3;
-  left: 28px;
-  bottom: 28px;
+  top: 24px;
+  right: 24px;
   display: grid;
   justify-items: start;
-  border-left: 4px solid var(--volt);
-  background: rgba(8, 8, 8, .66);
+  border: 1px solid rgba(242, 226, 5, .34);
+  border-radius: 999px;
+  background: rgba(8, 8, 8, .68);
   color: var(--volt);
   font-family: "Anton", Impact, sans-serif;
-  line-height: .88;
-  padding: 16px 18px 18px;
+  line-height: .94;
+  padding: 10px 14px 12px;
   backdrop-filter: blur(14px);
 }
 
 .network-minimal__mark strong {
   display: block;
-  font-size: clamp(70px, 7vw, 104px);
+  font-size: clamp(34px, 3.8vw, 52px);
   font-weight: 400;
 }
 
 .network-minimal__mark span {
   display: block;
-  margin-top: 10px;
+  margin-top: 4px;
   color: var(--text);
   font-family: "Inter", system-ui, sans-serif;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 900;
-  letter-spacing: .16em;
+  letter-spacing: .12em;
   text-transform: uppercase;
 }
 
@@ -1227,7 +1228,7 @@ p {
   max-width: 900px;
   font-family: "Anton", Impact, sans-serif;
   font-size: 104px;
-  line-height: .9;
+  line-height: .96;
   letter-spacing: 0;
   text-transform: uppercase;
 }
@@ -1835,9 +1836,35 @@ p {
     width: calc(100% - 28px);
   }
 
+  .nav {
+    background: rgba(8, 8, 8, .96);
+  }
+
+  .nav .nav__inner {
+    width: calc(100% - 36px);
+    min-height: 78px;
+  }
+
+  .nav__links {
+    top: 82px;
+    right: 18px;
+    left: 18px;
+  }
+
+  .brand {
+    min-height: 54px;
+    padding: 4px 0;
+  }
+
   .brand__logo {
-    width: 126px;
+    width: 128px;
     height: auto;
+  }
+
+  .menu-toggle {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
   }
 
   .hero {
@@ -1905,7 +1932,7 @@ p {
 
   .section--brand-system .section__title {
     font-size: clamp(38px, 10.8vw, 52px);
-    line-height: 1.14;
+    line-height: 1.2;
   }
 
   .section--brand-system .section__copy {
@@ -1918,19 +1945,21 @@ p {
   }
 
   .section--brand-system .network-minimal__mark {
-    left: 18px;
-    bottom: 18px;
-    padding: 12px 14px 14px;
+    top: 16px;
+    right: 16px;
+    bottom: auto;
+    left: auto;
+    padding: 8px 12px 10px;
   }
 
   .section--brand-system .network-minimal__mark strong {
-    font-size: 68px;
+    font-size: 38px;
   }
 
   .section--brand-system .network-minimal__mark span {
-    margin-top: 8px;
-    font-size: 10px;
-    letter-spacing: .14em;
+    margin-top: 3px;
+    font-size: 9px;
+    letter-spacing: .1em;
   }
 
   .manifest__line {
