@@ -21,7 +21,7 @@
   }
 
   function rootPath(path) {
-    if (!path) return "#";
+    if (!path) return sitePrefix();
     if (isExternalPath(path) || path.indexOf("./") === 0 || path.indexOf("../") === 0) return path;
     return sitePrefix() + String(path).replace(/^\/+/, "");
   }
@@ -47,14 +47,20 @@
   }
 
   function unitLocation(unit) {
-    return [cleanValue(unit.district), cleanValue(unit.city)].filter(Boolean).join(" · ") || unit.statusLabel;
+    var cityState = [cleanValue(unit.city), cleanValue(unit.state)].filter(Boolean).join(" • ");
+    return cleanValue(unit.locationLabel) || cityState || cleanValue(unit.district) || unit.statusLabel;
+  }
+
+  function unitAltName(unit) {
+    var name = cleanValue(unit.name) || "LoudFit";
+    return /^loudfit/i.test(name) ? name : "LoudFit " + name;
   }
 
   function unitPrimaryAction(unit) {
     if (unit.status === "em_inauguracao") {
       return {
         label: "Acompanhar abertura",
-        href: rootPath(unit.opening_url || unit.instagram || "#"),
+        href: rootPath(unit.opening_url || unit.instagram || "unidades/#acompanhar-abertura"),
         quiet: true
       };
     }
@@ -62,20 +68,20 @@
     if (unit.type === "franqueada") {
       return {
         label: "Falar com a unidade",
-        href: rootPath(unit.whatsapp_url || unit.whatsapp || "#")
+        href: rootPath(unit.whatsapp_url || unit.whatsapp || "contato/")
       };
     }
 
     if (unit.checkout_enabled) {
       return {
         label: "Matricule-se agora",
-        href: rootPath(unit.checkout_url || "#matricula-em-breve")
+        href: rootPath(unit.checkout_url || "unidades/#matricula-em-breve")
       };
     }
 
     return {
       label: "Falar com a unidade",
-      href: rootPath(unit.whatsapp_url || unit.whatsapp || "#")
+      href: rootPath(unit.whatsapp_url || unit.whatsapp || "contato/")
     };
   }
 
@@ -152,6 +158,7 @@
       grid.innerHTML = units.slice(0, limit).map(function (unit) {
         var isOpening = unit.status === "em_inauguracao";
         var detailUrl = unit.detail_url ? rootPath(unit.detail_url) : rootPath("unidades/#rede");
+        var altName = unitAltName(unit);
         var primary = unitPrimaryAction(unit);
         var plansLabel = unit.plans_available ? "Planos disponíveis" : "Planos em breve";
         var actions = [
@@ -162,7 +169,7 @@
         return [
           '<article class="unit-card ' + (isOpening ? 'unit-card--opening ' : '') + 'reveal">',
           '  <a class="unit-card__media" href="' + detailUrl + '">',
-          '    <img src="' + assetPath(unit.image) + '" alt="Unidade LoudFit ' + escapeHtml(unit.name) + '" loading="lazy">',
+          '    <img src="' + assetPath(unit.image) + '" alt="Unidade ' + escapeHtml(altName) + '" loading="lazy">',
           (isOpening ? '    <span class="status-badge"><span class="pulse-dot"></span>' + escapeHtml(unit.badge || unit.statusLabel) + '</span>' : ''),
           '  </a>',
           '  <div class="unit-card__body">',
@@ -226,7 +233,7 @@
     });
     document.querySelectorAll("[data-unit-image]").forEach(function (item) {
       item.setAttribute("src", assetPath(unit.image));
-      item.setAttribute("alt", "Unidade LoudFit " + unit.name);
+      item.setAttribute("alt", "Unidade " + unitAltName(unit));
     });
     document.querySelectorAll("[data-unit-cta]").forEach(function (item) {
       item.textContent = primary.label;

@@ -1,6 +1,6 @@
 window.LOUDFIT_SITE = {
   brand: "LoudFit",
-  tagline: "A rede que treina alto.",
+  tagline: "O melhor ainda está por vir.",
   contact: {
     cnpj: "",
     instagram: "https://www.instagram.com/loudfit.vilaindustrial/",
