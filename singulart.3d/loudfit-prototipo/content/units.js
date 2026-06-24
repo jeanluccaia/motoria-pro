@@ -1,7 +1,7 @@
 window.LOUDFIT_UNITS = [
   {
-    name: "LoudFit Carreço Curvalinhos",
-    shortName: "Carreço Curvalinhos",
+    name: "LoudFit Carreco Curvalinhos",
+    shortName: "Carreco Curvalinhos",
     slug: "carreco-curvalinhos",
     city: "Campinas",
     state: "SP",
