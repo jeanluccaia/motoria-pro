@@ -493,7 +493,7 @@ p {
 
 .section--quiet {
   background: var(--bg);
-  padding: 78px 0 112px;
+  padding: clamp(110px, 10vw, 156px) 0;
 }
 
 .network-stage {
@@ -536,7 +536,7 @@ p {
 }
 
 .section {
-  padding: 112px 0;
+  padding: clamp(112px, 10vw, 156px) 0;
   background: var(--bg);
 }
 
@@ -590,7 +590,7 @@ p {
   position: relative;
   display: flex;
   align-items: flex-end;
-  min-height: 780px;
+  min-height: 860px;
   overflow: hidden;
   isolation: isolate;
 }
@@ -634,6 +634,80 @@ p {
   margin-top: 24px;
   color: #d4d4d8;
   font-size: 20px;
+}
+
+.image-chapter__content .button {
+  margin-top: 32px;
+}
+
+.section--film {
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid rgba(242, 226, 5, .18);
+  border-bottom: 1px solid var(--line);
+  background:
+    linear-gradient(90deg, rgba(242, 226, 5, .08), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, .032), rgba(255, 255, 255, .01)),
+    #090909;
+}
+
+.experience-film {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 460px);
+  gap: clamp(42px, 7vw, 108px);
+  align-items: center;
+}
+
+.experience-film__copy {
+  max-width: 760px;
+}
+
+.experience-film__copy h2 {
+  margin-top: 18px;
+  font-family: "Anton", Impact, sans-serif;
+  font-size: clamp(74px, 8vw, 132px);
+  font-weight: 400;
+  line-height: .9;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.experience-film__copy p {
+  max-width: 560px;
+  margin-top: 28px;
+  color: #d4d4d8;
+  font-size: 21px;
+}
+
+.experience-film__frame {
+  position: relative;
+  justify-self: end;
+  width: min(100%, 460px);
+  aspect-ratio: 9 / 16;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(242, 226, 5, .26);
+  border-radius: var(--radius);
+  background: #030303;
+  box-shadow: 0 34px 120px rgba(0, 0, 0, .52);
+}
+
+.experience-film__frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, .04), transparent 28%, rgba(0, 0, 0, .22)),
+    linear-gradient(90deg, rgba(242, 226, 5, .08), transparent 20%, transparent 80%, rgba(242, 226, 5, .06));
+}
+
+.experience-film__frame video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: saturate(1.05) contrast(1.05) brightness(.96);
 }
 
 .image-chapter--franchise {
@@ -1367,7 +1441,7 @@ p {
   position: relative;
   display: flex;
   align-items: flex-end;
-  min-height: 480px;
+  min-height: 540px;
   overflow: hidden;
   border: 0;
   border-radius: var(--radius);
@@ -2249,6 +2323,15 @@ p {
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .experience-film {
+    grid-template-columns: 1fr;
+  }
+
+  .experience-film__frame {
+    justify-self: start;
+    width: min(100%, 430px);
+  }
+
   .commerce-path,
   .platform-panel {
     grid-template-columns: 1fr;
@@ -2315,7 +2398,10 @@ p {
   }
 
   .nav .nav__inner {
-    width: calc(100% - 36px);
+    position: relative;
+    width: min(calc(100% - 36px), 354px);
+    margin-left: 18px;
+    margin-right: auto;
     min-height: 78px;
   }
 
@@ -2336,9 +2422,15 @@ p {
   }
 
   .menu-toggle {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
     width: 44px;
     height: 44px;
     flex-basis: 44px;
+    margin-left: 0;
+    margin-right: 0;
   }
 
   .hero {
@@ -2376,7 +2468,10 @@ p {
     width: 100%;
   }
 
-  .button {
+  a.button,
+  .hero__actions .button,
+  .section__actions .button,
+  .plan-card .button {
     width: 100%;
   }
 
@@ -2394,7 +2489,7 @@ p {
   }
 
   .section {
-    padding: 76px 0;
+    padding: 92px 0;
   }
 
   .section__title,
@@ -2479,6 +2574,30 @@ p {
 
   .plan-card {
     padding: 24px;
+  }
+
+  .section--film {
+    padding: 96px 0 104px;
+  }
+
+  .experience-film {
+    gap: 34px;
+  }
+
+  .experience-film__copy h2 {
+    max-width: 340px;
+    font-size: 52px;
+    line-height: .94;
+  }
+
+  .experience-film__copy p {
+    max-width: 330px;
+    font-size: 16px;
+  }
+
+  .experience-film__frame {
+    width: 100%;
+    border-radius: var(--radius);
   }
 
   .plan-card__top {
@@ -2703,7 +2822,10 @@ p {
     font-size: 42px;
   }
 
-  .button {
+  a.button,
+  .hero__actions .button,
+  .section__actions .button,
+  .plan-card .button {
     width: 100%;
     min-height: 52px;
   }
@@ -2720,6 +2842,28 @@ p {
 
   .footer__columns {
     gap: 24px;
+  }
+}
+
+@media (max-width: 980px) {
+  .nav__inner {
+    position: relative;
+  }
+
+  button.menu-toggle {
+    display: flex !important;
+    position: absolute !important;
+    top: 50% !important;
+    right: 0 !important;
+    transform: translateY(-50%) !important;
+    z-index: 90 !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    flex: 0 0 44px !important;
+    border-color: transparent !important;
+    background: var(--volt) !important;
+    color: #0a0a0a !important;
   }
 }
 

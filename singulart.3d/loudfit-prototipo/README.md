@@ -66,6 +66,11 @@ As imagens ficam em `assets/images/`. A base visual prioriza fotografias públic
 
 Prioridade final: substituir ou expandir por fotografias oficiais aprovadas da LoudFit quando houver material interno disponível.
 
+## Vídeo real
+
+- `video para o site.mp4` é usado na Home como capítulo de experiência LoudFit.
+- Manter autoplay, muted, loop e playsinline para preservar a reprodução mobile.
+
 ## Formulário de franquia
 
 O formulário mostra uma confirmação local no protótipo. Para conectar depois, use a função `setupForm()` em `assets/js/app.js`.
