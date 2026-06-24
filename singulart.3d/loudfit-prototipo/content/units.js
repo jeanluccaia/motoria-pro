@@ -76,12 +76,12 @@ window.LOUDFIT_UNITS = [
     modalities: ["Musculação", "Cardio", "Funcional"]
   },
   {
-    name: "LoudFit Moreiras",
-    shortName: "Moreiras",
-    slug: "moreiras",
+    name: "LoudFit Amoreiras",
+    shortName: "Amoreiras",
+    slug: "amoreiras",
     city: "Campinas",
     state: "SP",
-    district: "Moreiras",
+    district: "Amoreiras",
     address: "",
     hours: "",
     phone: "",
