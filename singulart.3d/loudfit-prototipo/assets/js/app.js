@@ -9,10 +9,27 @@
     nav.classList.toggle("is-scrolled", window.scrollY > 18);
   }
 
-  function unitImagePath(path) {
+  function sitePrefix() {
     var depth = document.body.dataset.depth || "root";
-    if (depth === "root") return path.replace("../", "./");
-    return path;
+    if (depth === "root") return "./";
+    if (depth === "unit") return "../../";
+    return "../";
+  }
+
+  function isExternalPath(path) {
+    return /^(https?:|mailto:|tel:|#)/i.test(path);
+  }
+
+  function rootPath(path) {
+    if (!path) return "#";
+    if (isExternalPath(path) || path.indexOf("./") === 0 || path.indexOf("../") === 0) return path;
+    return sitePrefix() + String(path).replace(/^\/+/, "");
+  }
+
+  function assetPath(path) {
+    if (!path) return "";
+    if (/^(https?:|data:)/i.test(path)) return path;
+    return sitePrefix() + String(path).replace(/^(\.\/|\.\.\/)+/, "");
   }
 
   function cleanValue(value) {
@@ -20,8 +37,46 @@
     return value;
   }
 
+  function escapeHtml(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
   function unitLocation(unit) {
     return [cleanValue(unit.district), cleanValue(unit.city)].filter(Boolean).join(" · ") || unit.statusLabel;
+  }
+
+  function unitPrimaryAction(unit) {
+    if (unit.status === "em_inauguracao") {
+      return {
+        label: "Acompanhar abertura",
+        href: rootPath(unit.opening_url || unit.instagram || "#"),
+        quiet: true
+      };
+    }
+
+    if (unit.type === "franqueada") {
+      return {
+        label: "Falar com a unidade",
+        href: rootPath(unit.whatsapp_url || unit.whatsapp || "#")
+      };
+    }
+
+    if (unit.checkout_enabled) {
+      return {
+        label: "Matricule-se agora",
+        href: rootPath(unit.checkout_url || "#matricula-em-breve")
+      };
+    }
+
+    return {
+      label: "Falar com a unidade",
+      href: rootPath(unit.whatsapp_url || unit.whatsapp || "#")
+    };
   }
 
   function getUnitStats(units) {
@@ -54,31 +109,70 @@
     });
   }
 
+  function planCard(plan, ctaOverride) {
+    var isFeatured = !!plan.featured;
+    var ctaLabel = ctaOverride && ctaOverride.label ? ctaOverride.label : plan.ctaLabel;
+    var ctaUrl = ctaOverride && ctaOverride.href ? ctaOverride.href : plan.ctaUrl;
+    var benefits = (plan.benefits || []).map(function (benefit) {
+      return "<li>" + escapeHtml(benefit) + "</li>";
+    }).join("");
+
+    return [
+      '<article class="plan-card ' + (isFeatured ? 'plan-card--featured ' : '') + 'reveal">',
+      '  <div class="plan-card__top">',
+      '    <span class="plan-card__name">' + escapeHtml(plan.name) + '</span>',
+      isFeatured ? '    <span class="plan-card__badge">' + escapeHtml(plan.highlight || "Destaque") + '</span>' : '',
+      '  </div>',
+      '  <p class="plan-card__description">' + escapeHtml(plan.description) + '</p>',
+      '  <div class="plan-card__price"><strong>' + escapeHtml(plan.price) + '</strong><span>' + escapeHtml(plan.period) + '</span></div>',
+      '  <ul class="plan-card__benefits">' + benefits + '</ul>',
+      '  <p class="plan-card__note">' + escapeHtml(plan.note || "") + '</p>',
+      '  <a class="button ' + (isFeatured ? 'button--volt' : 'button--outline') + '" href="' + rootPath(ctaUrl) + '">' + escapeHtml(ctaLabel) + '</a>',
+      '</article>'
+    ].join("");
+  }
+
+  function renderPlans() {
+    var plans = (window.LOUDFIT_PLANS || []).filter(function (plan) {
+      return plan.status !== "inativo";
+    });
+
+    document.querySelectorAll("[data-plans-grid]").forEach(function (grid) {
+      var limit = Number(grid.dataset.limit || plans.length);
+      grid.innerHTML = plans.slice(0, limit).map(function (plan) {
+        return planCard(plan);
+      }).join("");
+    });
+  }
+
   function renderUnits() {
     var units = sortUnits(window.LOUDFIT_UNITS || []);
     document.querySelectorAll("[data-units-grid]").forEach(function (grid) {
       var limit = Number(grid.dataset.limit || units.length);
       grid.innerHTML = units.slice(0, limit).map(function (unit) {
         var isOpening = unit.status === "em_inauguracao";
-        var target = document.body.dataset.depth === "root" ? "./unidades/" : "../unidades/";
-        var actions = isOpening
-          ? '<span class="icon-link icon-link--quiet">Em breve</span>'
-          : [
-              '<a class="icon-link" href="' + unit.whatsapp + '" aria-label="WhatsApp da unidade ' + unit.name + '">WhatsApp</a>',
-              '<a class="icon-link" href="' + unit.instagram + '" aria-label="Instagram da unidade ' + unit.name + '">Instagram</a>',
-              '<a class="icon-link" href="' + target + '">Ver unidade</a>'
-            ].join("");
+        var detailUrl = unit.detail_url ? rootPath(unit.detail_url) : rootPath("unidades/#rede");
+        var primary = unitPrimaryAction(unit);
+        var plansLabel = unit.plans_available ? "Planos disponíveis" : "Planos em breve";
+        var actions = [
+          '<a class="icon-link icon-link--primary ' + (primary.quiet ? 'icon-link--quiet' : '') + '" href="' + primary.href + '">' + escapeHtml(primary.label) + '</a>',
+          (!isOpening && unit.detail_url ? '<a class="icon-link" href="' + detailUrl + '">Ver unidade</a>' : '')
+        ].join("");
 
         return [
           '<article class="unit-card ' + (isOpening ? 'unit-card--opening ' : '') + 'reveal">',
-          '  <a class="unit-card__media" href="' + target + '">',
-          '    <img src="' + unitImagePath(unit.image) + '" alt="Unidade LoudFit ' + unit.name + '" loading="lazy">',
-          (isOpening ? '    <span class="status-badge"><span class="pulse-dot"></span>' + (unit.badge || unit.statusLabel) + '</span>' : ''),
+          '  <a class="unit-card__media" href="' + detailUrl + '">',
+          '    <img src="' + assetPath(unit.image) + '" alt="Unidade LoudFit ' + escapeHtml(unit.name) + '" loading="lazy">',
+          (isOpening ? '    <span class="status-badge"><span class="pulse-dot"></span>' + escapeHtml(unit.badge || unit.statusLabel) + '</span>' : ''),
           '  </a>',
           '  <div class="unit-card__body">',
-          '    <span class="unit-status ' + (isOpening ? 'unit-status--opening' : '') + '">' + unit.statusLabel + '</span>',
-          '    <h3>' + unit.name + '</h3>',
-          '    <p>' + unitLocation(unit) + '</p>',
+          '    <span class="unit-status ' + (isOpening ? 'unit-status--opening' : '') + '">' + escapeHtml(unit.statusLabel) + '</span>',
+          '    <h3>' + escapeHtml(unit.name) + '</h3>',
+          '    <p>' + escapeHtml(unitLocation(unit)) + '</p>',
+          '    <div class="unit-card__meta">',
+          '      <span>' + escapeHtml(unit.typeLabel || "Unidade LoudFit") + '</span>',
+          '      <span>' + escapeHtml(plansLabel) + '</span>',
+          '    </div>',
           '    <div class="unit-card__actions">',
           actions,
           '    </div>',
@@ -87,6 +181,65 @@
         ].join("");
       }).join("");
     });
+  }
+
+  function renderList(selector, items) {
+    document.querySelectorAll(selector).forEach(function (list) {
+      list.innerHTML = (items || []).map(function (item) {
+        return "<li>" + escapeHtml(item) + "</li>";
+      }).join("");
+    });
+  }
+
+  function renderUnitDetail() {
+    var detail = document.querySelector("[data-unit-detail]");
+    if (!detail) return;
+
+    var slug = detail.dataset.unitDetail;
+    var unit = (window.LOUDFIT_UNITS || []).filter(function (item) {
+      return item.slug === slug;
+    })[0];
+    if (!unit) return;
+
+    var primary = unitPrimaryAction(unit);
+    var plans = (window.LOUDFIT_PLANS || []).filter(function (plan) {
+      return plan.status !== "inativo";
+    });
+
+    document.querySelectorAll("[data-unit-name]").forEach(function (item) {
+      item.textContent = unit.name;
+    });
+    document.querySelectorAll("[data-unit-location]").forEach(function (item) {
+      item.textContent = unitLocation(unit);
+    });
+    document.querySelectorAll("[data-unit-address]").forEach(function (item) {
+      item.textContent = unit.address || "Endereço em atualização";
+    });
+    document.querySelectorAll("[data-unit-hours]").forEach(function (item) {
+      item.textContent = unit.hours || "Horários em atualização";
+    });
+    document.querySelectorAll("[data-unit-type]").forEach(function (item) {
+      item.textContent = unit.typeLabel || "Unidade LoudFit";
+    });
+    document.querySelectorAll("[data-unit-status]").forEach(function (item) {
+      item.textContent = unit.statusLabel;
+    });
+    document.querySelectorAll("[data-unit-image]").forEach(function (item) {
+      item.setAttribute("src", assetPath(unit.image));
+      item.setAttribute("alt", "Unidade LoudFit " + unit.name);
+    });
+    document.querySelectorAll("[data-unit-cta]").forEach(function (item) {
+      item.textContent = primary.label;
+      item.setAttribute("href", primary.href);
+    });
+    document.querySelectorAll("[data-unit-plans]").forEach(function (grid) {
+      grid.innerHTML = plans.map(function (plan) {
+        return planCard(plan, { label: primary.label, href: "#matricula" });
+      }).join("");
+    });
+
+    renderList("[data-unit-structure]", unit.structure);
+    renderList("[data-unit-modalities]", unit.modalities);
   }
 
   function setupCounters() {
@@ -171,7 +324,9 @@
     });
   }
 
+  renderPlans();
   renderUnits();
+  renderUnitDetail();
   renderNetworkStats();
   setupCounters();
   setupReveal();

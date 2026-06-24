@@ -17,6 +17,7 @@ O projeto é estático e não precisa de build.
 
 - Textos gerais e dados institucionais: `content/site.js`
 - Unidades, slugs, canais, imagens e status: `content/units.js`
+- Planos, preço de campanha, benefícios e CTAs: `content/plans.js`
 - Layout e estilos: `assets/css/styles.css`
 - Interações, menu, cards, formulário e números automáticos: `assets/js/app.js`
 
@@ -36,6 +37,15 @@ Use os status abaixo em `content/units.js`:
 
 - `em_operacao`
 - `em_inauguracao`
+
+Campos comerciais preparados para a próxima fase:
+
+- `type`: `propria` ou `franqueada`
+- `checkout_enabled`
+- `checkout_url`
+- `whatsapp_url`
+- `plans_available`
+- `detail_url`
 
 A interface calcula automaticamente:
 
@@ -65,6 +75,7 @@ O formulário mostra uma confirmação local no protótipo. Para conectar depois
 - `/`
 - `/franquias/`
 - `/unidades/`
+- `/unidades/carreco-curvalinhos/`
 - `/modalidades/`
 - `/sobre/`
 - `/contato/`

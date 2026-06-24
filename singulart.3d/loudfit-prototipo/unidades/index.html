@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="../assets/images/loudfit-logo-official-symbol-yellow.png">
   <link rel="apple-touch-icon" href="../assets/images/loudfit-logo-official-symbol-yellow.png">
-  <link rel="stylesheet" href="../assets/css/styles.css?v=20260623-6">
+  <link rel="stylesheet" href="../assets/css/styles.css?v=20260624-1">
 </head>
 <body class="page" data-depth="sub">
   <nav class="nav" data-nav>
@@ -22,7 +22,7 @@
         <a href="../unidades/" aria-current="page">Unidades</a>
         <a href="../modalidades/">Modalidades</a>
         <a href="../franquias/">Franquias</a>
-        <a class="button button--volt" href="../franquias/">Expansão</a>
+        <a class="button button--volt" href="../#planos">Ver planos</a>
       </div>
     </div>
   </nav>
@@ -35,7 +35,7 @@
       <div class="container hero__content reveal">
         <span class="kicker-muted">Presença da rede</span>
         <h1 class="display">Unidades com padrão reconhecível.</h1>
-        <p class="hero__lead">Cada endereço precisa carregar a mesma energia: fachada forte, sala viva e operação consistente.</p>
+        <p class="hero__lead">Escolha onde treinar e avance para o melhor caminho de matrícula da unidade.</p>
       </div>
     </section>
 
@@ -52,6 +52,20 @@
       </div>
     </section>
 
+    <section class="section section--commercial-path">
+      <div class="container commerce-path reveal">
+        <div>
+          <span class="section__kicker">Matrícula por unidade</span>
+          <h2>Cada endereço com o caminho certo para começar.</h2>
+        </div>
+        <div class="commerce-path__steps">
+          <span>Escolha a unidade</span>
+          <span>Veja os planos</span>
+          <span>Inicie a matrícula</span>
+        </div>
+      </div>
+    </section>
+
     <section class="section" id="rede">
       <div class="container">
         <div class="section__head reveal">
@@ -59,9 +73,32 @@
             <span class="section__kicker">Operação</span>
             <h2 class="section__title">A rede em campo.</h2>
           </div>
-          <p class="section__copy">Unidades próprias em funcionamento e uma implantação acompanhando o próximo movimento da marca.</p>
+          <p class="section__copy">Unidades próprias em funcionamento, planos disponíveis e uma implantação acompanhando o próximo movimento da marca.</p>
         </div>
         <div class="grid grid--3" data-units-grid data-limit="6"></div>
+      </div>
+    </section>
+
+    <section class="section section--surface" id="matricula-em-breve">
+      <div class="container split">
+        <div class="reveal">
+          <span class="section__kicker">Comece a treinar</span>
+          <h2 class="section__title">O caminho muda conforme a unidade.</h2>
+          <p class="section__copy">Nas unidades próprias, a LoudFit pode conduzir a matrícula direto pela rede. Em unidades franqueadas, o aluno fala com a unidade local. Em aberturas, acompanha a chegada.</p>
+          <div class="section__actions">
+            <a class="button button--volt" href="../unidades/carreco-curvalinhos/">Ver Curvalinhos</a>
+            <a class="button button--outline" href="../#planos">Ver planos</a>
+          </div>
+        </div>
+        <div class="journey-card journey-card--compact reveal" id="acompanhar-abertura">
+          <span class="journey-card__label">Próximo passo</span>
+          <h3>Escolha a unidade. O plano vem junto.</h3>
+          <ol>
+            <li>Unidade própria: matricule-se agora</li>
+            <li>Unidade franqueada: fale com a unidade</li>
+            <li>Unidade em implantação: acompanhe a abertura</li>
+          </ol>
+        </div>
       </div>
     </section>
 
@@ -106,7 +143,8 @@
   </footer>
 
   <script src="../content/site.js?v=20260623-6"></script>
-  <script src="../content/units.js?v=20260623-6"></script>
-  <script src="../assets/js/app.js?v=20260623-6"></script>
+  <script src="../content/units.js?v=20260624-1"></script>
+  <script src="../content/plans.js?v=20260624-1"></script>
+  <script src="../assets/js/app.js?v=20260624-1"></script>
 </body>
 </html>
