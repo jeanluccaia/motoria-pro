@@ -1,11 +1,11 @@
 window.LOUDFIT_UNITS = [
   {
-    name: "LoudFit Carreco Curvalinhos",
-    shortName: "Carreco Curvalinhos",
+    name: "Loud Fit Carrefour Valinhos",
+    shortName: "Carrefour Valinhos",
     slug: "carreco-curvalinhos",
-    city: "Campinas",
+    city: "Valinhos",
     state: "SP",
-    district: "Curvalinhos",
+    district: "Carrefour Valinhos",
     address: "",
     hours: "",
     phone: "",

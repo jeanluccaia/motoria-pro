@@ -285,11 +285,15 @@ p {
 
 .display {
   font-family: "Anton", Impact, sans-serif;
-  font-size: 68px;
-  line-height: 1.02;
+  font-size: 64px;
+  line-height: 1.14;
   letter-spacing: 0;
   max-width: 100%;
   text-transform: uppercase;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
+  padding-bottom: .08em;
 }
 
 .hero__lead {
@@ -403,11 +407,14 @@ p {
 .locator-card h2 {
   margin: 12px 0 0;
   font-family: "Anton", Impact, sans-serif;
-  font-size: clamp(58px, 6.4vw, 88px);
-  line-height: 1.04;
+  font-size: clamp(54px, 6vw, 80px);
+  line-height: 1.14;
   letter-spacing: 0;
   text-transform: uppercase;
   text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
+  padding-bottom: .08em;
 }
 
 .locator-card__copy p {
@@ -476,7 +483,7 @@ p {
   color: var(--volt);
   font-family: "Anton", Impact, sans-serif;
   font-size: 54px;
-  line-height: .95;
+  line-height: 1.12;
 }
 
 .growth-panel__detail span,
@@ -532,7 +539,7 @@ p {
   color: var(--text);
   font-family: "Anton", Impact, sans-serif;
   font-size: 42px;
-  line-height: 1;
+  line-height: 1.08;
 }
 
 .section {
@@ -550,6 +557,14 @@ p {
 
 .section--tight {
   padding: 76px 0;
+}
+
+.section--final {
+  padding: clamp(84px, 8vw, 112px) 0 clamp(30px, 3.4vw, 46px);
+}
+
+.section--final .quiet-cta {
+  padding: clamp(54px, 5.6vw, 72px) 0;
 }
 
 .section__head {
@@ -571,10 +586,14 @@ p {
 .section__title {
   margin-top: 14px;
   font-family: "Anton", Impact, sans-serif;
-  font-size: 52px;
-  line-height: 1.08;
+  font-size: 50px;
+  line-height: 1.14;
   letter-spacing: 0;
   text-transform: uppercase;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
+  padding-bottom: .06em;
 }
 
 .section__copy {
@@ -623,10 +642,14 @@ p {
   max-width: 780px;
   margin-top: 16px;
   font-family: "Anton", Impact, sans-serif;
-  font-size: 96px;
-  line-height: 1.02;
+  font-size: 88px;
+  line-height: 1.14;
   letter-spacing: 0;
   text-transform: uppercase;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
+  padding-bottom: .08em;
 }
 
 .image-chapter__content p {
@@ -665,11 +688,15 @@ p {
 .experience-film__copy h2 {
   margin-top: 18px;
   font-family: "Anton", Impact, sans-serif;
-  font-size: clamp(74px, 8vw, 132px);
+  font-size: clamp(68px, 7.4vw, 120px);
   font-weight: 400;
-  line-height: 1;
+  line-height: 1.14;
   letter-spacing: 0;
   text-transform: uppercase;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
+  padding-bottom: .06em;
 }
 
 .experience-film__copy p {
@@ -825,9 +852,12 @@ p {
 .manifest__line {
   font-family: "Anton", Impact, sans-serif;
   font-size: 54px;
-  line-height: 1.08;
+  line-height: 1.14;
   letter-spacing: 0;
   text-transform: uppercase;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .manifest p {
@@ -1047,9 +1077,12 @@ p {
   font-family: "Anton", Impact, sans-serif;
   font-size: 42px;
   font-weight: 400;
-  line-height: 1.08;
+  line-height: 1.14;
   letter-spacing: 0;
   text-transform: uppercase;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .journey-card ol {
@@ -1102,9 +1135,12 @@ p {
   font-family: "Anton", Impact, sans-serif;
   font-size: 58px;
   font-weight: 400;
-  line-height: 1.08;
+  line-height: 1.14;
   letter-spacing: 0;
   text-transform: uppercase;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .commerce-path__steps {
@@ -1150,9 +1186,12 @@ p {
   font-family: "Anton", Impact, sans-serif;
   font-size: 68px;
   font-weight: 400;
-  line-height: 1.06;
+  line-height: 1.14;
   letter-spacing: 0;
   text-transform: uppercase;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .platform-panel__copy p {
@@ -1299,9 +1338,12 @@ p {
   margin-bottom: 8px;
   font-family: "Anton", Impact, sans-serif;
   font-size: 28px;
-  line-height: 1.08;
+  line-height: 1.14;
   letter-spacing: 0;
   text-transform: uppercase;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .unit-card p {
@@ -1407,9 +1449,12 @@ p {
   margin-bottom: 12px;
   font-family: "Anton", Impact, sans-serif;
   font-size: 30px;
-  line-height: 1.08;
+  line-height: 1.14;
   letter-spacing: 0;
   text-transform: uppercase;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .feature-card p,
@@ -1546,10 +1591,13 @@ p {
   max-width: 520px;
   margin-top: 14px;
   font-family: "Anton", Impact, sans-serif;
-  font-size: clamp(36px, 4vw, 58px);
-  line-height: 1.08;
+  font-size: clamp(34px, 3.7vw, 54px);
+  line-height: 1.14;
   letter-spacing: 0;
   text-transform: uppercase;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .modality-suite--editorial .modality-product:nth-child(1),
@@ -1608,9 +1656,12 @@ p {
   font-family: "Anton", Impact, sans-serif;
   font-size: 30px;
   font-weight: 400;
-  line-height: 1.08;
+  line-height: 1.14;
   letter-spacing: 0;
   text-transform: uppercase;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .class-card p {
@@ -1702,9 +1753,12 @@ p {
 .section--brand-system .section__title {
   max-width: 640px;
   margin-top: 18px;
-  font-size: clamp(44px, 3.92vw, 54px);
+  font-size: clamp(42px, 3.7vw, 50px);
   line-height: 1.18;
-  letter-spacing: .005em;
+  letter-spacing: 0;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .section--brand-system .section__title span {
@@ -1777,10 +1831,14 @@ p {
 .quiet-cta h2 {
   max-width: 900px;
   font-family: "Anton", Impact, sans-serif;
-  font-size: 104px;
-  line-height: 1.04;
+  font-size: 94px;
+  line-height: 1.14;
   letter-spacing: 0;
   text-transform: uppercase;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
+  padding-bottom: .08em;
 }
 
 .franchise-signal {
@@ -1868,8 +1926,11 @@ p {
   font-family: "Anton", Impact, sans-serif;
   font-size: 46px;
   font-weight: 400;
-  line-height: 1.08;
+  line-height: 1.14;
   text-transform: uppercase;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .trajectory__line span {
@@ -1958,10 +2019,13 @@ p {
 .cta-band h2 {
   max-width: 780px;
   font-family: "Anton", Impact, sans-serif;
-  font-size: 52px;
-  line-height: 1.08;
+  font-size: 50px;
+  line-height: 1.14;
   letter-spacing: 0;
   text-transform: uppercase;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .cta-band p {
@@ -2002,9 +2066,12 @@ p {
   font-family: "Anton", Impact, sans-serif;
   font-size: 34px;
   font-weight: 400;
-  line-height: 1.08;
+  line-height: 1.14;
   letter-spacing: 0;
   text-transform: uppercase;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .note {
@@ -2249,9 +2316,12 @@ p {
 .map-panel__label h3 {
   font-family: "Anton", Impact, sans-serif;
   font-size: 44px;
-  line-height: 1;
+  line-height: 1.14;
   letter-spacing: 0;
   text-transform: uppercase;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .map-pin {
@@ -2280,22 +2350,41 @@ p {
 .footer {
   border-top: 1px solid var(--line);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, .025), transparent),
+    linear-gradient(180deg, rgba(255, 255, 255, .022), transparent 56%),
     #070707;
-  padding: 44px 0;
+  padding: 62px 0 26px;
 }
 
 .footer__grid {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 28px;
+  grid-template-columns: minmax(0, 1fr) minmax(420px, .9fr);
+  gap: clamp(52px, 8vw, 112px);
   align-items: start;
 }
 
 .footer p {
   max-width: 520px;
   margin-top: 14px;
-  color: var(--soft);
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.footer__brand {
+  display: grid;
+  justify-items: start;
+}
+
+.footer__brand .brand {
+  min-height: auto;
+}
+
+.footer__tagline {
+  margin-top: 26px;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.35;
 }
 
 .footer__links {
@@ -2311,30 +2400,45 @@ p {
 }
 
 .footer--large {
-  padding: 68px 0;
+  padding: 62px 0 26px;
 }
 
 .footer__columns {
   display: grid;
-  grid-template-columns: repeat(4, minmax(120px, 1fr));
-  gap: 32px;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  gap: clamp(28px, 4vw, 48px);
 }
 
 .footer__columns div {
   display: grid;
-  gap: 10px;
+  align-content: start;
+  gap: 12px;
 }
 
 .footer__columns strong {
   color: var(--text);
   font-size: 12px;
-  letter-spacing: .12em;
+  letter-spacing: .14em;
   text-transform: uppercase;
 }
 
 .footer__columns a {
   color: var(--muted);
   font-size: 14px;
+  line-height: 1.3;
+  transition: color .25s var(--ease);
+}
+
+.footer__columns a:hover {
+  color: var(--text);
+}
+
+.footer__bottom {
+  margin-top: 56px;
+  border-top: 1px solid var(--line);
+  padding-top: 22px;
+  color: var(--soft);
+  font-size: 13px;
 }
 
 .reveal {
@@ -2351,11 +2455,11 @@ p {
 
 @media (min-width: 980px) {
   .display {
-    font-size: 118px;
+    font-size: 108px;
   }
 
   .hero--compact .display {
-    font-size: 96px;
+    font-size: 88px;
   }
 }
 
@@ -2453,6 +2557,18 @@ p {
   .footer__grid,
   .footer__columns {
     grid-template-columns: 1fr;
+  }
+
+  .footer {
+    padding: 54px 0 24px;
+  }
+
+  .footer__grid {
+    gap: 38px;
+  }
+
+  .footer__bottom {
+    margin-top: 38px;
   }
 
   .locator-card__action {
@@ -2567,8 +2683,8 @@ p {
 
   .display {
     max-width: min(100%, 340px);
-    font-size: 42px;
-    line-height: 1.04;
+    font-size: 40px;
+    line-height: 1.14;
   }
 
   .hero__content {
@@ -2606,6 +2722,10 @@ p {
 
   .section {
     padding: 92px 0;
+  }
+
+  .section--final {
+    padding: 78px 0 28px;
   }
 
   .section__title,
@@ -2703,8 +2823,8 @@ p {
 
   .experience-film__copy h2 {
     max-width: 340px;
-    font-size: 52px;
-    line-height: 1.04;
+    font-size: 48px;
+    line-height: 1.14;
   }
 
   .experience-film__copy p {
@@ -2960,7 +3080,7 @@ p {
   }
 
   .display {
-    font-size: 42px;
+    font-size: 40px;
   }
 
   a.button,
