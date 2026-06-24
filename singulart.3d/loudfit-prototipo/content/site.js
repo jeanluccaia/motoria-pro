@@ -3,8 +3,8 @@ window.LOUDFIT_SITE = {
   tagline: "A rede que treina alto.",
   contact: {
     cnpj: "",
-    instagram: "#",
-    whatsapp: "#",
+    instagram: "https://www.instagram.com/loudfit.vilaindustrial/",
+    whatsapp: "",
     email: ""
   },
   franchise: {
@@ -12,6 +12,6 @@ window.LOUDFIT_SITE = {
     investment: "",
     fee: "",
     payback: "",
-    support: "incluido"
+    support: "incluído"
   }
 };

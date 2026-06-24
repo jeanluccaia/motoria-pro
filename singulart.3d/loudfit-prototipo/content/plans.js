@@ -1,59 +1,59 @@
 window.LOUDFIT_PLANS = [
   {
-    name: "Mensal",
-    slug: "mensal",
-    description: "Flexibilidade para começar agora.",
-    price: "Sob consulta",
-    period: "na unidade",
+    name: "Power Anual",
+    slug: "power-anual",
+    description: "Ideal para quem busca o menor valor mensal.",
+    price: "R$ 119,90",
+    period: "/mês",
     benefits: [
-      "Escolha a unidade mais próxima",
-      "Acesso à estrutura LoudFit",
-      "Ideal para começar sem período longo"
+      "Menor valor mensal",
+      "Rotina para treinar o ano todo",
+      "Condições confirmadas por unidade"
     ],
     featured: false,
     highlight: "",
-    ctaLabel: "Ver unidades",
-    ctaUrl: "unidades/#rede",
-    status: "ativo",
-    note: "Valores finais dependem da unidade escolhida.",
-    applicableUnit: "unidades_com_planos"
-  },
-  {
-    name: "Trimestral",
-    slug: "trimestral",
-    description: "Mais escolhido por quem quer manter ritmo.",
-    price: "A partir de R$99,90",
-    period: "/mês",
-    benefits: [
-      "Referência visual de campanha",
-      "Boa opção para criar constância",
-      "Condições confirmadas por unidade"
-    ],
-    featured: true,
-    highlight: "Mais escolhido",
     ctaLabel: "Quero esse plano",
     ctaUrl: "unidades/#rede",
     status: "ativo",
-    note: "Oferta sujeita à unidade/campanha.",
+    note: "Consulte a unidade escolhida para confirmar disponibilidade.",
     applicableUnit: "unidades_com_planos"
   },
   {
-    name: "Anual",
-    slug: "anual",
-    description: "Mais economia para treinar o ano todo.",
-    price: "Condições",
-    period: "por unidade",
+    name: "Power Semestral",
+    slug: "power-semestral",
+    description: "Excelente equilíbrio entre economia e flexibilidade.",
+    price: "R$ 129,90",
+    period: "/mês",
     benefits: [
-      "Plano pensado para longo prazo",
-      "Estrutura para treinar com frequência",
-      "Atendimento da unidade escolhida"
+      "Economia com mais flexibilidade",
+      "Boa escolha para criar rotina",
+      "Condições confirmadas por unidade"
+    ],
+    featured: true,
+    highlight: "Equilíbrio",
+    ctaLabel: "Quero esse plano",
+    ctaUrl: "unidades/#rede",
+    status: "ativo",
+    note: "Consulte a unidade escolhida para confirmar disponibilidade.",
+    applicableUnit: "unidades_com_planos"
+  },
+  {
+    name: "Power Recorrente",
+    slug: "power-recorrente",
+    description: "Sem fidelidade longa. Pagamento recorrente no cartão.",
+    price: "R$ 139,90",
+    period: "/mês",
+    benefits: [
+      "Sem fidelidade longa",
+      "Pagamento recorrente no cartão",
+      "Flexibilidade para começar"
     ],
     featured: false,
     highlight: "",
-    ctaLabel: "Ver condições",
+    ctaLabel: "Quero esse plano",
     ctaUrl: "unidades/#rede",
     status: "ativo",
-    note: "Valores finais dependem da unidade escolhida.",
+    note: "Consulte a unidade escolhida para confirmar disponibilidade.",
     applicableUnit: "unidades_com_planos"
   }
 ];

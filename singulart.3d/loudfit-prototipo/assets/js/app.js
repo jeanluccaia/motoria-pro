@@ -213,10 +213,10 @@
       item.textContent = unitLocation(unit);
     });
     document.querySelectorAll("[data-unit-address]").forEach(function (item) {
-      item.textContent = unit.address || "Endereço em atualização";
+      item.textContent = unit.address || "Consulte a unidade";
     });
     document.querySelectorAll("[data-unit-hours]").forEach(function (item) {
-      item.textContent = unit.hours || "Horários em atualização";
+      item.textContent = unit.hours || "Horários por unidade";
     });
     document.querySelectorAll("[data-unit-type]").forEach(function (item) {
       item.textContent = unit.typeLabel || "Unidade LoudFit";
@@ -290,6 +290,49 @@
     items.forEach(function (item) { observer.observe(item); });
   }
 
+  function setupVideoSound() {
+    var buttons = document.querySelectorAll("[data-sound-toggle]");
+    if (!buttons.length) return;
+
+    var key = "loudfit-video-sound";
+    var saved = "";
+
+    try {
+      saved = window.localStorage.getItem(key) || "";
+    } catch (error) {
+      saved = "";
+    }
+
+    buttons.forEach(function (button) {
+      var frame = button.closest(".experience-film__frame");
+      var video = frame ? frame.querySelector("[data-sound-video]") : document.querySelector("[data-sound-video]");
+      if (!video) return;
+
+      function setSound(enabled, persist) {
+        video.muted = !enabled;
+        button.textContent = enabled ? "Som ligado" : "Som off";
+        button.setAttribute("aria-pressed", String(enabled));
+        button.setAttribute("aria-label", enabled ? "Desativar som do vídeo" : "Ativar som do vídeo");
+
+        if (persist) {
+          try {
+            window.localStorage.setItem(key, enabled ? "on" : "off");
+          } catch (error) {}
+        }
+
+        if (enabled && video.paused) {
+          video.play().catch(function () {});
+        }
+      }
+
+      setSound(saved === "on", false);
+
+      button.addEventListener("click", function () {
+        setSound(video.muted, true);
+      });
+    });
+  }
+
   function setupFaq() {
     document.querySelectorAll("[data-faq]").forEach(function (button) {
       button.addEventListener("click", function () {
@@ -330,6 +373,7 @@
   renderNetworkStats();
   setupCounters();
   setupReveal();
+  setupVideoSound();
   setupFaq();
   setupForm();
   root.classList.add("is-ready");

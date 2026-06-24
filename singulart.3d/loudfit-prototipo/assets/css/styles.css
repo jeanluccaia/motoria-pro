@@ -710,6 +710,36 @@ p {
   filter: saturate(1.05) contrast(1.05) brightness(.96);
 }
 
+.sound-toggle {
+  position: absolute;
+  z-index: 3;
+  right: 14px;
+  bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  border: 1px solid rgba(242, 226, 5, .34);
+  border-radius: 999px;
+  background: rgba(8, 8, 8, .68);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .1em;
+  padding: 0 14px;
+  text-transform: uppercase;
+  backdrop-filter: blur(14px);
+  cursor: pointer;
+  transition: border-color .25s var(--ease), background .25s var(--ease), color .25s var(--ease), transform .25s var(--ease);
+}
+
+.sound-toggle:hover {
+  border-color: rgba(242, 226, 5, .7);
+  background: rgba(242, 226, 5, .12);
+  color: var(--volt);
+  transform: translateY(-1px);
+}
+
 .image-chapter--franchise {
   min-height: 720px;
 }
@@ -846,6 +876,12 @@ p {
     linear-gradient(180deg, rgba(255, 255, 255, .052), rgba(255, 255, 255, .018)),
     var(--card);
   padding: 28px;
+  transition: border-color .25s var(--ease), transform .25s var(--ease), background .25s var(--ease);
+}
+
+.plan-card:hover {
+  border-color: rgba(242, 226, 5, .24);
+  transform: translateY(-2px);
 }
 
 .plan-card--featured {
@@ -954,6 +990,21 @@ p {
 .plan-card .button {
   width: 100%;
   margin-top: auto;
+}
+
+.plans-more {
+  display: inline-flex;
+  margin-top: 22px;
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  text-decoration: none;
+  transition: color .2s var(--ease);
+}
+
+.plans-more:hover {
+  color: var(--volt);
 }
 
 .section--journeys {
@@ -1506,6 +1557,65 @@ p {
 
 .modality-product:hover img {
   transform: scale(1.035);
+}
+
+.class-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.class-card {
+  display: grid;
+  align-content: space-between;
+  min-height: 164px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .052), rgba(255, 255, 255, .018)),
+    var(--card);
+  padding: 20px;
+  transition: border-color .24s var(--ease), transform .24s var(--ease), background .24s var(--ease);
+}
+
+.class-card:hover {
+  border-color: rgba(242, 226, 5, .28);
+  transform: translateY(-2px);
+  background:
+    linear-gradient(180deg, rgba(242, 226, 5, .11), rgba(255, 255, 255, .018)),
+    var(--card-strong);
+}
+
+.class-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(242, 226, 5, .34);
+  border-radius: 999px;
+  color: var(--volt);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.class-card h3 {
+  margin-top: 26px;
+  font-family: "Anton", Impact, sans-serif;
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.class-card p {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .section--brand-system {
@@ -2370,6 +2480,10 @@ p {
     grid-template-columns: 1fr;
   }
 
+  .class-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .trajectory__line div {
     border-right: 0;
     border-bottom: 1px solid var(--line);
@@ -2731,6 +2845,30 @@ p {
   .modality-suite--editorial .modality-product:nth-child(1),
   .modality-suite--editorial .modality-product:nth-child(4) {
     min-height: 430px;
+  }
+
+  .class-grid {
+    gap: 10px;
+  }
+
+  .class-card {
+    min-height: 156px;
+    padding: 16px;
+  }
+
+  .class-card__icon {
+    width: 36px;
+    height: 36px;
+    font-size: 10px;
+  }
+
+  .class-card h3 {
+    margin-top: 22px;
+    font-size: 24px;
+  }
+
+  .class-card p {
+    font-size: 13px;
   }
 
   .network-minimal {
