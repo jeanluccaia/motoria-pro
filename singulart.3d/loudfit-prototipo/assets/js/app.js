@@ -117,22 +117,24 @@
 
   function planCard(plan, ctaOverride) {
     var isFeatured = !!plan.featured;
+    var hasBadge = !!plan.highlight;
     var ctaLabel = ctaOverride && ctaOverride.label ? ctaOverride.label : plan.ctaLabel;
     var ctaUrl = ctaOverride && ctaOverride.href ? ctaOverride.href : plan.ctaUrl;
     var benefits = (plan.benefits || []).map(function (benefit) {
       return "<li>" + escapeHtml(benefit) + "</li>";
     }).join("");
+    var note = plan.note ? '  <p class="plan-card__note">' + escapeHtml(plan.note) + '</p>' : '';
 
     return [
       '<article class="plan-card ' + (isFeatured ? 'plan-card--featured ' : '') + 'reveal">',
       '  <div class="plan-card__top">',
       '    <span class="plan-card__name">' + escapeHtml(plan.name) + '</span>',
-      isFeatured ? '    <span class="plan-card__badge">' + escapeHtml(plan.highlight || "Destaque") + '</span>' : '',
+      hasBadge ? '    <span class="plan-card__badge">' + escapeHtml(plan.highlight) + '</span>' : '',
       '  </div>',
       '  <p class="plan-card__description">' + escapeHtml(plan.description) + '</p>',
       '  <div class="plan-card__price"><strong>' + escapeHtml(plan.price) + '</strong><span>' + escapeHtml(plan.period) + '</span></div>',
       '  <ul class="plan-card__benefits">' + benefits + '</ul>',
-      '  <p class="plan-card__note">' + escapeHtml(plan.note || "") + '</p>',
+      note,
       '  <a class="button ' + (isFeatured ? 'button--volt' : 'button--outline') + '" href="' + rootPath(ctaUrl) + '">' + escapeHtml(ctaLabel) + '</a>',
       '</article>'
     ].join("");

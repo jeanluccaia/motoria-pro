@@ -2,58 +2,58 @@ window.LOUDFIT_PLANS = [
   {
     name: "Power Anual",
     slug: "power-anual",
-    description: "Ideal para quem busca o menor valor mensal.",
+    description: "Para transformar treino em rotina o ano todo.",
     price: "R$ 119,90",
     period: "/mês",
     benefits: [
-      "Menor valor mensal",
-      "Rotina para treinar o ano todo",
-      "Condições confirmadas por unidade"
+      "Melhor valor mensal",
+      "Ideal para quem treina o ano todo",
+      "Acesso à estrutura LoudFit"
     ],
     featured: false,
-    highlight: "",
-    ctaLabel: "Quero esse plano",
+    highlight: "🏆 Mais econômico",
+    ctaLabel: "Começar matrícula",
     ctaUrl: "unidades/#rede",
     status: "ativo",
-    note: "Consulte a unidade escolhida para confirmar disponibilidade.",
+    note: "",
     applicableUnit: "unidades_com_planos"
   },
   {
     name: "Power Semestral",
     slug: "power-semestral",
-    description: "Excelente equilíbrio entre economia e flexibilidade.",
+    description: "Para manter frequência com mais flexibilidade.",
     price: "R$ 129,90",
     period: "/mês",
     benefits: [
-      "Economia com mais flexibilidade",
-      "Boa escolha para criar rotina",
-      "Condições confirmadas por unidade"
+      "Excelente equilíbrio entre preço e flexibilidade",
+      "Ideal para criar consistência",
+      "Ótimo custo-benefício"
     ],
     featured: true,
-    highlight: "Equilíbrio",
-    ctaLabel: "Quero esse plano",
+    highlight: "⭐ Mais escolhido",
+    ctaLabel: "Começar matrícula",
     ctaUrl: "unidades/#rede",
     status: "ativo",
-    note: "Consulte a unidade escolhida para confirmar disponibilidade.",
+    note: "",
     applicableUnit: "unidades_com_planos"
   },
   {
     name: "Power Recorrente",
     slug: "power-recorrente",
-    description: "Sem fidelidade longa. Pagamento recorrente no cartão.",
+    description: "Para começar com liberdade no cartão.",
     price: "R$ 139,90",
     period: "/mês",
     benefits: [
       "Sem fidelidade longa",
-      "Pagamento recorrente no cartão",
-      "Flexibilidade para começar"
+      "Pagamento recorrente",
+      "Comece quando quiser"
     ],
     featured: false,
-    highlight: "",
-    ctaLabel: "Quero esse plano",
+    highlight: "⚡ Mais flexível",
+    ctaLabel: "Começar matrícula",
     ctaUrl: "unidades/#rede",
     status: "ativo",
-    note: "Consulte a unidade escolhida para confirmar disponibilidade.",
+    note: "",
     applicableUnit: "unidades_com_planos"
   }
 ];
