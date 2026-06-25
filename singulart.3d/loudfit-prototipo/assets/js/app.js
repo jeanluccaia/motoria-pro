@@ -319,7 +319,7 @@
 
       function setSound(enabled, persist) {
         video.muted = !enabled;
-        button.textContent = enabled ? "Som ligado" : "Som off";
+        button.textContent = enabled ? "Som ligado" : "Som desligado";
         button.setAttribute("aria-pressed", String(enabled));
         button.setAttribute("aria-label", enabled ? "Desativar som do vídeo" : "Ativar som do vídeo");
 
