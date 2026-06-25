@@ -1,6 +1,6 @@
 window.LOUDFIT_UNITS = [
   {
-    name: "Loud Fit Carrefour Valinhos",
+    name: "LoudFit Carrefour Valinhos",
     shortName: "Carrefour Valinhos",
     slug: "carreco-curvalinhos",
     city: "Valinhos",

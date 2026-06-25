@@ -560,11 +560,11 @@ p {
 }
 
 .section--final {
-  padding: clamp(84px, 8vw, 112px) 0 clamp(30px, 3.4vw, 46px);
+  padding: clamp(64px, 6vw, 88px) 0 clamp(20px, 2.4vw, 34px);
 }
 
 .section--final .quiet-cta {
-  padding: clamp(54px, 5.6vw, 72px) 0;
+  padding: clamp(44px, 4.6vw, 60px) 0;
 }
 
 .section__head {
@@ -858,6 +858,7 @@ p {
   text-wrap: balance;
   word-break: normal;
   overflow-wrap: normal;
+  padding-bottom: .06em;
 }
 
 .manifest p {
@@ -1083,6 +1084,7 @@ p {
   text-wrap: balance;
   word-break: normal;
   overflow-wrap: normal;
+  padding-bottom: .06em;
 }
 
 .journey-card ol {
@@ -1141,6 +1143,7 @@ p {
   text-wrap: balance;
   word-break: normal;
   overflow-wrap: normal;
+  padding-bottom: .06em;
 }
 
 .commerce-path__steps {
@@ -1192,6 +1195,7 @@ p {
   text-wrap: balance;
   word-break: normal;
   overflow-wrap: normal;
+  padding-bottom: .06em;
 }
 
 .platform-panel__copy p {
@@ -1344,6 +1348,7 @@ p {
   text-wrap: balance;
   word-break: normal;
   overflow-wrap: normal;
+  padding-bottom: .06em;
 }
 
 .unit-card p {
@@ -1455,6 +1460,7 @@ p {
   text-wrap: balance;
   word-break: normal;
   overflow-wrap: normal;
+  padding-bottom: .06em;
 }
 
 .feature-card p,
@@ -1598,6 +1604,7 @@ p {
   text-wrap: balance;
   word-break: normal;
   overflow-wrap: normal;
+  padding-bottom: .06em;
 }
 
 .modality-suite--editorial .modality-product:nth-child(1),
@@ -1662,6 +1669,7 @@ p {
   text-wrap: balance;
   word-break: normal;
   overflow-wrap: normal;
+  padding-bottom: .06em;
 }
 
 .class-card p {
@@ -2026,6 +2034,7 @@ p {
   text-wrap: balance;
   word-break: normal;
   overflow-wrap: normal;
+  padding-bottom: .06em;
 }
 
 .cta-band p {
@@ -2322,6 +2331,7 @@ p {
   text-wrap: balance;
   word-break: normal;
   overflow-wrap: normal;
+  padding-bottom: .06em;
 }
 
 .map-pin {
@@ -2725,7 +2735,7 @@ p {
   }
 
   .section--final {
-    padding: 78px 0 28px;
+    padding: 62px 0 18px;
   }
 
   .section__title,
@@ -3009,7 +3019,11 @@ p {
   }
 
   .quiet-cta {
-    padding: 52px 0;
+    padding: 42px 0;
+  }
+
+  .section--final .quiet-cta {
+    padding: 38px 0;
   }
 
   .quiet-cta h2,

@@ -11,7 +11,7 @@ window.LOUDFIT_PLANS = [
       "Acesso à estrutura LoudFit"
     ],
     featured: false,
-    highlight: "🏆 Mais econômico",
+    highlight: "Mais econômico",
     ctaLabel: "Começar matrícula",
     ctaUrl: "unidades/#rede",
     status: "ativo",
@@ -30,7 +30,7 @@ window.LOUDFIT_PLANS = [
       "Ótimo custo-benefício"
     ],
     featured: true,
-    highlight: "⭐ Mais escolhido",
+    highlight: "Mais escolhido",
     ctaLabel: "Começar matrícula",
     ctaUrl: "unidades/#rede",
     status: "ativo",
@@ -49,7 +49,7 @@ window.LOUDFIT_PLANS = [
       "Comece quando quiser"
     ],
     featured: false,
-    highlight: "⚡ Mais flexível",
+    highlight: "Mais flexível",
     ctaLabel: "Começar matrícula",
     ctaUrl: "unidades/#rede",
     status: "ativo",
