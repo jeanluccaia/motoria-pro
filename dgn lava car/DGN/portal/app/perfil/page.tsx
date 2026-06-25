@@ -20,19 +20,19 @@ import { GoldBadge } from "@/components/GoldBadge";
 const menuSections = [
   {
     items: [
-      { icon: User, label: "Dados Pessoais", desc: "Nome, e-mail e telefone", href: "#" },
-      { icon: Star, label: "Meu Plano", desc: "Plano Elite • Ativo", href: "#" },
-      { icon: Lock, label: "Alterar Senha", desc: "Segurança da conta", href: "#" },
+      { icon: User, label: "Dados Pessoais", desc: "Nome, e-mail e telefone", href: null },
+      { icon: Star, label: "Meu Plano", desc: "Plano Elite • Ativo", href: "/plano" },
+      { icon: Lock, label: "Alterar Senha", desc: "Segurança da conta", href: null },
     ],
   },
   {
     items: [
-      { icon: FileText, label: "Termos de Uso", desc: "Contrato de assinatura", href: "#" },
+      { icon: FileText, label: "Termos de Uso", desc: "Contrato de assinatura", href: null },
       {
         icon: Shield,
         label: "Política de Privacidade",
         desc: "Como usamos seus dados",
-        href: "#",
+        href: null,
       },
     ],
   },
@@ -140,14 +140,8 @@ export default function PerfilPage() {
           >
             {section.items.map((item, iIdx) => {
               const Icon = item.icon;
-              return (
-                <button
-                  key={item.label}
-                  className={`w-full flex items-center gap-4 px-4 py-4 text-left transition-all duration-200 hover:bg-white/[0.02] active:bg-white/[0.04] ${
-                    iIdx !== 0 ? "border-t border-[#2A2A2A]" : ""
-                  }`}
-                  style={{ background: "#111111" }}
-                >
+              const inner = (
+                <>
                   <div
                     className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{ background: "rgba(201,168,76,0.08)" }}
@@ -159,6 +153,27 @@ export default function PerfilPage() {
                     <p className="text-xs text-[#9CA3AF] mt-0.5">{item.desc}</p>
                   </div>
                   <ChevronRight size={16} className="text-[#4B5563] flex-shrink-0" />
+                </>
+              );
+              const cls = `w-full flex items-center gap-4 px-4 py-4 text-left transition-all duration-200 hover:bg-white/[0.02] active:bg-white/[0.04] ${
+                iIdx !== 0 ? "border-t border-[#2A2A2A]" : ""
+              }`;
+              return item.href ? (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={cls}
+                  style={{ background: "#111111", display: "flex" }}
+                >
+                  {inner}
+                </Link>
+              ) : (
+                <button
+                  key={item.label}
+                  className={cls}
+                  style={{ background: "#111111" }}
+                >
+                  {inner}
                 </button>
               );
             })}

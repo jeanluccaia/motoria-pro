@@ -270,14 +270,16 @@ export default function DashboardPage() {
           initial="hidden"
           animate="visible"
           variants={fadeUp}
-          className="rounded-2xl p-5"
-          style={{
-            background:
-              "linear-gradient(135deg, rgba(201,168,76,0.07) 0%, rgba(201,168,76,0.02) 100%)",
-            border: "1px solid rgba(201,168,76,0.18)",
-          }}
         >
-          <div className="flex items-start gap-3">
+          <Link
+            href="/plano"
+            className="flex items-start gap-3 rounded-2xl p-5 transition-all duration-200 active:scale-[0.99]"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(201,168,76,0.07) 0%, rgba(201,168,76,0.02) 100%)",
+              border: "1px solid rgba(201,168,76,0.18)",
+            }}
+          >
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
               style={{ background: "rgba(201,168,76,0.12)" }}
@@ -292,7 +294,7 @@ export default function DashboardPage() {
               <p className="text-sm text-[#9CA3AF] mt-0.5">27/06/2026 · Proteção completa</p>
             </div>
             <ChevronRight size={16} className="text-[#C9A84C] mt-1 flex-shrink-0" />
-          </div>
+          </Link>
         </motion.div>
       </div>
 

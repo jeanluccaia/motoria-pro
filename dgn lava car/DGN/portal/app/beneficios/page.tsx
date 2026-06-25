@@ -10,7 +10,6 @@ import {
   MessageCircle,
   Tag,
   Bell,
-  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import { BottomNav } from "@/components/BottomNav";
@@ -143,7 +142,6 @@ export default function BeneficiosPage() {
                 <p className="text-sm font-semibold text-white">{benefit.title}</p>
                 <p className="text-xs text-[#9CA3AF] mt-1 leading-relaxed">{benefit.desc}</p>
               </div>
-              <ChevronRight size={15} className="text-[#2A2A2A] flex-shrink-0 mt-1" />
             </motion.div>
           );
         })}

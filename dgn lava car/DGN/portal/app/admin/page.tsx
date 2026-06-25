@@ -21,7 +21,10 @@ import {
   X,
   Settings,
   Copy,
+  type LucideIcon,
 } from "lucide-react";
+
+/* ─── data ─── */
 
 const kpis = [
   {
@@ -123,7 +126,7 @@ const recentActivity = [
   },
 ];
 
-const sidebarItems = [
+const sidebarItems: { key: string; label: string; icon: LucideIcon }[] = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "assinantes", label: "Assinantes", icon: Users },
   { key: "planos", label: "Planos", icon: Package },
@@ -135,6 +138,8 @@ const sidebarItems = [
 ];
 
 const UTM_PARAMS = "utm_source=portal_assinante&utm_medium=app&utm_campaign=clube_dgn";
+
+/* ─── sub-components (module level) ─── */
 
 function LinksConfig() {
   const [agendaUrl, setAgendaUrl] = useState("");
@@ -183,7 +188,7 @@ function LinksConfig() {
         </div>
       </div>
 
-      {/* UTM params display */}
+      {/* UTM display */}
       <div
         className="rounded-xl p-4"
         style={{ background: "#111111", border: "1px solid #2A2A2A" }}
@@ -194,7 +199,7 @@ function LinksConfig() {
           </p>
           <button
             onClick={() => navigator.clipboard?.writeText(`?${UTM_PARAMS}`)}
-            className="flex items-center gap-1 text-xs text-[#C9A84C] hover:text-[#F0D060]"
+            className="flex items-center gap-1 text-xs text-[#C9A84C] hover:text-[#F0D060] transition-colors"
           >
             <Copy size={11} />
             Copiar
@@ -212,7 +217,7 @@ function LinksConfig() {
           background: saved
             ? "linear-gradient(135deg, #34D399, #10B981)"
             : "linear-gradient(135deg, #C9A84C 0%, #F0D060 50%, #C9A84C 100%)",
-          boxShadow: "0 4px 20px rgba(201,168,76,0.25)",
+          boxShadow: "0 4px 20px rgba(201,168,76,0.2)",
         }}
       >
         {saved ? "Salvo!" : "Salvar configurações"}
@@ -221,14 +226,14 @@ function LinksConfig() {
   );
 }
 
-function PlaceholderTab({ label }: { label: string }) {
+function PlaceholderTab({ label, icon: Icon }: { label: string; icon: LucideIcon }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <div
         className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
         style={{ background: "rgba(201,168,76,0.08)" }}
       >
-        <Package size={24} className="text-[#C9A84C]" />
+        <Icon size={24} className="text-[#C9A84C]" />
       </div>
       <p className="text-white font-semibold mb-1">{label}</p>
       <p className="text-sm text-[#9CA3AF]">Módulo disponível na próxima versão</p>
@@ -236,11 +241,13 @@ function PlaceholderTab({ label }: { label: string }) {
   );
 }
 
-export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+interface SidebarNavProps {
+  activeTab: string;
+  onSelect: (key: string) => void;
+}
 
-  const Sidebar = ({ onSelect }: { onSelect?: () => void }) => (
+function SidebarNav({ activeTab, onSelect }: SidebarNavProps) {
+  return (
     <nav className="flex-1 px-3 py-4 space-y-1">
       {sidebarItems.map((item) => {
         const Icon = item.icon;
@@ -248,10 +255,7 @@ export default function AdminPage() {
         return (
           <button
             key={item.key}
-            onClick={() => {
-              setActiveTab(item.key);
-              onSelect?.();
-            }}
+            onClick={() => onSelect(item.key)}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 ${
               isActive
                 ? "bg-[#C9A84C]/10 text-[#C9A84C]"
@@ -265,6 +269,22 @@ export default function AdminPage() {
       })}
     </nav>
   );
+}
+
+/* ─── main page ─── */
+
+export default function AdminPage() {
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleSelect = (key: string) => {
+    setActiveTab(key);
+    setSidebarOpen(false);
+  };
+
+  const activeLabel =
+    sidebarItems.find((s) => s.key === activeTab)?.label ??
+    (activeTab === "links" ? "Links da 4U" : activeTab);
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] flex">
@@ -282,11 +302,13 @@ export default function AdminPage() {
             <span className="text-white">Admin</span>
           </h1>
         </div>
-        <Sidebar />
-        <div className="px-3 py-4 border-t border-[#2A2A2A]">
+
+        <SidebarNav activeTab={activeTab} onSelect={setActiveTab} />
+
+        <div className="px-3 py-4 border-t border-[#2A2A2A] space-y-1">
           <button
             onClick={() => setActiveTab("links")}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
               activeTab === "links"
                 ? "bg-[#C9A84C]/10 text-[#C9A84C]"
                 : "text-[#9CA3AF] hover:text-white hover:bg-white/5"
@@ -295,7 +317,7 @@ export default function AdminPage() {
             <ExternalLink size={17} />
             <span className="text-sm font-medium">Links da 4U</span>
           </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 mt-1 rounded-xl text-[#9CA3AF] hover:text-white hover:bg-white/5 transition-all">
+          <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#9CA3AF] hover:text-white hover:bg-white/5 transition-all duration-200">
             <Settings size={17} />
             <span className="text-sm font-medium">Configurações</span>
           </button>
@@ -322,11 +344,17 @@ export default function AdminPage() {
                 <X size={20} />
               </button>
             </div>
-            <Sidebar onSelect={() => setSidebarOpen(false)} />
-            <div className="px-3 py-4 border-t border-[#2A2A2A]">
+
+            <SidebarNav activeTab={activeTab} onSelect={handleSelect} />
+
+            <div className="px-3 py-4 border-t border-[#2A2A2A] space-y-1">
               <button
-                onClick={() => { setActiveTab("links"); setSidebarOpen(false); }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#9CA3AF] hover:text-white hover:bg-white/5 transition-all"
+                onClick={() => handleSelect("links")}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
+                  activeTab === "links"
+                    ? "bg-[#C9A84C]/10 text-[#C9A84C]"
+                    : "text-[#9CA3AF] hover:text-white hover:bg-white/5"
+                }`}
               >
                 <ExternalLink size={17} />
                 <span className="text-sm font-medium">Links da 4U</span>
@@ -338,6 +366,7 @@ export default function AdminPage() {
 
       {/* Main content */}
       <main className="flex-1 min-w-0">
+        {/* Top bar */}
         <header
           className="sticky top-0 z-40 border-b border-[#2A2A2A] px-5 py-4 flex items-center justify-between"
           style={{ background: "rgba(10,10,10,0.95)", backdropFilter: "blur(20px)" }}
@@ -353,10 +382,7 @@ export default function AdminPage() {
               <p className="text-xs text-[#9CA3AF] uppercase tracking-wider font-medium hidden sm:block">
                 Portal Admin · DGN Club
               </p>
-              <h2 className="text-lg font-bold text-white capitalize">
-                {sidebarItems.find((s) => s.key === activeTab)?.label ??
-                  (activeTab === "links" ? "Links da 4U" : activeTab)}
-              </h2>
+              <h2 className="text-lg font-bold text-white">{activeLabel}</h2>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -373,9 +399,9 @@ export default function AdminPage() {
         </header>
 
         <div className="p-5 space-y-6 max-w-6xl">
+          {/* Dashboard tab */}
           {activeTab === "dashboard" && (
             <>
-              {/* KPI Grid */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -434,7 +460,6 @@ export default function AdminPage() {
                 </div>
               </motion.div>
 
-              {/* Recent Activity */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -505,6 +530,7 @@ export default function AdminPage() {
             </>
           )}
 
+          {/* Links tab */}
           {activeTab === "links" && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -515,13 +541,14 @@ export default function AdminPage() {
             </motion.div>
           )}
 
-          {activeTab === "assinantes" && <PlaceholderTab label="Gestão de Assinantes" />}
-          {activeTab === "planos" && <PlaceholderTab label="Gestão de Planos" />}
-          {activeTab === "saldo" && <PlaceholderTab label="Saldo de Lavagens" />}
-          {activeTab === "veiculos" && <PlaceholderTab label="Veículos Cadastrados" />}
-          {activeTab === "beneficios" && <PlaceholderTab label="Gestão de Benefícios" />}
-          {activeTab === "servicos" && <PlaceholderTab label="Serviços Recomendados" />}
-          {activeTab === "renovacao" && <PlaceholderTab label="Renovações" />}
+          {/* Placeholder tabs */}
+          {activeTab === "assinantes" && <PlaceholderTab label="Gestão de Assinantes" icon={Users} />}
+          {activeTab === "planos" && <PlaceholderTab label="Gestão de Planos" icon={Package} />}
+          {activeTab === "saldo" && <PlaceholderTab label="Saldo de Lavagens" icon={Droplets} />}
+          {activeTab === "veiculos" && <PlaceholderTab label="Veículos Cadastrados" icon={Car} />}
+          {activeTab === "beneficios" && <PlaceholderTab label="Gestão de Benefícios" icon={Star} />}
+          {activeTab === "servicos" && <PlaceholderTab label="Serviços Recomendados" icon={Sparkles} />}
+          {activeTab === "renovacao" && <PlaceholderTab label="Renovações" icon={RefreshCw} />}
         </div>
       </main>
     </div>

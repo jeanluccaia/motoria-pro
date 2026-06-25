@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { Eye, EyeOff, Droplets, Shield } from "lucide-react";
 
 export default function LoginPage() {
@@ -154,9 +155,9 @@ export default function LoginPage() {
         >
           <p className="text-sm text-[#9CA3AF]">
             Ainda não sou assinante?{" "}
-            <button className="text-[#C9A84C] font-medium hover:underline transition-all">
+            <Link href="/plano" className="text-[#C9A84C] font-medium hover:underline transition-all">
               Conheça os planos
-            </button>
+            </Link>
           </p>
         </motion.div>
 
