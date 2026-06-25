@@ -2444,6 +2444,113 @@
 
     /* Drawer mobile: clip */
     .nav-drawer { overflow: clip; }
+
+    /* =====================================================================
+       CAMPANHA — JULHO DOS MEMBROS FUNDADORES DGN
+    ===================================================================== */
+    .fundadores-section { background: #080808; padding: 96px 0; }
+    .fundadores-hero { text-align: center; margin-bottom: 64px; }
+    .fundadores-sub {
+      font-size: 15px; color: var(--muted); font-weight: 300;
+      letter-spacing: 0.04em; margin-top: 10px;
+    }
+    .fundadores-impacto { text-align: center; max-width: 640px; margin: 0 auto 64px; }
+    .fundadores-impact-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(26px, 4vw, 42px);
+      letter-spacing: 0.04em; margin-bottom: 14px;
+    }
+    .fundadores-impact-text { font-size: 15px; color: var(--muted); font-weight: 300; line-height: 1.75; }
+    .fundadores-calc-intro {
+      font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.2em; color: var(--gold); text-align: center; margin-bottom: 28px;
+    }
+    .fundadores-cat-tabs {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 40px;
+    }
+    .fund-cat {
+      font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.12em; padding: 9px 18px;
+      border-radius: 3px; border: 1px solid rgba(201,168,76,0.3);
+      background: transparent; color: var(--gold); cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .fund-cat.active {
+      background: linear-gradient(135deg, var(--gold-l), var(--gold));
+      border-color: var(--gold); color: #050505;
+    }
+    .fundadores-cards-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+      max-width: 720px; margin: 0 auto 64px;
+    }
+    .fund-card {
+      background: #141414; border: 1px solid rgba(201,168,76,0.14);
+      border-radius: 4px; padding: 36px 28px; display: flex; flex-direction: column;
+    }
+    .fund-card-featured {
+      border-color: rgba(201,168,76,0.38); border-top: 2px solid var(--gold); background: #161616;
+    }
+    .fund-card-badge {
+      font-size: 9.5px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.22em; color: var(--gold); margin-bottom: 6px;
+    }
+    .fund-card-featured .fund-card-badge { color: var(--gold-l); }
+    .fund-card-label { font-size: 11px; color: var(--muted); margin-bottom: 28px; font-weight: 300; }
+    .fund-card-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 10px 0; border-bottom: 1px solid rgba(201,168,76,0.08); gap: 8px;
+    }
+    .fund-row-label { font-size: 12px; color: var(--muted); font-weight: 300; }
+    .fund-row-val { font-size: 13px; font-weight: 600; color: var(--white); white-space: nowrap; }
+    .fund-card-economy { margin: 28px 0 20px; text-align: center; }
+    .fund-econ-val {
+      font-family: 'Bebas Neue', sans-serif; font-size: 48px;
+      letter-spacing: 0.04em; color: var(--gold-l); line-height: 1; margin-bottom: 6px;
+    }
+    .fund-econ-pct {
+      font-size: 11px; color: var(--gold); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.14em;
+    }
+    .fund-card-per {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding-top: 16px; border-top: 1px solid rgba(201,168,76,0.08); gap: 8px; margin-top: auto;
+    }
+    .fund-per-label { font-size: 11px; color: rgba(245,245,245,0.3); font-weight: 300; }
+    .fund-per-val { font-size: 11px; color: var(--muted); font-weight: 600; }
+    .fundadores-counter { text-align: center; margin-bottom: 52px; }
+    .fund-counter-inner {
+      display: inline-flex; align-items: center; gap: 20px;
+      background: rgba(201,168,76,0.04); border: 1px solid rgba(201,168,76,0.2);
+      border-radius: 4px; padding: 24px 44px; margin-bottom: 14px;
+    }
+    .fund-counter-num {
+      font-family: 'Bebas Neue', sans-serif; font-size: 80px;
+      color: var(--gold); line-height: 1; letter-spacing: 0.04em;
+    }
+    .fund-counter-text { display: flex; flex-direction: column; text-align: left; }
+    .fund-counter-label {
+      font-size: 11px; color: var(--muted); text-transform: uppercase;
+      letter-spacing: 0.16em; font-weight: 300;
+    }
+    .fund-counter-title {
+      font-family: 'Bebas Neue', sans-serif; font-size: 24px;
+      letter-spacing: 0.06em; color: var(--white);
+    }
+    .fund-counter-sub {
+      font-size: 11px; color: rgba(245,245,245,0.28); letter-spacing: 0.12em;
+      text-transform: uppercase; font-weight: 300;
+    }
+    .fundadores-cta { text-align: center; }
+    .fund-cta-note {
+      margin-top: 14px; font-size: 11px; color: rgba(245,245,245,0.28);
+      letter-spacing: 0.1em; text-transform: uppercase; font-weight: 300;
+    }
+    @media (max-width: 600px) {
+      .fundadores-cards-grid { grid-template-columns: 1fr; }
+      .fund-counter-inner { padding: 20px 24px; gap: 12px; }
+      .fund-counter-num { font-size: 56px; }
+      .fund-counter-title { font-size: 20px; }
+    }
   </style>
 </head>
 <body>
@@ -2527,6 +2634,109 @@
   <div class="metrica">
     <span class="num">Campinas</span>
     <span class="label">Jardim Santa Genebra</span>
+  </div>
+</section>
+
+<!-- ================================================================
+     CAMPANHA — JULHO DOS MEMBROS FUNDADORES DGN
+================================================================ -->
+<section class="fundadores-section" id="membros-fundadores">
+  <div class="wrap">
+
+    <!-- Hero da campanha -->
+    <div class="fundadores-hero fu">
+      <span class="label-tag">Julho · 2026</span>
+      <h2 class="section-title">JULHO DOS MEMBROS FUNDADORES</h2>
+      <p class="fundadores-sub">30 convites exclusivos para clientes selecionados.</p>
+    </div>
+
+    <div class="sep-sm"></div>
+
+    <!-- Bloco de impacto -->
+    <div class="fundadores-impacto fu d1">
+      <h3 class="fundadores-impact-title">Você ainda paga por lavagem?</h3>
+      <p class="fundadores-impact-text">Quem lava o carro regularmente já está pagando mais caro do que um assinante DGN. Veja a diferença no seu bolso.</p>
+    </div>
+
+    <!-- Calculadora visual -->
+    <p class="fundadores-calc-intro fu d2">Quanto você economiza por ano</p>
+
+    <div class="fundadores-cat-tabs fu d2" id="js-fund-cats">
+      <button class="fund-cat active" data-fcat="0">Hatch</button>
+      <button class="fund-cat" data-fcat="1">Sedan</button>
+      <button class="fund-cat" data-fcat="2">SUV</button>
+      <button class="fund-cat" data-fcat="3">Caminhonete</button>
+    </div>
+
+    <div class="fundadores-cards-grid fu d3">
+
+      <!-- Card Smart -->
+      <div class="fund-card">
+        <div class="fund-card-badge">DGN Smart</div>
+        <div class="fund-card-label">2 lavagens por mês · 24 por ano</div>
+        <div class="fund-card-row">
+          <span class="fund-row-label">Lavagem avulsa / ano</span>
+          <span class="fund-row-val" id="js-f-avulsa-smart">R$ 1.680</span>
+        </div>
+        <div class="fund-card-row">
+          <span class="fund-row-label">DGN Smart anual</span>
+          <span class="fund-row-val" id="js-f-smart-anual">R$ 1.440</span>
+        </div>
+        <div class="fund-card-economy">
+          <div class="fund-econ-val" id="js-f-smart-econ">R$ 240</div>
+          <div class="fund-econ-pct" id="js-f-smart-pct">14% de economia</div>
+        </div>
+        <div class="fund-card-per">
+          <span class="fund-per-label">Custo por atendimento</span>
+          <span class="fund-per-val" id="js-f-smart-per">R$ 60,00</span>
+        </div>
+      </div>
+
+      <!-- Card Priority -->
+      <div class="fund-card fund-card-featured">
+        <div class="fund-card-badge">DGN Priority</div>
+        <div class="fund-card-label">Frequência semanal · 48 por ano</div>
+        <div class="fund-card-row">
+          <span class="fund-row-label">Lavagem avulsa / ano</span>
+          <span class="fund-row-val" id="js-f-avulsa-priority">R$ 3.360</span>
+        </div>
+        <div class="fund-card-row">
+          <span class="fund-row-label">DGN Priority anual</span>
+          <span class="fund-row-val" id="js-f-priority-anual">R$ 2.390</span>
+        </div>
+        <div class="fund-card-economy">
+          <div class="fund-econ-val" id="js-f-priority-econ">R$ 970</div>
+          <div class="fund-econ-pct" id="js-f-priority-pct">29% de economia</div>
+        </div>
+        <div class="fund-card-per">
+          <span class="fund-per-label">Custo por atendimento</span>
+          <span class="fund-per-val" id="js-f-priority-per">R$ 49,79</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Contador de vagas -->
+    <div class="fundadores-counter fu d4">
+      <div class="fund-counter-inner">
+        <span class="fund-counter-num">30</span>
+        <div class="fund-counter-text">
+          <span class="fund-counter-label">vagas de</span>
+          <span class="fund-counter-title">Membro Fundador</span>
+        </div>
+      </div>
+      <p class="fund-counter-sub">Convites disponíveis · Seleção exclusiva · Julho 2026</p>
+    </div>
+
+    <!-- CTA -->
+    <div class="fundadores-cta fu d5">
+      <a href="https://wa.me/5519978146936?text=Ol%C3%A1!%20Quero%20garantir%20minha%20vaga%20como%20Membro%20Fundador%20DGN%20Club."
+         target="_blank" rel="noopener" class="btn btn-gold btn-lg">
+        QUERO GARANTIR MINHA VAGA
+      </a>
+      <p class="fund-cta-note">Convite exclusivo · Seleção de clientes DGN · Julho 2026</p>
+    </div>
+
   </div>
 </section>
 
@@ -3489,6 +3699,57 @@
     });
 
     applyCategory(1);
+
+    /* ── Calculadora Membros Fundadores ── */
+    (function () {
+      /* Preços avulsa estimados por categoria: [Hatch, Sedan, SUV, Caminhonete]
+         Ajuste estes valores conforme tabela oficial de mercado */
+      var AVULSA = [60, 70, 80, 90];
+      var SMART_FREQ  = 24;  /* lavagens/ano — plano Smart  */
+      var PRIOR_FREQ  = 48;  /* lavagens/ano — plano Priority */
+      var SMART_ANUAL  = [1240, 1440, 1640, 1840];
+      var PRIOR_ANUAL  = [2190, 2390, 2690, 2990];
+
+      function fmt(n) {
+        return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+      }
+      function fmtDec(n) {
+        return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      function set(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
+
+      function updateFund(idx) {
+        var avSmart    = AVULSA[idx] * SMART_FREQ;
+        var avPrior    = AVULSA[idx] * PRIOR_FREQ;
+        var smAnual    = SMART_ANUAL[idx];
+        var prAnual    = PRIOR_ANUAL[idx];
+        var econSmart  = avSmart  - smAnual;
+        var econPrior  = avPrior  - prAnual;
+        var pctSmart   = Math.round((econSmart  / avSmart)  * 100);
+        var pctPrior   = Math.round((econPrior  / avPrior)  * 100);
+
+        set('js-f-avulsa-smart',    fmt(avSmart));
+        set('js-f-smart-anual',     fmt(smAnual));
+        set('js-f-smart-econ',      fmt(econSmart));
+        set('js-f-smart-pct',       pctSmart + '% de economia');
+        set('js-f-smart-per',       fmtDec(smAnual / SMART_FREQ));
+        set('js-f-avulsa-priority', fmt(avPrior));
+        set('js-f-priority-anual',  fmt(prAnual));
+        set('js-f-priority-econ',   fmt(econPrior));
+        set('js-f-priority-pct',    pctPrior + '% de economia');
+        set('js-f-priority-per',    fmtDec(prAnual / PRIOR_FREQ));
+      }
+
+      document.querySelectorAll('.fund-cat').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('.fund-cat').forEach(function (b) { b.classList.remove('active'); });
+          this.classList.add('active');
+          updateFund(parseInt(this.getAttribute('data-fcat'), 10));
+        });
+      });
+
+      updateFund(0);
+    })();
 
     /* Category quick-select buttons */
     (function () {
