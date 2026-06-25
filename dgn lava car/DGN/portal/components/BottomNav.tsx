@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Home, Car, CalendarPlus, Clock, User } from "lucide-react";
+import { Home, CreditCard, Star, Clock, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -13,8 +13,8 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { href: "/dashboard", icon: Home, label: "Início", key: "dashboard" },
-  { href: "/veiculos", icon: Car, label: "Veículos", key: "veiculos" },
-  { href: "/agendar", icon: CalendarPlus, label: "Agendar", key: "agendar" },
+  { href: "/plano", icon: CreditCard, label: "Meu Plano", key: "plano" },
+  { href: "/beneficios", icon: Star, label: "Benefícios", key: "beneficios" },
   { href: "/historico", icon: Clock, label: "Histórico", key: "historico" },
   { href: "/perfil", icon: User, label: "Perfil", key: "perfil" },
 ];
@@ -36,10 +36,8 @@ export function BottomNav({ active }: BottomNavProps) {
                 key={item.key}
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200",
-                  isActive
-                    ? "text-[#C9A84C]"
-                    : "text-[#9CA3AF] hover:text-white"
+                  "relative flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200",
+                  isActive ? "text-[#C9A84C]" : "text-[#9CA3AF] hover:text-white"
                 )}
               >
                 <Icon

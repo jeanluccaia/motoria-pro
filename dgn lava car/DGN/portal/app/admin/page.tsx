@@ -7,22 +7,25 @@ import {
   Car,
   Package,
   Droplets,
-  DollarSign,
-  AlertCircle,
+  Star,
+  Sparkles,
+  RefreshCw,
+  ExternalLink,
   LayoutDashboard,
   ChevronRight,
   TrendingUp,
-  Clock,
   CheckCircle2,
   XCircle,
+  Clock,
   Menu,
   X,
   Settings,
+  Copy,
 } from "lucide-react";
 
 const kpis = [
   {
-    label: "Clientes Ativos",
+    label: "Assinantes Ativos",
     value: "248",
     icon: Users,
     color: "#818CF8",
@@ -49,90 +52,219 @@ const kpis = [
     up: null,
   },
   {
-    label: "Lavagens Realizadas",
-    value: "1.847",
+    label: "Lavagens Disponíveis",
+    value: "892",
     icon: Droplets,
     color: "#60A5FA",
     bg: "rgba(96,165,250,0.1)",
-    change: "+127 este mês",
+    change: "Saldo agregado ativo",
+    up: null,
+  },
+  {
+    label: "Renovações este mês",
+    value: "18",
+    icon: RefreshCw,
+    color: "#A78BFA",
+    bg: "rgba(167,139,250,0.1)",
+    change: "+3 vs. mês ant.",
     up: true,
   },
   {
-    label: "Receita Mensal",
-    value: "R$ 48.920",
-    icon: DollarSign,
-    color: "#34D399",
-    bg: "rgba(52,211,153,0.1)",
-    change: "+8.4% vs. mês ant.",
-    up: true,
-  },
-  {
-    label: "Solicitações Pendentes",
-    value: "12",
-    icon: AlertCircle,
-    color: "#F97316",
-    bg: "rgba(249,115,22,0.1)",
-    change: "4 urgentes",
-    up: false,
+    label: "Benefícios Ativos",
+    value: "6",
+    icon: Star,
+    color: "#F59E0B",
+    bg: "rgba(245,158,11,0.1)",
+    change: "Plano Elite",
+    up: null,
   },
 ];
 
 const recentActivity = [
   {
     client: "Maria Santos",
-    service: "Lavagem Premium Completa",
-    vehicle: "Toyota Corolla • BCD-5678",
+    action: "Nova assinatura Elite",
+    detail: "BMW X5 · BCD-5678",
     time: "Hoje, 10:30",
-    status: "Concluído",
+    status: "Ativo",
     ok: true,
   },
   {
     client: "João Ferreira",
-    service: "Lavagem Simples",
-    vehicle: "Honda Civic • EFG-9012",
+    action: "Renovação Plano Pro",
+    detail: "Honda Civic · EFG-9012",
     time: "Hoje, 09:15",
-    status: "Concluído",
+    status: "Renovado",
     ok: true,
   },
   {
     client: "Ana Rodrigues",
-    service: "Lavagem Premium + Cera",
-    vehicle: "BMW X5 • ABC-1234",
+    action: "Upgrade para Elite",
+    detail: "BMW X5 · ABC-1234",
     time: "Hoje, 08:00",
-    status: "Em andamento",
-    ok: null,
+    status: "Ativo",
+    ok: true,
   },
   {
     client: "Pedro Costa",
-    service: "Lavagem Simples",
-    vehicle: "Volkswagen Golf • HIJ-3456",
+    action: "Nova assinatura Básico",
+    detail: "VW Golf · HIJ-3456",
     time: "Ontem, 17:45",
-    status: "Concluído",
+    status: "Ativo",
     ok: true,
   },
   {
     client: "Carla Lima",
-    service: "Lavagem Premium",
-    vehicle: "Fiat Argo • KLM-7890",
+    action: "Assinatura expirada",
+    detail: "Fiat Argo · KLM-7890",
     time: "Ontem, 16:30",
-    status: "Cancelado",
+    status: "Expirado",
     ok: false,
   },
 ];
 
 const sidebarItems = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { key: "clientes", label: "Clientes", icon: Users },
-  { key: "veiculos", label: "Veículos", icon: Car },
+  { key: "assinantes", label: "Assinantes", icon: Users },
   { key: "planos", label: "Planos", icon: Package },
-  { key: "lavagens", label: "Lavagens", icon: Droplets },
-  { key: "receita", label: "Receita", icon: DollarSign },
-  { key: "solicitacoes", label: "Solicitações", icon: AlertCircle },
+  { key: "saldo", label: "Saldo de Lavagens", icon: Droplets },
+  { key: "veiculos", label: "Veículos", icon: Car },
+  { key: "beneficios", label: "Benefícios", icon: Star },
+  { key: "servicos", label: "Serv. Recomendados", icon: Sparkles },
+  { key: "renovacao", label: "Renovação", icon: RefreshCw },
 ];
+
+const UTM_PARAMS = "utm_source=portal_assinante&utm_medium=app&utm_campaign=clube_dgn";
+
+function LinksConfig() {
+  const [agendaUrl, setAgendaUrl] = useState("");
+  const [vitrineUrl, setVitrineUrl] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  return (
+    <div className="space-y-6 max-w-xl">
+      <div>
+        <h3 className="text-xs font-semibold text-[#9CA3AF] tracking-widest uppercase mb-4">
+          URLs da plataforma 4U
+        </h3>
+        <div className="space-y-4">
+          {[
+            {
+              label: "URL — Agenda (Agendar Lavagem)",
+              placeholder: "https://app.4u.com.br/dgn/agenda",
+              value: agendaUrl,
+              onChange: setAgendaUrl,
+            },
+            {
+              label: "URL — Vitrine (Serviços Extras)",
+              placeholder: "https://app.4u.com.br/dgn/vitrine",
+              value: vitrineUrl,
+              onChange: setVitrineUrl,
+            },
+          ].map((field) => (
+            <div key={field.label}>
+              <label className="text-xs font-medium text-[#9CA3AF] tracking-wider uppercase mb-2 block">
+                {field.label}
+              </label>
+              <input
+                type="url"
+                value={field.value}
+                onChange={(e) => field.onChange(e.target.value)}
+                placeholder={field.placeholder}
+                className="w-full bg-[#111111] border border-[#2A2A2A] rounded-xl px-4 py-3 text-white placeholder-[#4B5563] text-sm focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]/30 transition-all"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* UTM params display */}
+      <div
+        className="rounded-xl p-4"
+        style={{ background: "#111111", border: "1px solid #2A2A2A" }}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs font-semibold text-[#9CA3AF] tracking-wider uppercase">
+            Parâmetros UTM (adicionados automaticamente)
+          </p>
+          <button
+            onClick={() => navigator.clipboard?.writeText(`?${UTM_PARAMS}`)}
+            className="flex items-center gap-1 text-xs text-[#C9A84C] hover:text-[#F0D060]"
+          >
+            <Copy size={11} />
+            Copiar
+          </button>
+        </div>
+        <p className="text-xs text-[#4B5563] font-mono break-all leading-relaxed">
+          ?{UTM_PARAMS}
+        </p>
+      </div>
+
+      <button
+        onClick={handleSave}
+        className="px-6 py-3 rounded-xl font-semibold text-sm text-[#0A0A0A] transition-all active:scale-[0.98]"
+        style={{
+          background: saved
+            ? "linear-gradient(135deg, #34D399, #10B981)"
+            : "linear-gradient(135deg, #C9A84C 0%, #F0D060 50%, #C9A84C 100%)",
+          boxShadow: "0 4px 20px rgba(201,168,76,0.25)",
+        }}
+      >
+        {saved ? "Salvo!" : "Salvar configurações"}
+      </button>
+    </div>
+  );
+}
+
+function PlaceholderTab({ label }: { label: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div
+        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+        style={{ background: "rgba(201,168,76,0.08)" }}
+      >
+        <Package size={24} className="text-[#C9A84C]" />
+      </div>
+      <p className="text-white font-semibold mb-1">{label}</p>
+      <p className="text-sm text-[#9CA3AF]">Módulo disponível na próxima versão</p>
+    </div>
+  );
+}
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const Sidebar = ({ onSelect }: { onSelect?: () => void }) => (
+    <nav className="flex-1 px-3 py-4 space-y-1">
+      {sidebarItems.map((item) => {
+        const Icon = item.icon;
+        const isActive = activeTab === item.key;
+        return (
+          <button
+            key={item.key}
+            onClick={() => {
+              setActiveTab(item.key);
+              onSelect?.();
+            }}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 ${
+              isActive
+                ? "bg-[#C9A84C]/10 text-[#C9A84C]"
+                : "text-[#9CA3AF] hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <Icon size={17} />
+            <span className="text-sm font-medium">{item.label}</span>
+          </button>
+        );
+      })}
+    </nav>
+  );
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] flex">
@@ -141,7 +273,6 @@ export default function AdminPage() {
         className="hidden lg:flex flex-col w-64 min-h-screen border-r border-[#2A2A2A] sticky top-0"
         style={{ background: "#111111" }}
       >
-        {/* Logo */}
         <div className="px-6 py-6 border-b border-[#2A2A2A]">
           <p className="text-[10px] text-[#9CA3AF] tracking-widest uppercase font-medium mb-0.5">
             Portal
@@ -151,37 +282,20 @@ export default function AdminPage() {
             <span className="text-white">Admin</span>
           </h1>
         </div>
-
-        {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          {sidebarItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.key;
-            return (
-              <button
-                key={item.key}
-                onClick={() => setActiveTab(item.key)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 ${
-                  isActive
-                    ? "bg-[#C9A84C]/10 text-[#C9A84C]"
-                    : "text-[#9CA3AF] hover:text-white hover:bg-white/5"
-                }`}
-              >
-                <Icon size={17} />
-                <span className="text-sm font-medium">{item.label}</span>
-                {item.key === "solicitacoes" && (
-                  <span className="ml-auto text-[10px] font-bold bg-[#F97316] text-white px-1.5 py-0.5 rounded-full">
-                    12
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Footer */}
+        <Sidebar />
         <div className="px-3 py-4 border-t border-[#2A2A2A]">
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#9CA3AF] hover:text-white hover:bg-white/5 transition-all">
+          <button
+            onClick={() => setActiveTab("links")}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+              activeTab === "links"
+                ? "bg-[#C9A84C]/10 text-[#C9A84C]"
+                : "text-[#9CA3AF] hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <ExternalLink size={17} />
+            <span className="text-sm font-medium">Links da 4U</span>
+          </button>
+          <button className="w-full flex items-center gap-3 px-3 py-2.5 mt-1 rounded-xl text-[#9CA3AF] hover:text-white hover:bg-white/5 transition-all">
             <Settings size={17} />
             <span className="text-sm font-medium">Configurações</span>
           </button>
@@ -208,34 +322,22 @@ export default function AdminPage() {
                 <X size={20} />
               </button>
             </div>
-            <nav className="flex-1 px-3 py-4 space-y-1">
-              {sidebarItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.key;
-                return (
-                  <button
-                    key={item.key}
-                    onClick={() => {
-                      setActiveTab(item.key);
-                      setSidebarOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
-                      isActive ? "bg-[#C9A84C]/10 text-[#C9A84C]" : "text-[#9CA3AF] hover:text-white"
-                    }`}
-                  >
-                    <Icon size={17} />
-                    <span className="text-sm font-medium">{item.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
+            <Sidebar onSelect={() => setSidebarOpen(false)} />
+            <div className="px-3 py-4 border-t border-[#2A2A2A]">
+              <button
+                onClick={() => { setActiveTab("links"); setSidebarOpen(false); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#9CA3AF] hover:text-white hover:bg-white/5 transition-all"
+              >
+                <ExternalLink size={17} />
+                <span className="text-sm font-medium">Links da 4U</span>
+              </button>
+            </div>
           </aside>
         </div>
       )}
 
       {/* Main content */}
       <main className="flex-1 min-w-0">
-        {/* Top bar */}
         <header
           className="sticky top-0 z-40 border-b border-[#2A2A2A] px-5 py-4 flex items-center justify-between"
           style={{ background: "rgba(10,10,10,0.95)", backdropFilter: "blur(20px)" }}
@@ -251,12 +353,15 @@ export default function AdminPage() {
               <p className="text-xs text-[#9CA3AF] uppercase tracking-wider font-medium hidden sm:block">
                 Portal Admin · DGN Club
               </p>
-              <h2 className="text-lg font-bold text-white capitalize">{activeTab}</h2>
+              <h2 className="text-lg font-bold text-white capitalize">
+                {sidebarItems.find((s) => s.key === activeTab)?.label ??
+                  (activeTab === "links" ? "Links da 4U" : activeTab)}
+              </h2>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <span className="hidden sm:block text-xs text-[#9CA3AF] bg-[#1A1A1A] border border-[#2A2A2A] px-3 py-1.5 rounded-lg">
-              24/06/2026
+              25/06/2026
             </span>
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold text-[#0A0A0A]"
@@ -268,139 +373,155 @@ export default function AdminPage() {
         </header>
 
         <div className="p-5 space-y-6 max-w-6xl">
-          {/* KPI Grid */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4 }}
-          >
-            <h3 className="text-xs font-semibold text-[#9CA3AF] tracking-widest uppercase mb-4">
-              Visão Geral
-            </h3>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-              {kpis.map((kpi, i) => {
-                const Icon = kpi.icon;
-                return (
-                  <motion.div
-                    key={kpi.label}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.06, duration: 0.35 }}
-                    className="rounded-2xl p-4 transition-all hover:scale-[1.01]"
-                    style={{
-                      background: "linear-gradient(135deg, #111111 0%, #1A1A1A 100%)",
-                      border: `1px solid ${kpi.color}20`,
-                    }}
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div
-                        className="w-9 h-9 rounded-xl flex items-center justify-center"
-                        style={{ background: kpi.bg }}
+          {activeTab === "dashboard" && (
+            <>
+              {/* KPI Grid */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4 }}
+              >
+                <h3 className="text-xs font-semibold text-[#9CA3AF] tracking-widest uppercase mb-4">
+                  Visão Geral
+                </h3>
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                  {kpis.map((kpi, i) => {
+                    const Icon = kpi.icon;
+                    return (
+                      <motion.div
+                        key={kpi.label}
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.06, duration: 0.35 }}
+                        className="rounded-2xl p-4 transition-all hover:scale-[1.01]"
+                        style={{
+                          background: "linear-gradient(135deg, #111111 0%, #1A1A1A 100%)",
+                          border: `1px solid ${kpi.color}20`,
+                        }}
                       >
-                        <Icon size={18} style={{ color: kpi.color }} />
-                      </div>
-                      {kpi.up !== null && (
-                        <TrendingUp
-                          size={14}
-                          className={kpi.up ? "text-[#34D399]" : "text-red-400 rotate-180"}
-                        />
-                      )}
-                    </div>
-                    <p className="text-2xl font-bold text-white">{kpi.value}</p>
-                    <p className="text-xs text-[#9CA3AF] mt-0.5 leading-tight">{kpi.label}</p>
-                    <p
-                      className="text-[11px] mt-1.5 font-medium"
-                      style={{
-                        color:
-                          kpi.up === true
-                            ? "#34D399"
-                            : kpi.up === false
-                            ? "#F97316"
-                            : "#9CA3AF",
-                      }}
-                    >
-                      {kpi.change}
-                    </p>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </motion.div>
-
-          {/* Recent Activity */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-semibold text-[#9CA3AF] tracking-widest uppercase">
-                Atividade Recente
-              </h3>
-              <button className="flex items-center gap-1 text-xs text-[#C9A84C] hover:text-[#F0D060] transition-colors font-medium">
-                Ver tudo <ChevronRight size={12} />
-              </button>
-            </div>
-
-            <div
-              className="rounded-2xl overflow-hidden"
-              style={{ border: "1px solid #2A2A2A" }}
-            >
-              {recentActivity.map((act, i) => (
-                <div
-                  key={i}
-                  className={`flex items-center gap-4 px-5 py-4 transition-colors hover:bg-white/[0.02] ${
-                    i !== 0 ? "border-t border-[#1A1A1A]" : ""
-                  }`}
-                  style={{ background: "#111111" }}
-                >
-                  {/* Status icon */}
-                  <div className="flex-shrink-0">
-                    {act.ok === true ? (
-                      <CheckCircle2 size={18} className="text-[#34D399]" />
-                    ) : act.ok === false ? (
-                      <XCircle size={18} className="text-red-400" />
-                    ) : (
-                      <Clock size={18} className="text-[#C9A84C]" />
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">{act.client}</p>
-                        <p className="text-xs text-[#9CA3AF] truncate">{act.service}</p>
-                        <p className="text-[11px] text-[#4B5563] mt-0.5 truncate">{act.vehicle}</p>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <span
-                          className="text-[11px] font-medium px-2 py-0.5 rounded-full"
+                        <div className="flex items-start justify-between mb-3">
+                          <div
+                            className="w-9 h-9 rounded-xl flex items-center justify-center"
+                            style={{ background: kpi.bg }}
+                          >
+                            <Icon size={18} style={{ color: kpi.color }} />
+                          </div>
+                          {kpi.up !== null && (
+                            <TrendingUp
+                              size={14}
+                              className={kpi.up ? "text-[#34D399]" : "text-red-400 rotate-180"}
+                            />
+                          )}
+                        </div>
+                        <p className="text-2xl font-bold text-white">{kpi.value}</p>
+                        <p className="text-xs text-[#9CA3AF] mt-0.5 leading-tight">{kpi.label}</p>
+                        <p
+                          className="text-[11px] mt-1.5 font-medium"
                           style={{
-                            background:
-                              act.ok === true
-                                ? "rgba(52,211,153,0.1)"
-                                : act.ok === false
-                                ? "rgba(248,113,113,0.1)"
-                                : "rgba(201,168,76,0.1)",
                             color:
-                              act.ok === true
+                              kpi.up === true
                                 ? "#34D399"
-                                : act.ok === false
-                                ? "#F87171"
-                                : "#C9A84C",
+                                : kpi.up === false
+                                ? "#F97316"
+                                : "#9CA3AF",
                           }}
                         >
-                          {act.status}
-                        </span>
-                        <p className="text-[11px] text-[#4B5563] mt-1">{act.time}</p>
+                          {kpi.change}
+                        </p>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+
+              {/* Recent Activity */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xs font-semibold text-[#9CA3AF] tracking-widest uppercase">
+                    Atividade Recente
+                  </h3>
+                  <button className="flex items-center gap-1 text-xs text-[#C9A84C] hover:text-[#F0D060] transition-colors font-medium">
+                    Ver tudo <ChevronRight size={12} />
+                  </button>
+                </div>
+
+                <div
+                  className="rounded-2xl overflow-hidden"
+                  style={{ border: "1px solid #2A2A2A" }}
+                >
+                  {recentActivity.map((act, i) => (
+                    <div
+                      key={i}
+                      className={`flex items-center gap-4 px-5 py-4 transition-colors hover:bg-white/[0.02] ${
+                        i !== 0 ? "border-t border-[#1A1A1A]" : ""
+                      }`}
+                      style={{ background: "#111111" }}
+                    >
+                      <div className="flex-shrink-0">
+                        {act.ok === true ? (
+                          <CheckCircle2 size={18} className="text-[#34D399]" />
+                        ) : act.ok === false ? (
+                          <XCircle size={18} className="text-red-400" />
+                        ) : (
+                          <Clock size={18} className="text-[#C9A84C]" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-white truncate">
+                              {act.client}
+                            </p>
+                            <p className="text-xs text-[#9CA3AF] truncate">{act.action}</p>
+                            <p className="text-[11px] text-[#4B5563] mt-0.5 truncate">
+                              {act.detail}
+                            </p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <span
+                              className="text-[11px] font-medium px-2 py-0.5 rounded-full"
+                              style={{
+                                background:
+                                  act.ok === true
+                                    ? "rgba(52,211,153,0.1)"
+                                    : "rgba(248,113,113,0.1)",
+                                color: act.ok === true ? "#34D399" : "#F87171",
+                              }}
+                            >
+                              {act.status}
+                            </span>
+                            <p className="text-[11px] text-[#4B5563] mt-1">{act.time}</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </motion.div>
+              </motion.div>
+            </>
+          )}
+
+          {activeTab === "links" && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35 }}
+            >
+              <LinksConfig />
+            </motion.div>
+          )}
+
+          {activeTab === "assinantes" && <PlaceholderTab label="Gestão de Assinantes" />}
+          {activeTab === "planos" && <PlaceholderTab label="Gestão de Planos" />}
+          {activeTab === "saldo" && <PlaceholderTab label="Saldo de Lavagens" />}
+          {activeTab === "veiculos" && <PlaceholderTab label="Veículos Cadastrados" />}
+          {activeTab === "beneficios" && <PlaceholderTab label="Gestão de Benefícios" />}
+          {activeTab === "servicos" && <PlaceholderTab label="Serviços Recomendados" />}
+          {activeTab === "renovacao" && <PlaceholderTab label="Renovações" />}
         </div>
       </main>
     </div>
