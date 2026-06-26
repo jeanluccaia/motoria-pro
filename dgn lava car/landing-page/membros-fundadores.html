@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Membros Fundadores DGN — Convite Exclusivo</title>
+  <meta name="description" content="Convite exclusivo para os primeiros 30 Membros Fundadores do DGN Club. Clientes selecionados.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* RESET & TOKENS */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:   #0a0a0a;
+      --card-bg: #141414;
+      --gold:    #c9a84c;
+      --gold-l:  #e8c96b;
+      --gold-d:  #8b6914;
+      --white:   #f5f5f5;
+      --muted:   rgba(245,245,245,0.52);
+      --border:  rgba(201,168,76,0.18);
+      --glow:    rgba(201,168,76,0.32);
+    }
+
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: var(--black);
+      color: var(--white);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+
+    /* LAYOUT */
+    .wrap { width: 100%; max-width: 960px; margin: 0 auto; padding: 0 24px; }
+    .wrap-sm { max-width: 680px; margin: 0 auto; padding: 0 24px; }
+    section { padding: 88px 0; }
+
+    /* SEPARADORES */
+    .sep {
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
+    }
+    .sep-sm {
+      width: 56px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 0 auto 48px;
+    }
+
+    /* TIPOGRAFIA */
+    .eyebrow {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.24em; color: var(--gold);
+      display: block; text-align: center; margin-bottom: 12px;
+    }
+    .display {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(40px, 8vw, 72px);
+      text-transform: uppercase; letter-spacing: 0.04em;
+      text-align: center; line-height: 1;
+    }
+    .display-sm {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(28px, 5vw, 46px);
+      text-transform: uppercase; letter-spacing: 0.04em;
+      text-align: center; line-height: 1.08;
+    }
+    .lead {
+      font-size: 15px; color: var(--muted); font-weight: 300;
+      text-align: center; line-height: 1.78; max-width: 560px; margin: 0 auto;
+    }
+    .lead-sm { font-size: 13px; }
+
+    /* BOTÕES */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 9px; font-family: 'Montserrat', sans-serif; font-size: 12px;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
+      padding: 14px 30px; border-radius: 3px; cursor: pointer; border: none;
+      transition: transform 0.25s, box-shadow 0.25s, background 0.25s;
+      white-space: nowrap;
+    }
+    .btn-lg { font-size: 13px; padding: 18px 44px; }
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold-l) 0%, var(--gold) 55%, var(--gold-d) 100%);
+      color: #050505;
+    }
+    .btn-gold:hover {
+      box-shadow: 0 0 28px var(--glow), 0 6px 18px rgba(0,0,0,0.45);
+      transform: translateY(-2px);
+    }
+    .btn-outline {
+      background: transparent; color: var(--gold);
+      border: 1px solid rgba(201,168,76,0.5);
+    }
+    .btn-outline:hover {
+      background: rgba(201,168,76,0.07); border-color: var(--gold);
+      box-shadow: 0 0 16px rgba(201,168,76,0.18);
+    }
+
+    /* ANIMAÇÕES */
+    .fu {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 0.72s ease, transform 0.72s ease;
+    }
+    .fu.in { opacity: 1; transform: none; }
+    .d1 { transition-delay: 0.08s; }
+    .d2 { transition-delay: 0.18s; }
+    .d3 { transition-delay: 0.28s; }
+    .d4 { transition-delay: 0.38s; }
+    .d5 { transition-delay: 0.48s; }
+
+    /* ── HEADER ── */
+    .vip-header {
+      position: fixed; top: 0; inset-inline: 0; z-index: 900; height: 60px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(10,10,10,0.96);
+      border-bottom: 1px solid rgba(201,168,76,0.16);
+      backdrop-filter: blur(14px);
+    }
+    .vip-header-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px; letter-spacing: 0.2em; color: var(--white);
+    }
+    .vip-header-brand span { color: var(--gold); }
+
+    /* ── HERO VIP ── */
+    .hero-vip {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 120px 24px 88px;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.06) 0%, transparent 70%);
+      position: relative;
+    }
+    .hero-vip::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .hero-badge {
+      display: inline-block; padding: 5px 16px;
+      border: 1px solid rgba(201,168,76,0.35); border-radius: 2px;
+      font-size: 9.5px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.22em; color: var(--gold); margin-bottom: 32px;
+    }
+    .hero-vip .display { margin-bottom: 10px; }
+    .hero-vip .display-sub {
+      font-size: 14px; color: var(--muted); font-weight: 300;
+      letter-spacing: 0.04em; margin-bottom: 28px;
+    }
+    .hero-vip .convite-text {
+      font-size: 15px; color: rgba(245,245,245,0.7); font-weight: 300;
+      max-width: 480px; margin: 0 auto 48px; line-height: 1.72;
+    }
+    .hero-cta-group {
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+    }
+    .hero-note {
+      font-size: 10.5px; color: rgba(245,245,245,0.24); letter-spacing: 0.12em;
+      text-transform: uppercase; font-weight: 300; margin-top: 4px;
+    }
+    .hero-scroll-hint {
+      position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      color: rgba(245,245,245,0.2); font-size: 9px; letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    .hero-scroll-line {
+      width: 1px; height: 36px;
+      background: linear-gradient(to bottom, var(--gold), transparent);
+    }
+
+    /* ── IMPACTO FINANCEIRO ── */
+    .impact-section { background: #080808; padding: 88px 0; }
+    .impact-vs {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; max-width: 640px; margin: 52px auto 0;
+    }
+    .impact-col {
+      flex: 1; text-align: center; padding: 32px 24px;
+    }
+    .impact-col-label {
+      font-size: 9.5px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.2em; color: var(--muted); margin-bottom: 16px; display: block;
+    }
+    .impact-col-value {
+      font-family: 'Bebas Neue', sans-serif; font-size: 36px;
+      letter-spacing: 0.04em; color: var(--white); line-height: 1;
+    }
+    .impact-col-desc { font-size: 11px; color: var(--muted); margin-top: 8px; font-weight: 300; }
+    .impact-col.highlight { background: #141414; border: 1px solid rgba(201,168,76,0.22); border-radius: 4px; }
+    .impact-col.highlight .impact-col-value { color: var(--gold-l); }
+    .impact-vs-divider {
+      width: 1px; height: 80px; background: var(--border);
+      flex-shrink: 0;
+    }
+    .impact-vs-label {
+      font-family: 'Bebas Neue', sans-serif; font-size: 13px;
+      letter-spacing: 0.12em; color: rgba(245,245,245,0.22);
+      padding: 0 20px; flex-shrink: 0;
+    }
+
+    /* ── BENEFÍCIOS MEMBRO FUNDADOR ── */
+    .beneficios-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+      margin-top: 52px; max-width: 800px; margin-left: auto; margin-right: auto;
+    }
+    .ben-card {
+      background: #111; padding: 32px 24px;
+      border: 1px solid rgba(201,168,76,0.08);
+    }
+    .ben-card:hover { background: #161616; border-color: rgba(201,168,76,0.18); }
+    .ben-icon {
+      font-size: 18px; margin-bottom: 14px; display: block;
+      color: var(--gold); letter-spacing: 0;
+    }
+    .ben-title {
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; margin-bottom: 6px; color: var(--white);
+    }
+    .ben-desc { font-size: 12px; color: var(--muted); font-weight: 300; line-height: 1.6; }
+
+    /* ── SMART VS PRIORITY ── */
+    .planos-section { background: #080808; padding: 88px 0; }
+    .planos-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+      max-width: 800px; margin: 52px auto 0;
+    }
+    .plano-card {
+      background: #141414; border: 1px solid rgba(201,168,76,0.14);
+      border-radius: 4px; padding: 40px 32px;
+    }
+    .plano-card.featured {
+      border-color: rgba(201,168,76,0.4); border-top: 2px solid var(--gold);
+      background: #161616;
+    }
+    .plano-tag {
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.24em; color: var(--gold); display: block; margin-bottom: 8px;
+    }
+    .plano-card.featured .plano-tag { color: var(--gold-l); }
+    .plano-name {
+      font-family: 'Bebas Neue', sans-serif; font-size: 28px;
+      letter-spacing: 0.06em; margin-bottom: 6px;
+    }
+    .plano-ideal { font-size: 12px; color: var(--muted); font-weight: 300; margin-bottom: 28px; line-height: 1.6; }
+    .plano-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+    .plano-list li {
+      font-size: 13px; color: rgba(245,245,245,0.72); font-weight: 300;
+      padding-left: 16px; position: relative;
+    }
+    .plano-list li::before {
+      content: '—'; position: absolute; left: 0;
+      color: var(--gold); font-size: 10px;
+    }
+    .plano-price-label { font-size: 10px; color: var(--muted); font-weight: 300; margin-bottom: 4px; }
+    .plano-price {
+      font-family: 'Bebas Neue', sans-serif; font-size: 40px;
+      letter-spacing: 0.04em; color: var(--gold); line-height: 1;
+    }
+    .plano-card.featured .plano-price { color: var(--gold-l); }
+    .plano-price-period { font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 300; }
+    .plano-cat-select { margin-bottom: 24px; }
+    .plano-cat-select label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.14em; color: var(--muted); display: block; margin-bottom: 8px;
+    }
+    .cat-selector {
+      display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 40px;
+    }
+    .cat-btn {
+      font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em; padding: 8px 16px;
+      border-radius: 3px; border: 1px solid rgba(201,168,76,0.3);
+      background: transparent; color: var(--gold); cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .cat-btn.active {
+      background: linear-gradient(135deg, var(--gold-l), var(--gold));
+      border-color: var(--gold); color: #050505;
+    }
+
+    /* ── CALCULADORA ── */
+    .calc-section { padding: 88px 0; }
+    .calc-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px;
+      max-width: 800px; margin: 52px auto 0;
+    }
+    .calc-card {
+      background: #111; border: 1px solid rgba(201,168,76,0.08);
+      padding: 32px 28px;
+    }
+    .calc-card-header {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.16em; color: var(--gold); margin-bottom: 24px;
+      padding-bottom: 14px; border-bottom: 1px solid rgba(201,168,76,0.1);
+    }
+    .calc-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 9px 0; border-bottom: 1px solid rgba(245,245,245,0.04); gap: 8px;
+    }
+    .calc-row-label { font-size: 12px; color: var(--muted); font-weight: 300; }
+    .calc-row-val { font-size: 13px; font-weight: 600; color: var(--white); white-space: nowrap; }
+    .calc-economy {
+      margin-top: 24px; text-align: center;
+      padding: 20px; background: rgba(201,168,76,0.04);
+      border: 1px solid rgba(201,168,76,0.14); border-radius: 3px;
+    }
+    .calc-econ-val {
+      font-family: 'Bebas Neue', sans-serif; font-size: 44px;
+      color: var(--gold-l); line-height: 1; letter-spacing: 0.04em; margin-bottom: 4px;
+    }
+    .calc-econ-pct {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.16em; color: var(--gold);
+    }
+    .calc-per {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding-top: 16px; gap: 8px;
+    }
+    .calc-per-label { font-size: 11px; color: rgba(245,245,245,0.28); font-weight: 300; }
+    .calc-per-val { font-size: 11px; color: var(--muted); font-weight: 600; }
+    .calc-note {
+      font-size: 10px; color: rgba(245,245,245,0.2); text-align: center;
+      margin-top: 24px; font-style: italic;
+    }
+
+    /* ── ESCASSEZ ── */
+    .escassez-section { background: #080808; padding: 88px 0; }
+    .escassez-counter {
+      display: flex; align-items: center; justify-content: center;
+      gap: 20px; background: rgba(201,168,76,0.04);
+      border: 1px solid rgba(201,168,76,0.2); border-radius: 4px;
+      padding: 28px 48px; margin: 52px auto 32px; max-width: 480px;
+    }
+    .escassez-num {
+      font-family: 'Bebas Neue', sans-serif; font-size: 88px;
+      color: var(--gold); line-height: 1; letter-spacing: 0.04em;
+    }
+    .escassez-text { display: flex; flex-direction: column; text-align: left; }
+    .escassez-label {
+      font-size: 10.5px; color: var(--muted); text-transform: uppercase;
+      letter-spacing: 0.18em; font-weight: 300;
+    }
+    .escassez-title {
+      font-family: 'Bebas Neue', sans-serif; font-size: 26px;
+      letter-spacing: 0.06em; color: var(--white);
+    }
+
+    /* ── PRIORIDADE ── */
+    .prioridade-section { padding: 88px 0; }
+    .prioridade-box {
+      max-width: 640px; margin: 52px auto 0; text-align: center;
+      padding: 52px 40px;
+      background: #111; border: 1px solid rgba(201,168,76,0.16); border-radius: 4px;
+    }
+    .prioridade-box .display-sm { margin-bottom: 20px; }
+
+    /* ── PAGAMENTO ── */
+    .pagamento-section { background: #080808; padding: 88px 0; }
+    .pagamento-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+      max-width: 720px; margin: 52px auto 0;
+    }
+    .pag-card {
+      background: #111; border: 1px solid rgba(201,168,76,0.08);
+      padding: 32px 24px; text-align: center;
+    }
+    .pag-tipo {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.18em; color: var(--gold); margin-bottom: 12px; display: block;
+    }
+    .pag-desc {
+      font-size: 13px; color: var(--white); font-weight: 500; line-height: 1.5; margin-bottom: 6px;
+    }
+    .pag-detalhe { font-size: 11px; color: var(--muted); font-weight: 300; }
+
+    /* ── BLOCO FINAL ── */
+    .final-section {
+      padding: 104px 0 88px;
+      background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(201,168,76,0.06) 0%, transparent 70%);
+      text-align: center;
+    }
+    .final-section .display { margin-bottom: 20px; }
+
+    /* ── FOOTER ── */
+    .vip-footer {
+      padding: 32px 24px; text-align: center;
+      border-top: 1px solid rgba(201,168,76,0.1);
+    }
+    .vip-footer p {
+      font-size: 11px; color: rgba(245,245,245,0.16); letter-spacing: 0.06em;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      section { padding: 64px 0; }
+      .beneficios-grid { grid-template-columns: 1fr 1fr; }
+      .planos-grid { grid-template-columns: 1fr; }
+      .calc-grid { grid-template-columns: 1fr; }
+      .pagamento-grid { grid-template-columns: 1fr; gap: 2px; }
+      .impact-vs { flex-direction: column; gap: 2px; }
+      .impact-vs-divider { width: 80px; height: 1px; }
+      .impact-vs-label { padding: 12px 0; }
+      .escassez-counter { padding: 20px 24px; gap: 14px; }
+      .escassez-num { font-size: 64px; }
+      .prioridade-box { padding: 36px 24px; }
+    }
+    @media (max-width: 480px) {
+      .beneficios-grid { grid-template-columns: 1fr; }
+      .hero-cta-group { width: 100%; }
+      .btn-lg { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER VIP -->
+<header class="vip-header">
+  <div class="vip-header-brand">DGN <span>CLUB</span></div>
+</header>
+
+
+<!-- ================================================================
+     1. HERO VIP
+================================================================ -->
+<section class="hero-vip">
+
+  <div class="hero-badge fu">Convite Exclusivo · Julho 2026</div>
+
+  <h1 class="display fu d1">JULHO DOS<br>MEMBROS FUNDADORES</h1>
+  <p class="hero-vip display-sub fu d2">30 convites exclusivos para clientes selecionados.</p>
+
+  <p class="hero-vip convite-text fu d3">
+    Você recebeu este convite porque já faz parte da história da DGN.<br>
+    Esta é a primeira turma de assinantes que ajudará a definir como o Clube funciona.
+  </p>
+
+  <div class="hero-cta-group fu d4">
+    <a href="https://wa.me/5519978146936?text=Ol%C3%A1!%20Recebi%20o%20convite%20para%20os%20Membros%20Fundadores%20DGN%20e%20quero%20entender%20como%20garantir%20minha%20vaga."
+       target="_blank" rel="noopener" class="btn btn-gold btn-lg">
+      QUERO GARANTIR MINHA VAGA
+    </a>
+    <a href="https://wa.me/5519978146936?text=Ol%C3%A1!%20Tenho%20uma%20d%C3%BAvida%20sobre%20o%20convite%20para%20Membros%20Fundadores%20DGN."
+       target="_blank" rel="noopener" class="btn btn-outline">
+      Falar com atendimento VIP
+    </a>
+    <p class="hero-note">Atendimento exclusivo via WhatsApp</p>
+  </div>
+
+  <div class="hero-scroll-hint" aria-hidden="true">
+    <div class="hero-scroll-line"></div>
+    <span>scroll</span>
+  </div>
+
+</section>
+
+
+<!-- ================================================================
+     2. IMPACTO FINANCEIRO
+================================================================ -->
+<section class="impact-section">
+  <div class="wrap-sm">
+    <span class="eyebrow fu">Inteligência financeira</span>
+    <h2 class="display-sm fu d1">Você ainda paga<br>por lavagem?</h2>
+    <div class="sep-sm"></div>
+    <p class="lead fu d2">Quem lava o carro regularmente já está pagando mais caro do que um assinante DGN. O clube não é uma promoção — é uma decisão mais inteligente.</p>
+
+    <div class="impact-vs fu d3">
+      <div class="impact-col">
+        <span class="impact-col-label">Lavagem avulsa</span>
+        <div class="impact-col-value">R$ 70</div>
+        <p class="impact-col-desc">por vez, sem previsibilidade</p>
+      </div>
+      <div class="impact-vs-label">vs</div>
+      <div class="impact-col highlight">
+        <span class="impact-col-label">Assinatura DGN</span>
+        <div class="impact-col-value" id="js-impact-per">R$ 60</div>
+        <p class="impact-col-desc">por atendimento, com recorrência garantida</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+
+<!-- ================================================================
+     3. O QUE MUDA PARA UM MEMBRO FUNDADOR
+================================================================ -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow fu">Membro Fundador</span>
+    <h2 class="display-sm fu d1">O QUE MUDA<br>PARA VOCÊ</h2>
+    <div class="sep-sm"></div>
+
+    <div class="beneficios-grid">
+
+      <div class="ben-card fu d1">
+        <span class="ben-icon">◈</span>
+        <div class="ben-title">Agenda mais previsível</div>
+        <p class="ben-desc">Seus atendimentos entram na programação fixa. Sem precisar ligar, lembrar ou remarcar.</p>
+      </div>
+
+      <div class="ben-card fu d2">
+        <span class="ben-icon">◈</span>
+        <div class="ben-title">Prioridade na agenda</div>
+        <p class="ben-desc">Assinantes têm prioridade na programação da DGN. Sua vaga é reservada com antecedência.</p>
+      </div>
+
+      <div class="ben-card fu d3">
+        <span class="ben-icon">◈</span>
+        <div class="ben-title">Leva &amp; Traz</div>
+        <p class="ben-desc">Busca e entrega do veículo inclusos no plano Priority. Você não se desloca.</p>
+      </div>
+
+      <div class="ben-card fu d1">
+        <span class="ben-icon">◈</span>
+        <div class="ben-title">Valor fixo e planejado</div>
+        <p class="ben-desc">Sem surpresas no final do mês. Recorrência automática, previsível, sem reajuste no período.</p>
+      </div>
+
+      <div class="ben-card fu d2">
+        <span class="ben-icon">◈</span>
+        <div class="ben-title">Cuidado frequente</div>
+        <p class="ben-desc">Seu veículo mantém o padrão que você espera, semana a semana ou quinzenalmente.</p>
+      </div>
+
+      <div class="ben-card fu d3">
+        <span class="ben-icon">◈</span>
+        <div class="ben-title">Atendimento VIP</div>
+        <p class="ben-desc">Canal exclusivo de comunicação. Histórico do seu veículo. Relacionamento próximo.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+
+<!-- ================================================================
+     4. SMART vs PRIORITY
+================================================================ -->
+<section class="planos-section">
+  <div class="wrap">
+    <span class="eyebrow fu">Escolha seu plano</span>
+    <h2 class="display-sm fu d1">DOIS PLANOS.<br>UMA DECISÃO.</h2>
+    <div class="sep-sm"></div>
+
+    <!-- Seletor de categoria -->
+    <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.18em;color:var(--muted);text-align:center;margin-bottom:12px;" class="fu d2">Selecione seu veículo</p>
+    <div class="cat-selector fu d2" id="js-cat">
+      <button class="cat-btn" data-cat="0">Hatch</button>
+      <button class="cat-btn active" data-cat="1">Sedan</button>
+      <button class="cat-btn" data-cat="2">SUV</button>
+      <button class="cat-btn" data-cat="3">Caminhonete</button>
+    </div>
+
+    <div class="planos-grid">
+
+      <!-- Smart -->
+      <div class="plano-card fu d1">
+        <span class="plano-tag">DGN Smart</span>
+        <div class="plano-name">Smart</div>
+        <p class="plano-ideal">Ideal para quem lava 2 vezes ao mês e quer previsibilidade sem sair de casa.</p>
+        <ul class="plano-list">
+          <li>2 atendimentos por mês</li>
+          <li>Lavagem Simples + Aspiração</li>
+          <li>Recorrência garantida</li>
+          <li>Sem reajuste no período</li>
+          <li>Economia real vs avulso</li>
+        </ul>
+        <p class="plano-price-label">A partir de</p>
+        <div class="plano-price" id="js-smart-price">R$ 1.440</div>
+        <p class="plano-price-period" id="js-smart-period">/ ano · equivale a R$ 120/mês</p>
+        <div style="margin-top:24px;">
+          <a href="https://wa.me/5519978146936?text=Ol%C3%A1!%20Recebi%20o%20convite%20Membros%20Fundadores%20e%20tenho%20interesse%20no%20plano%20DGN%20Smart."
+             target="_blank" rel="noopener" class="btn btn-outline" style="width:100%;justify-content:center;">
+            QUERO O SMART
+          </a>
+        </div>
+      </div>
+
+      <!-- Priority -->
+      <div class="plano-card featured fu d2">
+        <span class="plano-tag">DGN Priority · Recomendado</span>
+        <div class="plano-name">Priority</div>
+        <p class="plano-ideal">Ideal para quem quer lavagem semanal, máxima conveniência e experiência premium.</p>
+        <ul class="plano-list">
+          <li>Frequência semanal garantida</li>
+          <li>Leva &amp; Traz incluso</li>
+          <li>Prioridade máxima na agenda</li>
+          <li>Lavagem Simples DGN toda semana</li>
+          <li>Maior economia por atendimento</li>
+        </ul>
+        <p class="plano-price-label">A partir de</p>
+        <div class="plano-price" id="js-priority-price">R$ 2.390</div>
+        <p class="plano-price-period" id="js-priority-period">/ ano · equivale a R$ 199/mês</p>
+        <div style="margin-top:24px;">
+          <a href="https://wa.me/5519978146936?text=Ol%C3%A1!%20Recebi%20o%20convite%20Membros%20Fundadores%20e%20tenho%20interesse%20no%20plano%20DGN%20Priority."
+             target="_blank" rel="noopener" class="btn btn-gold" style="width:100%;justify-content:center;">
+            QUERO O PRIORITY
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+
+<!-- ================================================================
+     5. CALCULADORA — QUANTO VOCÊ ECONOMIZA
+================================================================ -->
+<section class="calc-section">
+  <div class="wrap">
+    <span class="eyebrow fu">Comparativo</span>
+    <h2 class="display-sm fu d1">QUANTO VOCÊ<br>ECONOMIZA POR ANO</h2>
+    <div class="sep-sm"></div>
+    <p class="lead fu d2">Selecione a categoria do seu veículo e veja a diferença.</p>
+
+    <div class="cat-selector fu d3" id="js-calc-cat">
+      <button class="cat-btn active" data-calc-cat="0">Hatch</button>
+      <button class="cat-btn" data-calc-cat="1">Sedan</button>
+      <button class="cat-btn" data-calc-cat="2">SUV</button>
+      <button class="cat-btn" data-calc-cat="3">Caminhonete</button>
+    </div>
+
+    <div class="calc-grid fu d3">
+
+      <!-- Smart -->
+      <div class="calc-card">
+        <div class="calc-card-header">DGN Smart · 2× por mês</div>
+        <div class="calc-row">
+          <span class="calc-row-label">Lavagem avulsa / ano</span>
+          <span class="calc-row-val" id="js-c-avulsa-smart">R$ 1.680</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-row-label">DGN Smart anual</span>
+          <span class="calc-row-val" id="js-c-smart-anual">R$ 1.440</span>
+        </div>
+        <div class="calc-economy">
+          <div class="calc-econ-val" id="js-c-smart-econ">R$ 240</div>
+          <div class="calc-econ-pct" id="js-c-smart-pct">14% de economia</div>
+        </div>
+        <div class="calc-per">
+          <span class="calc-per-label">Custo por atendimento</span>
+          <span class="calc-per-val" id="js-c-smart-per">R$ 60,00</span>
+        </div>
+      </div>
+
+      <!-- Priority -->
+      <div class="calc-card" style="border-color:rgba(201,168,76,0.2);border-top:2px solid var(--gold);">
+        <div class="calc-card-header" style="color:var(--gold-l);">DGN Priority · Semanal</div>
+        <div class="calc-row">
+          <span class="calc-row-label">Lavagem avulsa / ano</span>
+          <span class="calc-row-val" id="js-c-avulsa-priority">R$ 3.360</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-row-label">DGN Priority anual</span>
+          <span class="calc-row-val" id="js-c-priority-anual">R$ 2.390</span>
+        </div>
+        <div class="calc-economy">
+          <div class="calc-econ-val" id="js-c-priority-econ">R$ 970</div>
+          <div class="calc-econ-pct" id="js-c-priority-pct">29% de economia</div>
+        </div>
+        <div class="calc-per">
+          <span class="calc-per-label">Custo por atendimento</span>
+          <span class="calc-per-val" id="js-c-priority-per">R$ 49,79</span>
+        </div>
+      </div>
+
+    </div>
+    <p class="calc-note fu">* Preços avulsos estimados com base em referência de mercado. Ajuste via configuração centralizada.</p>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+
+<!-- ================================================================
+     6. POR QUE APENAS 30 CLIENTES
+================================================================ -->
+<section class="escassez-section">
+  <div class="wrap-sm" style="text-align:center;">
+    <span class="eyebrow fu">Primeira turma</span>
+    <h2 class="display-sm fu d1">POR QUE APENAS<br>30 CLIENTES?</h2>
+    <div class="sep-sm"></div>
+
+    <div class="escassez-counter fu d2">
+      <span class="escassez-num">30</span>
+      <div class="escassez-text">
+        <span class="escassez-label">vagas de</span>
+        <span class="escassez-title">Membro Fundador</span>
+      </div>
+    </div>
+
+    <p class="lead fu d3">
+      A primeira turma de Membros Fundadores será limitada a 30 clientes para garantir qualidade, previsibilidade e atendimento próximo durante a implantação do Clube DGN.
+    </p>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+
+<!-- ================================================================
+     7. PRIORIDADE
+================================================================ -->
+<section class="prioridade-section">
+  <div class="wrap">
+    <span class="eyebrow fu">Agenda DGN</span>
+    <h2 class="display-sm fu d1">A AGENDA DA DGN<br>ENTRA EM UMA NOVA FASE.</h2>
+    <div class="sep-sm"></div>
+
+    <div class="prioridade-box fu d2">
+      <p class="lead">A partir desta nova fase, os assinantes passam a ter prioridade na programação da agenda. Seu veículo entra em uma rotina de cuidado contínuo — sem precisar se preocupar em agendar.</p>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+
+<!-- ================================================================
+     8. PAGAMENTO
+================================================================ -->
+<section class="pagamento-section">
+  <div class="wrap">
+    <span class="eyebrow fu">Flexibilidade</span>
+    <h2 class="display-sm fu d1">COMO FUNCIONA<br>O PAGAMENTO</h2>
+    <div class="sep-sm"></div>
+
+    <div class="pagamento-grid">
+
+      <div class="pag-card fu d1">
+        <span class="pag-tipo">Mensal</span>
+        <div class="pag-desc">Recorrência automática</div>
+        <p class="pag-detalhe">Débito no cartão todo mês. Sem burocracia.</p>
+      </div>
+
+      <div class="pag-card fu d2">
+        <span class="pag-tipo">Semestral</span>
+        <div class="pag-desc">Até 6× no cartão</div>
+        <p class="pag-detalhe">Parcelado sem acréscimo. Mais previsibilidade.</p>
+      </div>
+
+      <div class="pag-card fu d3">
+        <span class="pag-tipo">Anual</span>
+        <div class="pag-desc">Até 10× no cartão</div>
+        <p class="pag-detalhe">Maior economia por atendimento. Melhor custo-benefício.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+
+<!-- ================================================================
+     9. BLOCO FINAL
+================================================================ -->
+<section class="final-section">
+  <div class="wrap-sm">
+    <span class="eyebrow fu">Julho dos Membros Fundadores</span>
+    <h2 class="display fu d1">JULHO DOS<br>MEMBROS FUNDADORES</h2>
+
+    <div class="sep-sm"></div>
+
+    <p class="lead fu d2">
+      Se você recebeu este convite, sua vaga está entre as 30 selecionadas para esta primeira turma. A DGN reservou um lugar especial para quem já faz parte desta história.
+    </p>
+
+    <div style="margin-top:48px;display:flex;flex-direction:column;align-items:center;gap:14px;" class="fu d3">
+      <a href="https://wa.me/5519978146936?text=Ol%C3%A1!%20Recebi%20o%20convite%20para%20os%20Membros%20Fundadores%20DGN%20e%20quero%20entender%20como%20garantir%20minha%20vaga."
+         target="_blank" rel="noopener" class="btn btn-gold btn-lg">
+        QUERO GARANTIR MINHA VAGA
+      </a>
+      <a href="https://wa.me/5519978146936?text=Ol%C3%A1!%20Tenho%20uma%20d%C3%BAvida%20sobre%20o%20convite%20para%20Membros%20Fundadores%20DGN."
+         target="_blank" rel="noopener" class="btn btn-outline">
+        Tenho uma dúvida
+      </a>
+    </div>
+
+    <p style="margin-top:24px;font-size:10.5px;color:rgba(245,245,245,0.2);letter-spacing:0.12em;text-transform:uppercase;" class="fu d4">
+      Convite exclusivo · Seleção de clientes DGN · Julho 2026
+    </p>
+  </div>
+</section>
+
+
+<!-- FOOTER -->
+<footer class="vip-footer">
+  <p>DGN Club — Jardim Santa Genebra, Campinas / SP</p>
+  <p style="margin-top:6px;">© 2026 DGN Club. Todos os direitos reservados.</p>
+</footer>
+
+
+<script>
+  /* ── CONFIG CENTRALIZADA ─────────────────────────────────────────────
+     Ajuste estes valores conforme tabela oficial de preços DGN
+  ────────────────────────────────────────────────────────────────────── */
+  var WA = '5519978146936';
+
+  /* Preços avulsa por categoria: [Hatch, Sedan, SUV, Caminhonete] */
+  var AVULSA  = [60, 70, 80, 90];
+
+  /* Planos Smart anuais por categoria */
+  var SMART_ANUAL   = [1240, 1440, 1640, 1840];
+  /* Planos Priority anuais por categoria */
+  var PRIOR_ANUAL   = [2190, 2390, 2690, 2990];
+  /* Planos Smart mensais */
+  var SMART_MENSAL  = [130,  150,  170,  190];
+  /* Planos Priority mensais */
+  var PRIOR_MENSAL  = [220,  250,  270,  300];
+
+  var SMART_FREQ = 24;  /* lavagens/ano plano Smart (2/mês) */
+  var PRIOR_FREQ = 48;  /* lavagens/ano plano Priority (4/mês) */
+
+  /* ── HELPERS ── */
+  function fmt(n) {
+    return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+  function fmtDec(n) {
+    return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function set(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
+
+  /* ── SELETOR DE PLANOS (seção 4) ── */
+  var currentPlanCat = 1;
+
+  function updatePlanPrices(idx) {
+    currentPlanCat = idx;
+    var sm = SMART_ANUAL[idx];
+    var pr = PRIOR_ANUAL[idx];
+    set('js-smart-price',   fmt(sm));
+    set('js-smart-period',  '/ ano · equivale a ' + fmt(Math.round(sm / 12)) + '/mês');
+    set('js-priority-price', fmt(pr));
+    set('js-priority-period', '/ ano · equivale a ' + fmt(Math.round(pr / 12)) + '/mês');
+    /* Atualiza também o bloco de impacto com o plano Priority */
+    set('js-impact-per', fmtDec(pr / PRIOR_FREQ));
+  }
+
+  document.querySelectorAll('#js-cat .cat-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('#js-cat .cat-btn').forEach(function (b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      updatePlanPrices(parseInt(this.getAttribute('data-cat'), 10));
+    });
+  });
+
+  updatePlanPrices(1);
+
+  /* ── CALCULADORA (seção 5) ── */
+  function updateCalc(idx) {
+    var avSmart   = AVULSA[idx] * SMART_FREQ;
+    var avPrior   = AVULSA[idx] * PRIOR_FREQ;
+    var smAnual   = SMART_ANUAL[idx];
+    var prAnual   = PRIOR_ANUAL[idx];
+    var econSmart = avSmart  - smAnual;
+    var econPrior = avPrior  - prAnual;
+    var pctSmart  = Math.round((econSmart  / avSmart)  * 100);
+    var pctPrior  = Math.round((econPrior  / avPrior)  * 100);
+
+    set('js-c-avulsa-smart',    fmt(avSmart));
+    set('js-c-smart-anual',     fmt(smAnual));
+    set('js-c-smart-econ',      fmt(econSmart));
+    set('js-c-smart-pct',       pctSmart + '% de economia');
+    set('js-c-smart-per',       fmtDec(smAnual / SMART_FREQ));
+    set('js-c-avulsa-priority', fmt(avPrior));
+    set('js-c-priority-anual',  fmt(prAnual));
+    set('js-c-priority-econ',   fmt(econPrior));
+    set('js-c-priority-pct',    pctPrior + '% de economia');
+    set('js-c-priority-per',    fmtDec(prAnual / PRIOR_FREQ));
+  }
+
+  document.querySelectorAll('#js-calc-cat .cat-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('#js-calc-cat .cat-btn').forEach(function (b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      updateCalc(parseInt(this.getAttribute('data-calc-cat'), 10));
+    });
+  });
+
+  updateCalc(0);
+
+  /* ── ANIMAÇÕES FADE-UP ── */
+  (function () {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -32px 0px' });
+    document.querySelectorAll('.fu').forEach(function (el) { io.observe(el); });
+  })();
+</script>
+
+</body>
+</html>
