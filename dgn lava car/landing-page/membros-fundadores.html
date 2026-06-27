@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -210,7 +210,7 @@
       display: flex; justify-content: space-between; align-items: baseline;
       padding: 13px 0; border-bottom: 1px solid rgba(245,245,245,0.05); gap: 12px;
     }
-    .economy-row-lbl { font-size: 13px; color: var(--muted); font-weight: 300; text-align: left; }
+    .economy-row-lbl { font-size: 13px; color: var(--muted); font-weight: 300; text-align: left; flex: 1; min-width: 0; }
     .economy-row-val { font-size: 15px; font-weight: 600; color: var(--white); white-space: nowrap; }
     .economy-row-val.strike { color: rgba(245,245,245,0.3); font-size: 13px; font-weight: 400; text-decoration: line-through; }
     .economy-savings { padding-top: 32px; border-top: 1px solid rgba(201,168,76,0.12); }
@@ -444,7 +444,7 @@
       padding: 9px 0; border-bottom: 1px solid rgba(245,245,245,0.05); gap: 8px;
     }
     .calc-v2-row:last-child { border-bottom: none; }
-    .calc-v2-row-lbl { font-size: 11px; color: var(--muted); font-weight: 300; }
+    .calc-v2-row-lbl { font-size: 11px; color: var(--muted); font-weight: 300; flex: 1; min-width: 0; }
     .calc-v2-row-val { font-size: 12px; font-weight: 600; color: var(--white); white-space: nowrap; }
     .calc-v2-row-val.accent { color: var(--gold-l); }
     .calc-v2-payment {
@@ -586,6 +586,11 @@
       .hero-cta-group { width: 100%; }
       .btn-lg { width: 100%; justify-content: center; }
       .wa-fab { bottom: 20px; right: 20px; width: 50px; height: 50px; }
+      .section-cta .btn { min-width: 0; width: 100%; }
+      .economy-row { flex-wrap: wrap; }
+      .economy-row-val.strike { font-size: 12px; }
+      .comp-table td, .comp-table th { padding: 10px 8px; font-size: 12px; }
+      .comp-table td:first-child { font-size: 11px; }
     }
   </style>
 </head>
@@ -850,9 +855,8 @@
 <section class="founder-section">
   <div class="wrap">
     <span class="eyebrow fu">Uma mensagem do fundador</span>
-    <h2 class="display-sm fu d1" style="margin-bottom:0;"></h2>
 
-    <div class="founder-card fu d2">
+    <div class="founder-card fu d1">
       <!-- Substituir div abaixo por <img> com foto real do Rodrigo quando disponível -->
       <div class="founder-photo-placeholder">RC</div>
 
@@ -870,7 +874,7 @@
       <div class="founder-role">Fundador DGN Club</div>
     </div>
 
-    <div class="section-cta fu d3">
+    <div class="section-cta fu d2">
       <a href="https://wa.me/5519978146936?text=Ol%C3%A1%2C%20quero%20falar%20com%20o%20Atendimento%20VIP%20sobre%20os%20Membros%20Fundadores%20DGN."
          target="_blank" rel="noopener" class="btn btn-outline">
         Falar com Atendimento VIP
@@ -1276,10 +1280,10 @@ var FIM_CAMP     = '31 de julho';
 
 /* ── HELPERS ── */
 function fmt(n) {
-  return 'R ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 function fmtDec(n) {
-  return 'R ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 function set(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
 
