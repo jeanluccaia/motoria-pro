@@ -46,6 +46,35 @@
       .replace(/'/g, "&#039;");
   }
 
+  function appendTextParam(url, message) {
+    var separator = url.indexOf("?") === -1 ? "?" : "&";
+    return url + separator + "text=" + encodeURIComponent(message);
+  }
+
+  function whatsAppLeadHref(unit, plan) {
+    var site = window.LOUDFIT_SITE || {};
+    var contact = site.contact || {};
+    var rawTarget = cleanValue(unit.whatsapp_url) || cleanValue(unit.whatsapp) || cleanValue(contact.whatsapp);
+    var planName = plan && plan.name ? plan.name : "";
+    var message = "Olá, quero começar na LoudFit com a oferta do primeiro mês por R$ 9,90 na unidade " + unit.name + ".";
+
+    if (planName) {
+      message += " Tenho interesse no plano " + planName + ".";
+    }
+
+    message += " Pode me enviar as opções de matrícula?";
+
+    if (/^https?:\/\//i.test(rawTarget)) return appendTextParam(rawTarget, message);
+
+    var digits = rawTarget.replace(/\D/g, "");
+    if (digits) {
+      if (digits.length <= 11) digits = "55" + digits;
+      return "https://wa.me/" + digits + "?text=" + encodeURIComponent(message);
+    }
+
+    return "https://wa.me/?text=" + encodeURIComponent(message);
+  }
+
   function unitLocation(unit) {
     var cityState = [cleanValue(unit.city), cleanValue(unit.state)].filter(Boolean).join(" • ");
     return cleanValue(unit.locationLabel) || cityState || cleanValue(unit.district) || unit.statusLabel;
@@ -56,7 +85,9 @@
     return /^loudfit/i.test(name) ? name : "LoudFit " + name;
   }
 
-  function unitPrimaryAction(unit) {
+  function unitPrimaryAction(unit, labelOverride) {
+    var enrollmentLabel = labelOverride || "Iniciar matrícula";
+
     if (unit.status === "em_inauguracao") {
       return {
         label: "Acompanhar abertura",
@@ -67,21 +98,21 @@
 
     if (unit.type === "franqueada") {
       return {
-        label: "Falar com a unidade",
-        href: rootPath(unit.whatsapp_url || unit.whatsapp || "contato/")
+        label: enrollmentLabel,
+        href: whatsAppLeadHref(unit)
       };
     }
 
     if (unit.checkout_enabled) {
       return {
-        label: "Matricule-se agora",
-        href: rootPath(unit.checkout_url || "unidades/#matricula-em-breve")
+        label: enrollmentLabel,
+        href: whatsAppLeadHref(unit)
       };
     }
 
     return {
-      label: "Falar com a unidade",
-      href: rootPath(unit.whatsapp_url || unit.whatsapp || "contato/")
+      label: enrollmentLabel,
+      href: whatsAppLeadHref(unit)
     };
   }
 
@@ -123,6 +154,7 @@
     var benefits = (plan.benefits || []).map(function (benefit) {
       return "<li>" + escapeHtml(benefit) + "</li>";
     }).join("");
+    var offer = plan.offerLabel ? '  <p class="plan-card__offer">' + escapeHtml(plan.offerLabel) + '</p>' : '';
     var note = plan.note ? '  <p class="plan-card__note">' + escapeHtml(plan.note) + '</p>' : '';
 
     return [
@@ -132,6 +164,7 @@
       hasBadge ? '    <span class="plan-card__badge">' + escapeHtml(plan.highlight) + '</span>' : '',
       '  </div>',
       '  <p class="plan-card__description">' + escapeHtml(plan.description) + '</p>',
+      offer,
       '  <div class="plan-card__price"><strong>' + escapeHtml(plan.price) + '</strong><span>' + escapeHtml(plan.period) + '</span></div>',
       '  <ul class="plan-card__benefits">' + benefits + '</ul>',
       note,
@@ -210,7 +243,7 @@
     })[0];
     if (!unit) return;
 
-    var primary = unitPrimaryAction(unit);
+    var primary = unitPrimaryAction(unit, "Começar primeiro mês por R$ 9,90");
     var plans = (window.LOUDFIT_PLANS || []).filter(function (plan) {
       return plan.status !== "inativo";
     });
@@ -243,7 +276,7 @@
     });
     document.querySelectorAll("[data-unit-plans]").forEach(function (grid) {
       grid.innerHTML = plans.map(function (plan) {
-        return planCard(plan, { label: primary.label, href: "#matricula" });
+        return planCard(plan, { label: "Começar por R$ 9,90", href: whatsAppLeadHref(unit, plan) });
       }).join("");
     });
 

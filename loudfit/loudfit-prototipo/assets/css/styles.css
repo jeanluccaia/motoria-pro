@@ -303,6 +303,34 @@ p {
   font-size: 21px;
 }
 
+.hero-offer {
+  display: inline-grid;
+  gap: 6px;
+  max-width: 520px;
+  margin-top: 28px;
+  border: 1px solid rgba(242, 226, 5, .38);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(90deg, rgba(242, 226, 5, .18), rgba(255, 255, 255, .035)),
+    rgba(10, 10, 10, .66);
+  box-shadow: 0 22px 80px rgba(0, 0, 0, .34);
+  padding: 18px 20px;
+}
+
+.hero-offer strong {
+  color: var(--volt);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+.hero-offer span {
+  color: #f4f4f5;
+  font-size: 15px;
+  font-weight: 700;
+}
+
 .hero__actions,
 .section__actions {
   display: flex;
@@ -962,6 +990,23 @@ p {
   font-size: 17px;
 }
 
+.plan-card__offer {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 34px;
+  margin-top: 18px;
+  border: 1px solid rgba(242, 226, 5, .42);
+  border-radius: 999px;
+  background: rgba(242, 226, 5, .11);
+  color: var(--volt);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  padding: 0 12px;
+  text-transform: uppercase;
+}
+
 .plan-card__price {
   display: grid;
   gap: 5px;
@@ -1174,6 +1219,37 @@ p {
   background:
     linear-gradient(90deg, rgba(242, 226, 5, .1), transparent 34%),
     var(--surface);
+}
+
+.offer-strip {
+  border-top: 1px solid rgba(242, 226, 5, .24);
+  border-bottom: 1px solid rgba(242, 226, 5, .24);
+  background:
+    linear-gradient(90deg, rgba(242, 226, 5, .13), rgba(255, 255, 255, .026) 42%, transparent),
+    var(--surface);
+  padding: 24px 0;
+}
+
+.offer-strip__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) auto;
+  gap: 18px;
+  align-items: center;
+}
+
+.offer-strip strong {
+  color: var(--volt);
+  font-family: "Anton", Impact, sans-serif;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.offer-strip span {
+  color: #f4f4f5;
+  font-size: 17px;
+  font-weight: 800;
 }
 
 .platform-panel {
@@ -2705,6 +2781,16 @@ p {
     max-width: 310px;
   }
 
+  .hero-offer {
+    width: 100%;
+    max-width: 330px;
+    padding: 16px;
+  }
+
+  .hero-offer strong {
+    font-size: 18px;
+  }
+
   .hero__actions,
   .section__actions {
     width: 100%;
@@ -2810,6 +2896,7 @@ p {
   .network-minimal,
   .franchise-signal,
   .investor-proof,
+  .offer-strip__inner,
   .commerce-path,
   .commerce-path__steps,
   .platform-panel,
@@ -2855,6 +2942,14 @@ p {
   .plan-card__description,
   .plan-card__note {
     min-height: auto;
+  }
+
+  .offer-strip strong {
+    font-size: 30px;
+  }
+
+  .offer-strip .button {
+    width: 100%;
   }
 
   .plan-card__price strong {
@@ -3123,8 +3218,8 @@ p {
 
   .commerce-path h2,
   .platform-panel__copy h2 {
-    max-width: 320px;
-    font-size: 26px;
+    max-width: 280px;
+    font-size: 20px;
     line-height: 1.2;
   }
 }
