@@ -11,6 +11,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://pattamansa.com.br">
 <link rel="canonical" href="https://pattamansa.com.br">
+<meta name="facebook-domain-verification" content="2hxzif6ld1rlm5ot5zyeu7joi9uhpb" />
 <link rel="icon" type="image/png" href="Sigla_5.png">
 
 <!-- Meta Pixel Code -->
@@ -236,24 +237,30 @@ nav {
   position: relative;
   width: 100%;
   background: var(--verde-deep);
-  padding-top: 107px;
-  padding-bottom: 3rem;
+  min-height: auto;
+  padding: 132px 0 4.25rem;
 }
 
 .hero-inner {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  max-width: 1360px;
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  grid-template-areas:
+    "content media"
+    "actions media";
+  gap: 1.25rem 56px;
+  align-items: center;
+  max-width: 1320px;
   margin: 0 auto;
-  padding: 0 1.25rem;
+  padding: 0 3rem;
 }
 
 .hero-media {
+  grid-area: media;
   position: relative;
   width: 100%;
+  height: clamp(520px, 68vh, 640px);
   overflow: hidden;
-  border-radius: 24px;
+  border-radius: 28px;
   background: #f4efe6;
 }
 .hero-media picture,
@@ -268,31 +275,32 @@ nav {
 }
 
 .hero-content {
+  grid-area: content;
   width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-  text-align: center;
+  max-width: 560px;
+  margin: 0;
+  text-align: left;
   padding: 0;
 }
 
 .hero-eyebrow {
   display: inline-block;
-  font-size: .6rem;
+  font-size: .72rem;
   font-weight: 500;
-  letter-spacing: .24em;
+  letter-spacing: .22em;
   text-transform: uppercase;
   color: var(--laranja);
-  margin-bottom: .85rem;
+  margin-bottom: 1.25rem;
   opacity: 0;
   animation: fadeUp .6s .3s forwards;
 }
 
 .hero-title {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(4.2rem, 17vw, 9rem);
-  line-height: .88;
+  font-size: clamp(4rem, 7vw, 7rem);
+  line-height: .92;
   color: var(--creme);
-  letter-spacing: .02em;
+  letter-spacing: 0;
   opacity: 0;
   animation: fadeUp .75s .5s forwards;
 }
@@ -304,21 +312,23 @@ nav {
 
 .hero-sub {
   margin-top: 1.25rem;
-  font-size: 1.05rem;
-  line-height: 1.8;
+  max-width: 520px;
+  font-size: 1.2rem;
+  line-height: 1.55;
   color: rgba(184,188,142,.85);
   opacity: 0;
   animation: fadeUp .7s .7s forwards;
 }
 
+.hero-actions,
 .hero-cta-wrap {
-  margin-top: 2.25rem;
+  grid-area: actions;
   opacity: 0;
   animation: fadeUp .7s .9s forwards;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: .62rem;
+  align-items: flex-start;
+  gap: .72rem;
 }
 
 .btn-hero {
@@ -392,11 +402,11 @@ nav {
 }
 .hero-trust-line {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   flex-wrap: wrap;
-  gap: .32rem .85rem;
+  gap: .34rem .9rem;
   max-width: 520px;
-  font-size: .7rem;
+  font-size: .72rem;
   line-height: 1.45;
   letter-spacing: .07em;
   color: rgba(184,188,142,.88);
@@ -405,66 +415,99 @@ nav {
 
 /* Desktop */
 @media (min-width: 900px) {
-  .hero {
-    padding-top: 140px;
-    padding-bottom: 5rem;
-  }
-  .hero-inner {
-    flex-direction: row;
-    align-items: center;
-    gap: 4rem;
-    padding: 0 3rem;
-  }
-  .hero-content {
-    flex: 0 1 42%;
-    text-align: left;
-    max-width: 560px;
-    margin: 0;
-    padding: 0;
-  }
-  .hero-media {
-    flex: 1 1 58%;
-    height: clamp(560px, 72vh, 760px);
-    min-height: 560px;
-  }
-  .hero-media img {
-    object-position: center center;
-  }
-  .hero-cta-wrap { align-items: flex-start; }
-  .hero-trust-line { justify-content: flex-start; }
+  .hero-media img { object-position: center center; }
 }
 
 /* Tablet */
 @media (max-width: 899px) {
-  .hero-media {
-    height: 58vh;
-    min-height: 480px;
-    max-height: 680px;
+  .hero {
+    padding: 106px 0 3rem;
   }
-  .hero-media img { object-position: center top; }
-}
-
-@media (min-width: 641px) and (max-width: 899px) {
-  .hero-inner { gap: 1.5rem; }
-  .hero-title { font-size: clamp(4.8rem, 11vw, 5.4rem); }
-  .hero-sub { margin-top: 1rem; }
-  .hero-cta-wrap { margin-top: 1.5rem; }
-  .hero-media {
-    height: 52vh;
-    min-height: 420px;
-    max-height: 560px;
+  .hero-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 0 1.5rem;
   }
+  .hero-content {
+    max-width: 100%;
+    text-align: center;
+  }
+  .hero-eyebrow {
+    font-size: .64rem;
+    margin-bottom: .75rem;
+  }
+  .hero-title {
+    font-size: clamp(3.15rem, 8vw, 4.4rem);
+    line-height: .96;
+  }
+  .hero-sub {
+    max-width: 420px;
+    margin: .85rem auto 0;
+    font-size: 1.05rem;
+    line-height: 1.45;
+  }
+  .hero-sub-detail { display: none; }
+  .hero-media {
+    order: 2;
+    height: clamp(390px, 48vh, 520px);
+    min-height: 0;
+    max-height: none;
+    border-radius: 24px;
+  }
+  .hero-media img { object-position: 54% top; }
+  .hero-actions,
+  .hero-cta-wrap {
+    order: 3;
+    width: 100%;
+    align-items: center;
+    gap: .7rem;
+  }
+  .hero-trust-line { justify-content: center; }
 }
 
 /* Mobile */
 @media (max-width: 640px) {
-  .hero-media {
-    height: 54vh;
-    min-height: 390px;
-    max-height: 520px;
-    border-radius: 18px;
+  .hero {
+    padding-top: 86px;
+    padding-bottom: 2.25rem;
   }
-  .hero-media img { object-position: 58% top; }
+  .hero-inner {
+    gap: 14px;
+    padding: 0 1.125rem;
+  }
+  .hero-eyebrow {
+    font-size: .58rem;
+    letter-spacing: .22em;
+    margin-bottom: .68rem;
+  }
+  .hero-title {
+    font-size: clamp(2.45rem, 10.5vw, 3.15rem);
+    line-height: .97;
+  }
+  .hero-sub {
+    max-width: 340px;
+    margin-top: .72rem;
+    font-size: .98rem;
+    line-height: 1.42;
+  }
+  .hero-media {
+    height: clamp(330px, 46vh, 430px);
+    border-radius: 22px;
+    margin-top: 2px;
+  }
+  .hero-media img { object-position: 54% top; }
+  .btn-hero {
+    width: 100%;
+    max-width: 320px;
+    padding: 1rem 2rem;
+    text-align: center;
+  }
+  .hero-trust-line {
+    max-width: 350px;
+    font-size: .68rem;
+    gap: .22rem .7rem;
+  }
 }
 
 .hero-scroll-hint {
@@ -2187,9 +2230,9 @@ footer {
   /* Hero */
   .support-strip {
     position: absolute;
-    height: 1.85rem;
-    padding: 0 1.25rem;
-    gap: 0 .85rem;
+    height: 1.65rem;
+    padding: 0 .9rem;
+    gap: 0 .65rem;
     font-size: .56rem;
     flex-wrap: nowrap;
     background: linear-gradient(180deg, rgba(13,26,14,.72), rgba(8,13,9,.65));
@@ -2207,18 +2250,18 @@ footer {
     display: none;
   }
   .support-link-short { display: inline; }
-  nav { position: absolute; top: 1.85rem; padding: .9rem 1.15rem; }
-  .nav-logo { width: 184px; height: 66px; }
+  nav { position: absolute; top: 1.65rem; padding: .48rem .95rem; }
+  .nav-logo { width: 138px; height: 50px; }
   .nav-cta { display: none; }
 
   /* ── Hero mobile ── */
-  .hero { padding-bottom: 2.5rem; }
+  .hero { padding-top: 86px; padding-bottom: 2.25rem; }
   .hero-content { text-align: center; padding: 0 0.25rem; }
-  .hero-title { font-size: clamp(2.8rem, 12vw, 3.5rem); }
-  .hero-sub { font-size: .92rem; margin-top: 1rem; }
-  .hero-cta-wrap { gap: .85rem; margin-top: 1.25rem; }
+  .hero-title { font-size: clamp(2.45rem, 10.5vw, 3.15rem); }
+  .hero-sub { font-size: .98rem; margin-top: .72rem; }
+  .hero-cta-wrap { gap: .7rem; margin-top: 0; }
   .btn-hero { padding: 1rem 2.25rem; width: 100%; max-width: 320px; text-align: center; }
-  .hero-trust-line { font-size: .62rem; gap: .28rem .62rem; }
+  .hero-trust-line { font-size: .68rem; gap: .22rem .7rem; }
   .trust-strip { padding: 2.5rem 1.25rem 2.75rem; }
   .hero-scroll-hint { display: none; }
 
@@ -2299,10 +2342,10 @@ footer {
 }
 
 @media (max-width: 380px) {
-  .nav-logo { width: 172px; height: 62px; }
+  .nav-logo { width: 128px; height: 46px; }
   .footer-logo { width: min(78vw, 226px); height: 76px; }
   .nav-cta { padding: .48rem .72rem; }
-  .hero-title { font-size: 3.5rem; }
+  .hero-title { font-size: 2.55rem; }
   .origem-line { font-size: 1.1rem; }
   .quem-titulo { font-size: 2rem; }
 }
@@ -4084,24 +4127,16 @@ footer {
       <h1 class="hero-title">
         A Camisa<br>do <em>Povo</em>
       </h1>
-      <p class="hero-sub">Agora na versão mais caramela do Brasil.<br>Camiseta premium Reserva INK para quem vive cachorro de verdade.</p>
-      <div class="hero-cta-wrap">
-        <a href="#produtos" class="btn-hero">Ver coleção →</a>
-        <div class="hero-trust-line">
-          <span>✓ Produto premium Reserva INK</span>
-          <span>✓ Envio para todo o Brasil</span>
-          <span>✓ Compra 100% segura</span>
-        </div>
-      </div>
+      <p class="hero-sub">Agora na versão mais caramela do Brasil.<span class="hero-sub-detail"><br>Camiseta premium Reserva INK para quem vive cachorro de verdade.</span></p>
     </div>
 
     <div class="hero-media">
       <picture>
-        <source srcset="hero-influencer-mobile.webp" media="(max-width: 640px)" type="image/webp">
-        <source srcset="hero-influencer-desktop.webp" media="(min-width: 641px)" type="image/webp">
+        <source srcset="hero-influencer-mobile.webp" media="(max-width: 768px)" type="image/webp">
+        <source srcset="hero-influencer-desktop.webp" media="(min-width: 769px)" type="image/webp">
         <img
           src="hero-influencer-desktop.webp"
-          alt="Mulher usando camiseta PattaMansa ao lado de cachorro"
+          alt="Mulher usando camiseta PattaMansa ao lado de cachorro caramelo"
           width="1400"
           height="1280"
           fetchpriority="high"
@@ -4109,6 +4144,15 @@ footer {
           decoding="async"
         >
       </picture>
+    </div>
+
+    <div class="hero-actions hero-cta-wrap">
+      <a href="#produtos" class="btn-hero">Ver coleção →</a>
+      <div class="hero-trust-line">
+        <span>✓ Reserva INK</span>
+        <span>✓ Envio Brasil</span>
+        <span>✓ Compra segura</span>
+      </div>
     </div>
 
   </div>
