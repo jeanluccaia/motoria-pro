@@ -38,9 +38,9 @@ export function SectionHeader({
       {label && (
         <p className="text-xs uppercase tracking-[0.2em] text-lf-volt mb-4">{label}</p>
       )}
-      <h2 className="max-w-[calc(100vw-2rem)] text-3xl sm:max-w-none sm:text-4xl md:text-6xl font-black text-lf-text break-words">{title}</h2>
+      <h2 className="text-4xl md:text-6xl font-black text-lf-text">{title}</h2>
       {subtitle && (
-        <p className="mt-4 max-w-[calc(100vw-2rem)] sm:max-w-2xl text-lg leading-relaxed text-lf-muted break-words">{subtitle}</p>
+        <p className="mt-4 text-lg text-lf-muted max-w-2xl">{subtitle}</p>
       )}
     </div>
   )

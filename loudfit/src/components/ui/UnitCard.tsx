@@ -3,14 +3,10 @@ import Image from 'next/image'
 import { UnitBadge } from './Badge'
 import type { Unit } from '@/types'
 
-export function UnitCard({ unit, planSlug }: { unit: Unit; planSlug?: string }) {
-  const href = planSlug
-    ? `/unidades/${unit.slug}?plano=${encodeURIComponent(planSlug)}`
-    : `/unidades/${unit.slug}`
-
+export function UnitCard({ unit }: { unit: Unit }) {
   return (
     <Link
-      href={href}
+      href={`/unidades/${unit.slug}`}
       className="group block bg-lf-surface border border-lf-line hover:border-lf-volt/40 transition-all duration-300 overflow-hidden"
     >
       <div className="relative aspect-[4/3] overflow-hidden">

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { Hero } from '@/components/sections/Hero'
-import { PlansSection } from '@/components/sections/PlansSection'
 import { StatsBar } from '@/components/sections/StatsBar'
 import { BrandStatement } from '@/components/sections/BrandStatement'
 import { ExpansionBanner } from '@/components/sections/ExpansionBanner'
@@ -22,7 +21,6 @@ export default async function HomePage() {
   return (
     <>
       <Hero />
-      <PlansSection />
       <StatsBar />
       <BrandStatement />
 
