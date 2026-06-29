@@ -48,8 +48,9 @@ src="https://www.facebook.com/tr?id=27064727209858805&ev=PageView&noscript=1"/>
 </script>
 <!-- End Google Analytics 4 -->
 
-<!-- Preload hero poster — LCP candidate -->
-<link rel="preload" as="image" href="hero-poster.webp" fetchpriority="high">
+<!-- Preload hero image — LCP candidate -->
+<link rel="preload" as="image" href="hero-influencer-mobile.webp" fetchpriority="high" media="(max-width:640px)">
+<link rel="preload" as="image" href="hero-influencer-desktop.webp" fetchpriority="high" media="(min-width:641px)">
 
 <!-- Fonts: preconnect both googleapis and gstatic (actual font files) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -234,71 +235,96 @@ nav {
 .hero {
   position: relative;
   width: 100%;
-  min-height: 100vh;
-  min-height: 100svh;
+  background: var(--verde-deep);
+  padding-top: 107px;
+  padding-bottom: 3rem;
+}
+
+.hero-inner {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  overflow: hidden;
+  gap: 2rem;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
 }
 
-.hero-video {
-  position: absolute;
-  inset: 0;
+.hero-overlay { display: none; }
+
+.hero-media {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #f4efe6;
+}
+.hero-media picture,
+.hero-media img {
   width: 100%;
   height: 100%;
+  display: block;
+}
+.hero-media img {
   object-fit: cover;
-  object-position: center;
+  object-position: center center;
 }
 
-/* overlay mais quente — verde tende ao marrom embaixo */
-.hero-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(8,13,9,.15)  0%,
-    rgba(8,13,9,.0)   28%,
-    rgba(8,13,9,.5)   62%,
-    rgba(8,13,9,.97)  100%
-  );
-  pointer-events: none;
+/* Desktop */
+@media (min-width: 900px) {
+  .hero {
+    padding-top: 140px;
+    padding-bottom: 5rem;
+  }
+  .hero-inner {
+    flex-direction: row;
+    align-items: center;
+    gap: 4rem;
+    padding: 0 3rem;
+  }
+  .hero-media {
+    flex: 0 0 54%;
+    min-height: 620px;
+    height: clamp(560px, 72vh, 760px);
+  }
+  .hero-media img { object-position: center center; }
+  .hero-content {
+    flex: 1;
+    text-align: left;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+  .hero-cta-wrap { align-items: flex-start; }
+  .hero-trust-line { justify-content: flex-start; }
 }
 
-/* botão de som */
-.hero-sound-btn {
-  position: absolute;
-  top: 8.1rem; right: 1.25rem;
-  z-index: 10;
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  border: 1px solid rgba(184,188,142,.25);
-  background: rgba(8,13,9,.55);
-  backdrop-filter: blur(6px);
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: border-color .2s, background .2s;
-  color: var(--sage);
+/* Tablet */
+@media (max-width: 899px) {
+  .hero-media {
+    height: 58vh;
+    min-height: 480px;
+    max-height: 680px;
+  }
+  .hero-media img { object-position: center top; }
 }
-/* Expand invisible touch area without changing visual size */
-.hero-sound-btn::before {
-  content: '';
-  position: absolute;
-  inset: -8px;
-}
-.hero-sound-btn:hover {
-  border-color: rgba(245,163,70,.5);
-  background: rgba(8,13,9,.8);
+
+/* Mobile */
+@media (max-width: 640px) {
+  .hero-media {
+    height: 54vh;
+    min-height: 390px;
+    max-height: 520px;
+    border-radius: 18px;
+  }
+  .hero-media img { object-position: 58% top; }
 }
 
 .hero-content {
-  position: relative;
-  z-index: 2;
   width: 100%;
-  max-width: 720px;
-  padding: 0 1.5rem 3.5rem;
+  max-width: 600px;
+  margin: 0 auto;
   text-align: center;
+  padding: 0;
 }
 
 .hero-eyebrow {
@@ -2172,18 +2198,15 @@ footer {
   nav { position: absolute; top: 1.85rem; padding: .9rem 1.15rem; }
   .nav-logo { width: 184px; height: 66px; }
   .nav-cta { display: none; }
-  .hero-sound-btn {
-    top: 7.2rem;
-    width: 44px;
-    height: 44px;
-    opacity: .55;
-  }
-  .hero-content { padding: 0 1.25rem 2.5rem; }
-  .hero-title { font-size: clamp(3.15rem, 14vw, 3.85rem); }
-  .hero-sub { font-size: .95rem; margin-top: 1.25rem; }
-  .hero-urgencia { margin-bottom: .6rem; font-size: .68rem; }
-  .hero-cta-wrap { gap: .85rem; margin-top: 1.5rem; }
+
+  /* ── Hero mobile ── */
+  .hero { padding-bottom: 2.5rem; }
+  .hero-content { text-align: center; padding: 0 0.25rem; }
+  .hero-title { font-size: clamp(2.8rem, 12vw, 3.5rem); }
+  .hero-sub { font-size: .92rem; margin-top: 1rem; }
+  .hero-cta-wrap { gap: .85rem; margin-top: 1.25rem; }
   .btn-hero { padding: 1rem 2.25rem; width: 100%; max-width: 320px; text-align: center; }
+  .hero-trust-line { font-size: .62rem; gap: .28rem .62rem; }
   .trust-strip { padding: 2.5rem 1.25rem 2.75rem; }
   .hero-scroll-hint { display: none; }
 
@@ -3697,6 +3720,49 @@ footer {
   object-position: top center;
   display: block;
 }
+
+/* ─── VÍDEO PROVA SOCIAL (antigo hero) ─── */
+.video-prova {
+  background: var(--verde);
+  padding: 4rem 1.5rem;
+}
+.video-prova-inner {
+  max-width: 840px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+}
+.video-prova-label {
+  font-size: .62rem;
+  font-weight: 500;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--laranja);
+}
+.video-prova-titulo {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(1.4rem, 3.5vw, 1.85rem);
+  color: var(--creme);
+  line-height: 1.25;
+}
+.video-prova-titulo em { color: var(--laranja); font-style: italic; }
+.video-prova-wrap {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(184,188,142,.1);
+  box-shadow: 0 20px 55px rgba(0,0,0,.4);
+}
+.video-prova-wrap video {
+  width: 100%;
+  display: block;
+}
+@media (min-width: 720px) {
+  .video-prova { padding: 5rem 1.5rem; }
+}
 </style>
 
 <!-- Google Merchant Center — Product structured data -->
@@ -3999,38 +4065,38 @@ footer {
 
 <!-- ══ HERO ══ -->
 <section class="hero">
+  <div class="hero-inner">
 
-  <video class="hero-video" id="heroVideo" muted loop playsinline poster="hero-poster.webp" preload="none">
-    <source data-src="video-hero-opt2.mp4" type="video/mp4">
-  </video>
-
-  <!-- botão de som -->
-  <button class="hero-sound-btn" id="soundBtn" aria-label="Ativar som">
-    <!-- ícone mudo -->
-    <svg id="iconMute" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-      <line x1="23" y1="9" x2="17" y2="15"/>
-      <line x1="17" y1="9" x2="23" y2="15"/>
-    </svg>
-    <!-- ícone som (oculto) -->
-    <svg id="iconSound" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none">
-      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
-      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-    </svg>
-  </button>
-
-  <div class="hero-overlay"></div>
-
-  <div class="hero-content">
-    <span class="hero-eyebrow" id="js-theme-eyebrow">Copa 2026 · Edição Especial</span>
-    <h1 class="hero-title">
-      A Camisa<br>do <em>Povo</em>
-    </h1>
-    <div class="hero-cta-wrap">
-      <a href="#produtos" class="btn-hero">Quero a minha →</a>
-      <span class="hero-ebook-badge">🎁 E-book de adestramento grátis em todas as compras</span>
+    <div class="hero-media">
+      <picture>
+        <source srcset="hero-influencer-mobile.webp" media="(max-width: 640px)" type="image/webp">
+        <source srcset="hero-influencer-desktop.webp" media="(min-width: 641px)" type="image/webp">
+        <img
+          src="hero-influencer-desktop.webp"
+          alt="Mulher usando camiseta PattaMansa Caramelo FC ao lado de cachorro caramelo"
+          fetchpriority="high"
+          loading="eager"
+          decoding="async"
+        >
+      </picture>
     </div>
+
+    <div class="hero-content">
+      <span class="hero-eyebrow" id="js-theme-eyebrow">Copa 2026 · Edição Especial</span>
+      <h1 class="hero-title">
+        A Camisa<br>do <em>Povo</em>
+      </h1>
+      <p class="hero-sub">Agora na versão mais caramela do Brasil.<br>Camiseta premium Reserva INK para quem vive cachorro de verdade.</p>
+      <div class="hero-cta-wrap">
+        <a href="#produtos" class="btn-hero">Ver coleção →</a>
+        <div class="hero-trust-line">
+          <span>✓ Produto premium Reserva INK</span>
+          <span>✓ Envio para todo o Brasil</span>
+          <span>✓ Compra 100% segura</span>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <div class="hero-scroll-hint">
@@ -4551,6 +4617,20 @@ footer {
 </section>
 
 
+<!-- ══ VÍDEO PROVA SOCIAL ══ -->
+<section class="video-prova">
+  <div class="video-prova-inner reveal">
+    <span class="video-prova-label">Produto em movimento</span>
+    <h2 class="video-prova-titulo">Veja a camiseta <em>no campo</em></h2>
+    <div class="video-prova-wrap">
+      <video controls preload="none" playsinline poster="hero-poster.webp">
+        <source src="video-hero-opt2.mp4" type="video/mp4">
+      </video>
+    </div>
+  </div>
+</section>
+
+
 <!-- ══ QUEM SOMOS ══ -->
 <section class="quem-somos" id="quem-somos">
   <div class="quem-somos-inner">
@@ -4919,19 +4999,6 @@ footer {
     }
   })();
 
-  /* ── VÍDEO HERO — carrega src só após window.load para não bloquear LCP ── */
-  window.addEventListener('load', function () {
-    var v = document.getElementById('heroVideo');
-    if (!v) return;
-    var s = v.querySelector('source[data-src]');
-    if (s) { s.setAttribute('src', s.getAttribute('data-src')); v.load(); }
-    var go = function () { v.play().catch(function () {}); };
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(go, { timeout: 400 });
-    } else {
-      setTimeout(go, 300);
-    }
-  });
 
   /* Parcelamento discreto alinhado ao checkout */
   (function () {
@@ -5629,25 +5696,6 @@ footer {
   );
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-  /* Botão de som do hero */
-  const video    = document.getElementById('heroVideo');
-  const btn      = document.getElementById('soundBtn');
-  const iconMute = document.getElementById('iconMute');
-  const iconSnd  = document.getElementById('iconSound');
-
-  btn.addEventListener('click', () => {
-    if (video.muted) {
-      video.muted  = false;
-      video.volume = 1;
-      // iOS Safari requires play() after unmute to actually route audio
-      video.play().catch(() => { video.muted = true; });
-    } else {
-      video.muted = true;
-    }
-    iconMute.style.display = video.muted ? 'block' : 'none';
-    iconSnd.style.display  = video.muted ? 'none'  : 'block';
-    btn.setAttribute('aria-label', video.muted ? 'Ativar som' : 'Silenciar');
-  });
 
   function buildVariantGallery(galleryWrap, variants, onSelect, labelPrefix) {
     if (!galleryWrap) return function () {};
