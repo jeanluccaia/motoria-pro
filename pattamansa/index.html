@@ -462,7 +462,7 @@ body::after {
     order: 3;
     width: 100%;
     align-items: center;
-    gap: .7rem;
+    gap: .95rem;
   }
   .hero-trust-line { justify-content: center; }
 }
@@ -517,6 +517,7 @@ body::after {
     max-width: 350px;
     font-size: .68rem;
     gap: .22rem .7rem;
+    margin-top: .08rem;
   }
 }
 
@@ -2269,9 +2270,9 @@ footer {
   .hero-content { text-align: center; padding: 0 0.25rem; }
   .hero-title { font-size: clamp(2.45rem, 10.5vw, 3.15rem); }
   .hero-sub { font-size: .98rem; margin-top: .72rem; }
-  .hero-cta-wrap { gap: .7rem; margin-top: 0; }
+  .hero-cta-wrap { gap: .95rem; margin-top: 0; }
   .btn-hero { padding: 1rem 2.25rem; width: 100%; max-width: 320px; text-align: center; }
-  .hero-trust-line { font-size: .68rem; gap: .22rem .7rem; }
+  .hero-trust-line { font-size: .68rem; gap: .22rem .7rem; margin-top: .08rem; }
   .trust-strip { padding: 2.5rem 1.25rem 2.75rem; }
   .hero-scroll-hint { display: none; }
 
@@ -3588,6 +3589,14 @@ footer {
   #cartFab:hover{transform:scale(.96) translateY(-1px)}
   #cartFab .cart-fab-label{display:none!important}
 }
+@media(max-width:767px){
+  body.hero-cart-hidden #cartFab{
+    visibility:hidden!important;
+    opacity:0!important;
+    pointer-events:none!important;
+    transform:translateY(10px) scale(.86);
+  }
+}
 @keyframes patta-badge-pulse{0%{transform:scale(1)}35%{transform:scale(1.6)}70%{transform:scale(.88)}100%{transform:scale(1)}}
 .cart-fab-badge.pulse{animation:patta-badge-pulse .5s ease forwards}
 .pdv-note{font-size:.72rem;font-weight:500;color:rgba(212,137,42,.75);background:rgba(212,137,42,.07);border:1px solid rgba(212,137,42,.18);border-radius:8px;text-align:center;margin-top:10px;padding:.42rem .9rem;line-height:1.4}
@@ -4020,7 +4029,7 @@ footer {
 </script>
 <!-- End Product structured data -->
 </head>
-<body>
+<body class="hero-cart-hidden">
 
 <div class="support-strip" aria-label="Atendimento PattaMansa">
   <span class="support-strip-copy">Dúvidas? Fale com nossa equipe.</span>
@@ -7409,10 +7418,14 @@ footer {
 
     var heroVisible    = true;
     var vitrineVisible = false;
+    var productsReached = false;
 
     function update() {
       var drawersOpen = (pdvDrw && pdvDrw.classList.contains('open')) ||
                         (cartDrw && cartDrw.classList.contains('open'));
+
+      document.body.classList.toggle('hero-cart-hidden', heroVisible || !productsReached);
+
       if (heroVisible || vitrineVisible || drawersOpen) {
         bar.classList.remove('visible');
       } else {
@@ -7429,6 +7442,7 @@ footer {
 
     var vitrineObs = new IntersectionObserver(function (entries) {
       vitrineVisible = entries[0].isIntersecting;
+      if (vitrineVisible) productsReached = true;
       update();
     }, { threshold: 0.15 });
     if (vitrine) vitrineObs.observe(vitrine);
