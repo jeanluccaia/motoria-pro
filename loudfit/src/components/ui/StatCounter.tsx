@@ -16,12 +16,11 @@ export function StatCounter({ value, suffix = '', prefix = '', label, duration =
   const inView = useInView(ref, { once: true, margin: '-60px' })
   const reduce = useReducedMotion()
   const [count, setCount] = useState(0)
+  const displayCount = !inView || reduce ? value : count
 
   useEffect(() => {
-    if (!inView || reduce) {
-      setCount(value)
-      return
-    }
+    if (!inView || reduce) return
+
     let start = 0
     const step = Math.ceil(value / (duration / 16))
     const timer = setInterval(() => {
@@ -39,7 +38,7 @@ export function StatCounter({ value, suffix = '', prefix = '', label, duration =
   return (
     <div ref={ref} className="flex flex-col items-center gap-1 text-center">
       <span className="text-5xl md:text-6xl font-black text-lf-volt tabular-nums">
-        {prefix}{count.toLocaleString('pt-BR')}{suffix}
+        {prefix}{displayCount.toLocaleString('pt-BR')}{suffix}
       </span>
       <span className="text-xs uppercase tracking-widest text-lf-muted">{label}</span>
     </div>
