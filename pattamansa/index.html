@@ -2396,6 +2396,79 @@ footer {
 }
 .vcard:hover .vcard-img { transform: scale(1.04); }
 
+.personalization-card {
+  border-color: rgba(245,160,74,.5);
+  background:
+    linear-gradient(180deg, rgba(245,160,74,.1), rgba(22,35,24,.78) 42%),
+    rgba(22,35,24,.86);
+  box-shadow: 0 18px 42px rgba(0,0,0,.2);
+  cursor: pointer;
+}
+.personalization-card:hover {
+  border-color: rgba(245,160,74,.82);
+  box-shadow: 0 22px 48px rgba(0,0,0,.28), 0 0 0 1px rgba(245,160,74,.18);
+}
+.personalization-card .vcard-img-wrap {
+  background:
+    radial-gradient(circle at 72% 18%, rgba(245,160,74,.26), transparent 32%),
+    #ECE7DE;
+}
+.personalization-card .vcard-img {
+  object-fit: contain;
+  transform: scale(1.04);
+}
+.personalization-card .vcard-body {
+  gap: .72rem;
+}
+.personalization-card .vcard-nome {
+  font-family: 'Bebas Neue', sans-serif;
+  font-style: normal;
+  font-size: clamp(2.05rem, 5vw, 2.85rem);
+  letter-spacing: .03em;
+  line-height: .9;
+  color: var(--creme);
+}
+.personalization-card-text {
+  margin: 0;
+  color: rgba(242,237,228,.78);
+  font-family: 'DM Sans', sans-serif;
+  font-size: .92rem;
+  line-height: 1.45;
+}
+.personalization-card .vcard-modelagem {
+  color: var(--laranja);
+}
+.personalization-card .vcard-cta {
+  background: var(--creme);
+  color: var(--verde-deep);
+  box-shadow: 0 10px 24px rgba(242,237,228,.14);
+}
+.personalization-card .vcard-cta:hover {
+  box-shadow: 0 12px 28px rgba(242,237,228,.22);
+}
+@media (max-width: 640px) {
+  .carousel-track .personalization-card {
+    align-self: flex-start;
+  }
+  .personalization-card .vcard-body {
+    order: -1;
+    flex: 0 0 auto;
+    padding-bottom: 14px;
+  }
+  .personalization-card .vcard-nome {
+    font-size: 34px;
+  }
+  .personalization-card-text {
+    font-size: .9rem;
+  }
+  .personalization-card .vcard-actions {
+    margin-top: .15rem;
+  }
+  .personalization-card .vcard-img {
+    aspect-ratio: 1 / .72;
+  }
+}
+
 /* Badge flutuante */
 .vcard-badge {
   position: absolute;
@@ -4233,6 +4306,31 @@ footer {
     <div class="carousel-wrap">
       <div class="carousel-track" id="carouselFem">
 
+        <article class="vcard personalization-card" data-personalization-card>
+          <div class="vcard-img-wrap">
+            <div class="vcard-badge-wrap"><span class="vcard-badge-best">Personalizado</span></div>
+            <img
+              src="imgs/sc-reg/amarela-7.webp"
+              alt="Camiseta Brasil PattaMansa para personalizar com seus cachorros"
+              class="vcard-img" loading="eager" fetchpriority="high">
+          </div>
+          <div class="vcard-body">
+            <p class="vcard-nome">QUER PERSONALIZAR?</p>
+            <div class="vcard-meta">
+              <span class="vcard-modelagem">Feito com seus doguinhos</span>
+            </div>
+            <p class="personalization-card-text">Coloque seus cachorros na camiseta do Brasil.</p>
+            <div class="vcard-actions">
+              <a class="vcard-cta personalization-card-cta"
+                 href="https://wa.me/5519995433638?text=Oi%21%20Quero%20personalizar%20uma%20camiseta%20PattaMansa%20Brasil%20com%20meus%20cachorros.%20Como%20funciona%3F"
+                 target="_blank" rel="noopener noreferrer"
+                 aria-label="Personalizar camiseta PattaMansa Brasil pelo WhatsApp">
+                Clique aqui agora
+              </a>
+            </div>
+          </div>
+        </article>
+
         <article class="vcard" data-product-card data-filter="feminino">
           <div class="vcard-img-wrap">
             <img id="cfc2Img"
@@ -5199,6 +5297,16 @@ footer {
       });
     }
 
+    function trackEvent(eventName, params) {
+      if (!eventName) return;
+      var payload = clean(params || {});
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push(Object.assign({ event: eventName }, payload));
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', eventName, payload);
+      }
+    }
+
     function appendQuery(url, query) {
       if (!query) return url;
       return url + (url.indexOf('?') === -1 ? '?' : '&') + query;
@@ -5231,11 +5339,35 @@ footer {
       trackViewItem: trackViewItem,
       trackAddToCart: trackAddToCart,
       trackBeginCheckout: trackBeginCheckout,
+      trackEvent: trackEvent,
       decorateCheckoutUrl: decorateCheckoutUrl
     };
   })();
 
-  /* ─── PATTA CART — gerenciador de carrinho local ─── */
+  /* CTA de personalizacao */
+  (function () {
+    var card = document.querySelector('[data-personalization-card]');
+    if (!card || !PattaAnalytics || !PattaAnalytics.trackEvent) return;
+    var cta = card.querySelector('.personalization-card-cta');
+    if (!cta) return;
+    function trackClick() {
+      PattaAnalytics.trackEvent('personalization_card_click', {
+        event_category: 'product_grid',
+        event_label: 'brasil_personalization_card',
+        category: 'product_grid',
+        label: 'brasil_personalization_card'
+      });
+    }
+    cta.addEventListener('click', trackClick);
+    card.addEventListener('click', function (event) {
+      if (event.target.closest('a, button')) return;
+      trackClick();
+      var popup = window.open(cta.href, '_blank', 'noopener,noreferrer');
+      if (popup) popup.opener = null;
+    });
+  })();
+
+  /* PATTA CART: gerenciador de carrinho local */
   var PattaCart = (function () {
     var KEY = 'patta_cart_v2';
     var items = [];
