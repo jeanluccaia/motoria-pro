@@ -1,0 +1,10 @@
+{
+  "name": "pattamansa",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "check-images": "node scripts/check-images.js",
+    "check-images:http": "node scripts/check-images.js --http",
+    "predeploy": "node scripts/check-images.js"
+  }
+}

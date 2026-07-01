@@ -1,0 +1,41 @@
+# Outros projetos do monorepo (não pertencem ao site pattamansa)
+loudfit/
+dgn lava car/
+singulart.3d/
+motor ia pro/
+comunidade privada/
+
+# Criativos e ferramentas internas
+criativos/
+ebook adestramento pattamansa/
+FOTOS SESSAO FEEDBACK/
+
+# Pastas antigas com nomes quebrados (substituídas por imgs/)
+coleção caramelo fc feminino/
+coleção clube canino croped feminino/
+coleçao clube canino feminino/
+coleção clube canino masculino/
+coleção clube canino moletom croped feminino/
+COLEÇAO selecao canina feminina/
+coleção SELEÇÃO CANINA FEMININA BABY LOOK/
+coleção seleção canina oversize/
+coleçeção caramelo futebol clube/
+
+# Vídeos de produção (não são assets do site)
+*.mp4
+
+# PDFs e scripts Python
+*.pdf
+*.py
+
+# Documentação interna
+*.md
+00_COMECE_AQUI.txt
+ENTREGA_FINAL.txt
+
+# Ferramentas de desenvolvimento
+scripts/
+audit_extract.py
+
+# node_modules
+node_modules/
