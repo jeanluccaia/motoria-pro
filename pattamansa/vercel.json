@@ -4,7 +4,6 @@
   "framework": null,
   "cleanUrls": true,
   "trailingSlash": false,
-  "ignoreCommand": "git diff $VERCEL_GIT_PREVIOUS_SHA $VERCEL_GIT_COMMIT_SHA --quiet -- pattamansa/",
   "redirects": [
     {
       "source": "/(.*)",
