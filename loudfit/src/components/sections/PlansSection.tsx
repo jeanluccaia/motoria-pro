@@ -12,7 +12,7 @@ export function PlansSection() {
           dark
           label="Planos"
           title="Escolha como treinar."
-          subtitle="Escolha seu plano e sua unidade. Matrícula online em breve via página de vendas EVO."
+          subtitle="Escolha seu plano. Escolha sua unidade. Comece a treinar."
         />
 
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4 lg:items-stretch">

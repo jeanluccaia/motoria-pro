@@ -59,7 +59,7 @@ export function OfferBanner() {
                 Escolha o plano, escolha a unidade e comece a treinar
               </p>
               <p className="mt-1 text-[11px] text-lf-muted">
-                Venda online via EVO será conectada à página de vendas.
+                Matrícula online em breve nas unidades participantes.
               </p>
             </div>
           </div>

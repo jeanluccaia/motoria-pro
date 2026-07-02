@@ -37,10 +37,10 @@ export default async function HomePage() {
                 dark
                 label="Unidades"
                 title="Escolha sua LoudFit."
-                subtitle="Escolha a unidade mais próxima e comece a treinar."
+                subtitle="6 unidades em SP — Campinas, Valinhos, São Paulo e Mogi Mirim."
               />
               <Button href="/unidades" variant="outline" size="md" className="mb-12 md:mb-16">
-                Ver unidades
+                Ver todas as 6 unidades
               </Button>
             </div>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
