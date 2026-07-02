@@ -21,8 +21,14 @@ import {
   X,
   Settings,
   Copy,
+  Crown,
+  Link2,
+  Send,
+  Eye,
+  BadgeCheck,
   type LucideIcon,
 } from "lucide-react";
+import { founders } from "@/lib/founders-data";
 
 /* ─── data ─── */
 
@@ -128,6 +134,7 @@ const recentActivity = [
 
 const sidebarItems: { key: string; label: string; icon: LucideIcon }[] = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { key: "founders", label: "Founders", icon: Crown },
   { key: "assinantes", label: "Assinantes", icon: Users },
   { key: "planos", label: "Planos", icon: Package },
   { key: "saldo", label: "Saldo de Lavagens", icon: Droplets },
@@ -222,6 +229,214 @@ function LinksConfig() {
       >
         {saved ? "Salvo!" : "Salvar configurações"}
       </button>
+    </div>
+  );
+}
+
+function FoundersTab() {
+  const [statuses, setStatuses] = useState<
+    Record<string, { inviteSent: boolean; pageViewed: boolean; signatureConfirmed: boolean }>
+  >(
+    Object.fromEntries(
+      founders.map((f) => [
+        f.id,
+        {
+          inviteSent: f.adminStatus.inviteSent,
+          pageViewed: f.adminStatus.pageViewed,
+          signatureConfirmed: f.adminStatus.signatureConfirmed,
+        },
+      ])
+    )
+  );
+
+  const toggle = (id: string, field: "inviteSent" | "pageViewed" | "signatureConfirmed") => {
+    setStatuses((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], [field]: !prev[id][field] },
+    }));
+  };
+
+  const copyLink = (slug: string) => {
+    const url = `${window.location.origin}/founders/${slug}`;
+    navigator.clipboard?.writeText(url);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xs font-semibold text-[#9CA3AF] tracking-widest uppercase">
+          Piloto Founders — {founders.length} convidado{founders.length !== 1 ? "s" : ""}
+        </h3>
+        <span
+          className="text-[11px] font-semibold px-3 py-1 rounded-full"
+          style={{ background: "rgba(201,168,76,0.1)", color: "#C9A84C" }}
+        >
+          Beta privado
+        </span>
+      </div>
+
+      {founders.map((founder) => {
+        const st = statuses[founder.id];
+        return (
+          <motion.div
+            key={founder.id}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="rounded-2xl overflow-hidden"
+            style={{
+              background: "linear-gradient(145deg, #1A1408 0%, #111111 100%)",
+              border: "1px solid rgba(201,168,76,0.2)",
+            }}
+          >
+            {/* header */}
+            <div className="px-5 pt-5 pb-4 border-b border-[#2A2A2A] flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background: "linear-gradient(135deg, #C9A84C, #F0D060)",
+                  }}
+                >
+                  <Crown size={18} className="text-[#0A0A0A]" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-white font-bold text-sm">{founder.fullName}</p>
+                    <span
+                      className="text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full"
+                      style={{ background: "rgba(201,168,76,0.12)", color: "#C9A84C" }}
+                    >
+                      Founder {founder.number}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#9CA3AF] mt-0.5">{founder.vehicle.model}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => copyLink(founder.slug)}
+                className="flex items-center gap-1.5 text-xs text-[#C9A84C] hover:text-[#F0D060] transition-colors px-3 py-1.5 rounded-xl flex-shrink-0"
+                style={{ background: "rgba(201,168,76,0.08)" }}
+              >
+                <Link2 size={13} />
+                Copiar link
+              </button>
+            </div>
+
+            {/* status grid */}
+            <div className="px-5 py-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {(
+                [
+                  { key: "pageCreated", label: "Página", value: true, static: true },
+                  {
+                    key: "inviteSent",
+                    label: "Convite enviado",
+                    value: st.inviteSent,
+                    icon: Send,
+                    field: "inviteSent" as const,
+                  },
+                  {
+                    key: "pageViewed",
+                    label: "Visualizado",
+                    value: st.pageViewed,
+                    icon: Eye,
+                    field: "pageViewed" as const,
+                  },
+                  {
+                    key: "signatureConfirmed",
+                    label: "Assinatura",
+                    value: st.signatureConfirmed,
+                    icon: BadgeCheck,
+                    field: "signatureConfirmed" as const,
+                  },
+                  {
+                    key: "paymentStatus",
+                    label: "Pagamento",
+                    textValue: founder.adminStatus.paymentStatus,
+                    static: true,
+                  },
+                  {
+                    key: "kitStatus",
+                    label: "Kit",
+                    textValue: founder.adminStatus.kitStatus,
+                    static: true,
+                  },
+                ] as Array<{
+                  key: string;
+                  label: string;
+                  value?: boolean;
+                  textValue?: string;
+                  static?: boolean;
+                  icon?: LucideIcon;
+                  field?: "inviteSent" | "pageViewed" | "signatureConfirmed";
+                }>
+              ).map((item) => (
+                <div
+                  key={item.key}
+                  className="rounded-xl p-3 space-y-1"
+                  style={{ background: "#0F0F0F", border: "1px solid #2A2A2A" }}
+                >
+                  <p className="text-[10px] text-[#9CA3AF] uppercase tracking-wider font-medium">
+                    {item.label}
+                  </p>
+                  {item.textValue !== undefined ? (
+                    <p
+                      className="text-xs font-semibold"
+                      style={{ color: item.textValue === "Pendente" ? "#9CA3AF" : "#34D399" }}
+                    >
+                      {item.textValue}
+                    </p>
+                  ) : item.static ? (
+                    <span
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                      style={{ background: "rgba(52,211,153,0.1)", color: "#34D399" }}
+                    >
+                      <CheckCircle2 size={10} /> Criada
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => item.field && toggle(founder.id, item.field)}
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full transition-all cursor-pointer"
+                      style={
+                        item.value
+                          ? { background: "rgba(52,211,153,0.1)", color: "#34D399" }
+                          : { background: "rgba(255,255,255,0.05)", color: "#9CA3AF" }
+                      }
+                    >
+                      {item.icon && <item.icon size={10} />}
+                      {item.value ? "Sim" : "Não"}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* plan + link */}
+            <div
+              className="px-5 py-3 border-t border-[#2A2A2A] flex items-center justify-between"
+              style={{ background: "rgba(201,168,76,0.03)" }}
+            >
+              <div>
+                <p className="text-[10px] text-[#9CA3AF] uppercase tracking-wider font-medium">
+                  Plano recomendado
+                </p>
+                <p className="text-xs text-white font-semibold mt-0.5">
+                  {founder.recommendedPlan.name}
+                </p>
+              </div>
+              <a
+                href={`/founders/${founder.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-xs font-semibold text-[#C9A84C] hover:text-[#F0D060] transition-colors"
+              >
+                Ver página
+                <ExternalLink size={12} />
+              </a>
+            </div>
+          </motion.div>
+        );
+      })}
     </div>
   );
 }
@@ -538,6 +753,17 @@ export default function AdminPage() {
               transition={{ duration: 0.35 }}
             >
               <LinksConfig />
+            </motion.div>
+          )}
+
+          {/* Founders tab */}
+          {activeTab === "founders" && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35 }}
+            >
+              <FoundersTab />
             </motion.div>
           )}
 
