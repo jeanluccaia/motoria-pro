@@ -29,6 +29,9 @@
   --color-lf-muted:    var(--lf-muted);
   --color-lf-volt:     var(--lf-volt);
   --color-lf-volt-deep:var(--lf-volt-deep);
+
+  --font-display: var(--font-display);
+  --font-body:    var(--font-body);
 }
 
 * {

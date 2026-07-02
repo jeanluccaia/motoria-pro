@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
+import { SignalMark } from '@/components/ui/SignalMark'
 
 const nav = [
   { label: 'Planos', href: '/#planos' },
@@ -18,7 +19,8 @@ export function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-lf-black/90 backdrop-blur border-b border-lf-line">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-        <Link href="/" className="font-display text-xl font-black tracking-tighter text-lf-volt uppercase">
+        <Link href="/" className="flex items-center gap-2.5 font-display text-xl font-black tracking-tighter text-lf-volt uppercase">
+          <SignalMark />
           LoudFit
         </Link>
 

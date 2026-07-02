@@ -48,9 +48,8 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-12 pt-8 border-t border-lf-line flex flex-col sm:flex-row justify-between gap-4 text-xs text-lf-muted">
+        <div className="mt-12 pt-8 border-t border-lf-line text-xs text-lf-muted">
           <span>© {new Date().getFullYear()} LoudFit. Todos os direitos reservados.</span>
-          <span>CNPJ: [00.000.000/0001-00]</span>
         </div>
       </div>
     </footer>

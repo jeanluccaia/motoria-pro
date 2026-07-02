@@ -1,7 +1,15 @@
 import type { Metadata } from 'next'
+import { Inter, Big_Shoulders } from 'next/font/google'
 import './globals.css'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+
+const bodyFont = Inter({ subsets: ['latin'], variable: '--font-body' })
+const displayFont = Big_Shoulders({
+  subsets: ['latin'],
+  weight: ['700', '800', '900'],
+  variable: '--font-display',
+})
 
 export const metadata: Metadata = {
   title: {
@@ -20,7 +28,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className="h-full">
+    <html lang="pt-BR" className={`h-full ${bodyFont.variable} ${displayFont.variable}`}>
       <body className="min-h-full flex flex-col bg-lf-black text-lf-text">
         <Header />
         <main className="flex-1">{children}</main>

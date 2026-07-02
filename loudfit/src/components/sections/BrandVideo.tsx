@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Section } from '@/components/ui/Section'
+import { SignalMark } from '@/components/ui/SignalMark'
 
 export function BrandVideo() {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -21,7 +22,10 @@ export function BrandVideo() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_22%,rgba(242,226,5,0.12),transparent_28%),linear-gradient(180deg,rgba(22,22,22,0),rgba(22,22,22,0.38))]" />
       <div className="relative grid gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:items-center">
         <div>
-          <p className="text-xs uppercase tracking-[0.26em] text-lf-volt">Experiência LoudFit</p>
+          <div className="flex items-center gap-3">
+            <SignalMark />
+            <p className="text-xs uppercase tracking-[0.26em] text-lf-volt">Experiência LoudFit</p>
+          </div>
           <h2 className="mt-5 max-w-xl text-5xl font-black leading-none text-lf-text md:text-7xl">
             Sala cheia. Energia real.
           </h2>
@@ -38,8 +42,8 @@ export function BrandVideo() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-lg border border-lf-volt/25 bg-lf-surface shadow-[0_0_60px_rgba(242,226,5,0.08)]">
-          <div className="absolute -right-12 -top-12 z-10 h-36 w-36 rounded-full bg-lf-volt/10 blur-2xl" />
+        <div className="relative overflow-hidden border border-lf-volt/25 bg-lf-surface shadow-[0_0_60px_rgba(242,226,5,0.08)]">
+          <div className="absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-lf-volt to-transparent" />
           <div className="relative aspect-video overflow-hidden">
             <video
               ref={videoRef}

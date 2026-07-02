@@ -3,10 +3,11 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { getUnits, getUnitBySlug } from '@/lib/supabase'
-import { plans } from '@/lib/plans'
+import { getPlans } from '@/lib/plans'
 import { UnitBadge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Section, SectionHeader } from '@/components/ui/Section'
+import { PlanCard } from '@/components/ui/PlanCard'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -23,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!unit) return {}
   return {
     title: `LoudFit ${unit.nome} - Academia em ${unit.cidade}`,
-    description: `Academia LoudFit no ${unit.bairro}, ${unit.cidade}. Planos e primeiro mês por R$ 9,90.`,
+    description: `Academia LoudFit no ${unit.bairro}, ${unit.cidade}. Planos com primeira mensalidade por R$ 9,90 no Power Anual Recorrente.`,
   }
 }
 
@@ -77,15 +78,13 @@ export default async function UnitPage({ params }: Props) {
               <p className="mb-4 text-xs uppercase tracking-[0.28em] text-lf-volt">Unidade LoudFit</p>
               <h1 className="text-5xl font-black text-lf-text md:text-7xl">{unit.nome}</h1>
               <p className="mt-5 max-w-[21rem] text-base leading-relaxed text-lf-muted md:max-w-2xl md:text-lg">
-                {unit.bairro} / {unit.cidade}, {unit.estado}. Estrutura completa e primeiro mês por R$ 9,90 para começar agora.
+                {unit.bairro} / {unit.cidade}, {unit.estado}. Estrutura completa e primeira{' '}
+                {unit.slug === 'ipiranga' ? 'parcela' : 'mensalidade'} por R$ 9,90 no Power Anual
+                Recorrente.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Button href="#planos" variant="volt" size="lg" className="w-full sm:w-auto">
-                  <>
-                    Começar primeiro mês
-                    <br />
-                    por R$ 9,90
-                  </>
+                  Começar matrícula
                 </Button>
                 <Button href="#informacoes" variant="ghost" size="lg" className="w-full sm:w-auto">
                   Ver informações
@@ -129,12 +128,17 @@ export default async function UnitPage({ params }: Props) {
 
             <div className="border border-lf-volt/25 bg-lf-graphite p-6">
               <p className="text-xs uppercase tracking-[0.22em] text-lf-volt">Matrícula online</p>
-              <h2 className="mt-4 text-3xl font-black text-lf-text">Comece por R$ 9,90.</h2>
+              <h2 className="mt-4 text-3xl font-black text-lf-text">
+                Primeira {unit.slug === 'ipiranga' ? 'parcela' : 'mensalidade'} por R$9,90.
+              </h2>
+              <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-lf-muted">
+                No Power Anual Recorrente.
+              </p>
               <p className="mt-4 text-sm leading-relaxed text-lf-muted">
-                Escolha um plano da unidade e avance para o caminho de venda online da LoudFit.
+                Escolha um plano desta unidade e avance para a página de vendas EVO.
               </p>
               <Button href="#planos" variant="volt" className="mt-6 w-full justify-center">
-                Começar primeiro mês por R$ 9,90
+                Começar matrícula
               </Button>
               {unit.google_maps_url && (
                 <Button href={unit.google_maps_url} variant="ghost" className="mt-3 w-full justify-center">
@@ -154,32 +158,22 @@ export default async function UnitPage({ params }: Props) {
           <SectionHeader
             label="Planos da unidade"
             title="Escolha como começar."
-            subtitle="Valores finais e disponibilidade seguem as condições da unidade escolhida."
+            subtitle={
+              unit.slug === 'ipiranga'
+                ? 'Tabela própria da unidade Ipiranga.'
+                : 'Tabela padrão LoudFit para esta unidade.'
+            }
           />
 
-          <div className="grid gap-5 lg:grid-cols-3">
-            {plans.map((plan) => (
-              <article key={plan.name} className="flex min-h-[360px] flex-col border border-lf-line bg-lf-black p-6">
-                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-lf-volt">{plan.badge}</span>
-                <h3 className="mt-4 text-2xl font-black text-lf-text">{plan.name}</h3>
-                <p className="mt-4 text-sm leading-relaxed text-lf-muted">{plan.description}</p>
-                <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-lf-volt">
-                  Primeiro mês por R$ 9,90
-                </p>
-                <p className="mt-3 flex items-end gap-2 text-lf-text">
-                  <strong className="text-4xl font-black leading-none">{plan.price}</strong>
-                  <span className="pb-1 text-sm text-lf-muted">{plan.period}</span>
-                </p>
-                <div className="mt-auto pt-7">
-                  <Button href="/unidades" variant="outline" className="w-full justify-center">
-                    Começar por R$ 9,90
-                  </Button>
-                </div>
-              </article>
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+            {getPlans(unit.slug).map((plan) => (
+              <PlanCard key={plan.name} plan={plan} />
             ))}
           </div>
           <p className="mt-6 text-sm text-lf-muted">
-            Após o primeiro mês, aplica-se o valor do plano escolhido. Condições sujeitas à disponibilidade da unidade.
+            Após a primeira {unit.slug === 'ipiranga' ? 'parcela' : 'mensalidade'} promocional,
+            aplica-se o valor mensal do Power Anual Recorrente desta unidade. Os demais planos
+            seguem o valor cheio desde a primeira cobrança.
           </p>
         </Section>
 

@@ -133,19 +133,19 @@ export default async function FranquiasPage() {
         </Section>
       )}
 
-      {/* Números — placeholder, preencher com dados reais */}
+      {/* Números do modelo — detalhados na call de qualificação com o time de expansão */}
       <Section bg="black">
         <SectionHeader label="O investimento" title="Números do modelo" />
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <tbody>
               {[
-                ['Taxa de franquia', '[preencher]'],
-                ['Investimento total estimado', '[preencher]'],
-                ['Royalties mensais', '[preencher]'],
-                ['Área mínima ideal', '[preencher] m²'],
-                ['Prazo médio de payback*', '[preencher]'],
-                ['Lucratividade estimada*', '[preencher]'],
+                ['Taxa de franquia', 'Sob consulta'],
+                ['Investimento total estimado', 'Sob consulta'],
+                ['Royalties mensais', 'Sob consulta'],
+                ['Área mínima ideal', 'Sob consulta'],
+                ['Prazo médio de payback*', 'Sob consulta'],
+                ['Lucratividade estimada*', 'Sob consulta'],
               ].map(([label, value]) => (
                 <tr key={label} className="border-b border-lf-line">
                   <td className="py-4 text-lf-muted">{label}</td>

@@ -17,7 +17,7 @@ export default async function UnidadesPage() {
         <SectionHeader
           label="Nossa Rede"
           title="Unidades LoudFit"
-          subtitle="Escolha sua unidade LoudFit e comece seu primeiro mês por R$ 9,90."
+          subtitle="Escolha sua unidade LoudFit e comece a treinar."
         />
 
         <div className="mb-10 grid gap-3 border border-lf-volt/25 bg-lf-graphite p-5 text-sm text-lf-muted md:grid-cols-3">

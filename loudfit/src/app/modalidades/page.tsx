@@ -80,7 +80,7 @@ export default function ModalidadesPage() {
 
           <div className="grid gap-5 md:grid-cols-2">
             {modalities.map((item, index) => (
-              <article key={item.title} className="group relative min-h-[390px] overflow-hidden rounded-lg border border-lf-line bg-lf-surface transition duration-500 hover:-translate-y-1 hover:border-lf-volt/45">
+              <article key={item.title} className="group relative min-h-[390px] overflow-hidden border border-lf-line bg-lf-surface transition duration-500 hover:-translate-y-1 hover:border-lf-volt/45">
                 <Image
                   src={item.image}
                   alt={`LoudFit - ${item.title}`}

@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { SignalMark } from './SignalMark'
 
 interface SectionProps {
   children: React.ReactNode
@@ -16,7 +17,7 @@ const bgs = {
 
 export function Section({ children, className, id, bg = 'black', tight = false }: SectionProps) {
   return (
-    <section id={id} className={cn(bgs[bg], tight ? 'py-12' : 'py-20 md:py-28', className)}>
+    <section id={id} className={cn(bgs[bg], tight ? 'py-12' : 'py-16 md:py-24', className)}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6">{children}</div>
     </section>
   )
@@ -34,9 +35,12 @@ export function SectionHeader({
   centered?: boolean
 }) {
   return (
-    <div className={cn('mb-12 md:mb-16', centered && 'text-center')}>
+    <div className={cn('mb-10 md:mb-14', centered && 'text-center')}>
       {label && (
-        <p className="text-xs uppercase tracking-[0.2em] text-lf-volt mb-4">{label}</p>
+        <div className={cn('mb-4 flex items-center gap-3', centered && 'justify-center')}>
+          <SignalMark />
+          <p className="text-xs uppercase tracking-[0.2em] text-lf-volt">{label}</p>
+        </div>
       )}
       <h2 className="text-4xl md:text-6xl font-black text-lf-text">{title}</h2>
       {subtitle && (

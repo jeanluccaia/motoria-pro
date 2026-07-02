@@ -1,12 +1,11 @@
 import type { Metadata } from 'next'
 import { Hero } from '@/components/sections/Hero'
-import { StatsBar } from '@/components/sections/StatsBar'
-import { BrandStatement } from '@/components/sections/BrandStatement'
-import { ExpansionBanner } from '@/components/sections/ExpansionBanner'
 import { OfferBanner } from '@/components/sections/OfferBanner'
 import { PlansSection } from '@/components/sections/PlansSection'
 import { BrandVideo } from '@/components/sections/BrandVideo'
 import { ModalitiesTeaser } from '@/components/sections/ModalitiesTeaser'
+import { ExpansionBanner } from '@/components/sections/ExpansionBanner'
+import { FinalCta } from '@/components/sections/FinalCta'
 import { Section, SectionHeader } from '@/components/ui/Section'
 import { UnitCard } from '@/components/ui/UnitCard'
 import { Button } from '@/components/ui/Button'
@@ -29,14 +28,13 @@ export default async function HomePage() {
       <PlansSection />
 
       {featured.length > 0 && (
-        <Section bg="black" className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(242,226,5,0.09),transparent_24%),linear-gradient(180deg,rgba(22,22,22,0.62),rgba(10,10,10,0.9))]" />
+        <Section id="unidades" bg="black" className="relative overflow-hidden">
           <div className="relative">
             <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
               <SectionHeader
                 label="Unidades"
                 title="Escolha sua LoudFit."
-                subtitle="Escolha sua unidade LoudFit e comece seu primeiro mês por R$ 9,90."
+                subtitle="Escolha sua unidade LoudFit e comece a treinar."
               />
               <Button href="/unidades" variant="outline" size="md" className="mb-12 md:mb-16">
                 Ver unidades
@@ -53,9 +51,8 @@ export default async function HomePage() {
 
       <BrandVideo />
       <ModalitiesTeaser />
-      <StatsBar />
-      <BrandStatement />
       <ExpansionBanner />
+      <FinalCta />
     </>
   )
 }

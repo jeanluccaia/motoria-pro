@@ -7,7 +7,7 @@ export function UnitCard({ unit }: { unit: Unit }) {
   return (
     <Link
       href={`/unidades/${unit.slug}`}
-      className="group block overflow-hidden rounded-lg border border-lf-line bg-lf-surface transition duration-500 hover:-translate-y-1 hover:border-lf-volt/45 hover:shadow-[0_24px_70px_rgba(0,0,0,0.32)]"
+      className="group block overflow-hidden border border-lf-line bg-lf-surface transition duration-500 hover:-translate-y-1 hover:border-lf-volt/45 hover:shadow-[0_24px_70px_rgba(0,0,0,0.32)]"
     >
       <div className="relative aspect-[4/3] overflow-hidden">
         {unit.foto_capa ? (

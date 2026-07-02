@@ -40,7 +40,7 @@ export function ModalitiesTeaser() {
           {items.map((item, index) => (
             <article
               key={item.title}
-              className={`group relative min-h-[360px] overflow-hidden rounded-lg border border-lf-line bg-lf-black shadow-[0_24px_80px_rgba(0,0,0,0.25)] transition duration-500 hover:-translate-y-1 hover:border-lf-volt/45 ${
+              className={`group relative min-h-[360px] overflow-hidden border border-lf-line bg-lf-black shadow-[0_24px_80px_rgba(0,0,0,0.25)] transition duration-500 hover:-translate-y-1 hover:border-lf-volt/45 ${
                 index === 1 ? 'md:mt-10' : ''
               }`}
             >
@@ -52,10 +52,7 @@ export function ModalitiesTeaser() {
                 className="object-cover opacity-70 transition duration-700 group-hover:scale-105 group-hover:opacity-85"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-lf-black via-lf-black/40 to-transparent" />
-              <div className="absolute left-5 top-5 rounded-full border border-lf-volt/40 bg-lf-black/70 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-lf-volt">
-                {String(index + 1).padStart(2, '0')}
-              </div>
-              <div className="absolute inset-x-0 bottom-0 p-6">
+              <div className="absolute inset-x-0 bottom-0 border-t-2 border-lf-volt/70 bg-lf-black/30 p-6 backdrop-blur-sm">
                 <h3 className="text-3xl font-black text-lf-text">{item.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-lf-muted">{item.body}</p>
               </div>
