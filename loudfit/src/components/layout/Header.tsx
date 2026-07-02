@@ -5,10 +5,11 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 
 const nav = [
+  { label: 'Planos', href: '/#planos' },
   { label: 'Unidades', href: '/unidades' },
+  { label: 'Modalidades', href: '/modalidades' },
   { label: 'Franquias', href: '/franquias' },
   { label: 'Sobre', href: '/sobre' },
-  { label: 'Carreiras', href: '/carreiras' },
 ]
 
 export function Header() {
@@ -35,11 +36,11 @@ export function Header() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          <Button href="/unidades" variant="ghost" size="sm">
-            Encontrar unidade
+          <Button href="/#planos" variant="ghost" size="sm">
+            Ver planos
           </Button>
-          <Button href="/franquias" variant="volt" size="sm">
-            Ser franqueado
+          <Button href="/unidades" variant="volt" size="sm">
+            Começar matrícula
           </Button>
         </div>
 
@@ -69,11 +70,11 @@ export function Header() {
             </Link>
           ))}
           <div className="flex flex-col gap-3 pt-4 border-t border-lf-line">
-            <Button href="/unidades" variant="ghost" className="w-full justify-center">
-              Encontrar unidade
+            <Button href="/#planos" variant="ghost" className="w-full justify-center">
+              Ver planos
             </Button>
-            <Button href="/franquias" variant="volt" className="w-full justify-center">
-              Ser franqueado
+            <Button href="/unidades" variant="volt" className="w-full justify-center">
+              Começar matrícula
             </Button>
           </div>
         </div>

@@ -25,7 +25,7 @@ const sizes: Record<Size, string> = {
 }
 
 const base =
-  'inline-flex items-center justify-center uppercase tracking-widest font-bold rounded-none transition-all duration-200 min-h-[44px] cursor-pointer'
+  'inline-flex max-w-full items-center justify-center rounded-none text-center font-bold uppercase leading-tight tracking-widest whitespace-normal transition-all duration-200 min-h-[44px] cursor-pointer'
 
 export function Button({
   variant = 'volt',
@@ -40,14 +40,14 @@ export function Button({
   if (href) {
     return (
       <Link href={href} className={cls}>
-        {children}
+        <span className="min-w-0 max-w-full break-words">{children}</span>
       </Link>
     )
   }
 
   return (
     <button className={cls} {...props}>
-      {children}
+      <span className="min-w-0 max-w-full break-words">{children}</span>
     </button>
   )
 }

@@ -3,8 +3,8 @@ import Link from 'next/link'
 const links = {
   Rede: [
     { label: 'Unidades', href: '/unidades' },
-    { label: 'A Rede', href: '/rede' },
-    { label: 'Comunidade', href: '/comunidade' },
+    { label: 'Modalidades', href: '/modalidades' },
+    { label: 'Planos', href: '/#planos' },
   ],
   Empresa: [
     { label: 'Sobre', href: '/sobre' },

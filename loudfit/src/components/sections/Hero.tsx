@@ -1,82 +1,69 @@
-'use client'
-
-import { motion } from 'framer-motion'
+import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
 
 export function Hero() {
   return (
-    <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-lf-black">
-      {/* Video background */}
+    <section className="relative flex min-h-[92svh] items-center justify-center overflow-hidden bg-lf-black">
+      <Image
+        src="/assets/images/hero-gym-desktop.png"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="absolute inset-0 hidden h-full w-full object-cover opacity-55 md:block"
+        aria-hidden="true"
+      />
+      <Image
+        src="/assets/images/hero-gym-mobile.png"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="absolute inset-0 h-full w-full object-cover opacity-55 md:hidden"
+        aria-hidden="true"
+      />
       <video
         autoPlay
         muted
         loop
         playsInline
-        className="absolute inset-0 w-full h-full object-cover opacity-40"
+        className="absolute inset-0 h-full w-full object-cover opacity-30"
         aria-hidden="true"
       >
-        {/* Trocar src pelo vídeo real da marca */}
         <source src="/hero.mp4" type="video/mp4" />
       </video>
 
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-lf-black/60 via-transparent to-lf-black" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,10,10,0.95),rgba(10,10,10,0.66)_46%,rgba(10,10,10,0.2)),linear-gradient(180deg,rgba(10,10,10,0.45),rgba(10,10,10,0.95))]" />
 
-      {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 text-center">
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="text-xs uppercase tracking-[0.3em] text-lf-volt mb-6"
-        >
-          A Rede que Treina Alto
-        </motion.p>
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6">
+        <p className="mb-6 text-xs uppercase tracking-[0.28em] text-lf-volt">
+          Rede de academias
+        </p>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-          className="text-6xl sm:text-8xl md:text-[10rem] font-black text-lf-text leading-none tracking-tighter"
-        >
-          TREINA<br />
-          <span className="text-lf-volt">ALTO.</span>
-        </motion.h1>
+        <h1 className="max-w-5xl text-[3.25rem] font-black leading-none text-lf-text sm:text-7xl md:text-8xl lg:text-9xl">
+          <span className="block">O melhor</span>
+          <span className="block">ainda está</span>
+          <span className="block">por vir.</span>
+        </h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
-          className="mt-6 text-lg md:text-xl text-lf-muted max-w-xl mx-auto"
-        >
-          Acima do low cost, de propósito. Estrutura, comunidade e resultado real.
-        </motion.p>
+        <p className="mt-6 max-w-[21rem] text-base leading-relaxed text-lf-muted md:max-w-2xl md:text-xl">
+          Energia, estrutura e uma experiência feita para quem leva o treino a sério.
+        </p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
-          className="mt-10 flex flex-col sm:flex-row gap-4 justify-center"
-        >
-          <Button href="/unidades" variant="volt" size="lg">
-            Encontrar unidade
+        <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+          <Button href="#planos" variant="volt" size="lg">
+            Começar matrícula
           </Button>
-          <Button href="/franquias" variant="ghost" size="lg">
-            Quero ser franqueado
+          <Button href="/unidades" variant="ghost" size="lg">
+            Ver unidades
           </Button>
-        </motion.div>
+        </div>
       </div>
 
-      {/* Scroll hint */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-      >
+      <div className="absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2">
         <span className="text-[10px] uppercase tracking-widest text-lf-muted">Role</span>
-        <div className="w-px h-8 bg-lf-volt/50 animate-pulse" />
-      </motion.div>
+        <div className="h-8 w-px animate-pulse bg-lf-volt/50" />
+      </div>
     </section>
   )
 }
