@@ -215,6 +215,20 @@ textarea {
   filter: saturate(.92) contrast(1.08) brightness(.9);
 }
 
+.hero__media picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hero--showpiece .hero__media img {
+  object-position: center;
+}
+
+.hero--compact .hero__media img {
+  object-position: center;
+}
+
 .hero__media::after {
   content: "";
   position: absolute;
@@ -921,7 +935,7 @@ p {
 
 .plans-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px;
 }
 
@@ -2756,6 +2770,11 @@ p {
     padding: 118px 0 58px;
   }
 
+  .hero--showpiece {
+    align-items: flex-start;
+    min-height: 720px;
+  }
+
   .hero--compact,
   .hero--franchise {
     min-height: 620px;
@@ -2765,6 +2784,16 @@ p {
     background:
       linear-gradient(90deg, rgba(10, 10, 10, .96), rgba(10, 10, 10, .74)),
       linear-gradient(0deg, var(--bg), rgba(10, 10, 10, .32) 44%, rgba(10, 10, 10, .72));
+  }
+
+  .hero--showpiece .hero__media::after {
+    background:
+      linear-gradient(90deg, rgba(10, 10, 10, .9), rgba(10, 10, 10, .58)),
+      linear-gradient(0deg, var(--bg), rgba(10, 10, 10, .24) 44%, rgba(10, 10, 10, .64));
+  }
+
+  .hero--showpiece .hero__media img {
+    object-position: center top;
   }
 
   .display {
@@ -2794,6 +2823,10 @@ p {
   .hero__actions,
   .section__actions {
     width: 100%;
+  }
+
+  .hero__actions {
+    max-width: 330px;
   }
 
   a.button,

@@ -56,13 +56,13 @@
     var contact = site.contact || {};
     var rawTarget = cleanValue(unit.whatsapp_url) || cleanValue(unit.whatsapp) || cleanValue(contact.whatsapp);
     var planName = plan && plan.name ? plan.name : "";
-    var message = "Olá, quero começar na LoudFit com a oferta do primeiro mês por R$ 9,90 na unidade " + unit.name + ".";
+    var message = "Olá, quero fazer minha matrícula na LoudFit, unidade " + unit.name + ".";
 
     if (planName) {
       message += " Tenho interesse no plano " + planName + ".";
     }
 
-    message += " Pode me enviar as opções de matrícula?";
+    message += " Pode me enviar as opções?";
 
     if (/^https?:\/\//i.test(rawTarget)) return appendTextParam(rawTarget, message);
 
@@ -243,8 +243,11 @@
     })[0];
     if (!unit) return;
 
-    var primary = unitPrimaryAction(unit, "Começar primeiro mês por R$ 9,90");
-    var plans = (window.LOUDFIT_PLANS || []).filter(function (plan) {
+    var primary = unitPrimaryAction(unit, "Começar por R$ 9,90");
+    var planSource = unit.plans_type === "ipiranga"
+      ? (window.LOUDFIT_PLANS_IPIRANGA || window.LOUDFIT_PLANS || [])
+      : (window.LOUDFIT_PLANS || []);
+    var plans = planSource.filter(function (plan) {
       return plan.status !== "inativo";
     });
 
@@ -276,7 +279,7 @@
     });
     document.querySelectorAll("[data-unit-plans]").forEach(function (grid) {
       grid.innerHTML = plans.map(function (plan) {
-        return planCard(plan, { label: "Começar por R$ 9,90", href: whatsAppLeadHref(unit, plan) });
+        return planCard(plan, { href: whatsAppLeadHref(unit, plan) });
       }).join("");
     });
 
