@@ -13,9 +13,9 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants: Record<Variant, string> = {
-  volt: 'bg-lf-volt text-lf-black hover:bg-lf-volt-deep font-bold',
-  ghost: 'bg-transparent text-lf-text hover:bg-lf-surface border border-lf-line',
-  outline: 'bg-transparent text-lf-volt hover:bg-lf-volt/10 border border-lf-volt',
+  volt: 'bg-lf-volt text-lf-black hover:bg-lf-volt-deep hover:shadow-[0_0_28px_rgba(242,226,5,0.22)] font-bold',
+  ghost: 'bg-transparent text-lf-text hover:bg-lf-surface border border-lf-line hover:border-lf-text/30',
+  outline: 'bg-transparent text-lf-volt hover:bg-lf-volt/10 border border-lf-volt hover:shadow-[0_0_22px_rgba(242,226,5,0.12)]',
 }
 
 const sizes: Record<Size, string> = {
@@ -25,7 +25,7 @@ const sizes: Record<Size, string> = {
 }
 
 const base =
-  'inline-flex max-w-full items-center justify-center rounded-none text-center font-bold uppercase leading-tight tracking-widest whitespace-normal transition-all duration-200 min-h-[44px] cursor-pointer'
+  'inline-flex max-w-full items-center justify-center rounded-none text-center font-bold uppercase leading-tight tracking-widest whitespace-normal transition-all duration-300 min-h-[44px] cursor-pointer hover:-translate-y-0.5 active:translate-y-0'
 
 export function Button({
   variant = 'volt',

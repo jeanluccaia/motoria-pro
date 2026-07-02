@@ -10,7 +10,7 @@ const cards = [
   {
     number: '02',
     title: 'Comunidade real',
-    body: 'Não é só academia. É onde a galeria treina junto, cresce junto.',
+    body: 'Não é só academia. É onde a galera treina junto, cresce junto.',
   },
   {
     number: '03',
@@ -26,25 +26,29 @@ const cards = [
 
 export function BrandStatement() {
   return (
-    <Section bg="black">
-      <SectionHeader
-        label="Nossa tese"
-        title="A LoudFit não é mais uma academia."
-        subtitle="É uma decisão sobre onde você quer chegar."
-      />
+    <Section bg="black" className="relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(242,226,5,0.08),transparent_22%)]" />
+      <div className="relative">
+        <SectionHeader
+          label="Nossa tese"
+          title="A LoudFit não é mais uma academia."
+          subtitle="É uma decisão sobre onde você quer chegar."
+        />
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {cards.map((card, i) => (
-          <Reveal key={card.number} delay={i * 0.1}>
-            <div className="border border-lf-line p-6 hover:border-lf-volt/40 transition-colors group">
-              <span className="text-5xl font-black text-lf-volt/20 group-hover:text-lf-volt/40 transition-colors">
-                {card.number}
-              </span>
-              <h3 className="mt-4 text-lg font-black text-lf-text uppercase">{card.title}</h3>
-              <p className="mt-2 text-sm text-lf-muted leading-relaxed">{card.body}</p>
-            </div>
-          </Reveal>
-        ))}
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {cards.map((card, i) => (
+            <Reveal key={card.number} delay={i * 0.1}>
+              <div className="group relative min-h-[250px] overflow-hidden rounded-lg border border-lf-line bg-lf-surface p-6 transition duration-500 hover:-translate-y-1 hover:border-lf-volt/40">
+                <span className="absolute -right-2 -top-3 text-8xl font-black leading-none text-lf-volt/10 transition group-hover:text-lf-volt/20">
+                  {card.number}
+                </span>
+                <span className="relative text-xs font-bold uppercase tracking-[0.18em] text-lf-volt">{card.number}</span>
+                <h3 className="relative mt-12 text-xl font-black text-lf-text">{card.title}</h3>
+                <p className="relative mt-3 text-sm leading-relaxed text-lf-muted">{card.body}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
       </div>
     </Section>
   )

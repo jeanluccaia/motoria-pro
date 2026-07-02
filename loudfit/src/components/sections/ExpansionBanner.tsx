@@ -1,30 +1,55 @@
+import Image from 'next/image'
 import { Section } from '@/components/ui/Section'
 import { Button } from '@/components/ui/Button'
 import { Reveal } from '@/components/ui/Reveal'
 
+const proof = [
+  ['5', 'unidades em operação'],
+  ['1', 'implantação em curso'],
+  ['EVO', 'pronto para venda online'],
+]
+
 export function ExpansionBanner() {
   return (
-    <Section bg="graphite">
+    <Section bg="black">
       <Reveal>
-        <div className="relative overflow-hidden border border-lf-volt/20 p-10 md:p-16 text-center">
-          {/* Decorative glow */}
-          <div className="absolute inset-0 bg-gradient-radial from-lf-volt/5 via-transparent to-transparent pointer-events-none" />
+        <div className="relative overflow-hidden rounded-lg border border-lf-volt/20 bg-lf-graphite shadow-[0_32px_100px_rgba(0,0,0,0.34)]">
+          <Image
+            src="/assets/images/campaign-gym-16x9.png"
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover opacity-35"
+            aria-hidden="true"
+          />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(242,226,5,0.16),transparent_26%),linear-gradient(90deg,rgba(10,10,10,0.98),rgba(10,10,10,0.82),rgba(10,10,10,0.46))]" />
+          <div className="relative grid gap-10 p-6 md:p-10 lg:grid-cols-[1fr_0.86fr] lg:p-14">
+            <div>
+              <p className="text-xs uppercase tracking-[0.28em] text-lf-volt">Expansão</p>
+              <h2 className="mt-5 max-w-3xl text-5xl font-black leading-none text-lf-text md:text-7xl">
+                A LoudFit está crescendo.
+              </h2>
+              <p className="mt-6 max-w-xl text-base leading-relaxed text-lf-muted md:text-lg">
+                Cresça junto. Seja dono de uma unidade em uma rede com marca forte, operação real e presença de bairro.
+              </p>
+              <div className="mt-9 flex flex-col gap-4 sm:flex-row">
+                <Button href="/franquias" variant="volt" size="lg">
+                  Quero ser franqueado
+                </Button>
+                <Button href="/franquias#formulario" variant="outline" size="lg">
+                  Falar com o time
+                </Button>
+              </div>
+            </div>
 
-          <p className="text-xs uppercase tracking-[0.3em] text-lf-volt mb-4">Expansão</p>
-          <h2 className="text-5xl md:text-7xl font-black text-lf-text leading-none">
-            A LOUDFIT ESTÁ<br />
-            <span className="text-lf-volt">CRESCENDO.</span>
-          </h2>
-          <p className="mt-6 text-lg text-lf-muted max-w-lg mx-auto">
-            Cresça junto. Seja dono de uma unidade em uma rede que funciona.
-          </p>
-          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-            <Button href="/franquias" variant="volt" size="lg">
-              Quero ser franqueado
-            </Button>
-            <Button href="/franquias#formulario" variant="outline" size="lg">
-              Falar com o time
-            </Button>
+            <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+              {proof.map(([value, label]) => (
+                <div key={label} className="rounded-lg border border-lf-line bg-lf-black/70 p-5 backdrop-blur">
+                  <strong className="text-4xl font-black text-lf-volt">{value}</strong>
+                  <p className="mt-2 text-xs uppercase tracking-[0.16em] text-lf-muted">{label}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </Reveal>
