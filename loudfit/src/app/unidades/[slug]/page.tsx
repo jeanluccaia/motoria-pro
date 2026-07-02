@@ -57,6 +57,9 @@ export default async function UnitPage({ params }: Props) {
   }
 
   const isIpiranga = unit.slug === 'ipiranga'
+  const hasCheckout = !!unit.checkoutUrl
+  const checkoutHref = hasCheckout ? `/matricula/${unit.slug}` : '#planos'
+
   const aulasUnit = unit.modalidades.filter((m) => AULAS_COLETIVAS.has(m))
   const hasAulas = aulasUnit.length > 0
 
@@ -65,6 +68,8 @@ export default async function UnitPage({ params }: Props) {
   )
 
   const plans = getPlans(unit.slug)
+  const planCtaHref = hasCheckout ? `/matricula/${unit.slug}` : `/unidades/${unit.slug}#informacoes`
+  const planCtaLabel = hasCheckout ? 'Começar matrícula online' : undefined
 
   return (
     <>
@@ -98,9 +103,16 @@ export default async function UnitPage({ params }: Props) {
                   : `Estrutura completa e primeira ${isIpiranga ? 'parcela' : 'mensalidade'} por R$ 9,90 no Power Anual Recorrente.`}
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Button href="#planos" variant="volt" size="lg" className="w-full sm:w-auto">
-                  {unit.status === 'em_breve' ? 'Ver planos' : 'Começar matrícula'}
-                </Button>
+                {unit.status !== 'em_breve' && (
+                  <Button href={checkoutHref} variant="volt" size="lg" className="w-full sm:w-auto">
+                    {hasCheckout ? 'Matricular online' : 'Começar matrícula'}
+                  </Button>
+                )}
+                {unit.status === 'em_breve' && (
+                  <Button href="#planos" variant="volt" size="lg" className="w-full sm:w-auto">
+                    Ver planos
+                  </Button>
+                )}
                 <Button href="#informacoes" variant="ghost" size="lg" className="w-full sm:w-auto">
                   Ver informações
                 </Button>
@@ -151,10 +163,16 @@ export default async function UnitPage({ params }: Props) {
                 No Power Anual Recorrente.
               </p>
               <p className="mt-4 text-sm leading-relaxed text-lf-muted">
-                Escolha um plano e finalize sua matrícula.
+                {hasCheckout
+                  ? 'Checkout disponível. Escolha seu plano abaixo e finalize online.'
+                  : 'Escolha um plano e finalize sua matrícula.'}
               </p>
-              <Button href="#planos" variant="volt" className="mt-6 w-full justify-center">
-                {unit.status === 'em_breve' ? 'Ver planos' : 'Começar matrícula'}
+              <Button
+                href={unit.status === 'em_breve' ? '#planos' : checkoutHref}
+                variant="volt"
+                className="mt-6 w-full justify-center"
+              >
+                {unit.status === 'em_breve' ? 'Ver planos' : hasCheckout ? 'Matricular online' : 'Começar matrícula'}
               </Button>
               {unit.google_maps_url && (
                 <Button href={unit.google_maps_url} variant="ghost" className="mt-3 w-full justify-center">
@@ -188,7 +206,8 @@ export default async function UnitPage({ params }: Props) {
               <PlanCard
                 key={plan.name}
                 plan={plan}
-                ctaHref={`/unidades/${unit.slug}#informacoes`}
+                ctaHref={planCtaHref}
+                ctaLabel={planCtaLabel}
               />
             ))}
           </div>

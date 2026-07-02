@@ -5,9 +5,10 @@ import { planBenefits, type Plan } from '@/lib/plans'
 interface PlanCardProps {
   plan: Plan
   ctaHref?: string
+  ctaLabel?: string
 }
 
-export function PlanCard({ plan, ctaHref = '/unidades' }: PlanCardProps) {
+export function PlanCard({ plan, ctaHref = '/unidades', ctaLabel }: PlanCardProps) {
   const href = plan.checkoutUrl ?? ctaHref
 
   if (plan.featured) {
@@ -50,7 +51,7 @@ export function PlanCard({ plan, ctaHref = '/unidades' }: PlanCardProps) {
 
           <div className="mt-auto pt-8">
             <Button href={href} variant="volt" className="w-full justify-center">
-              Começar com este plano
+              {ctaLabel ?? 'Começar com este plano'}
             </Button>
           </div>
         </div>
@@ -88,7 +89,7 @@ export function PlanCard({ plan, ctaHref = '/unidades' }: PlanCardProps) {
 
         <div className="mt-auto pt-8">
           <Button href={href} variant="volt" className="w-full justify-center">
-            Começar matrícula
+            {ctaLabel ?? 'Começar matrícula'}
           </Button>
         </div>
       </div>

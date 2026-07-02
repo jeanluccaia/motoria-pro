@@ -29,7 +29,7 @@ const fallbackUnits: Unit[] = [
     status: 'ativa',
     destaque: true,
     ordem: 1,
-    checkoutUrl: null,
+    checkoutUrl: 'https://evo-totem.w12app.com.br/loudfit/1/site/%5BPLUS%5DeIL%5BPLUS%5DfzZNcy7Gt%5BBAR%5DPl5KIrQ%5BEQUAL%5D%5BEQUAL%5D',
   },
   {
     id: 'fallback-ipiranga',
@@ -107,7 +107,7 @@ const fallbackUnits: Unit[] = [
     status: 'ativa',
     destaque: true,
     ordem: 4,
-    checkoutUrl: null,
+    checkoutUrl: 'https://evo-totem.w12app.com.br/loudfit/2/site/uRcgN1BLXvcYzmC%5BBAR%5DZHe3rg%5BEQUAL%5D%5BEQUAL%5D',
   },
   {
     id: 'fallback-vila-industrial',
