@@ -12,9 +12,9 @@ import { Button } from '@/components/ui/Button'
 import { getUnits } from '@/lib/supabase'
 
 export const metadata: Metadata = {
-  title: 'LoudFit - A Rede que Treina Alto',
+  title: 'LoudFit | O melhor ainda está por vir',
   description:
-    'Academia premium com rede de unidades. Acima do low cost, de propósito.',
+    'Rede de academias com energia, estrutura e experiência para quem leva o treino a sério.',
 }
 
 export default async function HomePage() {

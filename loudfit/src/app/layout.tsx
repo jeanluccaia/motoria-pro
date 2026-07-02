@@ -14,10 +14,10 @@ const displayFont = Big_Shoulders({
 export const metadata: Metadata = {
   title: {
     template: '%s | LoudFit',
-    default: 'LoudFit — A Rede que Treina Alto',
+    default: 'LoudFit | O melhor ainda está por vir',
   },
   description:
-    'Academia premium com rede de unidades. Treine acima do low cost. Seja sócio de uma LoudFit.',
+    'Rede de academias com energia, estrutura e experiência para quem leva o treino a sério.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://loudfit.com.br'),
   openGraph: {
     siteName: 'LoudFit',

@@ -40,7 +40,7 @@ export function Hero() {
         </h1>
 
         <p className="mt-6 max-w-[22rem] text-base leading-relaxed text-lf-muted md:max-w-xl md:text-xl">
-          Estrutura completa, equipe qualificada e uma rede que cresce com critério.
+          Energia, estrutura e uma experiência feita para quem leva o treino a sério.
         </p>
 
         <div className="mt-8 flex flex-col items-start gap-6 sm:flex-row sm:items-end">
