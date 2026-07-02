@@ -1,0 +1,15 @@
+/* ── PRINT / PDF EXPORT ──
+   Como usar:
+   1. Abra presentation.html no Chrome ou Edge
+   2. Clique em "Exportar PDF" na sidebar (desktop) ou botão PDF (mobile)
+   3. No diálogo de impressão:
+      - Destino: Salvar como PDF
+      - Layout: Paisagem
+      - Papel: Personalizado 33.87cm x 19.05cm  (equivalente 16:9)
+      - Margens: Nenhuma
+      - Gráficos de fundo: ATIVADO (obrigatório para fundo escuro)
+   4. Salvar
+
+   O CSS de impressão está embutido no presentation.html.
+   Este arquivo é apenas referência de uso.
+*/

@@ -1,0 +1,22 @@
+{
+  "name": "pattamansa-copaconversao",
+  "version": "1.0.0",
+  "description": "Remotion criativo de conversão — Copa 2026 / Caramelo FC",
+  "scripts": {
+    "start": "npx remotion studio src/Root.tsx",
+    "render": "npx remotion render PattaMansa_CopaConversao out/pattamansa_copa_conversao.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p --enforce-audio-track",
+    "render:all": "powershell -ExecutionPolicy Bypass -File render-all.ps1"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "@remotion/google-fonts": "^4.0.0",
+    "remotion": "^4.0.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "18.2.0",
+    "@types/react-dom": "18.2.0",
+    "typescript": "^5.0.0"
+  }
+}

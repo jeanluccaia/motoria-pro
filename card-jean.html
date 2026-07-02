@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 1080px; height: 1350px; overflow: hidden; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #ffffff;
+      -webkit-font-smoothing: antialiased;
+    }
+    .canvas {
+      width: 1080px;
+      height: 1350px;
+      padding: 80px 80px 72px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      padding-bottom: 52px;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 36px;
+    }
+    .name {
+      font-size: 78px;
+      font-weight: 900;
+      letter-spacing: -0.046em;
+      color: #0a0a0a;
+      line-height: 1;
+      margin-bottom: 14px;
+    }
+    .name span { color: #2563eb; }
+    .tagline {
+      font-size: 20px;
+      font-weight: 400;
+      color: #6b7280;
+      letter-spacing: -0.01em;
+    }
+
+    /* ── LABEL ── */
+    .lbl {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #9ca3af;
+      margin-bottom: 18px;
+    }
+
+    /* ── GRID ── */
+    .grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+    .card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 0 30px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .card-icon { font-size: 26px; line-height: 1; flex-shrink: 0; }
+    .card-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: #111827;
+      letter-spacing: -0.02em;
+    }
+
+    /* ── AUTHORITY ── */
+    .auth {
+      flex-shrink: 0;
+      height: 80px;
+      background: #0d1117;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 36px;
+    }
+    .auth-val {
+      font-size: 27px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: #60a5fa;
+    }
+    .auth-sep { width: 1px; height: 22px; background: rgba(255,255,255,.15); }
+    .auth-label { font-size: 15px; font-weight: 500; color: #8b949e; }
+
+    /* ── CTA ── */
+    .cta {
+      flex-shrink: 0;
+      height: 88px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      padding: 0 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .cta-main {
+      font-size: 21px;
+      font-weight: 800;
+      color: #0a0a0a;
+      letter-spacing: -0.025em;
+      margin-bottom: 4px;
+    }
+    .cta-sub { font-size: 13px; color: #9ca3af; }
+    .cta-btn {
+      background: #1d4ed8;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      border-radius: 100px;
+      padding: 13px 26px;
+    }
+  </style>
+</head>
+<body>
+  <div class="canvas">
+
+    <div class="header">
+      <div class="name">Jean Lucca<span>.</span></div>
+      <div class="tagline">Tecnologia aplicada ao crescimento de empresas.</div>
+    </div>
+
+    <div class="lbl">O que eu faço</div>
+
+    <div class="grid">
+      <div class="card"><span class="card-icon">🌐</span><span class="card-name">Sites Profissionais</span></div>
+      <div class="card"><span class="card-icon">🚀</span><span class="card-name">Landing Pages</span></div>
+      <div class="card"><span class="card-icon">🛒</span><span class="card-name">Lojas Virtuais</span></div>
+      <div class="card"><span class="card-icon">🤖</span><span class="card-name">Automação de WhatsApp</span></div>
+      <div class="card"><span class="card-icon">⚙️</span><span class="card-name">Sistemas Sob Medida</span></div>
+      <div class="card"><span class="card-icon">🧠</span><span class="card-name">Inteligência Artificial</span></div>
+      <div class="card"><span class="card-icon">📈</span><span class="card-name">Estruturas de Venda</span></div>
+      <div class="card"><span class="card-icon">🎯</span><span class="card-name">Tráfego Pago</span></div>
+    </div>
+
+    <div class="auth">
+      <span class="auth-val">+R$12M</span>
+      <span class="auth-sep"></span>
+      <span class="auth-label">em operações digitais construídas</span>
+    </div>
+
+    <div class="cta">
+      <div>
+        <div class="cta-main">Solicite um orçamento</div>
+        <div class="cta-sub">Proposta clara com prazo e valor.</div>
+      </div>
+      <div class="cta-btn">@jeanlucca.ia</div>
+    </div>
+
+  </div>
+</body>
+</html>

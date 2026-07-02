@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Hero } from '@/components/sections/Hero'
 import { OfferBanner } from '@/components/sections/OfferBanner'
 import { PlansSection } from '@/components/sections/PlansSection'
+import { CollectiveClassesSection } from '@/components/sections/CollectiveClassesSection'
 import { BrandVideo } from '@/components/sections/BrandVideo'
 import { ModalitiesTeaser } from '@/components/sections/ModalitiesTeaser'
 import { ExpansionBanner } from '@/components/sections/ExpansionBanner'
@@ -26,15 +27,17 @@ export default async function HomePage() {
       <Hero />
       <OfferBanner />
       <PlansSection />
+      <CollectiveClassesSection />
 
       {featured.length > 0 && (
-        <Section id="unidades" bg="black" className="relative overflow-hidden">
+        <Section id="unidades" bg="lighter" className="relative overflow-hidden">
           <div className="relative">
             <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
               <SectionHeader
+                dark
                 label="Unidades"
                 title="Escolha sua LoudFit."
-                subtitle="Escolha sua unidade LoudFit e comece a treinar."
+                subtitle="Escolha a unidade mais próxima e comece a treinar."
               />
               <Button href="/unidades" variant="outline" size="md" className="mb-12 md:mb-16">
                 Ver unidades

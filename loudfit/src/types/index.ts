@@ -24,6 +24,7 @@ export interface Unit {
   status: UnitStatus
   destaque: boolean
   ordem: number
+  checkoutUrl?: string | null
 }
 
 export type TestimonialType = 'aluno' | 'franqueado' | 'gestor'

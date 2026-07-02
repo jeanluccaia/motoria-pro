@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Jean Lucca — Builder de estrutura digital. Sites, landing pages, automações e sistemas para negócios que querem vender mais e atender melhor.">
+  <title>Jean Lucca — Com estrutura, clientes chegam.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* ── TOKENS ── */
+    :root {
+      --t:#0a0a0a; --t2:#374151; --mu:#6b7280; --mul:#9ca3af;
+      --bd:#e5e7eb; --bg:#fff; --bgalt:#f8f9fb;
+      --dk:#0d1117; --dk2:#161b22; --dk3:#21262d;
+      --ac:#1d4ed8; --ac2:#7c3aed; --acbg:#eff6ff;
+      --wa:#25d366; --wadk:#16a34a;
+      --sh1:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+      --sh2:0 4px 24px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.04);
+      --sh3:0 24px 80px rgba(0,0,0,.14),0 8px 32px rgba(0,0,0,.08);
+    }
+
+    /* ── RESET ── */
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--t);-webkit-font-smoothing:antialiased;line-height:1.5}
+    a{text-decoration:none;color:inherit}
+    .container{max-width:1100px;margin:0 auto;padding:0 24px}
+    img{display:block;max-width:100%}
+
+    /* ── TIPO ── */
+    .label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ac);margin-bottom:10px}
+    .label-dk{color:#60a5fa}
+    .sh{font-size:clamp(1.75rem,3.5vw,2.5rem);font-weight:800;letter-spacing:-.03em;line-height:1.15}
+    .sh-dk{color:#e6edf3}
+    .shead{margin-bottom:52px}
+
+    /* ── BUTTONS ── */
+    .btn{display:inline-flex;align-items:center;gap:8px;font-family:inherit;font-weight:600;font-size:.875rem;padding:12px 22px;border-radius:10px;border:none;cursor:pointer;transition:all .15s;white-space:nowrap;line-height:1;text-decoration:none}
+    .btn-wa{background:var(--wa);color:#fff}
+    .btn-wa:hover{background:var(--wadk);transform:translateY(-1px);box-shadow:0 8px 24px rgba(37,211,102,.32)}
+    .btn-wa-lg{font-size:1rem;padding:14px 28px;border-radius:12px}
+
+    /* ── NAV ── */
+    .nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bd)}
+    .nav__inner{display:flex;align-items:center;justify-content:space-between;height:62px}
+    .nav__logo{font-size:1rem;font-weight:800;letter-spacing:-.03em}
+    .nav__logo-dot{color:var(--ac)}
+    .nav__right{display:flex;align-items:center;gap:16px}
+    .nav__link{font-size:.82rem;font-weight:500;color:var(--mu);transition:color .15s}
+    .nav__link:hover{color:var(--t)}
+
+    /* ── HERO ── */
+    .hero{padding:96px 0 88px}
+    .hero__inner{max-width:680px}
+    .hero__h1{font-size:clamp(2.4rem,5.8vw,4rem);font-weight:900;letter-spacing:-.04em;line-height:1.06;margin-bottom:20px}
+    .hero__h1 .dim{color:var(--mu)}
+    .hero__sub{font-size:1.0625rem;color:var(--mu);line-height:1.6;margin-bottom:36px}
+    .hero__cta-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+    /* ── TRUST STRIP ── */
+    .trust{border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);background:var(--bgalt)}
+    .trust__inner{display:grid;grid-template-columns:repeat(3,1fr)}
+    .trust__item{padding:24px 20px;text-align:center;border-right:1px solid var(--bd)}
+    .trust__item:last-child{border-right:none}
+    .trust__val{font-size:1.5rem;font-weight:900;letter-spacing:-.03em;color:var(--t);line-height:1.1;margin-bottom:4px}
+    .trust__val em{color:var(--ac);font-style:normal}
+    .trust__label{font-size:.75rem;color:var(--mu);line-height:1.4}
+
+    /* ── SERVICES ── */
+    .services{padding:96px 0}
+    .services__grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+    .sc{background:#fff;border:1px solid var(--bd);border-radius:16px;overflow:hidden;transition:box-shadow .2s,transform .2s}
+    .sc:hover{box-shadow:var(--sh2);transform:translateY(-3px)}
+    .sc__icon-area{height:140px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--bd)}
+    .sc-icon-site{background:linear-gradient(135deg,#f0f9ff,#dbeafe)}
+    .sc-icon-lp{background:linear-gradient(135deg,#faf5ff,#ede9fe)}
+    .sc-icon-wa{background:linear-gradient(135deg,#f0fdf4,#dcfce7)}
+    .sc-icon-sys{background:linear-gradient(160deg,#0f172a,#1e2d3d)}
+    .sc__body{padding:18px 22px}
+    .sc__title{font-size:1rem;font-weight:700;color:var(--t);margin-bottom:4px}
+    .sc__desc{font-size:.84rem;color:var(--mu);line-height:1.55}
+
+    /* ── JEAN ── */
+    .jean{padding:96px 0;background:var(--bgalt)}
+    .jean__grid{display:grid;grid-template-columns:1fr 320px;gap:64px;align-items:center}
+    .jean__lead{font-size:1rem;color:var(--mu);line-height:1.72;margin-bottom:20px}
+    .jean__lead strong{color:var(--t2);font-weight:600}
+    .jean__stat{
+      display:inline-flex;align-items:baseline;gap:10px;
+      background:#fff;border:1px solid var(--bd);border-radius:12px;
+      padding:14px 20px;margin-bottom:24px;
+    }
+    .jean__stat-val{font-size:1.75rem;font-weight:900;letter-spacing:-.03em;color:var(--t);line-height:1}
+    .jean__stat-val em{color:var(--ac);font-style:normal}
+    .jean__stat-label{font-size:.82rem;color:var(--mu)}
+    .jean__chips{display:flex;flex-wrap:wrap;gap:8px}
+    .jean__chip{font-size:.78rem;font-weight:600;color:var(--t2);background:#fff;border:1px solid var(--bd);padding:5px 12px;border-radius:100px}
+    .jean__photo{aspect-ratio:4/5;border-radius:20px;overflow:hidden;box-shadow:var(--sh3),0 0 0 1px rgba(0,0,0,.06)}
+    .jean__photo img{width:100%;height:100%;object-fit:cover;object-position:top}
+
+    /* ── PROJECTS — VITRINE ── */
+    .projects{padding:96px 0;background:var(--dk)}
+    .proj-vitrine{display:flex;flex-direction:column;gap:20px}
+    .proj-case{position:relative;border-radius:20px;overflow:hidden}
+    .proj-case__img{
+      width:100%;height:580px;
+      object-fit:cover;object-position:top;display:block;
+      transition:transform .5s ease;
+    }
+    .proj-case:hover .proj-case__img{transform:scale(1.02)}
+    .proj-case__overlay{
+      position:absolute;bottom:0;left:0;right:0;
+      background:linear-gradient(to top,rgba(5,5,10,.92) 0%,rgba(5,5,10,.55) 50%,transparent 100%);
+      padding:72px 36px 32px;
+      display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;
+    }
+    .proj-case__meta{flex:1;min-width:0}
+    .proj-case__tag{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.55);margin-bottom:6px}
+    .proj-case__name{font-size:clamp(1.4rem,3vw,2rem);font-weight:800;color:#fff;letter-spacing:-.03em;margin-bottom:12px}
+    .proj-case__bullets{display:flex;flex-wrap:wrap;gap:6px}
+    .proj-case__bullet{font-size:.72rem;color:rgba(255,255,255,.75);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);padding:3px 10px;border-radius:100px}
+    .proj-case__obj{font-size:.72rem;color:rgba(255,255,255,.48);margin-top:10px;font-style:italic;line-height:1.4}
+    .proj-case__link{
+      flex-shrink:0;display:inline-flex;align-items:center;gap:7px;
+      font-size:.875rem;font-weight:600;color:#fff;
+      background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+      border-radius:10px;padding:11px 20px;transition:all .15s;
+      backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    }
+    .proj-case__link:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.36)}
+    .proj-invite{
+      border-radius:20px;overflow:hidden;
+      background:linear-gradient(135deg,#1d4ed8,#7c3aed);
+      padding:44px 36px;
+      display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;
+    }
+    .proj-invite__tag{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.65);margin-bottom:6px}
+    .proj-invite__name{font-size:1.5rem;font-weight:800;color:#fff;letter-spacing:-.03em}
+
+    /* ── PROBLEMS ── */
+    .problems{padding:96px 0}
+    .prob-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .prob-card{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:20px 22px}
+    .prob-num{font-size:.64rem;font-weight:700;color:var(--mul);letter-spacing:.05em;margin-bottom:8px}
+    .prob-title{font-size:1rem;font-weight:700;color:var(--t2);margin-bottom:4px}
+    .prob-desc{font-size:.82rem;color:var(--mu);line-height:1.5}
+
+    /* ── FOR WHOM ── */
+    .forwhom{padding:96px 0;background:var(--bgalt)}
+    .fw-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+    .fw-card{background:#fff;border:1px solid var(--bd);border-radius:14px;padding:24px}
+    .fw-profile{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ac);margin-bottom:8px}
+    .fw-title{font-size:.9375rem;font-weight:700;color:var(--t);margin-bottom:6px}
+    .fw-desc{font-size:.84rem;color:var(--mu);line-height:1.6}
+
+    /* ── WHY ── */
+    .why{padding:96px 0}
+    .why__grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+    .why-card{background:var(--bgalt);border:1px solid var(--bd);border-radius:14px;padding:28px}
+    .why-card__num{font-size:.68rem;font-weight:700;letter-spacing:.08em;color:var(--ac);text-transform:uppercase;margin-bottom:12px}
+    .why-card__title{font-size:1rem;font-weight:700;color:var(--t);margin-bottom:6px}
+    .why-card__desc{font-size:.875rem;color:var(--mu);line-height:1.6}
+
+    /* ── HOW IT WORKS ── */
+    .how{padding:96px 0;background:var(--bgalt)}
+    .how-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:40px}
+    .how-step__num{width:40px;height:40px;border-radius:50%;background:var(--acbg);color:var(--ac);font-size:.9rem;font-weight:800;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+    .how-step__title{font-size:1rem;font-weight:700;color:var(--t);margin-bottom:6px}
+    .how-step__desc{font-size:.875rem;color:var(--mu);line-height:1.6}
+
+    /* ── FAQ ── */
+    .faq{padding:96px 0}
+    .faq__list{max-width:720px;margin:0 auto;border:1px solid var(--bd);border-radius:16px;overflow:hidden}
+    details{border-bottom:1px solid var(--bd)}
+    details:last-child{border-bottom:none}
+    summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;font-size:.9375rem;font-weight:600;color:var(--t);cursor:pointer;transition:background .12s}
+    summary::-webkit-details-marker{display:none}
+    summary:hover{background:var(--bgalt)}
+    summary::after{content:'+';font-size:1.2rem;font-weight:400;color:var(--mu);transition:transform .2s;flex-shrink:0}
+    details[open] summary::after{transform:rotate(45deg)}
+    details[open] summary{background:var(--bgalt)}
+    .faq-ans{padding:0 24px 18px;font-size:.875rem;color:var(--mu);line-height:1.7}
+
+    /* ── CTA FINAL ── */
+    .cta-final{padding:100px 0;background:var(--dk)}
+    .cta-final__inner{text-align:center;max-width:560px;margin:0 auto}
+    .cta-final__h{font-size:clamp(1.75rem,4vw,2.75rem);font-weight:900;color:#e6edf3;letter-spacing:-.03em;line-height:1.15;margin-bottom:14px}
+    .cta-final__p{font-size:1rem;color:#8b949e;line-height:1.7;margin-bottom:32px}
+    .cta-final__note{font-size:.78rem;color:#6b7280;margin-top:12px}
+
+    /* ── FOOTER ── */
+    .footer{background:var(--dk);border-top:1px solid rgba(255,255,255,.06);padding:28px 0}
+    .footer__inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+    .footer__logo{font-size:.9rem;font-weight:800;color:#e6edf3;letter-spacing:-.02em}
+    .footer__logo span{color:#3b82f6}
+    .footer__copy{font-size:.8rem;color:#6b7280}
+    .footer__links{display:flex;gap:16px}
+    .footer__link{font-size:.8rem;color:#6b7280;transition:color .15s}
+    .footer__link:hover{color:#e6edf3}
+
+    /* ── FAB WA ── */
+    .fab-wa{position:fixed;bottom:24px;right:24px;z-index:999;width:56px;height:56px;border-radius:50%;background:var(--wa);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(37,211,102,.42);transition:all .2s}
+    .fab-wa:hover{background:var(--wadk);transform:scale(1.08);box-shadow:0 8px 28px rgba(37,211,102,.5)}
+
+    /* ── TRANSFORM (antes/depois) ── */
+    .transform{padding:80px 0;background:var(--bg);border-top:1px solid var(--bd)}
+    .transform__grid{display:grid;grid-template-columns:1fr 44px 1fr;align-items:start;max-width:820px;margin:0 auto}
+    .transform__panel{border-radius:16px;padding:28px 24px;border:1px solid}
+    .transform__panel--before{background:#fef2f2;border-color:#fecaca}
+    .transform__panel--after{background:#f0fdf4;border-color:#bbf7d0}
+    .transform__panel-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px;display:block}
+    .transform__panel--before .transform__panel-label{color:#dc2626}
+    .transform__panel--after .transform__panel-label{color:#16a34a}
+    .transform__list{list-style:none;display:flex;flex-direction:column;gap:10px}
+    .transform__item{font-size:.875rem;color:var(--t2);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+    .transform__icon{flex-shrink:0;line-height:1.5}
+    .transform__arrow{display:flex;align-items:center;justify-content:center;font-size:1.25rem;color:var(--mul);padding-top:52px}
+
+    /* ── HERO SCREENSHOT (mobile only) ── */
+    .hero__screen{display:none;margin-top:32px;border-radius:12px;overflow:hidden;box-shadow:var(--sh3)}
+    .hero__screen-bar{height:28px;background:#1a1f26;display:flex;align-items:center;padding:0 12px;gap:6px}
+    .hero__screen-dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.2)}
+    .hero__screen img{width:100%;max-height:260px;object-fit:cover;object-position:top;display:block}
+    @media(max-width:768px){.hero__screen{display:block}}
+
+    /* ── IMAGE PLACEHOLDERS ── */
+    .img-ph{width:100%;height:100%;min-height:160px;display:flex;align-items:center;justify-content:center;background:var(--bgalt);padding:20px;text-align:center}
+    .img-ph span{font-size:.75rem;font-weight:500;color:var(--mu);font-family:'Inter',sans-serif;line-height:1.5}
+    .img-ph-dk{background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.1)}
+    .img-ph-dk span{color:#6b7280}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:900px){
+      .trust__inner{grid-template-columns:repeat(3,1fr)}
+      .services__grid{grid-template-columns:1fr}
+      .jean__grid{grid-template-columns:1fr;gap:40px}
+      .jean__photo{max-width:280px;margin:0 auto}
+      .proj-case__img{height:400px}
+      .proj-case__overlay{padding:52px 28px 24px}
+      .fw-grid{grid-template-columns:1fr}
+      .why__grid{grid-template-columns:1fr}
+      .how-steps{grid-template-columns:1fr;gap:28px}
+      .services,.jean,.projects,.transform,.problems,.forwhom,.why,.how,.faq{padding:64px 0}
+      .cta-final{padding:72px 0}
+    }
+    @media(max-width:600px){
+      .container{padding:0 16px}
+      .hero{padding:56px 0 48px}
+      .prob-grid{grid-template-columns:1fr}
+      .trust__inner{grid-template-columns:repeat(3,1fr)}
+      .trust__item{padding:16px 8px}
+      .trust__val{font-size:1.2rem}
+      .footer__inner{flex-direction:column;align-items:flex-start}
+      .nav__link{display:none}
+      .jean__grid{gap:32px}
+      .jean__photo{aspect-ratio:4/5;border-radius:16px;max-width:280px}
+      .proj-case__img{height:260px}
+      .proj-case__overlay{padding:36px 20px 20px;flex-direction:column;align-items:flex-start;gap:14px}
+      .proj-case__name{font-size:1.2rem}
+      .proj-invite{padding:32px 24px}
+      .services,.jean,.projects,.transform,.problems,.forwhom,.why,.how,.faq{padding:56px 0}
+      .transform__grid{grid-template-columns:1fr;gap:12px}
+      .transform__arrow{padding-top:0}
+      .cta-final{padding:64px 0}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── 1. NAV ── -->
+<header class="nav">
+  <div class="container">
+    <div class="nav__inner">
+      <a href="#" class="nav__logo">Jean Lucca</a>
+      <div class="nav__right">
+        <a href="https://instagram.com/jeanlucca.ia" target="_blank" class="nav__link">@jeanlucca.ia</a>
+        <a href="https://wa.me/5519993049551?text=Ol%C3%A1%2C+Jean.+Tenho+interesse+nos+seus+servi%C3%A7os+e+gostaria+de+solicitar+um+or%C3%A7amento." target="_blank" class="btn btn-wa" style="padding:9px 18px;font-size:.82rem;border-radius:8px;">
+          <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ── 2. HERO ── -->
+<section class="hero">
+  <div class="container">
+    <div class="hero__inner">
+      <h1 class="hero__h1">
+        Com estrutura,<br>clientes chegam.<br>
+        <span class="dim">Sem ela, você<br>corre atrás.</span>
+      </h1>
+      <p class="hero__sub">Sites, landing pages, automações e sistemas para empresas que querem crescer com mais estrutura.</p>
+      <div class="hero__cta-row">
+        <a href="https://wa.me/5519993049551?text=Ol%C3%A1%2C+Jean.+Tenho+interesse+nos+seus+servi%C3%A7os+e+gostaria+de+solicitar+um+or%C3%A7amento." target="_blank" class="btn btn-wa btn-wa-lg">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Solicitar orçamento
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 3. TRUST STRIP ── -->
+<div class="trust">
+  <div class="container">
+    <div class="trust__inner">
+      <div class="trust__item">
+        <div class="trust__val">+R$<em>12</em>mi</div>
+        <div class="trust__label">em operações digitais</div>
+      </div>
+      <div class="trust__item">
+        <div class="trust__val" style="font-size:1.1rem">Projetos reais</div>
+        <div class="trust__label">em operação</div>
+      </div>
+      <div class="trust__item">
+        <div class="trust__val" style="font-size:1.05rem">Atendimento direto</div>
+        <div class="trust__label">via WhatsApp</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 4. O QUE EU CONSTRUO ── -->
+<section class="services" id="servicos">
+  <div class="container">
+    <div class="shead">
+      <div class="label">O que eu construo</div>
+      <h2 class="sh">Do zero ao funcionando.</h2>
+    </div>
+    <div class="services__grid">
+
+      <div class="sc">
+        <div class="sc__icon-area sc-icon-site">
+          <svg width="72" height="72" viewBox="0 0 72 72" fill="none"><rect x="8" y="12" width="56" height="48" rx="6" fill="#bfdbfe" stroke="#93c5fd" stroke-width="1.5"/><rect x="8" y="12" width="56" height="16" rx="6" fill="#93c5fd"/><rect x="8" y="22" width="56" height="6" fill="#93c5fd"/><rect x="16" y="18" width="20" height="3" rx="1.5" fill="#1d4ed8"/><rect x="16" y="34" width="28" height="4" rx="2" fill="#93c5fd"/><rect x="16" y="42" width="22" height="3" rx="1.5" fill="#bfdbfe"/><rect x="16" y="49" width="26" height="3" rx="1.5" fill="#bfdbfe"/><rect x="48" y="34" width="10" height="18" rx="4" fill="#3b82f6"/></svg>
+        </div>
+        <div class="sc__body">
+          <div class="sc__title">Site Profissional</div>
+          <div class="sc__desc">Seu negócio apresentado da forma certa.</div>
+        </div>
+      </div>
+
+      <div class="sc">
+        <div class="sc__icon-area sc-icon-lp">
+          <svg width="72" height="72" viewBox="0 0 72 72" fill="none"><rect x="10" y="8" width="52" height="56" rx="6" fill="#ede9fe" stroke="#c4b5fd" stroke-width="1.5"/><rect x="18" y="18" width="36" height="5" rx="2.5" fill="#7c3aed"/><rect x="22" y="27" width="28" height="3" rx="1.5" fill="#c4b5fd"/><rect x="24" y="33" width="24" height="3" rx="1.5" fill="#ddd6fe"/><rect x="20" y="44" width="32" height="10" rx="5" fill="#7c3aed"/><rect x="27" y="47.5" width="18" height="3" rx="1.5" fill="#fff"/></svg>
+        </div>
+        <div class="sc__body">
+          <div class="sc__title">Landing Page</div>
+          <div class="sc__desc">Uma página para gerar contatos e vendas.</div>
+        </div>
+      </div>
+
+      <div class="sc">
+        <div class="sc__icon-area sc-icon-wa">
+          <svg width="72" height="72" viewBox="0 0 72 72" fill="none"><rect x="6" y="20" width="34" height="22" rx="6" fill="#bbf7d0" stroke="#4ade80" stroke-width="1.5"/><rect x="6" y="36" width="10" height="10" rx="2" fill="#bbf7d0" stroke="#4ade80" stroke-width="1.5"/><rect x="13" y="27" width="20" height="3" rx="1.5" fill="#16a34a"/><rect x="13" y="33" width="14" height="3" rx="1.5" fill="#4ade80"/><rect x="32" y="30" width="34" height="22" rx="6" fill="#dcfce7" stroke="#4ade80" stroke-width="1.5"/><rect x="56" y="30" width="10" height="10" rx="2" fill="#dcfce7" stroke="#4ade80" stroke-width="1.5"/><rect x="39" y="37" width="20" height="3" rx="1.5" fill="#16a34a"/><rect x="39" y="43" width="14" height="3" rx="1.5" fill="#4ade80"/></svg>
+        </div>
+        <div class="sc__body">
+          <div class="sc__title">Automação</div>
+          <div class="sc__desc">Atendimento funcionando 24h. Sem você no meio.</div>
+        </div>
+      </div>
+
+      <div class="sc">
+        <div class="sc__icon-area sc-icon-sys">
+          <svg width="72" height="72" viewBox="0 0 72 72" fill="none"><rect x="8" y="12" width="56" height="48" rx="6" fill="#1e2d3d" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/><rect x="16" y="20" width="10" height="10" rx="3" fill="rgba(59,130,246,.3)" stroke="rgba(59,130,246,.5)" stroke-width="1"/><rect x="31" y="20" width="10" height="10" rx="3" fill="rgba(139,92,246,.3)" stroke="rgba(139,92,246,.5)" stroke-width="1"/><rect x="46" y="20" width="10" height="10" rx="3" fill="rgba(34,197,94,.3)" stroke="rgba(34,197,94,.5)" stroke-width="1"/><rect x="16" y="36" width="40" height="3" rx="1.5" fill="rgba(255,255,255,.1)"/><rect x="16" y="36" width="28" height="3" rx="1.5" fill="#3b82f6"/><rect x="16" y="43" width="40" height="3" rx="1.5" fill="rgba(255,255,255,.1)"/><rect x="16" y="43" width="18" height="3" rx="1.5" fill="#8b5cf6"/><rect x="16" y="50" width="40" height="3" rx="1.5" fill="rgba(255,255,255,.1)"/><rect x="16" y="50" width="34" height="3" rx="1.5" fill="#22c55e"/></svg>
+        </div>
+        <div class="sc__body">
+          <div class="sc__title">Sistema</div>
+          <div class="sc__desc">Operação organizada e sob controle.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── 5. QUEM É JEAN LUCCA ── -->
+<section class="jean" id="sobre">
+  <div class="container">
+    <div class="jean__grid">
+
+      <div>
+        <div class="label">Quem é Jean Lucca</div>
+        <h2 class="sh" style="margin-bottom:20px">Mais de R$12M em<br>operações digitais construídas.</h2>
+        <div class="jean__chips">
+          <span class="jean__chip">Construção direta no VS Code</span>
+          <span class="jean__chip">IA aplicada</span>
+          <span class="jean__chip">Operação real</span>
+        </div>
+        <p class="jean__lead" style="margin-top:16px;margin-bottom:0">Crio sites, landing pages, automações e sistemas para empresas que querem vender mais, atender melhor e operar com estrutura.</p>
+      </div>
+
+      <div>
+        <div class="jean__photo">
+          <img src="jean-lucca.png" alt="Jean Lucca — empreendedor digital e builder"
+               onerror="imgFail(this,'Adicionar foto real do Jean ou do setup aqui')">
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── 6. PROJETOS REAIS ── -->
+<section class="projects" id="projetos">
+  <div class="container">
+    <div class="shead">
+      <div class="label label-dk">Projetos reais</div>
+      <h2 class="sh sh-dk">Trabalhos no ar agora.</h2>
+    </div>
+    <div class="proj-vitrine">
+
+      <div class="proj-case">
+        <img class="proj-case__img" src="assets/dgn-club.png" alt="DGN Club" data-ph-dk="1"
+             onerror="imgFail(this,'Screenshot real do projeto DGN Club')">
+        <div class="proj-case__overlay">
+          <div class="proj-case__meta">
+            <div class="proj-case__tag">Landing page · Assinatura automotiva</div>
+            <div class="proj-case__name">DGN Club</div>
+            <div class="proj-case__obj">Objetivo: Transformar visitantes em assinantes.</div>
+            <div class="proj-case__bullets">
+              <span class="proj-case__bullet">✔ Estrutura de assinatura recorrente</span>
+              <span class="proj-case__bullet">✔ Conversão via WhatsApp</span>
+              <span class="proj-case__bullet">✔ Oferta simplificada</span>
+            </div>
+          </div>
+          <a href="https://dgnclub.com/" target="_blank" rel="noopener" class="proj-case__link">
+            Ver DGN Club
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="proj-case">
+        <img class="proj-case__img" src="assets/pattamansa.png" alt="PattaMansa" data-ph-dk="1"
+             onerror="imgFail(this,'Screenshot real do projeto PattaMansa')">
+        <div class="proj-case__overlay">
+          <div class="proj-case__meta">
+            <div class="proj-case__tag">Site · E-book · Pet / Lifestyle</div>
+            <div class="proj-case__name">PattaMansa</div>
+            <div class="proj-case__obj">Objetivo: Vender produtos e fortalecer a marca.</div>
+            <div class="proj-case__bullets">
+              <span class="proj-case__bullet">✔ E-commerce + venda de e-book</span>
+              <span class="proj-case__bullet">✔ Posicionamento premium</span>
+              <span class="proj-case__bullet">✔ Base para tráfego pago</span>
+            </div>
+          </div>
+          <a href="https://pattamansa.com.br/" target="_blank" rel="noopener" class="proj-case__link">
+            Ver PattaMansa
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="proj-case">
+        <img class="proj-case__img" src="assets/sevora-glow.png" alt="Sevora Glow" data-ph-dk="1"
+             onerror="imgFail(this,'Screenshot real do projeto Sevora Glow')">
+        <div class="proj-case__overlay">
+          <div class="proj-case__meta">
+            <div class="proj-case__tag">Loja online · E-commerce</div>
+            <div class="proj-case__name">Sevora Glow</div>
+            <div class="proj-case__obj">Objetivo: Apresentar produtos e facilitar a compra.</div>
+            <div class="proj-case__bullets">
+              <span class="proj-case__bullet">✔ Loja online com catálogo estruturado</span>
+              <span class="proj-case__bullet">✔ Experiência de compra premium</span>
+              <span class="proj-case__bullet">✔ Identidade visual de marca</span>
+            </div>
+          </div>
+          <a href="https://sevoraglow.com/" target="_blank" rel="noopener" class="proj-case__link">
+            Ver Sevora Glow
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="proj-invite">
+        <div>
+          <div class="proj-invite__tag">Próximo projeto</div>
+          <div class="proj-invite__name">Pode ser o seu negócio.</div>
+        </div>
+        <a href="https://wa.me/5519993049551?text=Ol%C3%A1%2C+Jean.+Tenho+interesse+nos+seus+servi%C3%A7os+e+gostaria+de+solicitar+um+or%C3%A7amento." target="_blank" class="btn btn-wa btn-wa-lg">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Solicitar orçamento
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── 6.5 O QUE MUDA ── -->
+<section class="transform">
+  <div class="container">
+    <div class="shead" style="text-align:center">
+      <div class="label" style="text-align:center">O que muda</div>
+      <h2 class="sh" style="text-align:center;margin:0 auto">Quando a estrutura entra.</h2>
+    </div>
+    <div class="transform__grid">
+      <div class="transform__panel transform__panel--before">
+        <span class="transform__panel-label">Antes</span>
+        <ul class="transform__list">
+          <li class="transform__item"><span class="transform__icon">❌</span>Atendimento manual e irregular</li>
+          <li class="transform__item"><span class="transform__icon">❌</span>Leads chegando sem converter</li>
+          <li class="transform__item"><span class="transform__icon">❌</span>Site que não representa o negócio</li>
+          <li class="transform__item"><span class="transform__icon">❌</span>Processos que dependem só de você</li>
+        </ul>
+      </div>
+      <div class="transform__arrow">→</div>
+      <div class="transform__panel transform__panel--after">
+        <span class="transform__panel-label">Depois</span>
+        <ul class="transform__list">
+          <li class="transform__item"><span class="transform__icon">✅</span>Atendimento organizado no automático</li>
+          <li class="transform__item"><span class="transform__icon">✅</span>Visitante que vira contato</li>
+          <li class="transform__item"><span class="transform__icon">✅</span>Presença que vende por você</li>
+          <li class="transform__item"><span class="transform__icon">✅</span>Operação que funciona sem você no meio</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 7. POR QUE TRABALHAR COMIGO ── -->
+<section class="why" id="diferenciais">
+  <div class="container">
+    <div class="shead">
+      <div class="label">Por que trabalhar comigo</div>
+      <h2 class="sh">Direto ao ponto.</h2>
+    </div>
+    <div class="why__grid">
+      <div class="why-card">
+        <div class="why-card__num">01</div>
+        <div class="why-card__title">Não vendo templates</div>
+        <div class="why-card__desc">Cada solução começa do zero com o objetivo do seu negócio. Sem template, sem solução de prateleira.</div>
+      </div>
+      <div class="why-card">
+        <div class="why-card__num">02</div>
+        <div class="why-card__title">Construção direta</div>
+        <div class="why-card__desc">Você fala diretamente com quem vai construir. Sem vendedor, sem repasse para terceiro.</div>
+      </div>
+      <div class="why-card">
+        <div class="why-card__num">03</div>
+        <div class="why-card__title">Experiência prática</div>
+        <div class="why-card__desc">Vem de quem já operou, vendeu e aprendeu na prática. Não de formação ou certificado.</div>
+      </div>
+      <div class="why-card">
+        <div class="why-card__num">04</div>
+        <div class="why-card__title">Tecnologia aplicada</div>
+        <div class="why-card__desc">IA e automação só entram quando geram resultado real. Nunca como diferencial de venda.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 10. COMO FUNCIONA ── -->
+<section class="how" id="como-funciona">
+  <div class="container">
+    <div class="shead">
+      <div class="label">Como funciona</div>
+      <h2 class="sh">Simples e sem enrolação.</h2>
+    </div>
+    <div class="how-steps">
+      <div>
+        <div class="how-step__num">1</div>
+        <div class="how-step__title">Conversa no WhatsApp</div>
+        <div class="how-step__desc">Você me conta o que precisa. Envio uma proposta clara com entrega, prazo e valor.</div>
+      </div>
+      <div>
+        <div class="how-step__num">2</div>
+        <div class="how-step__title">Construção e entregas</div>
+        <div class="how-step__desc">Trabalho com atualizações regulares. Você acompanha e aprova antes de publicar.</div>
+      </div>
+      <div>
+        <div class="how-step__num">3</div>
+        <div class="how-step__title">Online e gerando resultado</div>
+        <div class="how-step__desc">Projeto no ar com suporte incluído. Estrutura funcionando desde o primeiro dia.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 11. FAQ ── -->
+<section class="faq">
+  <div class="container">
+    <div class="shead" style="text-align:center">
+      <div class="label" style="text-align:center">Dúvidas</div>
+      <h2 class="sh" style="margin:0 auto;max-width:520px">Perguntas frequentes</h2>
+    </div>
+    <div class="faq__list">
+      <details>
+        <summary>Quais tipos de negócio você atende?</summary>
+        <div class="faq-ans">Qualquer negócio que precise de estrutura digital: profissionais liberais, empresas locais, prestadores de serviço, e-commerces e negócios digitais.</div>
+      </details>
+      <details>
+        <summary>Qual é o prazo para entrega?</summary>
+        <div class="faq-ans">Landing page: 5 a 7 dias. Site completo: 10 a 21 dias. Automações e sistemas: 3 a 6 semanas. Prazos definidos antes de iniciar, sem surpresas.</div>
+      </details>
+      <details>
+        <summary>Você só faz o site ou cuida de tudo?</summary>
+        <div class="faq-ans">Cuido de tudo que for acordado: domínio, hospedagem, integrações com WhatsApp, sistemas de pagamento, automações e suporte pós-entrega.</div>
+      </details>
+      <details>
+        <summary>Como funciona o orçamento?</summary>
+        <div class="faq-ans">Você me chama no WhatsApp, conta o que precisa, e envio uma proposta com entrega, prazo e valor. Sem formulário longo, sem reunião obrigatória.</div>
+      </details>
+      <details>
+        <summary>Tem suporte depois da entrega?</summary>
+        <div class="faq-ans">Sim. Todos os projetos incluem suporte pós-entrega. Para manutenções futuras ou novas funcionalidades, definimos um plano de continuidade.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ── 12. CTA FINAL ── -->
+<section class="cta-final">
+  <div class="container">
+    <div class="cta-final__inner">
+      <div class="label label-dk">Vamos começar?</div>
+      <h2 class="cta-final__h">Pronto para estruturar seu negócio?</h2>
+      <p class="cta-final__p">Fale no WhatsApp e receba uma proposta em até 24 horas.</p>
+      <a href="https://wa.me/5519993049551?text=Ol%C3%A1%2C+Jean.+Tenho+interesse+nos+seus+servi%C3%A7os+e+gostaria+de+solicitar+um+or%C3%A7amento." target="_blank" class="btn btn-wa btn-wa-lg">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Solicitar orçamento no WhatsApp
+      </a>
+      <div class="cta-final__note">Resposta em até 24h · Sem compromisso</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 13. FOOTER + FAB ── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__inner">
+      <div class="footer__logo">Jean Lucca</div>
+      <div class="footer__copy">© 2026 Jean Lucca. Todos os direitos reservados.</div>
+      <div class="footer__links">
+        <a href="https://instagram.com/jeanlucca.ia" target="_blank" class="footer__link">Instagram</a>
+        <a href="https://wa.me/5519993049551" target="_blank" class="footer__link">WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<a href="https://wa.me/5519993049551?text=Ol%C3%A1%2C+Jean.+Tenho+interesse+nos+seus+servi%C3%A7os+e+gostaria+de+solicitar+um+or%C3%A7amento." target="_blank" class="fab-wa" aria-label="Falar no WhatsApp">
+  <svg width="26" height="26" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<script>
+  function imgFail(img, label) {
+    var ph = document.createElement('div');
+    ph.className = 'img-ph' + (img.getAttribute('data-ph-dk') ? ' img-ph-dk' : '');
+    ph.innerHTML = '<span>' + label + '</span>';
+    img.parentNode.replaceChild(ph, img);
+  }
+</script>
+
+</body>
+</html>

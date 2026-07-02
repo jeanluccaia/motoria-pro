@@ -5,7 +5,7 @@ import { Reveal } from '@/components/ui/Reveal'
 
 const proof = [
   ['5', 'unidades em operação'],
-  ['1', 'em implantação — Mogi Mirim'],
+  ['1', 'em inauguração — Ipiranga'],
   ['4', 'cidades atendidas'],
 ]
 
@@ -16,7 +16,7 @@ export function ExpansionBanner() {
         <div className="relative overflow-hidden border border-lf-volt/20 bg-lf-graphite shadow-[0_32px_100px_rgba(0,0,0,0.34)]">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-lf-volt to-transparent" />
           <Image
-            src="/assets/images/campaign-gym-16x9.png"
+            src="/assets/images/real-facade.jpg"
             alt=""
             fill
             sizes="100vw"

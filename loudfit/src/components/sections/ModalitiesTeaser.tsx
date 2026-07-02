@@ -18,6 +18,11 @@ const items = [
     body: 'Movimento, intensidade e treino em grupo.',
     image: '/assets/images/training-modalities.png',
   },
+  {
+    title: 'Aulas Coletivas',
+    body: 'Do Muay Thai ao Pilates, incluso no plano.',
+    image: '/assets/images/studio-community.jpg',
+  },
 ]
 
 export function ModalitiesTeaser() {
@@ -36,11 +41,11 @@ export function ModalitiesTeaser() {
           </Button>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {items.map((item, index) => (
             <article
               key={item.title}
-              className={`group relative min-h-[360px] overflow-hidden border border-lf-line bg-lf-black shadow-[0_24px_80px_rgba(0,0,0,0.25)] transition duration-500 hover:-translate-y-1 hover:border-lf-volt/45 ${
+              className={`group relative min-h-[320px] overflow-hidden border border-lf-line bg-lf-black shadow-[0_24px_80px_rgba(0,0,0,0.25)] transition duration-500 hover:-translate-y-1 hover:border-lf-volt/45 ${
                 index === 1 ? 'md:mt-10' : ''
               }`}
             >
@@ -48,7 +53,7 @@ export function ModalitiesTeaser() {
                 src={item.image}
                 alt={`Modalidade LoudFit - ${item.title}`}
                 fill
-                sizes="(max-width: 768px) 100vw, 33vw"
+                sizes="(max-width: 768px) 100vw, 25vw"
                 className="object-cover opacity-70 transition duration-700 group-hover:scale-105 group-hover:opacity-85"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-lf-black via-lf-black/40 to-transparent" />

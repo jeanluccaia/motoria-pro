@@ -13,6 +13,12 @@ interface Props {
   params: Promise<{ slug: string }>
 }
 
+const AULAS_COLETIVAS = new Set([
+  'Muay Thai', 'Pilates', 'FitDance', 'Fit Dance', 'Zumba', 'Jump', 'Spinning',
+  'Yoga', 'Jiu-Jitsu', 'Pump', 'GAP', 'Step', 'Crosstreino', 'Loud Dance',
+  'Alongamento', 'Funcional',
+])
+
 export async function generateStaticParams() {
   const units = await getUnits().catch(() => [])
   return units.map((u) => ({ slug: u.slug }))
@@ -49,15 +55,23 @@ export default async function UnitPage({ params }: Props) {
     url: `https://loudfit.com.br/unidades/${unit.slug}`,
     ...(unit.nota_google && { aggregateRating: { '@type': 'AggregateRating', ratingValue: unit.nota_google, ratingCount: 50 } }),
   }
+
+  const isIpiranga = unit.slug === 'ipiranga'
+  const aulasUnit = unit.modalidades.filter((m) => AULAS_COLETIVAS.has(m))
+  const hasAulas = aulasUnit.length > 0
+
   const structureItems = Array.from(
-    new Set(['Musculação', 'Aulas coletivas', 'Estrutura completa', 'Reconhecimento facial', ...unit.modalidades])
+    new Set(['Musculação', 'Aulas coletivas', 'Estrutura completa', 'Reconhecimento facial'])
   )
+
+  const plans = getPlans(unit.slug)
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <div className="pt-16">
+        {/* Hero */}
         <div className="relative min-h-[560px] overflow-hidden bg-lf-graphite">
           {unit.foto_capa && (
             <Image
@@ -78,13 +92,14 @@ export default async function UnitPage({ params }: Props) {
               <p className="mb-4 text-xs uppercase tracking-[0.28em] text-lf-volt">Unidade LoudFit</p>
               <h1 className="text-5xl font-black text-lf-text md:text-7xl">{unit.nome}</h1>
               <p className="mt-5 max-w-[21rem] text-base leading-relaxed text-lf-muted md:max-w-2xl md:text-lg">
-                {unit.bairro} / {unit.cidade}, {unit.estado}. Estrutura completa e primeira{' '}
-                {unit.slug === 'ipiranga' ? 'parcela' : 'mensalidade'} por R$ 9,90 no Power Anual
-                Recorrente.
+                {unit.bairro} / {unit.cidade}, {unit.estado}.{' '}
+                {unit.status === 'em_breve'
+                  ? 'Unidade em inauguração.'
+                  : `Estrutura completa e primeira ${isIpiranga ? 'parcela' : 'mensalidade'} por R$ 9,90 no Power Anual Recorrente.`}
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Button href="#planos" variant="volt" size="lg" className="w-full sm:w-auto">
-                  Começar matrícula
+                  {unit.status === 'em_breve' ? 'Ver planos' : 'Começar matrícula'}
                 </Button>
                 <Button href="#informacoes" variant="ghost" size="lg" className="w-full sm:w-auto">
                   Ver informações
@@ -94,6 +109,7 @@ export default async function UnitPage({ params }: Props) {
           </div>
         </div>
 
+        {/* Informações */}
         <Section id="informacoes" bg="black">
           <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
             <div className="grid gap-6 md:grid-cols-2">
@@ -129,16 +145,16 @@ export default async function UnitPage({ params }: Props) {
             <div className="border border-lf-volt/25 bg-lf-graphite p-6">
               <p className="text-xs uppercase tracking-[0.22em] text-lf-volt">Matrícula online</p>
               <h2 className="mt-4 text-3xl font-black text-lf-text">
-                Primeira {unit.slug === 'ipiranga' ? 'parcela' : 'mensalidade'} por R$9,90.
+                Primeira {isIpiranga ? 'parcela' : 'mensalidade'} por R$9,90.
               </h2>
               <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-lf-muted">
                 No Power Anual Recorrente.
               </p>
               <p className="mt-4 text-sm leading-relaxed text-lf-muted">
-                Escolha um plano desta unidade e avance para a página de vendas EVO.
+                Escolha um plano e finalize sua matrícula.
               </p>
               <Button href="#planos" variant="volt" className="mt-6 w-full justify-center">
-                Começar matrícula
+                {unit.status === 'em_breve' ? 'Ver planos' : 'Começar matrícula'}
               </Button>
               {unit.google_maps_url && (
                 <Button href={unit.google_maps_url} variant="ghost" className="mt-3 w-full justify-center">
@@ -154,29 +170,66 @@ export default async function UnitPage({ params }: Props) {
           </div>
         </Section>
 
-        <Section id="planos" bg="graphite">
+        {/* Planos */}
+        <Section id="planos" bg="light">
           <SectionHeader
+            dark
             label="Planos da unidade"
             title="Escolha como começar."
             subtitle={
-              unit.slug === 'ipiranga'
+              isIpiranga
                 ? 'Tabela própria da unidade Ipiranga.'
                 : 'Tabela padrão LoudFit para esta unidade.'
             }
           />
 
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-            {getPlans(unit.slug).map((plan) => (
-              <PlanCard key={plan.name} plan={plan} />
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4 lg:items-stretch">
+            {plans.map((plan) => (
+              <PlanCard
+                key={plan.name}
+                plan={plan}
+                ctaHref={`/unidades/${unit.slug}#informacoes`}
+              />
             ))}
           </div>
-          <p className="mt-6 text-sm text-lf-muted">
-            Após a primeira {unit.slug === 'ipiranga' ? 'parcela' : 'mensalidade'} promocional,
+          <p className="mt-6 text-sm text-gray-500">
+            Após a primeira {isIpiranga ? 'parcela' : 'mensalidade'} promocional,
             aplica-se o valor mensal do Power Anual Recorrente desta unidade. Os demais planos
             seguem o valor cheio desde a primeira cobrança.
           </p>
         </Section>
 
+        {/* Aulas coletivas da unidade */}
+        {hasAulas && (
+          <Section bg="lighter">
+            <SectionHeader
+              dark
+              label="Aulas coletivas"
+              title="Grade de aulas."
+              subtitle="Estas aulas estão inclusas no seu plano nesta unidade, sem custo adicional."
+            />
+            <div className="flex flex-wrap gap-2 md:gap-3">
+              {aulasUnit.map((aula) => (
+                <span
+                  key={aula}
+                  className="border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700"
+                >
+                  {aula}
+                </span>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {!hasAulas && (
+          <Section bg="lighter" tight>
+            <p className="text-sm text-gray-500">
+              Grade de aulas coletivas desta unidade a confirmar. Consulte a unidade.
+            </p>
+          </Section>
+        )}
+
+        {/* Galeria */}
         {unit.galeria?.length > 0 && (
           <Section bg="black" tight>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">

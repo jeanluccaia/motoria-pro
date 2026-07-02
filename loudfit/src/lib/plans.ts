@@ -6,6 +6,7 @@ export interface Plan {
   description: string
   featured: boolean
   firstPayment?: { label: string; value: string }
+  checkoutUrl?: string | null
 }
 
 const standardPlans: Plan[] = [
@@ -16,6 +17,7 @@ const standardPlans: Plan[] = [
     period: '/mês',
     description: 'Liberdade para treinar mês a mês, sem cobrança automática.',
     featured: false,
+    checkoutUrl: null,
   },
   {
     name: 'Power Mensal Recorrente',
@@ -24,6 +26,7 @@ const standardPlans: Plan[] = [
     period: '/mês',
     description: 'Cobrança automática todo mês. Você treina, a gente cuida da renovação.',
     featured: false,
+    checkoutUrl: null,
   },
   {
     name: 'Power Semestral Recorrente',
@@ -32,6 +35,7 @@ const standardPlans: Plan[] = [
     period: '/mês',
     description: 'Seis meses de treino com mensalidade mais baixa que o plano mensal.',
     featured: false,
+    checkoutUrl: null,
   },
   {
     name: 'Power Anual Recorrente',
@@ -39,9 +43,10 @@ const standardPlans: Plan[] = [
     price: 'R$119,90',
     period: '/mês',
     description:
-      'Melhor valor da LoudFit, com cobrança mensal recorrente e sem comprometer o limite total do cartão.',
+      'Plano de 12 meses com cobrança mensal no cartão — sem travar o limite com o valor do ano.',
     featured: true,
     firstPayment: { label: 'Primeira mensalidade por', value: 'R$9,90' },
+    checkoutUrl: null,
   },
 ]
 
@@ -53,6 +58,7 @@ const ipirangaPlans: Plan[] = [
     period: '/mês',
     description: 'Liberdade para treinar mês a mês, sem cobrança automática.',
     featured: false,
+    checkoutUrl: null,
   },
   {
     name: 'Power Mensal Recorrente',
@@ -61,6 +67,7 @@ const ipirangaPlans: Plan[] = [
     period: '/mês',
     description: 'Cobrança automática todo mês. Você treina, a gente cuida da renovação.',
     featured: false,
+    checkoutUrl: null,
   },
   {
     name: 'Power Semestral Recorrente',
@@ -69,6 +76,7 @@ const ipirangaPlans: Plan[] = [
     period: '/mês',
     description: 'Seis meses de treino com mensalidade mais baixa que o plano mensal.',
     featured: false,
+    checkoutUrl: null,
   },
   {
     name: 'Power Anual Recorrente',
@@ -76,9 +84,10 @@ const ipirangaPlans: Plan[] = [
     price: 'R$179,90',
     period: '/mês',
     description:
-      'Melhor valor da unidade Ipiranga, com cobrança mensal recorrente e sem comprometer o limite total do cartão.',
+      'Plano de 12 meses com cobrança mensal no cartão — sem travar o limite com o valor do ano.',
     featured: true,
     firstPayment: { label: 'Primeira parcela por', value: 'R$9,90' },
+    checkoutUrl: null,
   },
 ]
 
@@ -89,7 +98,7 @@ export function getPlans(unitSlug?: string): Plan[] {
 
 export const planBenefits = [
   'Musculação',
-  'Aulas coletivas',
+  'Aulas coletivas inclusas',
   'Estrutura completa',
   'Acesso por reconhecimento facial',
 ] as const

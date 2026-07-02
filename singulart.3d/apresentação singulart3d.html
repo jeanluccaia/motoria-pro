@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,200;1,9..144,300;1,9..144,500;1,9..144,700&family=DM+Sans:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; background: #0D1009; }
+
+  .page {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 68px 80px;
+  }
+
+  /* ══ PAGE 1 — DARK ══ */
+  .page-dark { background: #0D1009; }
+
+  .p1-tag {
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 13px; font-weight: 400;
+    color: #3C4E34; letter-spacing: 0.18em;
+    text-transform: uppercase; margin-bottom: 34px;
+  }
+  .p1-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 80px; font-weight: 300; font-style: italic;
+    line-height: 1.1; color: #EDE8DF;
+    letter-spacing: -0.02em; margin-bottom: 48px;
+  }
+  .p1-intro {
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 48px; font-weight: 300;
+    line-height: 1.58; color: #9AA288; margin-bottom: 8px;
+  }
+  .p1-features { list-style: none; margin-bottom: 42px; margin-top: 4px; }
+  .p1-features li {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 68px; font-weight: 300; font-style: italic;
+    line-height: 1.4; color: #A8C090; letter-spacing: -0.01em;
+  }
+  .p1-body {
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 48px; font-weight: 300;
+    line-height: 1.62; color: #9AA288; margin-bottom: 10px;
+  }
+  .p1-body strong { font-weight: 500; color: #B0C4A0; }
+
+  .p1-spacer { flex: 1; }
+
+  .p1-divider {
+    width: 100%; height: 1px;
+    background: #222E1A; margin-bottom: 38px;
+  }
+  .p1-insight-label {
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 13px; font-weight: 500;
+    color: #3C4E34; letter-spacing: 0.18em;
+    text-transform: uppercase; margin-bottom: 20px;
+  }
+  .p1-qa {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 66px; font-weight: 300; font-style: italic;
+    line-height: 1.22; color: #7CA26C;
+    letter-spacing: -0.01em; margin-bottom: 20px;
+  }
+  .p1-sep { width: 60px; height: 2px; background: #5A7248; margin-bottom: 22px; }
+  .p1-qb {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 86px; font-weight: 300; font-style: italic;
+    line-height: 1.18; color: #EDE8DF;
+    letter-spacing: -0.02em; margin-bottom: 34px;
+  }
+  .p1-closing {
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 40px; font-weight: 300;
+    line-height: 1.62; color: #728464;
+  }
+
+  /* ══ PAGE 2 — LIGHT ══ */
+  .page-light { background: #F5F2EC; }
+
+  .p2-tag {
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 13px; font-weight: 400;
+    color: #9A9790; letter-spacing: 0.18em;
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+  .p2-accent { width: 52px; height: 3px; background: #5A6B4A; margin-bottom: 18px; }
+  .p2-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 86px; font-weight: 300; font-style: italic;
+    line-height: 1.1; color: #1A1A15;
+    letter-spacing: -0.02em; margin-bottom: 12px;
+  }
+  .p2-subtitle {
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 36px; font-weight: 300;
+    line-height: 1.55; color: #6A6B63; margin-bottom: 14px;
+  }
+  .eco-diagram { display: block; width: 920px; height: 640px; flex-shrink: 0; margin-bottom: 12px; }
+
+  .p2-benefits-eyebrow {
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 15px; font-weight: 400;
+    color: #7A7B72; letter-spacing: 0.14em;
+    text-transform: uppercase; margin-bottom: 16px;
+  }
+  .p2-benefits-list { list-style: none; }
+  .p2-benefits-list li {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 52px; font-weight: 300; font-style: italic;
+    line-height: 1.38; color: #1A1A15;
+    letter-spacing: -0.015em;
+  }
+
+  .p2-spacer { flex: 1; }
+  .p2-footer-rule { width: 100%; height: 1px; background: #DDD9D0; margin-bottom: 24px; }
+  .p2-final { margin-bottom: 18px; }
+  .p2-final p {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 60px; font-weight: 300; font-style: italic;
+    line-height: 1.25; color: #1A1A15; letter-spacing: -0.02em;
+  }
+  .p2-sig {
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 18px; font-weight: 400;
+    color: #9A9790; letter-spacing: 0.12em; text-transform: uppercase;
+  }
+
+  /* ══ PAGE 3 — FECHAMENTO ══ */
+  .page-close { background: #0D1009; }
+
+  .p3-tag {
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 13px; font-weight: 400;
+    color: #3C4E34; letter-spacing: 0.18em;
+    text-transform: uppercase; margin-bottom: 34px;
+  }
+  .p3-accent { width: 44px; height: 2px; background: #5A6B4A; margin-bottom: 36px; }
+
+  .p3-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 66px; font-weight: 300; font-style: italic;
+    line-height: 1.12; color: #8AAA7C; letter-spacing: -0.02em;
+  }
+  .p3-spacer { height: 40px; flex-shrink: 0; }
+
+  .p3-body {
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 42px; font-weight: 300;
+    line-height: 1.65; color: #9AA288;
+  }
+  .p3-body + .p3-body { margin-top: 20px; }
+
+  .p3-pre-hero {
+    width: 56px; height: 1px;
+    background: #263318;
+    margin-top: 48px; margin-bottom: 44px;
+  }
+
+  .p3-hero {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 92px; font-weight: 300; font-style: italic;
+    line-height: 1.2; color: #EDE8DF;
+    letter-spacing: -0.015em; margin-top: 0;
+  }
+
+  .p3-mid-flex { height: 36px; flex: none; max-height: none; }
+
+  .p3-invest {
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 32px; font-weight: 300;
+    color: #5A7048; margin-top: 4px; margin-bottom: 6px;
+  }
+  .p3-invest-alt {
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 30px; font-weight: 300;
+    color: #3D5429; margin-bottom: 0;
+  }
+  .p3-obs {
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 30px; font-weight: 300;
+    line-height: 1.62; color: #6E8060;
+  }
+  .p3-obs + .p3-obs { margin-top: 14px; }
+  .p3-sig-rule {
+    width: 100%; height: 1px;
+    background: #1C2A14; margin-top: 32px; margin-bottom: 18px;
+  }
+  .p3-sig {
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 18px; font-weight: 400;
+    color: #3C4E34; letter-spacing: 0.14em; text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     PAGE 1 — O QUE EU ENTENDI
+══════════════════════════════════════════ -->
+<div class="page page-dark">
+  <div class="p1-tag">Singulart3D &nbsp;·&nbsp; Jean Lucca &nbsp;·&nbsp; 2025</div>
+  <div class="p1-title">João e Samara,<br>foi isso que<br>eu entendi.</div>
+  <p class="p1-intro">A Singulart3D já tem algo que muita marca<br>passa anos tentando construir:</p>
+  <ul class="p1-features">
+    <li>produto com demanda,</li>
+    <li>produção própria,</li>
+    <li>clientes reais</li>
+    <li>e vendas recorrentes.</li>
+  </ul>
+  <p class="p1-body">O ponto agora não é criar uma operação maior.</p>
+  <p class="p1-body">É construir <strong>mais valor, mais margem e mais controle</strong> ao redor do que já existe.</p>
+  <div class="p1-spacer"></div>
+  <div class="p1-divider"></div>
+  <div class="p1-insight-label">A virada estratégica</div>
+  <div class="p1-qa">Marketplace vende.</div>
+  <div class="p1-sep"></div>
+  <div class="p1-qb">Marca própria<br>constrói margem.</div>
+  <p class="p1-closing">O desafio não é vender mais a qualquer custo.<br>É fazer a marca valer mais.</p>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     PAGE 2 — ECOSSISTEMA + PLANO
+══════════════════════════════════════════ -->
+<div class="page page-light">
+
+  <div class="p2-tag">Singulart3D &nbsp;·&nbsp; Jean Lucca &nbsp;·&nbsp; 2025</div>
+  <div class="p2-accent"></div>
+  <div class="p2-title">O que eu construiria<br>com vocês.</div>
+  <p class="p2-subtitle">Uma estrutura digital para gerar mais controle, mais margem e menos dependência dos marketplaces.</p>
+
+  <!-- SVG: orbit r=218 · node r=44 · center r=100
+       θ = i×360°/11 · spokes r=105→172 -->
+  <svg class="eco-diagram" viewBox="0 0 920 640" xmlns="http://www.w3.org/2000/svg">
+
+    <!-- SPOKES (inner r=118 from center 460,310) -->
+    <line x1="460" y1="192" x2="460" y2="138" stroke="#CCC8C0" stroke-width="1.8"/>
+    <line x1="524" y1="211" x2="553" y2="165" stroke="#CCC8C0" stroke-width="1.8"/>
+    <line x1="567" y1="261" x2="616" y2="238" stroke="#CCC8C0" stroke-width="1.8"/>
+    <line x1="577" y1="327" x2="630" y2="335" stroke="#CCC8C0" stroke-width="1.8"/>
+    <line x1="549" y1="387" x2="590" y2="423" stroke="#CCC8C0" stroke-width="1.8"/>
+    <line x1="493" y1="423" x2="508" y2="475" stroke="#CCC8C0" stroke-width="1.8"/>
+    <line x1="426" y1="423" x2="412" y2="475" stroke="#CCC8C0" stroke-width="1.8"/>
+    <line x1="371" y1="387" x2="330" y2="423" stroke="#CCC8C0" stroke-width="1.8"/>
+    <line x1="343" y1="327" x2="290" y2="335" stroke="#CCC8C0" stroke-width="1.8"/>
+    <line x1="353" y1="261" x2="304" y2="238" stroke="#CCC8C0" stroke-width="1.8"/>
+    <line x1="396" y1="211" x2="367" y2="165" stroke="#CCC8C0" stroke-width="1.8"/>
+
+    <!-- CENTRO r=112 -->
+    <circle cx="460" cy="310" r="112" fill="#5A6B4A"/>
+    <text x="460" y="300" text-anchor="middle" dominant-baseline="middle"
+          font-family="'DM Sans','Segoe UI',sans-serif" font-size="20" font-weight="600" fill="#EDE8DF" letter-spacing="0.3">Singulart</text>
+    <text x="460" y="320" text-anchor="middle" dominant-baseline="middle"
+          font-family="'DM Sans','Segoe UI',sans-serif" font-size="20" font-weight="600" fill="#EDE8DF" letter-spacing="0.3">3D</text>
+
+    <!-- NODE 1 — Landing Page · 0° · (460,92) -->
+    <circle cx="460" cy="92" r="44" fill="#5A6B4A"/>
+    <g transform="translate(460,92)">
+      <rect x="-14" y="-11" width="28" height="22" rx="3" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" fill="none"/>
+      <line x1="-14" y1="-4" x2="14" y2="-4" stroke="rgba(255,255,255,0.92)" stroke-width="2"/>
+      <circle cx="-9" cy="-7.5" r="2.2" fill="rgba(255,255,255,0.92)"/>
+      <circle cx="-4.5" cy="-7.5" r="2.2" fill="rgba(255,255,255,0.92)"/>
+      <circle cx="0" cy="-7.5" r="2.2" fill="rgba(255,255,255,0.92)"/>
+    </g>
+    <text x="460" y="37" text-anchor="middle"
+          font-family="'DM Sans','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#1A1A15">Landing Page</text>
+
+    <!-- NODE 2 — WhatsApp · 32.7° · (578,127) -->
+    <circle cx="578" cy="127" r="44" fill="#25D366"/>
+    <g transform="translate(578,127)">
+      <path d="M0,-14 C9,-14 16,-9 16,-1 C16,6 11,12 4,14 L6,19 L-5,15 C-12,15 -16,10 -16,-1 C-16,-9 -9,-14 0,-14 Z"
+            stroke="white" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+    </g>
+    <text x="630" y="80" text-anchor="start"
+          font-family="'DM Sans','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#1A1A15">WhatsApp</text>
+
+    <!-- NODE 3 — Google Ads · 65.5° · (658,219) -->
+    <circle cx="658" cy="219" r="44" fill="#4285F4"/>
+    <g transform="translate(658,219)">
+      <path d="M14,0 L5,0 M14,0 C14,8 8,14 0,14 C-8,14 -14,8 -14,0 C-14,-8 -8,-14 0,-14 C5,-14 10,-11 13,-7"
+            stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </g>
+    <text x="710" y="196" text-anchor="start"
+          font-family="'DM Sans','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#1A1A15">Google Ads</text>
+
+    <!-- NODE 4 — Pinterest · 98.2° · (676,341) -->
+    <circle cx="676" cy="341" r="44" fill="#BD081C"/>
+    <g transform="translate(676,341)">
+      <circle cx="0" cy="-6" r="11" stroke="white" stroke-width="2.5" fill="none"/>
+      <circle cx="0" cy="-6" r="4.5" fill="white"/>
+      <line x1="0" y1="5" x2="0" y2="16" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+    </g>
+    <text x="728" y="348" text-anchor="start"
+          font-family="'DM Sans','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#1A1A15">Pinterest</text>
+
+    <!-- NODE 5 — TikTok Ads · 130.9° · (625,453) -->
+    <circle cx="625" cy="453" r="44" fill="#161823"/>
+    <g transform="translate(625,453)">
+      <ellipse cx="-5" cy="11" rx="6.5" ry="4.5" fill="white" transform="rotate(-25,-5,11)"/>
+      <line x1="1.5" y1="11" x2="1.5" y2="-12" stroke="white" stroke-width="3" stroke-linecap="round"/>
+      <path d="M1.5,-12 C6,-13 15,-11 15,-5" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </g>
+    <text x="672" y="491" text-anchor="start"
+          font-family="'DM Sans','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#1A1A15">TikTok Ads</text>
+
+    <!-- NODE 6 — Meta Ads · 163.6° · (522,519) — ícone ampliado -->
+    <circle cx="521" cy="519" r="44" fill="#0866FF"/>
+    <g transform="translate(521,519)">
+      <circle cx="-9" cy="0" r="11" stroke="white" stroke-width="2.5" fill="none"/>
+      <circle cx="9" cy="0" r="11" stroke="white" stroke-width="2.5" fill="none"/>
+    </g>
+    <text x="539" y="574" text-anchor="start"
+          font-family="'DM Sans','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#1A1A15">Meta Ads</text>
+
+    <!-- NODE 7 — Shopee · 196.4° · (399,519) — ícone ampliado -->
+    <circle cx="399" cy="519" r="44" fill="#FF6033"/>
+    <g transform="translate(399,519)">
+      <rect x="-13" y="-5" width="26" height="19" rx="3.5" stroke="white" stroke-width="2.5" fill="none"/>
+      <path d="M-9,-5 Q-9,-17 0,-17 Q9,-17 9,-5" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </g>
+    <text x="380" y="574" text-anchor="end"
+          font-family="'DM Sans','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#1A1A15">Shopee</text>
+
+    <!-- NODE 8 — Mercado Livre · 229.1° · (295,453) — label 1 linha -->
+    <circle cx="295" cy="453" r="44" fill="#FFE600"/>
+    <g transform="translate(295,453)">
+      <rect x="-11" y="-8" width="22" height="15" rx="2.5" stroke="#1A1A15" stroke-width="2.5" fill="none"/>
+      <path d="M-14,-8 L-14,-15 L-7,-15" stroke="#1A1A15" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="-4" cy="11" r="3" fill="#1A1A15"/>
+      <circle cx="8" cy="11" r="3" fill="#1A1A15"/>
+    </g>
+    <text x="243" y="491" text-anchor="end"
+          font-family="'DM Sans','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#1A1A15">Mercado Livre</text>
+
+    <!-- NODE 9 — Amazon · 261.8° · (244,341) -->
+    <circle cx="244" cy="341" r="44" fill="#FF9900"/>
+    <g transform="translate(244,341)">
+      <rect x="-12" y="-13" width="24" height="18" rx="2.5" stroke="white" stroke-width="2.5" fill="none"/>
+      <path d="M-9,10 Q0,18 9,10" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M6,7 L9,10 L6,13" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text x="192" y="348" text-anchor="end"
+          font-family="'DM Sans','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#1A1A15">Amazon</text>
+
+    <!-- NODE 10 — E-mail · 294.5° · (262,219) -->
+    <circle cx="262" cy="219" r="44" fill="#5A6B4A"/>
+    <g transform="translate(262,219)">
+      <rect x="-14" y="-10" width="28" height="22" rx="3" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" fill="none"/>
+      <path d="M-14,-10 L0,6 L14,-10" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+    </g>
+    <text x="210" y="196" text-anchor="end"
+          font-family="'DM Sans','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#1A1A15">E-mail</text>
+
+    <!-- NODE 11 — Criadores · 327.3° · (342,127) -->
+    <circle cx="342" cy="127" r="44" fill="#5A6B4A"/>
+    <g transform="translate(342,127)">
+      <rect x="-7" y="-16" width="14" height="19" rx="7" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" fill="none"/>
+      <line x1="0" y1="3" x2="0" y2="11" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M-9,3 Q-9,15 0,15 Q9,15 9,3" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </g>
+    <text x="312" y="80" text-anchor="end"
+          font-family="'DM Sans','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#1A1A15">Criadores</text>
+
+    <!-- LEGENDA -->
+    <circle cx="14" cy="607" r="7" fill="#5A6B4A"/>
+    <text x="28" y="613" font-family="'DM Sans','Segoe UI',sans-serif" font-size="18" fill="#8A9180">Jean constrói</text>
+    <circle cx="178" cy="607" r="7" fill="#4285F4"/>
+    <text x="192" y="613" font-family="'DM Sans','Segoe UI',sans-serif" font-size="18" fill="#8A9180">Canais integrados</text>
+
+  </svg>
+
+  <div class="p2-benefits-eyebrow">O que isso muda</div>
+  <ul class="p2-benefits-list">
+    <li>Mais vendas diretas.</li>
+    <li>Mais controle sobre os clientes.</li>
+    <li>Mais valor percebido.</li>
+    <li>Menos dependência dos marketplaces.</li>
+    <li>Mais margem por venda.</li>
+  </ul>
+
+  <div class="p2-spacer"></div>
+  <div class="p2-footer-rule"></div>
+  <div class="p2-final">
+    <p>Mais marca.</p>
+    <p>Mais margem.</p>
+    <p>Mais independência.</p>
+  </div>
+  <div class="p2-sig">Jean Lucca</div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     PAGE 3 — FECHAMENTO HUMANO
+══════════════════════════════════════════ -->
+<div class="page page-close">
+
+  <div class="p3-tag">Singulart3D &nbsp;·&nbsp; Jean Lucca &nbsp;·&nbsp; 2025</div>
+  <div class="p3-accent"></div>
+
+  <div class="p3-title">Se fizer sentido<br>para vocês.</div>
+
+  <div class="p3-spacer"></div>
+
+  <p class="p3-body">Eu adoraria participar dessa construção.</p>
+
+  <div class="p3-pre-hero"></div>
+
+  <div class="p3-hero">
+    Mais marca.<br>
+    Mais margem.<br>
+    Mais independência.
+  </div>
+
+  <div class="p3-invest">Investimento &nbsp;·&nbsp; R$&nbsp;2.500</div>
+  <div class="p3-invest-alt">ou 4× de R$&nbsp;625</div>
+
+  <div class="p3-mid-flex"></div>
+
+  <p class="p3-obs">Se precisarmos adaptar formato, escopo ou forma de pagamento para funcionar melhor para todo mundo, estou totalmente aberto para conversar.</p>
+  <p class="p3-obs">O mais importante, na minha opinião, é ajudar vocês a construir isso da forma certa.</p>
+
+  <div class="p3-sig-rule"></div>
+  <div class="p3-sig">Jean Lucca</div>
+
+</div>
+
+</body>
+</html>

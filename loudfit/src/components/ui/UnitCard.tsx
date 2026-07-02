@@ -7,7 +7,7 @@ export function UnitCard({ unit }: { unit: Unit }) {
   return (
     <Link
       href={`/unidades/${unit.slug}`}
-      className="group block overflow-hidden border border-lf-line bg-lf-surface transition duration-500 hover:-translate-y-1 hover:border-lf-volt/45 hover:shadow-[0_24px_70px_rgba(0,0,0,0.32)]"
+      className="group block overflow-hidden bg-white border border-gray-200 shadow-sm transition duration-500 hover:-translate-y-1 hover:border-lf-volt/40 hover:shadow-lg"
     >
       <div className="relative aspect-[4/3] overflow-hidden">
         {unit.foto_capa ? (
@@ -16,14 +16,14 @@ export function UnitCard({ unit }: { unit: Unit }) {
             alt={`LoudFit ${unit.nome}`}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            className="object-cover opacity-82 transition duration-700 group-hover:scale-105 group-hover:opacity-95"
+            className="object-cover opacity-85 transition duration-700 group-hover:scale-105 group-hover:opacity-100"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-lf-graphite">
             <span className="text-4xl font-black text-lf-muted">LF</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-lf-black via-lf-black/25 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-lf-black via-lf-black/20 to-transparent" />
         <div className="absolute left-3 top-3">
           <UnitBadge status={unit.status} />
         </div>
@@ -31,28 +31,28 @@ export function UnitCard({ unit }: { unit: Unit }) {
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-lf-volt">
             Unidade LoudFit
           </p>
-          <h3 className="mt-1 text-2xl font-black text-lf-text transition-colors group-hover:text-lf-volt">
+          <h3 className="mt-1 text-2xl font-black text-white transition-colors group-hover:text-lf-volt">
             {unit.nome}
           </h3>
         </div>
       </div>
 
       <div className="p-5">
-        <p className="text-sm text-lf-muted">
+        <p className="text-sm text-gray-500">
           {unit.bairro} / {unit.cidade}
         </p>
 
         {unit.modalidades?.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-1">
             {unit.modalidades.slice(0, 3).map((m) => (
-              <span key={m} className="rounded-full border border-lf-line bg-lf-black px-2.5 py-1 text-[10px] uppercase tracking-wider text-lf-muted">
+              <span key={m} className="rounded-full border border-gray-200 bg-gray-100 px-2.5 py-1 text-[10px] uppercase tracking-wider text-gray-600">
                 {m}
               </span>
             ))}
           </div>
         )}
 
-        <div className="mt-5 flex items-center justify-between border-t border-lf-line pt-4">
+        <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4">
           <span className="text-xs font-bold uppercase tracking-[0.18em] text-lf-volt">
             Ver unidade
           </span>

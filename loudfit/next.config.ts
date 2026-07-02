@@ -3,9 +3,17 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
-      // Supabase Storage
       { protocol: 'https', hostname: '*.supabase.co', pathname: '/storage/v1/object/public/**' },
     ],
+  },
+  async redirects() {
+    return [
+      {
+        source: '/unidades/carreco-curvalinhos',
+        destination: '/unidades/carrefour-valinhos',
+        permanent: true,
+      },
+    ]
   },
 }
 

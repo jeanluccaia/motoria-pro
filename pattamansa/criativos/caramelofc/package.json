@@ -1,0 +1,26 @@
+{
+  "name": "pattamansa-caramelofc",
+  "version": "1.0.0",
+  "description": "Remotion criativo Meta Ads — Caramelo FC · A camisa do povo",
+  "scripts": {
+    "start": "npx remotion studio",
+    "render": "npx remotion render PattaMansaCarameloFC out/pattamansa_caramelofc_metaads.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p --enforce-audio-track",
+    "render:all": "powershell -ExecutionPolicy Bypass -File render-all.ps1",
+    "setup": "powershell -ExecutionPolicy Bypass -File setup-assets.ps1"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "@remotion/google-fonts": "^4.0.0",
+    "remotion": "^4.0.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "18.2.0",
+    "@types/react-dom": "18.2.0",
+    "typescript": "^5.0.0"
+  },
+  "remotion": {
+    "entryPoint": "./src/Root.tsx"
+  }
+}

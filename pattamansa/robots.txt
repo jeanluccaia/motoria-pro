@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://pattamansa.com.br/sitemap.xml
+Sitemap: https://pattamansa.com.br/feed.xml

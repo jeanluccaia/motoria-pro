@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: #F8F6F2;
+    font-family: 'Segoe UI', Arial, sans-serif;
+  }
+  .canvas {
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    background: #F8F6F2;
+    display: flex;
+  }
+
+  /* ── LEFT COLUMN ── */
+  .left {
+    width: 960px;
+    flex-shrink: 0;
+    padding: 84px 72px 84px 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .top-group {}
+  .eyebrow {
+    font-size: 11px;
+    color: #ABAAA6;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .accent-bar {
+    width: 44px;
+    height: 2px;
+    background: #6E7A5E;
+    margin-bottom: 32px;
+  }
+  .title {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 54px;
+    line-height: 1.2;
+    color: #1C1C1A;
+    font-weight: normal;
+    letter-spacing: -0.025em;
+    margin-bottom: 48px;
+  }
+  .body p {
+    font-size: 21px;
+    line-height: 1.74;
+    color: #4A4845;
+  }
+  .body p + p {
+    margin-top: 22px;
+  }
+  .bottom-group {}
+  .rule {
+    width: 100%;
+    height: 1px;
+    background: #E0DDD8;
+    margin-bottom: 26px;
+  }
+  .closing {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 19px;
+    font-style: italic;
+    color: #6B6867;
+    line-height: 1.6;
+  }
+
+  /* ── RIGHT DARK PANEL ── */
+  .right-panel {
+    flex: 1;
+    background: #212820;
+    display: flex;
+    align-items: center;
+    padding: 80px 88px;
+  }
+  .panel-inner { width: 100%; }
+  .q-a {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 37px;
+    line-height: 1.38;
+    color: #7A8C72;
+    font-style: italic;
+    margin-bottom: 44px;
+  }
+  .panel-sep {
+    width: 56px;
+    height: 1px;
+    background: #6E7A5E;
+    margin-bottom: 44px;
+  }
+  .q-b {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 37px;
+    line-height: 1.38;
+    color: #EDE9E3;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+<div class="canvas">
+
+  <div class="left">
+    <div class="top-group">
+      <div class="eyebrow">Jean Lucca &nbsp;·&nbsp; Singulart3D &nbsp;·&nbsp; 2025</div>
+      <div class="accent-bar"></div>
+      <div class="title">João e Samara,<br>o que eu entendi<br>da Singulart3D.</div>
+      <div class="body">
+        <p>A Singulart3D já tem o mais difícil: produto, produção própria e demanda real.</p>
+        <p>O ponto agora não é criar uma operação maior. É organizar a estrutura digital para vender com mais margem, mais controle e mais valor percebido.</p>
+      </div>
+    </div>
+    <div class="bottom-group">
+      <div class="rule"></div>
+      <div class="closing">O desafio não é só vender mais.<br>É fazer a marca valer mais.</div>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="panel-inner">
+      <div class="q-a">Marketplace<br>ajuda a vender.</div>
+      <div class="panel-sep"></div>
+      <div class="q-b">Marca própria<br>ajuda a construir<br>margem.</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
