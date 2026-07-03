@@ -21,9 +21,14 @@ const AULAS_COLETIVAS = new Set([
 
 const DAY_LABELS: Record<string, string> = {
   segunda_a_sexta: 'Segunda a sexta',
+  segunda_a_quinta: 'Segunda a quinta',
+  sexta: 'Sexta',
   sabado: 'Sábado',
   domingo: 'Domingo',
   sabado_e_domingo: 'Sábado e domingo',
+  sabado_domingo_e_feriados: 'Sáb, dom e feriados',
+  domingo_e_feriados: 'Dom e feriados',
+  feriados: 'Feriados',
   abertura: 'Abertura',
 }
 

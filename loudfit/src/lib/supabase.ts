@@ -16,7 +16,7 @@ const fallbackUnits: Unit[] = [
     instagram_url: '',
     google_maps_url: '',
     google_place_id: null,
-    horarios: { segunda_a_sexta: 'Consulte a unidade', sabado: 'Consulte a unidade' },
+    horarios: { segunda_a_quinta: '06h às 23h', sexta: '06h às 22h', sabado_domingo_e_feriados: '08h às 18h' },
     foto_capa: '/assets/images/studio-community.jpg',
     galeria: ['/assets/images/studio-community.jpg', '/assets/images/real-machines.jpg', '/assets/images/real-weights.jpg'],
     modalidades: [
@@ -45,7 +45,7 @@ const fallbackUnits: Unit[] = [
     instagram_url: '',
     google_maps_url: '',
     google_place_id: null,
-    horarios: { abertura: 'Em inauguração' },
+    horarios: { segunda_a_quinta: '05h às 23h', sexta: '05h às 22h', sabado: '08h às 15h', domingo_e_feriados: '08h às 14h' },
     foto_capa: '/assets/images/real-machines.jpg',
     galeria: ['/assets/images/real-machines.jpg', '/assets/images/real-weights.jpg'],
     modalidades: [],
@@ -71,7 +71,7 @@ const fallbackUnits: Unit[] = [
     instagram_url: '',
     google_maps_url: '',
     google_place_id: null,
-    horarios: { segunda_a_sexta: 'Consulte a unidade', sabado: 'Consulte a unidade' },
+    horarios: { segunda_a_quinta: '05h às 23h', sexta: '05h às 22h', sabado_domingo_e_feriados: '08h às 18h' },
     foto_capa: '/assets/images/real-weights.jpg',
     galeria: ['/assets/images/real-weights.jpg', '/assets/images/real-machines.jpg'],
     modalidades: [],
@@ -97,7 +97,7 @@ const fallbackUnits: Unit[] = [
     instagram_url: '',
     google_maps_url: '',
     google_place_id: null,
-    horarios: { segunda_a_sexta: 'Consulte a unidade', sabado: 'Consulte a unidade' },
+    horarios: { segunda_a_quinta: '05h às 23h', sexta: '05h às 22h', sabado: '08h às 18h', domingo_e_feriados: '08h às 14h' },
     foto_capa: '/assets/images/real-facade.jpg',
     galeria: ['/assets/images/real-facade.jpg', '/assets/images/studio-community.jpg'],
     modalidades: [
@@ -126,7 +126,7 @@ const fallbackUnits: Unit[] = [
     instagram_url: 'https://www.instagram.com/loudfit.vilaindustrial/',
     google_maps_url: '',
     google_place_id: null,
-    horarios: { segunda_a_sexta: 'Consulte a unidade', sabado: 'Consulte a unidade' },
+    horarios: { segunda_a_quinta: '05h às 23h', sexta: '05h às 22h', sabado: '08h às 20h', domingo_e_feriados: '08h às 14h' },
     foto_capa: '/assets/images/real-machines.jpg',
     galeria: ['/assets/images/real-machines.jpg', '/assets/images/real-weights.jpg'],
     modalidades: [
@@ -154,7 +154,7 @@ const fallbackUnits: Unit[] = [
     instagram_url: '',
     google_maps_url: '',
     google_place_id: null,
-    horarios: { segunda_a_sexta: 'Consulte a unidade', sabado: 'Consulte a unidade' },
+    horarios: { segunda_a_quinta: '05h às 23h', sexta: '05h às 22h', sabado: '08h às 18h', domingo: '08h às 16h', feriados: '08h às 14h' },
     foto_capa: '/assets/images/real-opening.jpg',
     galeria: ['/assets/images/real-opening.jpg'],
     modalidades: [
