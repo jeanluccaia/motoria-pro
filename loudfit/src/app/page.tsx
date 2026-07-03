@@ -15,12 +15,11 @@ import { getUnits } from '@/lib/supabase'
 export const metadata: Metadata = {
   title: 'LoudFit | O melhor ainda está por vir',
   description:
-    'Rede de academias com energia, estrutura e experiência para quem leva o treino a sério.',
+    'Rede de academias com estrutura completa, aulas coletivas inclusas e matrícula online pelo checkout oficial EVO.',
 }
 
 export default async function HomePage() {
   const units = await getUnits().catch(() => [])
-  const featured = units.filter((u) => u.destaque || u.status === 'ativa').slice(0, 4)
 
   return (
     <>
@@ -29,7 +28,7 @@ export default async function HomePage() {
       <PlansSection />
       <CollectiveClassesSection />
 
-      {featured.length > 0 && (
+      {units.length > 0 && (
         <Section id="unidades" bg="lighter" className="relative overflow-hidden">
           <div className="relative">
             <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
@@ -43,8 +42,8 @@ export default async function HomePage() {
                 Ver todas as 6 unidades
               </Button>
             </div>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {featured.map((unit) => (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {units.map((unit) => (
                 <UnitCard key={unit.id} unit={unit} />
               ))}
             </div>

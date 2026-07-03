@@ -1,4 +1,5 @@
 export interface Plan {
+  slug: string
   name: string
   badge: string
   price: string
@@ -11,24 +12,27 @@ export interface Plan {
 
 const standardPlans: Plan[] = [
   {
+    slug: 'power-mensal',
     name: 'Power Mensal',
     badge: 'SEM CONTRATO LONGO',
     price: 'R$149,90',
     period: '/mês',
-    description: 'Liberdade para treinar mês a mês, sem cobrança automática.',
+    description: 'Mês a mês, sem cobrança automática e sem compromisso de longo prazo.',
     featured: false,
     checkoutUrl: null,
   },
   {
+    slug: 'power-mensal-recorrente',
     name: 'Power Mensal Recorrente',
     badge: 'PRÁTICO',
     price: 'R$139,90',
     period: '/mês',
-    description: 'Cobrança automática todo mês. Você treina, a gente cuida da renovação.',
+    description: 'Cobrança automática todo mês. Você treina, a renovação é automática.',
     featured: false,
     checkoutUrl: null,
   },
   {
+    slug: 'power-semestral-recorrente',
     name: 'Power Semestral Recorrente',
     badge: 'ECONOMIA',
     price: 'R$129,90',
@@ -38,12 +42,13 @@ const standardPlans: Plan[] = [
     checkoutUrl: null,
   },
   {
+    slug: 'power-anual-recorrente',
     name: 'Power Anual Recorrente',
     badge: 'MELHOR VALOR',
     price: 'R$119,90',
     period: '/mês',
     description:
-      'Plano de 12 meses com cobrança mensal no cartão — sem travar o limite com o valor do ano.',
+      'Plano de 12 meses com cobrança mensal no cartão — sem travar o limite total do cartão.',
     featured: true,
     firstPayment: { label: 'Primeira mensalidade por', value: 'R$9,90' },
     checkoutUrl: null,
@@ -52,24 +57,27 @@ const standardPlans: Plan[] = [
 
 const ipirangaPlans: Plan[] = [
   {
+    slug: 'power-mensal',
     name: 'Power Mensal',
     badge: 'SEM CONTRATO LONGO',
     price: 'R$199,90',
     period: '/mês',
-    description: 'Liberdade para treinar mês a mês, sem cobrança automática.',
+    description: 'Mês a mês, sem cobrança automática e sem compromisso de longo prazo.',
     featured: false,
     checkoutUrl: null,
   },
   {
+    slug: 'power-mensal-recorrente',
     name: 'Power Mensal Recorrente',
     badge: 'PRÁTICO',
     price: 'R$189,00',
     period: '/mês',
-    description: 'Cobrança automática todo mês. Você treina, a gente cuida da renovação.',
+    description: 'Cobrança automática todo mês. Você treina, a renovação é automática.',
     featured: false,
     checkoutUrl: null,
   },
   {
+    slug: 'power-semestral-recorrente',
     name: 'Power Semestral Recorrente',
     badge: 'ECONOMIA',
     price: 'R$179,90',
@@ -79,12 +87,13 @@ const ipirangaPlans: Plan[] = [
     checkoutUrl: null,
   },
   {
+    slug: 'power-anual-recorrente',
     name: 'Power Anual Recorrente',
     badge: 'MELHOR VALOR',
     price: 'R$179,90',
     period: '/mês',
     description:
-      'Plano de 12 meses com cobrança mensal no cartão — sem travar o limite com o valor do ano.',
+      'Plano de 12 meses com cobrança mensal no cartão — sem travar o limite total do cartão.',
     featured: true,
     firstPayment: { label: 'Primeira parcela por', value: 'R$9,90' },
     checkoutUrl: null,
@@ -102,3 +111,11 @@ export const planBenefits = [
   'Estrutura completa',
   'Acesso por reconhecimento facial',
 ] as const
+
+/** Mapa slug → nome legível, importável em Client Components */
+export const PLAN_NAMES: Record<string, string> = {
+  'power-mensal': 'Power Mensal',
+  'power-mensal-recorrente': 'Power Mensal Recorrente',
+  'power-semestral-recorrente': 'Power Semestral Recorrente',
+  'power-anual-recorrente': 'Power Anual Recorrente',
+}

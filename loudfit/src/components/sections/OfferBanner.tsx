@@ -6,10 +6,10 @@ import { SignalMark } from '@/components/ui/SignalMark'
 export function OfferBanner() {
   return (
     <Section bg="black" className="pt-8 md:pt-12 pb-12 md:pb-16">
-      <div className="relative overflow-hidden border border-lf-volt/25 bg-lf-graphite shadow-[0_32px_120px_rgba(0,0,0,0.38)]">
+      <div className="relative overflow-hidden border border-lf-volt/25 bg-lf-graphite">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-lf-volt to-transparent" />
 
-        <div className="relative grid min-h-[500px] lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="relative grid min-h-[480px] lg:grid-cols-[0.9fr_1.1fr]">
           <div className="z-10 flex flex-col justify-center px-5 py-10 sm:px-8 md:px-12 lg:px-14">
             <div className="mb-5 flex items-center gap-3">
               <SignalMark />
@@ -24,9 +24,8 @@ export function OfferBanner() {
             <p className="mt-3 text-sm font-bold uppercase tracking-[0.16em] text-lf-muted">
               No Power Anual Recorrente.
             </p>
-            <p className="mt-6 max-w-xl text-base leading-relaxed text-lf-muted md:text-lg">
-              Comece pagando pouco, siga com cobrança mensal e sem comprometer o limite total do
-              cartão.
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-lf-muted">
+              Comece pagando pouco, siga com cobrança mensal e sem comprometer o limite total do cartão.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -38,28 +37,27 @@ export function OfferBanner() {
               </Button>
             </div>
 
-            <p className="mt-6 max-w-2xl text-xs leading-relaxed text-lf-muted">
-              Após a primeira mensalidade promocional, aplica-se o valor mensal do plano anual
-              recorrente da unidade escolhida.
+            <p className="mt-5 max-w-2xl text-xs leading-relaxed text-lf-muted">
+              Após a primeira mensalidade promocional, aplica-se o valor mensal do plano anual recorrente da unidade escolhida.
             </p>
           </div>
 
           <div className="relative min-h-[260px] lg:min-h-full">
             <Image
               src="/assets/images/campaign-gym-16x9.png"
-              alt="Academia LoudFit com equipamentos em ambiente escuro"
+              alt="Academia LoudFit com equipamentos"
               fill
               sizes="(max-width: 1024px) 100vw, 55vw"
               className="object-cover object-center opacity-85"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-lf-graphite via-lf-black/10 to-transparent lg:bg-gradient-to-r lg:from-lf-graphite lg:via-lf-black/20 lg:to-transparent" />
-            <div className="absolute bottom-6 left-6 right-6 border-l-2 border-lf-volt bg-lf-black/60 p-4 backdrop-blur">
+            <div className="absolute bottom-6 left-6 right-6 border-l-2 border-lf-volt bg-lf-black/70 p-4">
               <p className="text-[10px] uppercase tracking-[0.18em] text-lf-muted">Como funciona</p>
               <p className="mt-2 text-sm font-bold uppercase tracking-[0.14em] text-lf-text">
-                Escolha o plano, escolha a unidade e comece a treinar
+                Escolha a unidade, escolha o plano e finalize online
               </p>
               <p className="mt-1 text-[11px] text-lf-muted">
-                Matrícula online em breve nas unidades participantes.
+                Matrícula pelo checkout oficial EVO — rápido e seguro.
               </p>
             </div>
           </div>

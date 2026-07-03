@@ -2,10 +2,11 @@ import type { Metadata } from 'next'
 import { getUnits } from '@/lib/supabase'
 import { UnitCard } from '@/components/ui/UnitCard'
 import { Section, SectionHeader } from '@/components/ui/Section'
+import { PlanChip } from '@/components/ui/PlanChip'
 
 export const metadata: Metadata = {
   title: 'Unidades',
-  description: 'Encontre uma LoudFit perto de você. Rede de academias premium.',
+  description: 'Encontre uma LoudFit perto de você. 6 unidades em SP com matrícula online.',
 }
 
 export default async function UnidadesPage() {
@@ -21,10 +22,18 @@ export default async function UnidadesPage() {
           subtitle="Escolha sua unidade, escolha seu plano e comece a treinar."
         />
 
-        <div className="mb-10 grid gap-3 border border-gray-200 bg-white p-5 text-sm text-gray-600 md:grid-cols-3">
-          <span className="font-bold uppercase tracking-[0.18em] text-gray-800">1. Escolha o plano</span>
-          <span className="font-bold uppercase tracking-[0.18em] text-gray-800">2. Escolha a unidade</span>
-          <span className="font-bold uppercase tracking-[0.18em] text-gray-800">3. Finalize a matrícula</span>
+        <PlanChip />
+
+        <div className="mb-10 grid gap-0 border border-gray-200 bg-white text-sm md:grid-cols-3">
+          <div className="border-b border-gray-200 p-4 md:border-b-0 md:border-r">
+            <span className="font-black uppercase tracking-[0.18em] text-gray-800">1. Escolha a unidade</span>
+          </div>
+          <div className="border-b border-gray-200 p-4 md:border-b-0 md:border-r">
+            <span className="font-black uppercase tracking-[0.18em] text-gray-800">2. Escolha o plano</span>
+          </div>
+          <div className="p-4">
+            <span className="font-black uppercase tracking-[0.18em] text-gray-800">3. Finalize a matrícula online</span>
+          </div>
         </div>
 
         {units.length === 0 ? (

@@ -2,9 +2,9 @@ import { Button } from '@/components/ui/Button'
 import { Section, SectionHeader } from '@/components/ui/Section'
 
 const aulas = [
-  'Muay Thai', 'Pilates', 'FitDance', 'Zumba', 'Jump', 'Spinning',
-  'Yoga', 'Jiu-Jitsu', 'Pump', 'GAP', 'Step', 'Crosstreino',
-  'Loud Dance', 'Alongamento', 'Funcional',
+  'Muay Thai', 'Pilates', 'FitDance', 'Spinning', 'Jump', 'GAP',
+  'Pump', 'Alongamento', 'Ritbox', 'Funcional', 'Yoga', 'Jiu-Jitsu',
+  'Zumba', 'Loud Dance', 'Step', 'Crosstreino',
 ]
 
 export function CollectiveClassesSection() {
@@ -14,10 +14,10 @@ export function CollectiveClassesSection() {
         dark
         label="Aulas coletivas"
         title="Inclusas em todos os planos."
-        subtitle="Você não paga a mais por aula. Contratou o plano, as atividades da sua unidade já estão dentro."
+        subtitle="Do Muay Thai ao Pilates: você não paga nada a mais por aula."
       />
 
-      <div className="flex flex-wrap gap-2 md:gap-3">
+      <div className="flex flex-wrap gap-2 md:gap-2.5">
         {aulas.map((aula) => (
           <span
             key={aula}
@@ -28,11 +28,11 @@ export function CollectiveClassesSection() {
         ))}
       </div>
 
-      <p className="mt-6 text-sm text-gray-500">
-        A grade de aulas varia por unidade.
+      <p className="mt-5 text-sm text-gray-500">
+        A grade de aulas varia por unidade. Verifique a disponibilidade na página da sua unidade.
       </p>
 
-      <div className="mt-8">
+      <div className="mt-6">
         <Button href="/unidades" variant="volt" size="md">
           Ver as aulas da minha unidade
         </Button>

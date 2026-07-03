@@ -22,12 +22,9 @@ export function FinalCta() {
           Escolha sua unidade. Escolha seu plano. Comece a treinar.
         </h2>
 
-        <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+        <div className="mt-10">
           <Button href="/unidades" variant="volt" size="lg">
-            Começar matrícula
-          </Button>
-          <Button href="/unidades" variant="ghost" size="lg">
-            Ver unidades
+            Ver todas as 6 unidades
           </Button>
         </div>
 

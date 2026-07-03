@@ -19,6 +19,18 @@ const AULAS_COLETIVAS = new Set([
   'Alongamento', 'Alongamento/Mobilidade', 'Funcional', 'Ritbox',
 ])
 
+const DAY_LABELS: Record<string, string> = {
+  segunda_a_sexta: 'Segunda a sexta',
+  sabado: 'Sábado',
+  domingo: 'Domingo',
+  sabado_e_domingo: 'Sábado e domingo',
+  abertura: 'Abertura',
+}
+
+function formatDay(day: string): string {
+  return DAY_LABELS[day] ?? day.replaceAll('_', ' ')
+}
+
 export async function generateStaticParams() {
   const units = await getUnits().catch(() => [])
   return units.map((u) => ({ slug: u.slug }))
@@ -29,7 +41,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const unit = await getUnitBySlug(slug)
   if (!unit) return {}
   return {
-    title: `LoudFit ${unit.nome} - Academia em ${unit.cidade}`,
+    title: `${unit.nome} - Academia em ${unit.cidade}`,
     description: `Academia LoudFit no ${unit.bairro}, ${unit.cidade}. Planos com primeira mensalidade por R$ 9,90 no Power Anual Recorrente.`,
   }
 }
@@ -42,7 +54,7 @@ export default async function UnitPage({ params }: Props) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'HealthClub',
-    name: `LoudFit ${unit.nome}`,
+    name: unit.nome,
     address: {
       '@type': 'PostalAddress',
       streetAddress: unit.endereco_completo,
@@ -68,7 +80,7 @@ export default async function UnitPage({ params }: Props) {
   )
 
   const plans = getPlans(unit.slug)
-  const planCtaHref = hasCheckout ? `/matricula/${unit.slug}` : `/unidades/${unit.slug}#informacoes`
+  const planCtaBase = hasCheckout ? `/matricula/${unit.slug}` : `/unidades/${unit.slug}#informacoes`
   const planCtaLabel = isIpiranga && hasCheckout
     ? 'Garantir matrícula online'
     : hasCheckout
@@ -81,11 +93,11 @@ export default async function UnitPage({ params }: Props) {
 
       <div className="pt-16">
         {/* Hero */}
-        <div className="relative min-h-[560px] overflow-hidden bg-lf-graphite">
+        <div className="relative min-h-[520px] overflow-hidden bg-lf-graphite">
           {unit.foto_capa && (
             <Image
               src={unit.foto_capa}
-              alt={`LoudFit ${unit.nome}`}
+              alt={unit.nome}
               fill
               sizes="100vw"
               className="object-cover opacity-65"
@@ -93,18 +105,18 @@ export default async function UnitPage({ params }: Props) {
             />
           )}
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,10,10,0.96),rgba(10,10,10,0.68)_52%,rgba(10,10,10,0.25)),linear-gradient(180deg,rgba(10,10,10,0.25),rgba(10,10,10,0.98))]" />
-          <div className="relative mx-auto flex min-h-[560px] max-w-7xl items-end px-4 py-12 sm:px-6 md:py-16">
+          <div className="relative mx-auto flex min-h-[520px] max-w-7xl items-end px-4 py-12 sm:px-6 md:py-16">
             <div className="max-w-4xl">
               <div className="mb-5">
                 <UnitBadge status={unit.status} />
               </div>
               <p className="mb-4 text-xs uppercase tracking-[0.28em] text-lf-volt">Unidade LoudFit</p>
               <h1 className="text-5xl font-black text-lf-text md:text-7xl">{unit.nome}</h1>
-              <p className="mt-5 max-w-[21rem] text-base leading-relaxed text-lf-muted md:max-w-2xl md:text-lg">
+              <p className="mt-4 max-w-[21rem] text-base leading-relaxed text-lf-muted md:max-w-2xl md:text-lg">
                 {unit.bairro} / {unit.cidade}, {unit.estado}.{' '}
                 {unit.status === 'em_breve'
                   ? 'Unidade em inauguração.'
-                  : `Estrutura completa e primeira ${isIpiranga ? 'parcela' : 'mensalidade'} por R$ 9,90 no Power Anual Recorrente.`}
+                  : `Estrutura completa. Primeira ${isIpiranga ? 'parcela' : 'mensalidade'} por R$ 9,90 no Power Anual Recorrente.`}
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 {unit.status !== 'em_breve' && (
@@ -144,7 +156,7 @@ export default async function UnitPage({ params }: Props) {
                 <div className="mt-4 space-y-2">
                   {Object.entries(unit.horarios ?? {}).map(([day, hours]) => (
                     <div key={day} className="flex flex-col gap-1 border-b border-lf-line pb-2 text-sm sm:flex-row sm:justify-between sm:gap-4">
-                      <span className="capitalize text-lf-muted">{day.replaceAll('_', ' ')}</span>
+                      <span className="text-lf-muted">{formatDay(day)}</span>
                       <span className="text-lf-text sm:text-right">{hours}</span>
                     </div>
                   ))}
@@ -223,7 +235,7 @@ export default async function UnitPage({ params }: Props) {
               <PlanCard
                 key={plan.name}
                 plan={plan}
-                ctaHref={planCtaHref}
+                ctaBase={planCtaBase}
                 ctaLabel={planCtaLabel}
               />
             ))}
@@ -244,7 +256,7 @@ export default async function UnitPage({ params }: Props) {
               title="Grade de aulas."
               subtitle="Estas aulas estão inclusas no seu plano nesta unidade, sem custo adicional."
             />
-            <div className="flex flex-wrap gap-2 md:gap-3">
+            <div className="flex flex-wrap gap-2 md:gap-2.5">
               {aulasUnit.map((aula) => (
                 <span
                   key={aula}
@@ -271,7 +283,7 @@ export default async function UnitPage({ params }: Props) {
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               {unit.galeria.map((img, i) => (
                 <div key={img} className="relative aspect-square overflow-hidden">
-                  <Image src={img} alt={`LoudFit ${unit.nome} - foto ${i + 1}`} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover" />
+                  <Image src={img} alt={`${unit.nome} - foto ${i + 1}`} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover" />
                 </div>
               ))}
             </div>
@@ -280,7 +292,7 @@ export default async function UnitPage({ params }: Props) {
 
         <Section bg="black" tight>
           <Link href="/unidades" className="text-sm uppercase tracking-widest text-lf-muted transition-colors hover:text-lf-text">
-            Voltar para unidades
+            ← Voltar para unidades
           </Link>
         </Section>
       </div>
