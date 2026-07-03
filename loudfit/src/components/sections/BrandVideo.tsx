@@ -18,7 +18,7 @@ export function BrandVideo() {
   }
 
   return (
-    <Section bg="black" className="relative overflow-hidden py-20 md:py-28">
+    <Section bg="black" className="relative py-20 md:py-28">
       <div className="relative grid gap-12 lg:grid-cols-[1fr_1.3fr] lg:items-center lg:gap-16">
 
         {/* Texto */}

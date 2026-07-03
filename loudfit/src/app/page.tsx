@@ -33,7 +33,7 @@ export default async function HomePage() {
       <CollectiveClassesSection />
 
       {units.length > 0 && (
-        <Section id="unidades" bg="lighter" className="relative overflow-hidden">
+        <Section id="unidades" bg="lighter" className="relative">
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <Reveal>
               <SectionHeader

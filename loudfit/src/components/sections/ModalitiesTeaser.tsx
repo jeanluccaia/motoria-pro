@@ -38,7 +38,7 @@ const delays = [0, 0.1, 0.2, 0.15]
 
 export function ModalitiesTeaser() {
   return (
-    <Section bg="black" className="relative overflow-hidden">
+    <Section bg="black" className="relative">
       <div className="relative">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <Reveal className="mb-0">

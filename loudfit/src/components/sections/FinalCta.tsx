@@ -13,7 +13,7 @@ const stats: Array<NumericStat | PriceStat> = [
 
 export function FinalCta() {
   return (
-    <Section bg="black" className="relative overflow-hidden border-t border-lf-line lg:py-32">
+    <Section bg="black" className="relative border-t border-lf-line lg:py-32">
       <Reveal>
         <div className="relative flex flex-col items-center text-center">
           <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">

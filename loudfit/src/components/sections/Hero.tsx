@@ -3,14 +3,14 @@ import { Button } from '@/components/ui/Button'
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-[94svh] lg:min-h-screen items-end overflow-hidden bg-lf-black pb-16 md:pb-24 lg:pb-32">
+    <section className="relative flex min-h-[94svh] lg:min-h-[90vh] items-end overflow-hidden bg-lf-black pb-16 md:pb-24 lg:pb-28">
       <Image
         src="/assets/images/hero-gym-desktop.png"
         alt=""
         fill
         priority
         sizes="100vw"
-        className="absolute inset-0 hidden h-full w-full object-cover object-center opacity-60 md:block lf-ken-burns"
+        className="absolute inset-0 hidden h-full w-full object-cover object-center opacity-55 md:block"
         aria-hidden="true"
       />
       <Image
@@ -19,7 +19,7 @@ export function Hero() {
         fill
         priority
         sizes="100vw"
-        className="absolute inset-0 h-full w-full object-cover object-center opacity-55 md:hidden lf-ken-burns"
+        className="absolute inset-0 h-full w-full object-cover object-center opacity-50 md:hidden"
         aria-hidden="true"
       />
 
