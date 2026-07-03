@@ -27,15 +27,16 @@ const items = [
 
 export function ModalitiesTeaser() {
   return (
-    <Section bg="graphite" className="relative overflow-hidden">
+    <Section bg="lighter" className="relative overflow-hidden">
       <div className="relative">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <SectionHeader
+            dark
             label="Modalidades"
             title="Musculação, cardio e aulas coletivas."
             subtitle="Tudo que você precisa no mesmo espaço, incluso no plano."
           />
-          <Button href="/modalidades" variant="outline" size="md" className="mb-12 md:mb-16">
+          <Button href="/modalidades" variant="volt" size="md" className="mb-12 md:mb-16">
             Ver modalidades
           </Button>
         </div>

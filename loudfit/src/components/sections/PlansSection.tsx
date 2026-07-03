@@ -11,8 +11,8 @@ export function PlansSection() {
         <SectionHeader
           dark
           label="Planos"
-          title="Escolha como treinar."
-          subtitle="Escolha seu plano. Escolha sua unidade. Comece a treinar."
+          title="Escolha o seu plano."
+          subtitle="Todos incluem musculação, aulas coletivas e acesso por reconhecimento facial."
         />
 
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4 lg:items-stretch">
@@ -21,9 +21,9 @@ export function PlansSection() {
           ))}
         </div>
 
-        <div className="mt-8 grid gap-2 border-t border-gray-200 pt-6 text-sm text-gray-500 md:grid-cols-2">
-          <p>Incluso em todos: musculação, aulas coletivas, estrutura completa e acesso por reconhecimento facial.</p>
-          <p className="md:text-right">Valores podem variar conforme a unidade. Ipiranga possui tabela própria.</p>
+        <div className="mt-8 border-t border-gray-200 pt-5 flex flex-col sm:flex-row gap-2 justify-between text-sm text-gray-400">
+          <p>Valores podem variar conforme a unidade. Ipiranga possui tabela própria.</p>
+          <p>Primeira mensalidade por R$9,90 apenas no Power Anual Recorrente.</p>
         </div>
       </div>
     </Section>

@@ -143,31 +143,31 @@ export default async function UnitPage({ params }: Props) {
         </div>
 
         {/* Informações */}
-        <Section id="informacoes" bg="black">
-          <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="border border-lf-line bg-lf-surface p-6">
-                <h2 className="text-sm uppercase tracking-[0.2em] text-lf-volt">Endereço</h2>
-                <p className="mt-4 text-lf-muted">{unit.endereco_completo}</p>
+        <Section id="informacoes" bg="lighter">
+          <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="border border-gray-200 bg-white p-6">
+                <h2 className="text-xs font-bold uppercase tracking-wide text-lf-volt">Endereço</h2>
+                <p className="mt-3 text-sm text-gray-600 leading-relaxed">{unit.endereco_completo}</p>
               </div>
 
-              <div className="border border-lf-line bg-lf-surface p-6">
-                <h2 className="text-sm uppercase tracking-[0.2em] text-lf-volt">Horário</h2>
-                <div className="mt-4 space-y-2">
+              <div className="border border-gray-200 bg-white p-6">
+                <h2 className="text-xs font-bold uppercase tracking-wide text-lf-volt">Horário</h2>
+                <div className="mt-3 space-y-2">
                   {Object.entries(unit.horarios ?? {}).map(([day, hours]) => (
-                    <div key={day} className="flex flex-col gap-1 border-b border-lf-line pb-2 text-sm sm:flex-row sm:justify-between sm:gap-4">
-                      <span className="text-lf-muted">{formatDay(day)}</span>
-                      <span className="text-lf-text sm:text-right">{hours}</span>
+                    <div key={day} className="flex flex-col gap-0.5 border-b border-gray-100 pb-2 text-sm sm:flex-row sm:justify-between sm:gap-4">
+                      <span className="text-gray-500">{formatDay(day)}</span>
+                      <span className="font-medium text-gray-800 sm:text-right">{hours}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="border border-lf-line bg-lf-surface p-6 md:col-span-2">
-                <h2 className="text-sm uppercase tracking-[0.2em] text-lf-volt">Estrutura</h2>
-                <div className="mt-4 flex flex-wrap gap-2">
+              <div className="border border-gray-200 bg-white p-6 md:col-span-2">
+                <h2 className="text-xs font-bold uppercase tracking-wide text-lf-volt">Estrutura</h2>
+                <div className="mt-3 flex flex-wrap gap-2">
                   {structureItems.map((item) => (
-                    <span key={item} className="border border-lf-line bg-lf-black px-4 py-2 text-sm uppercase tracking-wider text-lf-text">
+                    <span key={item} className="border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-gray-700">
                       {item}
                     </span>
                   ))}
@@ -175,15 +175,15 @@ export default async function UnitPage({ params }: Props) {
               </div>
             </div>
 
-            <div className="border border-lf-volt/25 bg-lf-graphite p-6">
-              <p className="text-xs uppercase tracking-[0.22em] text-lf-volt">Matrícula online</p>
-              <h2 className="mt-4 text-3xl font-black text-lf-text">
+            <div className="border-l-4 border-lf-volt bg-white p-6 shadow-sm">
+              <p className="text-xs font-bold uppercase tracking-wide text-lf-volt">Matrícula online</p>
+              <h2 className="mt-3 text-3xl font-black text-gray-900">
                 Primeira {isIpiranga ? 'parcela' : 'mensalidade'} por R$9,90.
               </h2>
-              <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-lf-muted">
+              <p className="mt-1 text-xs uppercase tracking-wide text-gray-400">
                 No Power Anual Recorrente.
               </p>
-              <p className="mt-4 text-sm leading-relaxed text-lf-muted">
+              <p className="mt-3 text-sm leading-relaxed text-gray-500">
                 {isIpiranga && hasCheckout
                   ? 'Unidade em inauguração. Garanta sua matrícula pelo checkout oficial EVO.'
                   : hasCheckout
@@ -193,7 +193,7 @@ export default async function UnitPage({ params }: Props) {
               <Button
                 href={unit.status === 'em_breve' && !hasCheckout ? '#planos' : checkoutHref}
                 variant="volt"
-                className="mt-6 w-full justify-center"
+                className="mt-5 w-full justify-center"
               >
                 {unit.status === 'em_breve' && !hasCheckout
                   ? 'Ver planos'
@@ -204,14 +204,24 @@ export default async function UnitPage({ params }: Props) {
                   : 'Começar matrícula'}
               </Button>
               {unit.google_maps_url && (
-                <Button href={unit.google_maps_url} variant="ghost" className="mt-3 w-full justify-center">
-                  Ver no Maps
-                </Button>
+                <a
+                  href={unit.google_maps_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 flex w-full items-center justify-center border border-gray-300 py-2.5 text-xs font-bold uppercase tracking-wide text-gray-500 transition hover:border-gray-500 hover:text-gray-700"
+                >
+                  Ver no Maps ↗
+                </a>
               )}
               {unit.instagram_url && (
-                <Button href={unit.instagram_url} variant="outline" className="mt-3 w-full justify-center">
-                  Instagram da unidade
-                </Button>
+                <a
+                  href={unit.instagram_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 flex w-full items-center justify-center border border-gray-300 py-2.5 text-xs font-bold uppercase tracking-wide text-gray-500 transition hover:border-gray-500 hover:text-gray-700"
+                >
+                  Instagram ↗
+                </a>
               )}
             </div>
           </div>
