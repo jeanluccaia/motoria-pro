@@ -1,5 +1,29 @@
 import Link from "next/link";
-import { ArrowRight, Crown, ShieldAlert, Sparkles } from "lucide-react";
+import { ArrowRight, Brain, Crown, ShieldAlert, Sparkles, UserCheck } from "lucide-react";
+
+const modules = [
+  {
+    href: "/admin/growth/intelligence",
+    eyebrow: "Base e score",
+    title: "DGN Intelligence",
+    text: "Importe, visualize, filtre e priorize clientes pela base DGN Intelligence 3.0.",
+    icon: Brain,
+  },
+  {
+    href: "/admin/growth/curadoria",
+    eyebrow: "Conhecimento humano",
+    title: "Curadoria DGN",
+    text: "Transforme leitura comercial do Rodrigo em dados estruturados para relacionamento.",
+    icon: UserCheck,
+  },
+  {
+    href: "/admin/growth/founders-2026",
+    eyebrow: "Campanha ativa",
+    title: "Founders 2026",
+    text: "Gerencie os 30 convites, WhatsApp manual assistido, status e conversao.",
+    icon: Crown,
+  },
+];
 
 export default function DgnGrowthPage() {
   return (
@@ -10,11 +34,11 @@ export default function DgnGrowthPage() {
             DGN Growth
           </p>
           <h1 className="mt-3 max-w-3xl text-3xl font-semibold leading-tight tracking-normal sm:text-5xl">
-            Central interna de campanhas e relacionamento.
+            Intelligence, curadoria e campanha Founders em uma mesa interna.
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#A7A7A7]">
-            Primeira base operacional do DGN Growth dentro do ecossistema DGN Club.
-            Nesta etapa, somente o Campaign Center Founders 2026 está ativo.
+            MVP operacional para organizar a base inicial, selecionar os primeiros 30 Founders e
+            conduzir convites de forma manual assistida.
           </p>
         </header>
 
@@ -22,52 +46,51 @@ export default function DgnGrowthPage() {
           <div className="flex gap-3">
             <ShieldAlert size={18} className="mt-0.5 shrink-0 text-[#C9A84C]" />
             <div>
-              <p className="text-sm font-semibold text-white">Rota interna</p>
+              <p className="text-sm font-semibold text-white">Area interna</p>
               <p className="mt-1 text-xs leading-relaxed text-[#9CA3AF]">
-                Proteger esta área com autenticação/admin antes de operar com dados reais em
-                produção. Não há CRM, ERP, disparo em massa ou integração externa nesta versão.
+                Proteger esta area com autenticacao/admin antes de operar com dados reais em
+                producao. Esta versao nao cria ERP, CRM completo, disparo em massa ou WhatsApp API.
               </p>
             </div>
           </div>
         </section>
 
-        <section className="mt-8 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-          <Link
-            href="/admin/growth/founders-2026"
-            className="group rounded-lg border border-[#C9A84C]/24 bg-[linear-gradient(145deg,#17120A_0%,#101010_62%,#0B0B0B_100%)] p-6 transition hover:border-[#C9A84C]/45"
-          >
-            <div className="flex items-start justify-between gap-5">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#C9A84C]/10 text-[#C9A84C]">
-                <Crown size={22} />
-              </div>
-              <ArrowRight
-                size={20}
-                className="text-[#C9A84C] transition group-hover:translate-x-1"
-              />
-            </div>
-            <p className="mt-8 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
-              Campanha ativa
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold text-white">
-              Campaign Center Founders 2026
-            </h2>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#A7A7A7]">
-              Acompanhe os 30 convidados Founders, status de convite, links personalizados,
-              WhatsApp manual assistido, pagamento e conversão.
-            </p>
-          </Link>
+        <section className="mt-8 grid gap-4 lg:grid-cols-3">
+          {modules.map((module) => {
+            const Icon = module.icon;
 
-          <div className="rounded-lg border border-white/[0.08] bg-[#101010] p-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/[0.04] text-[#A7A7A7]">
-              <Sparkles size={21} />
-            </div>
-            <p className="mt-8 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7D7D7D]">
-              Base futura
-            </p>
-            <h2 className="mt-2 text-xl font-semibold text-white">DGN Intelligence</h2>
-            <p className="mt-3 text-sm leading-relaxed text-[#A7A7A7]">
-              Nomenclatura preparada para evoluir dados de campanha para customerProfile,
-              relationshipScore, recommendedPlan, campaignParticipation e commercialTimeline.
+            return (
+              <Link
+                key={module.href}
+                href={module.href}
+                className="group rounded-lg border border-[#C9A84C]/18 bg-[#101010] p-6 transition hover:border-[#C9A84C]/42"
+              >
+                <div className="flex items-start justify-between gap-5">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#C9A84C]/10 text-[#C9A84C]">
+                    <Icon size={22} />
+                  </div>
+                  <ArrowRight
+                    size={20}
+                    className="text-[#C9A84C] transition group-hover:translate-x-1"
+                  />
+                </div>
+                <p className="mt-8 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
+                  {module.eyebrow}
+                </p>
+                <h2 className="mt-2 text-xl font-semibold text-white">{module.title}</h2>
+                <p className="mt-3 text-sm leading-relaxed text-[#A7A7A7]">{module.text}</p>
+              </Link>
+            );
+          })}
+        </section>
+
+        <section className="mt-5 rounded-lg border border-white/[0.08] bg-[#101010] p-5">
+          <div className="flex items-start gap-3">
+            <Sparkles size={18} className="mt-0.5 shrink-0 text-[#C9A84C]" />
+            <p className="text-sm leading-relaxed text-[#A7A7A7]">
+              Estrutura conceitual preparada para campanhas futuras: Founder, Smart, Priority,
+              Renovacao, Reativacao, Corporate Care e Indicacao. Nesta entrega, somente Founders
+              2026 esta operacional.
             </p>
           </div>
         </section>
