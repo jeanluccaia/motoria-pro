@@ -14,9 +14,9 @@ interface Props {
 }
 
 const AULAS_COLETIVAS = new Set([
-  'Muay Thai', 'Pilates', 'FitDance', 'Fit Dance', 'Zumba', 'Jump', 'Spinning',
+  'Muay Thai', 'Pilates', 'Pilates Solo', 'FitDance', 'Fit Dance', 'Zumba', 'Jump', 'Spinning',
   'Yoga', 'Jiu-Jitsu', 'Pump', 'GAP', 'Step', 'Crosstreino', 'Loud Dance',
-  'Alongamento', 'Funcional',
+  'Alongamento', 'Alongamento/Mobilidade', 'Funcional', 'Ritbox',
 ])
 
 export async function generateStaticParams() {
@@ -69,7 +69,11 @@ export default async function UnitPage({ params }: Props) {
 
   const plans = getPlans(unit.slug)
   const planCtaHref = hasCheckout ? `/matricula/${unit.slug}` : `/unidades/${unit.slug}#informacoes`
-  const planCtaLabel = hasCheckout ? 'Começar matrícula online' : undefined
+  const planCtaLabel = isIpiranga && hasCheckout
+    ? 'Garantir matrícula online'
+    : hasCheckout
+    ? 'Começar matrícula online'
+    : undefined
 
   return (
     <>
@@ -108,7 +112,12 @@ export default async function UnitPage({ params }: Props) {
                     {hasCheckout ? 'Matricular online' : 'Começar matrícula'}
                   </Button>
                 )}
-                {unit.status === 'em_breve' && (
+                {unit.status === 'em_breve' && hasCheckout && (
+                  <Button href={checkoutHref} variant="volt" size="lg" className="w-full sm:w-auto">
+                    Garantir matrícula online
+                  </Button>
+                )}
+                {unit.status === 'em_breve' && !hasCheckout && (
                   <Button href="#planos" variant="volt" size="lg" className="w-full sm:w-auto">
                     Ver planos
                   </Button>
@@ -163,16 +172,24 @@ export default async function UnitPage({ params }: Props) {
                 No Power Anual Recorrente.
               </p>
               <p className="mt-4 text-sm leading-relaxed text-lf-muted">
-                {hasCheckout
+                {isIpiranga && hasCheckout
+                  ? 'Unidade em inauguração. Garanta sua matrícula pelo checkout oficial EVO.'
+                  : hasCheckout
                   ? 'Checkout disponível. Escolha seu plano abaixo e finalize online.'
                   : 'Escolha um plano e finalize sua matrícula.'}
               </p>
               <Button
-                href={unit.status === 'em_breve' ? '#planos' : checkoutHref}
+                href={unit.status === 'em_breve' && !hasCheckout ? '#planos' : checkoutHref}
                 variant="volt"
                 className="mt-6 w-full justify-center"
               >
-                {unit.status === 'em_breve' ? 'Ver planos' : hasCheckout ? 'Matricular online' : 'Começar matrícula'}
+                {unit.status === 'em_breve' && !hasCheckout
+                  ? 'Ver planos'
+                  : isIpiranga
+                  ? 'Garantir matrícula online'
+                  : hasCheckout
+                  ? 'Matricular online'
+                  : 'Começar matrícula'}
               </Button>
               {unit.google_maps_url && (
                 <Button href={unit.google_maps_url} variant="ghost" className="mt-3 w-full justify-center">
