@@ -27,9 +27,10 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
     return (
       <article className={cn(
         'group relative flex flex-col overflow-hidden bg-lf-black',
-        'ring-1 ring-lf-volt/60',
+        'ring-2 ring-lf-volt shadow-[0_8px_48px_rgba(255,229,0,0.12)]',
         'transition duration-200 hover:-translate-y-1',
-        'order-first md:order-none md:-mt-4',
+        'order-first md:order-none md:-mt-4 lg:mt-0',
+        'lg:scale-[1.03] lg:z-10',
       )}>
         {/* Faixa topo — MELHOR VALOR */}
         <div className="bg-lf-volt px-4 py-2 flex items-center justify-between">
@@ -48,8 +49,8 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
           {/* Preço principal */}
           <div className="mt-5">
             <p className="flex items-end gap-1.5 text-lf-text">
-              <strong className="text-4xl font-black leading-none">{plan.price}</strong>
-              <span className="pb-0.5 text-sm text-lf-muted">{plan.period}</span>
+              <strong className="text-5xl font-black leading-none">{plan.price}</strong>
+              <span className="pb-1 text-sm text-lf-muted">{plan.period}</span>
             </p>
           </div>
 
@@ -100,8 +101,8 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
         <p className="mt-2 text-sm leading-relaxed text-gray-500">{plan.description}</p>
 
         <p className="mt-5 flex items-end gap-1.5 text-gray-900">
-          <strong className="text-4xl font-black leading-none">{plan.price}</strong>
-          <span className="pb-0.5 text-sm text-gray-400">{plan.period}</span>
+          <strong className="text-5xl font-black leading-none">{plan.price}</strong>
+          <span className="pb-1 text-sm text-gray-400">{plan.period}</span>
         </p>
 
         <ul className="mt-5 space-y-2 text-sm text-gray-500">

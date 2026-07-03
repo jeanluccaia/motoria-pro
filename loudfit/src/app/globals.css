@@ -64,9 +64,21 @@ h1, h2, h3, h4 {
   border: 1px solid #E8E8E6;
 }
 
+/* Ken Burns — hero background image */
+@keyframes lf-ken-burns {
+  from { transform: scale(1); }
+  to   { transform: scale(1.06); }
+}
+.lf-ken-burns {
+  animation: lf-ken-burns 20s ease-in-out infinite alternate;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+  .lf-ken-burns {
+    animation: none;
   }
 }

@@ -20,8 +20,8 @@ const bgs: Record<BgVariant, string> = {
 
 export function Section({ children, className, id, bg = 'black', tight = false }: SectionProps) {
   return (
-    <section id={id} className={cn(bgs[bg], tight ? 'py-12' : 'py-16 md:py-24', className)}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">{children}</div>
+    <section id={id} className={cn(bgs[bg], tight ? 'py-12' : 'py-16 md:py-24 lg:py-28', className)}>
+      <div className="max-w-[1360px] mx-auto px-5 sm:px-8 lg:px-12">{children}</div>
     </section>
   )
 }
@@ -42,7 +42,7 @@ export function SectionHeader({
   className?: string
 }) {
   return (
-    <div className={cn('mb-10 md:mb-14', centered && 'text-center', className)}>
+    <div className={cn('mb-10 md:mb-14 lg:mb-16', centered && 'text-center', className)}>
       {label && (
         <p className={cn(
           'mb-3 text-[11px] font-bold uppercase tracking-[0.14em]',

@@ -6,7 +6,7 @@ export function PlansSection() {
   const plans = getPlans()
 
   return (
-    <Section id="planos" bg="light" className="relative overflow-hidden">
+    <Section id="planos" bg="light" className="relative overflow-hidden lg:py-32">
       <div className="relative">
         <SectionHeader
           dark
