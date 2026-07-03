@@ -30,23 +30,22 @@ export default async function HomePage() {
 
       {units.length > 0 && (
         <Section id="unidades" bg="lighter" className="relative overflow-hidden">
-          <div className="relative">
-            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-              <SectionHeader
-                dark
-                label="Unidades"
-                title="Escolha sua LoudFit."
-                subtitle="6 unidades em SP — Campinas, Valinhos, São Paulo e Mogi Mirim."
-              />
-              <Button href="/unidades" variant="outline" size="md" className="mb-12 md:mb-16">
-                Ver todas as 6 unidades
-              </Button>
-            </div>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {units.map((unit) => (
-                <UnitCard key={unit.id} unit={unit} />
-              ))}
-            </div>
+          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+            <SectionHeader
+              dark
+              label="Unidades"
+              title="Escolha sua LoudFit."
+              subtitle="6 unidades em SP — Campinas, Valinhos, São Paulo e Mogi Mirim."
+              className="mb-0"
+            />
+            <Button href="/unidades" variant="volt" size="md" className="shrink-0 mb-10 md:mb-14">
+              Ver todas as unidades
+            </Button>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {units.map((unit) => (
+              <UnitCard key={unit.id} unit={unit} />
+            ))}
           </div>
         </Section>
       )}

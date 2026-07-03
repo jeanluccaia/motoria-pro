@@ -21,9 +21,9 @@ export function PlansSection() {
           ))}
         </div>
 
-        <div className="mt-8 border-t border-gray-200 pt-5 flex flex-col sm:flex-row gap-2 justify-between text-sm text-gray-400">
+        <div className="mt-8 border-t border-gray-200 pt-5 flex flex-col sm:flex-row gap-2 justify-between text-xs text-gray-400">
           <p>Valores podem variar conforme a unidade. Ipiranga possui tabela própria.</p>
-          <p>Primeira mensalidade por R$9,90 apenas no Power Anual Recorrente.</p>
+          <p>R$9,90 na primeira mensalidade apenas no Power Anual Recorrente.</p>
         </div>
       </div>
     </Section>

@@ -2,22 +2,22 @@
 
 :root {
   /* Superfícies */
-  --lf-black:    #0A0A0A;
-  --lf-graphite: #161616;
-  --lf-surface:  #1F1F1F;
-  --lf-line:     #2E2E2E;
+  --lf-black:    #090909;
+  --lf-graphite: #141414;
+  --lf-surface:  #1C1C1C;
+  --lf-line:     #272727;
 
   /* Texto */
-  --lf-text:     #F4F4F4;
-  --lf-muted:    #A1A1A1;
+  --lf-text:     #F2F2F0;
+  --lf-muted:    #909090;
 
-  /* Acento — confirmar hex oficial com a marca */
+  /* Acento */
   --lf-volt:     #F2E205;
-  --lf-volt-deep:#C9BE04;
+  --lf-volt-deep:#D4C804;
 
   /* Movimento */
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --dur:  0.6s;
+  --dur:  0.5s;
 }
 
 @theme inline {
@@ -54,9 +54,14 @@ body {
 
 h1, h2, h3, h4 {
   font-family: var(--font-display, system-ui, sans-serif);
-  text-transform: uppercase;
-  letter-spacing: 0;
-  line-height: 1;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+}
+
+/* Superfície branca/clara para seções de decisão */
+.lf-light-card {
+  background: #ffffff;
+  border: 1px solid #E8E8E6;
 }
 
 @media (prefers-reduced-motion: reduce) {

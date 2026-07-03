@@ -146,28 +146,28 @@ export default async function UnitPage({ params }: Props) {
         <Section id="informacoes" bg="lighter">
           <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="border border-gray-200 bg-white p-6">
-                <h2 className="text-xs font-bold uppercase tracking-wide text-lf-volt">Endereço</h2>
+              <div className="bg-white border border-gray-200 p-6">
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lf-volt">Endereço</p>
                 <p className="mt-3 text-sm text-gray-600 leading-relaxed">{unit.endereco_completo}</p>
               </div>
 
-              <div className="border border-gray-200 bg-white p-6">
-                <h2 className="text-xs font-bold uppercase tracking-wide text-lf-volt">Horário</h2>
-                <div className="mt-3 space-y-2">
+              <div className="bg-white border border-gray-200 p-6">
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lf-volt">Horário</p>
+                <div className="mt-3 space-y-1.5">
                   {Object.entries(unit.horarios ?? {}).map(([day, hours]) => (
-                    <div key={day} className="flex flex-col gap-0.5 border-b border-gray-100 pb-2 text-sm sm:flex-row sm:justify-between sm:gap-4">
+                    <div key={day} className="flex flex-col gap-0.5 border-b border-gray-100 pb-1.5 text-sm sm:flex-row sm:justify-between sm:gap-4 last:border-0 last:pb-0">
                       <span className="text-gray-500">{formatDay(day)}</span>
-                      <span className="font-medium text-gray-800 sm:text-right">{hours}</span>
+                      <span className="font-semibold text-gray-800 sm:text-right">{hours}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="border border-gray-200 bg-white p-6 md:col-span-2">
-                <h2 className="text-xs font-bold uppercase tracking-wide text-lf-volt">Estrutura</h2>
+              <div className="bg-white border border-gray-200 p-6 md:col-span-2">
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lf-volt">Estrutura</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {structureItems.map((item) => (
-                    <span key={item} className="border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-gray-700">
+                    <span key={item} className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700">
                       {item}
                     </span>
                   ))}
@@ -175,19 +175,19 @@ export default async function UnitPage({ params }: Props) {
               </div>
             </div>
 
-            <div className="border-l-4 border-lf-volt bg-white p-6 shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-wide text-lf-volt">Matrícula online</p>
-              <h2 className="mt-3 text-3xl font-black text-gray-900">
+            <div className="bg-white border-t-4 border-t-lf-volt border border-gray-200 p-6">
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lf-volt">Matrícula online</p>
+              <h2 className="mt-3 text-3xl font-black text-gray-900 leading-tight">
                 Primeira {isIpiranga ? 'parcela' : 'mensalidade'} por R$9,90.
               </h2>
-              <p className="mt-1 text-xs uppercase tracking-wide text-gray-400">
+              <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-gray-400">
                 No Power Anual Recorrente.
               </p>
               <p className="mt-3 text-sm leading-relaxed text-gray-500">
                 {isIpiranga && hasCheckout
                   ? 'Unidade em inauguração. Garanta sua matrícula pelo checkout oficial EVO.'
                   : hasCheckout
-                  ? 'Checkout disponível. Escolha seu plano abaixo e finalize online.'
+                  ? 'Escolha seu plano abaixo e finalize a matrícula online.'
                   : 'Escolha um plano e finalize sua matrícula.'}
               </p>
               <Button
@@ -208,7 +208,7 @@ export default async function UnitPage({ params }: Props) {
                   href={unit.google_maps_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-3 flex w-full items-center justify-center border border-gray-300 py-2.5 text-xs font-bold uppercase tracking-wide text-gray-500 transition hover:border-gray-500 hover:text-gray-700"
+                  className="mt-3 flex w-full items-center justify-center gap-1.5 border border-gray-200 py-2.5 text-xs font-medium text-gray-500 transition hover:border-gray-400 hover:text-gray-700"
                 >
                   Ver no Maps ↗
                 </a>
@@ -218,7 +218,7 @@ export default async function UnitPage({ params }: Props) {
                   href={unit.instagram_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-2 flex w-full items-center justify-center border border-gray-300 py-2.5 text-xs font-bold uppercase tracking-wide text-gray-500 transition hover:border-gray-500 hover:text-gray-700"
+                  className="mt-2 flex w-full items-center justify-center gap-1.5 border border-gray-200 py-2.5 text-xs font-medium text-gray-500 transition hover:border-gray-400 hover:text-gray-700"
                 >
                   Instagram ↗
                 </a>
@@ -266,11 +266,11 @@ export default async function UnitPage({ params }: Props) {
               title="Grade de aulas."
               subtitle="Estas aulas estão inclusas no seu plano nesta unidade, sem custo adicional."
             />
-            <div className="flex flex-wrap gap-2 md:gap-2.5">
+            <div className="flex flex-wrap gap-2.5">
               {aulasUnit.map((aula) => (
                 <span
                   key={aula}
-                  className="border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700"
+                  className="rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700"
                 >
                   {aula}
                 </span>

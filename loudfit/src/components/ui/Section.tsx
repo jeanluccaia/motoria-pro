@@ -1,5 +1,4 @@
 import { cn } from '@/lib/utils'
-import { SignalMark } from './SignalMark'
 
 type BgVariant = 'black' | 'graphite' | 'surface' | 'light' | 'lighter'
 
@@ -33,28 +32,31 @@ export function SectionHeader({
   subtitle,
   centered = false,
   dark = false,
+  className,
 }: {
   label?: string
   title: string
   subtitle?: string | React.ReactNode
   centered?: boolean
   dark?: boolean
+  className?: string
 }) {
   return (
-    <div className={cn('mb-10 md:mb-14', centered && 'text-center')}>
+    <div className={cn('mb-10 md:mb-14', centered && 'text-center', className)}>
       {label && (
-        <div className={cn('mb-4 flex items-center gap-3', centered && 'justify-center')}>
-          <SignalMark />
-          <p className={cn('text-xs uppercase tracking-[0.2em]', dark ? 'text-gray-500' : 'text-lf-volt')}>
-            {label}
-          </p>
-        </div>
+        <p className={cn(
+          'mb-3 text-[11px] font-bold uppercase tracking-[0.18em]',
+          dark ? 'text-gray-400' : 'text-lf-volt',
+          centered && 'text-center',
+        )}>
+          {label}
+        </p>
       )}
-      <h2 className={cn('text-4xl md:text-6xl font-black', dark ? 'text-gray-900' : 'text-lf-text')}>
+      <h2 className={cn('text-4xl md:text-5xl font-black leading-[1.02]', dark ? 'text-gray-900' : 'text-lf-text')}>
         {title}
       </h2>
       {subtitle && (
-        <p className={cn('mt-4 text-lg max-w-2xl', dark ? 'text-gray-500' : 'text-lf-muted')}>
+        <p className={cn('mt-4 text-base md:text-lg max-w-2xl leading-relaxed', dark ? 'text-gray-500' : 'text-lf-muted')}>
           {subtitle}
         </p>
       )}

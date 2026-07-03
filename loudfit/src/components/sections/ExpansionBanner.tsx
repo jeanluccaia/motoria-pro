@@ -4,50 +4,52 @@ import { Button } from '@/components/ui/Button'
 import { Reveal } from '@/components/ui/Reveal'
 
 const proof = [
-  ['5', 'unidades em operação'],
-  ['1', 'em inauguração — Ipiranga'],
-  ['4', 'cidades atendidas'],
+  { value: '5', label: 'unidades em operação' },
+  { value: '1', label: 'em inauguração — Ipiranga' },
+  { value: '4', label: 'cidades atendidas' },
 ]
 
 export function ExpansionBanner() {
   return (
     <Section bg="black">
       <Reveal>
-        <div className="relative overflow-hidden border border-lf-volt/20 bg-lf-graphite">
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-lf-volt to-transparent" />
+        <div className="relative overflow-hidden">
           <Image
             src="/assets/images/real-facade.jpg"
             alt=""
             fill
             sizes="100vw"
-            className="object-cover opacity-35"
+            className="object-cover opacity-30"
             aria-hidden="true"
           />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,10,10,0.98),rgba(10,10,10,0.82),rgba(10,10,10,0.46))]" />
-          <div className="relative grid gap-10 p-6 md:p-10 lg:grid-cols-[1fr_0.86fr] lg:p-14">
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(9,9,9,0.98),rgba(9,9,9,0.85),rgba(9,9,9,0.55))]" />
+
+          <div className="relative grid gap-10 border border-lf-line p-6 md:p-10 lg:grid-cols-[1fr_0.8fr] lg:p-14">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.12em] text-lf-volt mb-5">Expansão</p>
-              <h2 className="max-w-3xl text-4xl font-black leading-none text-lf-text md:text-6xl">
+              <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
+                Expansão
+              </p>
+              <h2 className="max-w-xl text-4xl font-black leading-[1.02] text-lf-text md:text-5xl">
                 A LoudFit está crescendo.
               </h2>
-              <p className="mt-6 max-w-xl text-base leading-relaxed text-lf-muted">
+              <p className="mt-5 max-w-sm text-base leading-relaxed text-lf-muted">
                 Seja dono de uma unidade em uma rede com marca forte, operação real e presença de bairro.
               </p>
-              <div className="mt-9 flex flex-col gap-4 sm:flex-row">
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Button href="/franquias" variant="volt" size="lg">
                   Quero ser franqueado
                 </Button>
-                <Button href="/franquias#formulario" variant="outline" size="lg">
+                <Button href="/franquias#formulario" variant="ghost" size="lg">
                   Falar com o time
                 </Button>
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-              {proof.map(([value, label]) => (
-                <div key={label} className="border-l-2 border-lf-volt bg-lf-black/60 p-5">
+            <div className="grid gap-px sm:grid-cols-3 lg:grid-cols-1 border border-lf-line overflow-hidden">
+              {proof.map(({ value, label }) => (
+                <div key={label} className="flex flex-col justify-center bg-lf-graphite/80 px-6 py-5">
                   <strong className="text-4xl font-black text-lf-volt">{value}</strong>
-                  <p className="mt-2 text-xs font-medium uppercase tracking-[0.1em] text-lf-muted">{label}</p>
+                  <p className="mt-1 text-xs font-medium uppercase tracking-[0.1em] text-lf-muted">{label}</p>
                 </div>
               ))}
             </div>

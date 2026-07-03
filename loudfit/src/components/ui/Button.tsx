@@ -1,3 +1,4 @@
+import React from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
@@ -10,6 +11,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   href?: string
   className?: string
   children: React.ReactNode
+  onClick?: () => void
 }
 
 const variants: Record<Variant, string> = {
@@ -25,7 +27,7 @@ const sizes: Record<Size, string> = {
 }
 
 const base =
-  'inline-flex max-w-full items-center justify-center rounded-none text-center font-bold uppercase leading-tight tracking-widest whitespace-normal transition-all duration-300 min-h-[44px] cursor-pointer hover:-translate-y-0.5 active:translate-y-0'
+  'inline-flex max-w-full items-center justify-center rounded-none text-center font-bold uppercase leading-tight tracking-[0.1em] whitespace-normal transition-all duration-200 min-h-[44px] cursor-pointer hover:-translate-y-0.5 active:translate-y-0'
 
 export function Button({
   variant = 'volt',
@@ -33,13 +35,14 @@ export function Button({
   href,
   className,
   children,
+  onClick,
   ...props
 }: ButtonProps) {
   const cls = cn(base, variants[variant], sizes[size], className)
 
   if (href) {
     return (
-      <Link href={href} className={cls}>
+      <Link href={href} className={cls} onClick={onClick}>
         <span className="min-w-0 max-w-full break-words">{children}</span>
       </Link>
     )
