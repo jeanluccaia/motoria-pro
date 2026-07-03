@@ -2,11 +2,12 @@ import Image from 'next/image'
 import { Section } from '@/components/ui/Section'
 import { Button } from '@/components/ui/Button'
 import { Reveal } from '@/components/ui/Reveal'
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber'
 
 const proof = [
-  { value: '5', label: 'unidades em operação' },
-  { value: '1', label: 'em inauguração — Ipiranga' },
-  { value: '4', label: 'cidades atendidas' },
+  { value: 5, label: 'unidades em operação' },
+  { value: 1, label: 'em inauguração — Ipiranga' },
+  { value: 4, label: 'cidades atendidas' },
 ]
 
 export function ExpansionBanner() {
@@ -48,7 +49,9 @@ export function ExpansionBanner() {
             <div className="grid gap-px sm:grid-cols-3 lg:grid-cols-1 border border-lf-line overflow-hidden">
               {proof.map(({ value, label }) => (
                 <div key={label} className="flex flex-col justify-center bg-lf-graphite/80 px-6 py-5">
-                  <strong className="text-4xl font-black text-lf-volt">{value}</strong>
+                  <strong className="text-4xl font-black text-lf-volt">
+                    <AnimatedNumber value={value} duration={1200} />
+                  </strong>
                   <p className="mt-1 text-xs font-medium uppercase tracking-[0.1em] text-lf-muted">{label}</p>
                 </div>
               ))}

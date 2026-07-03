@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Section } from '@/components/ui/Section'
+import { Reveal } from '@/components/ui/Reveal'
 
 export function BrandVideo() {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -21,66 +22,70 @@ export function BrandVideo() {
       <div className="relative grid gap-12 lg:grid-cols-[1fr_1.3fr] lg:items-center lg:gap-16">
 
         {/* Texto */}
-        <div>
-          <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.14em] text-lf-volt">
-            Estrutura LoudFit
-          </p>
-          <h2 className="text-4xl font-black leading-[1.02] text-lf-text md:text-5xl">
-            Veja a LoudFit<br />por dentro.
-          </h2>
-          <p className="mt-5 max-w-sm text-base leading-relaxed text-lf-muted">
-            Musculação, aulas coletivas e estrutura completa para treinar todos os dias.
-          </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button href="/unidades" variant="volt" size="lg">
-              Ver unidades
-            </Button>
-            <Button href="/#planos" variant="ghost" size="lg">
-              Ver planos
-            </Button>
+        <Reveal>
+          <div>
+            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.14em] text-lf-volt">
+              Estrutura LoudFit
+            </p>
+            <h2 className="text-4xl font-black leading-[1.02] text-lf-text md:text-5xl">
+              Veja a LoudFit<br />por dentro.
+            </h2>
+            <p className="mt-5 max-w-sm text-base leading-relaxed text-lf-muted">
+              Musculação, aulas coletivas e estrutura completa para treinar todos os dias.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button href="/unidades" variant="volt" size="lg">
+                Ver unidades
+              </Button>
+              <Button href="/#planos" variant="ghost" size="lg">
+                Ver planos
+              </Button>
+            </div>
           </div>
-        </div>
+        </Reveal>
 
         {/* Vídeo — container premium */}
-        <div className="relative overflow-hidden border-l-2 border-lf-volt">
-          {/* Diagonal accent — canto superior direito */}
-          <div className="absolute top-0 right-0 z-10 h-0 w-0 border-t-[40px] border-t-lf-volt border-l-[40px] border-l-transparent" />
+        <Reveal delay={0.15}>
+          <div className="relative overflow-hidden border-l-2 border-lf-volt">
+            {/* Diagonal accent — canto superior direito */}
+            <div className="absolute top-0 right-0 z-10 h-0 w-0 border-t-[40px] border-t-lf-volt border-l-[40px] border-l-transparent" />
 
-          <div className="relative aspect-video overflow-hidden">
-            <video
-              ref={videoRef}
-              src="/hero.mp4"
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster="/assets/images/real-machines.jpg"
-              className="h-full w-full object-cover"
-              aria-label="Vídeo da academia LoudFit"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-lf-black/40 via-transparent to-transparent" />
+            <div className="relative aspect-video overflow-hidden">
+              <video
+                ref={videoRef}
+                src="/hero.mp4"
+                autoPlay
+                muted
+                loop
+                playsInline
+                poster="/assets/images/real-machines.jpg"
+                className="h-full w-full object-cover"
+                aria-label="Vídeo da academia LoudFit"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-lf-black/40 via-transparent to-transparent" />
 
-            {/* Botão de som */}
-            <button
-              type="button"
-              onClick={toggleSound}
-              aria-label={muted ? 'Ativar som' : 'Silenciar'}
-              className="absolute bottom-4 right-4 flex items-center gap-2 border border-lf-line bg-lf-black/85 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-lf-text transition-all duration-150 hover:border-lf-volt hover:text-lf-volt backdrop-blur-sm"
-            >
-              {muted ? (
-                <>
-                  <SoundOffIcon />
-                  Som
-                </>
-              ) : (
-                <>
-                  <SoundOnIcon />
-                  Mudo
-                </>
-              )}
-            </button>
+              {/* Botão de som */}
+              <button
+                type="button"
+                onClick={toggleSound}
+                aria-label={muted ? 'Ativar som' : 'Silenciar'}
+                className="absolute bottom-4 right-4 flex items-center gap-2 border border-lf-line bg-lf-black/85 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-lf-text transition-all duration-150 hover:border-lf-volt hover:text-lf-volt backdrop-blur-sm"
+              >
+                {muted ? (
+                  <>
+                    <SoundOffIcon />
+                    Som
+                  </>
+                ) : (
+                  <>
+                    <SoundOnIcon />
+                    Mudo
+                  </>
+                )}
+              </button>
+            </div>
           </div>
-        </div>
+        </Reveal>
 
       </div>
     </Section>

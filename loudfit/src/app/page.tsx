@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Hero } from '@/components/sections/Hero'
 import { OfferBanner } from '@/components/sections/OfferBanner'
+import { BrandMarquee } from '@/components/sections/BrandMarquee'
 import { PlansSection } from '@/components/sections/PlansSection'
 import { CollectiveClassesSection } from '@/components/sections/CollectiveClassesSection'
 import { BrandVideo } from '@/components/sections/BrandVideo'
@@ -10,6 +11,8 @@ import { FinalCta } from '@/components/sections/FinalCta'
 import { Section, SectionHeader } from '@/components/ui/Section'
 import { UnitCard } from '@/components/ui/UnitCard'
 import { Button } from '@/components/ui/Button'
+import { Reveal } from '@/components/ui/Reveal'
+import { StickyCta } from '@/components/ui/StickyCta'
 import { getUnits } from '@/lib/supabase'
 
 export const metadata: Metadata = {
@@ -25,26 +28,33 @@ export default async function HomePage() {
     <>
       <Hero />
       <OfferBanner />
+      <BrandMarquee />
       <PlansSection />
       <CollectiveClassesSection />
 
       {units.length > 0 && (
         <Section id="unidades" bg="lighter" className="relative overflow-hidden">
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-            <SectionHeader
-              dark
-              label="Unidades"
-              title="Escolha sua LoudFit."
-              subtitle="5 unidades em operação — Campinas, Valinhos, São Paulo e Mogi Mirim."
-              className="mb-0"
-            />
-            <Button href="/unidades" variant="volt" size="md" className="shrink-0 mb-10 md:mb-14">
-              Ver todas as unidades
-            </Button>
+            <Reveal>
+              <SectionHeader
+                dark
+                label="Unidades"
+                title="Escolha sua LoudFit."
+                subtitle="5 unidades em operação — Campinas, Valinhos, São Paulo e Mogi Mirim."
+                className="mb-0"
+              />
+            </Reveal>
+            <Reveal delay={0.1} className="shrink-0 mb-10 md:mb-14">
+              <Button href="/unidades" variant="volt" size="md">
+                Ver todas as unidades
+              </Button>
+            </Reveal>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {units.map((unit) => (
-              <UnitCard key={unit.id} unit={unit} />
+            {units.map((unit, i) => (
+              <Reveal key={unit.id} delay={i * 0.07}>
+                <UnitCard unit={unit} />
+              </Reveal>
             ))}
           </div>
         </Section>
@@ -54,6 +64,7 @@ export default async function HomePage() {
       <ModalitiesTeaser />
       <ExpansionBanner />
       <FinalCta />
+      <StickyCta />
     </>
   )
 }

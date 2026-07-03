@@ -26,7 +26,7 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
   if (plan.featured) {
     return (
       <article className={cn(
-        'group relative flex flex-col overflow-hidden bg-lf-black',
+        'group relative flex flex-col overflow-hidden bg-lf-black h-full',
         'ring-2 ring-lf-volt shadow-[0_8px_48px_rgba(255,229,0,0.12)]',
         'transition duration-200 hover:-translate-y-1',
         'order-first md:order-none md:-mt-4 lg:mt-0',
@@ -86,7 +86,7 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
 
   return (
     <article className={cn(
-      'group relative flex flex-col overflow-hidden bg-white border border-gray-200',
+      'group relative flex flex-col overflow-hidden bg-white border border-gray-200 h-full',
       'transition duration-200 hover:-translate-y-1 hover:border-gray-300',
       'hover:shadow-[0_4px_0_0_#FFE500,0_6px_20px_rgba(0,0,0,0.08)]',
     )}>

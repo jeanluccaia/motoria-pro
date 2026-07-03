@@ -66,7 +66,7 @@ export function UnitCard({ unit }: { unit: Unit }) {
             <span className="text-xs font-bold uppercase tracking-[0.14em] text-white/70 group-hover:text-lf-volt transition-colors duration-200">
               Ver unidade
             </span>
-            <span className="flex h-7 w-7 items-center justify-center bg-lf-volt/0 border border-white/30 text-white text-sm transition-all duration-200 group-hover:bg-lf-volt group-hover:border-lf-volt group-hover:text-lf-black">
+            <span className="flex h-7 w-7 items-center justify-center bg-lf-volt/0 border border-white/30 text-white text-sm transition-all duration-200 group-hover:bg-lf-volt group-hover:border-lf-volt group-hover:text-lf-black group-hover:translate-x-1">
               →
             </span>
           </div>

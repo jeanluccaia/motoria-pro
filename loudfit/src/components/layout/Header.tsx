@@ -33,7 +33,7 @@ export function Header() {
           : 'bg-lf-black/80 border-b border-transparent backdrop-blur-md'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
+      <div className="max-w-[1360px] mx-auto px-5 sm:px-8 lg:px-12 flex items-center justify-between h-16">
         <Link href="/" aria-label="LoudFit Home">
           <Image
             src="/assets/images/loudfit-logo-official-lockup-yellow.png"
@@ -51,7 +51,7 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm uppercase tracking-[0.1em] text-lf-muted hover:text-lf-text transition-colors duration-150"
+              className="relative text-sm uppercase tracking-[0.1em] text-lf-muted hover:text-lf-text transition-colors duration-150 after:absolute after:bottom-[-2px] after:left-0 after:h-px after:w-0 after:bg-lf-volt after:transition-[width] after:duration-300 hover:after:w-full"
             >
               {item.label}
             </Link>

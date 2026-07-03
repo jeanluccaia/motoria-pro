@@ -1,5 +1,6 @@
 import { Section, SectionHeader } from '@/components/ui/Section'
 import { PlanCard } from '@/components/ui/PlanCard'
+import { Reveal } from '@/components/ui/Reveal'
 import { getPlans } from '@/lib/plans'
 
 export function PlansSection() {
@@ -8,16 +9,20 @@ export function PlansSection() {
   return (
     <Section id="planos" bg="light" className="relative overflow-hidden lg:py-32">
       <div className="relative">
-        <SectionHeader
-          dark
-          label="Planos"
-          title="Escolha o seu plano."
-          subtitle="Todos incluem musculação, aulas coletivas e acesso por reconhecimento facial."
-        />
+        <Reveal>
+          <SectionHeader
+            dark
+            label="Planos"
+            title="Escolha o seu plano."
+            subtitle="Todos incluem musculação, aulas coletivas e acesso por reconhecimento facial."
+          />
+        </Reveal>
 
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4 lg:items-stretch">
-          {plans.map((plan) => (
-            <PlanCard key={plan.name} plan={plan} />
+          {plans.map((plan, i) => (
+            <Reveal key={plan.slug} delay={i * 0.08} className="h-full flex flex-col">
+              <PlanCard plan={plan} />
+            </Reveal>
           ))}
         </div>
 
