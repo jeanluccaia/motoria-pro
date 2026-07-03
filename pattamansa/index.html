@@ -4448,14 +4448,14 @@ footer {
           <div class="vcard-img-wrap">
             <img id="cfcCrpImg"
               src="imgs/cfc/preta.webp"
-              alt="Caramelo FC Oversized Unissex Preta — PattaMansa"
+              alt="Caramelo FC Cropped Feminino Preta — PattaMansa"
               class="vcard-img" loading="lazy">
           </div>
-          <div class="vcard-gallery" id="cfcCrpGallery" role="list" aria-label="Galeria Caramelo FC Oversized Unissex"></div>
+          <div class="vcard-gallery" id="cfcCrpGallery" role="list" aria-label="Galeria Caramelo FC Cropped Feminino"></div>
           <div class="vcard-body">
             <p class="vcard-nome">Caramelo FC</p>
             <div class="vcard-meta">
-              <span class="vcard-modelagem">Oversized · Unissex</span>
+              <span class="vcard-modelagem">Cropped · Feminino</span>
               <span class="vcard-price-stack">
                 <span class="vcard-price">R$119,90</span>
                 <span class="vcard-installments">ou 10x de R$12,47</span>
@@ -5647,6 +5647,12 @@ footer {
         var items = PattaCart.getItems();
         if (!items.length) return;
 
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          console.log('[PattaMansa] Checkout — itens enviados:', items.map(function (i) {
+            return { 'product': i.productName, 'color': i.color, 'size': i.size, 'variantId': i.variantId };
+          }));
+        }
+
         if (window.PattaAnalytics) {
           PattaAnalytics.trackBeginCheckout(items, PattaCart.total());
         }
@@ -5858,6 +5864,16 @@ footer {
           product: _cfg.name, cor: cor && cor.cartValue, tamanho: _sz
         });
         return;
+      }
+
+      if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+        console.log('[PattaMansa] addToCart:', {
+          'product title': _cfg.name,
+          'selected model': _cfg.name,
+          'selected color': cor ? cor.name : '—',
+          'selected size': _sz,
+          'selected variantId': variantId,
+        });
       }
 
       ctaBtn.disabled = true;
@@ -6823,7 +6839,7 @@ footer {
       szWrap.appendChild(btn);
     });
 
-    const syncGallery = buildVariantGallery(galleryWrap, variants, setCor, 'Caramelo FC Oversized Unissex');
+    const syncGallery = buildVariantGallery(galleryWrap, variants, setCor, 'Caramelo FC Cropped Feminino');
 
     function setCor(i) {
       if (activeCor === i) return;
@@ -6834,7 +6850,7 @@ footer {
       img.style.opacity = '0';
       setTimeout(function () {
         img.src = variants[i].img;
-        img.alt = 'Caramelo FC Oversized Unissex ' + variants[i].name + ' — PattaMansa';
+        img.alt = 'Caramelo FC Cropped Feminino ' + variants[i].name + ' — PattaMansa';
         img.style.opacity = '1';
       }, 200);
       syncCta();
@@ -6855,12 +6871,12 @@ footer {
     ctaBtn.addEventListener('click', function (e) {
       e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
       ProductDrawer.open({
-        name: 'Caramelo FC · Oversized · Unissex',
+        name: 'Caramelo FC · Cropped · Feminino',
         price: 119.90, installments: 10, installmentText: 'ou 10x de R$12,47',
         defaultImage: BASE_CRP + 'preta.webp',
         colors: variants, sizes: SIZES,
         variantIds: cfcCrpVariantIds, productId: PRODUCT_ID,
-        guide: 'camiseta-oversized',
+        guide: 'cropped-feminino',
       });
     }, true);
     syncCta();
