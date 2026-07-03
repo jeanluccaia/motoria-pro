@@ -1,337 +1,320 @@
 "use client";
 
-import { motion, type Variants, type Easing } from "framer-motion";
-import { Crown, Car, Calendar, Star, MessageCircle } from "lucide-react";
-import { getFounderBySlug } from "@/lib/founders-data";
+import { useState } from "react";
+import { motion, AnimatePresence, type Easing, type Variants } from "framer-motion";
+import {
+  ArrowDown,
+  ArrowRight,
+  BadgeCheck,
+  Calendar,
+  Car,
+  CheckCircle2,
+  Clock,
+  Crown,
+  Flag,
+  Handshake,
+  History,
+  Loader2,
+  LockKeyhole,
+  MessageCircle,
+  Sparkles,
+  Star,
+  X,
+  type LucideIcon,
+} from "lucide-react";
+import { getFounderBySlug, type FounderTimelineItem } from "@/lib/founders-data";
 
 const easeOut: Easing = "easeOut";
 
 const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: (i: number) => ({
+  hidden: { opacity: 0, y: 22 },
+  visible: (i: number = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.08, duration: 0.5, ease: easeOut },
+    transition: { delay: i * 0.07, duration: 0.52, ease: easeOut },
   }),
 };
 
 const founder = getFounderBySlug("jose-moreira")!;
 
-export default function JoseMoreiraFounderPage() {
-  const { firstName, fullName, vehicle, memberSince, historyCards, timeline, monthPlan, recommendedPlan, alternativePlan, links, number, totalServices, lastServiceDate, totalSpent } = founder;
+const timelineIcons: Record<FounderTimelineItem["icon"], LucideIcon> = {
+  flag: Flag,
+  car: Car,
+  star: Star,
+  handshake: Handshake,
+  crown: Crown,
+};
 
-  const handleCTA = (url: string) => {
-    window.open(url, "_blank", "noopener,noreferrer");
+const founderLabel = `Convite reservado • Founder ${founder.number} de ${founder.totalFounders}`;
+
+export default function JoseMoreiraFounderPage() {
+  const {
+    firstName,
+    fullName,
+    vehicle,
+    vehicleImage,
+    historyCards,
+    timeline,
+    carePlan,
+    recommendedPlan,
+    alternativePlan,
+    founderConditionSmart,
+    founderConditionPriority,
+    links,
+    founderMessage,
+  } = founder;
+
+  const [reservationOpen, setReservationOpen] = useState(false);
+  const [reservationReady, setReservationReady] = useState(false);
+  const checkoutUrl = links.checkoutSmartFounder || links.whatsappVip;
+
+  const scrollToInvite = () => {
+    document.getElementById("convite-founder")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const openReservation = () => {
+    setReservationOpen(true);
+    setReservationReady(false);
+    window.setTimeout(() => setReservationReady(true), 2300);
+  };
+
+  const continueToCheckout = () => {
+    window.open(checkoutUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const openVip = () => {
+    window.open(links.whatsappVip, "_blank", "noopener,noreferrer");
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A]">
-      {/* ── HERO ── */}
-      <section className="relative overflow-hidden px-5 pt-16 pb-14 flex flex-col items-center text-center">
-        {/* ambient glow */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(201,168,76,0.18) 0%, transparent 70%)",
-          }}
-        />
-        {/* grid texture */}
-        <div
-          className="absolute inset-0 opacity-[0.025] pointer-events-none"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(201,168,76,1) 1px, transparent 1px), linear-gradient(90deg, rgba(201,168,76,1) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-          }}
-        />
+    <div className="min-h-screen overflow-x-hidden bg-[#070707] text-white">
+      <section className="relative flex min-h-screen items-center overflow-hidden px-5 py-12">
+        <PremiumBackground />
 
-        <div className="relative max-w-lg w-full space-y-6">
-          {/* badge */}
+        <div className="relative mx-auto flex w-full max-w-5xl flex-col items-center text-center">
           <motion.div
-            initial={{ opacity: 0, scale: 0.85 }}
+            initial={false}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.45 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border"
-            style={{
-              background: "rgba(201,168,76,0.08)",
-              borderColor: "rgba(201,168,76,0.25)",
-            }}
+            transition={{ duration: 0.55, ease: easeOut }}
+            className="mb-8 inline-flex max-w-[19rem] items-center justify-center gap-2 rounded-lg border border-[#C9A84C]/25 bg-[#C9A84C]/10 px-3 py-2 sm:max-w-full sm:rounded-full sm:px-4"
           >
-            <Crown size={13} className="text-[#C9A84C]" />
-            <span className="text-[11px] font-semibold text-[#C9A84C] tracking-[0.15em] uppercase">
-              Convite Exclusivo · Founders
+            <LockKeyhole size={14} className="text-[#C9A84C]" />
+            <span className="text-center text-[9px] font-semibold uppercase leading-relaxed tracking-normal text-[#E7C96A] sm:text-[11px] sm:tracking-[0.18em]">
+              {founderLabel}
             </span>
           </motion.div>
 
-          {/* greeting */}
           <motion.div
-            custom={0}
-            initial="hidden"
+            custom={1}
+            initial={false}
             animate="visible"
             variants={fadeUp}
-            className="space-y-3"
+            className="w-full max-w-2xl space-y-5"
           >
-            <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
-              Olá, {firstName}.
+            <h1 className="text-3xl font-semibold leading-tight tracking-normal text-white sm:text-6xl">
+              <span className="block">Bem-vindo de volta,</span>
+              <span className="block">{firstName}.</span>
             </h1>
-            <p
-              className="text-xl sm:text-2xl font-light tracking-wide"
-              style={{
-                background: "linear-gradient(135deg, #C9A84C 0%, #F0D060 50%, #D4AF37 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
-              É muito bom ter você de volta.
+            <p className="mx-auto max-w-[20rem] text-base leading-relaxed text-[#B8B8B8] sm:max-w-xl sm:text-lg">
+              Há mais de quatro anos você faz parte da história da DGN.
+            </p>
+            <p className="mx-auto max-w-[20rem] text-base leading-relaxed text-white/85 sm:max-w-xl sm:text-lg">
+              Hoje gostaríamos de convidá-lo para escrever o próximo capítulo conosco.
             </p>
           </motion.div>
 
-          <motion.p
-            custom={1}
-            initial="hidden"
-            animate="visible"
-            variants={fadeUp}
-            className="text-[#9CA3AF] text-base sm:text-lg leading-relaxed max-w-sm mx-auto"
-          >
-            Desde {memberSince}, tivemos o privilégio de cuidar do seu {vehicle.model} e acompanhar
-            sua história com a DGN.
-          </motion.p>
-
-          <motion.p
-            custom={2}
-            initial="hidden"
-            animate="visible"
-            variants={fadeUp}
-            className="text-white/80 text-base leading-relaxed max-w-sm mx-auto"
-          >
-            Agora queremos convidá-lo para fazer parte da{" "}
-            <span className="text-white font-semibold">primeira geração de Membros Fundadores</span>{" "}
-            da DGN Club.
-          </motion.p>
-
           <motion.button
-            custom={3}
-            initial="hidden"
+            custom={2}
+            initial={false}
             animate="visible"
             variants={fadeUp}
-            onClick={() => handleCTA(links.checkoutSmartFounder)}
-            whileTap={{ scale: 0.97 }}
-            className="w-full max-w-xs mx-auto flex items-center justify-center gap-2 py-4 px-8 rounded-2xl font-bold text-base text-[#0A0A0A] transition-all"
+            onClick={scrollToInvite}
+            whileTap={{ scale: 0.98 }}
+            className="mt-10 inline-flex min-h-12 items-center justify-center gap-2 rounded-lg px-6 font-semibold text-[#080808]"
             style={{
-              background: "linear-gradient(135deg, #C9A84C 0%, #F0D060 50%, #C9A84C 100%)",
-              boxShadow: "0 8px 32px rgba(201,168,76,0.35)",
+              background: "linear-gradient(135deg, #C9A84C 0%, #F5DA78 48%, #B99132 100%)",
+              boxShadow: "0 18px 50px rgba(201,168,76,0.22)",
             }}
           >
-            <Crown size={18} />
-            Quero ser Membro Fundador
+            Conhecer meu convite
+            <ArrowDown size={18} />
           </motion.button>
         </div>
       </section>
 
-      {/* ── FOUNDER CARD ── */}
-      <section className="px-5 pb-10 max-w-lg mx-auto">
-        <motion.div
-          custom={4}
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          className="relative rounded-3xl overflow-hidden"
-          style={{
-            background: "linear-gradient(145deg, #1A1408 0%, #0D0D0D 45%, #111108 100%)",
-            border: "1px solid rgba(201,168,76,0.35)",
-            boxShadow: "0 24px 80px rgba(201,168,76,0.12)",
-          }}
-        >
-          {/* glow top-right */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(ellipse at 85% 5%, rgba(201,168,76,0.18) 0%, transparent 60%)",
-            }}
-          />
-          {/* subtle grid */}
-          <div
-            className="absolute inset-0 opacity-[0.03] pointer-events-none"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(201,168,76,1) 1px, transparent 1px), linear-gradient(90deg, rgba(201,168,76,1) 1px, transparent 1px)",
-              backgroundSize: "32px 32px",
-            }}
-          />
-
-          <div className="relative p-7">
-            {/* top row */}
-            <div className="flex items-start justify-between mb-8">
+      <main id="convite-founder" className="relative mx-auto w-full max-w-6xl px-5 pb-20">
+        <section className="grid gap-5 py-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
+          <motion.div
+            custom={0}
+            initial={false}
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.35 }}
+            variants={fadeUp}
+            className="relative overflow-hidden rounded-lg border border-[#C9A84C]/25 bg-[#111111] p-6 sm:p-8"
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,rgba(201,168,76,0.18),transparent_34%)]" />
+            <div className="relative flex h-full flex-col justify-between gap-10">
               <div>
-                <p className="text-[10px] text-[#C9A84C]/60 tracking-[0.3em] uppercase font-semibold mb-1">
-                  DGN CLUB
+                <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#C9A84C]">
+                  DGN Club
                 </p>
-                <p
-                  className="text-3xl font-black tracking-tight"
-                  style={{
-                    background: "linear-gradient(135deg, #C9A84C 0%, #F0D060 50%, #D4AF37 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                  }}
-                >
-                  Founder {number}
-                </p>
+                <h2 className="max-w-md text-3xl font-semibold leading-tight text-white sm:text-4xl">
+                  Um convite preparado para quem já pertence à história.
+                </h2>
               </div>
-              <div
-                className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                style={{
-                  background: "linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.05))",
-                  border: "1px solid rgba(201,168,76,0.3)",
-                }}
-              >
-                <Crown size={22} className="text-[#C9A84C]" />
+
+              <div>
+                <p className="mb-2 text-sm text-[#9CA3AF]">Titular do convite</p>
+                <p className="text-2xl font-semibold text-white">{fullName}</p>
+                <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#C9A84C]/20 bg-[#C9A84C]/10 px-3 py-1.5 text-sm font-semibold text-[#E7C96A]">
+                  <Crown size={15} />
+                  {founderLabel}
+                </div>
               </div>
             </div>
+          </motion.div>
 
-            {/* member name */}
-            <p className="text-white text-2xl font-semibold tracking-wide mb-1">{fullName}</p>
-            <div className="flex items-center gap-2 mb-8">
-              <Car size={14} className="text-[#C9A84C]" />
-              <p className="text-[#9CA3AF] text-sm">{vehicle.model}</p>
-            </div>
+          <VehicleFeature
+            vehicleName={vehicle.model}
+            vehicleImage={vehicleImage || vehicle.image}
+          />
+        </section>
 
-            {/* divider */}
-            <div className="border-t border-white/[0.06] pt-5">
-              <p className="text-[11px] text-[#9CA3AF]/70 tracking-[0.15em] uppercase font-medium text-center">
-                Primeira geração de Membros Fundadores
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      </section>
+        <HistorySection />
+        <EmotionalInvite />
+        <JourneySection />
+        <CarePlanSection />
+        <BenefitsSection />
+        <ConditionSection />
+        <FounderMessageSection />
+        <FinalInvite onAccept={openReservation} onVip={openVip} />
+      </main>
 
-      {/* ── HISTÓRICO ── */}
-      <section className="px-5 pb-12 max-w-lg mx-auto">
+      <footer className="px-5 pb-10 text-center">
+        <p className="text-[11px] font-medium uppercase tracking-widest text-[#3A3A3A]">
+          DGN Club • Cuidados automotivos premium
+        </p>
+      </footer>
+
+      <ReservationModal
+        open={reservationOpen}
+        ready={reservationReady}
+        onClose={() => setReservationOpen(false)}
+        onContinue={continueToCheckout}
+      />
+    </div>
+  );
+
+  function HistorySection() {
+    return (
+      <section className="py-10">
+        <SectionHeader
+          eyebrow="Sua história com a DGN"
+          title="Uma relação construída atendimento após atendimento."
+        />
+
         <motion.div
-          custom={5}
-          initial="hidden"
-          animate="visible"
+          custom={0}
+          initial={false}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
           variants={fadeUp}
-          className="space-y-5"
+          className="mx-auto max-w-4xl rounded-lg border border-[#C9A84C]/18 bg-[#101010] p-5 sm:p-7"
         >
-          <div className="text-center mb-6">
-            <p className="text-[11px] text-[#C9A84C] tracking-[0.2em] uppercase font-semibold mb-2">
-              Sua história com a DGN
-            </p>
-            <h2 className="text-2xl font-bold text-white">
-              Uma relação que já existe.
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            {historyCards.map((card, i) => (
-              <motion.div
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {historyCards.map((card) => (
+              <div
                 key={card.label}
-                custom={5 + i * 0.15}
-                initial="hidden"
-                animate="visible"
-                variants={fadeUp}
-                className="rounded-2xl p-4 space-y-1"
-                style={{
-                  background: "linear-gradient(135deg, #111111 0%, #1A1A1A 100%)",
-                  border: "1px solid rgba(201,168,76,0.12)",
-                }}
+                className="rounded-lg border border-white/[0.06] bg-white/[0.035] p-4"
               >
-                <p className="text-[10px] text-[#9CA3AF] uppercase tracking-wider font-medium leading-tight">
+                <p className="mb-2 text-[10px] font-semibold uppercase leading-tight tracking-[0.12em] text-[#9CA3AF]">
                   {card.label}
                 </p>
-                <p className="text-white font-bold text-base leading-tight">{card.value}</p>
-              </motion.div>
+                <p className="text-base font-semibold leading-tight text-white">{card.value}</p>
+              </div>
             ))}
           </div>
 
-          <motion.div
-            custom={6}
-            initial="hidden"
-            animate="visible"
-            variants={fadeUp}
-            className="rounded-2xl p-5 text-center"
-            style={{
-              background:
-                "linear-gradient(135deg, rgba(201,168,76,0.06) 0%, rgba(201,168,76,0.02) 100%)",
-              border: "1px solid rgba(201,168,76,0.12)",
-            }}
-          >
-            <p className="text-sm text-[#9CA3AF] leading-relaxed">
-              Esse histórico mostra que você não está entrando em um clube novo.
-              <br />
-              <span className="text-white font-medium">
-                Você está oficializando uma relação que já existe.
-              </span>
+          <div className="mt-5 border-t border-white/[0.07] pt-5 text-center">
+            <p className="text-sm leading-relaxed text-[#B8B8B8]">
+              Obrigado por confiar esse cuidado à DGN ao longo dos últimos anos.
             </p>
-          </motion.div>
+          </div>
         </motion.div>
       </section>
+    );
+  }
 
-      {/* ── TIMELINE ── */}
-      <section className="px-5 pb-12 max-w-lg mx-auto">
+  function EmotionalInvite() {
+    return (
+      <section className="py-10">
         <motion.div
-          custom={7}
-          initial="hidden"
-          animate="visible"
+          custom={0}
+          initial={false}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.35 }}
           variants={fadeUp}
-          className="space-y-5"
+          className="mx-auto max-w-3xl rounded-lg border border-[#C9A84C]/20 bg-[linear-gradient(145deg,#15110A_0%,#0D0D0D_70%)] p-7 text-center sm:p-10"
         >
-          <div className="text-center mb-6">
-            <p className="text-[11px] text-[#C9A84C] tracking-[0.2em] uppercase font-semibold mb-2">
-              Linha do tempo
+          <Sparkles size={24} className="mx-auto mb-5 text-[#C9A84C]" />
+          <h2 className="text-2xl font-semibold leading-tight text-white sm:text-3xl">
+            Você confiou na DGN durante todos esses anos.
+          </h2>
+          <div className="mx-auto mt-5 max-w-xl space-y-3 text-base leading-relaxed text-[#B8B8B8]">
+            <p>Cada atendimento representou muito mais do que uma lavagem.</p>
+            <p className="font-semibold text-white">Representou confiança.</p>
+            <p>
+              Hoje queremos retribuir esse relacionamento convidando você para fazer parte da
+              fundação do DGN Club.
             </p>
-            <h2 className="text-2xl font-bold text-white">Sua jornada na DGN</h2>
           </div>
+        </motion.div>
+      </section>
+    );
+  }
 
-          <div className="relative pl-6">
-            {/* vertical line */}
-            <div
-              className="absolute left-3 top-2 bottom-2 w-px"
-              style={{
-                background:
-                  "linear-gradient(to bottom, transparent, rgba(201,168,76,0.4) 15%, rgba(201,168,76,0.4) 85%, transparent)",
-              }}
-            />
+  function JourneySection() {
+    return (
+      <section className="py-10">
+        <SectionHeader eyebrow="Jornada" title="De cliente recorrente a Founder Nº001 de 30." />
 
-            <div className="space-y-0">
+        <div className="mx-auto max-w-3xl">
+          <div className="relative">
+            <div className="absolute left-5 top-5 bottom-5 w-px bg-gradient-to-b from-transparent via-[#C9A84C]/40 to-transparent sm:left-6" />
+            <div className="space-y-4">
               {timeline.map((item, i) => {
+                const Icon = timelineIcons[item.icon];
                 const isLast = i === timeline.length - 1;
+
                 return (
                   <motion.div
-                    key={item.year}
-                    custom={7 + i * 0.12}
-                    initial="hidden"
-                    animate="visible"
+                    key={item.title}
+                    custom={i}
+                    initial={false}
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.35 }}
                     variants={fadeUp}
-                    className="relative flex items-start gap-4 pb-6"
+                    className="relative flex gap-4"
                   >
-                    {/* dot */}
                     <div
-                      className="absolute left-[-0.9375rem] top-1 w-3 h-3 rounded-full flex-shrink-0 border-2"
+                      className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border sm:h-12 sm:w-12"
                       style={{
-                        background: isLast ? "#C9A84C" : "#1A1A1A",
-                        borderColor: isLast ? "#F0D060" : "rgba(201,168,76,0.4)",
-                        boxShadow: isLast ? "0 0 12px rgba(201,168,76,0.5)" : "none",
+                        background: isLast
+                          ? "linear-gradient(135deg,#C9A84C,#F0D060)"
+                          : "#111111",
+                        borderColor: isLast ? "rgba(240,208,96,0.7)" : "rgba(201,168,76,0.28)",
+                        color: isLast ? "#080808" : "#C9A84C",
                       }}
-                    />
-
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="text-xs font-bold tracking-wider uppercase mb-0.5"
-                        style={{ color: isLast ? "#C9A84C" : "#6B7280" }}
-                      >
-                        {item.year}
+                    >
+                      <Icon size={19} />
+                    </div>
+                    <div className="min-w-0 flex-1 rounded-lg border border-white/[0.06] bg-[#101010] p-4 sm:p-5">
+                      <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#C9A84C]">
+                        {item.label}
                       </p>
-                      <p
-                        className="text-sm leading-snug"
-                        style={{ color: isLast ? "#ffffff" : "#9CA3AF" }}
-                      >
-                        {item.event}
+                      <h3 className="text-base font-semibold text-white">{item.title}</h3>
+                      <p className="mt-2 text-sm leading-relaxed text-[#9CA3AF]">
+                        {item.description}
                       </p>
                     </div>
                   </motion.div>
@@ -339,282 +322,446 @@ export default function JoseMoreiraFounderPage() {
               })}
             </div>
           </div>
-        </motion.div>
+        </div>
       </section>
+    );
+  }
 
-      {/* ── PLANEJAMENTO 6 MESES ── */}
-      <section className="px-5 pb-12 max-w-lg mx-auto">
-        <motion.div
-          custom={9}
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          className="space-y-5"
-        >
-          <div className="text-center mb-6">
-            <p className="text-[11px] text-[#C9A84C] tracking-[0.2em] uppercase font-semibold mb-2">
-              Próximos 6 meses
-            </p>
-            <h2 className="text-2xl font-bold text-white">
-              Seu cuidado já está planejado.
-            </h2>
-          </div>
+  function CarePlanSection() {
+    return (
+      <section className="py-10">
+        <SectionHeader
+          eyebrow="Próximos 6 meses"
+          title="Seu cuidado já está planejado."
+          text={`Preparamos uma rotina para manter seu ${vehicle.model} cuidado com previsibilidade ao longo dos próximos meses.`}
+        />
 
-          <div className="space-y-2">
-            {monthPlan.map((item, i) => (
-              <motion.div
-                key={item.month}
-                custom={9 + i * 0.1}
-                initial="hidden"
-                animate="visible"
-                variants={fadeUp}
-                className="flex items-center gap-4 rounded-xl px-4 py-3.5"
-                style={{
-                  background: "linear-gradient(135deg, #111111 0%, #1A1A1A 100%)",
-                  border: "1px solid #2A2A2A",
-                }}
-              >
-                <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-xs font-bold text-[#C9A84C]"
-                  style={{ background: "rgba(201,168,76,0.08)" }}
-                >
-                  {item.month.slice(0, 3).toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-[#C9A84C] font-semibold tracking-wide uppercase mb-0.5">
-                    {item.month}
-                  </p>
-                  <p className="text-sm text-[#9CA3AF] leading-tight truncate">{item.service}</p>
-                </div>
-                <Calendar size={14} className="text-[#2A2A2A] flex-shrink-0" />
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </section>
-
-      {/* ── PLANO RECOMENDADO ── */}
-      <section className="px-5 pb-12 max-w-lg mx-auto">
-        <motion.div
-          custom={11}
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          className="space-y-5"
-        >
-          <div className="text-center mb-6">
-            <p className="text-[11px] text-[#C9A84C] tracking-[0.2em] uppercase font-semibold mb-2">
-              Recomendamos para você
-            </p>
-            <h2 className="text-2xl font-bold text-white">{recommendedPlan.name}</h2>
-          </div>
-
-          {/* recommended plan */}
-          <div
-            className="relative rounded-2xl p-6 space-y-4"
-            style={{
-              background: "linear-gradient(145deg, #1A1408 0%, #0F0F0F 60%, #111108 100%)",
-              border: "1px solid rgba(201,168,76,0.3)",
-              boxShadow: "0 12px 40px rgba(201,168,76,0.08)",
-            }}
-          >
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-[10px] font-bold text-[#C9A84C] tracking-[0.2em] uppercase">
-                  Recomendado
-                </span>
-                <h3 className="text-xl font-bold text-white mt-1">{recommendedPlan.name}</h3>
-              </div>
-              <Star size={20} className="text-[#C9A84C] mt-1 flex-shrink-0" />
-            </div>
-            <p className="text-sm text-[#9CA3AF] leading-relaxed">{recommendedPlan.subtitle}</p>
-            <div className="border-t border-white/[0.06] pt-4">
-              <p className="text-[10px] text-[#9CA3AF] uppercase tracking-wider mb-1">
-                Condição Founders
-              </p>
-              <p className="text-white font-bold text-2xl">
-                6x de{" "}
-                <span
-                  style={{
-                    background: "linear-gradient(135deg, #C9A84C 0%, #F0D060 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                  }}
-                >
-                  R$ {recommendedPlan.monthlyValue}
-                </span>
-              </p>
-            </div>
-          </div>
-
-          {/* alternative plan */}
-          <div
-            className="rounded-2xl p-5 space-y-3"
-            style={{
-              background: "linear-gradient(135deg, #111111 0%, #1A1A1A 100%)",
-              border: "1px solid #2A2A2A",
-            }}
-          >
-            <div className="flex items-start justify-between">
-              <h3 className="text-base font-semibold text-white">{alternativePlan.name}</h3>
-              <span
-                className="text-xs font-semibold text-[#9CA3AF] px-2.5 py-0.5 rounded-full"
-                style={{ background: "rgba(255,255,255,0.05)" }}
-              >
-                Alternativa
-              </span>
-            </div>
-            <p className="text-sm text-[#9CA3AF] leading-relaxed">{alternativePlan.subtitle}</p>
-            <p className="text-white font-bold text-lg">
-              6x de R$ {alternativePlan.monthlyValue}
-            </p>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* ── CONDIÇÃO FOUNDERS ── */}
-      <section className="px-5 pb-12 max-w-lg mx-auto">
-        <motion.div
-          custom={13}
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          className="space-y-5"
-        >
-          <div className="text-center mb-6">
-            <p className="text-[11px] text-[#C9A84C] tracking-[0.2em] uppercase font-semibold mb-2">
-              Condição exclusiva
-            </p>
-            <h2 className="text-2xl font-bold text-white">Founders</h2>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { name: "DGN Smart", value: "R$ 110", label: "6x de" },
-              { name: "DGN Priority", value: "R$ 200", label: "6x de" },
-            ].map((plan) => (
-              <div
-                key={plan.name}
-                className="rounded-2xl p-5 text-center space-y-2"
-                style={{
-                  background: "linear-gradient(135deg, #111111 0%, #1A1A1A 100%)",
-                  border: "1px solid rgba(201,168,76,0.15)",
-                }}
-              >
-                <p className="text-[10px] text-[#9CA3AF] uppercase tracking-wider font-medium">
-                  {plan.name}
+        <div className="mx-auto grid max-w-4xl gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {carePlan.map((item, i) => (
+            <motion.div
+              key={item.month}
+              custom={i}
+              initial={false}
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.25 }}
+              variants={fadeUp}
+              className="relative overflow-hidden rounded-lg border border-[#C9A84C]/16 bg-[#101010] p-5"
+            >
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#C9A84C]/50 to-transparent" />
+              <div className="mb-5 flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
+                  {item.month}
                 </p>
-                <div>
-                  <p className="text-[10px] text-[#9CA3AF]/60">{plan.label}</p>
-                  <p
-                    className="text-2xl font-black"
-                    style={{
-                      background: "linear-gradient(135deg, #C9A84C 0%, #F0D060 100%)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
-                  >
-                    {plan.value}
-                  </p>
-                </div>
+                <Calendar size={16} className="text-[#C9A84C]/70" />
               </div>
-            ))}
-          </div>
-
-          <p className="text-center text-xs text-[#4B5563] leading-relaxed">
-            A condição Founders foi criada apenas para a primeira geração de clientes convidados.
-          </p>
-        </motion.div>
+              <h3 className="text-lg font-semibold text-white">{item.service}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-[#9CA3AF]">{item.description}</p>
+            </motion.div>
+          ))}
+        </div>
       </section>
+    );
+  }
 
-      {/* ── CTA FINAL ── */}
-      <section className="px-5 pb-20 max-w-lg mx-auto">
-        <motion.div
-          custom={15}
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          className="relative rounded-3xl overflow-hidden p-8 text-center space-y-6"
-          style={{
-            background: "linear-gradient(145deg, #1A1408 0%, #0D0D0D 50%, #111108 100%)",
-            border: "1px solid rgba(201,168,76,0.25)",
-            boxShadow: "0 24px 80px rgba(201,168,76,0.1)",
-          }}
-        >
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.12) 0%, transparent 65%)",
-            }}
+  function BenefitsSection() {
+    const benefits = [
+      { icon: BadgeCheck, title: "Atendimento prioritário" },
+      { icon: Calendar, title: "Planejamento dos cuidados" },
+      { icon: LockKeyhole, title: "Área exclusiva" },
+      { icon: MessageCircle, title: "Concierge DGN" },
+      { icon: History, title: "Histórico completo" },
+      { icon: Sparkles, title: "Benefícios para membros" },
+    ];
+
+    return (
+      <section className="py-10">
+        <SectionHeader eyebrow="Experiência Founder" title="O que muda para você como Founder" />
+
+        <div className="mx-auto grid max-w-4xl gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {benefits.map((benefit, i) => (
+            <motion.div
+              key={benefit.title}
+              custom={i}
+              initial={false}
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              variants={fadeUp}
+              className="flex min-h-24 items-center gap-4 rounded-lg border border-white/[0.07] bg-[#101010] p-4"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#C9A84C]/10 text-[#C9A84C]">
+                <benefit.icon size={19} />
+              </div>
+              <p className="text-sm font-semibold leading-snug text-white">{benefit.title}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  function ConditionSection() {
+    return (
+      <section className="py-10">
+        <SectionHeader
+          eyebrow="Condição Founders"
+          title="A condição reservada para a primeira geração."
+          text="A experiência vem primeiro. A condição abaixo existe apenas para os primeiros clientes convidados."
+        />
+
+        <div className="mx-auto grid max-w-4xl gap-4 md:grid-cols-[1.1fr_0.9fr]">
+          <PlanCard
+            label="Recomendado para você"
+            name={recommendedPlan.name}
+            subtitle={recommendedPlan.subtitle}
+            condition={founderConditionSmart}
+            highlighted
           />
+          <PlanCard
+            label="Alternativa"
+            name={alternativePlan.name}
+            subtitle={alternativePlan.subtitle}
+            condition={founderConditionPriority}
+          />
+        </div>
+      </section>
+    );
+  }
 
-          <div className="relative space-y-4">
-            <div className="flex justify-center">
-              <div
-                className="w-16 h-16 rounded-3xl flex items-center justify-center"
-                style={{
-                  background:
-                    "linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.05))",
-                  border: "1px solid rgba(201,168,76,0.25)",
-                }}
-              >
-                <Crown size={28} className="text-[#C9A84C]" />
+  function FounderMessageSection() {
+    return (
+      <section className="py-10">
+        <motion.div
+          custom={0}
+          initial={false}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={fadeUp}
+          className="mx-auto grid max-w-4xl gap-6 rounded-lg border border-[#C9A84C]/20 bg-[#101010] p-6 sm:grid-cols-[auto_1fr] sm:p-8"
+        >
+          <div className="h-20 w-20 overflow-hidden rounded-lg border border-[#C9A84C]/25 bg-[#C9A84C]/10">
+            {founderMessage.photo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={founderMessage.photo}
+                alt={founderMessage.signature}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-xl font-semibold text-[#C9A84C]">
+                {founderMessage.initials}
               </div>
+            )}
+          </div>
+
+          <div>
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#C9A84C]">
+              {founderMessage.title}
+            </p>
+            <div className="space-y-3 whitespace-pre-line text-base leading-relaxed text-[#D6D6D6]">
+              {founderMessage.body}
             </div>
-
-            <div>
-              <p className="text-white text-lg font-bold leading-snug">
-                {firstName}, sua história com a DGN
-                <br />
-                já começou há anos.
-              </p>
-              <p className="text-[#9CA3AF] text-sm mt-2 leading-relaxed">
-                Agora queremos que você faça parte
-                <br />
-                da fundação do Clube.
-              </p>
-            </div>
-
-            <div className="space-y-3 pt-2">
-              <motion.button
-                onClick={() => handleCTA(links.checkoutSmartFounder)}
-                whileTap={{ scale: 0.97 }}
-                className="w-full flex items-center justify-center gap-2 py-4 px-8 rounded-2xl font-bold text-base text-[#0A0A0A] transition-all"
-                style={{
-                  background: "linear-gradient(135deg, #C9A84C 0%, #F0D060 50%, #C9A84C 100%)",
-                  boxShadow: "0 8px 32px rgba(201,168,76,0.3)",
-                }}
-              >
-                <Crown size={18} />
-                Quero ser Membro Fundador
-              </motion.button>
-
-              <motion.button
-                onClick={() => handleCTA(links.whatsappVip)}
-                whileTap={{ scale: 0.97 }}
-                className="w-full flex items-center justify-center gap-2 py-3.5 px-8 rounded-2xl font-semibold text-sm text-white transition-all"
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                }}
-              >
-                <MessageCircle size={16} />
-                Falar com Atendimento VIP
-              </motion.button>
+            <div className="mt-6 border-t border-white/[0.07] pt-4">
+              <p className="font-semibold text-white">{founderMessage.signature}</p>
+              <p className="text-sm text-[#9CA3AF]">{founderMessage.role}</p>
             </div>
           </div>
         </motion.div>
       </section>
+    );
+  }
+}
 
-      {/* footer */}
-      <footer className="px-5 pb-10 text-center">
-        <p className="text-[11px] text-[#2A2A2A] tracking-widest uppercase font-medium">
-          DGN Club · Cuidados automotivos premium
+function PremiumBackground() {
+  return (
+    <>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(201,168,76,0.18),transparent_34%),linear-gradient(180deg,#0A0A0A_0%,#050505_100%)]" />
+      <div className="absolute inset-0 opacity-[0.035] [background-image:linear-gradient(rgba(201,168,76,1)_1px,transparent_1px),linear-gradient(90deg,rgba(201,168,76,1)_1px,transparent_1px)] [background-size:56px_56px]" />
+      <motion.div
+        aria-hidden
+        initial={{ opacity: 0.35 }}
+        animate={{ opacity: [0.35, 0.55, 0.35] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute left-1/2 top-1/2 h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#C9A84C]/10"
+      />
+    </>
+  );
+}
+
+function SectionHeader({
+  eyebrow,
+  title,
+  text,
+}: {
+  eyebrow: string;
+  title: string;
+  text?: string;
+}) {
+  return (
+    <motion.div
+      custom={0}
+      initial={false}
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.4 }}
+      variants={fadeUp}
+      className="mx-auto mb-7 max-w-2xl text-center"
+    >
+      <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#C9A84C]">
+        {eyebrow}
+      </p>
+      <h2 className="text-2xl font-semibold leading-tight text-white sm:text-3xl">{title}</h2>
+      {text ? <p className="mt-3 text-sm leading-relaxed text-[#9CA3AF]">{text}</p> : null}
+    </motion.div>
+  );
+}
+
+function VehicleFeature({
+  vehicleName,
+  vehicleImage,
+}: {
+  vehicleName: string;
+  vehicleImage: string | null;
+}) {
+  return (
+    <motion.div
+      custom={1}
+      initial={false}
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.35 }}
+      variants={fadeUp}
+      className="relative min-h-[24rem] overflow-hidden rounded-lg border border-[#C9A84C]/20 bg-[#0E0E0E]"
+    >
+      {vehicleImage ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={vehicleImage} alt={vehicleName} className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(255,255,255,0.13),transparent_24%),linear-gradient(145deg,#1A1A1A_0%,#070707_62%)]">
+          <div className="absolute left-1/2 top-[38%] h-20 w-[78%] max-w-md -translate-x-1/2 rounded-t-full border-t border-[#C9A84C]/35 bg-gradient-to-b from-[#2A2A2A] to-[#111111] shadow-[0_35px_70px_rgba(0,0,0,0.55)]" />
+          <div className="absolute left-1/2 top-[48%] h-20 w-[88%] max-w-lg -translate-x-1/2 rounded-[999px] border border-[#C9A84C]/22 bg-gradient-to-b from-[#242424] to-[#0A0A0A]" />
+          <div className="absolute left-[18%] top-[61%] h-12 w-12 rounded-full border border-[#C9A84C]/35 bg-[#080808] shadow-[inset_0_0_0_8px_#151515]" />
+          <div className="absolute right-[18%] top-[61%] h-12 w-12 rounded-full border border-[#C9A84C]/35 bg-[#080808] shadow-[inset_0_0_0_8px_#151515]" />
+          <div className="absolute left-1/2 top-[75%] h-px w-[72%] -translate-x-1/2 bg-gradient-to-r from-transparent via-[#C9A84C]/45 to-transparent" />
+        </div>
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#070707] via-[#070707]/35 to-transparent" />
+      <div className="relative flex h-full min-h-[24rem] flex-col justify-end p-6 sm:p-7">
+        <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-[#C9A84C]/20 bg-black/40 px-3 py-1.5 backdrop-blur">
+          <Car size={15} className="text-[#C9A84C]" />
+          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#C9A84C]">
+            Veículo cuidado
+          </span>
+        </div>
+        <h2 className="text-3xl font-semibold text-white">{vehicleName}</h2>
+        <p className="mt-2 max-w-sm text-sm leading-relaxed text-[#D6D6D6]">
+          Este convite foi preparado para o seu {vehicleName}.
         </p>
-      </footer>
-    </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function PlanCard({
+  label,
+  name,
+  subtitle,
+  condition,
+  highlighted = false,
+}: {
+  label: string;
+  name: string;
+  subtitle: string;
+  condition: {
+    installments: number;
+    monthlyValue: number;
+    note: string;
+  };
+  highlighted?: boolean;
+}) {
+  return (
+    <motion.div
+      custom={highlighted ? 0 : 1}
+      initial={false}
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.3 }}
+      variants={fadeUp}
+      className="rounded-lg border p-5 sm:p-6"
+      style={{
+        background: highlighted
+          ? "linear-gradient(145deg,#1A1408 0%,#101010 65%,#111108 100%)"
+          : "#101010",
+        borderColor: highlighted ? "rgba(201,168,76,0.32)" : "rgba(255,255,255,0.07)",
+      }}
+    >
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
+            {label}
+          </p>
+          <h3 className="text-xl font-semibold text-white">{name}</h3>
+        </div>
+        {highlighted ? <Star size={20} className="shrink-0 text-[#C9A84C]" /> : null}
+      </div>
+
+      <p className="min-h-20 text-sm leading-relaxed text-[#9CA3AF]">{subtitle}</p>
+
+      <div className="mt-5 border-t border-white/[0.07] pt-5">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#9CA3AF]">
+          Condição Founders
+        </p>
+        <p className="mt-1 text-2xl font-semibold text-white">
+          {condition.installments}x de{" "}
+          <span className="text-[#E7C96A]">R$ {condition.monthlyValue}</span>
+        </p>
+        <p className="mt-2 text-xs leading-relaxed text-[#6F6F6F]">{condition.note}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+function FinalInvite({ onAccept, onVip }: { onAccept: () => void; onVip: () => void }) {
+  return (
+    <section className="pt-10">
+      <motion.div
+        custom={0}
+        initial={false}
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.35 }}
+        variants={fadeUp}
+        className="relative mx-auto max-w-4xl overflow-hidden rounded-lg border border-[#C9A84C]/25 bg-[linear-gradient(145deg,#1A1408_0%,#0A0A0A_58%,#111108_100%)] p-7 text-center sm:p-10"
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(201,168,76,0.16),transparent_36%)]" />
+        <div className="relative">
+          <Crown size={28} className="mx-auto mb-5 text-[#C9A84C]" />
+          <h2 className="text-2xl font-semibold leading-tight text-white sm:text-3xl">
+            Algumas histórias merecem continuar.
+          </h2>
+          <div className="mx-auto mt-4 max-w-xl space-y-2 text-base leading-relaxed text-[#B8B8B8]">
+            <p>José,</p>
+            <p>Seu Honda Fit já faz parte da história da DGN.</p>
+            <p>Agora queremos que você faça parte da história do DGN Club.</p>
+          </div>
+
+          <div className="mx-auto mt-8 grid max-w-md gap-3 sm:grid-cols-2">
+            <button
+              onClick={onAccept}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg px-5 font-semibold text-[#080808]"
+              style={{
+                background: "linear-gradient(135deg, #C9A84C 0%, #F5DA78 48%, #B99132 100%)",
+                boxShadow: "0 16px 42px rgba(201,168,76,0.2)",
+              }}
+            >
+              Aceitar meu convite
+              <ArrowRight size={17} />
+            </button>
+            <button
+              onClick={onVip}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.04] px-5 font-semibold text-white"
+            >
+              <MessageCircle size={17} />
+              Falar com Atendimento VIP
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </section>
+  );
+}
+
+function ReservationModal({
+  open,
+  ready,
+  onClose,
+  onContinue,
+}: {
+  open: boolean;
+  ready: boolean;
+  onClose: () => void;
+  onContinue: () => void;
+}) {
+  return (
+    <AnimatePresence>
+      {open ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-5 backdrop-blur-md"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 18 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 18 }}
+            transition={{ duration: 0.28, ease: easeOut }}
+            className="relative w-full max-w-md overflow-hidden rounded-lg border border-[#C9A84C]/25 bg-[#0D0D0D] p-6 text-center shadow-2xl"
+          >
+            <button
+              onClick={onClose}
+              aria-label="Fechar"
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-[#9CA3AF]"
+            >
+              <X size={16} />
+            </button>
+
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(201,168,76,0.16),transparent_42%)]" />
+            <div className="relative pt-5">
+              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-lg border border-[#C9A84C]/25 bg-[#C9A84C]/10 text-[#C9A84C]">
+                {ready ? <CheckCircle2 size={25} /> : <Loader2 size={25} className="animate-spin" />}
+              </div>
+
+              <AnimatePresence mode="wait">
+                {ready ? (
+                  <motion.div
+                    key="reserved"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.24 }}
+                  >
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#C9A84C]">
+                      Vaga reservada
+                    </p>
+                    <h2 className="mt-3 text-2xl font-semibold leading-tight text-white">
+                      Sua vaga está reservada pelos próximos 30 minutos.
+                    </h2>
+                    <p className="mt-3 text-sm leading-relaxed text-[#9CA3AF]">
+                      Mantivemos a confirmação em um passo separado para que você siga com calma.
+                    </p>
+                    <button
+                      onClick={onContinue}
+                      className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg px-5 font-semibold text-[#080808]"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #C9A84C 0%, #F5DA78 48%, #B99132 100%)",
+                      }}
+                    >
+                      Continuar para confirmação
+                      <ArrowRight size={17} />
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="preparing"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.24 }}
+                  >
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#C9A84C]">
+                      Founder Nº001 de 30
+                    </p>
+                    <h2 className="mt-3 text-2xl font-semibold leading-tight text-white">
+                      Preparando sua vaga de Membro Fundador...
+                    </h2>
+                    <div className="mx-auto mt-5 flex w-fit items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs text-[#9CA3AF]">
+                      <Clock size={14} className="text-[#C9A84C]" />
+                      Confirmação privada
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
   );
 }
