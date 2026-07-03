@@ -10,7 +10,7 @@ export function Hero() {
         fill
         priority
         sizes="100vw"
-        className="absolute inset-0 hidden h-full w-full object-cover object-center opacity-55 md:block"
+        className="absolute inset-0 hidden h-full w-full object-cover object-center opacity-60 md:block"
         aria-hidden="true"
       />
       <Image
@@ -19,13 +19,12 @@ export function Hero() {
         fill
         priority
         sizes="100vw"
-        className="absolute inset-0 h-full w-full object-cover object-center opacity-50 md:hidden"
+        className="absolute inset-0 h-full w-full object-cover object-center opacity-55 md:hidden"
         aria-hidden="true"
       />
 
-      {/* Gradiente: escuro na base e à esquerda, deixa imagem respirar no topo direito */}
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,9,9,0.2)_0%,rgba(9,9,9,0.55)_50%,rgba(9,9,9,0.95)_100%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(9,9,9,0.88)_0%,rgba(9,9,9,0.4)_55%,rgba(9,9,9,0.0)_100%)]" />
+      {/* Gradiente vertical: preserva imagem no topo, escurece na base onde fica o conteúdo */}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,9,9,0.15)_0%,rgba(9,9,9,0.5)_50%,rgba(9,9,9,0.92)_100%)]" />
 
       {/* Linha técnica diagonal — identidade LoudFit */}
       <div className="absolute bottom-0 left-0 right-0 h-px bg-lf-line" />
@@ -36,8 +35,7 @@ export function Hero() {
           Rede de academias
         </p>
 
-        <h1 className="max-w-4xl font-black leading-[0.95] tracking-tight text-lf-text"
-            style={{ fontSize: 'clamp(3rem, 7vw, 7.5rem)' }}>
+        <h1 className="max-w-4xl text-[3.2rem] sm:text-[4.5rem] md:text-[5.5rem] lg:text-[7rem] xl:text-[8.5rem] font-black leading-[0.94] text-lf-text">
           O melhor<br />
           ainda está<br />
           <span className="text-lf-volt">por vir</span>

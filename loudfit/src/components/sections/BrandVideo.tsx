@@ -50,7 +50,7 @@ export function BrandVideo() {
             {/* Diagonal accent — canto superior direito */}
             <div className="absolute top-0 right-0 z-10 h-0 w-0 border-t-[40px] border-t-lf-volt border-l-[40px] border-l-transparent" />
 
-            <div className="relative aspect-video overflow-hidden">
+            <div className="relative h-[360px] sm:h-[440px] lg:h-[520px] overflow-hidden">
               <video
                 ref={videoRef}
                 src="/hero.mp4"
@@ -59,7 +59,7 @@ export function BrandVideo() {
                 loop
                 playsInline
                 poster="/assets/images/real-machines.jpg"
-                className="h-full w-full object-cover"
+                className="h-full w-full object-cover object-top"
                 aria-label="Vídeo da academia LoudFit"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-lf-black/40 via-transparent to-transparent" />
