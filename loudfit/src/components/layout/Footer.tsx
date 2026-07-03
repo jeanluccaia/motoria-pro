@@ -40,7 +40,7 @@ export function Footer() {
 
           {Object.entries(links).map(([group, items]) => (
             <div key={group}>
-              <p className="text-xs uppercase tracking-widest text-lf-muted mb-4">{group}</p>
+              <p className="text-xs uppercase tracking-[0.12em] text-lf-muted mb-4">{group}</p>
               <ul className="space-y-3">
                 {items.map((item) => (
                   <li key={item.href}>

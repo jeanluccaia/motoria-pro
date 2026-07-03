@@ -2,7 +2,7 @@
 
 :root {
   /* Superfícies */
-  --lf-black:    #090909;
+  --lf-black:    #080808;
   --lf-graphite: #141414;
   --lf-surface:  #1C1C1C;
   --lf-line:     #272727;
@@ -12,8 +12,8 @@
   --lf-muted:    #909090;
 
   /* Acento */
-  --lf-volt:     #F2E205;
-  --lf-volt-deep:#D4C804;
+  --lf-volt:     #FFE500;
+  --lf-volt-deep:#D4B800;
 
   /* Movimento */
   --ease: cubic-bezier(0.16, 1, 0.3, 1);

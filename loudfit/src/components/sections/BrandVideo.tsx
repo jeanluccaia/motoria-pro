@@ -22,14 +22,14 @@ export function BrandVideo() {
 
         {/* Texto */}
         <div>
-          <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
-            A academia por dentro
+          <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.14em] text-lf-volt">
+            Estrutura LoudFit
           </p>
           <h2 className="text-4xl font-black leading-[1.02] text-lf-text md:text-5xl">
-            Sala cheia.<br />Estrutura de verdade.
+            Veja a LoudFit<br />por dentro.
           </h2>
           <p className="mt-5 max-w-sm text-base leading-relaxed text-lf-muted">
-            Musculação, aulas coletivas e espaço para quem treina todo dia.
+            Musculação, aulas coletivas e estrutura completa para treinar todos os dias.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button href="/unidades" variant="volt" size="lg">
@@ -41,8 +41,11 @@ export function BrandVideo() {
           </div>
         </div>
 
-        {/* Vídeo */}
-        <div className="relative overflow-hidden">
+        {/* Vídeo — container premium */}
+        <div className="relative overflow-hidden border-l-2 border-lf-volt">
+          {/* Diagonal accent — canto superior direito */}
+          <div className="absolute top-0 right-0 z-10 h-0 w-0 border-t-[40px] border-t-lf-volt border-l-[40px] border-l-transparent" />
+
           <div className="relative aspect-video overflow-hidden">
             <video
               ref={videoRef}

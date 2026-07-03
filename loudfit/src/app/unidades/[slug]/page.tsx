@@ -156,13 +156,16 @@ export default async function UnitPage({ params }: Props) {
                 <p className="mt-3 text-sm text-gray-600 leading-relaxed">{unit.endereco_completo}</p>
               </div>
 
-              <div className="bg-white border border-gray-200 p-6">
-                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lf-volt">Horário</p>
-                <div className="mt-3 space-y-1.5">
-                  {Object.entries(unit.horarios ?? {}).map(([day, hours]) => (
-                    <div key={day} className="flex flex-col gap-0.5 border-b border-gray-100 pb-1.5 text-sm sm:flex-row sm:justify-between sm:gap-4 last:border-0 last:pb-0">
-                      <span className="text-gray-500">{formatDay(day)}</span>
-                      <span className="font-semibold text-gray-800 sm:text-right">{hours}</span>
+              <div className="bg-lf-black border border-lf-line p-6">
+                <div className="mb-4 flex items-center gap-2.5">
+                  <div className="h-4 w-0.5 flex-shrink-0 bg-lf-volt" />
+                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lf-volt">Horário de funcionamento</p>
+                </div>
+                <div>
+                  {Object.entries(unit.horarios ?? {}).map(([day, hours], i) => (
+                    <div key={day} className={`flex items-center justify-between py-2.5 text-sm ${i > 0 ? 'border-t border-lf-line' : ''}`}>
+                      <span className="text-lf-muted">{formatDay(day)}</span>
+                      <span className="font-bold tabular-nums text-lf-text">{hours}</span>
                     </div>
                   ))}
                 </div>

@@ -69,7 +69,7 @@ export default async function MatriculaPage({ params }: Props) {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-4">
 
         {/* Card 1 — identidade + trust */}
-        <div className="bg-white border border-gray-200 p-6 sm:p-8">
+        <div className="bg-white border border-gray-200 border-t-4 border-t-lf-volt p-6 sm:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1">
@@ -97,7 +97,7 @@ export default async function MatriculaPage({ params }: Props) {
           <div className="mt-6 pt-5 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-y-2.5 gap-x-6">
             {trustItems.map((item) => (
               <div key={item} className="flex items-start gap-2.5">
-                <span className="mt-0.5 font-bold text-lf-volt">✓</span>
+                <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center bg-lf-volt text-[9px] font-black text-lf-black">✓</span>
                 <span className="text-sm text-gray-600">{item}</span>
               </div>
             ))}

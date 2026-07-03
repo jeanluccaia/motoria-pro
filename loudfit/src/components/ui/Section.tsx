@@ -45,7 +45,7 @@ export function SectionHeader({
     <div className={cn('mb-10 md:mb-14', centered && 'text-center', className)}>
       {label && (
         <p className={cn(
-          'mb-3 text-[11px] font-bold uppercase tracking-[0.18em]',
+          'mb-3 text-[11px] font-bold uppercase tracking-[0.14em]',
           dark ? 'text-gray-400' : 'text-lf-volt',
           centered && 'text-center',
         )}>

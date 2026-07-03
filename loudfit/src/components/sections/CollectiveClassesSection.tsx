@@ -9,26 +9,25 @@ const aulas = [
 
 export function CollectiveClassesSection() {
   return (
-    <Section id="aulas-coletivas" bg="lighter">
+    <Section id="aulas-coletivas" bg="graphite">
       <SectionHeader
-        dark
         label="Aulas coletivas"
         title="Inclusas em todos os planos."
         subtitle="Musculação + aulas coletivas na mesma mensalidade — você não paga nada a mais por aula."
       />
 
-      <div className="flex flex-wrap gap-2.5 md:gap-3">
+      <div className="flex flex-wrap gap-2 md:gap-2.5">
         {aulas.map((aula) => (
           <span
             key={aula}
-            className="rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all duration-150 hover:border-lf-volt hover:bg-lf-volt hover:text-lf-black"
+            className="border border-lf-line bg-lf-surface px-4 py-2 text-sm font-medium text-lf-muted transition-all duration-150 hover:border-lf-volt hover:bg-lf-volt hover:text-lf-black cursor-default"
           >
             {aula}
           </span>
         ))}
       </div>
 
-      <p className="mt-6 text-sm text-gray-400">
+      <p className="mt-6 text-sm text-lf-muted/60">
         A grade de aulas varia por unidade. Verifique na página da sua unidade.
       </p>
 

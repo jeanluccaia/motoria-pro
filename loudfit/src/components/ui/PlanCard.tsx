@@ -86,7 +86,8 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
   return (
     <article className={cn(
       'group relative flex flex-col overflow-hidden bg-white border border-gray-200',
-      'transition duration-200 hover:-translate-y-1 hover:border-gray-300 hover:shadow-md',
+      'transition duration-200 hover:-translate-y-1 hover:border-gray-300',
+      'hover:shadow-[0_4px_0_0_#FFE500,0_6px_20px_rgba(0,0,0,0.08)]',
     )}>
       <div className="px-4 py-2 border-b border-gray-100">
         <span className="text-[10px] font-black uppercase tracking-[0.18em] text-gray-500">
