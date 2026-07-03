@@ -193,7 +193,7 @@ export default async function UnitPage({ params }: Props) {
               </p>
               <p className="mt-3 text-sm leading-relaxed text-gray-500">
                 {isIpiranga && hasCheckout
-                  ? 'Unidade em inauguração. Garanta sua matrícula pelo checkout oficial EVO.'
+                  ? 'Unidade em inauguração. Garanta sua matrícula online antes da abertura.'
                   : hasCheckout
                   ? 'Escolha seu plano abaixo e finalize a matrícula online.'
                   : 'Escolha um plano e finalize sua matrícula.'}

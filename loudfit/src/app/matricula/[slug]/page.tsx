@@ -11,7 +11,7 @@ interface Props {
 }
 
 const trustItems = [
-  'Checkout oficial EVO',
+  'Matrícula online segura',
   'Cadastro registrado no sistema da academia',
   'Aulas coletivas inclusas nos planos',
   'Primeira mensalidade por R$9,90 no Power Anual Recorrente',
@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!unit || !unit.checkoutUrl) return {}
   return {
     title: `Matrícula online — ${unit.nome}`,
-    description: `Faça sua matrícula online na ${unit.nome}. Checkout oficial EVO.`,
+    description: `Faça sua matrícula online na ${unit.nome}. Processo rápido e seguro.`,
   }
 }
 
@@ -86,7 +86,7 @@ export default async function MatriculaPage({ params }: Props) {
               )}
               <p className="mt-3 text-sm text-gray-500 max-w-lg">
                 {isPreOpening
-                  ? 'Garanta sua matrícula antes da inauguração pelo checkout oficial EVO.'
+                  ? 'Garanta sua matrícula antes da inauguração. Processo rápido e seguro.'
                   : 'Escolha seu plano no checkout abaixo e finalize sua matrícula. Processo rápido e seguro.'}
               </p>
             </div>
@@ -139,7 +139,7 @@ export default async function MatriculaPage({ params }: Props) {
             <PlanReminder isIpiranga={isIpiranga} />
             <CheckoutFrame
               src={unit.checkoutUrl}
-              title={`Checkout EVO — ${unit.nome}`}
+              title={`Matrícula online — ${unit.nome}`}
             />
           </div>
         </div>

@@ -62,7 +62,7 @@ export function OfferBanner() {
                 Escolha a unidade → Escolha o plano → Finalize online
               </p>
               <p className="mt-1 text-xs text-lf-muted">
-                Matrícula pelo checkout oficial EVO — rápido e seguro.
+                Matrícula 100% online — rápido e seguro.
               </p>
             </div>
           </div>

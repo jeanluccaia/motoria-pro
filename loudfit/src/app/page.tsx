@@ -15,7 +15,7 @@ import { getUnits } from '@/lib/supabase'
 export const metadata: Metadata = {
   title: 'LoudFit | O melhor ainda está por vir',
   description:
-    'Rede de academias com estrutura completa, aulas coletivas inclusas e matrícula online pelo checkout oficial EVO.',
+    'Rede de academias com estrutura completa, aulas coletivas inclusas e matrícula 100% online.',
 }
 
 export default async function HomePage() {
@@ -35,7 +35,7 @@ export default async function HomePage() {
               dark
               label="Unidades"
               title="Escolha sua LoudFit."
-              subtitle="6 unidades em SP — Campinas, Valinhos, São Paulo e Mogi Mirim."
+              subtitle="5 unidades em operação — Campinas, Valinhos, São Paulo e Mogi Mirim."
               className="mb-0"
             />
             <Button href="/unidades" variant="volt" size="md" className="shrink-0 mb-10 md:mb-14">

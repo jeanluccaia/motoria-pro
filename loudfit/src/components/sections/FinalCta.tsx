@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/Button'
 import { Section } from '@/components/ui/Section'
 
 const stats = [
-  { value: '6', label: 'Unidades na rede' },
+  { value: '5', label: 'Unidades em operação' },
   { value: '4', label: 'Cidades' },
   { value: 'R$9,90', label: 'Primeira mensalidade*' },
 ]
@@ -18,12 +18,12 @@ export function FinalCta() {
           Escolha sua unidade.<br className="hidden sm:block" /> Comece a treinar.
         </h2>
         <p className="mt-5 max-w-lg text-base leading-relaxed text-lf-muted">
-          Matrícula online pelo checkout oficial EVO — rápido, seguro e sem burocracia.
+          Matrícula 100% online — rápido, seguro e sem burocracia.
         </p>
 
         <div className="mt-9 flex flex-col gap-3 sm:flex-row">
           <Button href="/unidades" variant="volt" size="lg">
-            Ver todas as 6 unidades
+            Ver todas as unidades
           </Button>
           <Button href="/#planos" variant="ghost" size="lg">
             Ver planos

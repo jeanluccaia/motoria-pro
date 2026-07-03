@@ -39,7 +39,7 @@ export function Hero() {
         <h1 className="max-w-4xl text-[3.2rem] font-black leading-[0.94] text-lf-text sm:text-[4.5rem] md:text-[5.5rem] lg:text-[7rem]">
           O melhor<br />
           ainda está<br />
-          <span className="text-lf-volt">por vir.</span>
+          <span className="text-lf-volt">por vir</span>
         </h1>
 
         <p className="mt-6 max-w-md text-base leading-relaxed text-lf-muted md:text-lg">

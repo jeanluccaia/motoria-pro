@@ -4,7 +4,7 @@ import { UnitBadge } from './Badge'
 import type { Unit } from '@/types'
 
 export function UnitCard({ unit }: { unit: Unit }) {
-  const hasCheckout = !!unit.checkoutUrl
+  const hasMods = unit.modalidades.length > 0
 
   return (
     <Link
@@ -16,7 +16,7 @@ export function UnitCard({ unit }: { unit: Unit }) {
         {unit.foto_capa ? (
           <Image
             src={unit.foto_capa}
-            alt={unit.nome}
+            alt={`Fachada da ${unit.nome}`}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover transition duration-500 group-hover:scale-105"
@@ -40,17 +40,31 @@ export function UnitCard({ unit }: { unit: Unit }) {
 
         {/* Conteúdo sobre a imagem */}
         <div className="absolute inset-x-0 bottom-0 p-5">
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-lf-volt mb-1">
-            {unit.cidade}, {unit.estado}
-          </p>
           <h3 className="text-xl font-black text-white leading-tight group-hover:text-lf-volt transition-colors duration-200">
-            {unit.bairro}
+            {unit.nome}
           </h3>
+          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-lf-volt">
+            {unit.bairro} / {unit.cidade}
+          </p>
+
+          {/* Tags de modalidades */}
+          {hasMods && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {unit.modalidades.slice(0, 4).map((m) => (
+                <span
+                  key={m}
+                  className="border border-white/20 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-white/55"
+                >
+                  {m}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* CTA inline */}
           <div className="mt-3 flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-[0.14em] text-white/70 group-hover:text-lf-volt transition-colors duration-200">
-              {hasCheckout ? 'Matricular online' : 'Ver unidade'}
+              Ver unidade
             </span>
             <span className="flex h-7 w-7 items-center justify-center bg-lf-volt/0 border border-white/30 text-white text-sm transition-all duration-200 group-hover:bg-lf-volt group-hover:border-lf-volt group-hover:text-lf-black">
               →
