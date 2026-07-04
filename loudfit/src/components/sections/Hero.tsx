@@ -14,21 +14,21 @@ export function Hero() {
         className="absolute inset-0 hidden h-full w-full object-cover object-center opacity-60 md:block"
         aria-hidden="true"
       />
-      {/* Mobile image — focal point raised */}
+      {/* Mobile image — focal point on athlete */}
       <Image
         src="/assets/images/hero-gym-mobile.png"
         alt=""
         fill
         priority
         sizes="100vw"
-        className="absolute inset-0 h-full w-full object-cover object-[center_30%] opacity-55 md:hidden"
+        className="absolute inset-0 h-full w-full object-cover object-[58%_center] opacity-80 brightness-[0.82] contrast-[1.08] md:hidden"
         aria-hidden="true"
       />
 
       {/* Gradient desktop */}
       <div className="absolute inset-0 hidden bg-[linear-gradient(180deg,rgba(9,9,9,0.08)_0%,rgba(9,9,9,0.42)_42%,rgba(9,9,9,0.94)_100%)] md:block" />
-      {/* Gradient mobile — cobre zona de texto no topo */}
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,9,9,0.18)_0%,rgba(9,9,9,0.68)_55%,rgba(9,9,9,0.92)_100%)] md:hidden" />
+      {/* Gradient mobile — text stays readable while the athlete remains visible */}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,9,9,0.52)_0%,rgba(9,9,9,0.26)_42%,rgba(9,9,9,0.64)_100%),linear-gradient(90deg,rgba(9,9,9,0.58)_0%,rgba(9,9,9,0.18)_100%)] md:hidden" />
 
       {/* Linha técnica diagonal — identidade LoudFit */}
       <div className="absolute bottom-0 left-0 right-0 h-px bg-lf-line" />
@@ -75,7 +75,7 @@ export function Hero() {
         </div>
 
         {/* Badge da oferta — compacto no mobile, mais espaçado no desktop */}
-        <div className="mt-4 inline-flex flex-col gap-0.5 border border-white/10 bg-white/[0.06] px-3 py-2 backdrop-blur-sm md:mt-5 md:px-4 md:py-3">
+        <div className="mt-4 inline-flex flex-col gap-0.5 border border-white/[0.08] bg-lf-black/[0.34] px-3 py-1.5 backdrop-blur-[2px] md:mt-5 md:px-4 md:py-3">
           <span className="text-sm font-bold leading-tight text-lf-text">
             R$9,90 na 1ª mensalidade
           </span>
