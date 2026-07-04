@@ -11,6 +11,7 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "loudfit-prototipo/**",
     "next-env.d.ts",
   ]),
 ]);

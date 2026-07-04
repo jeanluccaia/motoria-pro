@@ -15,11 +15,10 @@ export function AnimatedNumber({
   const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
   const reduce = useReducedMotion()
-  const [display, setDisplay] = useState(value)
+  const [display, setDisplay] = useState(0)
 
   useEffect(() => {
     if (!inView || reduce) return
-    setDisplay(0)
     let current = 0
     const step = Math.max(1, Math.ceil(value / (duration / 16)))
     const id = setInterval(() => {
@@ -30,5 +29,5 @@ export function AnimatedNumber({
     return () => clearInterval(id)
   }, [inView, value, duration, reduce])
 
-  return <span ref={ref} className={className}>{display}</span>
+  return <span ref={ref} className={className}>{reduce ? value : display}</span>
 }

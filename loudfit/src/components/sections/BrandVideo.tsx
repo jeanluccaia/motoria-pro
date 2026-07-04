@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
 import { Section } from '@/components/ui/Section'
 import { Reveal } from '@/components/ui/Reveal'
@@ -9,6 +10,8 @@ export function BrandVideo() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [muted, setMuted] = useState(true)
   const [playing, setPlaying] = useState(false)
+  const [videoFailed, setVideoFailed] = useState(false)
+  const poster = '/assets/images/real-machines.jpg'
 
   function handlePlay() {
     const video = videoRef.current
@@ -66,23 +69,34 @@ export function BrandVideo() {
 
             {/* Container 16:9 em todos os breakpoints */}
             <div className="relative aspect-video overflow-hidden bg-lf-graphite">
-              <video
-                ref={videoRef}
-                src="/hero.mp4"
-                loop
-                muted
-                playsInline
-                preload="none"
-                poster="/assets/images/real-machines.jpg"
-                className="h-full w-full object-cover object-center"
-                aria-label="Vídeo da academia LoudFit — material provisório"
-              />
+              {videoFailed ? (
+                <Image
+                  src={poster}
+                  alt="Estrutura interna da academia LoudFit"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 58vw"
+                  className="object-cover object-center"
+                />
+              ) : (
+                <video
+                  ref={videoRef}
+                  src="/hero.mp4"
+                  loop
+                  muted
+                  playsInline
+                  preload="none"
+                  poster={poster}
+                  onError={() => setVideoFailed(true)}
+                  className="h-full w-full object-cover object-center"
+                  aria-label="Vídeo da academia LoudFit"
+                />
+              )}
 
               {/* Overlay gradiente elegante */}
               <div className="absolute inset-0 bg-gradient-to-t from-lf-black/50 via-transparent to-transparent" />
 
               {/* Botão play — centralizado, visível antes de iniciar */}
-              {!playing && (
+              {!playing && !videoFailed && (
                 <button
                   type="button"
                   onClick={handlePlay}
@@ -98,15 +112,17 @@ export function BrandVideo() {
               )}
 
               {/* Toggle de som — discreto no canto */}
-              <button
-                type="button"
-                onClick={toggleSound}
-                aria-label={muted ? 'Ativar som' : 'Silenciar'}
-                className="absolute bottom-4 right-4 z-10 flex items-center gap-2 border border-lf-line bg-lf-black/85 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-lf-text transition-all duration-150 hover:border-lf-volt hover:text-lf-volt backdrop-blur-sm"
-              >
-                {muted ? <SoundOffIcon /> : <SoundOnIcon />}
-                {muted ? 'Som' : 'Mudo'}
-              </button>
+              {!videoFailed && (
+                <button
+                  type="button"
+                  onClick={toggleSound}
+                  aria-label={muted ? 'Ativar som' : 'Silenciar'}
+                  className="absolute bottom-4 right-4 z-10 flex items-center gap-2 border border-lf-line bg-lf-black/85 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-lf-text transition-all duration-150 hover:border-lf-volt hover:text-lf-volt backdrop-blur-sm"
+                >
+                  {muted ? <SoundOffIcon /> : <SoundOnIcon />}
+                  {muted ? 'Som' : 'Mudo'}
+                </button>
+              )}
             </div>
           </div>
         </Reveal>

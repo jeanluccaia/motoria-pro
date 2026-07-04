@@ -2,9 +2,11 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { UnitBadge } from './Badge'
 import type { Unit } from '@/types'
+import { displayUnitName } from '@/lib/utils'
 
 export function UnitCard({ unit }: { unit: Unit }) {
   const hasMods = unit.modalidades.length > 0
+  const unitName = displayUnitName(unit)
 
   return (
     <Link
@@ -16,7 +18,7 @@ export function UnitCard({ unit }: { unit: Unit }) {
         {unit.foto_capa ? (
           <Image
             src={unit.foto_capa}
-            alt={`Academia ${unit.nome} — LoudFit`}
+            alt={`Academia ${unitName}`}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover transition duration-500 group-hover:scale-105"
@@ -41,7 +43,7 @@ export function UnitCard({ unit }: { unit: Unit }) {
         {/* Conteúdo sobre a imagem */}
         <div className="absolute inset-x-0 bottom-0 p-5">
           <h3 className="text-xl font-black text-white leading-tight group-hover:text-lf-volt transition-colors duration-200">
-            {unit.nome}
+            {unitName}
           </h3>
           <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-lf-volt">
             {unit.bairro} / {unit.cidade}

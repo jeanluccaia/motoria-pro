@@ -34,7 +34,7 @@ export function Hero() {
       <div className="absolute bottom-0 left-0 right-0 h-px bg-lf-line" />
       <div className="absolute bottom-0 left-0 h-[3px] w-48 -skew-x-12 origin-left bg-lf-volt" />
 
-      <div className="relative z-10 mx-auto w-full max-w-[1200px] px-5 sm:px-8 lg:px-12">
+      <div className="relative z-10 mx-auto w-full max-w-[1360px] px-5 sm:px-8 lg:px-12">
 
         {/* Eyebrow */}
         <div className="mb-4 flex items-center gap-3">
@@ -46,8 +46,8 @@ export function Hero() {
 
         {/* H1 */}
         <h1
-          className="max-w-4xl font-black uppercase leading-[0.94] text-lf-text"
-          style={{ fontSize: 'clamp(2.8rem, 6vw, 7rem)' }}
+          className="max-w-5xl text-balance font-black uppercase leading-[1.02] text-lf-text"
+          style={{ fontSize: 'clamp(2.75rem, 5.4vw, 6.5rem)' }}
         >
           O melhor ainda está por{' '}
           <span className="text-lf-volt">vir.</span>

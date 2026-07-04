@@ -1,14 +1,43 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import type { Unit } from '@/types'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatWhatsApp(number: string, message?: string) {
-  const clean = number.replace(/\D/g, '')
+export function formatWhatsApp(numberOrUrl: string, message?: string) {
+  const clean = numberOrUrl.replace(/\D/g, '')
+  const number = clean.startsWith('55') ? clean : `55${clean}`
   const msg = message ? `?text=${encodeURIComponent(message)}` : ''
-  return `https://wa.me/55${clean}${msg}`
+  return `https://wa.me/${number}${msg}`
+}
+
+export function shortUnitName(unit: Pick<Unit, 'nome'>) {
+  return unit.nome.replace(/^LoudFit\s+/i, '').replace(/\s+/g, ' ').trim()
+}
+
+export function displayUnitName(unit: Pick<Unit, 'nome'>) {
+  const name = shortUnitName(unit)
+  return name ? `LoudFit ${name}` : 'LoudFit'
+}
+
+export function normalizeEvoCheckoutUrl(checkoutUrl?: string | null) {
+  if (!checkoutUrl) return null
+
+  const normalized = checkoutUrl
+    .trim()
+    .replace(/\[PLUS\]/g, '%5BPLUS%5D')
+    .replace(/\[BAR\]/g, '%5BBAR%5D')
+    .replace(/\[EQUAL\]/g, '%5BEQUAL%5D')
+
+  try {
+    const parsed = new URL(normalized)
+    if (parsed.protocol !== 'https:') return null
+    return parsed.toString()
+  } catch {
+    return null
+  }
 }
 
 export function slugify(text: string) {

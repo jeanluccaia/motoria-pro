@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { getUnits, getUnitBySlug } from '@/lib/supabase'
 import { getPlans } from '@/lib/plans'
-import { formatWhatsApp } from '@/lib/utils'
+import { displayUnitName, formatWhatsApp, shortUnitName } from '@/lib/utils'
 import { UnitBadge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Section, SectionHeader } from '@/components/ui/Section'
@@ -20,23 +20,6 @@ const AULAS_COLETIVAS = new Set([
   'Alongamento', 'Alongamento/Mobilidade', 'Funcional', 'Ritbox',
 ])
 
-const DAY_LABELS: Record<string, string> = {
-  segunda_a_sexta: 'Segunda a sexta',
-  segunda_a_quinta: 'Segunda a quinta',
-  sexta: 'Sexta',
-  sabado: 'Sábado',
-  domingo: 'Domingo',
-  sabado_e_domingo: 'Sábado e domingo',
-  sabado_domingo_e_feriados: 'Sáb, dom e feriados',
-  domingo_e_feriados: 'Dom e feriados',
-  feriados: 'Feriados',
-  abertura: 'Abertura',
-}
-
-function formatDay(day: string): string {
-  return DAY_LABELS[day] ?? day.replaceAll('_', ' ')
-}
-
 export async function generateStaticParams() {
   const units = await getUnits().catch(() => [])
   return units.map((u) => ({ slug: u.slug }))
@@ -46,9 +29,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const unit = await getUnitBySlug(slug)
   if (!unit) return {}
+  const name = displayUnitName(unit)
+  const title = `${name} — Academia em ${unit.cidade}`
+  const description = `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Planos com primeira mensalidade por R$9,90 no Power Anual Recorrente.`
   return {
-    title: `${unit.nome} - Academia em ${unit.cidade}`,
-    description: `Academia LoudFit no ${unit.bairro}, ${unit.cidade}. Planos com primeira mensalidade por R$ 9,90 no Power Anual Recorrente.`,
+    title: { absolute: title },
+    description,
+    alternates: { canonical: `/unidades/${unit.slug}` },
+    openGraph: {
+      title,
+      description,
+      url: `/unidades/${unit.slug}`,
+      images: ['/assets/images/campaign-gym-16x9.png'],
+    },
   }
 }
 
@@ -56,11 +49,14 @@ export default async function UnitPage({ params }: Props) {
   const { slug } = await params
   const unit = await getUnitBySlug(slug)
   if (!unit) notFound()
+  const displayName = displayUnitName(unit)
+  const shortName = shortUnitName(unit)
+  const whatsapp = unit.whatsapp_url ?? unit.whatsapp
 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'HealthClub',
-    name: unit.nome,
+    name: displayName,
     address: {
       '@type': 'PostalAddress',
       streetAddress: unit.endereco_completo,
@@ -69,8 +65,13 @@ export default async function UnitPage({ params }: Props) {
       addressCountry: 'BR',
     },
     geo: { '@type': 'GeoCoordinates', latitude: unit.lat, longitude: unit.lng },
-    telephone: unit.whatsapp,
-    url: `https://loudfit.com.br/unidades/${unit.slug}`,
+    ...(whatsapp && { telephone: whatsapp }),
+    openingHoursSpecification: unit.horarios.map((item) => ({
+      '@type': 'OpeningHoursSpecification',
+      name: item.label,
+      description: item.value,
+    })),
+    url: `https://loudfit.vercel.app/unidades/${unit.slug}`,
     ...(unit.nota_google && { aggregateRating: { '@type': 'AggregateRating', ratingValue: unit.nota_google, ratingCount: 50 } }),
   }
 
@@ -103,7 +104,7 @@ export default async function UnitPage({ params }: Props) {
           {unit.foto_capa && (
             <Image
               src={unit.foto_capa}
-              alt={unit.nome}
+              alt={displayName}
               fill
               sizes="100vw"
               className="object-cover opacity-65"
@@ -117,12 +118,12 @@ export default async function UnitPage({ params }: Props) {
                 <UnitBadge status={unit.status} />
               </div>
               <p className="mb-4 text-xs uppercase tracking-[0.28em] text-lf-volt">Unidade LoudFit</p>
-              <h1 className="text-5xl font-black text-lf-text md:text-7xl">{unit.nome}</h1>
+              <h1 className="text-5xl font-black text-lf-text md:text-7xl">{displayName}</h1>
               <p className="mt-4 max-w-[21rem] text-base leading-relaxed text-lf-muted md:max-w-2xl md:text-lg">
                 {unit.bairro} / {unit.cidade}, {unit.estado}.{' '}
                 {unit.status === 'em_breve'
                   ? 'Unidade em inauguração.'
-                  : `Estrutura completa. Primeira ${isIpiranga ? 'parcela' : 'mensalidade'} por R$ 9,90 no Power Anual Recorrente.`}
+                  : 'Estrutura completa. Primeira mensalidade por R$9,90 no Power Anual Recorrente.'}
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 {unit.status !== 'em_breve' && (
@@ -163,10 +164,10 @@ export default async function UnitPage({ params }: Props) {
                   <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lf-volt">Horário de funcionamento</p>
                 </div>
                 <div>
-                  {Object.entries(unit.horarios ?? {}).map(([day, hours], i) => (
-                    <div key={day} className={`flex items-center justify-between py-2.5 text-sm ${i > 0 ? 'border-t border-lf-line' : ''}`}>
-                      <span className="text-lf-muted">{formatDay(day)}</span>
-                      <span className="font-bold tabular-nums text-lf-text">{hours}</span>
+                  {unit.horarios.map((item, i) => (
+                    <div key={item.label} className={`flex items-center justify-between gap-4 py-2.5 text-sm ${i > 0 ? 'border-t border-lf-line' : ''}`}>
+                      <span className="text-lf-muted">{item.label}</span>
+                      <span className="text-right font-bold tabular-nums text-lf-text">{item.value}</span>
                     </div>
                   ))}
                 </div>
@@ -187,7 +188,7 @@ export default async function UnitPage({ params }: Props) {
             <div className="bg-white border-t-4 border-t-lf-volt border border-gray-200 p-6">
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lf-volt">Matrícula online</p>
               <h2 className="mt-3 text-3xl font-black text-gray-900 leading-tight">
-                Primeira {isIpiranga ? 'parcela' : 'mensalidade'} por R$9,90.
+                Primeira mensalidade por R$9,90.
               </h2>
               <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-gray-400">
                 No Power Anual Recorrente.
@@ -212,11 +213,11 @@ export default async function UnitPage({ params }: Props) {
                   ? 'Matricular online'
                   : 'Começar matrícula'}
               </Button>
-              {unit.whatsapp && (
+              {whatsapp && (
                 <a
                   href={formatWhatsApp(
-                    unit.whatsapp,
-                    `Olá, quero tirar uma dúvida sobre a unidade ${unit.nome} da LoudFit.`,
+                    whatsapp,
+                    `Olá, quero tirar uma dúvida sobre a unidade ${shortName} da LoudFit.`,
                   )}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -286,7 +287,7 @@ export default async function UnitPage({ params }: Props) {
             ))}
           </div>
           <p className="mt-6 text-xs text-lf-muted/50">
-            Após a primeira {isIpiranga ? 'parcela' : 'mensalidade'} promocional,
+            Após a primeira mensalidade promocional,
             aplica-se o valor mensal do Power Anual Recorrente desta unidade. Os demais planos
             seguem o valor cheio desde a primeira cobrança.
           </p>
@@ -327,7 +328,7 @@ export default async function UnitPage({ params }: Props) {
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               {unit.galeria.map((img, i) => (
                 <div key={img} className="relative aspect-square overflow-hidden">
-                  <Image src={img} alt={`${unit.nome} - foto ${i + 1}`} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover" />
+                  <Image src={img} alt={`${displayName} - foto ${i + 1}`} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover" />
                 </div>
               ))}
             </div>

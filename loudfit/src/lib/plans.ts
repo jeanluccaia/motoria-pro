@@ -95,7 +95,7 @@ const ipirangaPlans: Plan[] = [
     description:
       'Plano de 12 meses com cobrança mensal no cartão — sem travar o limite total do cartão.',
     featured: true,
-    firstPayment: { label: 'Primeira parcela por', value: 'R$9,90' },
+    firstPayment: { label: 'Primeira mensalidade por', value: 'R$9,90' },
     checkoutUrl: null,
   },
 ]

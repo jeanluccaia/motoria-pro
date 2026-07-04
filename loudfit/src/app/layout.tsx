@@ -8,6 +8,7 @@ const bodyFont = Inter({ subsets: ['latin'], variable: '--font-body' })
 const displayFont = Big_Shoulders({
   subsets: ['latin'],
   weight: ['700', '800', '900'],
+  adjustFontFallback: false,
   variable: '--font-display',
 })
 
@@ -18,11 +19,26 @@ export const metadata: Metadata = {
   },
   description:
     'Rede de academias com energia, estrutura e experiência para quem leva o treino a sério.',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://loudfit.com.br'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://loudfit.vercel.app'),
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
+    title: 'LoudFit | O melhor ainda está por vir',
+    description:
+      'Rede de academias com energia, estrutura e experiência para quem leva o treino a sério.',
+    url: '/',
     siteName: 'LoudFit',
     locale: 'pt_BR',
     type: 'website',
+    images: ['/assets/images/campaign-gym-16x9.png'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'LoudFit | O melhor ainda está por vir',
+    description:
+      'Rede de academias com energia, estrutura e experiência para quem leva o treino a sério.',
+    images: ['/assets/images/campaign-gym-16x9.png'],
   },
 }
 

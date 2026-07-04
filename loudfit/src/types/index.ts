@@ -14,7 +14,8 @@ export interface Unit {
   instagram_url: string
   google_maps_url: string
   google_place_id: string | null
-  horarios: Record<string, string>
+  horarios: Array<{ label: string; value: string }>
+  whatsapp_url?: string | null
   foto_capa: string
   galeria: string[]
   modalidades: string[]

@@ -17,9 +17,17 @@ import { WhatsAppFloat } from '@/components/ui/WhatsAppFloat'
 import { getUnits } from '@/lib/supabase'
 
 export const metadata: Metadata = {
-  title: 'LoudFit | O melhor ainda está por vir',
+  title: { absolute: 'LoudFit | O melhor ainda está por vir' },
   description:
     'Rede de academias com estrutura completa, aulas coletivas inclusas e matrícula 100% online.',
+  alternates: { canonical: '/' },
+  openGraph: {
+    title: 'LoudFit | O melhor ainda está por vir',
+    description:
+      'Rede de academias com estrutura completa, aulas coletivas inclusas e matrícula 100% online.',
+    url: '/',
+    images: ['/assets/images/campaign-gym-16x9.png'],
+  },
 }
 
 export default async function HomePage() {

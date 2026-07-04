@@ -16,7 +16,6 @@ function PlanReminderInner({ isIpiranga }: PlanReminderProps) {
 
   const isAnual = plano === 'power-anual-recorrente'
   const monthlyPrice = isIpiranga ? 'R$179,90' : 'R$119,90'
-  const firstLabel = isIpiranga ? 'parcela' : 'mensalidade'
 
   return (
     <div className="mb-6 border-l-4 border-lf-volt bg-lf-volt/5 px-5 py-4">
@@ -26,7 +25,7 @@ function PlanReminderInner({ isIpiranga }: PlanReminderProps) {
       <p className="mt-1 text-lg font-black text-gray-900">{planName}</p>
       {isAnual ? (
         <p className="mt-1 text-sm text-gray-500">
-          Primeira {firstLabel} por R$9,90 — depois {monthlyPrice}/mês no cartão.
+          Primeira mensalidade por R$9,90 — depois {monthlyPrice}/mês no cartão.
         </p>
       ) : (
         <p className="mt-1 text-sm text-gray-500">

@@ -9,8 +9,7 @@ export function CheckoutFrame({ src, title }: CheckoutFrameProps) {
       <iframe
         src={src}
         title={title}
-        className="w-full border-0 bg-white"
-        style={{ minHeight: '900px' }}
+        className="min-h-[760px] w-full border-0 bg-white sm:min-h-[900px]"
         allow="payment"
         loading="eager"
         scrolling="yes"

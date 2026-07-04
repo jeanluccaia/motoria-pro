@@ -5,6 +5,7 @@ import { getUnits, getUnitBySlug } from '@/lib/supabase'
 import { CheckoutFrame } from '@/components/ui/CheckoutFrame'
 import { UnitBadge } from '@/components/ui/Badge'
 import { PlanReminder } from '@/components/ui/PlanReminder'
+import { displayUnitName, formatWhatsApp, shortUnitName } from '@/lib/utils'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -26,9 +27,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const unit = await getUnitBySlug(slug)
   if (!unit || !unit.checkoutUrl) return {}
+  const name = displayUnitName(unit)
+  const title = `Matrícula online — ${name}`
+  const description = `Faça sua matrícula online na ${name}. Checkout oficial EVO, rápido e seguro.`
   return {
-    title: `Matrícula online — ${unit.nome}`,
-    description: `Faça sua matrícula online na ${unit.nome}. Processo rápido e seguro.`,
+    title: { absolute: title },
+    description,
+    alternates: { canonical: `/matricula/${unit.slug}` },
+    openGraph: {
+      title,
+      description,
+      url: `/matricula/${unit.slug}`,
+      images: ['/assets/images/campaign-gym-16x9.png'],
+    },
   }
 }
 
@@ -39,6 +50,10 @@ export default async function MatriculaPage({ params }: Props) {
   if (!unit) notFound()
   if (!unit.checkoutUrl) redirect(`/unidades/${slug}`)
 
+  const displayName = displayUnitName(unit)
+  const shortName = shortUnitName(unit)
+  const checkoutUrl = unit.checkoutUrl
+  const whatsapp = unit.whatsapp_url ?? unit.whatsapp
   const isPreOpening = unit.status === 'em_breve'
   const isIpiranga = unit.slug === 'ipiranga'
 
@@ -52,7 +67,7 @@ export default async function MatriculaPage({ params }: Props) {
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 py-3 text-xs text-lf-muted">
             <Link href={`/unidades/${unit.slug}`} className="hover:text-lf-volt transition-colors">
-              ← {unit.nome}
+              ← {displayName}
             </Link>
             <span className="text-lf-line">/</span>
             <span>Matrícula online</span>
@@ -102,7 +117,7 @@ export default async function MatriculaPage({ params }: Props) {
                   {isPreOpening ? 'Matrícula antecipada' : 'Matrícula online'}
                 </p>
                 <h1 className="text-2xl font-black leading-tight text-gray-900 sm:text-3xl">
-                  {unit.nome}
+                  {displayName}
                 </h1>
                 {isIpiranga && isPreOpening && (
                   <p className="mt-2 text-sm font-semibold text-lf-volt">
@@ -149,7 +164,7 @@ export default async function MatriculaPage({ params }: Props) {
           <div className="flex items-center justify-between gap-4 border-b border-gray-100 px-5 py-4">
             <p className="text-sm font-black text-gray-800">Finalize sua matrícula</p>
             <a
-              href={unit.checkoutUrl}
+              href={checkoutUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="shrink-0 border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-500 transition-colors hover:border-gray-500 hover:text-gray-700"
@@ -161,9 +176,22 @@ export default async function MatriculaPage({ params }: Props) {
           <div className="p-4 sm:p-5">
             <PlanReminder isIpiranga={isIpiranga} />
             <CheckoutFrame
-              src={unit.checkoutUrl}
-              title={`Matrícula online — ${unit.nome}`}
+              src={checkoutUrl}
+              title={`Checkout EVO — ${displayName}`}
             />
+            {whatsapp && (
+              <a
+                href={formatWhatsApp(
+                  whatsapp,
+                  `Olá, quero tirar uma dúvida sobre a unidade ${shortName} da LoudFit.`,
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 flex w-full items-center justify-center border border-green-200 bg-green-50 py-2.5 text-xs font-medium text-green-700 transition hover:border-green-400 hover:bg-green-100"
+              >
+                Falar com a unidade
+              </a>
+            )}
           </div>
         </div>
 
@@ -173,7 +201,7 @@ export default async function MatriculaPage({ params }: Props) {
             href={`/unidades/${unit.slug}`}
             className="text-sm text-gray-400 transition-colors hover:text-gray-700"
           >
-            ← Voltar para {unit.nome}
+            ← Voltar para {displayName}
           </Link>
         </div>
       </div>

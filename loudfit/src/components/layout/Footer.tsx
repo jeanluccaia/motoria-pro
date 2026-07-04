@@ -94,12 +94,16 @@ export function Footer() {
             <div className="text-xs leading-[1.7] text-lf-muted/50">
               <p className="font-bold text-lf-muted/70">LOUD FRANQUEADORA LTDA</p>
               <p>CNPJ: 45.519.405/0001-79</p>
-              <p>Rua Antonio Bento, 347 — Vila Industrial, Campinas/SP — CEP 13035-560</p>
+              <p>Rua Antonio Bento, 347 - Vila Industrial</p>
+              <p>Campinas/SP - CEP 13035-560</p>
               <p>
+                E-mail:{' '}
                 <a href="mailto:vilaindustrial@loudfit.com.br" className="hover:text-lf-muted transition-colors">
                   vilaindustrial@loudfit.com.br
                 </a>
-                {' '}·{' '}
+              </p>
+              <p>
+                Telefone:{' '}
                 <a href="tel:+5519988291946" className="hover:text-lf-muted transition-colors">
                   (19) 98829-1946
                 </a>

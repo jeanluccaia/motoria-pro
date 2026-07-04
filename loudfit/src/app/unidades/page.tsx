@@ -7,6 +7,13 @@ import { PlanChip } from '@/components/ui/PlanChip'
 export const metadata: Metadata = {
   title: 'Unidades',
   description: 'Encontre uma LoudFit perto de você. 6 unidades em SP com matrícula online.',
+  alternates: { canonical: '/unidades' },
+  openGraph: {
+    title: 'Unidades | LoudFit',
+    description: 'Encontre uma LoudFit perto de você. 6 unidades em SP com matrícula online.',
+    url: '/unidades',
+    images: ['/assets/images/campaign-gym-16x9.png'],
+  },
 }
 
 export default async function UnidadesPage() {
