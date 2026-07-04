@@ -27,10 +27,10 @@ export function FinalCta() {
           </p>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Button href="/unidades" variant="volt" size="lg">
+            <Button href="/unidades" variant="ghost" size="lg">
               Ver todas as unidades
             </Button>
-            <Button href="/#planos" variant="ghost" size="lg">
+            <Button href="/#planos" variant="outline" size="lg">
               Ver planos
             </Button>
           </div>

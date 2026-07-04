@@ -1,6 +1,6 @@
 import { Button } from './Button'
 import { cn } from '@/lib/utils'
-import { planBenefits, type Plan } from '@/lib/plans'
+import type { Plan } from '@/lib/plans'
 
 interface PlanCardProps {
   plan: Plan
@@ -12,13 +12,6 @@ function buildHref(base: string, planSlug: string): string {
   if (base.includes('?') || base.includes('#')) return base
   return `${base}?plano=${planSlug}`
 }
-
-const CHECK = (
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-    <circle cx="7" cy="7" r="7" fill="currentColor" fillOpacity="0.15"/>
-    <path d="M4 7l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-)
 
 export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProps) {
   const href = plan.checkoutUrl ?? buildHref(ctaBase, plan.slug)
@@ -32,7 +25,7 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
         'order-first md:order-none md:-mt-4 lg:mt-0',
         'lg:scale-[1.03] lg:z-10',
       )}>
-        {/* Faixa topo — MELHOR VALOR */}
+        {/* Faixa topo */}
         <div className="bg-lf-volt px-4 py-2 flex items-center justify-between">
           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-lf-black">
             {plan.badge}
@@ -43,10 +36,13 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
         </div>
 
         <div className="p-6 flex flex-col flex-1">
+          {/* 1. Nome */}
           <h3 className="text-xl font-black text-lf-text">{plan.name}</h3>
-          <p className="mt-2 text-sm leading-relaxed text-lf-muted">{plan.description}</p>
 
-          {/* Preço principal */}
+          {/* 2. Descrição */}
+          <p className="mt-2 text-sm leading-[1.6] text-lf-muted">{plan.description}</p>
+
+          {/* 3. Preço */}
           <div className="mt-5">
             <p className="flex items-end gap-1.5 text-lf-text">
               <strong className="text-5xl font-black leading-none">{plan.price}</strong>
@@ -54,7 +50,7 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
             </p>
           </div>
 
-          {/* Destaque R$9,90 */}
+          {/* 4. Destaque R$9,90 */}
           {plan.firstPayment && (
             <div className="mt-4 border-l-2 border-lf-volt bg-lf-graphite px-4 py-3">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-lf-volt">
@@ -65,15 +61,7 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
             </div>
           )}
 
-          <ul className="mt-5 space-y-2 text-sm text-lf-muted">
-            {planBenefits.map((benefit) => (
-              <li key={benefit} className="flex items-center gap-2.5 text-lf-text/80">
-                <span className="text-lf-volt shrink-0">{CHECK}</span>
-                <span>{benefit}</span>
-              </li>
-            ))}
-          </ul>
-
+          {/* 5. CTA — único botão amarelo cheio nesta seção */}
           <div className="mt-auto pt-7">
             <Button href={href} variant="volt" className="w-full justify-center">
               {ctaLabel ?? 'Começar com este plano'}
@@ -84,38 +72,34 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
     )
   }
 
+  /* Planos não-destaque — fundo escuro, CTA fantasma */
   return (
     <article className={cn(
-      'group relative flex flex-col overflow-hidden bg-white border border-gray-200 h-full',
-      'transition duration-200 hover:-translate-y-1 hover:border-gray-300',
-      'hover:shadow-[0_4px_0_0_#FFE500,0_6px_20px_rgba(0,0,0,0.08)]',
+      'group relative flex flex-col overflow-hidden bg-lf-surface border border-lf-line h-full',
+      'transition duration-200 hover:-translate-y-1 hover:border-lf-text/20',
     )}>
-      <div className="px-4 py-2 border-b border-gray-100">
-        <span className="text-[10px] font-black uppercase tracking-[0.18em] text-gray-500">
+      <div className="px-4 py-2 border-b border-lf-line">
+        <span className="text-[10px] font-black uppercase tracking-[0.18em] text-lf-muted/60">
           {plan.badge}
         </span>
       </div>
 
       <div className="p-6 flex flex-col flex-1">
-        <h3 className="text-xl font-black text-gray-900">{plan.name}</h3>
-        <p className="mt-2 text-sm leading-relaxed text-gray-500">{plan.description}</p>
+        {/* 1. Nome */}
+        <h3 className="text-xl font-black text-lf-text">{plan.name}</h3>
 
-        <p className="mt-5 flex items-end gap-1.5 text-gray-900">
-          <strong className="text-5xl font-black leading-none">{plan.price}</strong>
-          <span className="pb-1 text-sm text-gray-400">{plan.period}</span>
+        {/* 2. Descrição */}
+        <p className="mt-2 text-sm leading-[1.6] text-lf-muted">{plan.description}</p>
+
+        {/* 3. Preço */}
+        <p className="mt-5 flex items-end gap-1.5">
+          <strong className="text-5xl font-black leading-none text-lf-text">{plan.price}</strong>
+          <span className="pb-1 text-sm text-lf-muted">{plan.period}</span>
         </p>
 
-        <ul className="mt-5 space-y-2 text-sm text-gray-500">
-          {planBenefits.map((benefit) => (
-            <li key={benefit} className="flex items-center gap-2.5">
-              <span className="text-lf-volt shrink-0">{CHECK}</span>
-              <span>{benefit}</span>
-            </li>
-          ))}
-        </ul>
-
+        {/* 5. CTA — outline fantasma (sem amarelo) */}
         <div className="mt-auto pt-7">
-          <Button href={href} variant="volt" className="w-full justify-center">
+          <Button href={href} variant="ghost" className="w-full justify-center">
             {ctaLabel ?? 'Começar matrícula'}
           </Button>
         </div>

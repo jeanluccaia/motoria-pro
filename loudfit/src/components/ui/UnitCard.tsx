@@ -16,7 +16,7 @@ export function UnitCard({ unit }: { unit: Unit }) {
         {unit.foto_capa ? (
           <Image
             src={unit.foto_capa}
-            alt={`Fachada da ${unit.nome}`}
+            alt={`Academia ${unit.nome} — LoudFit`}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover transition duration-500 group-hover:scale-105"

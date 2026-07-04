@@ -23,50 +23,51 @@ export function Hero() {
         aria-hidden="true"
       />
 
-      {/* Gradiente vertical: preserva imagem no topo, escurece na base onde fica o conteúdo */}
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,9,9,0.15)_0%,rgba(9,9,9,0.5)_50%,rgba(9,9,9,0.92)_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,9,9,0.08)_0%,rgba(9,9,9,0.42)_42%,rgba(9,9,9,0.94)_100%)]" />
 
       {/* Linha técnica diagonal — identidade LoudFit */}
       <div className="absolute bottom-0 left-0 right-0 h-px bg-lf-line" />
-      <div className="absolute bottom-0 left-0 h-[3px] w-56 -skew-x-12 origin-left bg-lf-volt" />
+      <div className="absolute bottom-0 left-0 h-[3px] w-48 -skew-x-12 origin-left bg-lf-volt" />
 
-      <div className="relative z-10 mx-auto w-full max-w-[1360px] px-5 sm:px-8 lg:px-12">
-        <p className="mb-5 text-[11px] font-bold uppercase tracking-[0.14em] text-lf-volt">
-          Rede de academias
-        </p>
+      <div className="relative z-10 mx-auto w-full max-w-[1200px] px-5 sm:px-8 lg:px-12">
 
-        <h1 className="max-w-4xl text-[3.2rem] sm:text-[4.5rem] md:text-[5.5rem] lg:text-[7rem] xl:text-[8.5rem] font-black leading-[0.94] text-lf-text">
-          O melhor<br />
-          ainda está<br />
-          <span className="text-lf-volt">por vir</span>
-        </h1>
-
-        <p className="mt-6 max-w-md text-base leading-relaxed text-lf-muted md:text-lg">
-          Energia, estrutura e uma experiência feita para quem leva o treino a sério.
-        </p>
-
-        {/* Oferta R$9,90 */}
-        <div className="mt-8 inline-flex flex-col">
-          <div className="inline-block -skew-x-3 bg-lf-volt px-5 py-3 lg:px-7 lg:py-4">
-            <div className="skew-x-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-lf-black/60">
-                Primeira mensalidade por
-              </p>
-              <p className="text-[2.8rem] font-black leading-none text-lf-black sm:text-[3.2rem] lg:text-[3.8rem]">
-                R$9,90
-              </p>
-            </div>
-          </div>
-          <p className="mt-2 pl-1 text-[11px] uppercase tracking-[0.14em] text-lf-muted">
-            no Power Anual Recorrente
+        {/* Eyebrow */}
+        <div className="mb-6 flex items-center gap-3">
+          <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
+            Rede de academias
           </p>
         </div>
 
+        {/* H1 — fluido, sem <br> hardcoded */}
+        <h1
+          className="font-black uppercase leading-[0.92] text-lf-text text-balance"
+          style={{ fontSize: 'clamp(2.8rem, 7.5vw, 8.5rem)' }}
+        >
+          O melhor ainda está por{' '}
+          <span className="text-lf-volt">vir.</span>
+        </h1>
+
+        {/* Subtexto — oferta principal */}
+        <p className="mt-6 max-w-[55ch] text-base leading-[1.6] text-lf-muted text-balance md:text-lg">
+          Musculação + aulas coletivas no mesmo plano. Do Muay Thai ao Pilates, já está incluso.
+        </p>
+
+        {/* Bloco de oferta compacto */}
+        <div className="mt-5 flex items-center gap-2.5">
+          <div className="h-[2px] w-5 shrink-0 bg-lf-volt/50" />
+          <p className="text-sm text-lf-muted">
+            <span className="font-bold text-lf-text">Primeira mensalidade R$9,90</span>
+            {' '}· Power Anual Recorrente
+          </p>
+        </div>
+
+        {/* CTAs — 1 amarelo cheio, 1 fantasma */}
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <Button href="#planos" variant="volt" size="lg" className="lg:py-5 lg:px-10 lg:text-[15px]">
+          <Button href="#planos" variant="volt" size="lg">
             Começar matrícula
           </Button>
-          <Button href="/unidades" variant="ghost" size="lg" className="lg:py-5 lg:px-10 lg:text-[15px]">
+          <Button href="/unidades" variant="ghost" size="lg">
             Ver unidades
           </Button>
         </div>

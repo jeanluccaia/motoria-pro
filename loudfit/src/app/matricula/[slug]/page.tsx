@@ -11,16 +11,10 @@ interface Props {
 }
 
 const trustItems = [
-  'Matrícula online segura',
-  'Cadastro registrado no sistema da academia',
-  'Aulas coletivas inclusas nos planos',
-  'Primeira mensalidade por R$9,90 no Power Anual Recorrente',
-]
-
-const howItWorks = [
-  'Escolha o plano no checkout',
-  'Preencha seus dados',
-  'Matrícula registrada no sistema da academia',
+  { icon: '✓', text: 'Checkout oficial EVO' },
+  { icon: '✓', text: 'Dados registrados no sistema da academia' },
+  { icon: '✓', text: 'Pagamento seguro' },
+  { icon: '✓', text: 'Aulas coletivas já inclusas no plano' },
 ]
 
 export async function generateStaticParams() {
@@ -51,87 +45,116 @@ export default async function MatriculaPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-[#F2F2F0]">
 
-      {/* Tira escura de identidade — fina, só branding */}
+      {/* Barra de identidade escura */}
       <div className="bg-lf-black pt-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-3">
-          <Link
-            href={`/unidades/${unit.slug}`}
-            className="text-xs text-lf-muted hover:text-lf-volt transition-colors"
-          >
-            ← Unidades
-          </Link>
-          <span className="text-lf-line">/</span>
-          <span className="text-xs text-lf-muted truncate">{unit.nome}</span>
-        </div>
-      </div>
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
 
-      {/* Conteúdo principal: claro */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-4">
-
-        {/* Card 1 — identidade + trust */}
-        <div className="bg-white border border-gray-200 border-t-4 border-t-lf-volt p-6 sm:p-8">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1">
-                {isPreOpening ? 'Matrícula antecipada' : 'Matrícula online'}
-              </p>
-              <h1 className="text-2xl sm:text-3xl font-black text-gray-900 leading-tight">
-                {unit.nome}
-              </h1>
-              {isPreOpening && (
-                <span className="mt-3 inline-flex items-center gap-1.5 border border-lf-volt/40 bg-lf-volt/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-lf-volt">
-                  <span className="h-1.5 w-1.5 rounded-full bg-lf-volt animate-pulse" />
-                  Unidade em inauguração
-                </span>
-              )}
-              <p className="mt-3 text-sm text-gray-500 max-w-lg">
-                {isPreOpening
-                  ? 'Garanta sua matrícula antes da inauguração. Processo rápido e seguro.'
-                  : 'Escolha seu plano no checkout abaixo e finalize sua matrícula. Processo rápido e seguro.'}
-              </p>
-            </div>
-            <UnitBadge status={unit.status} />
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-2 py-3 text-xs text-lf-muted">
+            <Link href={`/unidades/${unit.slug}`} className="hover:text-lf-volt transition-colors">
+              ← {unit.nome}
+            </Link>
+            <span className="text-lf-line">/</span>
+            <span>Matrícula online</span>
           </div>
 
-          {/* Trust — checklist limpa */}
-          <div className="mt-6 pt-5 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-y-2.5 gap-x-6">
-            {trustItems.map((item) => (
-              <div key={item} className="flex items-start gap-2.5">
-                <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center bg-lf-volt text-[9px] font-black text-lf-black">✓</span>
-                <span className="text-sm text-gray-600">{item}</span>
+          {/* Progress steps */}
+          <div className="flex items-center gap-0 pb-5 pt-2">
+            {[
+              { step: '①', label: 'Unidade escolhida', done: true },
+              { step: '②', label: 'Plano', done: false },
+              { step: '③', label: 'Pagamento seguro', done: false },
+            ].map((item, i) => (
+              <div key={item.step} className="flex items-center gap-0 flex-1 last:flex-none">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={[
+                      'flex h-6 w-6 shrink-0 items-center justify-center text-[11px] font-black',
+                      item.done
+                        ? 'bg-lf-volt text-lf-black'
+                        : 'bg-lf-surface border border-lf-line text-lf-muted',
+                    ].join(' ')}
+                  >
+                    {item.done ? '✓' : item.step.replace(/[①②③]/g, String(i + 1))}
+                  </span>
+                  <span className={`hidden sm:block text-[11px] font-medium uppercase tracking-[0.1em] ${item.done ? 'text-lf-text' : 'text-lf-muted'}`}>
+                    {item.label}
+                  </span>
+                </div>
+                {i < 2 && (
+                  <div className="flex-1 mx-3 h-px bg-lf-line" />
+                )}
               </div>
             ))}
           </div>
         </div>
+      </div>
 
-        {/* Card 2 — como funciona */}
-        <div className="bg-white border border-gray-200 p-5 sm:p-6">
-          <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-4">
-            Como funciona
-          </p>
-          <ol className="flex flex-col gap-3 sm:flex-row sm:gap-0">
-            {howItWorks.map((step, i) => (
-              <li key={step} className="flex items-start gap-3 flex-1 sm:pr-6">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center bg-lf-volt text-[11px] font-black text-lf-black">
-                  {i + 1}
-                </span>
-                <span className="text-sm text-gray-600 leading-snug">{step}</span>
-              </li>
-            ))}
-          </ol>
+      {/* Conteúdo principal */}
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-4">
+
+        {/* Card de identidade + trust */}
+        <div className="bg-white border border-gray-200 border-t-4 border-t-lf-volt">
+          <div className="p-6 sm:p-8">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-400 mb-1">
+                  {isPreOpening ? 'Matrícula antecipada' : 'Matrícula online'}
+                </p>
+                <h1 className="text-2xl font-black leading-tight text-gray-900 sm:text-3xl">
+                  {unit.nome}
+                </h1>
+                {isIpiranga && isPreOpening && (
+                  <p className="mt-2 text-sm font-semibold text-lf-volt">
+                    Garanta sua matrícula na inauguração.
+                  </p>
+                )}
+                <p className="mt-2 text-sm leading-relaxed text-gray-500 max-w-lg">
+                  {isPreOpening
+                    ? 'Garanta sua matrícula antes da inauguração. Processo rápido e seguro.'
+                    : 'Escolha seu plano no checkout abaixo e finalize sua matrícula.'}
+                </p>
+              </div>
+              <UnitBadge status={unit.status} />
+            </div>
+
+            {/* Benefício em destaque */}
+            <div className="mt-5 border-l-2 border-lf-volt bg-gray-50 px-4 py-3">
+              <p className="text-sm font-bold text-gray-800">
+                Aulas coletivas já inclusas no seu plano.
+              </p>
+              <p className="mt-0.5 text-xs text-gray-500">
+                Muay Thai, Pilates, Spinning, FitDance e mais — sem custo adicional.
+              </p>
+            </div>
+          </div>
+
+          {/* Selos de confiança */}
+          <div className="border-t border-gray-100 px-6 py-4 sm:px-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2.5 gap-x-6">
+              {trustItems.map((item) => (
+                <div key={item.text} className="flex items-center gap-2.5">
+                  <span className="flex h-4 w-4 shrink-0 items-center justify-center bg-lf-volt text-[9px] font-black text-lf-black">
+                    {item.icon}
+                  </span>
+                  <span className="text-sm text-gray-600">{item.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Card 3 — checkout */}
+        {/* Card de checkout */}
         <div className="bg-white border border-gray-200 overflow-hidden">
-          <div className="flex items-center justify-between gap-4 px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center justify-between gap-4 border-b border-gray-100 px-5 py-4">
             <p className="text-sm font-black text-gray-800">Finalize sua matrícula</p>
             <a
               href={unit.checkoutUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="shrink-0 border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-gray-500 hover:text-gray-700 transition-colors"
+              className="shrink-0 border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-500 transition-colors hover:border-gray-500 hover:text-gray-700"
             >
-              Abrir em nova aba ↗
+              Abrir checkout em nova aba ↗
             </a>
           </div>
 
@@ -144,11 +167,11 @@ export default async function MatriculaPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Back link */}
+        {/* Voltar */}
         <div className="py-4">
           <Link
             href={`/unidades/${unit.slug}`}
-            className="text-sm text-gray-400 hover:text-gray-700 transition-colors"
+            className="text-sm text-gray-400 transition-colors hover:text-gray-700"
           >
             ← Voltar para {unit.nome}
           </Link>

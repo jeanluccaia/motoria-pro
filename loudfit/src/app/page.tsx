@@ -13,6 +13,7 @@ import { UnitCard } from '@/components/ui/UnitCard'
 import { Button } from '@/components/ui/Button'
 import { Reveal } from '@/components/ui/Reveal'
 import { StickyCta } from '@/components/ui/StickyCta'
+import { WhatsAppFloat } from '@/components/ui/WhatsAppFloat'
 import { getUnits } from '@/lib/supabase'
 
 export const metadata: Metadata = {
@@ -33,11 +34,10 @@ export default async function HomePage() {
       <CollectiveClassesSection />
 
       {units.length > 0 && (
-        <Section id="unidades" bg="lighter" className="relative">
+        <Section id="unidades" bg="graphite" className="relative">
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <Reveal>
               <SectionHeader
-                dark
                 label="Unidades"
                 title="Escolha sua LoudFit."
                 subtitle="5 unidades em operação — Campinas, Valinhos, São Paulo e Mogi Mirim."
@@ -65,6 +65,7 @@ export default async function HomePage() {
       <ExpansionBanner />
       <FinalCta />
       <StickyCta />
+      <WhatsAppFloat />
     </>
   )
 }

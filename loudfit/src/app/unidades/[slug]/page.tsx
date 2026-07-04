@@ -236,9 +236,8 @@ export default async function UnitPage({ params }: Props) {
         </Section>
 
         {/* Planos */}
-        <Section id="planos" bg="light">
+        <Section id="planos" bg="graphite">
           <SectionHeader
-            dark
             label="Planos da unidade"
             title="Escolha como começar."
             subtitle={
@@ -247,6 +246,19 @@ export default async function UnitPage({ params }: Props) {
                 : 'Tabela padrão LoudFit para esta unidade.'
             }
           />
+
+          {/* Benefícios comuns */}
+          <div className="mb-10 flex flex-wrap items-center gap-x-5 gap-y-2 border border-lf-line px-5 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-lf-muted/50">
+              Todos os planos incluem:
+            </p>
+            {['Musculação', 'Aulas coletivas', 'Estrutura completa', 'Reconhecimento facial'].map((b) => (
+              <span key={b} className="flex items-center gap-2 text-xs text-lf-muted">
+                <span className="h-1 w-1 shrink-0 bg-lf-volt" />
+                {b}
+              </span>
+            ))}
+          </div>
 
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4 lg:items-stretch">
             {plans.map((plan) => (
@@ -258,7 +270,7 @@ export default async function UnitPage({ params }: Props) {
               />
             ))}
           </div>
-          <p className="mt-6 text-sm text-gray-500">
+          <p className="mt-6 text-xs text-lf-muted/50">
             Após a primeira {isIpiranga ? 'parcela' : 'mensalidade'} promocional,
             aplica-se o valor mensal do Power Anual Recorrente desta unidade. Os demais planos
             seguem o valor cheio desde a primeira cobrança.
@@ -267,18 +279,17 @@ export default async function UnitPage({ params }: Props) {
 
         {/* Aulas coletivas da unidade */}
         {hasAulas && (
-          <Section bg="lighter">
+          <Section bg="black">
             <SectionHeader
-              dark
               label="Aulas coletivas"
               title="Grade de aulas."
               subtitle="Estas aulas estão inclusas no seu plano nesta unidade, sem custo adicional."
             />
-            <div className="flex flex-wrap gap-2.5">
+            <div className="flex flex-wrap gap-2">
               {aulasUnit.map((aula) => (
                 <span
                   key={aula}
-                  className="rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700"
+                  className="border border-lf-line px-3 py-1.5 text-sm font-medium text-lf-muted hover:border-lf-volt hover:text-lf-text transition-colors"
                 >
                   {aula}
                 </span>
@@ -288,8 +299,8 @@ export default async function UnitPage({ params }: Props) {
         )}
 
         {!hasAulas && (
-          <Section bg="lighter" tight>
-            <p className="text-sm text-gray-500">
+          <Section bg="black" tight>
+            <p className="text-sm text-lf-muted/60">
               Grade de aulas coletivas desta unidade a confirmar. Consulte a unidade.
             </p>
           </Section>
