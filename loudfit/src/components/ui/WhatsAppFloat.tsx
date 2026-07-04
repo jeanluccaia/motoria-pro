@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { cn } from '@/lib/utils'
 
 const ATENDIMENTO_NUM = '[NUMERO_WHATSAPP_ATENDIMENTO]'
 const FRANQUIA_NUM = '[NUMERO_WHATSAPP_FRANQUIA]'
@@ -20,9 +21,27 @@ const options = [
 
 export function WhatsAppFloat() {
   const [open, setOpen] = useState(false)
+  const [scrolledPastHero, setScrolledPastHero] = useState(false)
+
+  useEffect(() => {
+    function onScroll() {
+      setScrolledPastHero(window.scrollY > window.innerHeight * 0.6)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+    <div
+      className={cn(
+        'fixed z-40 flex flex-col items-end gap-3 transition-all duration-300',
+        'bottom-4 right-4 md:bottom-6 md:right-6',
+        scrolledPastHero
+          ? 'translate-y-0 opacity-100'
+          : 'pointer-events-none translate-y-3 opacity-0 md:pointer-events-auto md:translate-y-0 md:opacity-100',
+      )}
+    >
 
       {/* Menu expandido */}
       {open && (
@@ -48,14 +67,14 @@ export function WhatsAppFloat() {
         </div>
       )}
 
-      {/* Botão principal */}
+      {/* Botão principal — menor e mais discreto no mobile */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? 'Fechar WhatsApp' : 'Abrir WhatsApp'}
-        className="flex h-[54px] w-[54px] items-center justify-center bg-[#111111] text-[#25D366] shadow-[0_4px_20px_rgba(0,0,0,0.30)] transition-all duration-200 hover:scale-105 hover:shadow-[0_6px_28px_rgba(0,0,0,0.45)]"
+        className="flex h-[46px] w-[46px] items-center justify-center bg-[#111111] text-[#25D366] shadow-[0_4px_16px_rgba(0,0,0,0.30)] transition-all duration-200 hover:scale-105 hover:shadow-[0_6px_28px_rgba(0,0,0,0.45)] md:h-[54px] md:w-[54px]"
       >
-        {open ? <CloseIcon /> : <WhatsAppIcon size={22} />}
+        {open ? <CloseIcon /> : <WhatsAppIcon size={18} />}
       </button>
     </div>
   )

@@ -1,29 +1,43 @@
-const items = [
-  'Musculação',
-  '16 modalidades',
+import { Section } from '@/components/ui/Section'
+import { Reveal } from '@/components/ui/Reveal'
+
+const stats = [
   '5 unidades em operação',
-  'Matrícula 100% online',
-  'Aulas coletivas inclusas',
+  '16 modalidades',
+  'Matrícula online',
+  'Aulas inclusas',
 ]
 
 export function BrandMarquee() {
   return (
-    <div className="border-y border-lf-line bg-lf-graphite" aria-hidden="true">
-      <div className="max-w-[1360px] mx-auto px-5 sm:px-8 lg:px-12 py-3">
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
-          <span className="font-display text-sm font-black uppercase tracking-[0.14em] text-lf-volt">
-            LoudFit
-          </span>
-          {items.map((item) => (
-            <span key={item} className="flex items-center gap-5">
-              <span className="text-lf-muted/30 text-xs select-none">—</span>
-              <span className="text-xs font-bold uppercase tracking-[0.12em] text-lf-muted/60">
-                {item}
-              </span>
-            </span>
-          ))}
+    <Section bg="graphite" className="py-10 md:py-14">
+      <Reveal>
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
+          <div className="max-w-md">
+            <h2 className="text-xl font-black leading-snug text-lf-text md:text-2xl">
+              Musculação + aulas inclusas.
+            </h2>
+            <p className="mt-1.5 text-sm leading-relaxed text-lf-muted">
+              Você escolhe a unidade, escolhe o plano e treina com acesso às
+              atividades disponíveis na grade.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:shrink-0">
+            {stats.map((s) => (
+              <div
+                key={s}
+                className="flex items-center gap-2 border border-lf-line bg-lf-surface px-3.5 py-3"
+              >
+                <span className="h-1 w-1 shrink-0 bg-lf-volt" />
+                <span className="text-xs font-bold leading-snug text-lf-text">
+                  {s}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-    </div>
+      </Reveal>
+    </Section>
   )
 }

@@ -14,19 +14,20 @@ export function PlansSection() {
   const plans = getPlans()
 
   return (
-    <Section id="planos" bg="graphite" className="relative overflow-hidden lg:py-32">
+    <Section id="planos" bg="graphite" className="relative overflow-hidden py-14 md:py-24 lg:py-32">
       <div className="relative">
         <Reveal>
           <SectionHeader
             label="Planos"
             title="Escolha o seu plano."
+            className="mb-8 md:mb-14 lg:mb-16"
           />
         </Reveal>
 
         {/* Benefícios comuns — linha única acima dos cards */}
         <Reveal delay={0.05}>
-          <div className="mb-10 flex flex-wrap items-center gap-x-5 gap-y-2 border border-lf-line px-5 py-3">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-lf-muted/50">
+          <div className="mb-8 flex flex-wrap items-center gap-x-5 gap-y-2 border border-lf-line bg-lf-surface/40 px-5 py-3.5 md:mb-10">
+            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-lf-text/70">
               Todos os planos incluem:
             </p>
             {sharedBenefits.map((b) => (
@@ -38,7 +39,7 @@ export function PlansSection() {
           </div>
         </Reveal>
 
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4 lg:items-stretch">
+        <div className="grid gap-4 md:gap-5 md:grid-cols-2 lg:grid-cols-4 lg:items-stretch">
           {plans.map((plan, i) => (
             <Reveal key={plan.slug} delay={i * 0.08} className="h-full flex flex-col">
               <PlanCard plan={plan} />

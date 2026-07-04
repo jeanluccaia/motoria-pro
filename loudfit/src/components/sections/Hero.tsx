@@ -21,14 +21,14 @@ export function Hero() {
         fill
         priority
         sizes="100vw"
-        className="absolute inset-0 h-full w-full object-cover object-[58%_center] opacity-80 brightness-[0.82] contrast-[1.08] md:hidden"
+        className="absolute inset-0 h-full w-full object-cover object-[58%_center] opacity-90 brightness-[0.92] contrast-[1.05] md:hidden"
         aria-hidden="true"
       />
 
       {/* Gradient desktop */}
       <div className="absolute inset-0 hidden bg-[linear-gradient(180deg,rgba(9,9,9,0.08)_0%,rgba(9,9,9,0.42)_42%,rgba(9,9,9,0.94)_100%)] md:block" />
-      {/* Gradient mobile — text stays readable while the athlete remains visible */}
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,9,9,0.52)_0%,rgba(9,9,9,0.26)_42%,rgba(9,9,9,0.64)_100%),linear-gradient(90deg,rgba(9,9,9,0.58)_0%,rgba(9,9,9,0.18)_100%)] md:hidden" />
+      {/* Gradient mobile — lighter wash, image stays visible; darkens only enough for text */}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,9,9,0.46)_0%,rgba(9,9,9,0.16)_36%,rgba(9,9,9,0.46)_100%),linear-gradient(90deg,rgba(9,9,9,0.46)_0%,rgba(9,9,9,0.08)_100%)] md:hidden" />
 
       {/* Linha técnica diagonal — identidade LoudFit */}
       <div className="absolute bottom-0 left-0 right-0 h-px bg-lf-line" />
@@ -44,10 +44,10 @@ export function Hero() {
           </p>
         </div>
 
-        {/* H1 */}
+        {/* H1 — menor peso no mobile, mantém impacto no desktop */}
         <h1
-          className="max-w-5xl text-balance font-black uppercase leading-[1.02] text-lf-text"
-          style={{ fontSize: 'clamp(2.75rem, 5.4vw, 6.5rem)' }}
+          className="max-w-5xl text-balance font-black uppercase leading-[1.05] text-lf-text md:leading-[1.02]"
+          style={{ fontSize: 'clamp(2.35rem, 5.4vw, 6.5rem)' }}
         >
           O melhor ainda está por{' '}
           <span className="text-lf-volt">vir.</span>
@@ -74,22 +74,30 @@ export function Hero() {
           ))}
         </div>
 
-        {/* Badge da oferta — compacto no mobile, mais espaçado no desktop */}
-        <div className="mt-4 inline-flex flex-col gap-0.5 border border-white/[0.08] bg-lf-black/[0.34] px-3 py-1.5 backdrop-blur-[2px] md:mt-5 md:px-4 md:py-3">
-          <span className="text-sm font-bold leading-tight text-lf-text">
-            R$9,90 na 1ª mensalidade
-          </span>
-          <span className="text-[11px] leading-tight text-lf-muted">
-            Power Anual Recorrente
+        {/* Faixa da oferta — pill horizontal com detalhe amarelo lateral */}
+        <div className="mt-4 inline-flex items-center gap-3 border border-white/10 bg-black/40 py-2 pl-3 pr-4 backdrop-blur-[2px] md:mt-5 md:py-2.5 md:pl-4 md:pr-5">
+          <span className="h-7 w-[3px] shrink-0 bg-lf-volt md:h-8" />
+          <span className="flex flex-col gap-0.5 leading-tight">
+            <span className="text-sm font-bold text-lf-text">
+              R$9,90 na 1ª mensalidade
+            </span>
+            <span className="text-[11px] text-lf-muted">
+              Power Anual Recorrente
+            </span>
           </span>
         </div>
 
-        {/* CTAs — hierarquia clara, touch-target mantido */}
-        <div className="mt-6 flex flex-col gap-2.5 sm:mt-8 sm:flex-row">
-          <Button href="#planos" variant="volt" size="lg" className="tracking-[0.02em] py-3 md:py-4">
+        {/* CTAs — hierarquia clara, principal forte, secundário leve */}
+        <div className="mt-6 flex flex-col items-start gap-3 sm:mt-8 sm:flex-row sm:items-center">
+          <Button href="#planos" variant="volt" size="lg" className="px-6 py-3 text-sm tracking-[0.02em] md:px-8 md:py-4 md:text-base">
             Começar matrícula
           </Button>
-          <Button href="/unidades" variant="ghost" size="lg" className="tracking-[0.02em] py-3 md:py-4">
+          <Button
+            href="/unidades"
+            variant="ghost"
+            size="md"
+            className="border-0 bg-transparent px-1 py-1 text-white/65 tracking-[0.02em] hover:-translate-y-0 hover:bg-transparent hover:text-lf-volt underline-offset-4 hover:underline"
+          >
             Ver unidades
           </Button>
         </div>
