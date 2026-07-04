@@ -64,8 +64,8 @@ export function BrandVideo() {
             {/* Detalhe diagonal — canto superior direito */}
             <div className="absolute top-0 right-0 z-10 h-0 w-0 border-t-[36px] border-t-lf-volt border-l-[36px] border-l-transparent" />
 
-            {/* Container com proporção: 4:5 mobile, 16:9 desktop */}
-            <div className="relative aspect-[4/5] sm:aspect-video overflow-hidden bg-lf-graphite">
+            {/* Container 16:9 em todos os breakpoints */}
+            <div className="relative aspect-video overflow-hidden bg-lf-graphite">
               <video
                 ref={videoRef}
                 src="/hero.mp4"
@@ -74,7 +74,7 @@ export function BrandVideo() {
                 playsInline
                 preload="none"
                 poster="/assets/images/real-machines.jpg"
-                className="h-full w-full object-cover object-top"
+                className="h-full w-full object-cover object-center"
                 aria-label="Vídeo da academia LoudFit — material provisório"
               />
 
