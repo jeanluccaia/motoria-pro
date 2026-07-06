@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Button'
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-[94svh] lg:min-h-[90vh] items-start lg:items-end overflow-hidden bg-lf-black pt-[14svh] pb-16 lg:pt-0 md:pb-24 lg:pb-28">
+    <section className="relative flex min-h-[94svh] lg:min-h-[90vh] items-start lg:items-end overflow-hidden bg-lf-black pt-[12svh] pb-16 lg:pt-0 md:pb-24 lg:pb-28">
       {/* Desktop image */}
       <Image
         src="/assets/images/hero-gym-desktop.png"
@@ -11,7 +11,7 @@ export function Hero() {
         fill
         priority
         sizes="100vw"
-        className="absolute inset-0 hidden h-full w-full object-cover object-center opacity-60 md:block"
+        className="absolute inset-0 hidden h-full w-full object-cover object-[65%_center] opacity-60 md:block"
         aria-hidden="true"
       />
       {/* Mobile image — focal point on athlete */}
@@ -25,8 +25,8 @@ export function Hero() {
         aria-hidden="true"
       />
 
-      {/* Gradient desktop */}
-      <div className="absolute inset-0 hidden bg-[linear-gradient(180deg,rgba(9,9,9,0.08)_0%,rgba(9,9,9,0.42)_42%,rgba(9,9,9,0.94)_100%)] md:block" />
+      {/* Gradient desktop — esquerda escura para texto, direita revela foto */}
+      <div className="absolute inset-0 hidden bg-[linear-gradient(90deg,rgba(9,9,9,0.88)_0%,rgba(9,9,9,0.62)_45%,rgba(9,9,9,0.18)_100%),linear-gradient(180deg,rgba(9,9,9,0.08)_0%,rgba(9,9,9,0.40)_42%,rgba(9,9,9,0.92)_100%)] md:block" />
       {/* Gradient mobile — lighter wash, image stays visible; darkens only enough for text */}
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,9,9,0.46)_0%,rgba(9,9,9,0.16)_36%,rgba(9,9,9,0.46)_100%),linear-gradient(90deg,rgba(9,9,9,0.46)_0%,rgba(9,9,9,0.08)_100%)] md:hidden" />
 
@@ -53,9 +53,10 @@ export function Hero() {
           <span className="text-lf-volt">vir.</span>
         </h1>
 
-        {/* Subtexto */}
+        {/* Subtexto — 2 linhas no mobile com quebra controlada */}
         <p className="mt-3 text-base leading-[1.4] text-white/70 md:mt-4 md:max-w-[44ch] md:text-lg">
-          Musculação + aulas coletivas no mesmo plano. Do Muay&nbsp;Thai ao Pilates, já está incluso.
+          <span className="block">Musculação + aulas coletivas no mesmo plano.</span>
+          <span className="block">Do Muay&nbsp;Thai ao Pilates, já está incluso.</span>
         </p>
 
         {/* Tags de modalidades — somente desktop */}
@@ -70,9 +71,8 @@ export function Hero() {
           ))}
         </div>
 
-        {/* Faixa da oferta — pill horizontal com detalhe amarelo lateral */}
-        <div className="mt-4 inline-flex items-center gap-3 border border-white/10 bg-black/40 py-2 pl-3 pr-4 backdrop-blur-[2px] md:mt-5 md:py-2.5 md:pl-4 md:pr-5">
-          <span className="h-7 w-[3px] shrink-0 bg-lf-volt md:h-8" />
+        {/* Faixa da oferta — pill contido, sem traço amarelo solto */}
+        <div className="mt-4 inline-flex items-center gap-2.5 border border-white/[0.12] bg-white/[0.06] px-4 py-2.5 backdrop-blur-[2px] md:mt-5">
           <span className="flex flex-col gap-0.5 leading-tight">
             <span className="text-sm font-bold text-lf-text">
               R$9,90 na 1ª mensalidade
@@ -83,16 +83,16 @@ export function Hero() {
           </span>
         </div>
 
-        {/* CTAs — hierarquia clara, principal forte, secundário leve */}
+        {/* CTAs — hierarquia clara, alturas iguais 52-56px */}
         <div className="mt-6 flex flex-col items-start gap-3 sm:mt-8 sm:flex-row sm:items-center">
-          <Button href="/unidades" variant="volt" size="lg" className="px-6 py-3 text-sm tracking-[0.02em] md:px-8 md:py-4 md:text-base">
+          <Button href="/unidades" variant="volt" size="lg" className="min-h-[52px] tracking-[0.02em] font-extrabold">
             Começar matrícula
           </Button>
           <Button
             href="/unidades"
-            variant="ghost"
-            size="md"
-            className="border-0 bg-transparent px-1 py-1 text-white/65 tracking-[0.02em] hover:-translate-y-0 hover:bg-transparent hover:text-lf-volt underline-offset-4 hover:underline"
+            variant="outline"
+            size="lg"
+            className="min-h-[52px] tracking-[0.02em]"
           >
             Ver unidades
           </Button>

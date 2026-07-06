@@ -109,7 +109,7 @@ export function BrandVideo() {
                   aria-label="Reproduzir vídeo"
                   className="absolute inset-0 flex items-center justify-center group"
                 >
-                  <span className="flex h-16 w-16 items-center justify-center border-2 border-white/60 bg-lf-black/60 text-white transition-all duration-200 group-hover:border-lf-volt group-hover:bg-lf-volt group-hover:text-lf-black backdrop-blur-sm">
+                  <span className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-white/60 bg-lf-black/60 text-white transition-all duration-200 group-hover:border-lf-volt group-hover:bg-lf-volt group-hover:text-lf-black backdrop-blur-sm">
                     <PlayIcon />
                   </span>
                 </button>

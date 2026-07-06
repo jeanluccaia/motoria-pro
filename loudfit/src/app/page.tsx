@@ -37,9 +37,9 @@ export default async function HomePage() {
     <>
       <Hero />
       <OfferBanner />
+      <CollectiveClassesSection />
       <BrandMarquee />
       <PlansSection />
-      <CollectiveClassesSection />
 
       {units.length > 0 && (
         <Section id="unidades" bg="graphite" className="relative">

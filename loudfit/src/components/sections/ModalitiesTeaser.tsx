@@ -45,7 +45,7 @@ export function ModalitiesTeaser() {
             <SectionHeader
               label="Modalidades"
               title="Musculação, cardio e aulas coletivas."
-              subtitle="Tudo que você precisa no mesmo espaço, incluso no plano."
+              subtitle="Todos os planos incluem musculação e aulas coletivas da unidade."
               className="mb-0"
             />
           </Reveal>

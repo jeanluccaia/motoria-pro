@@ -33,13 +33,13 @@ export default async function UnidadesPage() {
 
         <div className="mb-10 grid gap-0 border border-gray-200 bg-white text-sm md:grid-cols-3">
           <div className="border-b border-gray-200 p-4 md:border-b-0 md:border-r">
-            <span className="font-black uppercase tracking-[0.18em] text-gray-800">1. Escolha a unidade</span>
+            <span className="font-black uppercase tracking-[0.04em] text-gray-800">1. Escolha a unidade</span>
           </div>
           <div className="border-b border-gray-200 p-4 md:border-b-0 md:border-r">
-            <span className="font-black uppercase tracking-[0.18em] text-gray-800">2. Escolha o plano</span>
+            <span className="font-black uppercase tracking-[0.04em] text-gray-800">2. Escolha o plano</span>
           </div>
           <div className="p-4">
-            <span className="font-black uppercase tracking-[0.18em] text-gray-800">3. Finalize a matrícula online</span>
+            <span className="font-black uppercase tracking-[0.04em] text-gray-800">3. Finalize a matrícula online</span>
           </div>
         </div>
 

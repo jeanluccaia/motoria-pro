@@ -27,7 +27,7 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
       )}>
         {/* Faixa topo */}
         <div className="bg-lf-volt px-4 py-2 flex items-center justify-between">
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-lf-black">
+          <span className="text-[10px] font-black uppercase tracking-[0.04em] text-lf-black">
             {plan.badge}
           </span>
           <span className="text-[10px] font-bold uppercase tracking-wider text-lf-black/70">
@@ -79,7 +79,7 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
       'transition duration-200 hover:-translate-y-1 hover:border-lf-text/20',
     )}>
       <div className="px-4 py-2 border-b border-lf-line">
-        <span className="text-[10px] font-black uppercase tracking-[0.18em] text-lf-muted/60">
+        <span className="text-[10px] font-black uppercase tracking-[0.04em] text-lf-muted/60">
           {plan.badge}
         </span>
       </div>

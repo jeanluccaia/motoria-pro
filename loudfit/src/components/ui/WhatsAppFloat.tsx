@@ -72,7 +72,7 @@ export function WhatsAppFloat() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? 'Fechar WhatsApp' : 'Abrir WhatsApp'}
-        className="flex h-[46px] w-[46px] items-center justify-center bg-[#111111] text-[#25D366] shadow-[0_4px_16px_rgba(0,0,0,0.30)] transition-all duration-200 hover:scale-105 hover:shadow-[0_6px_28px_rgba(0,0,0,0.45)] md:h-[54px] md:w-[54px]"
+        className="flex h-[52px] w-[52px] items-center justify-center bg-[#111111] text-[#25D366] shadow-[0_4px_16px_rgba(0,0,0,0.30)] transition-all duration-200 hover:scale-105 hover:shadow-[0_6px_28px_rgba(0,0,0,0.45)] md:h-[54px] md:w-[54px]"
       >
         {open ? <CloseIcon /> : <WhatsAppIcon size={18} />}
       </button>

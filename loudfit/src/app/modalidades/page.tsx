@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
-import { Section, SectionHeader } from '@/components/ui/Section'
+import { Section } from '@/components/ui/Section'
 
 export const metadata: Metadata = {
   title: { absolute: 'Modalidades LoudFit — Aulas e treinos' },
@@ -15,114 +15,173 @@ export const metadata: Metadata = {
   },
 }
 
-const modalities = [
+const anchorCards = [
   {
-    title: 'Força',
-    body: 'Estrutura para evoluir com carga, técnica e consistência.',
-    image: '/assets/images/real-weights.jpg',
+    name: 'Muay Thai',
+    desc: 'Arte marcial de alta intensidade. Soco, chute e queima calórica de verdade.',
   },
   {
-    title: 'Cardio',
-    body: 'Ritmo para manter o treino vivo e voltar no dia seguinte.',
-    image: '/assets/images/real-machines.jpg',
+    name: 'Pilates',
+    desc: 'Força no core, postura e mobilidade. Indicado para todos os níveis.',
   },
   {
-    title: 'Funcional',
-    body: 'Movimento, intensidade e grupo para puxar sua melhor versão.',
-    image: '/assets/images/training-modalities.png',
+    name: 'Spinning',
+    desc: 'Alta intensidade sobre a bike. Resistência cardio com ritmo de música.',
   },
   {
-    title: 'Comunidade',
-    body: 'Gente que treina junto em uma sala com energia de rede.',
-    image: '/assets/images/studio-community.jpg',
+    name: 'FitDance',
+    desc: 'Dança fitness que não parece treino. Movimentos, música e energia de grupo.',
+  },
+  {
+    name: 'Funcional',
+    desc: 'Exercícios compostos que trabalham força e condicionamento ao mesmo tempo.',
+  },
+  {
+    name: 'Jump',
+    desc: 'Mini trampolim com coreografia. Cardio de alto impacto com baixo esforço articular.',
   },
 ]
 
-const classes = ['Zumba', 'Jump', 'FitDance', 'Pilates', 'Pump', 'Muay Thai', 'GAP', 'Funcional']
+const otherAulas = [
+  'Zumba', 'GAP', 'Pump', 'Yoga', 'Jiu-Jitsu', 'Ritbox',
+  'Loud Dance', 'Step', 'Crosstreino', 'Alongamento',
+]
 
 export default function ModalidadesPage() {
   return (
     <div className="pt-16">
-      <section className="relative min-h-[560px] overflow-hidden bg-lf-black">
+
+      {/* Hero */}
+      <section className="relative min-h-[520px] overflow-hidden bg-lf-black">
         <Image
           src="/assets/images/training-modalities.png"
           alt=""
           fill
           priority
           sizes="100vw"
-          className="object-cover object-center opacity-65"
+          className="object-cover object-center opacity-50"
           aria-hidden="true"
         />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_46%,rgba(242,226,5,0.13),transparent_22%),linear-gradient(90deg,rgba(10,10,10,0.97),rgba(10,10,10,0.62)),linear-gradient(180deg,rgba(10,10,10,0.08),rgba(10,10,10,1))]" />
-        <div className="absolute right-[-18vw] top-0 hidden h-full w-[42vw] -skew-x-12 border-l border-lf-volt/20 bg-lf-volt/[0.04] lg:block" />
-        <div className="relative mx-auto flex min-h-[560px] max-w-7xl items-end px-4 py-14 sm:px-6">
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(9,9,9,0.97),rgba(9,9,9,0.72)_50%,rgba(9,9,9,0.38)),linear-gradient(180deg,rgba(9,9,9,0.15),rgba(9,9,9,0.95))]" />
+
+        <div className="relative mx-auto flex min-h-[520px] max-w-7xl items-end px-4 py-14 sm:px-6">
           <div className="max-w-3xl">
-            <p className="mb-5 text-xs uppercase tracking-[0.28em] text-lf-volt">Experiências</p>
-            <h1 className="text-[3.1rem] font-black leading-none text-lf-text md:text-7xl">Treino com intenção.</h1>
-            <p className="mt-5 max-w-[21rem] text-base leading-relaxed text-lf-muted md:max-w-xl md:text-lg">
-              Força, ritmo e comunidade para treinar com mais vontade.
+            <div className="mb-5 flex items-center gap-3">
+              <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
+                Aulas coletivas
+              </p>
+            </div>
+
+            <h1 className="text-4xl font-black leading-[1.02] text-lf-text md:text-6xl">
+              Tudo isso já está<br className="hidden sm:block" /> no seu plano.
+            </h1>
+
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-lf-muted">
+              16 modalidades inclusas na mensalidade, sem custo por aula.
             </p>
+
+            <p className="mt-2 text-xs text-lf-muted/50">
+              A grade pode variar por unidade.
+            </p>
+
             <div className="mt-8">
               <Button href="/unidades" variant="volt" size="lg">
-                Ver unidades
+                Começar matrícula
               </Button>
             </div>
           </div>
         </div>
       </section>
 
-      <Section bg="black" className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(242,226,5,0.08),transparent_22%)]" />
-        <div className="relative">
-          <div className="mb-12 md:mb-16">
-            <p className="mb-4 text-xs uppercase tracking-[0.2em] text-lf-volt">Modalidades</p>
-            <h2 className="text-4xl font-black text-lf-text md:text-6xl">
-              <span className="block">Escolha seu</span>
-              <span className="block">ritmo.</span>
-            </h2>
-            <p className="mt-4 max-w-[21rem] text-base leading-relaxed text-lf-muted md:max-w-2xl md:text-lg">
-              Modalidades claras para quem quer entrar, treinar e voltar no dia seguinte.
+      {/* Grid de modalidades âncora */}
+      <Section bg="black">
+        <div className="mb-10">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
+              Modalidades em destaque
             </p>
           </div>
+          <h2 className="text-3xl font-black leading-[1.02] text-lf-text md:text-4xl">
+            Já incluídas no seu plano.
+          </h2>
+        </div>
 
-          <div className="grid gap-5 md:grid-cols-2">
-            {modalities.map((item, index) => (
-              <article key={item.title} className="group relative min-h-[390px] overflow-hidden border border-lf-line bg-lf-surface transition duration-500 hover:-translate-y-1 hover:border-lf-volt/45">
-                <Image
-                  src={item.image}
-                  alt={`LoudFit - ${item.title}`}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover opacity-72 transition duration-700 group-hover:scale-105 group-hover:opacity-88"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-lf-black via-lf-black/35 to-transparent" />
-                <div className="absolute left-6 top-6 rounded-full border border-lf-volt/40 bg-lf-black/70 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-lf-volt">
-                  {String(index + 1).padStart(2, '0')}
-                </div>
-                <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
-                  <span className="text-xs uppercase tracking-[0.22em] text-lf-volt">{item.title}</span>
-                  <h2 className="mt-3 max-w-xl text-2xl font-black text-lf-text md:text-4xl">{item.body}</h2>
-                </div>
-              </article>
-            ))}
+        <div className="mb-6 grid grid-cols-1 gap-[1px] bg-lf-line sm:grid-cols-2 md:grid-cols-3">
+          {anchorCards.map((card) => (
+            <div
+              key={card.name}
+              className="group relative bg-lf-graphite px-6 py-6 transition-colors duration-200 hover:bg-lf-surface"
+            >
+              <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-lf-volt" />
+              <h3 className="text-base font-black text-lf-text">{card.name}</h3>
+              <p className="mt-2 text-sm leading-[1.5] text-lf-muted">{card.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Demais modalidades em pills */}
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          {otherAulas.map((aula) => (
+            <span
+              key={aula}
+              className="border border-lf-line px-3 py-1.5 text-xs font-medium text-lf-muted"
+            >
+              {aula}
+            </span>
+          ))}
+        </div>
+        <p className="text-xs text-lf-muted/50">A grade de aulas pode variar por unidade.</p>
+      </Section>
+
+      {/* Bloco "A grade varia por unidade" */}
+      <Section bg="graphite">
+        <div className="max-w-2xl">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
+              Consulte sua unidade
+            </p>
+          </div>
+          <h2 className="text-3xl font-black leading-[1.02] text-lf-text md:text-4xl">
+            A grade varia por unidade.
+          </h2>
+          <p className="mt-4 text-base leading-relaxed text-lf-muted">
+            Consulte as aulas disponíveis na unidade mais próxima de você.
+          </p>
+          <div className="mt-8">
+            <Button href="/unidades" variant="volt" size="md">
+              Ver aulas da sua unidade
+            </Button>
           </div>
         </div>
       </Section>
 
-      <Section bg="graphite" className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(242,226,5,0.08),transparent_32%)]" />
-        <div className="relative">
-          <SectionHeader label="Aulas coletivas" title="Energia de grupo." />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {classes.map((item) => (
-              <div key={item} className="rounded-lg border border-lf-line bg-lf-black/70 p-5 transition duration-300 hover:-translate-y-1 hover:border-lf-volt/45">
-                <span className="text-xs uppercase tracking-[0.2em] text-lf-volt">{item.slice(0, 2)}</span>
-                <h2 className="mt-5 text-2xl font-black text-lf-text">{item}</h2>
-              </div>
-            ))}
+      {/* Fecho comercial */}
+      <Section bg="black">
+        <div className="mx-auto max-w-2xl text-center">
+          <div className="mb-5 flex items-center justify-center gap-3">
+            <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
+              Planos LoudFit
+            </p>
+            <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
+          </div>
+          <h2 className="text-4xl font-black leading-[1.02] text-lf-text md:text-5xl">
+            Um plano. Tudo incluso.
+          </h2>
+          <p className="mx-auto mt-5 max-w-[50ch] text-base leading-relaxed text-lf-muted">
+            Musculação e todas as aulas coletivas da sua unidade na mesma mensalidade.
+          </p>
+          <div className="mt-8">
+            <Button href="/unidades" variant="volt" size="lg">
+              Começar matrícula
+            </Button>
           </div>
         </div>
       </Section>
+
     </div>
   )
 }

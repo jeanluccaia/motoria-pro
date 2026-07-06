@@ -50,7 +50,7 @@ export function UnitCard({ unit }: { unit: Unit }) {
           </p>
 
           {/* Tags de modalidades */}
-          {hasMods && (
+          {hasMods ? (
             <div className="mt-2 flex flex-wrap gap-1">
               {unit.modalidades.slice(0, 4).map((m) => (
                 <span
@@ -61,6 +61,10 @@ export function UnitCard({ unit }: { unit: Unit }) {
                 </span>
               ))}
             </div>
+          ) : (
+            <p className="mt-2 text-[9px] font-medium uppercase tracking-[0.1em] text-white/35">
+              Grade em breve
+            </p>
           )}
 
           {/* CTA inline */}
