@@ -3,6 +3,7 @@ import { Inter, Big_Shoulders } from 'next/font/google'
 import './globals.css'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+import { siteUrl } from '@/lib/site'
 
 const bodyFont = Inter({ subsets: ['latin'], variable: '--font-body' })
 const displayFont = Big_Shoulders({
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
   },
   description:
     'Rede de academias com energia, estrutura e experiência para quem leva o treino a sério.',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://loudfit.vercel.app'),
+  metadataBase: new URL(siteUrl),
   alternates: {
     canonical: '/',
   },
