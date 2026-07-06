@@ -56,7 +56,7 @@ export function Hero() {
         {/* Subtexto — 2 linhas no mobile com quebra controlada */}
         <p className="mt-3 text-base leading-[1.4] text-white/70 md:mt-4 md:max-w-[44ch] md:text-lg">
           <span className="block">Musculação + aulas coletivas no mesmo plano.</span>
-          <span className="block">Do Muay&nbsp;Thai ao Pilates, já está incluso.</span>
+          <span className="block">Do Muay&nbsp;Thai ao Pilates, já está incluso</span>
         </p>
 
         {/* Faixa da oferta — pill contido, sem traço amarelo solto */}
