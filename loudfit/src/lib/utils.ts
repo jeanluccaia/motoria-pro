@@ -22,18 +22,35 @@ export function displayUnitName(unit: Pick<Unit, 'nome'>) {
   return name ? `LoudFit ${name}` : 'LoudFit'
 }
 
+function restoreEvoTokenPlaceholders(value: string) {
+  return value
+    .replace(/(?:%5B|\[)PLUS(?:%5D|\])/gi, '+')
+    .replace(/(?:%5B|\[)BAR(?:%5D|\])/gi, '|')
+    .replace(/(?:%5B|\[)EQUAL(?:%5D|\])/gi, '=')
+}
+
+function decodeUrlSegment(segment: string) {
+  try {
+    return decodeURIComponent(segment)
+  } catch {
+    return segment
+  }
+}
+
 export function normalizeEvoCheckoutUrl(checkoutUrl?: string | null) {
   if (!checkoutUrl) return null
 
-  const normalized = checkoutUrl
-    .trim()
-    .replace(/\[PLUS\]/g, '%5BPLUS%5D')
-    .replace(/\[BAR\]/g, '%5BBAR%5D')
-    .replace(/\[EQUAL\]/g, '%5BEQUAL%5D')
+  const restored = restoreEvoTokenPlaceholders(checkoutUrl.trim())
 
   try {
-    const parsed = new URL(normalized)
+    const parsed = new URL(restored)
     if (parsed.protocol !== 'https:') return null
+
+    parsed.pathname = parsed.pathname
+      .split('/')
+      .map((segment) => encodeURIComponent(decodeUrlSegment(segment)))
+      .join('/')
+
     return parsed.toString()
   } catch {
     return null
