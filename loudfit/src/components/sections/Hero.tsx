@@ -59,18 +59,6 @@ export function Hero() {
           <span className="block">Do Muay&nbsp;Thai ao Pilates, já está incluso.</span>
         </p>
 
-        {/* Tags de modalidades — somente desktop */}
-        <div className="mt-3 hidden flex-wrap gap-1.5 md:flex">
-          {['Muay Thai', 'Pilates', 'Spinning', 'Jump', 'FitDance', 'GAP'].map((c) => (
-            <span
-              key={c}
-              className="border border-white/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-lf-muted/70"
-            >
-              {c}
-            </span>
-          ))}
-        </div>
-
         {/* Faixa da oferta — pill contido, sem traço amarelo solto */}
         <div className="mt-4 inline-flex items-center gap-2.5 border border-white/[0.12] bg-white/[0.06] px-4 py-2.5 backdrop-blur-[2px] md:mt-5">
           <span className="flex flex-col gap-0.5 leading-tight">

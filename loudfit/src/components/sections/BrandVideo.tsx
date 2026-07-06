@@ -70,7 +70,7 @@ export function BrandVideo() {
             {/* Detalhe diagonal — canto superior direito */}
             <div className="absolute top-0 right-0 z-10 h-0 w-0 border-t-[36px] border-t-lf-volt border-l-[36px] border-l-transparent" />
 
-            <div className="relative aspect-[4/5] overflow-hidden bg-lf-graphite md:aspect-video">
+            <div className="relative aspect-video overflow-hidden bg-lf-graphite">
               {videoFailed ? (
                 <Image
                   src={poster}

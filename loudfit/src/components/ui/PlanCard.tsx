@@ -22,8 +22,8 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
         'group relative flex flex-col overflow-hidden bg-lf-black h-full',
         'ring-2 ring-lf-volt shadow-[0_8px_48px_rgba(255,229,0,0.12)]',
         'transition duration-200 hover:-translate-y-1',
-        'order-first md:order-none md:-mt-4 lg:mt-0',
-        'lg:scale-[1.03] lg:z-10',
+        'order-first md:order-none',
+        'lg:z-10',
       )}>
         {/* Faixa topo */}
         <div className="bg-lf-volt px-4 py-2 flex items-center justify-between">
