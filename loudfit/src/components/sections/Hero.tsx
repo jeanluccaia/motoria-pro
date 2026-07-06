@@ -53,13 +53,9 @@ export function Hero() {
           <span className="text-lf-volt">vir.</span>
         </h1>
 
-        {/* Subtexto — curto no mobile, completo no desktop */}
+        {/* Subtexto */}
         <p className="mt-3 text-base leading-[1.4] text-white/70 md:mt-4 md:max-w-[44ch] md:text-lg">
-          <span className="md:hidden">Musculação + aulas coletivas inclusas no plano.</span>
-          <span className="hidden md:inline">
-            Musculação + aulas coletivas no mesmo plano.<br />
-            {`Do Muay Thai ao Pilates, já está incluso.`}
-          </span>
+          Musculação + aulas coletivas no mesmo plano. Do Muay&nbsp;Thai ao Pilates, já está incluso.
         </p>
 
         {/* Tags de modalidades — somente desktop */}
@@ -89,7 +85,7 @@ export function Hero() {
 
         {/* CTAs — hierarquia clara, principal forte, secundário leve */}
         <div className="mt-6 flex flex-col items-start gap-3 sm:mt-8 sm:flex-row sm:items-center">
-          <Button href="#planos" variant="volt" size="lg" className="px-6 py-3 text-sm tracking-[0.02em] md:px-8 md:py-4 md:text-base">
+          <Button href="/unidades" variant="volt" size="lg" className="px-6 py-3 text-sm tracking-[0.02em] md:px-8 md:py-4 md:text-base">
             Começar matrícula
           </Button>
           <Button

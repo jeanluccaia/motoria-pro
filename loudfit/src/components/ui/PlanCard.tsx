@@ -100,7 +100,7 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
         {/* 5. CTA — outline fantasma (sem amarelo) */}
         <div className="mt-auto pt-7">
           <Button href={href} variant="ghost" className="w-full justify-center">
-            {ctaLabel ?? 'Começar matrícula'}
+            {ctaLabel ?? 'Escolher este plano'}
           </Button>
         </div>
       </div>

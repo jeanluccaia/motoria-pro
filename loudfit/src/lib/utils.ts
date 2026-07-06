@@ -17,10 +17,12 @@ export function shortUnitName(unit: Pick<Unit, 'nome'>) {
   return unit.nome.replace(/^LoudFit\s+/i, '').replace(/\s+/g, ' ').trim()
 }
 
-export function displayUnitName(unit: Pick<Unit, 'nome'>) {
+export function unitDisplayName(unit: Pick<Unit, 'nome'>) {
   const name = shortUnitName(unit)
   return name ? `LoudFit ${name}` : 'LoudFit'
 }
+
+export const displayUnitName = unitDisplayName
 
 function restoreEvoTokenPlaceholders(value: string) {
   return value

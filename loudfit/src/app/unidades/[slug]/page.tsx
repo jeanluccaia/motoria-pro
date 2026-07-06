@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { getUnits, getUnitBySlug } from '@/lib/supabase'
 import { getPlans } from '@/lib/plans'
-import { displayUnitName, formatWhatsApp, shortUnitName } from '@/lib/utils'
+import { formatWhatsApp, shortUnitName, unitDisplayName } from '@/lib/utils'
 import { UnitBadge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Section, SectionHeader } from '@/components/ui/Section'
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const unit = await getUnitBySlug(slug)
   if (!unit) return {}
-  const name = displayUnitName(unit)
+  const name = unitDisplayName(unit)
   const title = `${name} — Academia em ${unit.cidade}`
   const description = `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Planos com primeira mensalidade por R$9,90 no Power Anual Recorrente.`
   return {
@@ -49,7 +49,7 @@ export default async function UnitPage({ params }: Props) {
   const { slug } = await params
   const unit = await getUnitBySlug(slug)
   if (!unit) notFound()
-  const displayName = displayUnitName(unit)
+  const displayName = unitDisplayName(unit)
   const shortName = shortUnitName(unit)
   const whatsapp = unit.whatsapp_url ?? unit.whatsapp
 
@@ -128,7 +128,7 @@ export default async function UnitPage({ params }: Props) {
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 {unit.status !== 'em_breve' && (
                   <Button href={checkoutHref} variant="volt" size="lg" className="w-full sm:w-auto">
-                    {hasCheckout ? 'Matricular online' : 'Começar matrícula'}
+                    {hasCheckout ? 'Matricular online' : 'Ver planos'}
                   </Button>
                 )}
                 {unit.status === 'em_breve' && hasCheckout && (
@@ -211,7 +211,7 @@ export default async function UnitPage({ params }: Props) {
                   ? 'Garantir matrícula online'
                   : hasCheckout
                   ? 'Matricular online'
-                  : 'Começar matrícula'}
+                  : 'Ver planos'}
               </Button>
               {whatsapp && (
                 <a

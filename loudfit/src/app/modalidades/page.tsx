@@ -4,8 +4,15 @@ import { Button } from '@/components/ui/Button'
 import { Section, SectionHeader } from '@/components/ui/Section'
 
 export const metadata: Metadata = {
-  title: 'Modalidades',
+  title: { absolute: 'Modalidades LoudFit — Aulas e treinos' },
   description: 'Modalidades LoudFit para treinar com força, ritmo e energia.',
+  alternates: { canonical: '/modalidades' },
+  openGraph: {
+    title: 'Modalidades LoudFit — Aulas e treinos',
+    description: 'Modalidades LoudFit para treinar com força, ritmo e energia.',
+    url: '/modalidades',
+    images: ['/assets/images/campaign-gym-16x9.png'],
+  },
 }
 
 const modalities = [

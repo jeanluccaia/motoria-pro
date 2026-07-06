@@ -6,7 +6,6 @@ import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { submitLeadFranquia } from '@/lib/supabase'
 
 const schema = z.object({
   nome: z.string().min(2, 'Nome obrigatório'),
@@ -29,6 +28,7 @@ export function QualifyForm() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showFallback, setShowFallback] = useState(false)
 
   const {
     register,
@@ -42,14 +42,24 @@ export function QualifyForm() {
   async function onSubmit(data: FormData) {
     setLoading(true)
     setError('')
+    setShowFallback(false)
     try {
-      await submitLeadFranquia({
-        ...data,
-        origem: document.referrer || 'direto',
+      const response = await fetch('/api/franquia-leads', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          ...data,
+          origem: document.referrer || 'direto',
+        }),
       })
+      if (!response.ok) {
+        const result = await response.json().catch(() => null)
+        throw new Error(result?.error ?? 'Erro ao enviar.')
+      }
       router.push('/obrigado')
-    } catch {
-      setError('Erro ao enviar. Tente novamente ou fale pelo WhatsApp.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao enviar.')
+      setShowFallback(true)
       setLoading(false)
     }
   }
@@ -116,7 +126,24 @@ export function QualifyForm() {
         <label htmlFor="ponto" className="text-sm text-lf-muted">Já tenho um ponto comercial em vista</label>
       </div>
 
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {error && (
+        <div className="border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">
+          <p>{error}</p>
+          {showFallback && (
+            <p className="mt-2 text-lf-muted">
+              Fale direto por{' '}
+              <a href="https://wa.me/5519988291946" target="_blank" rel="noopener noreferrer" className="text-lf-volt underline-offset-4 hover:underline">
+                WhatsApp
+              </a>{' '}
+              ou{' '}
+              <a href="mailto:vilaindustrial@loudfit.com.br" className="text-lf-volt underline-offset-4 hover:underline">
+                e-mail
+              </a>
+              .
+            </p>
+          )}
+        </div>
+      )}
 
       <Button type="submit" variant="volt" size="lg" className="w-full justify-center" disabled={loading}>
         {loading ? 'Enviando...' : 'Quero ser franqueado'}

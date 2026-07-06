@@ -2,11 +2,11 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { UnitBadge } from './Badge'
 import type { Unit } from '@/types'
-import { displayUnitName } from '@/lib/utils'
+import { unitDisplayName } from '@/lib/utils'
 
 export function UnitCard({ unit }: { unit: Unit }) {
   const hasMods = unit.modalidades.length > 0
-  const unitName = displayUnitName(unit)
+  const unitName = unitDisplayName(unit)
 
   return (
     <Link

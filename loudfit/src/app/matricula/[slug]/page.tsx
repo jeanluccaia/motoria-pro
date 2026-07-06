@@ -5,7 +5,7 @@ import { getUnits, getUnitBySlug } from '@/lib/supabase'
 import { CheckoutFrame } from '@/components/ui/CheckoutFrame'
 import { UnitBadge } from '@/components/ui/Badge'
 import { PlanReminder } from '@/components/ui/PlanReminder'
-import { displayUnitName, formatWhatsApp, shortUnitName } from '@/lib/utils'
+import { formatWhatsApp, shortUnitName, unitDisplayName } from '@/lib/utils'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const unit = await getUnitBySlug(slug)
   if (!unit || !unit.checkoutUrl) return {}
-  const name = displayUnitName(unit)
+  const name = unitDisplayName(unit)
   const title = `Matrícula online — ${name}`
   const description = `Faça sua matrícula online na ${name}. Checkout oficial EVO, rápido e seguro.`
   return {
@@ -50,7 +50,7 @@ export default async function MatriculaPage({ params }: Props) {
   if (!unit) notFound()
   if (!unit.checkoutUrl) redirect(`/unidades/${slug}`)
 
-  const displayName = displayUnitName(unit)
+  const displayName = unitDisplayName(unit)
   const shortName = shortUnitName(unit)
   const checkoutUrl = unit.checkoutUrl
   const whatsapp = unit.whatsapp_url ?? unit.whatsapp

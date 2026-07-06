@@ -7,9 +7,17 @@ import { getUnits } from '@/lib/supabase'
 import { UnitCard } from '@/components/ui/UnitCard'
 
 export const metadata: Metadata = {
-  title: 'Seja Franqueado — LoudFit',
+  title: { absolute: 'Franquias LoudFit — Seja franqueado' },
   description:
     'Seja dono de uma academia LoudFit. Conheça o modelo de franquia, investimento e o suporte da rede.',
+  alternates: { canonical: '/franquias' },
+  openGraph: {
+    title: 'Franquias LoudFit — Seja franqueado',
+    description:
+      'Seja dono de uma academia LoudFit. Conheça o modelo de franquia, investimento e o suporte da rede.',
+    url: '/franquias',
+    images: ['/assets/images/campaign-gym-16x9.png'],
+  },
 }
 
 const diferenciais = [
@@ -48,7 +56,7 @@ const faqItems = [
 
 export default async function FranquiasPage() {
   const units = await getUnits().catch(() => [])
-  const ativas = units.filter((u) => u.status === 'ativa').slice(0, 4)
+  const ativas = units.filter((u) => u.status === 'ativa')
 
   return (
     <div className="pt-16">
@@ -125,7 +133,7 @@ export default async function FranquiasPage() {
       {ativas.length > 0 && (
         <Section bg="graphite">
           <SectionHeader label="Prova real" title="As unidades que funcionam" />
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
             {ativas.map((u) => (
               <UnitCard key={u.id} unit={u} />
             ))}
