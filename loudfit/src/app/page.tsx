@@ -1,20 +1,17 @@
 import type { Metadata } from 'next'
 import { Hero } from '@/components/sections/Hero'
 import { OfferBanner } from '@/components/sections/OfferBanner'
-import { BrandMarquee } from '@/components/sections/BrandMarquee'
 import { PlansSection } from '@/components/sections/PlansSection'
 import { CollectiveClassesSection } from '@/components/sections/CollectiveClassesSection'
 import { BrandVideo } from '@/components/sections/BrandVideo'
 import { ModalitiesTeaser } from '@/components/sections/ModalitiesTeaser'
 import { ExpansionBanner } from '@/components/sections/ExpansionBanner'
 import { FinalCta } from '@/components/sections/FinalCta'
-import { Section, SectionHeader } from '@/components/ui/Section'
-import { UnitCard } from '@/components/ui/UnitCard'
+import { Section } from '@/components/ui/Section'
 import { Button } from '@/components/ui/Button'
 import { Reveal } from '@/components/ui/Reveal'
 import { StickyCta } from '@/components/ui/StickyCta'
 import { WhatsAppFloat } from '@/components/ui/WhatsAppFloat'
-import { getUnits } from '@/lib/supabase'
 
 export const metadata: Metadata = {
   title: { absolute: 'LoudFit | O melhor ainda está por vir' },
@@ -30,50 +27,67 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function HomePage() {
-  const units = await getUnits().catch(() => [])
-
+export default function HomePage() {
   return (
     <>
       <Hero />
       <OfferBanner />
       <CollectiveClassesSection />
-      <BrandMarquee />
       <PlansSection />
-
-      {units.length > 0 && (
-        <Section id="unidades" bg="graphite" className="relative">
-          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-            <Reveal>
-              <SectionHeader
-                label="Unidades"
-                title="Escolha sua LoudFit."
-                subtitle="5 unidades em operação — Campinas, Valinhos, São Paulo e Mogi Mirim."
-                className="mb-0"
-              />
-            </Reveal>
-            <Reveal delay={0.1} className="shrink-0 mb-10 md:mb-14">
-              <Button href="/unidades" variant="volt" size="md">
-                Ver todas as unidades
-              </Button>
-            </Reveal>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {units.map((unit, i) => (
-              <Reveal key={unit.id} delay={i * 0.07}>
-                <UnitCard unit={unit} />
-              </Reveal>
-            ))}
-          </div>
-        </Section>
-      )}
-
       <BrandVideo />
+      <HomeUnitsCta />
       <ModalitiesTeaser />
       <ExpansionBanner />
       <FinalCta />
       <StickyCta />
       <WhatsAppFloat />
     </>
+  )
+}
+
+const unitStats = [
+  '5 unidades em operação',
+  '1 em inauguração',
+  '4 cidades',
+]
+
+function HomeUnitsCta() {
+  return (
+    <Section id="unidades" bg="graphite" className="relative py-14 md:py-20">
+      <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-12">
+        <Reveal>
+          <div>
+            <div className="mb-5 flex items-center gap-3">
+              <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
+                Unidades
+              </p>
+            </div>
+            <h2 className="text-4xl font-black leading-[1.02] text-lf-text md:text-5xl">
+              Encontre sua LoudFit
+            </h2>
+            <p className="mt-4 max-w-[54ch] text-base leading-relaxed text-lf-muted md:text-lg">
+              Veja unidades em operação, inauguração e a grade disponível em cada endereço.
+            </p>
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.1} className="lg:justify-self-end">
+          <Button href="/unidades" variant="volt" size="lg">
+            Ver todas as unidades
+          </Button>
+        </Reveal>
+      </div>
+
+      <Reveal delay={0.15}>
+        <div className="mt-8 grid gap-[1px] bg-lf-line sm:grid-cols-3 md:mt-10">
+          {unitStats.map((stat) => (
+            <div key={stat} className="bg-lf-surface px-5 py-4">
+              <span className="block text-sm font-black text-lf-text">{stat}</span>
+            </div>
+          ))}
+        </div>
+      </Reveal>
+    </Section>
   )
 }

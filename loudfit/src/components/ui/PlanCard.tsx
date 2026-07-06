@@ -19,14 +19,13 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
   if (plan.featured) {
     return (
       <article className={cn(
-        'group relative flex flex-col overflow-hidden bg-lf-black h-full',
+        'group relative flex h-full min-h-[520px] flex-col overflow-hidden bg-lf-black',
         'ring-2 ring-lf-volt shadow-[0_8px_48px_rgba(255,229,0,0.12)]',
         'transition duration-200 hover:-translate-y-1',
         'order-first md:order-none',
-        'lg:z-10',
       )}>
         {/* Faixa topo */}
-        <div className="bg-lf-volt px-4 py-2 flex items-center justify-between">
+        <div className="flex min-h-10 items-center justify-between gap-3 bg-lf-volt px-4 py-2">
           <span className="text-[10px] font-black uppercase tracking-[0.04em] text-lf-black">
             {plan.badge}
           </span>
@@ -35,12 +34,12 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
           </span>
         </div>
 
-        <div className="p-6 flex flex-col flex-1">
+        <div className="flex flex-1 flex-col p-6">
           {/* 1. Nome */}
           <h3 className="text-xl font-black text-lf-text">{plan.name}</h3>
 
           {/* 2. Descrição */}
-          <p className="mt-2 text-sm leading-[1.6] text-lf-muted">{plan.description}</p>
+          <p className="mt-2 text-sm leading-[1.6] text-lf-muted lg:min-h-[68px]">{plan.description}</p>
 
           {/* 3. Preço */}
           <div className="mt-5">
@@ -52,7 +51,7 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
 
           {/* 4. Destaque R$9,90 */}
           {plan.firstPayment && (
-            <div className="mt-4 border-l-2 border-lf-volt bg-lf-graphite px-4 py-3">
+            <div className="mt-4 min-h-[94px] border-l-2 border-lf-volt bg-lf-graphite px-4 py-3">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-lf-volt">
                 {plan.firstPayment.label}
               </p>
@@ -75,27 +74,29 @@ export function PlanCard({ plan, ctaBase = '/unidades', ctaLabel }: PlanCardProp
   /* Planos não-destaque — fundo escuro, CTA fantasma */
   return (
     <article className={cn(
-      'group relative flex flex-col overflow-hidden bg-lf-surface border border-lf-line h-full',
+      'group relative flex h-full min-h-[520px] flex-col overflow-hidden border border-lf-line bg-lf-surface',
       'transition duration-200 hover:-translate-y-1 hover:border-lf-text/20',
     )}>
-      <div className="px-4 py-2 border-b border-lf-line">
+      <div className="flex min-h-10 items-center border-b border-lf-line px-4 py-2">
         <span className="text-[10px] font-black uppercase tracking-[0.04em] text-lf-muted/60">
           {plan.badge}
         </span>
       </div>
 
-      <div className="p-6 flex flex-col flex-1">
+      <div className="flex flex-1 flex-col p-6">
         {/* 1. Nome */}
         <h3 className="text-xl font-black text-lf-text">{plan.name}</h3>
 
         {/* 2. Descrição */}
-        <p className="mt-2 text-sm leading-[1.6] text-lf-muted">{plan.description}</p>
+        <p className="mt-2 text-sm leading-[1.6] text-lf-muted lg:min-h-[68px]">{plan.description}</p>
 
         {/* 3. Preço */}
         <p className="mt-5 flex items-end gap-1.5">
           <strong className="text-5xl font-black leading-none text-lf-text">{plan.price}</strong>
           <span className="pb-1 text-sm text-lf-muted">{plan.period}</span>
         </p>
+
+        <div className="mt-4 hidden min-h-[94px] lg:block" aria-hidden="true" />
 
         {/* 5. CTA — outline fantasma (sem amarelo) */}
         <div className="mt-auto pt-7">

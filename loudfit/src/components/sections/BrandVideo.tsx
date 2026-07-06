@@ -35,12 +35,12 @@ export function BrandVideo() {
   }
 
   return (
-    <Section bg="black" className="relative py-20 md:py-28">
-      <div className="relative grid gap-12 lg:grid-cols-[1fr_1.4fr] lg:items-center lg:gap-16">
+    <Section bg="black" className="relative py-16 md:py-24 lg:py-28">
+      <div className="relative grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:gap-14">
 
         {/* Texto */}
         <Reveal>
-          <div>
+          <div className="max-w-xl">
             <div className="mb-5 flex items-center gap-3">
               <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
@@ -48,9 +48,9 @@ export function BrandVideo() {
               </p>
             </div>
             <h2 className="text-4xl font-black leading-[1.02] text-lf-text text-balance md:text-5xl">
-              Veja a LoudFit por dentro.
+              Veja a LoudFit por dentro
             </h2>
-            <p className="mt-5 max-w-sm text-base leading-[1.6] text-lf-muted">
+            <p className="mt-5 max-w-[36ch] text-base leading-[1.6] text-lf-muted">
               Musculação, aulas coletivas e estrutura completa para treinar todos os dias.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -66,11 +66,19 @@ export function BrandVideo() {
 
         {/* Vídeo */}
         <Reveal delay={0.15}>
-          <div className="relative overflow-hidden border-l-2 border-lf-volt">
-            {/* Detalhe diagonal — canto superior direito */}
-            <div className="absolute top-0 right-0 z-10 h-0 w-0 border-t-[36px] border-t-lf-volt border-l-[36px] border-l-transparent" />
+          <div className="relative overflow-hidden border border-lf-line bg-lf-surface p-2 shadow-[0_24px_80px_rgba(0,0,0,0.38)]">
+            <div className="mb-2 flex h-7 items-center justify-between px-2">
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-lf-volt" />
+                <span className="h-2 w-2 rounded-full bg-white/18" />
+                <span className="h-2 w-2 rounded-full bg-white/18" />
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-lf-muted/60">
+                LoudFit
+              </span>
+            </div>
 
-            <div className="relative aspect-video overflow-hidden bg-lf-graphite">
+            <div className="relative aspect-[4/5] overflow-hidden bg-lf-graphite sm:aspect-video">
               {videoFailed ? (
                 <Image
                   src={poster}
@@ -85,7 +93,7 @@ export function BrandVideo() {
                   ref={videoRef}
                   src="/hero.mp4"
                   loop
-                  muted
+                  muted={muted}
                   playsInline
                   preload="metadata"
                   poster={poster}
@@ -107,7 +115,7 @@ export function BrandVideo() {
                   type="button"
                   onClick={togglePlay}
                   aria-label="Reproduzir vídeo"
-                  className="absolute inset-0 flex items-center justify-center group"
+                  className="group absolute inset-0 flex items-center justify-center"
                 >
                   <span className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-white/60 bg-lf-black/60 text-white transition-all duration-200 group-hover:border-lf-volt group-hover:bg-lf-volt group-hover:text-lf-black backdrop-blur-sm">
                     <PlayIcon />
@@ -123,7 +131,7 @@ export function BrandVideo() {
                     onClick={togglePlay}
                     aria-label={playing ? 'Pausar vídeo' : 'Reproduzir vídeo'}
                     title={playing ? 'Pausar' : 'Reproduzir'}
-                    className="flex h-9 w-9 items-center justify-center border border-lf-line bg-lf-black/85 text-lf-text transition-all duration-150 hover:border-lf-volt hover:text-lf-volt backdrop-blur-sm"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-lf-black/85 text-lf-text transition-all duration-150 hover:border-lf-volt hover:text-lf-volt backdrop-blur-sm"
                   >
                     {playing ? <PauseIcon /> : <PlayIcon />}
                   </button>
@@ -132,7 +140,7 @@ export function BrandVideo() {
                     onClick={toggleSound}
                     aria-label={muted ? 'Ativar som' : 'Silenciar'}
                     title={muted ? 'Ativar som' : 'Silenciar'}
-                    className="flex h-9 w-9 items-center justify-center border border-lf-line bg-lf-black/85 text-lf-text transition-all duration-150 hover:border-lf-volt hover:text-lf-volt backdrop-blur-sm"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-lf-black/85 text-lf-text transition-all duration-150 hover:border-lf-volt hover:text-lf-volt backdrop-blur-sm"
                   >
                     {muted ? <SoundOffIcon /> : <SoundOnIcon />}
                   </button>
