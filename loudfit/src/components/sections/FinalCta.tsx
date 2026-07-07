@@ -10,11 +10,11 @@ export function FinalCta() {
           <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
             Comece agora
           </p>
-          <h2 className="max-w-2xl text-4xl font-black leading-[1.02] text-lf-text sm:text-5xl md:text-6xl">
+          <h2 className="max-w-2xl text-4xl font-black leading-[1.04] text-lf-text sm:text-5xl md:text-6xl">
             Escolha sua unidade.<br className="hidden sm:block" /> Comece a treinar.
           </h2>
           <p className="mt-5 max-w-lg text-base leading-relaxed text-lf-muted">
-            Matrícula 100% online — rápido, seguro e sem burocracia.
+            Veja a unidade mais próxima e finalize sua matrícula online.
           </p>
 
           <div className="mt-9">

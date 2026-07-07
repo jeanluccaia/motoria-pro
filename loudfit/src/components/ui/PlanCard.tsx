@@ -16,6 +16,13 @@ function buildHref(base: string, planSlug: string): string {
   return `${base}?plano=${planSlug}`
 }
 
+const homePlanDescriptions: Record<string, string> = {
+  'power-mensal': 'Mês a mês, sem contrato longo.',
+  'power-mensal-recorrente': 'Cobrança automática mensal.',
+  'power-semestral-recorrente': 'Mensalidade menor por 6 meses.',
+  'power-anual-recorrente': 'Plano de 12 meses recorrente.',
+}
+
 export function PlanCard({
   plan,
   ctaBase = '/unidades',
@@ -29,6 +36,7 @@ export function PlanCard({
   const titleClass = isLight ? 'text-[#111111]' : 'text-lf-text'
   const mutedClass = isLight ? 'text-[#5E5B54]' : 'text-lf-muted'
   const lineClass = isLight ? 'border-[#E2DACB]' : 'border-lf-line'
+  const description = homePricing ? homePlanDescriptions[plan.slug] ?? plan.description : plan.description
 
   const cta = ctaLabel ?? 'Começar matrícula'
 
@@ -72,13 +80,15 @@ export function PlanCard({
           </span>
         </div>
 
-        <div className="flex flex-1 flex-col p-5">
+        <div className={cn('flex flex-1 flex-col', homePricing ? 'p-4 md:p-5' : 'p-5')}>
           <h3 className={cn('text-base font-black', titleClass)}>{plan.name}</h3>
-          <p className={cn('mt-1 text-sm leading-snug', mutedClass)}>{plan.description}</p>
+          <p className={cn('mt-1 leading-snug', homePricing ? 'text-xs' : 'text-sm', mutedClass)}>
+            {description}
+          </p>
 
           {/* Preço */}
           {homePricing && plan.firstPayment ? (
-            <div className={cn('mt-5 border-t pt-4', lineClass)}>
+            <div className={cn('mt-4 border-t pt-4', lineClass)}>
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-lf-volt">
                 1ª Mensalidade
               </p>
@@ -91,7 +101,7 @@ export function PlanCard({
               </p>
             </div>
           ) : (
-            <div className="mt-5">
+            <div className={homePricing ? 'mt-4' : 'mt-5'}>
               <p className={cn('flex items-baseline gap-1', titleClass)}>
                 <strong className="text-4xl font-black leading-none">{plan.price}</strong>
                 <span className={cn('text-sm', mutedClass)}>{plan.period}</span>
@@ -111,7 +121,7 @@ export function PlanCard({
 
           {benefits}
 
-          <div className="mt-auto pt-5">
+          <div className={cn('mt-auto', homePricing ? 'pt-4' : 'pt-5')}>
             <Button href={href} variant="volt" className="w-full justify-center">
               {cta}
             </Button>
@@ -138,11 +148,13 @@ export function PlanCard({
         </span>
       </div>
 
-      <div className="flex flex-1 flex-col p-5">
+      <div className={cn('flex flex-1 flex-col', homePricing ? 'p-4 md:p-5' : 'p-5')}>
         <h3 className={cn('text-base font-black', titleClass)}>{plan.name}</h3>
-        <p className={cn('mt-1 text-sm leading-snug', mutedClass)}>{plan.description}</p>
+        <p className={cn('mt-1 leading-snug', homePricing ? 'text-xs' : 'text-sm', mutedClass)}>
+          {description}
+        </p>
 
-        <div className="mt-5">
+        <div className={homePricing ? 'mt-4' : 'mt-5'}>
           <p className={cn('flex items-baseline gap-1', titleClass)}>
             <strong className="text-4xl font-black leading-none">{plan.price}</strong>
             <span className={cn('text-sm', mutedClass)}>{plan.period}</span>
@@ -151,7 +163,7 @@ export function PlanCard({
 
         {benefits}
 
-        <div className="mt-auto pt-5">
+        <div className={cn('mt-auto', homePricing ? 'pt-4' : 'pt-5')}>
           <Button
             href={href}
             variant="ghost"

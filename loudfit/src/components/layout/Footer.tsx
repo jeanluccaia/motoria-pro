@@ -88,22 +88,17 @@ export function Footer() {
 
         {/* Divisor */}
         <div className="mt-12 border-t border-lf-line pt-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
 
             {/* Dados legais */}
-            <div className="text-xs leading-[1.7] text-lf-muted/50">
-              <p className="font-bold text-lf-muted/70">LOUD FRANQUEADORA LTDA</p>
-              <p>CNPJ: 45.519.405/0001-79</p>
-              <p>Rua Antonio Bento, 347 - Vila Industrial</p>
-              <p>Campinas/SP - CEP 13035-560</p>
+            <div className="flex flex-col gap-3 text-xs leading-[1.7] text-lf-muted/55 md:flex-row md:flex-wrap md:items-center md:gap-x-6">
+              <p className="font-bold text-lf-muted/75">LOUD FRANQUEADORA LTDA — CNPJ: 45.519.405/0001-79</p>
               <p>
-                E-mail:{' '}
                 <a href="mailto:vilaindustrial@loudfit.com.br" className="hover:text-lf-muted transition-colors">
                   vilaindustrial@loudfit.com.br
                 </a>
               </p>
               <p>
-                Telefone:{' '}
                 <a href="tel:+5519988291946" className="hover:text-lf-muted transition-colors">
                   (19) 98829-1946
                 </a>

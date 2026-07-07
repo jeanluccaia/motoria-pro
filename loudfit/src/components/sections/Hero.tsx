@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Button'
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-[60vh] items-start overflow-hidden bg-lf-black pb-12 pt-[12svh] md:min-h-[68vh] md:items-end md:pb-20 lg:min-h-[68vh] lg:pt-0 lg:pb-24">
+    <section className="relative flex min-h-[60vh] items-start overflow-x-hidden bg-lf-black pb-12 pt-24 md:min-h-[68vh] md:items-end md:pb-20 md:pt-28 lg:min-h-[68vh] lg:pb-24 lg:pt-32">
       {/* Desktop image */}
       <Image
         src="/assets/images/hero-gym-desktop.png"
@@ -45,11 +45,11 @@ export function Hero() {
 
         {/* H1 */}
         <h1
-          className="font-black uppercase leading-[1.05] text-lf-text md:leading-[1.02]"
-          style={{ fontSize: 'clamp(2.35rem, 4.6vw, 5.2rem)' }}
+          className="max-w-[12ch] font-black uppercase leading-[1.1] text-lf-text md:max-w-[13ch] md:leading-[1.08]"
+          style={{ fontSize: 'clamp(2.35rem, 4.2vw, 4.9rem)' }}
         >
           O melhor ainda está por{' '}
-          <span className="text-lf-volt">vir</span>
+          <span className="text-lf-volt">vir.</span>
         </h1>
 
         {/* Subtexto */}
