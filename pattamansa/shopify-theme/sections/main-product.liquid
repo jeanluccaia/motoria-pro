@@ -12,7 +12,7 @@
   </div>
 
   <div class="product-info">
-    <p class="eyebrow">{{ product.vendor | default: 'PattaMansa' }}</p>
+    <p class="eyebrow">PattaMansa</p>
     <h1>{{ product.title }}</h1>
     <p class="product-price" data-product-price>
       {% if product.price > 0 %}
@@ -21,7 +21,13 @@
         Em breve
       {% endif %}
     </p>
-    <p class="product-installments">{{ section.settings.installment_text }}</p>
+    <p class="product-installments">
+      {% if product.price > 0 %}
+        ou 3x de {{ product.price | divided_by: 3 | money }}
+      {% else %}
+        {{ section.settings.installment_text }}
+      {% endif %}
+    </p>
 
     {% form 'product', product, class: 'product-form', data-product-form: '' %}
       <input
@@ -75,7 +81,7 @@
 
     <div class="product-accordions">
       <details open>
-        <summary>Tecido e caimento</summary>
+        <summary>Tecido</summary>
         <div class="rte">
           {% if product.description != blank %}
             {{ product.description }}
@@ -99,7 +105,7 @@
     </div>
 
     <div class="reserve-block">
-      <p class="eyebrow">Producao Reserva INK</p>
+      <p class="eyebrow">Qualidade Reserva INK</p>
       <h2>{{ section.settings.reserve_heading }}</h2>
       <p>{{ section.settings.reserve_text }}</p>
     </div>
@@ -113,37 +119,41 @@
   </div>
 
   {% assign cross_sell_collection = collections[section.settings.cross_sell_collection] %}
-  {% if cross_sell_collection.products_count > 0 %}
+  {% assign related_count = 0 %}
+  {% capture related_cards %}
+    {% if cross_sell_collection.products_count > 0 %}
+      {% for related_product in cross_sell_collection.products limit: 4 %}
+        {% if related_product.id != product.id and related_product.price > 0 %}
+          {% assign related_count = related_count | plus: 1 %}
+          <a class="product-card" href="{{ related_product.url }}">
+            {% if related_product.featured_image %}
+              {{ related_product.featured_image | image_url: width: 700 | image_tag: loading: 'lazy', widths: '320, 520, 700', alt: related_product.title }}
+            {% endif %}
+            {% unless related_product.available %}
+              <span class="product-card__badge">Esgotado</span>
+            {% endunless %}
+            <span class="product-card__title">{{ related_product.title }}</span>
+            <span class="product-card__price">
+              {% if related_product.compare_at_price > related_product.price %}
+                <s>{{ related_product.compare_at_price | money }}</s>
+              {% endif %}
+              {{ related_product.price | money }}
+            </span>
+            <span class="product-card__installments">ou 3x de {{ related_product.price | divided_by: 3 | money }}</span>
+            <span class="product-card__cta">Ver produto</span>
+          </a>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  {% endcapture %}
+  {% if related_count > 0 %}
     <aside class="cross-sell">
       <div class="section-heading">
         <p class="eyebrow">Complete a matilha</p>
         <h2>{{ section.settings.cross_sell_heading }}</h2>
       </div>
       <div class="product-grid">
-        {% for related_product in cross_sell_collection.products limit: 4 %}
-          {% unless related_product.id == product.id %}
-            <a class="product-card" href="{{ related_product.url }}">
-              {% if related_product.featured_image %}
-                {{ related_product.featured_image | image_url: width: 700 | image_tag: loading: 'lazy', widths: '320, 520, 700', alt: related_product.title }}
-              {% endif %}
-              {% unless related_product.available %}
-                <span class="product-card__badge">Esgotado</span>
-              {% endunless %}
-              <span class="product-card__title">{{ related_product.title }}</span>
-              <span class="product-card__price">
-                {% if related_product.price > 0 %}
-                  {% if related_product.compare_at_price > related_product.price %}
-                    <s>{{ related_product.compare_at_price | money }}</s>
-                  {% endif %}
-                  {{ related_product.price | money }}
-                {% else %}
-                  Em breve
-                {% endif %}
-              </span>
-              <span class="product-card__cta">Ver produto</span>
-            </a>
-          {% endunless %}
-        {% endfor %}
+        {{ related_cards }}
       </div>
     </aside>
   {% endif %}
@@ -163,7 +173,7 @@
     { "type": "textarea", "id": "care_text", "label": "Cuidados com a peca", "default": "Lave do avesso, em agua fria, sem alvejante. Seque a sombra e evite passar ferro diretamente sobre a estampa." },
     { "type": "textarea", "id": "shipping_returns", "label": "Frete e trocas", "default": "O frete e o prazo aparecem no checkout conforme CEP. Trocas seguem a politica da loja e podem ser solicitadas em ate 7 dias corridos apos o recebimento." },
     { "type": "text", "id": "reserve_heading", "label": "Titulo Reserva INK", "default": "Padrao de qualidade para uma camiseta que dura na rotina." },
-    { "type": "textarea", "id": "reserve_text", "label": "Texto Reserva INK", "default": "Produto produzido via Reserva INK, com processo voltado a acabamento consistente, impressao bem definida e experiencia premium." },
+    { "type": "textarea", "id": "reserve_text", "label": "Texto Reserva INK", "default": "Peca produzida via Reserva INK, com processo voltado a acabamento consistente, impressao bem definida e experiencia premium." },
     { "type": "collection", "id": "cross_sell_collection", "label": "Colecao de cross-sell" },
     { "type": "text", "id": "cross_sell_heading", "label": "Titulo do cross-sell", "default": "Outras escolhas que combinam com esta peca." }
   ]

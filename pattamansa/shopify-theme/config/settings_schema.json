@@ -8,10 +8,61 @@
         "label": "Logo"
       },
       {
+        "type": "text",
+        "id": "logo_asset",
+        "label": "Logo fallback em assets",
+        "default": "pattamansa-logo.png"
+      },
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "Favicon"
+      },
+      {
+        "type": "text",
+        "id": "favicon_asset",
+        "label": "Favicon fallback em assets",
+        "default": "pattamansa-favicon.png"
+      },
+      {
+        "type": "color",
+        "id": "background_color",
+        "label": "Fundo",
+        "default": "#F2EDE4"
+      },
+      {
+        "type": "color",
+        "id": "primary_color",
+        "label": "Verde principal",
+        "default": "#3D5241"
+      },
+      {
         "type": "color",
         "id": "accent_color",
-        "label": "Cor de destaque",
+        "label": "CTA",
         "default": "#F5A04A"
+      },
+      {
+        "type": "color",
+        "id": "text_color",
+        "label": "Texto",
+        "default": "#1A1A1A"
+      },
+      {
+        "type": "color",
+        "id": "support_color",
+        "label": "Acento",
+        "default": "#B8BC8A"
+      },
+      {
+        "type": "text",
+        "id": "legal_name",
+        "label": "Razao social"
+      },
+      {
+        "type": "text",
+        "id": "cnpj",
+        "label": "CNPJ"
       }
     ]
   }

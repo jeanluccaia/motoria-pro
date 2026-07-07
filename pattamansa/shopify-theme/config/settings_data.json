@@ -1,3 +1,13 @@
 {
-  "current": {}
+  "current": {
+    "logo_asset": "pattamansa-logo.png",
+    "favicon_asset": "pattamansa-favicon.png",
+    "background_color": "#F2EDE4",
+    "primary_color": "#3D5241",
+    "accent_color": "#F5A04A",
+    "text_color": "#1A1A1A",
+    "support_color": "#B8BC8A",
+    "legal_name": "",
+    "cnpj": ""
+  }
 }

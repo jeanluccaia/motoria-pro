@@ -1,8 +1,13 @@
 <header class="site-header">
+  <div class="announcement-bar">
+    Envio para todo o Brasil com rastreio
+  </div>
   <div class="site-header__inner">
     <a class="brand" href="{{ routes.root_url }}" aria-label="PattaMansa">
       {% if settings.logo != blank %}
         {{ settings.logo | image_url: width: 220 | image_tag: loading: 'eager', widths: '120, 180, 220', class: 'brand__logo' }}
+      {% elsif settings.logo_asset != blank %}
+        <img class="brand__logo" src="{{ settings.logo_asset | asset_url }}" alt="PattaMansa" width="180" height="72" loading="eager">
       {% else %}
         <img class="brand__logo" src="{{ 'pattamansa-logo.png' | asset_url }}" alt="PattaMansa" width="180" height="72" loading="eager">
       {% endif %}
@@ -12,7 +17,15 @@
       <a href="{{ routes.collections_url }}/todas-as-camisetas">Camisetas</a>
       <a href="{{ routes.collections_url }}">Cole&ccedil;&otilde;es</a>
       <a href="/pages/sobre">Sobre</a>
-      <a href="/pages/faq">Ajuda</a>
+      <details class="help-menu">
+        <summary>Ajuda</summary>
+        <div>
+          <a href="/pages/frete-e-prazos">Frete e Prazos</a>
+          <a href="/pages/trocas-e-devolucoes">Trocas e Devolucoes</a>
+          <a href="/pages/faq">FAQ</a>
+          <a href="/pages/contato">Contato</a>
+        </div>
+      </details>
     </nav>
 
     <details class="mobile-menu">
@@ -21,7 +34,10 @@
         <a href="{{ routes.collections_url }}/todas-as-camisetas">Camisetas</a>
         <a href="{{ routes.collections_url }}">Cole&ccedil;&otilde;es</a>
         <a href="/pages/sobre">Sobre</a>
-        <a href="/pages/faq">Ajuda</a>
+        <a href="/pages/frete-e-prazos">Frete e Prazos</a>
+        <a href="/pages/trocas-e-devolucoes">Trocas e Devolucoes</a>
+        <a href="/pages/faq">FAQ</a>
+        <a href="/pages/contato">Contato</a>
       </nav>
     </details>
 

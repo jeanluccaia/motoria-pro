@@ -3,8 +3,15 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#141414">
+    <meta name="theme-color" content="{{ settings.primary_color | default: '#3D5241' }}">
     <link rel="canonical" href="{{ canonical_url }}">
+    {% if settings.favicon != blank %}
+      <link rel="icon" href="{{ settings.favicon | image_url: width: 64, height: 64 }}">
+    {% elsif settings.favicon_asset != blank %}
+      <link rel="icon" href="{{ settings.favicon_asset | asset_url }}">
+    {% else %}
+      <link rel="icon" href="{{ 'pattamansa-favicon.png' | asset_url }}">
+    {% endif %}
 
     <title>
       {% if template.name == 'index' %}
@@ -30,6 +37,15 @@
 
     {{ content_for_header }}
 
+    <style>
+      :root {
+        --ink: {{ settings.text_color | default: '#1A1A1A' }};
+        --paper: {{ settings.background_color | default: '#F2EDE4' }};
+        --clay: {{ settings.accent_color | default: '#F5A04A' }};
+        --sage: {{ settings.primary_color | default: '#3D5241' }};
+        --accent: {{ settings.support_color | default: '#B8BC8A' }};
+      }
+    </style>
     {{ 'theme.css' | asset_url | stylesheet_tag }}
     <script src="{{ 'theme.js' | asset_url }}" defer></script>
   </head>

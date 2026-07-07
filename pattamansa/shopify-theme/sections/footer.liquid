@@ -4,11 +4,19 @@
       <a class="footer-brand" href="{{ routes.root_url }}" aria-label="PattaMansa">
         {% if settings.logo != blank %}
           {{ settings.logo | image_url: width: 220 | image_tag: loading: 'lazy', widths: '140, 180, 220', class: 'footer-brand__logo' }}
+        {% elsif settings.logo_asset != blank %}
+          <img class="footer-brand__logo" src="{{ settings.logo_asset | asset_url }}" alt="PattaMansa" width="180" height="72" loading="lazy">
         {% else %}
           <img class="footer-brand__logo" src="{{ 'pattamansa-logo.png' | asset_url }}" alt="PattaMansa" width="180" height="72" loading="lazy">
         {% endif %}
       </a>
       <p class="muted">Camisetas premium pra quem vive a vida com cachorro.</p>
+      <div class="footer-seals" aria-label="Selos de compra">
+        <span>Compra segura</span>
+        <span>Pix</span>
+        <span>Cartao</span>
+        <span>Boleto</span>
+      </div>
       {% form 'customer', class: 'newsletter-form' %}
         <label for="NewsletterEmail">Entre pra matilha</label>
         <p>Novidades, lancamentos e estampas novas primeiro.</p>
@@ -37,6 +45,18 @@
       <a href="/pages/termos-de-uso">Termos</a>
       <a href="https://www.instagram.com/pattamansa" rel="noopener" target="_blank">Instagram @pattamansa</a>
     </nav>
+
+    <div class="footer-bottom">
+      <img class="footer-sigla" src="{{ settings.favicon_asset | default: 'pattamansa-favicon.png' | asset_url }}" alt="PTM" width="42" height="42" loading="lazy">
+      <p>&copy; 2026 PattaMansa</p>
+      {% if settings.legal_name != blank or settings.cnpj != blank %}
+        <p>
+          {% if settings.legal_name != blank %}{{ settings.legal_name }}{% endif %}
+          {% if settings.legal_name != blank and settings.cnpj != blank %} · {% endif %}
+          {% if settings.cnpj != blank %}{{ settings.cnpj }}{% endif %}
+        </p>
+      {% endif %}
+    </div>
   </div>
 </footer>
 

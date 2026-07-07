@@ -71,6 +71,15 @@ input {
   backdrop-filter: blur(14px);
 }
 
+.announcement-bar {
+  background: var(--sage);
+  color: var(--cream);
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 850;
+}
+
 .site-header__inner,
 .site-footer__inner {
   width: min(100% - 32px, var(--max));
@@ -115,6 +124,44 @@ input {
   color: var(--muted);
   font-size: 14px;
   font-weight: 650;
+}
+
+.help-menu {
+  position: relative;
+}
+
+.help-menu summary {
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  list-style: none;
+}
+
+.help-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.help-menu div {
+  position: absolute;
+  top: calc(100% + 14px);
+  right: 0;
+  width: 230px;
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--cream);
+  box-shadow: 0 18px 50px rgba(26, 26, 26, .14);
+  padding: 10px;
+}
+
+.help-menu div a {
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.help-menu div a:hover {
+  background: var(--paper);
 }
 
 .mobile-menu {
@@ -393,6 +440,12 @@ h2 {
   color: var(--cream);
 }
 
+.collection-card--fallback {
+  background:
+    radial-gradient(circle at 80% 20%, rgba(245, 160, 74, .32), transparent 34%),
+    linear-gradient(135deg, var(--sage), #28382c);
+}
+
 .collection-card img {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -503,6 +556,7 @@ summary {
 .site-footer__inner {
   min-height: 180px;
   align-items: flex-start;
+  flex-wrap: wrap;
   padding-block: 34px;
 }
 
@@ -516,11 +570,47 @@ summary {
   margin-bottom: 14px;
 }
 
+.footer-seals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.footer-seals span {
+  border: 1px solid rgba(255, 253, 248, .2);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: rgba(255, 253, 248, .82);
+  font-size: 12px;
+  font-weight: 850;
+}
+
 .footer-links {
   display: grid;
   gap: 8px;
   color: rgba(255, 253, 248, .76);
   font-size: 14px;
+  min-width: 180px;
+}
+
+.footer-bottom {
+  display: grid;
+  gap: 8px;
+  color: rgba(255, 253, 248, .64);
+  font-size: 13px;
+  min-width: 160px;
+}
+
+.footer-bottom p {
+  margin: 0;
+}
+
+.footer-sigla {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  border-radius: 8px;
 }
 
 .newsletter-form {
@@ -783,6 +873,12 @@ summary {
 
 .product-card__price {
   color: var(--muted);
+}
+
+.product-card__installments {
+  padding-inline: 12px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .product-card__price s {

@@ -9,30 +9,32 @@
 
   {% paginate collection.products by 24 %}
     <div class="product-grid">
+      {% assign rendered_products = 0 %}
       {% for product in collection.products %}
-        <a class="product-card" href="{{ product.url }}">
-          {% if product.featured_image %}
-            {{ product.featured_image | image_url: width: 700 | image_tag: loading: 'lazy', widths: '320, 520, 700', sizes: '(min-width: 900px) 25vw, 50vw', alt: product.title }}
-          {% endif %}
-          {% unless product.available %}
-            <span class="product-card__badge">Esgotado</span>
-          {% endunless %}
-          <span class="product-card__title">{{ product.title }}</span>
-          <span class="product-card__price">
-            {% if product.price > 0 %}
+        {% if product.price > 0 %}
+          {% assign rendered_products = rendered_products | plus: 1 %}
+          <a class="product-card" href="{{ product.url }}">
+            {% if product.featured_image %}
+              {{ product.featured_image | image_url: width: 700 | image_tag: loading: 'lazy', widths: '320, 520, 700', sizes: '(min-width: 900px) 25vw, 50vw', alt: product.title }}
+            {% endif %}
+            {% unless product.available %}
+              <span class="product-card__badge">Esgotado</span>
+            {% endunless %}
+            <span class="product-card__title">{{ product.title }}</span>
+            <span class="product-card__price">
               {% if product.compare_at_price > product.price %}
                 <s>{{ product.compare_at_price | money }}</s>
               {% endif %}
               {{ product.price | money }}
-            {% else %}
-              Em breve
-            {% endif %}
-          </span>
-          <span class="product-card__cta">Escolher</span>
-        </a>
-      {% else %}
-        <p class="empty-state">Colecao pronta para receber produtos.</p>
+            </span>
+            <span class="product-card__installments">ou 3x de {{ product.price | divided_by: 3 | money }}</span>
+            <span class="product-card__cta">Escolher</span>
+          </a>
+        {% endif %}
       {% endfor %}
+      {% if rendered_products == 0 %}
+        <p class="empty-state">Colecao pronta para receber produtos.</p>
+      {% endif %}
     </div>
 
     {% if paginate.pages > 1 %}

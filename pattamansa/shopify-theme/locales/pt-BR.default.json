@@ -2,6 +2,34 @@
   "general": {
     "accessibility": {
       "skip_to_content": "Pular para o conteudo"
+    },
+    "search": {
+      "search": "Buscar",
+      "submit": "Buscar",
+      "close": "Fechar busca",
+      "placeholder": "Buscar camisetas"
+    },
+    "newsletter": {
+      "title": "Entre pra matilha",
+      "description": "Novidades, lancamentos e estampas novas primeiro.",
+      "button": "Quero entrar",
+      "success": "Cadastro recebido."
+    },
+    "cart": {
+      "title": "Seu carrinho",
+      "empty": "Seu carrinho esta sozinho. Que tal companhia?",
+      "checkout": "Finalizar compra",
+      "update": "Atualizar carrinho"
+    },
+    "product": {
+      "add_to_cart": "Adicionar ao carrinho",
+      "sold_out": "Esgotado",
+      "unavailable": "Indisponivel",
+      "choose_options": "Selecione modelo, cor e tamanho para continuar."
+    },
+    "404": {
+      "title": "Esse osso foi enterrado em outro lugar.",
+      "button": "Voltar para a home"
     }
   }
 }

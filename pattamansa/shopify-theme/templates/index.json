@@ -12,13 +12,13 @@
       }
     },
     "collections": {
-      "type": "collection-showcase"
-    },
-    "differentials": {
-      "type": "brand-differentials"
-    },
-    "story": {
-      "type": "emotional-block"
+      "type": "collection-showcase",
+      "settings": {
+        "collection_1": "todas-as-camisetas",
+        "collection_2": "caramelo-fc",
+        "collection_3": "matilha",
+        "collection_4": "basicas-pattamansa"
+      }
     },
     "favorites": {
       "type": "featured-products",
@@ -26,6 +26,12 @@
         "heading": "Os favoritos da matilha",
         "collection": "todas-as-camisetas"
       }
+    },
+    "differentials": {
+      "type": "brand-differentials"
+    },
+    "story": {
+      "type": "emotional-block"
     },
     "social": {
       "type": "social-proof"
@@ -44,9 +50,9 @@
   "order": [
     "hero",
     "collections",
+    "favorites",
     "differentials",
     "story",
-    "favorites",
     "social",
     "faq",
     "final_cta"
