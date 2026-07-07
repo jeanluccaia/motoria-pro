@@ -5,8 +5,9 @@ import { Reveal } from '@/components/ui/Reveal'
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber'
 
 const proof = [
-  { value: 5, label: 'unidades em operação' },
-  { value: 4, label: 'cidades atendidas' },
+  { value: 6, label: 'unidades' },
+  { value: 4, label: 'cidades/regiões' },
+  { value: 1, label: 'modelo de expansão' },
 ]
 
 export function ExpansionBanner() {
@@ -33,12 +34,12 @@ export function ExpansionBanner() {
                 </p>
               </div>
 
-              <h2 className="max-w-xl text-4xl font-black leading-[1.06] text-lf-text text-balance md:text-5xl">
-                Rede em expansão. A próxima LoudFit pode ser sua.
+              <h2 className="max-w-2xl text-4xl font-black leading-[1.06] text-lf-text text-balance md:text-5xl">
+                Rede em expansão. 6 unidades Loud Fit e a próxima pode ser sua.
               </h2>
 
-              <p className="mt-5 max-w-sm text-base leading-[1.6] text-lf-muted">
-                Seja dono de uma unidade em uma rede com marca forte, operação real e presença de bairro.
+              <p className="mt-5 max-w-lg text-base leading-[1.6] text-lf-muted">
+                Leve uma marca de academia com operação real, presença de bairro e modelo comercial validado para a sua região.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -51,7 +52,7 @@ export function ExpansionBanner() {
               </div>
             </div>
 
-            <div className="grid gap-px overflow-hidden border border-lf-line sm:grid-cols-2 lg:grid-cols-1">
+            <div className="grid gap-px overflow-hidden border border-lf-line sm:grid-cols-3 lg:grid-cols-1">
               {proof.map(({ value, label }) => (
                 <div key={label} className="flex flex-col justify-center bg-lf-graphite/80 px-6 py-5">
                   <strong className="text-4xl font-black text-lf-volt">

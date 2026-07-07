@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Button'
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-[60vh] items-start overflow-x-hidden bg-lf-black pb-12 pt-24 md:min-h-[68vh] md:items-end md:pb-20 md:pt-28 lg:min-h-[68vh] lg:pb-24 lg:pt-32">
+    <section className="relative flex min-h-[60vh] items-start overflow-x-hidden bg-lf-black pb-12 pt-24 md:min-h-[68vh] md:items-end md:pb-20 md:pt-28 lg:min-h-[70vh] lg:pb-24 lg:pt-36">
       {/* Desktop image */}
       <Image
         src="/assets/images/hero-gym-desktop.png"
@@ -45,8 +45,8 @@ export function Hero() {
 
         {/* H1 */}
         <h1
-          className="max-w-[12ch] font-black uppercase leading-[1.1] text-lf-text md:max-w-[13ch] md:leading-[1.08]"
-          style={{ fontSize: 'clamp(2.35rem, 4.2vw, 4.9rem)' }}
+          className="max-w-[12ch] font-black uppercase leading-[1.12] tracking-[0] text-lf-text md:max-w-[13ch] md:leading-[1.1]"
+          style={{ fontSize: 'clamp(2.35rem, 4vw, 4.65rem)' }}
         >
           O melhor ainda está por{' '}
           <span className="text-lf-volt">vir.</span>
@@ -71,7 +71,7 @@ export function Hero() {
 
         {/* CTAs */}
         <div className="mt-7 flex flex-col items-start gap-3 sm:mt-9 sm:flex-row sm:items-center">
-          <Button href="#unidades" variant="volt" size="lg" className="min-h-[52px] font-extrabold tracking-[0.02em]">
+          <Button href="/unidades" variant="volt" size="lg" className="min-h-[52px] font-extrabold tracking-[0.02em]">
             Encontrar minha unidade
           </Button>
           <Button

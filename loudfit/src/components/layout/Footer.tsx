@@ -88,7 +88,7 @@ export function Footer() {
 
         {/* Divisor */}
         <div className="mt-12 border-t border-lf-line pt-8">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
 
             {/* Dados legais */}
             <div className="flex flex-col gap-3 text-xs leading-[1.7] text-lf-muted/55 md:flex-row md:flex-wrap md:items-center md:gap-x-6">

@@ -26,10 +26,10 @@ export function FinalCta() {
           <p className="mt-8 text-sm text-lf-muted">
             Primeira mensalidade por{' '}
             <span className="font-bold text-lf-volt">R$9,90</span>{' '}
-            no Power Anual Recorrente.
+            no Power Anual Recorrente.*
           </p>
           <p className="mt-2 text-[11px] text-lf-muted/60">
-            *Ipiranga possui tabela própria. Valores podem variar conforme a unidade.
+            *Valores e condições podem variar conforme a unidade.
           </p>
         </div>
       </Reveal>
