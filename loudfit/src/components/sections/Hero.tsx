@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Button'
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-[60vh] items-start overflow-hidden bg-lf-black pb-12 pt-[12svh] md:min-h-[65vh] md:items-end md:pb-20 lg:min-h-[65vh] lg:pt-0 lg:pb-24">
+    <section className="relative flex min-h-[60vh] items-start overflow-hidden bg-lf-black pb-12 pt-[12svh] md:min-h-[68vh] md:items-end md:pb-20 lg:min-h-[68vh] lg:pt-0 lg:pb-24">
       {/* Desktop image */}
       <Image
         src="/assets/images/hero-gym-desktop.png"
@@ -45,16 +45,16 @@ export function Hero() {
 
         {/* H1 */}
         <h1
-          className="max-w-5xl text-balance font-black uppercase leading-[1.05] text-lf-text md:leading-[1.02]"
-          style={{ fontSize: 'clamp(2.35rem, 5.4vw, 6.5rem)' }}
+          className="font-black uppercase leading-[1.05] text-lf-text md:leading-[1.02]"
+          style={{ fontSize: 'clamp(2.35rem, 4.6vw, 5.2rem)' }}
         >
           O melhor ainda está por{' '}
-          <span className="text-lf-volt">vir.</span>
+          <span className="text-lf-volt">vir</span>
         </h1>
 
         {/* Subtexto */}
         <p className="mt-5 max-w-[42ch] text-base leading-[1.45] text-white/76 md:mt-6 md:text-lg">
-          Musculação + aulas coletivas no mesmo plano. Do Muay Thai ao Pilates, já está incluso.
+          Musculação + aulas coletivas no mesmo plano. Do Muay Thai ao Pilates, já está incluso
         </p>
 
         {/* Selo de oferta */}
@@ -71,7 +71,7 @@ export function Hero() {
 
         {/* CTAs */}
         <div className="mt-7 flex flex-col items-start gap-3 sm:mt-9 sm:flex-row sm:items-center">
-          <Button href="#unidades" variant="volt" size="lg" className="min-h-[52px] tracking-[0.02em] font-extrabold">
+          <Button href="#unidades" variant="volt" size="lg" className="min-h-[52px] font-extrabold tracking-[0.02em]">
             Encontrar minha unidade
           </Button>
           <Button
