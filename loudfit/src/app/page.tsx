@@ -7,7 +7,6 @@ import { BrandVideo } from '@/components/sections/BrandVideo'
 import { OfferBanner } from '@/components/sections/OfferBanner'
 import { ExpansionBanner } from '@/components/sections/ExpansionBanner'
 import { FinalCta } from '@/components/sections/FinalCta'
-import { StickyCta } from '@/components/ui/StickyCta'
 import { WhatsAppFloat } from '@/components/ui/WhatsAppFloat'
 
 export const metadata: Metadata = {
@@ -50,7 +49,6 @@ export default function HomePage() {
       <ExpansionBanner />
       {/* 8. CTA Final — preto */}
       <FinalCta />
-      <StickyCta />
       <WhatsAppFloat />
     </>
   )
