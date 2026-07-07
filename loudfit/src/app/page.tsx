@@ -25,6 +25,13 @@ export const metadata: Metadata = {
     url: '/',
     images: ['/assets/images/campaign-gym-16x9.png'],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'LoudFit | O melhor ainda está por vir',
+    description:
+      'Rede de academias com estrutura completa, aulas coletivas inclusas e matrícula 100% online.',
+    images: ['/assets/images/campaign-gym-16x9.png'],
+  },
 }
 
 export default function HomePage() {

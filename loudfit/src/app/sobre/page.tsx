@@ -4,6 +4,19 @@ import { Section, SectionHeader } from '@/components/ui/Section'
 export const metadata: Metadata = {
   title: 'Sobre',
   description: 'Conheça a história e os fundadores da LoudFit.',
+  alternates: { canonical: '/sobre' },
+  openGraph: {
+    title: 'Sobre | LoudFit',
+    description: 'Conheça a história e os fundadores da LoudFit.',
+    url: '/sobre',
+    images: ['/assets/images/campaign-gym-16x9.png'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Sobre | LoudFit',
+    description: 'Conheça a história e os fundadores da LoudFit.',
+    images: ['/assets/images/campaign-gym-16x9.png'],
+  },
 }
 
 export default function SobrePage() {

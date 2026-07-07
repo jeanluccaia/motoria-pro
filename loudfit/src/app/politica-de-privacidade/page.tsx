@@ -3,6 +3,20 @@ import { Section } from '@/components/ui/Section'
 
 export const metadata: Metadata = {
   title: 'Política de Privacidade',
+  description: 'Política de privacidade da LoudFit.',
+  alternates: { canonical: '/politica-de-privacidade' },
+  openGraph: {
+    title: 'Política de Privacidade | LoudFit',
+    description: 'Política de privacidade da LoudFit.',
+    url: '/politica-de-privacidade',
+    images: ['/assets/images/campaign-gym-16x9.png'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Política de Privacidade | LoudFit',
+    description: 'Política de privacidade da LoudFit.',
+    images: ['/assets/images/campaign-gym-16x9.png'],
+  },
 }
 
 export default function PrivacidadePage() {

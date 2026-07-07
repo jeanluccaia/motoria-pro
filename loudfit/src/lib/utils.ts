@@ -24,13 +24,6 @@ export function unitDisplayName(unit: Pick<Unit, 'nome'>) {
 
 export const displayUnitName = unitDisplayName
 
-function restoreEvoTokenPlaceholders(value: string) {
-  return value
-    .replace(/(?:%5B|\[)PLUS(?:%5D|\])/gi, '+')
-    .replace(/(?:%5B|\[)BAR(?:%5D|\])/gi, '|')
-    .replace(/(?:%5B|\[)EQUAL(?:%5D|\])/gi, '=')
-}
-
 function decodeUrlSegment(segment: string) {
   try {
     return decodeURIComponent(segment)
@@ -39,18 +32,25 @@ function decodeUrlSegment(segment: string) {
   }
 }
 
+function normalizeEvoPathSegment(segment: string) {
+  const decoded = decodeUrlSegment(segment)
+    .replace(/\[PLUS\]/gi, '[PLUS]')
+    .replace(/\[BAR\]/gi, '[BAR]')
+    .replace(/\[EQUAL\]/gi, '[EQUAL]')
+
+  return encodeURIComponent(decoded)
+}
+
 export function normalizeEvoCheckoutUrl(checkoutUrl?: string | null) {
   if (!checkoutUrl) return null
 
-  const restored = restoreEvoTokenPlaceholders(checkoutUrl.trim())
-
   try {
-    const parsed = new URL(restored)
+    const parsed = new URL(checkoutUrl.trim())
     if (parsed.protocol !== 'https:') return null
 
     parsed.pathname = parsed.pathname
       .split('/')
-      .map((segment) => encodeURIComponent(decodeUrlSegment(segment)))
+      .map((segment) => normalizeEvoPathSegment(segment))
       .join('/')
 
     return parsed.toString()

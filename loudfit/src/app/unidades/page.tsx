@@ -14,6 +14,12 @@ export const metadata: Metadata = {
     url: '/unidades',
     images: ['/assets/images/campaign-gym-16x9.png'],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Unidades | LoudFit',
+    description: 'Encontre uma LoudFit perto de você. 6 unidades em SP com matrícula online.',
+    images: ['/assets/images/campaign-gym-16x9.png'],
+  },
 }
 
 export default async function UnidadesPage() {

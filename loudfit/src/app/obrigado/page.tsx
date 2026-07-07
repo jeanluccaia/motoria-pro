@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button'
 
 export const metadata: Metadata = {
   title: 'Obrigado!',
+  alternates: { canonical: '/obrigado' },
   robots: { index: false },
 }
 

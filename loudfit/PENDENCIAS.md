@@ -5,5 +5,6 @@
 - Confirmar modalidades/aulas coletivas oficiais das unidades Ipiranga e Anchieta SP; os dados atuais estão vazios e a interface oculta chips inexistentes.
 - Substituir fotos provisórias por fotos oficiais específicas de cada unidade quando o material final estiver disponível.
 - Substituir o vídeo provisório da home pelo vídeo oficial final, mantendo arquivo otimizado para web.
+- Confirmar apontamento do domínio oficial `loudfit.com.br`; enquanto isso a canonical/OG usa a produção atual `loudfit.vercel.app`.
 - Confirmar com W12/EVO se haverá deep-link oficial para pré-seleção de plano no checkout.
 - Configurar `FRANCHISE_LEAD_WEBHOOK_URL` ou outro provedor recuperável para envio automático dos leads de franquia; enquanto isso a API tenta Supabase e o formulário mostra contato direto se o envio não for confirmado.

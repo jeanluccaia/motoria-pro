@@ -42,6 +42,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `/unidades/${unit.slug}`,
       images: ['/assets/images/campaign-gym-16x9.png'],
     },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/assets/images/campaign-gym-16x9.png'],
+    },
   }
 }
 

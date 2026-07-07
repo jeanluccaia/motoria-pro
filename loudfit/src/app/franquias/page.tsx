@@ -18,6 +18,13 @@ export const metadata: Metadata = {
     url: '/franquias',
     images: ['/assets/images/campaign-gym-16x9.png'],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Franquias LoudFit — Seja franqueado',
+    description:
+      'Seja dono de uma academia LoudFit. Conheça o modelo de franquia, investimento e o suporte da rede.',
+    images: ['/assets/images/campaign-gym-16x9.png'],
+  },
 }
 
 const diferenciais = [

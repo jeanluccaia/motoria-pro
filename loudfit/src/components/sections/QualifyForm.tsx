@@ -65,7 +65,7 @@ export function QualifyForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-xl" id="formulario">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-xl">
       <div className="grid sm:grid-cols-2 gap-6">
         <div>
           <label className={labelCls}>Nome completo</label>
