@@ -78,7 +78,7 @@
         idInput.value = variant.id;
         submit.disabled = false;
         submit.textContent = 'Adicionar ao carrinho';
-        if (price) price.textContent = formatMoney(variant.price);
+        if (price) price.textContent = Number(variant.price || 0) > 0 ? formatMoney(variant.price) : 'Em breve';
         if (message) message.textContent = 'Selecionado: ' + variant.options.join(' / ');
         return;
       }

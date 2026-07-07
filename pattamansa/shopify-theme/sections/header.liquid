@@ -1,26 +1,29 @@
 <header class="site-header">
   <div class="site-header__inner">
-    <a class="brand" href="{{ routes.root_url }}" aria-label="{{ shop.name }}">
+    <a class="brand" href="{{ routes.root_url }}" aria-label="PattaMansa">
       {% if settings.logo != blank %}
         {{ settings.logo | image_url: width: 220 | image_tag: loading: 'eager', widths: '120, 180, 220', class: 'brand__logo' }}
       {% else %}
-        <span class="brand__mark">PM</span>
-        <span class="brand__name">PattaMansa</span>
+        <img class="brand__logo" src="{{ 'pattamansa-logo.png' | asset_url }}" alt="PattaMansa" width="180" height="72" loading="eager">
       {% endif %}
     </a>
 
     <nav class="site-nav" aria-label="Menu principal">
-      {% if linklists.main-menu.links.size > 0 %}
-        {% for link in linklists.main-menu.links %}
-          <a href="{{ link.url }}">{{ link.title }}</a>
-        {% endfor %}
-      {% else %}
-        <a href="{{ routes.collections_url }}/todas-as-camisetas">Camisetas</a>
-        <a href="{{ routes.collections_url }}/caramelo-fc">Caramelo FC</a>
-        <a href="{{ routes.collections_url }}/matilha">Matilha</a>
-        <a href="/pages/sobre">Sobre</a>
-      {% endif %}
+      <a href="{{ routes.collections_url }}/todas-as-camisetas">Camisetas</a>
+      <a href="{{ routes.collections_url }}">Cole&ccedil;&otilde;es</a>
+      <a href="/pages/sobre">Sobre</a>
+      <a href="/pages/faq">Ajuda</a>
     </nav>
+
+    <details class="mobile-menu">
+      <summary>Menu</summary>
+      <nav aria-label="Menu mobile">
+        <a href="{{ routes.collections_url }}/todas-as-camisetas">Camisetas</a>
+        <a href="{{ routes.collections_url }}">Cole&ccedil;&otilde;es</a>
+        <a href="/pages/sobre">Sobre</a>
+        <a href="/pages/faq">Ajuda</a>
+      </nav>
+    </details>
 
     <a class="header-cart" href="{{ routes.cart_url }}" aria-label="Carrinho">
       Carrinho

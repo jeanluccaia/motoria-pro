@@ -14,7 +14,13 @@
   <div class="product-info">
     <p class="eyebrow">{{ product.vendor | default: 'PattaMansa' }}</p>
     <h1>{{ product.title }}</h1>
-    <p class="product-price" data-product-price>{{ product.price | money }}</p>
+    <p class="product-price" data-product-price>
+      {% if product.price > 0 %}
+        {{ product.price | money }}
+      {% else %}
+        Em breve
+      {% endif %}
+    </p>
     <p class="product-installments">{{ section.settings.installment_text }}</p>
 
     {% form 'product', product, class: 'product-form', data-product-form: '' %}
@@ -120,8 +126,21 @@
               {% if related_product.featured_image %}
                 {{ related_product.featured_image | image_url: width: 700 | image_tag: loading: 'lazy', widths: '320, 520, 700', alt: related_product.title }}
               {% endif %}
+              {% unless related_product.available %}
+                <span class="product-card__badge">Esgotado</span>
+              {% endunless %}
               <span class="product-card__title">{{ related_product.title }}</span>
-              <span class="product-card__price">{{ related_product.price | money }}</span>
+              <span class="product-card__price">
+                {% if related_product.price > 0 %}
+                  {% if related_product.compare_at_price > related_product.price %}
+                    <s>{{ related_product.compare_at_price | money }}</s>
+                  {% endif %}
+                  {{ related_product.price | money }}
+                {% else %}
+                  Em breve
+                {% endif %}
+              </span>
+              <span class="product-card__cta">Ver produto</span>
             </a>
           {% endunless %}
         {% endfor %}

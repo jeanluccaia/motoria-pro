@@ -1,17 +1,31 @@
-<section class="hero-premium">
-  <div class="hero-premium__media">
-    {% if section.settings.image != blank %}
-      {{ section.settings.image | image_url: width: 1800 | image_tag: loading: 'eager', widths: '375, 750, 1100, 1500, 1800', sizes: '100vw' }}
-    {% endif %}
-  </div>
-  <div class="page-width hero-premium__content">
-    <p class="eyebrow">{{ section.settings.eyebrow }}</p>
-    <h1>{{ section.settings.heading }}</h1>
-    <p>{{ section.settings.subheading }}</p>
-    <div class="button-row">
-      <a class="button button--primary" href="{{ section.settings.primary_link }}">{{ section.settings.primary_label }}</a>
-      <a class="button button--secondary" href="{{ section.settings.secondary_link }}">{{ section.settings.secondary_label }}</a>
+<section class="hero-premium {% if section.settings.image == blank %}hero-premium--fallback{% endif %}">
+  {% if section.settings.image != blank %}
+    <div class="hero-premium__media">
+      {{ section.settings.image | image_url: width: 1800 | image_tag: loading: 'eager', widths: '375, 750, 1100, 1500, 1800', sizes: '100vw', alt: section.settings.heading }}
     </div>
+  {% endif %}
+  <div class="page-width hero-premium__content">
+    <div class="hero-premium__copy">
+      <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+      <h1>{{ section.settings.heading }}</h1>
+      <p>{{ section.settings.subheading }}</p>
+      <div class="button-row">
+        <a class="button button--primary" href="{{ section.settings.primary_link }}">{{ section.settings.primary_label }}</a>
+        <a class="button button--secondary" href="{{ section.settings.secondary_link }}">{{ section.settings.secondary_label }}</a>
+      </div>
+    </div>
+
+    {% if section.settings.image != blank %}
+      <span></span>
+    {% else %}
+      <div class="hero-premium__panel" aria-hidden="true">
+        <div class="hero-premium__tag">PattaMansa</div>
+        <div class="hero-premium__shirt">
+          <span>PM</span>
+        </div>
+        <p>Camisetas premium para tutores.</p>
+      </div>
+    {% endif %}
   </div>
 </section>
 

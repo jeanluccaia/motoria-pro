@@ -14,8 +14,21 @@
             {% if product.featured_image %}
               {{ product.featured_image | image_url: width: 700 | image_tag: loading: 'lazy', widths: '320, 520, 700', sizes: '(min-width: 900px) 25vw, 50vw', alt: product.title }}
             {% endif %}
+            {% unless product.available %}
+              <span class="product-card__badge">Esgotado</span>
+            {% endunless %}
             <span class="product-card__title">{{ product.title }}</span>
-            <span class="product-card__price">{{ product.price | money }}</span>
+            <span class="product-card__price">
+              {% if product.price > 0 %}
+                {% if product.compare_at_price > product.price %}
+                  <s>{{ product.compare_at_price | money }}</s>
+                {% endif %}
+                {{ product.price | money }}
+              {% else %}
+                Em breve
+              {% endif %}
+            </span>
+            <span class="product-card__cta">Ver produto</span>
           </a>
         {% endfor %}
       </div>

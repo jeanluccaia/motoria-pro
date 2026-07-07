@@ -1,10 +1,17 @@
 <footer class="site-footer">
   <div class="site-footer__inner">
     <div>
-      <p class="site-footer__brand">PattaMansa</p>
-      <p class="muted">Camisetas premium para tutores que vestem essa relacao com orgulho.</p>
+      <a class="footer-brand" href="{{ routes.root_url }}" aria-label="PattaMansa">
+        {% if settings.logo != blank %}
+          {{ settings.logo | image_url: width: 220 | image_tag: loading: 'lazy', widths: '140, 180, 220', class: 'footer-brand__logo' }}
+        {% else %}
+          <img class="footer-brand__logo" src="{{ 'pattamansa-logo.png' | asset_url }}" alt="PattaMansa" width="180" height="72" loading="lazy">
+        {% endif %}
+      </a>
+      <p class="muted">Camisetas premium pra quem vive a vida com cachorro.</p>
       {% form 'customer', class: 'newsletter-form' %}
-        <label for="NewsletterEmail">Entre pra matilha — novidades e lancamentos primeiro.</label>
+        <label for="NewsletterEmail">Entre pra matilha</label>
+        <p>Novidades, lancamentos e estampas novas primeiro.</p>
         {% if form.errors %}
           <p class="form-error">Ops, faltou preencher esse campo.</p>
         {% endif %}
@@ -13,19 +20,22 @@
         {% endif %}
         <div class="newsletter-form__row">
           <input id="NewsletterEmail" type="email" name="contact[{{ 'email' }}]" required oninvalid="this.setCustomValidity('Ops, faltou preencher esse campo.')" oninput="this.setCustomValidity('')" aria-label="E-mail para newsletter">
-          <button class="button button--primary" type="submit">Entrar</button>
+          <button class="button button--primary" type="submit">Quero entrar</button>
         </div>
       {% endform %}
     </div>
 
     <nav class="footer-links" aria-label="Links institucionais">
+      <a href="{{ routes.collections_url }}/todas-as-camisetas">Camisetas</a>
+      <a href="{{ routes.collections_url }}">Cole&ccedil;&otilde;es</a>
       <a href="/pages/sobre">Sobre</a>
-      <a href="/pages/contato">Contato</a>
-      <a href="/pages/trocas-e-devolucoes">Trocas e devolucoes</a>
       <a href="/pages/frete-e-prazos">Frete e prazos</a>
+      <a href="/pages/trocas-e-devolucoes">Trocas e devolucoes</a>
       <a href="/pages/faq">FAQ</a>
+      <a href="/pages/contato">Contato</a>
       <a href="/pages/politica-de-privacidade">Privacidade</a>
       <a href="/pages/termos-de-uso">Termos</a>
+      <a href="https://www.instagram.com/pattamansa" rel="noopener" target="_blank">Instagram @pattamansa</a>
     </nav>
   </div>
 </footer>
