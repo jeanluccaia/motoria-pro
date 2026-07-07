@@ -1,0 +1,36 @@
+{% assign featured_collection = collections[section.settings.collection] %}
+
+{% if featured_collection.products_count > 0 %}
+  <section class="section section--favorites">
+    <div class="page-width">
+      <div class="section-heading">
+        <p class="eyebrow">Curadoria</p>
+        <h2>{{ section.settings.heading }}</h2>
+      </div>
+
+      <div class="product-grid">
+        {% for product in featured_collection.products limit: section.settings.products_to_show %}
+          <a class="product-card" href="{{ product.url }}">
+            {% if product.featured_image %}
+              {{ product.featured_image | image_url: width: 700 | image_tag: loading: 'lazy', widths: '320, 520, 700', sizes: '(min-width: 900px) 25vw, 50vw', alt: product.title }}
+            {% endif %}
+            <span class="product-card__title">{{ product.title }}</span>
+            <span class="product-card__price">{{ product.price | money }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Produtos favoritos",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Titulo", "default": "Os favoritos da matilha" },
+    { "type": "collection", "id": "collection", "label": "Colecao" },
+    { "type": "range", "id": "products_to_show", "label": "Produtos exibidos", "min": 2, "max": 8, "step": 1, "default": 4 }
+  ],
+  "presets": [{ "name": "Produtos favoritos" }]
+}
+{% endschema %}

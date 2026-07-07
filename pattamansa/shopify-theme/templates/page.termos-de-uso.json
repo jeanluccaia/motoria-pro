@@ -1,0 +1,13 @@
+{
+  "sections": {
+    "main": {
+      "type": "institutional-content",
+      "settings": {
+        "eyebrow": "Termos",
+        "heading": "Termos de uso",
+        "content": "<p>Ao comprar na PattaMansa, o cliente declara que revisou produto, modelo, cor, tamanho, preco, frete e prazo antes de concluir o pedido.</p><p>As imagens de produto buscam representar as pecas com fidelidade, mas pequenas variacoes de cor podem ocorrer por diferenca de tela, luz ou lote.</p><p>Promocoes, disponibilidade de estoque, prazos e formas de pagamento podem mudar conforme configuracao da loja.</p><p>Trocas, devolucoes, frete e atendimento seguem as politicas informadas nas paginas institucionais da PattaMansa.</p>"
+      }
+    }
+  },
+  "order": ["main"]
+}

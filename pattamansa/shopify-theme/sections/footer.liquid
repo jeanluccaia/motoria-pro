@@ -3,6 +3,19 @@
     <div>
       <p class="site-footer__brand">PattaMansa</p>
       <p class="muted">Camisetas premium para tutores que vestem essa relacao com orgulho.</p>
+      {% form 'customer', class: 'newsletter-form' %}
+        <label for="NewsletterEmail">Entre pra matilha — novidades e lancamentos primeiro.</label>
+        {% if form.errors %}
+          <p class="form-error">Ops, faltou preencher esse campo.</p>
+        {% endif %}
+        {% if form.posted_successfully? %}
+          <p class="form-success">Cadastro recebido.</p>
+        {% endif %}
+        <div class="newsletter-form__row">
+          <input id="NewsletterEmail" type="email" name="contact[{{ 'email' }}]" required oninvalid="this.setCustomValidity('Ops, faltou preencher esse campo.')" oninput="this.setCustomValidity('')" aria-label="E-mail para newsletter">
+          <button class="button button--primary" type="submit">Entrar</button>
+        </div>
+      {% endform %}
     </div>
 
     <nav class="footer-links" aria-label="Links institucionais">
@@ -10,8 +23,9 @@
       <a href="/pages/contato">Contato</a>
       <a href="/pages/trocas-e-devolucoes">Trocas e devolucoes</a>
       <a href="/pages/frete-e-prazos">Frete e prazos</a>
-      <a href="/policies/privacy-policy">Privacidade</a>
-      <a href="/policies/terms-of-service">Termos</a>
+      <a href="/pages/faq">FAQ</a>
+      <a href="/pages/politica-de-privacidade">Privacidade</a>
+      <a href="/pages/termos-de-uso">Termos</a>
     </nav>
   </div>
 </footer>

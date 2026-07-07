@@ -1,11 +1,12 @@
 :root {
-  --ink: #141414;
-  --paper: #fbf7ef;
-  --cream: #fffdf8;
-  --clay: #b86b43;
-  --sage: #7f9271;
-  --line: rgba(20, 20, 20, .12);
-  --muted: rgba(20, 20, 20, .68);
+  --ink: #1A1A1A;
+  --paper: #F2EDE4;
+  --cream: #fffaf2;
+  --clay: #F5A04A;
+  --sage: #3D5241;
+  --accent: #B8BC8A;
+  --line: rgba(26, 26, 26, .12);
+  --muted: rgba(26, 26, 26, .68);
   --max: 1180px;
 }
 
@@ -19,7 +20,7 @@ html {
 
 body {
   margin: 0;
-  background: var(--cream);
+  background: var(--paper);
   color: var(--ink);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   line-height: 1.45;
@@ -125,7 +126,7 @@ input {
   height: 22px;
   place-items: center;
   background: var(--clay);
-  color: white;
+  color: var(--ink);
   border-radius: 999px;
   font-size: 12px;
 }
@@ -223,7 +224,7 @@ h2 {
 
 .button--primary {
   background: var(--clay);
-  color: white;
+  color: var(--ink);
 }
 
 .button--secondary {
@@ -348,15 +349,9 @@ h2 {
   object-fit: cover;
 }
 
-.proof-card figcaption,
-.proof-placeholder {
+.proof-card figcaption {
   padding: 16px;
   color: var(--muted);
-}
-
-.proof-placeholder {
-  border: 1px dashed var(--line);
-  border-radius: 8px;
 }
 
 .section--faq {
@@ -410,6 +405,63 @@ summary {
   font-size: 14px;
 }
 
+.newsletter-form {
+  display: grid;
+  gap: 10px;
+  max-width: 420px;
+  margin-top: 18px;
+}
+
+.newsletter-form label {
+  color: var(--cream);
+  font-weight: 800;
+}
+
+.newsletter-form__row {
+  display: grid;
+  gap: 8px;
+}
+
+.newsletter-form input,
+.native-contact-form input,
+.native-contact-form textarea {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--cream);
+  color: var(--ink);
+  padding: 12px;
+}
+
+.native-contact-form {
+  display: grid;
+  gap: 16px;
+  max-width: 680px;
+}
+
+.native-contact-form label {
+  display: grid;
+  gap: 8px;
+  font-weight: 800;
+}
+
+.native-contact-form textarea {
+  resize: vertical;
+}
+
+.form-error {
+  margin: 0;
+  color: #8d2f2f;
+  font-weight: 800;
+}
+
+.form-success {
+  margin: 0;
+  color: var(--sage);
+  font-weight: 800;
+}
+
 .product-page {
   display: grid;
   gap: 28px;
@@ -451,6 +503,12 @@ summary {
   margin: 0;
   font-size: 24px;
   font-weight: 850;
+}
+
+.product-installments {
+  margin: -8px 0 0;
+  color: var(--muted);
+  font-size: 14px;
 }
 
 .product-form,
@@ -498,6 +556,12 @@ summary {
   color: var(--cream);
 }
 
+.option-pill input:disabled + span {
+  opacity: .38;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
 .variant-message {
   min-height: 22px;
   margin: 0;
@@ -508,6 +572,13 @@ summary {
 .product-submit:disabled {
   opacity: .45;
   cursor: not-allowed;
+}
+
+.trust-line {
+  margin: -2px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
 }
 
 .product-benefits {
@@ -524,6 +595,31 @@ summary {
 .product-accordions {
   display: grid;
   gap: 10px;
+}
+
+.reserve-block,
+.product-mini-faq {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 18px;
+}
+
+.reserve-block h2,
+.product-mini-faq h2 {
+  font-size: 24px;
+}
+
+.reserve-block p,
+.product-mini-faq p {
+  margin: 0;
+}
+
+.cross-sell {
+  grid-column: 1 / -1;
+  padding-top: 28px;
 }
 
 .collection-page,
@@ -690,6 +786,10 @@ summary {
   .cart-line__price {
     grid-column: auto;
   }
+
+  .newsletter-form__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
 }
 
 @media (max-width: 520px) {
@@ -707,5 +807,12 @@ summary {
 
   .button {
     width: 100%;
+  }
+
+  .product-submit {
+    position: sticky;
+    bottom: 12px;
+    z-index: 20;
+    box-shadow: 0 12px 30px rgba(26, 26, 26, .18);
   }
 }

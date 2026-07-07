@@ -1,28 +1,40 @@
-<section class="section">
-  <div class="page-width">
-    <div class="section-heading">
-      <p class="eyebrow">Comunidade</p>
-      <h2>{{ section.settings.heading }}</h2>
-    </div>
-    <div class="proof-grid">
-      {% for block in section.blocks %}
-        <figure class="proof-card" {{ block.shopify_attributes }}>
-          {% if block.settings.image != blank %}
-            {{ block.settings.image | image_url: width: 700 | image_tag: loading: 'lazy', widths: '320, 520, 700' }}
+{% assign has_real_proof = false %}
+{% for block in section.blocks %}
+  {% if block.settings.image != blank or block.settings.text != blank %}
+    {% assign has_real_proof = true %}
+  {% endif %}
+{% endfor %}
+
+{% if section.settings.show_section and has_real_proof %}
+  <section class="section">
+    <div class="page-width">
+      <div class="section-heading">
+        <p class="eyebrow">Comunidade</p>
+        <h2>{{ section.settings.heading }}</h2>
+      </div>
+      <div class="proof-grid">
+        {% for block in section.blocks %}
+          {% if block.settings.image != blank or block.settings.text != blank %}
+            <figure class="proof-card" {{ block.shopify_attributes }}>
+              {% if block.settings.image != blank %}
+                {{ block.settings.image | image_url: width: 700 | image_tag: loading: 'lazy', widths: '320, 520, 700', alt: block.settings.text }}
+              {% endif %}
+              {% if block.settings.text != blank %}
+                <figcaption>{{ block.settings.text }}</figcaption>
+              {% endif %}
+            </figure>
           {% endif %}
-          <figcaption>{{ block.settings.text }}</figcaption>
-        </figure>
-      {% else %}
-        <div class="proof-placeholder">Espaco reservado para fotos e depoimentos reais de clientes.</div>
-      {% endfor %}
+        {% endfor %}
+      </div>
     </div>
-  </div>
-</section>
+  </section>
+{% endif %}
 
 {% schema %}
 {
   "name": "Prova social",
   "settings": [
+    { "type": "checkbox", "id": "show_section", "label": "Mostrar secao quando houver conteudo", "default": false },
     { "type": "text", "id": "heading", "label": "Titulo", "default": "Quem veste, leva uma historia junto." }
   ],
   "blocks": [
@@ -31,7 +43,7 @@
       "name": "Foto/depoimento",
       "settings": [
         { "type": "image_picker", "id": "image", "label": "Imagem" },
-        { "type": "textarea", "id": "text", "label": "Depoimento", "default": "Depoimento de cliente" }
+        { "type": "textarea", "id": "text", "label": "Depoimento" }
       ]
     }
   ],

@@ -1,0 +1,13 @@
+{
+  "sections": {
+    "main": {
+      "type": "institutional-content",
+      "settings": {
+        "eyebrow": "Privacidade",
+        "heading": "Politica de privacidade",
+        "content": "<p>A PattaMansa usa dados fornecidos pelo cliente para processar pedidos, responder atendimentos, melhorar a experiencia de compra e cumprir obrigacoes legais.</p><p>Dados de pagamento sao tratados pelo checkout Shopify e pelos provedores de pagamento ativos na loja. A PattaMansa nao armazena dados completos de cartao.</p><p>Cookies e tecnologias semelhantes podem ser usados para funcionamento da loja, analise de desempenho e mensuracao de campanhas, respeitando as configuracoes dos canais conectados.</p><p>O cliente pode solicitar informacoes sobre seus dados ou pedir atendimento pelo formulario de contato da loja.</p>"
+      }
+    }
+  },
+  "order": ["main"]
+}

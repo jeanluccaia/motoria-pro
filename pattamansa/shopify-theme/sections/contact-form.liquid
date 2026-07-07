@@ -1,0 +1,42 @@
+<section class="page-width standard-page contact-page">
+  <p class="eyebrow">Contato</p>
+  <h1>{{ section.settings.heading }}</h1>
+  <div class="rte">{{ section.settings.intro }}</div>
+
+  {% form 'contact', class: 'native-contact-form' %}
+    {% if form.posted_successfully? %}
+      <p class="form-success">Mensagem enviada. A equipe PattaMansa responde pelo canal informado no formulario.</p>
+    {% endif %}
+
+    {% if form.errors %}
+      <p class="form-error">Ops, faltou preencher esse campo.</p>
+    {% endif %}
+
+    <label>
+      Nome
+      <input type="text" name="contact[name]" required oninvalid="this.setCustomValidity('Ops, faltou preencher esse campo.')" oninput="this.setCustomValidity('')">
+    </label>
+
+    <label>
+      E-mail
+      <input type="email" name="contact[{{ 'email' }}]" required oninvalid="this.setCustomValidity('Ops, faltou preencher esse campo.')" oninput="this.setCustomValidity('')">
+    </label>
+
+    <label>
+      Mensagem
+      <textarea name="contact[body]" rows="6" required oninvalid="this.setCustomValidity('Ops, faltou preencher esse campo.')" oninput="this.setCustomValidity('')"></textarea>
+    </label>
+
+    <button class="button button--primary" type="submit">Enviar mensagem</button>
+  {% endform %}
+</section>
+
+{% schema %}
+{
+  "name": "Formulario de contato",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Titulo", "default": "Fale com a PattaMansa" },
+    { "type": "richtext", "id": "intro", "label": "Texto", "default": "<p>Use o formulario abaixo para falar sobre pedidos, trocas, produtos ou parcerias. O atendimento responde pelo canal informado na mensagem.</p>" }
+  ]
+}
+{% endschema %}

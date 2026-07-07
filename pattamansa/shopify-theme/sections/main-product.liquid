@@ -3,7 +3,7 @@
     {% if product.media.size > 0 %}
       {% for media in product.media %}
         <div class="product-gallery__item" data-media-id="{{ media.id }}">
-          {{ media | image_url: width: 1200 | image_tag: loading: 'lazy', widths: '360, 720, 960, 1200', sizes: '(min-width: 900px) 50vw, 100vw' }}
+          {{ media | image_url: width: 1200 | image_tag: loading: 'lazy', widths: '360, 720, 960, 1200', sizes: '(min-width: 900px) 50vw, 100vw', alt: product.title }}
         </div>
       {% endfor %}
     {% else %}
@@ -15,6 +15,7 @@
     <p class="eyebrow">{{ product.vendor | default: 'PattaMansa' }}</p>
     <h1>{{ product.title }}</h1>
     <p class="product-price" data-product-price>{{ product.price | money }}</p>
+    <p class="product-installments">{{ section.settings.installment_text }}</p>
 
     {% form 'product', product, class: 'product-form', data-product-form: '' %}
       <input
@@ -57,37 +58,76 @@
       >
         Adicionar ao carrinho
       </button>
+      <p class="trust-line">Compra segura &middot; Troca facil em 7 dias &middot; Envio com rastreio</p>
     {% endform %}
 
     <div class="product-benefits">
       <span>Compra segura Shopify</span>
-      <span>Qualidade Reserva INK</span>
-      <span>Envio para todo o Brasil</span>
+      <span>Padrao de qualidade Reserva INK</span>
+      <span>Envio com rastreio</span>
     </div>
 
     <div class="product-accordions">
       <details open>
-        <summary>Descricao</summary>
-        <div class="rte">{{ product.description }}</div>
+        <summary>Tecido e caimento</summary>
+        <div class="rte">
+          {% if product.description != blank %}
+            {{ product.description }}
+          {% else %}
+            <p>{{ section.settings.fabric_fit }}</p>
+          {% endif %}
+        </div>
       </details>
       <details>
-        <summary>Guia de medidas</summary>
-        <p>Compare as medidas da tabela cadastrada neste produto com uma camiseta que voce ja usa. Se estiver entre dois tamanhos, escolha pelo caimento desejado.</p>
+        <summary>Tabela de medidas</summary>
+        <p>{{ section.settings.size_guide }}</p>
       </details>
       <details>
-        <summary>Composicao e acabamento</summary>
-        <p>Camiseta premium com estampa exclusiva PattaMansa. Ajuste este texto com a composicao exata do produto no cadastro.</p>
+        <summary>Cuidados com a peca</summary>
+        <p>{{ section.settings.care_text }}</p>
       </details>
       <details>
-        <summary>Envio</summary>
-        <p>O prazo e o valor do frete aparecem no checkout conforme CEP e transportadora disponivel.</p>
-      </details>
-      <details>
-        <summary>Trocas e devolucoes</summary>
-        <p>As regras seguem a politica vigente da loja e ficam disponiveis no rodape.</p>
+        <summary>Frete e trocas</summary>
+        <p>{{ section.settings.shipping_returns }}</p>
       </details>
     </div>
+
+    <div class="reserve-block">
+      <p class="eyebrow">Producao Reserva INK</p>
+      <h2>{{ section.settings.reserve_heading }}</h2>
+      <p>{{ section.settings.reserve_text }}</p>
+    </div>
+
+    <div class="product-mini-faq">
+      <h2>Duvidas rapidas</h2>
+      <details><summary>Como sei qual tamanho comprar?</summary><p>Use a tabela de medidas e compare com uma camiseta que ja fica bem em voce.</p></details>
+      <details><summary>Tem rastreio?</summary><p>Sim. O acompanhamento fica disponivel depois do envio do pedido.</p></details>
+      <details><summary>Posso trocar?</summary><p>Sim, dentro das condicoes da politica de trocas e devolucoes.</p></details>
+    </div>
   </div>
+
+  {% assign cross_sell_collection = collections[section.settings.cross_sell_collection] %}
+  {% if cross_sell_collection.products_count > 0 %}
+    <aside class="cross-sell">
+      <div class="section-heading">
+        <p class="eyebrow">Complete a matilha</p>
+        <h2>{{ section.settings.cross_sell_heading }}</h2>
+      </div>
+      <div class="product-grid">
+        {% for related_product in cross_sell_collection.products limit: 4 %}
+          {% unless related_product.id == product.id %}
+            <a class="product-card" href="{{ related_product.url }}">
+              {% if related_product.featured_image %}
+                {{ related_product.featured_image | image_url: width: 700 | image_tag: loading: 'lazy', widths: '320, 520, 700', alt: related_product.title }}
+              {% endif %}
+              <span class="product-card__title">{{ related_product.title }}</span>
+              <span class="product-card__price">{{ related_product.price | money }}</span>
+            </a>
+          {% endunless %}
+        {% endfor %}
+      </div>
+    </aside>
+  {% endif %}
 
   <script type="application/json" data-variant-json>
     {{ product.variants | json }}
@@ -97,6 +137,16 @@
 {% schema %}
 {
   "name": "Produto principal",
-  "settings": []
+  "settings": [
+    { "type": "text", "id": "installment_text", "label": "Texto de parcelamento", "default": "Parcelamento e meios de pagamento aparecem no checkout." },
+    { "type": "textarea", "id": "fabric_fit", "label": "Tecido e caimento", "default": "Camiseta premium com toque confortavel, boa estrutura e caimento pensado para uso no dia a dia." },
+    { "type": "textarea", "id": "size_guide", "label": "Tabela de medidas", "default": "Compare as medidas do produto com uma camiseta que voce ja usa. Se estiver entre dois tamanhos, escolha pelo caimento que prefere." },
+    { "type": "textarea", "id": "care_text", "label": "Cuidados com a peca", "default": "Lave do avesso, em agua fria, sem alvejante. Seque a sombra e evite passar ferro diretamente sobre a estampa." },
+    { "type": "textarea", "id": "shipping_returns", "label": "Frete e trocas", "default": "O frete e o prazo aparecem no checkout conforme CEP. Trocas seguem a politica da loja e podem ser solicitadas em ate 7 dias corridos apos o recebimento." },
+    { "type": "text", "id": "reserve_heading", "label": "Titulo Reserva INK", "default": "Padrao de qualidade para uma camiseta que dura na rotina." },
+    { "type": "textarea", "id": "reserve_text", "label": "Texto Reserva INK", "default": "Produto produzido via Reserva INK, com processo voltado a acabamento consistente, impressao bem definida e experiencia premium." },
+    { "type": "collection", "id": "cross_sell_collection", "label": "Colecao de cross-sell" },
+    { "type": "text", "id": "cross_sell_heading", "label": "Titulo do cross-sell", "default": "Outras escolhas que combinam com esta peca." }
+  ]
 }
 {% endschema %}

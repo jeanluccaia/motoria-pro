@@ -3,11 +3,11 @@
     "hero": {
       "type": "hero-premium",
       "settings": {
-        "heading": "Vista o amor pelo seu cachorro.",
-        "subheading": "Camisetas premium para tutores que carregam essa relacao no peito.",
+        "heading": "Pra quem tem cachorro como familia.",
+        "subheading": "Camisetas premium com design de verdade — feitas no padrao Reserva INK.",
         "primary_label": "Ver camisetas",
-        "primary_link": "/collections/camisetas-para-tutores",
-        "secondary_label": "Conhecer a PattaMansa",
+        "primary_link": "/collections/todas-as-camisetas",
+        "secondary_label": "Conhecer a marca",
         "secondary_link": "/pages/sobre"
       }
     },
@@ -17,11 +17,15 @@
     "differentials": {
       "type": "brand-differentials"
     },
-    "models": {
-      "type": "model-guide"
-    },
     "story": {
       "type": "emotional-block"
+    },
+    "favorites": {
+      "type": "featured-products",
+      "settings": {
+        "heading": "Os favoritos da matilha",
+        "collection": "todas-as-camisetas"
+      }
     },
     "social": {
       "type": "social-proof"
@@ -33,7 +37,7 @@
       "type": "final-cta",
       "settings": {
         "heading": "Escolha sua camiseta",
-        "link": "/collections/camisetas-para-tutores"
+        "link": "/collections/todas-as-camisetas"
       }
     }
   },
@@ -41,8 +45,8 @@
     "hero",
     "collections",
     "differentials",
-    "models",
     "story",
+    "favorites",
     "social",
     "faq",
     "final_cta"

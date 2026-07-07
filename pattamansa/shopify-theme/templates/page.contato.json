@@ -1,11 +1,10 @@
 {
   "sections": {
     "main": {
-      "type": "institutional-content",
+      "type": "contact-form",
       "settings": {
-        "eyebrow": "Contato",
         "heading": "Fale com a PattaMansa",
-        "content": "<p>Use esta pagina para informar WhatsApp, e-mail de atendimento, horario de resposta e canais oficiais da marca.</p>"
+        "intro": "<p>Use o formulario abaixo para falar sobre pedidos, trocas, produtos ou parcerias. O atendimento responde pelo canal informado na mensagem.</p>"
       }
     }
   },

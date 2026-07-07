@@ -42,11 +42,37 @@
       }) || null;
     }
 
+    function optionCanLeadToAvailableVariant(optionIndex, value, currentOptions) {
+      return variants.some(function (variant) {
+        if (!variant.available || variant.options[optionIndex] !== value) return false;
+
+        return variant.options.every(function (variantValue, index) {
+          if (index === optionIndex) return true;
+          return !currentOptions[index] || currentOptions[index] === variantValue;
+        });
+      });
+    }
+
+    function syncOptionAvailability(options) {
+      var groups = root.querySelectorAll('[data-option-index]');
+
+      Array.prototype.forEach.call(groups, function (group, groupIndex) {
+        var inputs = group.querySelectorAll('[data-option-value]');
+
+        Array.prototype.forEach.call(inputs, function (input) {
+          var canSelect = optionCanLeadToAvailableVariant(groupIndex, input.value, options);
+          input.disabled = !canSelect;
+        });
+      });
+    }
+
     function syncVariantState() {
       var options = selectedOptions();
       var variant = findExactVariant(options);
 
       if (!options.length && idInput.value) return;
+
+      syncOptionAvailability(options);
 
       if (variant && variant.available) {
         idInput.value = variant.id;

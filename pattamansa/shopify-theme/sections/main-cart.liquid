@@ -3,8 +3,8 @@
 
   {% if cart.item_count == 0 %}
     <div class="empty-state">
-      <p>Seu carrinho esta vazio.</p>
-      <a class="button button--primary" href="{{ routes.collections_url }}/camisetas-para-tutores">Ver camisetas</a>
+      <p>Seu carrinho esta sozinho. Que tal companhia?</p>
+      <a class="button button--primary" href="{{ routes.collections_url }}/todas-as-camisetas">Ver camisetas</a>
     </div>
   {% else %}
     <form action="{{ routes.cart_url }}" method="post" novalidate>
