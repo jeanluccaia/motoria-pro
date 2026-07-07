@@ -374,6 +374,12 @@ function GrowthHeader({ current }: { current: GrowthView }) {
               {link.label}
             </Link>
           ))}
+          <Link
+            href="/admin/growth/logout"
+            className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-white/[0.06] bg-transparent px-3 text-sm font-semibold text-[#6B6B6B] transition hover:border-red-500/30 hover:text-red-400"
+          >
+            Sair
+          </Link>
         </nav>
       </div>
     </header>
