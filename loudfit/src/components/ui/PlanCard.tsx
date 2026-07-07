@@ -8,6 +8,7 @@ interface PlanCardProps {
   ctaLabel?: string
   tone?: 'dark' | 'light'
   showBenefits?: boolean
+  homePricing?: boolean
 }
 
 function buildHref(base: string, planSlug: string): string {
@@ -21,12 +22,16 @@ export function PlanCard({
   ctaLabel,
   tone = 'dark',
   showBenefits = false,
+  homePricing = false,
 }: PlanCardProps) {
   const href = plan.checkoutUrl ?? buildHref(ctaBase, plan.slug)
   const isLight = tone === 'light'
   const titleClass = isLight ? 'text-[#111111]' : 'text-lf-text'
   const mutedClass = isLight ? 'text-[#5E5B54]' : 'text-lf-muted'
   const lineClass = isLight ? 'border-[#E2DACB]' : 'border-lf-line'
+  const defaultCta = homePricing ? 'Começar matrícula' : plan.featured ? 'Começar com este plano' : 'Escolher este plano'
+  const cta = ctaLabel ?? defaultCta
+
   const benefits = showBenefits ? (
     <ul
       className={cn(
@@ -47,7 +52,7 @@ export function PlanCard({
     return (
       <article className={cn(
         'group relative flex h-full flex-col overflow-hidden',
-        showBenefits ? 'min-h-[560px]' : 'min-h-[520px]',
+        showBenefits ? 'min-h-[560px]' : 'min-h-[420px]',
         isLight
           ? 'border border-lf-volt bg-white shadow-[0_22px_70px_rgba(20,20,20,0.12)] ring-2 ring-lf-volt/70'
           : 'bg-lf-black ring-2 ring-lf-volt shadow-[0_8px_48px_rgba(255,229,0,0.12)]',
@@ -74,42 +79,57 @@ export function PlanCard({
         </div>
 
         <div className="flex flex-1 flex-col p-6">
-          {/* 1. Nome */}
+          {/* Nome */}
           <h3 className={cn('text-xl font-black', titleClass)}>{plan.name}</h3>
 
-          {/* 2. Descrição */}
-          <p className={cn('mt-2 text-sm leading-[1.6] lg:min-h-[120px]', mutedClass)}>{plan.description}</p>
+          {/* Descrição curta */}
+          <p className={cn('mt-2 text-sm leading-[1.6]', mutedClass)}>{plan.description}</p>
 
-          {/* 3. Preço */}
-          <div className="mt-5">
-            <p className={cn('flex items-end gap-1.5', titleClass)}>
-              <strong className="text-5xl font-black leading-none">{plan.price}</strong>
-              <span className={cn('pb-1 text-sm', mutedClass)}>{plan.period}</span>
-            </p>
-          </div>
-
-          {/* 4. Destaque R$9,90 */}
-          {plan.firstPayment && (
-            <div className={cn(
-              'mt-4 min-h-[94px] border-l-2 border-lf-volt px-4 py-3',
-              isLight ? 'bg-[#FFF7B8]' : 'bg-lf-graphite',
-            )}>
-              <p className={cn(
-                'text-[10px] font-bold uppercase tracking-[0.18em]',
-                isLight ? 'text-[#6B5F00]' : 'text-lf-volt',
-              )}>
-                {plan.firstPayment.label}
+          {/* Preço — homePricing mostra R$9,90 em destaque */}
+          {homePricing && plan.firstPayment ? (
+            <div className="mt-5">
+              <p className="mb-1 text-[10px] font-black uppercase tracking-[0.18em] text-lf-volt">
+                1ª MENSALIDADE
               </p>
-              <p className={cn('text-2xl font-black', isLight ? 'text-[#111111]' : 'text-lf-volt')}>{plan.firstPayment.value}</p>
-              <p className={cn('mt-0.5 text-[10px]', mutedClass)}>na primeira cobrança</p>
+              <p className={cn('flex items-baseline gap-0.5', titleClass)}>
+                <strong className="text-5xl font-black leading-none">{plan.firstPayment.value}</strong>
+                <span className="text-xl font-black">*</span>
+              </p>
+              <p className={cn('mt-2 text-xs leading-snug', mutedClass)}>
+                Depois, mensalidade conforme a unidade escolhida.
+              </p>
             </div>
+          ) : (
+            <>
+              <div className="mt-5">
+                <p className={cn('flex items-end gap-1.5', titleClass)}>
+                  <strong className="text-5xl font-black leading-none">{plan.price}</strong>
+                  <span className={cn('pb-1 text-sm', mutedClass)}>{plan.period}</span>
+                </p>
+              </div>
+              {plan.firstPayment && (
+                <div className={cn(
+                  'mt-4 min-h-[94px] border-l-2 border-lf-volt px-4 py-3',
+                  isLight ? 'bg-[#FFF7B8]' : 'bg-lf-graphite',
+                )}>
+                  <p className={cn(
+                    'text-[10px] font-bold uppercase tracking-[0.18em]',
+                    isLight ? 'text-[#6B5F00]' : 'text-lf-volt',
+                  )}>
+                    {plan.firstPayment.label}
+                  </p>
+                  <p className={cn('text-2xl font-black', isLight ? 'text-[#111111]' : 'text-lf-volt')}>{plan.firstPayment.value}</p>
+                  <p className={cn('mt-0.5 text-[10px]', mutedClass)}>na primeira cobrança</p>
+                </div>
+              )}
+            </>
           )}
 
           {benefits}
 
           <div className="mt-auto pt-7">
             <Button href={href} variant="volt" className="w-full justify-center">
-              {ctaLabel ?? 'Começar com este plano'}
+              {cta}
             </Button>
           </div>
         </div>
@@ -117,11 +137,11 @@ export function PlanCard({
     )
   }
 
-  /* Planos não-destaque — fundo escuro, CTA fantasma */
+  /* Planos não-destaque */
   return (
     <article className={cn(
       'group relative flex h-full flex-col overflow-hidden border',
-      showBenefits ? 'min-h-[560px]' : 'min-h-[520px]',
+      showBenefits ? 'min-h-[560px]' : 'min-h-[420px]',
       isLight
         ? 'border-[#E2DACB] bg-white shadow-[0_16px_44px_rgba(20,20,20,0.06)]'
         : 'border-lf-line bg-lf-surface',
@@ -138,19 +158,22 @@ export function PlanCard({
       </div>
 
       <div className="flex flex-1 flex-col p-6">
-        {/* 1. Nome */}
+        {/* Nome */}
         <h3 className={cn('text-xl font-black', titleClass)}>{plan.name}</h3>
 
-        {/* 2. Descrição */}
-        <p className={cn('mt-2 text-sm leading-[1.6] lg:min-h-[120px]', mutedClass)}>{plan.description}</p>
+        {/* Condição/descrição */}
+        <p className={cn('mt-2 text-sm leading-[1.6]', mutedClass)}>{plan.description}</p>
 
-        {/* 3. Preço */}
+        {/* Preço */}
         <p className="mt-5 flex items-end gap-1.5">
           <strong className={cn('text-5xl font-black leading-none', titleClass)}>{plan.price}</strong>
           <span className={cn('pb-1 text-sm', mutedClass)}>{plan.period}</span>
         </p>
 
-        <div className="mt-4 hidden min-h-[94px] lg:block" aria-hidden="true" />
+        {/* Espaçador para alinhamento com card destaque */}
+        {!homePricing && (
+          <div className="mt-4 hidden min-h-[94px] lg:block" aria-hidden="true" />
+        )}
 
         {benefits}
 
@@ -163,7 +186,7 @@ export function PlanCard({
               isLight && 'border-[#D8D0C0] text-[#111111] hover:border-[#111111]/30 hover:bg-[#EFE9DA]',
             )}
           >
-            {ctaLabel ?? 'Escolher este plano'}
+            {cta}
           </Button>
         </div>
       </div>

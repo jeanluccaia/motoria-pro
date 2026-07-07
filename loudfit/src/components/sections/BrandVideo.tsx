@@ -6,6 +6,24 @@ import { Button } from '@/components/ui/Button'
 import { Section } from '@/components/ui/Section'
 import { Reveal } from '@/components/ui/Reveal'
 
+const envCards = [
+  {
+    title: 'Musculação',
+    desc: 'Equipamentos completos para evolução diária.',
+    image: '/assets/images/real-weights.jpg',
+  },
+  {
+    title: 'Cardio',
+    desc: 'Esteiras, bikes e equipamentos de alta performance.',
+    image: '/assets/images/real-machines.jpg',
+  },
+  {
+    title: 'Aulas Coletivas',
+    desc: 'Espaço dedicado para toda a grade da unidade.',
+    image: '/assets/images/studio-community.jpg',
+  },
+]
+
 export function BrandVideo() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [muted, setMuted] = useState(true)
@@ -35,7 +53,9 @@ export function BrandVideo() {
   }
 
   return (
-    <Section bg="black" className="relative py-16 md:py-24 lg:py-28">
+    <Section bg="cream" className="relative py-16 md:py-24 lg:py-28">
+
+      {/* Topo: texto + vídeo */}
       <div className="relative grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:gap-14">
 
         {/* Texto */}
@@ -47,33 +67,30 @@ export function BrandVideo() {
                 Estrutura LoudFit
               </p>
             </div>
-            <h2 className="text-4xl font-black leading-[1.02] text-lf-text text-balance md:text-5xl">
-              Veja a LoudFit por dentro
+            <h2 className="text-balance text-4xl font-black leading-[1.02] text-[#141414] md:text-5xl">
+              Estrutura completa para treinar todos os dias.
             </h2>
-            <p className="mt-5 max-w-[36ch] text-base leading-[1.6] text-lf-muted">
-              Musculação, aulas coletivas e estrutura completa para treinar todos os dias.
+            <p className="mt-5 max-w-[36ch] text-base leading-[1.6] text-[#4A4A4A]">
+              Musculação, aulas coletivas e toda a estrutura — no mesmo plano.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-8">
               <Button href="/unidades" variant="volt" size="lg">
                 Ver unidades
-              </Button>
-              <Button href="/#planos" variant="ghost" size="lg">
-                Ver planos
               </Button>
             </div>
           </div>
         </Reveal>
 
-        {/* Vídeo */}
+        {/* Player de vídeo */}
         <Reveal delay={0.15}>
-          <div className="relative overflow-hidden border border-lf-line bg-lf-surface p-2 shadow-[0_24px_80px_rgba(0,0,0,0.38)]">
+          <div className="relative overflow-hidden border border-[#D8D5CE] bg-lf-surface p-2 shadow-[0_24px_80px_rgba(0,0,0,0.12)]">
             <div className="mb-2 flex h-7 items-center justify-between px-2">
               <div className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-lf-volt" />
-                <span className="h-2 w-2 rounded-full bg-white/18" />
-                <span className="h-2 w-2 rounded-full bg-white/18" />
+                <span className="h-2 w-2 rounded-full bg-[#D8D5CE]" />
+                <span className="h-2 w-2 rounded-full bg-[#D8D5CE]" />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-lf-muted/60">
+              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#A09A90]">
                 LoudFit
               </span>
             </div>
@@ -106,10 +123,8 @@ export function BrandVideo() {
                 />
               )}
 
-              {/* Overlay gradiente elegante */}
               <div className="absolute inset-0 bg-gradient-to-t from-lf-black/50 via-transparent to-transparent" />
 
-              {/* Botão play — centralizado, visível antes de iniciar */}
               {!playing && !videoFailed && (
                 <button
                   type="button"
@@ -123,7 +138,6 @@ export function BrandVideo() {
                 </button>
               )}
 
-              {/* Controles */}
               {!videoFailed && (
                 <div className="absolute bottom-4 right-4 z-10 flex items-center gap-2">
                   <button
@@ -149,8 +163,31 @@ export function BrandVideo() {
             </div>
           </div>
         </Reveal>
-
       </div>
+
+      {/* Cards de ambiente */}
+      <div className="mt-12 grid gap-4 sm:grid-cols-3 md:mt-14">
+        {envCards.map((card, i) => (
+          <Reveal key={card.title} delay={i * 0.08}>
+            <article className="group relative aspect-[4/3] overflow-hidden bg-[#EFEFED]">
+              <Image
+                src={card.image}
+                alt={`LoudFit — ${card.title}`}
+                fill
+                sizes="(max-width: 640px) 100vw, 33vw"
+                className="object-cover transition duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-lf-black/80 via-lf-black/20 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-4">
+                <div className="mb-1.5 h-[2px] w-5 bg-lf-volt" />
+                <h3 className="text-base font-black text-white">{card.title}</h3>
+                <p className="mt-0.5 text-sm text-white/75">{card.desc}</p>
+              </div>
+            </article>
+          </Reveal>
+        ))}
+      </div>
+
     </Section>
   )
 }

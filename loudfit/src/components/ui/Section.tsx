@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 
-type BgVariant = 'black' | 'graphite' | 'surface' | 'light' | 'lighter'
+type BgVariant = 'black' | 'graphite' | 'surface' | 'light' | 'lighter' | 'cream'
 
 interface SectionProps {
   children: React.ReactNode
@@ -16,6 +16,7 @@ const bgs: Record<BgVariant, string> = {
   surface: 'bg-lf-surface',
   light: 'bg-[#F6F6F4]',
   lighter: 'bg-[#EFEFED]',
+  cream: 'bg-[#FAFAF8]',
 }
 
 export function Section({ children, className, id, bg = 'black', tight = false }: SectionProps) {
@@ -46,17 +47,17 @@ export function SectionHeader({
       {label && (
         <p className={cn(
           'mb-3 text-[11px] font-bold uppercase tracking-[0.14em]',
-          dark ? 'text-gray-400' : 'text-lf-volt',
+          'text-lf-volt',
           centered && 'text-center',
         )}>
           {label}
         </p>
       )}
-      <h2 className={cn('text-4xl md:text-5xl font-black leading-[1.02]', dark ? 'text-gray-900' : 'text-lf-text')}>
+      <h2 className={cn('text-4xl md:text-5xl font-black leading-[1.02]', dark ? 'text-[#141414]' : 'text-lf-text')}>
         {title}
       </h2>
       {subtitle && (
-        <p className={cn('mt-4 text-base md:text-lg max-w-2xl leading-relaxed', dark ? 'text-gray-500' : 'text-lf-muted')}>
+        <p className={cn('mt-4 text-base md:text-lg max-w-2xl leading-relaxed', dark ? 'text-[#4A4A4A]' : 'text-lf-muted')}>
           {subtitle}
         </p>
       )}

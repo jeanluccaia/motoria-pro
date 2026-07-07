@@ -1,15 +1,6 @@
 import { Button } from '@/components/ui/Button'
 import { Section } from '@/components/ui/Section'
 import { Reveal } from '@/components/ui/Reveal'
-import { AnimatedNumber } from '@/components/ui/AnimatedNumber'
-
-type NumericStat = { kind: 'n'; value: number; label: string }
-type PriceStat   = { kind: 'p'; value: string; label: string }
-const stats: Array<NumericStat | PriceStat> = [
-  { kind: 'n', value: 5,      label: 'Unidades em operação' },
-  { kind: 'n', value: 4,      label: 'Cidades' },
-  { kind: 'p', value: 'R$9,90', label: 'Primeira mensalidade*' },
-]
 
 export function FinalCta() {
   return (
@@ -26,32 +17,20 @@ export function FinalCta() {
             Matrícula 100% online — rápido, seguro e sem burocracia.
           </p>
 
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Button href="/unidades" variant="ghost" size="lg">
+          <div className="mt-9">
+            <Button href="/unidades" variant="volt" size="lg">
               Ver todas as unidades
-            </Button>
-            <Button href="/#planos" variant="outline" size="lg">
-              Ver planos
             </Button>
           </div>
 
-          {/* Stats */}
-          <div className="mt-16 grid w-full max-w-xl gap-0 border border-lf-line sm:grid-cols-3">
-            {stats.map((s) => (
-              <div
-                key={s.label}
-                className="flex flex-col items-center justify-center px-6 py-5 border-b border-lf-line last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0"
-              >
-                <span className="text-3xl font-black text-lf-volt">
-                  {s.kind === 'n'
-                    ? <AnimatedNumber value={s.value} duration={1200} />
-                    : s.value}
-                </span>
-                <span className="mt-1 text-[11px] uppercase tracking-[0.14em] text-lf-muted">{s.label}</span>
-              </div>
-            ))}
-          </div>
-          <p className="mt-3 text-[11px] text-lf-muted/60">*No Power Anual Recorrente. Ipiranga possui tabela própria.</p>
+          <p className="mt-8 text-sm text-lf-muted">
+            Primeira mensalidade por{' '}
+            <span className="font-bold text-lf-volt">R$9,90</span>{' '}
+            no Power Anual Recorrente.
+          </p>
+          <p className="mt-2 text-[11px] text-lf-muted/60">
+            *Ipiranga possui tabela própria. Valores podem variar conforme a unidade.
+          </p>
         </div>
       </Reveal>
     </Section>
