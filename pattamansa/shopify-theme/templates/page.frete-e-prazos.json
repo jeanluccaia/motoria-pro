@@ -1,0 +1,13 @@
+{
+  "sections": {
+    "main": {
+      "type": "institutional-content",
+      "settings": {
+        "eyebrow": "Entrega",
+        "heading": "Frete e prazos",
+        "content": "<p>O prazo final aparece no checkout conforme CEP, modalidade de entrega e disponibilidade do produto. Use esta pagina para explicar regras de despacho e acompanhamento.</p>"
+      }
+    }
+  },
+  "order": ["main"]
+}

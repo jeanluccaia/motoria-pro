@@ -1,0 +1,36 @@
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="brand" href="{{ routes.root_url }}" aria-label="{{ shop.name }}">
+      {% if settings.logo != blank %}
+        {{ settings.logo | image_url: width: 220 | image_tag: loading: 'eager', widths: '120, 180, 220', class: 'brand__logo' }}
+      {% else %}
+        <span class="brand__mark">PM</span>
+        <span class="brand__name">PattaMansa</span>
+      {% endif %}
+    </a>
+
+    <nav class="site-nav" aria-label="Menu principal">
+      {% if linklists.main-menu.links.size > 0 %}
+        {% for link in linklists.main-menu.links %}
+          <a href="{{ link.url }}">{{ link.title }}</a>
+        {% endfor %}
+      {% else %}
+        <a href="{{ routes.collections_url }}/camisetas-para-tutores">Camisetas</a>
+        <a href="{{ routes.collections_url }}/novidades">Novidades</a>
+        <a href="/pages/sobre">Sobre</a>
+      {% endif %}
+    </nav>
+
+    <a class="header-cart" href="{{ routes.cart_url }}" aria-label="Carrinho">
+      Carrinho
+      <span data-cart-count>{{ cart.item_count }}</span>
+    </a>
+  </div>
+</header>
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": []
+}
+{% endschema %}

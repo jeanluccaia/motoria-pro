@@ -1,0 +1,18 @@
+<section class="page-width standard-page">
+  <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+  <h1>{{ section.settings.heading }}</h1>
+  <div class="rte institutional-copy">
+    {{ section.settings.content }}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Conteudo institucional",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Chamada curta", "default": "PattaMansa" },
+    { "type": "text", "id": "heading", "label": "Titulo", "default": "PattaMansa" },
+    { "type": "richtext", "id": "content", "label": "Conteudo", "default": "<p>Adicione o conteudo desta pagina pelo editor de temas.</p>" }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,13 @@
+{
+  "sections": {
+    "main": {
+      "type": "institutional-content",
+      "settings": {
+        "eyebrow": "Atendimento",
+        "heading": "Trocas e devolucoes",
+        "content": "<p>Informe aqui prazos, condicoes do produto, procedimento de solicitacao e canais de suporte. Revise o texto final conforme a politica juridica da loja.</p>"
+      }
+    }
+  },
+  "order": ["main"]
+}

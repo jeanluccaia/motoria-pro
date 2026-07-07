@@ -1,0 +1,25 @@
+<section class="section section--warm">
+  <div class="page-width">
+    <div class="section-heading">
+      <p class="eyebrow">Por que PattaMansa</p>
+      <h2>{{ section.settings.heading }}</h2>
+    </div>
+    <div class="feature-grid">
+      <div><strong>Qualidade premium</strong><span>Toque confortavel, caimento bem resolvido e acabamento pensado para uso real.</span></div>
+      <div><strong>Estampas exclusivas</strong><span>Artes autorais para quem ve cachorro como parte da propria historia.</span></div>
+      <div><strong>Producao Reserva INK</strong><span>Base de producao especializada para entregar consistencia e padrao.</span></div>
+      <div><strong>Compra segura</strong><span>Checkout nativo Shopify, com fluxo confiavel do produto ao pagamento.</span></div>
+      <div><strong>Envio Brasil</strong><span>Estrutura preparada para atender tutores em todo o pais.</span></div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Diferenciais",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Titulo", "default": "Produto premium, experiencia simples e compra segura." }
+  ],
+  "presets": [{ "name": "Diferenciais" }]
+}
+{% endschema %}

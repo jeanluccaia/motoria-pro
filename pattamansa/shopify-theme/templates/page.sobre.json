@@ -1,0 +1,13 @@
+{
+  "sections": {
+    "main": {
+      "type": "institutional-content",
+      "settings": {
+        "eyebrow": "Sobre",
+        "heading": "Uma marca para quem vive com cachorro por perto.",
+        "content": "<p>A PattaMansa cria camisetas premium para tutores que carregam essa relacao no peito. O foco e produto bem acabado, estampa exclusiva e uma experiencia de compra simples, segura e permanente.</p>"
+      }
+    }
+  },
+  "order": ["main"]
+}

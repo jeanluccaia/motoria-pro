@@ -1,0 +1,50 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero-premium",
+      "settings": {
+        "heading": "Vista o amor pelo seu cachorro.",
+        "subheading": "Camisetas premium para tutores que carregam essa relacao no peito.",
+        "primary_label": "Ver camisetas",
+        "primary_link": "/collections/camisetas-para-tutores",
+        "secondary_label": "Conhecer a PattaMansa",
+        "secondary_link": "/pages/sobre"
+      }
+    },
+    "collections": {
+      "type": "collection-showcase"
+    },
+    "differentials": {
+      "type": "brand-differentials"
+    },
+    "models": {
+      "type": "model-guide"
+    },
+    "story": {
+      "type": "emotional-block"
+    },
+    "social": {
+      "type": "social-proof"
+    },
+    "faq": {
+      "type": "faq"
+    },
+    "final_cta": {
+      "type": "final-cta",
+      "settings": {
+        "heading": "Escolha sua camiseta",
+        "link": "/collections/camisetas-para-tutores"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "collections",
+    "differentials",
+    "models",
+    "story",
+    "social",
+    "faq",
+    "final_cta"
+  ]
+}

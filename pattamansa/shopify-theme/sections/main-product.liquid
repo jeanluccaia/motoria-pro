@@ -1,0 +1,102 @@
+<section class="product-page page-width" data-product-root>
+  <div class="product-gallery" aria-label="Galeria do produto">
+    {% if product.media.size > 0 %}
+      {% for media in product.media %}
+        <div class="product-gallery__item" data-media-id="{{ media.id }}">
+          {{ media | image_url: width: 1200 | image_tag: loading: 'lazy', widths: '360, 720, 960, 1200', sizes: '(min-width: 900px) 50vw, 100vw' }}
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="product-gallery__item product-gallery__empty">Imagem em breve</div>
+    {% endif %}
+  </div>
+
+  <div class="product-info">
+    <p class="eyebrow">{{ product.vendor | default: 'PattaMansa' }}</p>
+    <h1>{{ product.title }}</h1>
+    <p class="product-price" data-product-price>{{ product.price | money }}</p>
+
+    {% form 'product', product, class: 'product-form', data-product-form: '' %}
+      <input
+        type="hidden"
+        name="id"
+        value="{% if product.has_only_default_variant %}{{ product.selected_or_first_available_variant.id }}{% endif %}"
+        data-variant-id-input
+      >
+
+      {% unless product.has_only_default_variant %}
+        <div class="variant-picker" data-variant-picker>
+          {% for option in product.options_with_values %}
+            <fieldset class="variant-fieldset" data-option-index="{{ forloop.index0 }}">
+              <legend>{{ option.name }}</legend>
+              <div class="option-values">
+                {% for value in option.values %}
+                  <label class="option-pill">
+                    <input
+                      type="radio"
+                      name="option-{{ section.id }}-{{ forloop.parentloop.index0 }}"
+                      value="{{ value | escape }}"
+                      data-option-value
+                    >
+                    <span>{{ value }}</span>
+                  </label>
+                {% endfor %}
+              </div>
+            </fieldset>
+          {% endfor %}
+        </div>
+        <p class="variant-message" data-variant-message>Selecione modelo, cor e tamanho para continuar.</p>
+      {% endunless %}
+
+      <button
+        class="button button--primary product-submit"
+        type="submit"
+        name="add"
+        data-product-submit
+        {% unless product.has_only_default_variant %}disabled{% endunless %}
+      >
+        Adicionar ao carrinho
+      </button>
+    {% endform %}
+
+    <div class="product-benefits">
+      <span>Compra segura Shopify</span>
+      <span>Qualidade Reserva INK</span>
+      <span>Envio para todo o Brasil</span>
+    </div>
+
+    <div class="product-accordions">
+      <details open>
+        <summary>Descricao</summary>
+        <div class="rte">{{ product.description }}</div>
+      </details>
+      <details>
+        <summary>Guia de medidas</summary>
+        <p>Compare as medidas da tabela cadastrada neste produto com uma camiseta que voce ja usa. Se estiver entre dois tamanhos, escolha pelo caimento desejado.</p>
+      </details>
+      <details>
+        <summary>Composicao e acabamento</summary>
+        <p>Camiseta premium com estampa exclusiva PattaMansa. Ajuste este texto com a composicao exata do produto no cadastro.</p>
+      </details>
+      <details>
+        <summary>Envio</summary>
+        <p>O prazo e o valor do frete aparecem no checkout conforme CEP e transportadora disponivel.</p>
+      </details>
+      <details>
+        <summary>Trocas e devolucoes</summary>
+        <p>As regras seguem a politica vigente da loja e ficam disponiveis no rodape.</p>
+      </details>
+    </div>
+  </div>
+
+  <script type="application/json" data-variant-json>
+    {{ product.variants | json }}
+  </script>
+</section>
+
+{% schema %}
+{
+  "name": "Produto principal",
+  "settings": []
+}
+{% endschema %}

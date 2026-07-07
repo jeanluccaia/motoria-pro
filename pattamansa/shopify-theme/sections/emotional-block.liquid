@@ -1,0 +1,18 @@
+<section class="section section--story">
+  <div class="page-width story-copy">
+    <p class="eyebrow">Feito para tutores</p>
+    <h2>{{ section.settings.heading }}</h2>
+    <p>{{ section.settings.text }}</p>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Bloco emocional",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Titulo", "default": "Cachorro nao e detalhe da rotina. E parte da familia." },
+    { "type": "textarea", "id": "text", "label": "Texto", "default": "A PattaMansa nasce para transformar essa relacao em produto bem feito: camiseta confortavel, estampa exclusiva e presenca de marca sem exagero." }
+  ],
+  "presets": [{ "name": "Bloco emocional" }]
+}
+{% endschema %}

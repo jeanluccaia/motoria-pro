@@ -1,0 +1,13 @@
+{
+  "sections": {
+    "main": {
+      "type": "institutional-content",
+      "settings": {
+        "eyebrow": "Contato",
+        "heading": "Fale com a PattaMansa",
+        "content": "<p>Use esta pagina para informar WhatsApp, e-mail de atendimento, horario de resposta e canais oficiais da marca.</p>"
+      }
+    }
+  },
+  "order": ["main"]
+}

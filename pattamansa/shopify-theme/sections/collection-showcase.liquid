@@ -1,0 +1,40 @@
+{% assign fallback_collections = 'novidades|Novidades,mais-vendidos|Mais vendidos,camisetas-para-tutores|Camisetas para tutores,oversized|Oversized,baby-look|Baby Look,cropped|Cropped,linha-caramelo|Linha Caramelo,presentes-para-quem-ama-cachorro|Presentes para quem ama cachorro' | split: ',' %}
+
+<section class="section section--collections">
+  <div class="page-width">
+    <div class="section-heading">
+      <p class="eyebrow">Catalogo permanente</p>
+      <h2>{{ section.settings.heading }}</h2>
+    </div>
+
+    <div class="collection-grid">
+      {% for item in fallback_collections %}
+        {% assign data = item | split: '|' %}
+        {% assign handle = data[0] %}
+        {% assign title = data[1] %}
+        {% assign collection = collections[handle] %}
+        {% if collection.url != blank %}
+          {% assign collection_url = collection.url %}
+        {% else %}
+          {% assign collection_url = routes.collections_url | append: '/' | append: handle %}
+        {% endif %}
+        <a class="collection-card" href="{{ collection_url }}">
+          {% if collection.featured_image %}
+            {{ collection.featured_image | image_url: width: 700 | image_tag: loading: 'lazy', widths: '320, 520, 700', sizes: '(min-width: 900px) 25vw, 50vw' }}
+          {% endif %}
+          <span>{{ collection.title | default: title }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Colecoes em destaque",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Titulo", "default": "Escolha pela estampa, pelo modelo ou pelo presente perfeito." }
+  ],
+  "presets": [{ "name": "Colecoes em destaque" }]
+}
+{% endschema %}
