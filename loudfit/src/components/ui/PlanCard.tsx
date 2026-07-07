@@ -29,105 +29,89 @@ export function PlanCard({
   const titleClass = isLight ? 'text-[#111111]' : 'text-lf-text'
   const mutedClass = isLight ? 'text-[#5E5B54]' : 'text-lf-muted'
   const lineClass = isLight ? 'border-[#E2DACB]' : 'border-lf-line'
-  const defaultCta = homePricing ? 'Começar matrícula' : plan.featured ? 'Começar com este plano' : 'Escolher este plano'
-  const cta = ctaLabel ?? defaultCta
 
+  const cta = ctaLabel ?? 'Começar matrícula'
+
+  /* Benefícios — apenas em páginas de unidade, nunca na Home */
   const benefits = showBenefits ? (
-    <ul
-      className={cn(
-        'mt-5 grid gap-2.5 border-t pt-5 text-sm',
-        isLight ? 'border-[#E2DACB] text-[#3B3832]' : 'border-lf-line text-lf-muted',
-      )}
-    >
-      {planBenefits.map((benefit) => (
-        <li key={benefit} className="flex items-start gap-2.5">
+    <ul className={cn('mt-5 grid gap-2.5 border-t pt-5 text-sm', isLight ? 'border-[#E2DACB] text-[#3B3832]' : 'border-lf-line text-lf-muted')}>
+      {planBenefits.map((b) => (
+        <li key={b} className="flex items-start gap-2.5">
           <span className="mt-2 h-1.5 w-1.5 shrink-0 bg-lf-volt" />
-          <span className="leading-snug">{benefit}</span>
+          <span className="leading-snug">{b}</span>
         </li>
       ))}
     </ul>
   ) : null
 
+  /* ─── CARD DESTAQUE ─── */
   if (plan.featured) {
     return (
       <article className={cn(
         'group relative flex h-full flex-col overflow-hidden',
-        showBenefits ? 'min-h-[560px]' : 'min-h-[420px]',
+        showBenefits ? 'min-h-[520px]' : '',
         isLight
-          ? 'border border-lf-volt bg-white shadow-[0_22px_70px_rgba(20,20,20,0.12)] ring-2 ring-lf-volt/70'
+          ? 'border-2 border-lf-volt bg-white shadow-[0_4px_28px_rgba(255,229,0,0.14)]'
           : 'bg-lf-black ring-2 ring-lf-volt shadow-[0_8px_48px_rgba(255,229,0,0.12)]',
-        'transition duration-200 hover:-translate-y-1',
         'order-first md:order-none',
+        'transition duration-200 hover:-translate-y-0.5',
       )}>
-        {/* Faixa topo */}
+        {/* Faixa topo amarela */}
         <div className={cn(
-          'flex min-h-11 items-center justify-between gap-3 border-b px-4 py-2',
-          isLight ? 'border-[#E2DACB] bg-white' : 'border-transparent bg-lf-volt',
+          'flex min-h-10 items-center justify-between gap-3 px-5 py-2',
+          isLight ? 'bg-lf-volt' : 'border-b border-transparent bg-lf-volt',
         )}>
+          <span className="text-[10px] font-black uppercase tracking-[0.1em] text-lf-black">
+            Mais popular
+          </span>
           <span className={cn(
-            'text-[10px] font-black uppercase tracking-[0.04em]',
-            isLight ? 'bg-lf-volt px-2.5 py-1 text-lf-black' : 'text-lf-black',
+            'px-2 py-0.5 text-[10px] font-black uppercase tracking-wide',
+            isLight ? 'bg-lf-black text-lf-volt' : 'bg-lf-black/20 text-lf-black',
           )}>
             {plan.badge}
           </span>
-          <span className={cn(
-            'text-[10px] font-bold uppercase tracking-wider',
-            isLight ? 'text-[#6B6557]' : 'text-lf-black/70',
-          )}>
-            Mais popular
-          </span>
         </div>
 
-        <div className="flex flex-1 flex-col p-6">
-          {/* Nome */}
-          <h3 className={cn('text-xl font-black', titleClass)}>{plan.name}</h3>
+        <div className="flex flex-1 flex-col p-5">
+          <h3 className={cn('text-base font-black', titleClass)}>{plan.name}</h3>
+          <p className={cn('mt-1 text-sm leading-snug', mutedClass)}>{plan.description}</p>
 
-          {/* Descrição curta */}
-          <p className={cn('mt-2 text-sm leading-[1.6]', mutedClass)}>{plan.description}</p>
-
-          {/* Preço — homePricing mostra R$9,90 em destaque */}
+          {/* Preço */}
           {homePricing && plan.firstPayment ? (
-            <div className="mt-5">
-              <p className="mb-1 text-[10px] font-black uppercase tracking-[0.18em] text-lf-volt">
-                1ª MENSALIDADE
+            <div className={cn('mt-5 border-t pt-4', lineClass)}>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-lf-volt">
+                1ª Mensalidade
               </p>
-              <p className={cn('flex items-baseline gap-0.5', titleClass)}>
+              <p className={cn('mt-1 flex items-baseline gap-0.5', titleClass)}>
                 <strong className="text-5xl font-black leading-none">{plan.firstPayment.value}</strong>
                 <span className="text-xl font-black">*</span>
               </p>
-              <p className={cn('mt-2 text-xs leading-snug', mutedClass)}>
+              <p className={cn('mt-1.5 text-xs leading-snug', mutedClass)}>
                 Depois, mensalidade conforme a unidade escolhida.
               </p>
             </div>
           ) : (
-            <>
-              <div className="mt-5">
-                <p className={cn('flex items-end gap-1.5', titleClass)}>
-                  <strong className="text-5xl font-black leading-none">{plan.price}</strong>
-                  <span className={cn('pb-1 text-sm', mutedClass)}>{plan.period}</span>
-                </p>
-              </div>
+            <div className="mt-5">
+              <p className={cn('flex items-baseline gap-1', titleClass)}>
+                <strong className="text-4xl font-black leading-none">{plan.price}</strong>
+                <span className={cn('text-sm', mutedClass)}>{plan.period}</span>
+              </p>
               {plan.firstPayment && (
-                <div className={cn(
-                  'mt-4 min-h-[94px] border-l-2 border-lf-volt px-4 py-3',
-                  isLight ? 'bg-[#FFF7B8]' : 'bg-lf-graphite',
-                )}>
-                  <p className={cn(
-                    'text-[10px] font-bold uppercase tracking-[0.18em]',
-                    isLight ? 'text-[#6B5F00]' : 'text-lf-volt',
-                  )}>
+                <div className={cn('mt-3 border-l-2 border-lf-volt px-3 py-2', isLight ? 'bg-[#FFFBE6]' : 'bg-lf-graphite')}>
+                  <p className={cn('text-[10px] font-bold uppercase tracking-[0.16em]', isLight ? 'text-[#7A6800]' : 'text-lf-volt')}>
                     {plan.firstPayment.label}
                   </p>
-                  <p className={cn('text-2xl font-black', isLight ? 'text-[#111111]' : 'text-lf-volt')}>{plan.firstPayment.value}</p>
-                  <p className={cn('mt-0.5 text-[10px]', mutedClass)}>na primeira cobrança</p>
+                  <p className={cn('text-xl font-black', isLight ? 'text-[#111111]' : 'text-lf-volt')}>
+                    {plan.firstPayment.value}
+                  </p>
                 </div>
               )}
-            </>
+            </div>
           )}
 
           {benefits}
 
-          <div className="mt-auto pt-7">
+          <div className="mt-auto pt-5">
             <Button href={href} variant="volt" className="w-full justify-center">
               {cta}
             </Button>
@@ -137,47 +121,37 @@ export function PlanCard({
     )
   }
 
-  /* Planos não-destaque */
+  /* ─── CARDS COMUNS ─── */
   return (
     <article className={cn(
       'group relative flex h-full flex-col overflow-hidden border',
-      showBenefits ? 'min-h-[560px]' : 'min-h-[420px]',
+      showBenefits ? 'min-h-[520px]' : '',
       isLight
-        ? 'border-[#E2DACB] bg-white shadow-[0_16px_44px_rgba(20,20,20,0.06)]'
+        ? 'border-[#E2DACB] bg-white shadow-[0_2px_16px_rgba(0,0,0,0.05)]'
         : 'border-lf-line bg-lf-surface',
-      'transition duration-200 hover:-translate-y-1',
-      isLight ? 'hover:border-[#CFC5B2]' : 'hover:border-lf-text/20',
+      'transition duration-200 hover:-translate-y-0.5',
+      isLight ? 'hover:border-[#C8BFB0]' : 'hover:border-lf-text/20',
     )}>
-      <div className={cn('flex min-h-11 items-center border-b px-4 py-2', lineClass)}>
-        <span className={cn(
-          'text-[10px] font-black uppercase tracking-[0.04em]',
-          isLight ? 'text-[#756F62]' : 'text-lf-muted/60',
-        )}>
+      <div className={cn('flex min-h-10 items-center border-b px-5 py-2', lineClass)}>
+        <span className={cn('text-[10px] font-black uppercase tracking-wide', isLight ? 'text-[#756F62]' : 'text-lf-muted/60')}>
           {plan.badge}
         </span>
       </div>
 
-      <div className="flex flex-1 flex-col p-6">
-        {/* Nome */}
-        <h3 className={cn('text-xl font-black', titleClass)}>{plan.name}</h3>
+      <div className="flex flex-1 flex-col p-5">
+        <h3 className={cn('text-base font-black', titleClass)}>{plan.name}</h3>
+        <p className={cn('mt-1 text-sm leading-snug', mutedClass)}>{plan.description}</p>
 
-        {/* Condição/descrição */}
-        <p className={cn('mt-2 text-sm leading-[1.6]', mutedClass)}>{plan.description}</p>
-
-        {/* Preço */}
-        <p className="mt-5 flex items-end gap-1.5">
-          <strong className={cn('text-5xl font-black leading-none', titleClass)}>{plan.price}</strong>
-          <span className={cn('pb-1 text-sm', mutedClass)}>{plan.period}</span>
-        </p>
-
-        {/* Espaçador para alinhamento com card destaque */}
-        {!homePricing && (
-          <div className="mt-4 hidden min-h-[94px] lg:block" aria-hidden="true" />
-        )}
+        <div className="mt-5">
+          <p className={cn('flex items-baseline gap-1', titleClass)}>
+            <strong className="text-4xl font-black leading-none">{plan.price}</strong>
+            <span className={cn('text-sm', mutedClass)}>{plan.period}</span>
+          </p>
+        </div>
 
         {benefits}
 
-        <div className="mt-auto pt-7">
+        <div className="mt-auto pt-5">
           <Button
             href={href}
             variant="ghost"
