@@ -23,11 +23,13 @@ const homePlanDescriptions: Record<string, string> = {
   'power-anual-recorrente': 'Plano de 12 meses recorrente.',
 }
 
+const COMMON_BENEFITS = ['Aulas coletivas inclusas', 'Acesso às unidades', 'Convidados: até 5 acessos']
+
 const homeCardBenefits: Record<string, string[]> = {
-  'power-mensal': ['Aulas coletivas inclusas', 'Acesso às unidades', 'Aula experimental grátis'],
-  'power-mensal-recorrente': ['Aulas coletivas inclusas', 'Acesso às unidades', 'Reconhecimento facial'],
-  'power-semestral-recorrente': ['Aulas coletivas inclusas', 'Convidados: até 5 acessos', 'Reconhecimento facial'],
-  'power-anual-recorrente': ['Aulas coletivas inclusas', 'Acesso às unidades', 'Convidados: até 5 acessos'],
+  'power-mensal': COMMON_BENEFITS,
+  'power-mensal-recorrente': COMMON_BENEFITS,
+  'power-semestral-recorrente': COMMON_BENEFITS,
+  'power-anual-recorrente': COMMON_BENEFITS,
 }
 
 function CheckIcon() {
