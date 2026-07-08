@@ -19,14 +19,14 @@ export const metadata: Metadata = {
     description:
       'Escolha sua unidade, veja os planos e faça sua matrícula online. Musculação e aulas coletivas em um só plano.',
     url: '/',
-    images: ['/opengraph-image'],
+    images: ['/og-loudfit-logo-v3.jpg'],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Loud Fit | Academia com musculação e aulas inclusas',
     description:
       'Escolha sua unidade, veja os planos e faça sua matrícula online. Musculação e aulas coletivas em um só plano.',
-    images: ['/opengraph-image'],
+    images: ['/og-loudfit-logo-v3.jpg'],
   },
 }
 
