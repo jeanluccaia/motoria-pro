@@ -43,6 +43,53 @@ const steps = [
   { n: '05', title: 'Assinatura e kick-off', body: 'Contrato assinado. Aceleração Loud Fit começa.' },
 ]
 
+const franchiseWhatsAppUrl =
+  'https://wa.me/5519988291946?text=Quero%20falar%20com%20a%20equipe%20de%20expans%C3%A3o%20da%20Loud%20Fit'
+
+const investmentCards = [
+  {
+    title: 'Taxa de franquia',
+    value: 'De R$ 120 mil por R$ 80 mil',
+    detail: 'nas 10 primeiras unidades',
+    featured: true,
+  },
+  {
+    title: 'Investimento estimado',
+    value: 'A partir de R$ 700 mil',
+    detail: '+ equipamentos importados',
+  },
+  {
+    title: 'Equipamentos',
+    value: 'Parcelamento facilitado',
+    detail: 'e valores abaixo do mercado',
+  },
+  {
+    title: 'Royalties',
+    value: '7%',
+    detail: 'ao mês',
+  },
+  {
+    title: 'Publicidade',
+    value: '2%',
+    detail: 'ao mês',
+  },
+  {
+    title: 'Área mínima',
+    value: 'A partir de 750 m²',
+    detail: 'para a operação ideal',
+  },
+  {
+    title: 'Payback médio',
+    value: '15 meses',
+    detail: 'em média',
+  },
+  {
+    title: 'Lucratividade estimada',
+    value: 'Entre 25% e 35%',
+    detail: 'com gestão e operação consistentes',
+  },
+]
+
 const faqItems = [
   {
     q: 'Preciso entender de academia para ser franqueado?',
@@ -50,7 +97,7 @@ const faqItems = [
   },
   {
     q: 'Qual o investimento total?',
-    a: 'O investimento varia conforme o tamanho do espaço e a praça. O time de expansão apresenta os números detalhados na call de qualificação.',
+    a: 'O investimento estimado parte de R$ 700 mil + equipamentos importados, com variação conforme cidade, ponto comercial e estrutura da unidade.',
   },
   {
     q: 'Quanto tempo até abrir?',
@@ -185,32 +232,77 @@ export default async function FranquiasPage() {
         </Section>
       )}
 
-      {/* Números do modelo — detalhados na call de qualificação com o time de expansão */}
+      {/* Números da franquia */}
       <Section bg="black">
-        <SectionHeader label="O investimento" title="Números do modelo" />
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
-            <tbody>
-              {[
-                ['Taxa de franquia', 'Sob consulta'],
-                ['Investimento total estimado', 'Sob consulta'],
-                ['Royalties mensais', 'Sob consulta'],
-                ['Área mínima ideal', 'Sob consulta'],
-                ['Prazo médio de payback*', 'Sob consulta'],
-                ['Lucratividade estimada*', 'Sob consulta'],
-              ].map(([label, value]) => (
-                <tr key={label} className="border-b border-lf-line">
-                  <td className="py-4 text-lf-muted">{label}</td>
-                  <td className="py-4 text-lf-volt font-black text-right">{value}</td>
-                </tr>
+        <div className="grid gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:gap-14">
+          <div>
+            <SectionHeader
+              label="Resumo do investimento"
+              title="Invista em uma franquia LoudFit"
+              subtitle="Uma operação validada, com estrutura premium, modelo recorrente e alto potencial de rentabilidade."
+              className="mb-8"
+            />
+            <div className="border border-lf-volt/35 bg-lf-volt p-6 text-lf-black shadow-[0_24px_70px_rgba(255,229,0,0.12)]">
+              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-lf-black/70">
+                Oferta de expansão
+              </p>
+              <p className="mt-4 text-4xl font-black leading-none md:text-5xl">
+                R$ 80 mil
+              </p>
+              <p className="mt-3 text-sm font-bold uppercase tracking-[0.08em] text-lf-black/75">
+                taxa promocional para as 10 primeiras unidades
+              </p>
+              <p className="mt-5 text-sm leading-relaxed text-lf-black/70">
+                A taxa regular é de R$ 120 mil. A condição promocional acelera a entrada de novos franqueados na fase de expansão da rede.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {investmentCards.map((card) => (
+                <Reveal key={card.title}>
+                  <div
+                    className={`group relative min-h-[160px] overflow-hidden border p-5 transition-colors ${
+                      card.featured
+                        ? 'border-lf-volt/50 bg-lf-volt/[0.08] sm:col-span-2'
+                        : 'border-lf-line bg-lf-surface/45 hover:border-lf-volt/25'
+                    }`}
+                  >
+                    {card.featured && (
+                      <div className="absolute right-0 top-0 bg-lf-volt px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-lf-black">
+                        10 primeiras
+                      </div>
+                    )}
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-lf-muted">
+                      {card.title}
+                    </p>
+                    <p className={`mt-4 font-black leading-tight ${card.featured ? 'text-3xl text-lf-volt md:text-4xl' : 'text-2xl text-lf-text'}`}>
+                      {card.value}
+                    </p>
+                    <p className="mt-3 text-sm leading-relaxed text-lf-muted">
+                      {card.detail}
+                    </p>
+                  </div>
+                </Reveal>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            <p className="mt-6 border-l-2 border-lf-line pl-4 text-xs leading-relaxed text-lf-muted">
+              Os dados podem variar conforme cidade, ponto comercial, estrutura da unidade e negociação de equipamentos.
+            </p>
+            <div className="mt-8">
+              <a
+                href={franchiseWhatsAppUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-[48px] max-w-full items-center justify-center bg-lf-volt px-7 py-4 text-center text-sm font-bold uppercase leading-tight tracking-[0.1em] text-lf-black transition-all duration-200 hover:-translate-y-0.5 hover:bg-lf-volt-deep hover:brightness-110 hover:shadow-[0_0_28px_rgba(242,226,5,0.22)] active:translate-y-0 active:scale-[0.99]"
+              >
+                Quero falar com a equipe de expansão
+              </a>
+            </div>
+          </div>
         </div>
-        <p className="mt-6 text-xs text-lf-muted border-l-2 border-lf-line pl-4">
-          * Os números são estimativas e não representam garantia de resultado. A rentabilidade depende de gestão,
-          ponto e mercado. Consulte o COF e a Lei de Franquias antes de assinar qualquer contrato.
-        </p>
       </Section>
 
       {/* Aceleração LoudFit */}
