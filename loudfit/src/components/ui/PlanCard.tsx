@@ -18,25 +18,59 @@ function buildHref(base: string, planSlug: string): string {
 
 const homePlanDescriptions: Record<string, string> = {
   'power-mensal': 'Mês a mês.',
-  'power-mensal-recorrente': 'Renovação automática mensal.',
+  'power-mensal-recorrente': 'Cobrança automática mensal.',
   'power-semestral-recorrente': '6 meses com mensalidade reduzida.',
-  'power-anual-recorrente': 'Plano de 12 meses recorrente.',
+  'power-anual-recorrente': 'Plano de 12 meses com cobrança mensal.',
 }
 
-const COMMON_BENEFITS = ['Aulas coletivas inclusas', 'Acesso às unidades', 'Convidados: até 5 acessos']
-
-const homeCardBenefits: Record<string, string[]> = {
-  'power-mensal': COMMON_BENEFITS,
-  'power-mensal-recorrente': COMMON_BENEFITS,
-  'power-semestral-recorrente': COMMON_BENEFITS,
-  'power-anual-recorrente': COMMON_BENEFITS,
-}
+const HOME_BENEFITS = [
+  'Aulas coletivas inclusas',
+  'Acesso às unidades',
+  'Convidados: até 5 acessos',
+  'Aula experimental grátis',
+  'Reconhecimento facial',
+]
 
 function CheckIcon() {
   return (
-    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" className="shrink-0 text-lf-volt">
+    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" className="mt-0.5 shrink-0 text-lf-volt">
       <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
+  )
+}
+
+function ChevronDownIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M19 9l-7 7-7-7" />
+    </svg>
+  )
+}
+
+function BenefitsAccordion({ isLight }: { isLight: boolean }) {
+  return (
+    <details className={cn('group border-t', isLight ? 'border-[#EDEBE5]' : 'border-lf-line')}>
+      <summary className={cn(
+        'flex cursor-pointer select-none list-none items-center justify-between py-3',
+        'text-[12px] font-medium [&::-webkit-details-marker]:hidden',
+        isLight ? 'text-[#7A7267]' : 'text-lf-muted',
+      )}>
+        <span className="group-open:hidden">Mostrar benefícios</span>
+        <span className="hidden group-open:block">Ocultar benefícios</span>
+        <ChevronDownIcon className={cn(
+          'h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-open:rotate-180',
+          isLight ? 'text-[#7A7267]' : 'text-lf-muted',
+        )} />
+      </summary>
+      <ul className="mb-3 flex flex-col gap-2.5 pt-0.5">
+        {HOME_BENEFITS.map((b) => (
+          <li key={b} className={cn('flex items-start gap-2 text-[12px]', isLight ? 'text-[#3B3832]' : 'text-lf-muted')}>
+            <CheckIcon />
+            {b}
+          </li>
+        ))}
+      </ul>
+    </details>
   )
 }
 
@@ -54,28 +88,15 @@ export function PlanCard({
   const mutedClass = isLight ? 'text-[#5E5B54]' : 'text-lf-muted'
   const lineClass = isLight ? 'border-[#EDEBE5]' : 'border-lf-line'
   const description = homePricing ? homePlanDescriptions[plan.slug] ?? plan.description : plan.description
-
   const cta = ctaLabel ?? 'Começar matrícula'
 
   /* Benefits — unit pages only */
-  const benefits = showBenefits ? (
+  const benefitsBlock = showBenefits ? (
     <ul className={cn('mt-5 grid gap-2.5 border-t pt-5 text-sm', isLight ? 'border-[#EDEBE5] text-[#3B3832]' : 'border-lf-line text-lf-muted')}>
       {planBenefits.map((b) => (
         <li key={b} className="flex items-start gap-2.5">
           <span className="mt-2 h-1.5 w-1.5 shrink-0 bg-lf-volt" />
           <span className="leading-snug">{b}</span>
-        </li>
-      ))}
-    </ul>
-  ) : null
-
-  /* Home benefits — compact, elegant */
-  const homeBenefitsBlock = homePricing && homeCardBenefits[plan.slug] ? (
-    <ul className={cn('mt-4 flex flex-col gap-2 border-t pt-4', lineClass)}>
-      {homeCardBenefits[plan.slug].map((b) => (
-        <li key={b} className={cn('flex items-center gap-2 text-[13px] font-normal', isLight ? 'text-[#4A4742]' : 'text-lf-muted')}>
-          <CheckIcon />
-          {b}
         </li>
       ))}
     </ul>
@@ -94,9 +115,9 @@ export function PlanCard({
         'transition duration-200 hover:-translate-y-0.5',
       )}>
         {/* Banda topo */}
-        <div className="flex items-center justify-between gap-3 bg-lf-volt px-5 py-2">
+        <div className="flex items-center justify-between gap-3 bg-lf-volt px-5 py-2.5">
           <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-lf-black">
-            Mais popular
+            O mais vantajoso
           </span>
           <span className="rounded-sm bg-lf-black/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-lf-black">
             {plan.badge}
@@ -131,13 +152,13 @@ export function PlanCard({
             </div>
           )}
 
-          {benefits}
-          {homeBenefitsBlock}
+          {benefitsBlock}
 
-          <div className={cn('mt-auto', homePricing ? 'pt-5' : 'pt-5')}>
+          <div className="mt-auto pt-5">
             <Button href={href} variant="volt" className="w-full justify-center text-[13px]">
               {cta}
             </Button>
+            {homePricing && <BenefitsAccordion isLight={isLight} />}
           </div>
         </div>
       </article>
@@ -156,7 +177,6 @@ export function PlanCard({
       isLight ? 'hover:border-[#C8C0B4] hover:shadow-[0_2px_20px_rgba(0,0,0,0.08)]' : 'hover:border-lf-text/20',
     )}>
       <div className={cn('flex flex-1 flex-col', homePricing ? 'p-5 md:p-6' : 'p-5')}>
-        {/* Badge inline — sem barra separadora */}
         <span className={cn(
           'mb-3 inline-block self-start rounded px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em]',
           isLight ? 'bg-[#F0EDE6] text-[#7A7267]' : 'bg-lf-graphite text-lf-muted',
@@ -176,8 +196,7 @@ export function PlanCard({
           </p>
         </div>
 
-        {benefits}
-        {homeBenefitsBlock}
+        {benefitsBlock}
 
         <div className="mt-auto pt-5">
           <Button
@@ -190,6 +209,7 @@ export function PlanCard({
           >
             {cta}
           </Button>
+          {homePricing && <BenefitsAccordion isLight={isLight} />}
         </div>
       </div>
     </article>

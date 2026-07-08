@@ -16,11 +16,8 @@ export function PlansSection() {
           </p>
         </div>
         <h2 className="text-4xl font-black leading-[1.02] text-[#141414] md:text-5xl">
-          Escolha o seu plano.
+          Escolha o seu plano
         </h2>
-        <p className="mt-3 text-[14px] text-[#5E5B54]">
-          Musculação, aulas coletivas e reconhecimento facial inclusos em todos os planos.
-        </p>
       </Reveal>
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:mt-10 md:gap-5 xl:grid-cols-4 xl:items-stretch">
@@ -33,16 +30,10 @@ export function PlansSection() {
 
       <Reveal delay={0.28}>
         <div className="mt-6 border-t border-[#D8D0C0] pt-5">
-          <p className="text-[12px] text-[#5E5B54]">
-            Aula experimental grátis disponível — experimente musculação, cardio ou coletivas antes de assinar.
-          </p>
-          <div className="mt-3 flex flex-col gap-1 text-[11px] text-[#6E675C] sm:flex-row sm:justify-between">
+          <div className="flex flex-col gap-1 text-[11px] text-[#6E675C] sm:flex-row sm:justify-between">
             <p>*R$9,90 na primeira mensalidade apenas no Power Anual Recorrente.</p>
             <p>Valores e condições podem variar conforme a unidade. Ipiranga possui tabela própria.</p>
           </div>
-          <p className="mt-1 text-[11px] text-[#8A8478]">
-            Confira os planos e condições na página da sua unidade antes de finalizar a matrícula.
-          </p>
         </div>
       </Reveal>
     </Section>

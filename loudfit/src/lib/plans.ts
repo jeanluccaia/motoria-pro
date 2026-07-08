@@ -14,7 +14,7 @@ const standardPlans: Plan[] = [
   {
     slug: 'power-mensal',
     name: 'Power Mensal',
-    badge: 'SEM CONTRATO LONGO',
+    badge: 'FLEXÍVEL',
     price: 'R$149,90',
     period: '/mês',
     description: 'Mês a mês, sem cobrança automática e sem compromisso de longo prazo.',
@@ -59,7 +59,7 @@ const ipirangaPlans: Plan[] = [
   {
     slug: 'power-mensal',
     name: 'Power Mensal',
-    badge: 'SEM CONTRATO LONGO',
+    badge: 'FLEXÍVEL',
     price: 'R$199,90',
     period: '/mês',
     description: 'Mês a mês, sem cobrança automática e sem compromisso de longo prazo.',
