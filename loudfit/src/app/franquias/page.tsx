@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import { Section, SectionHeader } from '@/components/ui/Section'
 import { Button } from '@/components/ui/Button'
 import { Reveal } from '@/components/ui/Reveal'
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
 
 const diferenciais = [
   { title: 'Marca que atrai', body: 'Identidade premium que já tem reconhecimento nas praças onde operamos.' },
-  { title: 'Aceleração LoudFit', body: 'Sua unidade não abre vazia. Metodologia própria de captação pré e pós-inauguração.' },
+  { title: 'Aceleração Loud Fit', body: 'Sua unidade não abre vazia. Metodologia própria de captação pré e pós-inauguração.' },
   { title: 'Playbook completo', body: 'Gestão, operação, marketing e captação documentados. Não reinventa a roda.' },
   { title: 'Suporte contínuo', body: 'Time de expansão, operação e marketing ao lado da sua unidade desde o dia 1.' },
 ]
@@ -39,7 +40,7 @@ const steps = [
   { n: '02', title: 'Call de qualificação', body: 'Conversa de 30min para entender seu perfil e praça.' },
   { n: '03', title: 'Apresentação completa', body: 'Números, modelo de operação e tour nas unidades.' },
   { n: '04', title: 'Análise de praça', body: 'Estudo do ponto e aprovação da localização.' },
-  { n: '05', title: 'Assinatura e kick-off', body: 'Contrato assinado. Aceleração LoudFit começa.' },
+  { n: '05', title: 'Assinatura e kick-off', body: 'Contrato assinado. Aceleração Loud Fit começa.' },
 ]
 
 const faqItems = [
@@ -68,28 +69,64 @@ export default async function FranquiasPage() {
   return (
     <div className="pt-16">
       {/* Hero */}
-      <Section bg="black">
-        <div className="max-w-4xl">
-          <Reveal>
-            <p className="text-xs uppercase tracking-[0.3em] text-lf-volt mb-6">Franquias</p>
-            <h1 className="text-6xl md:text-8xl font-black text-lf-text leading-none">
-              SEJA DONO DE<br />
-              <span className="text-lf-volt">UMA LOUDFIT.</span>
-            </h1>
-            <p className="mt-6 text-xl text-lf-muted max-w-2xl leading-relaxed">
-              Academia premium com rede em crescimento, metodologia própria de captação e marca que já funciona.
-            </p>
-            <div className="mt-10 flex flex-col sm:flex-row gap-4">
-              <Button href="#formulario" variant="volt" size="lg">
-                Quero ser franqueado
-              </Button>
-              <Button href="#modelo" variant="ghost" size="lg">
-                Conhecer o modelo
-              </Button>
-            </div>
-          </Reveal>
+      <section className="relative flex min-h-[620px] items-end overflow-hidden bg-lf-black py-16 sm:min-h-[680px] md:min-h-[75vh] md:py-24 lg:min-h-[85vh] lg:py-28">
+        <Image
+          src="/assets/images/real-facade.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="absolute inset-0 h-full w-full object-cover object-[50%_35%]"
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,9,9,0.55)_0%,rgba(9,9,9,0.4)_38%,rgba(9,9,9,0.94)_100%),linear-gradient(90deg,rgba(9,9,9,0.9)_0%,rgba(9,9,9,0.3)_55%,rgba(9,9,9,0.88)_100%)]" />
+
+        {/* Linha diagonal — identidade LoudFit */}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-lf-line" />
+        <div className="absolute bottom-0 left-0 h-[3px] w-48 -skew-x-12 origin-left bg-lf-volt" />
+
+        <div className="relative z-10 mx-auto w-full max-w-[1360px] px-5 sm:px-8 lg:px-12">
+          <div className="max-w-4xl">
+            <Reveal>
+              <div className="mb-5 flex items-center gap-3">
+                <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
+                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
+                  Franquias Loud Fit
+                </p>
+              </div>
+              <h1
+                className="font-black uppercase leading-[1.05] text-lf-text"
+                style={{ fontSize: 'clamp(2.6rem, 5.5vw, 6rem)' }}
+              >
+                SEJA DONO DE<br />
+                UMA <span className="text-lf-volt">LOUD FIT.</span>
+              </h1>
+              <p className="mt-6 text-lg md:text-xl text-lf-muted max-w-2xl leading-relaxed">
+                Uma rede de academias em expansão, com operação real, captação estruturada e um modelo criado
+                para abrir unidades com tração desde o primeiro dia.
+              </p>
+              <div className="mt-10 flex flex-col sm:flex-row gap-4">
+                <Button href="#formulario" variant="volt" size="lg">
+                  Quero ser franqueado
+                </Button>
+                <Button href="#modelo" variant="outline" size="lg">
+                  Conhecer o modelo
+                </Button>
+              </div>
+              <div className="mt-8 flex flex-wrap gap-3">
+                {['Operação real', 'Captação pré-inauguração', 'Suporte de expansão'].map((chip) => (
+                  <span
+                    key={chip}
+                    className="border border-white/15 bg-white/[0.07] px-4 py-2 text-[11px] font-medium uppercase tracking-wider text-lf-text/90 backdrop-blur-[2px]"
+                  >
+                    {chip}
+                  </span>
+                ))}
+              </div>
+            </Reveal>
+          </div>
         </div>
-      </Section>
+      </section>
 
       {/* Momento de mercado */}
       <Section bg="graphite" id="modelo">
@@ -178,7 +215,7 @@ export default async function FranquiasPage() {
 
       {/* Aceleração LoudFit */}
       <Section bg="graphite">
-        <SectionHeader label="Diferencial exclusivo" title="Aceleração LoudFit" subtitle="Sua academia não abre vazia." />
+        <SectionHeader label="Diferencial exclusivo" title="Aceleração Loud Fit" subtitle="Sua academia não abre vazia." />
         <div className="grid md:grid-cols-3 gap-6">
           {[
             { fase: 'Antes da inauguração', desc: 'Captação de pré-alunos, lista de espera e ações de lançamento da praça antes de abrir a porta.' },
