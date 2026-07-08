@@ -49,12 +49,12 @@ export function Hero() {
           style={{ fontSize: 'clamp(2.35rem, 4vw, 4.65rem)' }}
         >
           O melhor ainda está por{' '}
-          <span className="text-lf-volt">vir.</span>
+          <span className="text-lf-volt">vir</span>
         </h1>
 
         {/* Subtexto */}
-        <p className="mt-5 max-w-[42ch] text-base leading-[1.45] text-white/76 md:mt-6 md:text-lg">
-          Musculação, cardio e aulas coletivas em uma Loud Fit perto de você.
+        <p className="mt-5 max-w-[34ch] text-base leading-[1.45] text-white/76 md:mt-6 md:text-lg">
+          Musculação + aulas coletivas no mesmo plano.
         </p>
 
         {/* Selo de oferta */}
