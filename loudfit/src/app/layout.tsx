@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import { Inter, Big_Shoulders } from 'next/font/google'
 import './globals.css'
 import { Header } from '@/components/layout/Header'
@@ -32,14 +32,14 @@ export const metadata: Metadata = {
     siteName: 'LoudFit',
     locale: 'pt_BR',
     type: 'website',
-    images: ['/assets/images/campaign-gym-16x9.png'],
+    images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'LoudFit | O melhor ainda está por vir',
     description:
       'Rede de academias com energia, estrutura e experiência para quem leva o treino a sério.',
-    images: ['/assets/images/campaign-gym-16x9.png'],
+    images: ['/opengraph-image'],
   },
 }
 

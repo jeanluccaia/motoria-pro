@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import { getUnits } from '@/lib/supabase'
 import { UnitCard } from '@/components/ui/UnitCard'
 import { Section, SectionHeader } from '@/components/ui/Section'
@@ -12,13 +12,13 @@ export const metadata: Metadata = {
     title: 'Unidades | LoudFit',
     description: 'Encontre uma LoudFit perto de você. 6 unidades em SP com matrícula online.',
     url: '/unidades',
-    images: ['/assets/images/campaign-gym-16x9.png'],
+    images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Unidades | LoudFit',
     description: 'Encontre uma LoudFit perto de você. 6 unidades em SP com matrícula online.',
-    images: ['/assets/images/campaign-gym-16x9.png'],
+    images: ['/opengraph-image'],
   },
 }
 

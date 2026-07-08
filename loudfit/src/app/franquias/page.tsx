@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import Image from 'next/image'
 import { Section, SectionHeader } from '@/components/ui/Section'
 import { Button } from '@/components/ui/Button'
@@ -17,14 +17,14 @@ export const metadata: Metadata = {
     description:
       'Seja dono de uma academia LoudFit. Conheça o modelo de franquia, investimento e o suporte da rede.',
     url: '/franquias',
-    images: ['/assets/images/campaign-gym-16x9.png'],
+    images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Franquias LoudFit — Seja franqueado',
     description:
       'Seja dono de uma academia LoudFit. Conheça o modelo de franquia, investimento e o suporte da rede.',
-    images: ['/assets/images/campaign-gym-16x9.png'],
+    images: ['/opengraph-image'],
   },
 }
 

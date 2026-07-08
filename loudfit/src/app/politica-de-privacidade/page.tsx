@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import { Section } from '@/components/ui/Section'
 
 export const metadata: Metadata = {
@@ -9,13 +9,13 @@ export const metadata: Metadata = {
     title: 'Política de Privacidade | LoudFit',
     description: 'Política de privacidade da LoudFit.',
     url: '/politica-de-privacidade',
-    images: ['/assets/images/campaign-gym-16x9.png'],
+    images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Política de Privacidade | LoudFit',
     description: 'Política de privacidade da LoudFit.',
-    images: ['/assets/images/campaign-gym-16x9.png'],
+    images: ['/opengraph-image'],
   },
 }
 

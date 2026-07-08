@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import { Hero } from '@/components/sections/Hero'
 import { HomeUnitsGrid } from '@/components/sections/HomeUnitsGrid'
 import { PlansSection } from '@/components/sections/PlansSection'
@@ -19,14 +19,14 @@ export const metadata: Metadata = {
     description:
       'Escolha sua unidade, veja os planos e faça sua matrícula online. Musculação e aulas coletivas em um só plano.',
     url: '/',
-    images: ['/assets/images/campaign-gym-16x9.png'],
+    images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Loud Fit | Academia com musculação e aulas inclusas',
     description:
       'Escolha sua unidade, veja os planos e faça sua matrícula online. Musculação e aulas coletivas em um só plano.',
-    images: ['/assets/images/campaign-gym-16x9.png'],
+    images: ['/opengraph-image'],
   },
 }
 

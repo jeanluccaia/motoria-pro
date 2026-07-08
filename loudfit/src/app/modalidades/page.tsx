@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
 import { Section } from '@/components/ui/Section'
@@ -11,13 +11,13 @@ export const metadata: Metadata = {
     title: 'Modalidades LoudFit — Aulas e treinos',
     description: 'Modalidades LoudFit para treinar com força, ritmo e energia.',
     url: '/modalidades',
-    images: ['/assets/images/campaign-gym-16x9.png'],
+    images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Modalidades LoudFit — Aulas e treinos',
     description: 'Modalidades LoudFit para treinar com força, ritmo e energia.',
-    images: ['/assets/images/campaign-gym-16x9.png'],
+    images: ['/opengraph-image'],
   },
 }
 

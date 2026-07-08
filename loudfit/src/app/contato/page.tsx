@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Section, SectionHeader } from '@/components/ui/Section'
 
@@ -10,13 +10,13 @@ export const metadata: Metadata = {
     title: 'Contato | LoudFit',
     description: 'Fale com a LoudFit — seja como aluno, franqueado ou parceiro.',
     url: '/contato',
-    images: ['/assets/images/campaign-gym-16x9.png'],
+    images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Contato | LoudFit',
     description: 'Fale com a LoudFit — seja como aluno, franqueado ou parceiro.',
-    images: ['/assets/images/campaign-gym-16x9.png'],
+    images: ['/opengraph-image'],
   },
 }
 

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import { Section, SectionHeader } from '@/components/ui/Section'
 import { Button } from '@/components/ui/Button'
 
@@ -10,13 +10,13 @@ export const metadata: Metadata = {
     title: 'Carreiras | LoudFit',
     description: 'Trabalhe na LoudFit. Vagas abertas na rede de academias.',
     url: '/carreiras',
-    images: ['/assets/images/campaign-gym-16x9.png'],
+    images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Carreiras | LoudFit',
     description: 'Trabalhe na LoudFit. Vagas abertas na rede de academias.',
-    images: ['/assets/images/campaign-gym-16x9.png'],
+    images: ['/opengraph-image'],
   },
 }
 
