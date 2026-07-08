@@ -54,7 +54,7 @@ export function Hero() {
 
         {/* Subtexto */}
         <p className="mt-5 max-w-[42ch] text-base leading-[1.45] text-white/76 md:mt-6 md:text-lg">
-          Musculação + aulas coletivas no mesmo plano. Do Muay Thai ao Pilates, já está incluso
+          Musculação, cardio e aulas coletivas em uma Loud Fit perto de você.
         </p>
 
         {/* Selo de oferta */}

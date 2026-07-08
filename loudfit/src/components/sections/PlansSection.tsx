@@ -3,6 +3,15 @@ import { PlanCard } from '@/components/ui/PlanCard'
 import { Reveal } from '@/components/ui/Reveal'
 import { getPlans } from '@/lib/plans'
 
+const allPlansBenefits = [
+  'Musculação + cardio',
+  'Aulas coletivas',
+  'Acesso às unidades',
+  'Reconhecimento facial',
+  'Aula experimental grátis',
+  'Convidados: até 5 acessos',
+]
+
 export function PlansSection() {
   const plans = getPlans()
 
@@ -18,9 +27,26 @@ export function PlansSection() {
         <h2 className="text-4xl font-black leading-[1.02] text-[#141414] md:text-5xl">
           Escolha o seu plano.
         </h2>
-        <p className="mt-3 text-sm text-[#4A4A4A] md:text-base">
-          Todos os planos incluem musculação, aulas coletivas e reconhecimento facial.
-        </p>
+      </Reveal>
+
+      {/* Strip: benefícios comuns a todos os planos */}
+      <Reveal delay={0.1}>
+        <div className="mt-6 rounded-xl border border-[#E2DACB] bg-white p-4 md:mt-8 md:p-5">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7A7267]">
+            Incluso em todos os planos
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {allPlansBenefits.map((b) => (
+              <span
+                key={b}
+                className="flex items-center gap-1.5 rounded-full border border-[#E2DACB] bg-[#FAFAF8] px-3 py-1 text-[12px] font-medium text-[#3B3832]"
+              >
+                <span className="h-[5px] w-[5px] shrink-0 rounded-full bg-lf-volt" />
+                {b}
+              </span>
+            ))}
+          </div>
+        </div>
       </Reveal>
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:mt-10 md:gap-5 xl:grid-cols-4 xl:items-stretch">

@@ -9,19 +9,19 @@ const steps = [
   },
   {
     num: '02',
-    title: 'Escolha seu plano',
+    title: 'Veja o plano ideal',
     desc: 'Todos os planos dão acesso à musculação e às aulas coletivas da unidade.',
   },
   {
     num: '03',
-    title: 'Finalize online',
+    title: 'Finalize online pelo EVO',
     desc: 'Conclua sua matrícula pelo checkout oficial EVO e comece a treinar.',
   },
 ]
 
 export function OfferBanner() {
   return (
-    <Section bg="cream" className="py-12 md:py-16">
+    <Section bg="cream" className="py-14 md:py-20">
       <Reveal>
         <div className="mb-8 max-w-3xl md:mb-10">
           <div className="mb-4 flex items-center gap-3">
@@ -31,11 +31,11 @@ export function OfferBanner() {
             </p>
           </div>
           <h2 className="text-3xl font-black leading-[1.06] text-[#141414] md:text-5xl">
-            Como começar na Loud Fit.
+            Comece em poucos passos.
           </h2>
         </div>
 
-        <div className="grid overflow-hidden border border-[#E8E8E4] bg-white sm:grid-cols-3">
+        <div className="grid overflow-hidden rounded-xl border border-[#E8E8E4] bg-white sm:grid-cols-3">
           {steps.map((step, i) => (
             <div
               key={step.num}

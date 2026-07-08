@@ -10,22 +10,22 @@ import { FinalCta } from '@/components/sections/FinalCta'
 import { WhatsAppFloat } from '@/components/ui/WhatsAppFloat'
 
 export const metadata: Metadata = {
-  title: { absolute: 'LoudFit | O melhor ainda está por vir' },
+  title: { absolute: 'Loud Fit | Academia com musculação e aulas inclusas' },
   description:
-    'Rede de academias com estrutura completa, aulas coletivas inclusas e matrícula 100% online.',
+    'Escolha sua unidade, veja os planos e faça sua matrícula online. Musculação e aulas coletivas em um só plano.',
   alternates: { canonical: '/' },
   openGraph: {
-    title: 'LoudFit | O melhor ainda está por vir',
+    title: 'Loud Fit | Academia com musculação e aulas inclusas',
     description:
-      'Rede de academias com estrutura completa, aulas coletivas inclusas e matrícula 100% online.',
+      'Escolha sua unidade, veja os planos e faça sua matrícula online. Musculação e aulas coletivas em um só plano.',
     url: '/',
     images: ['/assets/images/campaign-gym-16x9.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'LoudFit | O melhor ainda está por vir',
+    title: 'Loud Fit | Academia com musculação e aulas inclusas',
     description:
-      'Rede de academias com estrutura completa, aulas coletivas inclusas e matrícula 100% online.',
+      'Escolha sua unidade, veja os planos e faça sua matrícula online. Musculação e aulas coletivas em um só plano.',
     images: ['/assets/images/campaign-gym-16x9.png'],
   },
 }

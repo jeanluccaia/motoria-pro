@@ -4,7 +4,7 @@ import { Reveal } from '@/components/ui/Reveal'
 
 export function HomeUnitsGrid() {
   return (
-    <Section id="unidades" bg="cream" className="py-12 md:py-16">
+    <Section id="unidades" bg="cream" className="py-14 md:py-20">
       <Reveal>
         <SectionHeader
           label="Unidades"
