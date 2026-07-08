@@ -52,11 +52,6 @@ export function Hero() {
           <span className="text-lf-volt">vir</span>
         </h1>
 
-        {/* Subtexto */}
-        <p className="mt-5 max-w-[34ch] text-base leading-[1.45] text-white/76 md:mt-6 md:text-lg">
-          Musculação + aulas coletivas no mesmo plano.
-        </p>
-
         {/* Selo de oferta */}
         <div className="mt-6 inline-flex items-center gap-2.5 border border-white/[0.12] bg-white/[0.07] px-4 py-2.5 backdrop-blur-[2px] md:mt-7">
           <span className="flex flex-col gap-0.5 leading-tight">
