@@ -31,7 +31,7 @@ export default async function UnidadesPage() {
         <SectionHeader
           dark
           label="Nossa Rede"
-          title="Unidades LoudFit"
+          title="Unidades Loud Fit"
           subtitle="Escolha sua unidade, escolha seu plano e comece a treinar."
         />
 

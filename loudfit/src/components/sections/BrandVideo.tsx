@@ -64,7 +64,7 @@ export function BrandVideo() {
             <div className="mb-5 flex items-center gap-3">
               <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
-                Estrutura LoudFit
+                Estrutura Loud Fit
               </p>
             </div>
             <h2 className="text-balance text-4xl font-black leading-[1.02] text-[#141414] md:text-5xl">
@@ -91,7 +91,7 @@ export function BrandVideo() {
                 <span className="h-2 w-2 rounded-full bg-[#D8D5CE]" />
               </div>
               <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#A09A90]">
-                LoudFit
+                Loud Fit
               </span>
             </div>
 

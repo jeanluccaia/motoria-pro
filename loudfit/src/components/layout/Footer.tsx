@@ -107,7 +107,7 @@ export function Footer() {
 
             {/* Copyright */}
             <p className="shrink-0 text-xs text-lf-muted/40">
-              © {new Date().getFullYear()} LoudFit — Todos os direitos reservados.
+              © {new Date().getFullYear()} Loud Fit — Todos os direitos reservados.
             </p>
           </div>
         </div>

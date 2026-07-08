@@ -27,7 +27,7 @@ export default function CarreirasPage() {
         <div className="max-w-3xl">
           <SectionHeader
             label="Carreiras"
-            title="Trabalhe na LoudFit"
+            title="Trabalhe na Loud Fit"
             subtitle="Pessoas que querem crescer junto com a rede. Se você tem energia, vontade e gosta de resultado, fale com a gente."
           />
         </div>

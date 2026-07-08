@@ -57,7 +57,7 @@ const faqItems = [
     a: 'Em média 4 a 6 meses após a assinatura do contrato, dependendo da obra e do ponto.',
   },
   {
-    q: 'A LoudFit ajuda a encontrar o ponto?',
+    q: 'A Loud Fit ajuda a encontrar o ponto?',
     a: 'Sim. Nosso time faz a análise de praça e dá parecer técnico sobre o ponto antes de qualquer comprometimento.',
   },
 ]
@@ -160,7 +160,7 @@ export default async function FranquiasPage() {
 
       {/* Diferenciais */}
       <Section bg="black">
-        <SectionHeader label="Por que a LoudFit" title="O que está no modelo" />
+        <SectionHeader label="Por que a Loud Fit" title="O que está no modelo" />
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {diferenciais.map((d, i) => (
             <Reveal key={d.title} delay={i * 0.1}>
@@ -219,7 +219,7 @@ export default async function FranquiasPage() {
         <div className="grid md:grid-cols-3 gap-6">
           {[
             { fase: 'Antes da inauguração', desc: 'Captação de pré-alunos, lista de espera e ações de lançamento da praça antes de abrir a porta.' },
-            { fase: 'Dia da inauguração', desc: 'Protocolo de abertura, presença do time LoudFit, cobertura de redes e primeiros alunos já no sistema.' },
+            { fase: 'Dia da inauguração', desc: 'Protocolo de abertura, presença do time Loud Fit, cobertura de redes e primeiros alunos já no sistema.' },
             { fase: 'Primeiros 90 dias', desc: 'Acompanhamento intensivo de retenção, métricas e ajuste de operação para consolidar a base.' },
           ].map((f) => (
             <Reveal key={f.fase}>

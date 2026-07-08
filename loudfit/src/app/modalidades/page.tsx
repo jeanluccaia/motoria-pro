@@ -170,7 +170,7 @@ export default function ModalidadesPage() {
           <div className="mb-5 flex items-center justify-center gap-3">
             <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
-              Planos LoudFit
+              Planos Loud Fit
             </p>
             <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
           </div>

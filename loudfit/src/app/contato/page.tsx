@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 const doors = [
   {
     tag: 'Aluno',
-    title: 'Quero treinar na LoudFit',
+    title: 'Quero treinar na Loud Fit',
     body: 'Encontre a unidade mais próxima de você e fale diretamente com a equipe.',
     cta: 'Encontrar unidade',
     href: '/unidades',
@@ -31,7 +31,7 @@ const doors = [
   },
   {
     tag: 'Franqueado',
-    title: 'Quero ser dono de uma LoudFit',
+    title: 'Quero ser dono de uma Loud Fit',
     body: 'Conheça o modelo de franquia, os números e o processo de qualificação.',
     cta: 'Ver franquias',
     href: '/franquias',
