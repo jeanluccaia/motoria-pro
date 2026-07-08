@@ -14,8 +14,8 @@ const steps = [
   },
   {
     num: '03',
-    title: 'Finalize online pelo EVO',
-    desc: 'Conclua sua matrícula pelo checkout oficial EVO e comece a treinar.',
+    title: 'Finalize sua matrícula online',
+    desc: 'Conclua sua matrícula online de forma simples e segura.',
   },
 ]
 

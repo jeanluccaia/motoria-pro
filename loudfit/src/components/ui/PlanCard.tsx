@@ -27,9 +27,11 @@ const HOME_BENEFITS = [
   'Aulas coletivas inclusas',
   'Acesso às unidades',
   'Convidados: até 5 acessos',
-  'Aula experimental grátis',
   'Reconhecimento facial',
 ]
+
+/* Força uso da fonte body (Inter) nos cards — sobrescreve o h3 global que usa Big Shoulders */
+const BODY = '[font-family:var(--font-body)]'
 
 function CheckIcon() {
   return (
@@ -47,24 +49,24 @@ function ChevronDownIcon({ className }: { className?: string }) {
   )
 }
 
-function BenefitsAccordion({ isLight }: { isLight: boolean }) {
+function BenefitsAccordion({ dark }: { dark?: boolean }) {
   return (
-    <details className={cn('group border-t', isLight ? 'border-[#EDEBE5]' : 'border-lf-line')}>
+    <details className={cn('group border-t', dark ? 'border-white/10' : 'border-[#EDEBE5]', BODY)}>
       <summary className={cn(
         'flex cursor-pointer select-none list-none items-center justify-between py-3',
         'text-[12px] font-medium [&::-webkit-details-marker]:hidden',
-        isLight ? 'text-[#7A7267]' : 'text-lf-muted',
+        dark ? 'text-white/40' : 'text-[#8A8478]',
       )}>
         <span className="group-open:hidden">Mostrar benefícios</span>
         <span className="hidden group-open:block">Ocultar benefícios</span>
         <ChevronDownIcon className={cn(
           'h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-open:rotate-180',
-          isLight ? 'text-[#7A7267]' : 'text-lf-muted',
+          dark ? 'text-white/40' : 'text-[#8A8478]',
         )} />
       </summary>
       <ul className="mb-3 flex flex-col gap-2.5 pt-0.5">
         {HOME_BENEFITS.map((b) => (
-          <li key={b} className={cn('flex items-start gap-2 text-[12px]', isLight ? 'text-[#3B3832]' : 'text-lf-muted')}>
+          <li key={b} className={cn('flex items-start gap-2 text-[12px]', dark ? 'text-white/60' : 'text-[#3B3832]')}>
             <CheckIcon />
             {b}
           </li>
@@ -84,9 +86,6 @@ export function PlanCard({
 }: PlanCardProps) {
   const href = plan.checkoutUrl ?? buildHref(ctaBase, plan.slug)
   const isLight = tone === 'light'
-  const titleClass = isLight ? 'text-[#111111]' : 'text-lf-text'
-  const mutedClass = isLight ? 'text-[#5E5B54]' : 'text-lf-muted'
-  const lineClass = isLight ? 'border-[#EDEBE5]' : 'border-lf-line'
   const description = homePricing ? homePlanDescriptions[plan.slug] ?? plan.description : plan.description
   const cta = ctaLabel ?? 'Começar matrícula'
 
@@ -102,63 +101,69 @@ export function PlanCard({
     </ul>
   ) : null
 
-  /* ─── CARD DESTAQUE ─── */
+  /* ─── CARD DESTAQUE — sempre escuro, independente de tone ─── */
   if (plan.featured) {
     return (
       <article className={cn(
-        'group relative flex h-full flex-col overflow-hidden rounded-2xl',
+        'group relative flex h-full flex-col overflow-hidden rounded-3xl',
         showBenefits ? 'min-h-[520px]' : '',
-        isLight
-          ? 'border border-lf-volt/50 bg-white shadow-[0_2px_20px_rgba(255,229,0,0.10),0_1px_4px_rgba(0,0,0,0.05)]'
-          : 'bg-lf-black ring-2 ring-lf-volt shadow-[0_8px_48px_rgba(255,229,0,0.12)]',
+        'bg-[#181818] shadow-[0_8px_40px_rgba(0,0,0,0.30)]',
         'order-first md:order-none',
-        'transition duration-200 hover:-translate-y-0.5',
+        'transition duration-200 hover:-translate-y-1',
       )}>
-        {/* Banda topo */}
-        <div className="flex items-center justify-between gap-3 bg-lf-volt px-5 py-2.5">
-          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-lf-black">
+        {/* Banda topo amarela */}
+        <div className={cn('flex items-center justify-between gap-3 bg-lf-volt px-5 py-3', BODY)}>
+          <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-lf-black">
             O mais vantajoso
           </span>
-          <span className="rounded-sm bg-lf-black/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-lf-black">
+          <span className="rounded-full bg-lf-black/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-lf-black">
             {plan.badge}
           </span>
         </div>
 
-        <div className={cn('flex flex-1 flex-col', homePricing ? 'p-5 md:p-6' : 'p-5')}>
-          <h3 className={cn('text-[20px] font-black leading-tight', titleClass)}>{plan.name}</h3>
-          <p className={cn('mt-1 text-[13px] leading-snug', mutedClass)}>
+        <div className={cn('flex flex-1 flex-col p-6', BODY)}>
+          <h3 className={cn('text-[20px] font-bold leading-tight text-lf-text', BODY)}>
+            {plan.name}
+          </h3>
+          <p className="mt-1 text-[13px] leading-snug text-white/50">
             {description}
           </p>
 
           {homePricing && plan.firstPayment ? (
-            <div className={cn('mt-4 border-t pt-4', lineClass)}>
-              <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-lf-volt">
+            <div className="mt-5 border-t border-white/10 pt-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-lf-volt">
                 1ª mensalidade
               </p>
-              <p className={cn('mt-1 flex items-baseline gap-0.5', titleClass)}>
-                <strong className="text-[44px] font-black leading-none">{plan.firstPayment.value}</strong>
-                <span className="ml-0.5 text-[17px] font-bold text-lf-volt">*</span>
+              <p className={cn('mt-1.5 flex items-baseline', BODY)}>
+                <strong className="text-[48px] font-black leading-none text-lf-text">
+                  {plan.firstPayment.value}
+                </strong>
+                <span className="ml-0.5 text-[18px] font-bold text-lf-volt">*</span>
               </p>
-              <p className={cn('mt-1.5 text-[12px] leading-snug', mutedClass)}>
+              <p className="mt-2 text-[12px] leading-snug text-white/40">
                 Depois, mensalidade conforme a unidade escolhida.
               </p>
             </div>
           ) : (
-            <div className={cn('mt-4 border-t pt-4', lineClass)}>
-              <p className={cn('flex items-baseline gap-0.5', titleClass)}>
-                <strong className="text-[40px] font-black leading-none">{plan.price}</strong>
-                <span className={cn('ml-0.5 text-[14px]', mutedClass)}>{plan.period}</span>
+            <div className="mt-5 border-t border-white/10 pt-5">
+              <p className={cn('flex items-baseline text-lf-text', BODY)}>
+                <strong className="text-[44px] font-black leading-none">{plan.price}</strong>
+                <span className="ml-1 text-[14px] text-white/50">{plan.period}</span>
               </p>
             </div>
           )}
 
           {benefitsBlock}
 
-          <div className="mt-auto pt-5">
-            <Button href={href} variant="volt" className="w-full justify-center text-[13px]">
+          <div className="mt-auto pt-6">
+            <Button
+              href={href}
+              variant="volt"
+              className={cn('w-full justify-center rounded-full text-[13px] font-bold normal-case tracking-normal', BODY)}
+            >
               {cta}
             </Button>
-            {homePricing && <BenefitsAccordion isLight={isLight} />}
+            {homePricing && <BenefitsAccordion dark />}
           </div>
         </div>
       </article>
@@ -168,31 +173,34 @@ export function PlanCard({
   /* ─── CARDS COMUNS ─── */
   return (
     <article className={cn(
-      'group relative flex h-full flex-col overflow-hidden rounded-2xl',
+      'group relative flex h-full flex-col overflow-hidden rounded-3xl',
       showBenefits ? 'min-h-[520px]' : '',
       isLight
-        ? 'border border-[#E8E3D8] bg-white shadow-[0_1px_4px_rgba(0,0,0,0.05),0_4px_16px_rgba(0,0,0,0.04)]'
+        ? 'border border-[#E4DFD4] bg-white shadow-[0_1px_6px_rgba(0,0,0,0.04),0_6px_20px_rgba(0,0,0,0.05)]'
         : 'border border-lf-line bg-lf-surface',
       'transition duration-200 hover:-translate-y-0.5',
-      isLight ? 'hover:border-[#C8C0B4] hover:shadow-[0_2px_20px_rgba(0,0,0,0.08)]' : 'hover:border-lf-text/20',
+      isLight ? 'hover:shadow-[0_4px_28px_rgba(0,0,0,0.10)]' : 'hover:border-lf-text/20',
     )}>
-      <div className={cn('flex flex-1 flex-col', homePricing ? 'p-5 md:p-6' : 'p-5')}>
+      <div className={cn('flex flex-1 flex-col p-6', BODY)}>
+        {/* Badge pill */}
         <span className={cn(
-          'mb-3 inline-block self-start rounded px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em]',
+          'mb-4 inline-block self-start rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em]',
           isLight ? 'bg-[#F0EDE6] text-[#7A7267]' : 'bg-lf-graphite text-lf-muted',
         )}>
           {plan.badge}
         </span>
 
-        <h3 className={cn('text-[20px] font-black leading-tight', titleClass)}>{plan.name}</h3>
-        <p className={cn('mt-1 text-[13px] leading-snug', mutedClass)}>
+        <h3 className={cn('text-[20px] font-bold leading-tight', BODY, isLight ? 'text-[#111111]' : 'text-lf-text')}>
+          {plan.name}
+        </h3>
+        <p className={cn('mt-1 text-[13px] leading-snug', isLight ? 'text-[#5E5B54]' : 'text-lf-muted')}>
           {description}
         </p>
 
-        <div className={cn('mt-4 border-t pt-4', lineClass)}>
-          <p className={cn('flex items-baseline gap-0.5', titleClass)}>
-            <strong className="text-[36px] font-black leading-none">{plan.price}</strong>
-            <span className={cn('ml-0.5 text-[14px]', mutedClass)}>{plan.period}</span>
+        <div className={cn('mt-5 border-t pt-5', isLight ? 'border-[#EDEBE5]' : 'border-lf-line')}>
+          <p className={cn('flex items-baseline', isLight ? 'text-[#111111]' : 'text-lf-text', BODY)}>
+            <strong className="text-[38px] font-black leading-none">{plan.price}</strong>
+            <span className={cn('ml-1 text-[14px]', isLight ? 'text-[#5E5B54]' : 'text-lf-muted')}>{plan.period}</span>
           </p>
         </div>
 
@@ -201,15 +209,12 @@ export function PlanCard({
         <div className="mt-auto pt-5">
           <Button
             href={href}
-            variant="ghost"
-            className={cn(
-              'w-full justify-center text-[13px]',
-              isLight && 'border-[#D8D0C0] text-[#111111] hover:border-[#111111]/30 hover:bg-[#EFE9DA]',
-            )}
+            variant="volt"
+            className={cn('w-full justify-center rounded-full text-[13px] font-bold normal-case tracking-normal', BODY)}
           >
             {cta}
           </Button>
-          {homePricing && <BenefitsAccordion isLight={isLight} />}
+          {homePricing && <BenefitsAccordion dark={!isLight} />}
         </div>
       </div>
     </article>
