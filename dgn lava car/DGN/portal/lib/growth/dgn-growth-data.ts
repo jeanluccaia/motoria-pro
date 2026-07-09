@@ -70,6 +70,12 @@ export const foundersPipelineStatuses = [
 
 export type FoundersPipelineStatus = (typeof foundersPipelineStatuses)[number];
 
+export const founderKitStatuses = ["Pendente", "Separado", "Entregue"] as const;
+export type FounderKitStatus = (typeof founderKitStatuses)[number] | "";
+
+export const founderCardStatuses = ["Pendente", "Gerado", "Enviado"] as const;
+export type FounderCardStatus = (typeof founderCardStatuses)[number] | "";
+
 export interface DgnTimelineItem {
   title: string;
   detail: string;
@@ -116,6 +122,8 @@ export interface DgnCustomer {
     lastContact: string;
     conversationStatus: string;
     notes: string;
+    kitStatus: FounderKitStatus;
+    cardStatus: FounderCardStatus;
   };
 }
 
@@ -194,6 +202,8 @@ export function parseDgnIntelligenceRows(rows: DgnIntelligenceRow[]): DgnCustome
         lastContact: "",
         conversationStatus: "Sem contato recente",
         notes: "",
+        kitStatus: "",
+        cardStatus: "",
       },
     };
   });
@@ -273,14 +283,19 @@ export function buildFounderWhatsappMessage(customer: DgnCustomer, origin: strin
   const link = pagePath ? `${origin}${pagePath}` : "[LINK_PERSONALIZADO]";
   const firstName = customer.name.split(" ")[0] || customer.name;
 
-  return `Ola, ${firstName}. Aqui e da DGN.
+  return `Olá, ${firstName}.
 
-Preparamos um convite personalizado para voce fazer parte da primeira geracao de Membros Fundadores do DGN Club.
+É uma satisfação ter você entre os primeiros membros da DGN Club.
 
-Sua pagina esta pronta aqui:
+Você foi selecionado como Founder DGN, fazendo parte do início de uma nova fase no cuidado automotivo por assinatura.
+
+Seu acesso Founder:
 ${link}
 
-Da uma olhada e me chama por aqui para confirmar sua vaga.`;
+Acesse para confirmar seus dados, cadastrar seu veículo e acompanhar sua experiência DGN.
+
+DGN Club
+Lavagens por assinatura`;
 }
 
 export function buildWhatsappUrl(customer: DgnCustomer, message: string) {

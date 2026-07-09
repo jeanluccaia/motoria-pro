@@ -3,8 +3,8 @@
 import { FounderPageClient } from "@/components/FounderPageClient";
 import { getFounderBySlug } from "@/lib/founders-data";
 
-const founder = getFounderBySlug("jose-moreira")!;
+const founder = getFounderBySlug("benedito-constantino")!;
 
-export default function JoseMoreiraFounderPage() {
+export default function BeneditoCostantinoFounderPage() {
   return <FounderPageClient founder={founder} />;
 }

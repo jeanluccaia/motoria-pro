@@ -30,6 +30,8 @@ import {
   commercialStatuses,
   curationProfiles,
   dgnCustomers,
+  founderCardStatuses,
+  founderKitStatuses,
   foundersPipelineStatuses,
   getCustomerTimeline,
   getPotentialRevenue,
@@ -41,6 +43,8 @@ import {
   recommendedPlans,
   type CommercialStatus,
   type DgnCustomer,
+  type FounderCardStatus,
+  type FounderKitStatus,
   type FoundersPipelineStatus,
   type RecommendedPlan,
 } from "@/lib/growth/dgn-growth-data";
@@ -113,8 +117,12 @@ export function DgnGrowthWorkspace({
   const [statusFilter, setStatusFilter] = useState("Todos");
   const [planFilter, setPlanFilter] = useState("Todos");
   const [scoreFilter, setScoreFilter] = useState("Todos");
+  const [sortBy, setSortBy] = useState<"score" | "atendimentos" | "valor" | "ultimo">("score");
+  const [founderFilter, setFounderFilter] = useState("Todos");
+  const [curationFilter, setCurationFilter] = useState("Todos");
   const [notice, setNotice] = useState("");
   const [copiedKey, setCopiedKey] = useState("");
+  const [copiedLinkKey, setCopiedLinkKey] = useState("");
 
   const customers = useMemo(
     () =>
@@ -159,7 +167,12 @@ export function DgnGrowthWorkspace({
 
         return matchesQuery && matchesStatus && matchesPlan && matchesScore;
       })
-      .sort((a, b) => b.scoreDgn - a.scoreDgn);
+      .sort((a, b) => {
+        if (sortBy === "atendimentos") return b.washCount - a.washCount;
+        if (sortBy === "valor") return b.historicalValue - a.historicalValue;
+        if (sortBy === "ultimo") return b.lastAttendance.localeCompare(a.lastAttendance);
+        return b.scoreDgn - a.scoreDgn;
+      });
   }, [customers, planFilter, query, scoreFilter, statusFilter]);
 
   const metrics = useMemo(() => {
@@ -208,6 +221,11 @@ export function DgnGrowthWorkspace({
       (customer) => customer.campaign.campaignStatus === "Assinante ativo"
     );
 
+    const awaitingKit = founders.filter(
+      (customer) => customer.campaign.campaignStatus === "Aguardando Kit Founder"
+    );
+    const lost = founders.filter((customer) => customer.campaign.campaignStatus === "Perdido");
+
     return {
       available: 30 - founders.length,
       created: withPage.length,
@@ -216,6 +234,8 @@ export function DgnGrowthWorkspace({
       conversations: conversations.length,
       payments: payments.length,
       converted: converted.length,
+      awaitingKit: awaitingKit.length,
+      lost: lost.length,
       revenue: converted.reduce((sum, customer) => sum + getPotentialRevenue(customer), 0),
       founders,
     };
@@ -241,6 +261,15 @@ export function DgnGrowthWorkspace({
     await navigator.clipboard?.writeText(value);
     setCopiedKey(key);
     window.setTimeout(() => setCopiedKey(""), 1600);
+  };
+
+  const copyLink = async (customer: DgnCustomer) => {
+    const path = customer.campaign.personalizedPagePath;
+    if (!path) return;
+    const url = `${getOrigin()}${path}`;
+    await navigator.clipboard?.writeText(url);
+    setCopiedLinkKey(customer.id);
+    window.setTimeout(() => setCopiedLinkKey(""), 1600);
   };
 
   const openWhatsapp = (customer: DgnCustomer) => {
@@ -271,10 +300,12 @@ export function DgnGrowthWorkspace({
             statusFilter={statusFilter}
             planFilter={planFilter}
             scoreFilter={scoreFilter}
+            sortBy={sortBy}
             onQuery={setQuery}
             onStatusFilter={setStatusFilter}
             onPlanFilter={setPlanFilter}
             onScoreFilter={setScoreFilter}
+            onSortBy={setSortBy}
             onOpenProfile={setSelectedCustomerId}
           />
         ) : null}
@@ -283,8 +314,10 @@ export function DgnGrowthWorkspace({
           <CurationView
             customers={customers}
             selectedCustomer={selectedCustomer}
+            curationFilter={curationFilter}
             onSelect={setSelectedCustomerId}
             onPatch={patchCustomer}
+            onCurationFilter={setCurationFilter}
           />
         ) : null}
 
@@ -292,13 +325,17 @@ export function DgnGrowthWorkspace({
           <FoundersView
             customers={customers}
             campaignMetrics={campaignMetrics}
+            founderFilter={founderFilter}
+            copiedKey={copiedKey}
+            copiedLinkKey={copiedLinkKey}
             onPatch={patchCustomer}
+            onFounderFilter={setFounderFilter}
             onOpenProfile={setSelectedCustomerId}
             onOpenWhatsapp={openWhatsapp}
             onCopy={(customer) =>
               copyText(`message-${customer.id}`, buildFounderWhatsappMessage(customer, getOrigin()))
             }
-            copiedKey={copiedKey}
+            onCopyLink={copyLink}
           />
         ) : null}
 
@@ -417,10 +454,12 @@ function IntelligenceView({
   statusFilter,
   planFilter,
   scoreFilter,
+  sortBy,
   onQuery,
   onStatusFilter,
   onPlanFilter,
   onScoreFilter,
+  onSortBy,
   onOpenProfile,
 }: {
   metrics: {
@@ -437,12 +476,21 @@ function IntelligenceView({
   statusFilter: string;
   planFilter: string;
   scoreFilter: string;
+  sortBy: "score" | "atendimentos" | "valor" | "ultimo";
   onQuery: (value: string) => void;
   onStatusFilter: (value: string) => void;
   onPlanFilter: (value: string) => void;
   onScoreFilter: (value: string) => void;
+  onSortBy: (value: "score" | "atendimentos" | "valor" | "ultimo") => void;
   onOpenProfile: (id: string) => void;
 }) {
+  const sortOptions: { key: "score" | "atendimentos" | "valor" | "ultimo"; label: string }[] = [
+    { key: "score", label: "Score DGN" },
+    { key: "atendimentos", label: "Atendimentos" },
+    { key: "valor", label: "Valor histórico" },
+    { key: "ultimo", label: "Último atend." },
+  ];
+
   return (
     <>
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
@@ -486,6 +534,25 @@ function IntelligenceView({
         onPlanFilter={onPlanFilter}
         onScoreFilter={onScoreFilter}
       />
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">
+          Ordenar por
+        </span>
+        {sortOptions.map((option) => (
+          <button
+            key={option.key}
+            onClick={() => onSortBy(option.key)}
+            className={`inline-flex h-8 items-center rounded-full border px-3 text-xs font-semibold transition ${
+              sortBy === option.key
+                ? "border-[#C9A84C]/35 bg-[#C9A84C]/10 text-[#E7C96A]"
+                : "border-white/[0.08] bg-white/[0.035] text-[#A7A7A7] hover:border-[#C9A84C]/25"
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
 
       <CustomersTable customers={customers} onOpenProfile={onOpenProfile} />
     </>
@@ -638,18 +705,38 @@ function CustomersTable({
   );
 }
 
+const curationFilterOptions = [
+  { key: "Todos", label: "Todos" },
+  { key: "Aguardando", label: "Aguardando curadoria" },
+  { key: "Curado", label: "Curado" },
+  { key: "Founder", label: "Founder selecionado" },
+  { key: "SemTelefone", label: "Sem telefone" },
+] as const;
+
 function CurationView({
   customers,
   selectedCustomer,
+  curationFilter,
   onSelect,
   onPatch,
+  onCurationFilter,
 }: {
   customers: DgnCustomer[];
   selectedCustomer: DgnCustomer;
+  curationFilter: string;
   onSelect: (id: string) => void;
   onPatch: (id: string, patch: Partial<CustomerDraft>) => void;
+  onCurationFilter: (value: string) => void;
 }) {
-  const sortedCustomers = [...customers].sort((a, b) => b.scoreDgn - a.scoreDgn);
+  const filteredCustomers = [...customers]
+    .filter((customer) => {
+      if (curationFilter === "Aguardando") return customer.commercialStatus === "Aguardando Curadoria DGN";
+      if (curationFilter === "Curado") return customer.commercialStatus === "Curado";
+      if (curationFilter === "Founder") return customer.campaign.founderSelected;
+      if (curationFilter === "SemTelefone") return !customer.phone;
+      return true;
+    })
+    .sort((a, b) => b.scoreDgn - a.scoreDgn);
 
   return (
     <section className="grid gap-5 lg:grid-cols-[22rem_1fr]">
@@ -659,9 +746,24 @@ function CurationView({
             Curadoria DGN
           </p>
           <h2 className="mt-1 text-lg font-semibold text-white">Ordenado por Score DGN</h2>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {curationFilterOptions.map((option) => (
+              <button
+                key={option.key}
+                onClick={() => onCurationFilter(option.key)}
+                className={`inline-flex h-7 items-center rounded-full border px-2.5 text-[11px] font-semibold transition ${
+                  curationFilter === option.key
+                    ? "border-[#C9A84C]/35 bg-[#C9A84C]/10 text-[#E7C96A]"
+                    : "border-white/[0.08] bg-white/[0.025] text-[#9CA3AF] hover:border-[#C9A84C]/20"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="max-h-[calc(100vh-15rem)] overflow-y-auto p-2">
-          {sortedCustomers.map((customer) => (
+        <div className="max-h-[calc(100vh-18rem)] overflow-y-auto p-2">
+          {filteredCustomers.map((customer) => (
             <button
               key={customer.id}
               onClick={() => onSelect(customer.id)}
@@ -804,14 +906,27 @@ function CurationView({
   );
 }
 
+const founderFilterOptions = [
+  { key: "Todos", label: "Todos" },
+  { key: "Ativo", label: "Ativos" },
+  { key: "SemConvite", label: "Sem convite" },
+  { key: "Visualizou", label: "Visualizaram" },
+  { key: "AguardandoKit", label: "Aguardando kit" },
+  { key: "Perdido", label: "Perdidos" },
+] as const;
+
 function FoundersView({
   customers,
   campaignMetrics,
+  founderFilter,
+  copiedKey,
+  copiedLinkKey,
   onPatch,
+  onFounderFilter,
   onOpenProfile,
   onOpenWhatsapp,
   onCopy,
-  copiedKey,
+  onCopyLink,
 }: {
   customers: DgnCustomer[];
   campaignMetrics: {
@@ -822,16 +937,22 @@ function FoundersView({
     conversations: number;
     payments: number;
     converted: number;
+    awaitingKit: number;
+    lost: number;
     revenue: number;
     founders: DgnCustomer[];
   };
+  founderFilter: string;
+  copiedKey: string;
+  copiedLinkKey: string;
   onPatch: (id: string, patch: Partial<CustomerDraft>) => void;
+  onFounderFilter: (value: string) => void;
   onOpenProfile: (id: string) => void;
   onOpenWhatsapp: (customer: DgnCustomer) => void;
   onCopy: (customer: DgnCustomer) => void;
-  copiedKey: string;
+  onCopyLink: (customer: DgnCustomer) => void;
 }) {
-  const founderRows = [
+  const allFounderRows = [
     ...campaignMetrics.founders,
     ...Array.from({ length: Math.max(0, 30 - campaignMetrics.founders.length) }, (_, index) => {
       const number = String(campaignMetrics.founders.length + index + 1).padStart(3, "0");
@@ -855,22 +976,36 @@ function FoundersView({
           nextAction: "Selecionar cliente na Curadoria DGN",
           notes: "Slot reservado para completar os 30 Founders.",
           founderSelected: false,
+          kitStatus: "" as FounderKitStatus,
+          cardStatus: "" as FounderCardStatus,
         },
         isSlot: true,
       };
     }),
   ];
 
+  const founderRows = allFounderRows.filter((row) => {
+    const customer = row as DgnCustomer & { isSlot?: boolean };
+    if (founderFilter === "Ativo") return customer.campaign.campaignStatus === "Assinante ativo";
+    if (founderFilter === "SemConvite") return !customer.campaign.personalizedPagePath && !customer.isSlot;
+    if (founderFilter === "Visualizou") return customer.campaign.campaignStatus === "Visualizou";
+    if (founderFilter === "AguardandoKit") return customer.campaign.campaignStatus === "Aguardando Kit Founder";
+    if (founderFilter === "Perdido") return customer.campaign.campaignStatus === "Perdido";
+    return true;
+  });
+
   return (
     <>
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <MetricCard label="Convites disponiveis" value={String(campaignMetrics.available)} icon={Crown} />
+        <MetricCard label="Slots disponíveis" value={String(campaignMetrics.available)} icon={Crown} />
         <MetricCard label="Convites criados" value={String(campaignMetrics.created)} icon={Check} />
         <MetricCard label="Enviados" value={String(campaignMetrics.sent)} icon={Send} />
         <MetricCard label="Visualizados" value={String(campaignMetrics.viewed)} icon={Eye} />
         <MetricCard label="Conversando" value={String(campaignMetrics.conversations)} icon={MessageCircle} />
         <MetricCard label="Pagamentos enviados" value={String(campaignMetrics.payments)} icon={Banknote} />
         <MetricCard label="Convertidos" value={`${campaignMetrics.converted} / 30`} icon={BadgeCheck} />
+        <MetricCard label="Aguardando kit" value={String(campaignMetrics.awaitingKit)} icon={Check} />
+        <MetricCard label="Perdidos" value={String(campaignMetrics.lost)} icon={X} />
         <MetricCard label="Receita gerada" value={formatCurrency(campaignMetrics.revenue)} icon={Banknote} wide />
       </section>
 
@@ -883,6 +1018,21 @@ function FoundersView({
             <h2 className="mt-1 text-lg font-semibold text-white">
               Meta: 30 assinaturas semestrais
             </h2>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {founderFilterOptions.map((option) => (
+                <button
+                  key={option.key}
+                  onClick={() => onFounderFilter(option.key)}
+                  className={`inline-flex h-7 items-center rounded-full border px-2.5 text-[11px] font-semibold transition ${
+                    founderFilter === option.key
+                      ? "border-[#C9A84C]/35 bg-[#C9A84C]/10 text-[#E7C96A]"
+                      : "border-white/[0.08] bg-white/[0.025] text-[#9CA3AF] hover:border-[#C9A84C]/20"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-white/[0.06] sm:w-80">
             <div
@@ -893,7 +1043,7 @@ function FoundersView({
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1320px] border-collapse">
+          <table className="w-full min-w-[1520px] border-collapse">
             <thead>
               <tr className="border-b border-white/[0.07] text-left">
                 {[
@@ -906,6 +1056,8 @@ function FoundersView({
                   "Plano",
                   "Condicao",
                   "Status",
+                  "Kit",
+                  "Cartão",
                   "Pagina",
                   "Ultima/proxima acao",
                   "Acoes",
@@ -988,6 +1140,44 @@ function FoundersView({
                       )}
                     </td>
                     <td className="px-4 py-4">
+                      {isSlot ? (
+                        <span className="text-xs text-[#747474]">—</span>
+                      ) : (
+                        <SelectField
+                          value={customer.campaign.kitStatus || ""}
+                          onChange={(value) =>
+                            onPatch(customer.id, {
+                              campaign: { kitStatus: value as FounderKitStatus } as CustomerDraft["campaign"],
+                            })
+                          }
+                        >
+                          <option value="">Pendente</option>
+                          {founderKitStatuses.map((item) => (
+                            <option key={item}>{item}</option>
+                          ))}
+                        </SelectField>
+                      )}
+                    </td>
+                    <td className="px-4 py-4">
+                      {isSlot ? (
+                        <span className="text-xs text-[#747474]">—</span>
+                      ) : (
+                        <SelectField
+                          value={customer.campaign.cardStatus || ""}
+                          onChange={(value) =>
+                            onPatch(customer.id, {
+                              campaign: { cardStatus: value as FounderCardStatus } as CustomerDraft["campaign"],
+                            })
+                          }
+                        >
+                          <option value="">Pendente</option>
+                          {founderCardStatuses.map((item) => (
+                            <option key={item}>{item}</option>
+                          ))}
+                        </SelectField>
+                      )}
+                    </td>
+                    <td className="px-4 py-4">
                       {customer.campaign.personalizedPagePath ? (
                         <Link
                           href={customer.campaign.personalizedPagePath}
@@ -1027,6 +1217,12 @@ function FoundersView({
                           icon={copiedKey === `message-${customer.id}` ? Check : Copy}
                           disabled={isSlot}
                           onClick={() => onCopy(customer)}
+                        />
+                        <IconButton
+                          label={copiedLinkKey === customer.id ? "Link copiado" : "Copiar link individual"}
+                          icon={copiedLinkKey === customer.id ? Check : ExternalLink}
+                          disabled={isSlot || !customer.campaign.personalizedPagePath}
+                          onClick={() => onCopyLink(customer)}
                         />
                         {customer.campaign.paymentLink ? (
                           <Link
@@ -1273,11 +1469,20 @@ function CustomerProfileInline({
 }
 
 function CustomerSnapshot({ customer }: { customer: DgnCustomer }) {
+  const incompleteRegistration = !customer.phone;
+
   return (
     <div className="rounded-lg border border-[#C9A84C]/18 bg-[#121212] p-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-2xl font-semibold text-white">{customer.name}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-2xl font-semibold text-white">{customer.name}</p>
+            {incompleteRegistration ? (
+              <span className="inline-flex h-6 items-center rounded-full border border-red-400/30 bg-red-400/10 px-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-red-300">
+                Cadastro incompleto
+              </span>
+            ) : null}
+          </div>
           <p className="mt-2 text-sm text-[#A7A7A7]">
             {customer.vehicle} | Placa {maskPlate(customer.plate)}
           </p>
