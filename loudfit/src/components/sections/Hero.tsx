@@ -45,11 +45,13 @@ export function Hero() {
 
         {/* H1 */}
         <h1
-          className="max-w-[12ch] font-black uppercase leading-[1.12] tracking-[0] text-lf-text md:max-w-[13ch] md:leading-[1.1]"
-          style={{ fontSize: 'clamp(2.35rem, 4vw, 4.65rem)' }}
+          className="max-w-[12ch] font-black uppercase leading-[0.95] tracking-[0] text-lf-text md:max-w-[13ch] md:leading-[1.1]"
+          style={{ fontSize: 'clamp(2.75rem, 4vw, 4.65rem)' }}
         >
-          O melhor ainda está por{' '}
-          <span className="text-lf-volt">vir</span>
+          O melhor ainda está{' '}
+          <span style={{ whiteSpace: 'nowrap' }}>
+            por <span className="text-lf-volt">vir</span>
+          </span>
         </h1>
 
         {/* Selo de oferta */}
@@ -66,14 +68,14 @@ export function Hero() {
 
         {/* CTAs */}
         <div className="mt-7 flex flex-col items-start gap-3 sm:mt-9 sm:flex-row sm:items-center">
-          <Button href="/unidades" variant="volt" size="lg" className="min-h-[52px] font-extrabold tracking-[0.02em]">
+          <Button href="/unidades" variant="volt" size="lg" className="min-h-[48px] font-extrabold tracking-[0.02em]">
             Encontrar minha unidade
           </Button>
           <Button
             href="#planos"
             variant="outline"
-            size="lg"
-            className="min-h-[52px] tracking-[0.02em]"
+            size="md"
+            className="min-h-[44px] tracking-[0.02em]"
           >
             Ver planos
           </Button>
