@@ -1,7 +1,22 @@
-<section class="hero-premium {% if section.settings.image == blank %}hero-premium--fallback{% endif %}">
-  {% if section.settings.image != blank %}
+{% assign desktop_image = section.settings.image_desktop %}
+{% if desktop_image == blank %}
+  {% assign desktop_image = section.settings.image %}
+{% endif %}
+{% assign mobile_image = section.settings.image_mobile %}
+
+<section class="hero-premium {% if desktop_image == blank %}hero-premium--fallback{% endif %}">
+  {% if desktop_image != blank %}
     <div class="hero-premium__media">
-      {{ section.settings.image | image_url: width: 1800 | image_tag: loading: 'eager', widths: '375, 750, 1100, 1500, 1800', sizes: '100vw', alt: section.settings.heading }}
+      <picture>
+        {% if mobile_image != blank %}
+          <source
+            media="(max-width: 749px)"
+            srcset="{{ mobile_image | image_url: width: 375 }} 375w, {{ mobile_image | image_url: width: 750 }} 750w, {{ mobile_image | image_url: width: 1080 }} 1080w"
+            sizes="100vw"
+          >
+        {% endif %}
+        {{ desktop_image | image_url: width: 1800 | image_tag: loading: 'eager', widths: '375, 750, 1100, 1500, 1800', sizes: '100vw', alt: section.settings.heading }}
+      </picture>
     </div>
   {% endif %}
   <div class="page-width hero-premium__content">
@@ -15,17 +30,11 @@
       </div>
     </div>
 
-    {% if section.settings.image != blank %}
-      <span></span>
-    {% else %}
+    {% unless desktop_image != blank %}
       <div class="hero-premium__panel" aria-hidden="true">
-        <div class="hero-premium__tag">PattaMansa</div>
-        <div class="hero-premium__shirt">
-          <span>PM</span>
-        </div>
-        <p>Camisetas premium para tutores.</p>
+        {% render 'icon-paw-heart' %}
       </div>
-    {% endif %}
+    {% endunless %}
   </div>
 </section>
 
@@ -33,7 +42,9 @@
 {
   "name": "Hero premium",
   "settings": [
-    { "type": "image_picker", "id": "image", "label": "Imagem de fundo" },
+    { "type": "image_picker", "id": "image_desktop", "label": "Banner desktop" },
+    { "type": "image_picker", "id": "image_mobile", "label": "Banner mobile" },
+    { "type": "image_picker", "id": "image", "label": "Imagem de fundo fallback" },
     { "type": "text", "id": "eyebrow", "label": "Chamada curta", "default": "Pet lifestyle premium" },
     { "type": "text", "id": "heading", "label": "Headline", "default": "Pra quem tem cachorro como familia." },
     { "type": "textarea", "id": "subheading", "label": "Subheadline", "default": "Camisetas premium com design de verdade — feitas no padrao Reserva INK." },

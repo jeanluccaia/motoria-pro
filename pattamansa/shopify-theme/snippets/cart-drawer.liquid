@@ -1,0 +1,17 @@
+<aside id="CartDrawer" class="cart-drawer" data-cart-drawer hidden>
+  <div class="cart-drawer__overlay" data-cart-close tabindex="-1"></div>
+  <div class="cart-drawer__panel" role="dialog" aria-modal="true" aria-label="Carrinho">
+    <div class="cart-drawer__header">
+      <p>Seu carrinho</p>
+      <button type="button" class="cart-drawer__close" data-cart-close aria-label="Fechar carrinho">&times;</button>
+    </div>
+    <div class="cart-drawer__body" data-cart-drawer-body>
+      <p class="cart-drawer__empty">Seu carrinho esta vazio.</p>
+    </div>
+    <div class="cart-drawer__footer">
+      <p class="cart-drawer__subtotal"><span>Subtotal</span><strong data-cart-subtotal>{{ cart.total_price | money }}</strong></p>
+      <a class="button button--secondary" href="{{ routes.cart_url }}">Ver carrinho</a>
+      <a class="button button--primary" href="/checkout">Finalizar compra</a>
+    </div>
+  </div>
+</aside>
