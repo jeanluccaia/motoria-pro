@@ -22,7 +22,7 @@ export function HomeUnitsGrid() {
           </p>
           <Link
             href="/unidades"
-            className="inline-flex min-h-[48px] w-full min-w-0 max-w-full items-center justify-center whitespace-normal bg-lf-volt px-4 py-3 text-center text-xs font-black uppercase tracking-[0.08em] text-lf-black transition hover:-translate-y-0.5 hover:bg-lf-volt-deep sm:w-auto sm:px-6 sm:text-sm sm:tracking-[0.1em]"
+            className="lf-cta-volt inline-flex min-h-[48px] w-full min-w-0 max-w-full items-center justify-center whitespace-normal px-4 py-3 text-center text-xs font-black uppercase tracking-[0.08em] transition hover:-translate-y-0.5 sm:w-auto sm:px-6 sm:text-sm sm:tracking-[0.1em]"
           >
             Ver todas as unidades
           </Link>

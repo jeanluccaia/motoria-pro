@@ -12,8 +12,8 @@
   --lf-muted:    #909090;
 
   /* Acento */
-  --lf-volt:     #FFE500;
-  --lf-volt-deep:#D4B800;
+  --lf-volt:     #FFE000;
+  --lf-volt-deep:#FFE000;
 
   /* Movimento */
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -50,6 +50,33 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+}
+
+.lf-cta-volt {
+  background: #FFE000 !important;
+  background-color: #FFE000 !important;
+  color: #000000 !important;
+  opacity: 1;
+  filter: none;
+  -webkit-filter: none;
+  mix-blend-mode: normal;
+  background-blend-mode: normal;
+  isolation: isolate;
+}
+
+.lf-cta-volt:hover,
+.lf-cta-volt:active,
+.lf-cta-volt:focus,
+.lf-cta-volt:disabled,
+.lf-cta-volt[aria-disabled="true"] {
+  background: #FFE000 !important;
+  background-color: #FFE000 !important;
+  color: #000000 !important;
+  opacity: 1;
+  filter: none;
+  -webkit-filter: none;
+  mix-blend-mode: normal;
+  background-blend-mode: normal;
 }
 
 h1, h2, h3, h4 {

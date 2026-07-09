@@ -228,7 +228,7 @@ export default async function FranquiasPage() {
             href={franchiseWhatsAppUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex shrink-0 min-h-[48px] items-center justify-center bg-lf-volt px-7 py-3 text-sm font-bold uppercase tracking-[0.1em] text-lf-black transition-all hover:-translate-y-0.5 hover:brightness-105 active:scale-[0.99]"
+            className="lf-cta-volt inline-flex shrink-0 min-h-[48px] items-center justify-center px-7 py-3 text-sm font-bold uppercase tracking-[0.1em] transition-all hover:-translate-y-0.5 active:scale-[0.99]"
           >
             Falar com a equipe de expansão
           </a>
