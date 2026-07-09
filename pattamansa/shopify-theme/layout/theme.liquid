@@ -38,13 +38,6 @@
     {{ content_for_header }}
 
     <style>
-      {% if settings.heading_font != blank %}
-        {{ settings.heading_font | font_face: font_display: 'swap' }}
-      {% endif %}
-      {% if settings.body_font != blank %}
-        {{ settings.body_font | font_face: font_display: 'swap' }}
-      {% endif %}
-
       :root {
         --ink: {{ settings.text_color | default: '#1A1A1A' }};
         --paper: {{ settings.background_color | default: '#F2EDE4' }};
