@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Button'
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-[60vh] items-start overflow-x-hidden bg-lf-black pb-12 pt-24 md:min-h-[68vh] md:items-end md:pb-20 md:pt-28 lg:min-h-[70vh] lg:pb-24 lg:pt-36">
+    <section className="relative flex min-h-[60vh] items-start overflow-x-hidden bg-lf-black pb-8 pt-20 md:min-h-[68vh] md:items-end md:pb-20 md:pt-28 lg:min-h-[70vh] lg:pb-24 lg:pt-36">
       {/* Desktop image */}
       <Image
         src="/assets/images/hero-gym-desktop.png"
@@ -21,13 +21,13 @@ export function Hero() {
         fill
         priority
         sizes="100vw"
-        className="absolute inset-0 h-full w-full object-cover object-[58%_center] opacity-95 brightness-[0.9] contrast-[1.08] md:hidden"
+        className="absolute inset-0 h-full w-full object-cover object-[58%_center] opacity-90 contrast-[1.04] md:hidden"
         aria-hidden="true"
       />
 
       {/* Gradientes */}
       <div className="absolute inset-0 hidden bg-[linear-gradient(90deg,rgba(9,9,9,0.96)_0%,rgba(9,9,9,0.68)_44%,rgba(9,9,9,0.16)_100%),linear-gradient(180deg,rgba(9,9,9,0.08)_0%,rgba(9,9,9,0.34)_46%,rgba(9,9,9,0.92)_100%)] md:block" />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,9,9,0.62)_0%,rgba(9,9,9,0.22)_34%,rgba(9,9,9,0.72)_100%),linear-gradient(90deg,rgba(9,9,9,0.72)_0%,rgba(9,9,9,0.12)_100%)] md:hidden" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,9,9,0.50)_0%,rgba(9,9,9,0.16)_34%,rgba(9,9,9,0.65)_100%),linear-gradient(90deg,rgba(9,9,9,0.62)_0%,rgba(9,9,9,0.08)_100%)] md:hidden" />
 
       {/* Linha diagonal — identidade LoudFit */}
       <div className="absolute bottom-0 left-0 right-0 h-px bg-lf-line" />
@@ -45,8 +45,8 @@ export function Hero() {
 
         {/* H1 */}
         <h1
-          className="max-w-[12ch] font-black uppercase leading-[0.95] tracking-[0] text-lf-text md:max-w-[13ch] md:leading-[1.1]"
-          style={{ fontSize: 'clamp(2.75rem, 4vw, 4.65rem)' }}
+          className="max-w-[12ch] font-black uppercase leading-[1.0] tracking-[0] text-lf-text md:max-w-[13ch] md:leading-[1.1]"
+          style={{ fontSize: 'clamp(2.1rem, 4vw, 4.65rem)' }}
         >
           O melhor ainda está{' '}
           <span style={{ whiteSpace: 'nowrap' }}>
@@ -55,27 +55,27 @@ export function Hero() {
         </h1>
 
         {/* Selo de oferta */}
-        <div className="mt-6 inline-flex items-center gap-2.5 border border-white/[0.12] bg-white/[0.07] px-4 py-2.5 backdrop-blur-[2px] md:mt-7">
+        <div className="mt-5 inline-flex items-center gap-2 border border-white/[0.08] bg-white/[0.05] px-3 py-1 backdrop-blur-[2px] md:mt-7 md:gap-2.5 md:border-white/[0.12] md:bg-white/[0.07] md:px-4 md:py-2.5">
           <span className="flex flex-col gap-0.5 leading-tight">
-            <span className="text-sm font-bold text-lf-text">
+            <span className="text-xs font-bold text-lf-text md:text-sm">
               1ª mensalidade R$9,90
             </span>
-            <span className="text-[11px] text-lf-muted">
+            <span className="text-[10px] text-lf-muted md:text-[11px]">
               Power Anual Recorrente*
             </span>
           </span>
         </div>
 
         {/* CTAs */}
-        <div className="mt-7 flex flex-col items-start gap-3 sm:mt-9 sm:flex-row sm:items-center">
-          <Button href="/unidades" variant="volt" size="lg" className="min-h-[48px] font-extrabold tracking-[0.02em]">
+        <div className="mt-5 flex flex-col items-start gap-2.5 sm:mt-9 sm:flex-row sm:items-center">
+          <Button href="/unidades" variant="volt" size="md" className="min-h-[44px] font-extrabold tracking-[0.02em] sm:px-8 sm:py-4 sm:text-base">
             Encontrar minha unidade
           </Button>
           <Button
             href="#planos"
             variant="outline"
-            size="md"
-            className="min-h-[44px] tracking-[0.02em]"
+            size="sm"
+            className="tracking-[0.02em]"
           >
             Ver planos
           </Button>
