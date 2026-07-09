@@ -41,7 +41,7 @@ Garantir que as 6 unidades LoudFit apareçam corretamente no Google Maps e Googl
 | Campo | Valor |
 |-------|-------|
 | Nome no site | LoudFit Carrefour Valinhos |
-| Endereço | Carrefour Valinhos - Valinhos, SP |
+| Endereço | Av Eng. Antonio Francisco de Paula Souza, 3900, SL 11 - Valinhos, SP |
 | WhatsApp | (19) 99441-0440 |
 | WhatsApp URL | https://wa.me/5519994410440 |
 | Horário Seg–Qui | 06h às 23h |
@@ -60,9 +60,9 @@ Garantir que as 6 unidades LoudFit apareçam corretamente no Google Maps e Googl
 | Campo | Valor |
 |-------|-------|
 | Nome no site | LoudFit Ipiranga |
-| Endereço | R. Lino Coutinho, 385 - Ipiranga, São Paulo - SP |
-| WhatsApp | NÃO ENCONTRADO NO PROJETO |
-| WhatsApp URL | NÃO ENCONTRADO NO PROJETO |
+| Endereço | Rua Lino Coutinho, 385 - Ipiranga, São Paulo - SP |
+| WhatsApp | (11) 93733-4895 |
+| WhatsApp URL | https://wa.me/5511937334895 |
 | Horário Seg–Qui | 05h às 23h |
 | Horário Sexta | 05h às 22h |
 | Horário Sábado | 08h às 15h |
@@ -81,7 +81,7 @@ Garantir que as 6 unidades LoudFit apareçam corretamente no Google Maps e Googl
 | Campo | Valor |
 |-------|-------|
 | Nome no site | LoudFit Anchieta SP |
-| Endereço | Rod. Anchieta, 1778 - Vila Moinho Velho, São Paulo - SP |
+| Endereço | Rodovia Anchieta, 1778 - Vila Moinho Velho, São Paulo - SP |
 | WhatsApp | (11) 99298-9496 |
 | WhatsApp URL | https://wa.me/5511992989496 |
 | Horário Seg–Qui | 05h às 23h |
@@ -100,7 +100,7 @@ Garantir que as 6 unidades LoudFit apareçam corretamente no Google Maps e Googl
 | Campo | Valor |
 |-------|-------|
 | Nome no site | LoudFit Amoreiras |
-| Endereço | Amoreiras - Campinas, SP |
+| Endereço | Av. das Amoreiras, 3771 - Campinas, SP |
 | WhatsApp | (19) 99855-4252 |
 | WhatsApp URL | https://wa.me/5519998554252 |
 | Horário Seg–Qui | 05h às 23h |
@@ -120,7 +120,7 @@ Garantir que as 6 unidades LoudFit apareçam corretamente no Google Maps e Googl
 | Campo | Valor |
 |-------|-------|
 | Nome no site | LoudFit Vila Industrial |
-| Endereço | Vila Industrial - Campinas, SP |
+| Endereço | Rua Antonio Bento, 347 - Vila Industrial, Campinas - SP |
 | WhatsApp | (19) 98829-1946 |
 | WhatsApp URL | https://wa.me/5519988291946 |
 | Horário Seg–Qui | 05h às 23h |
@@ -140,7 +140,7 @@ Garantir que as 6 unidades LoudFit apareçam corretamente no Google Maps e Googl
 | Campo | Valor |
 |-------|-------|
 | Nome no site | LoudFit Mogi Mirim |
-| Endereço | Mogi Mirim, SP |
+| Endereço | Rua Padre Roque, 939 - Mogi Mirim, SP |
 | WhatsApp | (19) 99142-9998 |
 | WhatsApp URL | https://wa.me/5519991429998 |
 | Horário Seg–Qui | 05h às 23h |
@@ -153,8 +153,6 @@ Garantir que as 6 unidades LoudFit apareçam corretamente no Google Maps e Googl
 | Google Maps URL | NÃO ENCONTRADO NO PROJETO |
 | Google Place ID | NÃO ENCONTRADO NO PROJETO |
 | Instagram | NÃO ENCONTRADO NO PROJETO |
-
-> **Nota:** O endereço completo de Mogi Mirim está incompleto no projeto (consta apenas "Mogi Mirim, SP"). Antes de configurar o GBP, confirmar endereço exato com a unidade.
 
 ---
 
@@ -231,10 +229,37 @@ Ao configurar ou corrigir cada perfil, usar os seguintes dados:
 
 ## Observações Gerais
 
-- **Endereço incompleto:** Mogi Mirim consta apenas como "Mogi Mirim, SP" no projeto — confirmar logradouro completo antes de configurar o GBP.
-- **Endereço incompleto:** Amoreiras consta apenas como "Amoreiras - Campinas, SP" — confirmar logradouro.
-- **Endereço incompleto:** Vila Industrial consta apenas como "Vila Industrial - Campinas, SP" — confirmar logradouro.
-- **Endereço incompleto:** Carrefour Valinhos consta apenas como "Carrefour Valinhos - Valinhos, SP" — confirmar logradouro dentro do shopping.
-- **WhatsApp ausente:** Unidade Ipiranga não tem WhatsApp cadastrado no projeto — confirmar número antes de configurar o GBP.
 - **Histórico Pano Bianco:** Alta probabilidade de que perfis antigos ainda existam para as unidades instaladas em lojas ex-Pano Bianco. Verificar todas.
 - **Conta Google:** Definir qual conta Google será proprietária de cada perfil antes de iniciar as reivindicações.
+- **Saneamento concluído:** Endereços e WhatsApps foram padronizados em 2026-07-09 conforme dados fornecidos pelas unidades. Ver seção "Dados saneados antes da auditoria manual".
+
+---
+
+## Dados saneados antes da auditoria manual
+
+**Data do saneamento:** 2026-07-09
+
+Antes de iniciar a pesquisa manual no Google Maps, os dados de endereço e WhatsApp das 6 unidades foram padronizados no projeto (`src/lib/supabase.ts` — `fallbackUnits` e `officialUnitData`). As correções foram aplicadas com base nos dados fornecidos diretamente pelas unidades.
+
+### O que foi corrigido
+
+| Unidade | Campo | Antes | Depois |
+|---------|-------|-------|--------|
+| Carrefour Valinhos | Endereço | Carrefour Valinhos - Valinhos, SP | Av Eng. Antonio Francisco de Paula Souza, 3900, SL 11 - Valinhos, SP |
+| Ipiranga | Endereço | R. Lino Coutinho, 385 - Ipiranga, São Paulo - SP | Rua Lino Coutinho, 385 - Ipiranga, São Paulo - SP |
+| Ipiranga | WhatsApp | (sem cadastro) | (11) 93733-4895 |
+| Anchieta SP | Endereço | Rod. Anchieta, 1778 - Vila Moinho Velho, São Paulo - SP | Rodovia Anchieta, 1778 - Vila Moinho Velho, São Paulo - SP |
+| Amoreiras | Endereço | Amoreiras - Campinas, SP | Av. das Amoreiras, 3771 - Campinas, SP |
+| Vila Industrial | Endereço | Vila Industrial - Campinas, SP | Rua Antonio Bento, 347 - Vila Industrial, Campinas - SP |
+| Mogi Mirim | Endereço | Mogi Mirim, SP | Rua Padre Roque, 939 - Mogi Mirim, SP |
+
+### O que NÃO foi alterado nesta etapa
+
+- `google_maps_url` — mantido vazio; será preenchido após identificação manual do perfil no Google Maps
+- `google_place_id` — mantido nulo; será preenchido após identificação manual do perfil no Google Maps
+- Layout, componentes visuais e páginas públicas do site
+- Nenhum deploy foi realizado nesta etapa
+
+### Impacto no site
+
+Os dados de `fallbackUnits` são exibidos nas páginas públicas `/unidades/[slug]` quando o banco de dados (Supabase) não está disponível. Em produção, os dados corretos devem ser espelhados no Supabase para garantir que a fonte primária também esteja atualizada.
