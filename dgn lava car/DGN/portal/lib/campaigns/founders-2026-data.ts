@@ -76,18 +76,59 @@ ${personalizedPageUrl}
 Dá uma olhada e me chama por aqui para confirmar sua vaga.`,
 };
 
-const joseMoreira: FounderCampaignGuest = {
+const benedito: FounderCampaignGuest = {
   id: "founder-001",
   founderNumber: "Nº001",
+  slug: "benedito-constantino",
+  name: "Benedito Constantino",
+  phone: "19981723362",
+  vehicle: "BYD Song Plus",
+  maskedPlate: "Não exibida",
+  customerProfile: {
+    customerSince: "2022",
+    attendances: 70,
+    historicalValue: 465.01,
+    lastAttendance: "06/06/2026",
+    relationshipScore: "Founder ativo",
+  },
+  recommendedPlan: "DGN Priority Semestral",
+  founderConditions: {
+    smart: "6x de R$ 110",
+    priority: "6x de R$ 200",
+  },
+  campaignParticipation: {
+    personalizedPagePath: "/founders/benedito-constantino",
+    paymentLink: null,
+    status: "Convertido",
+    paymentStatus: "Pago",
+    kitStatus: "Pendente",
+    lastAction: "Assinatura confirmada",
+    nextAction: "Acompanhar utilização",
+    notes: "Plano Priority Semestral já fechado e confirmado.",
+    potentialRevenue: 1200,
+    confirmedRevenue: 1200,
+    commercialTimeline: [
+      {
+        title: "Assinatura confirmada",
+        detail: "Founder Nº001 — Priority Semestral ativo.",
+        dateLabel: "Confirmado",
+      },
+    ],
+  },
+};
+
+const joseMoreira: FounderCampaignGuest = {
+  id: "founder-002",
+  founderNumber: "Nº002",
   slug: "jose-moreira",
   name: "José Moreira",
-  phone: "",
+  phone: "19998115400",
   vehicle: "Honda Fit",
   maskedPlate: "Não exibida",
   customerProfile: {
     customerSince: "2022",
-    attendances: 37,
-    historicalValue: 3050.9,
+    attendances: 36,
+    historicalValue: 2430.9,
     lastAttendance: "18/06/2026",
     relationshipScore: "Founder ativo",
   },
@@ -99,14 +140,14 @@ const joseMoreira: FounderCampaignGuest = {
   campaignParticipation: {
     personalizedPagePath: "/founders/jose-moreira",
     paymentLink: null,
-    status: "Pendente",
-    paymentStatus: "Pendente",
+    status: "Convertido",
+    paymentStatus: "Pago",
     kitStatus: "Pendente",
-    lastAction: "Página personalizada criada",
-    nextAction: "Enviar convite manual pelo WhatsApp",
-    notes: "Founder real já criado. Telefone mantido vazio até validação interna.",
+    lastAction: "Assinatura confirmada",
+    nextAction: "Acompanhar utilização",
+    notes: "Plano Smart Semestral já fechado e confirmado.",
     potentialRevenue: 660,
-    confirmedRevenue: 0,
+    confirmedRevenue: 660,
     commercialTimeline: [
       {
         title: "Página personalizada criada",
@@ -178,9 +219,52 @@ function createPlaceholderSlot(index: number): FounderCampaignGuest {
   };
 }
 
+const rikardo: FounderCampaignGuest = {
+  id: "founder-003",
+  founderNumber: "Nº003",
+  slug: "rikardo-oliveira",
+  name: "Rikardo Oliveira",
+  phone: "19999037494",
+  vehicle: "Onix",
+  maskedPlate: "Não exibida",
+  customerProfile: {
+    customerSince: "2022",
+    attendances: 59,
+    historicalValue: 1027.02,
+    lastAttendance: "20/06/2026",
+    relationshipScore: "Founder ativo",
+  },
+  recommendedPlan: "DGN Priority Semestral",
+  founderConditions: {
+    smart: "6x de R$ 110",
+    priority: "6x de R$ 200",
+  },
+  campaignParticipation: {
+    personalizedPagePath: "/founders/rikardo-oliveira",
+    paymentLink: null,
+    status: "Convertido",
+    paymentStatus: "Pago",
+    kitStatus: "Pendente",
+    lastAction: "Assinatura confirmada",
+    nextAction: "Acompanhar utilização",
+    notes: "Plano Priority Semestral já fechado e confirmado.",
+    potentialRevenue: 1200,
+    confirmedRevenue: 1200,
+    commercialTimeline: [
+      {
+        title: "Assinatura confirmada",
+        detail: "Founder Nº003 — Priority Semestral ativo.",
+        dateLabel: "Confirmado",
+      },
+    ],
+  },
+};
+
 export const founders2026Guests: FounderCampaignGuest[] = [
+  benedito,
   joseMoreira,
-  ...Array.from({ length: 29 }, (_, index) => createPlaceholderSlot(index + 2)),
+  rikardo,
+  ...Array.from({ length: 27 }, (_, index) => createPlaceholderSlot(index + 4)),
 ];
 
 export const founders2026Campaign = {
