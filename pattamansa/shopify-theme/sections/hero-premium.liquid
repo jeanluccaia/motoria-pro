@@ -3,9 +3,17 @@
   {% assign desktop_image = section.settings.image %}
 {% endif %}
 {% assign mobile_image = section.settings.image_mobile %}
+{% assign banner_mode = section.settings.banner_mode | default: 'full_image' %}
+{% assign image_alt = section.settings.image_alt | default: 'Fundadores da PattaMansa com cachorro em banner da marca' %}
+{% assign desktop_asset_name = section.settings.desktop_asset | default: 'pattamansa-hero-fundadores-desktop.png' %}
+{% assign default_desktop_asset = desktop_asset_name | asset_url %}
+{% assign has_hero_image = true %}
+{% if desktop_image == blank and default_desktop_asset == blank %}
+  {% assign has_hero_image = false %}
+{% endif %}
 
-<section class="hero-premium {% if desktop_image == blank %}hero-premium--fallback{% endif %}">
-  {% if desktop_image != blank %}
+<section class="hero-premium hero-premium--{{ banner_mode }} {% unless has_hero_image %}hero-premium--fallback{% endunless %}">
+  {% if has_hero_image %}
     <div class="hero-premium__media">
       <picture>
         {% if mobile_image != blank %}
@@ -15,36 +23,61 @@
             sizes="100vw"
           >
         {% endif %}
-        {{ desktop_image | image_url: width: 1800 | image_tag: loading: 'eager', widths: '375, 750, 1100, 1500, 1800', sizes: '100vw', alt: section.settings.heading }}
+        {% if desktop_image != blank %}
+          {{ desktop_image | image_url: width: 1800 | image_tag: loading: 'eager', widths: '375, 750, 1100, 1500, 1800', sizes: '100vw', alt: image_alt }}
+        {% else %}
+          <img
+            src="{{ default_desktop_asset }}"
+            alt="{{ image_alt | escape }}"
+            width="1536"
+            height="1024"
+            loading="eager"
+            fetchpriority="high"
+          >
+        {% endif %}
       </picture>
     </div>
   {% endif %}
-  <div class="page-width hero-premium__content">
-    <div class="hero-premium__copy">
-      <p class="eyebrow">{{ section.settings.eyebrow }}</p>
-      <h1>{{ section.settings.heading }}</h1>
-      <p>{{ section.settings.subheading }}</p>
-      <div class="button-row">
-        <a class="button button--primary" href="{{ section.settings.primary_link }}">{{ section.settings.primary_label }}</a>
-        <a class="button button--secondary" href="{{ section.settings.secondary_link }}">{{ section.settings.secondary_label }}</a>
+  {% unless banner_mode == 'full_image' %}
+    <div class="page-width hero-premium__content">
+      <div class="hero-premium__copy">
+        <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+        <h1>{{ section.settings.heading }}</h1>
+        <p>{{ section.settings.subheading }}</p>
+        <div class="button-row">
+          <a class="button button--primary" href="{{ section.settings.primary_link }}">{{ section.settings.primary_label }}</a>
+          <a class="button button--secondary" href="{{ section.settings.secondary_link }}">{{ section.settings.secondary_label }}</a>
+        </div>
       </div>
-    </div>
 
-    {% unless desktop_image != blank %}
-      <div class="hero-premium__panel" aria-hidden="true">
-        {% render 'icon-paw-heart' %}
-      </div>
-    {% endunless %}
-  </div>
+      {% unless has_hero_image %}
+        <div class="hero-premium__panel" aria-hidden="true">
+          {% render 'icon-paw-heart' %}
+        </div>
+      {% endunless %}
+    </div>
+  {% endunless %}
 </section>
 
 {% schema %}
 {
   "name": "Hero premium",
   "settings": [
+    {
+      "type": "select",
+      "id": "banner_mode",
+      "label": "Modo do banner",
+      "default": "full_image",
+      "options": [
+        { "value": "full_image", "label": "Imagem completa com copy no arquivo" },
+        { "value": "split_copy", "label": "Imagem com textos do tema" }
+      ]
+    },
     { "type": "image_picker", "id": "image_desktop", "label": "Banner desktop" },
     { "type": "image_picker", "id": "image_mobile", "label": "Banner mobile" },
+    { "type": "text", "id": "desktop_asset", "label": "Arquivo desktop em assets", "default": "pattamansa-hero-fundadores-desktop.png" },
     { "type": "image_picker", "id": "image", "label": "Imagem de fundo fallback" },
+    { "type": "text", "id": "image_alt", "label": "Alt text da imagem", "default": "Fundadores da PattaMansa com cachorro em banner da marca" },
     { "type": "text", "id": "eyebrow", "label": "Chamada curta", "default": "Pet lifestyle premium" },
     { "type": "text", "id": "heading", "label": "Headline", "default": "Pra quem tem cachorro como familia." },
     { "type": "textarea", "id": "subheading", "label": "Subheadline", "default": "Camisetas premium com design de verdade — feitas no padrao Reserva INK." },
