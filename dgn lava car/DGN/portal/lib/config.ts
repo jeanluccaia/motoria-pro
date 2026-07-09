@@ -1,7 +1,7 @@
 const UTM = 'utm_source=portal_assinante&utm_medium=app&utm_campaign=clube_dgn';
 
 // Número central de atendimento DGN — atualizar com o número real
-export const WHATSAPP_DGN = '5500000000000';
+export const WHATSAPP_DGN = '5519978146936';
 
 // Configure as URLs da plataforma 4U em: Admin > Links da 4U
 export const urls = {

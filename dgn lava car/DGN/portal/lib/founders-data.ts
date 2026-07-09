@@ -96,11 +96,12 @@ export interface Founder {
   };
 }
 
-const WA_BASE = "https://wa.me/5500000000000";
+import { WHATSAPP_DGN } from "@/lib/config";
+
 const WA_MSG = encodeURIComponent(
   "Olá, recebi meu convite personalizado para ser Membro Fundador DGN Club e quero confirmar minha vaga."
 );
-const WA_LINK = `${WA_BASE}?text=${WA_MSG}`;
+const WA_LINK = `https://wa.me/${WHATSAPP_DGN}?text=${WA_MSG}`;
 
 const benedito: Founder = {
   id: "001",
