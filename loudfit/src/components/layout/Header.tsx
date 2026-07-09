@@ -46,7 +46,7 @@ export function Header() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-7">
+        <nav className="hidden lg:flex items-center gap-7">
           {nav.map((item) => (
             <Link
               key={item.href}
@@ -58,7 +58,7 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-2.5">
+        <div className="hidden lg:flex items-center gap-2.5">
           <Button href="/#planos" variant="ghost" size="sm">
             Planos
           </Button>
@@ -70,7 +70,7 @@ export function Header() {
         {/* Mobile hamburger */}
         <button
           onClick={() => setOpen(!open)}
-          className="md:hidden p-2 text-lf-text"
+          className="lg:hidden p-2 text-lf-text"
           aria-label={open ? 'Fechar menu' : 'Abrir menu'}
         >
           <span className={`block w-5 h-0.5 bg-current transition-all mb-1.5 origin-center ${open ? 'rotate-45 translate-y-2' : ''}`} />
@@ -81,7 +81,7 @@ export function Header() {
 
       {/* Mobile menu */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-300 ${
+        className={`lg:hidden overflow-hidden transition-all duration-300 ${
           open ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
         } bg-lf-graphite border-t border-lf-line`}
       >

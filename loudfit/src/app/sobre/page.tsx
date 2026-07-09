@@ -1,35 +1,346 @@
-﻿import type { Metadata } from 'next'
+import type { Metadata } from 'next'
+import Image from 'next/image'
+import { Button } from '@/components/ui/Button'
+import { Reveal } from '@/components/ui/Reveal'
 import { Section, SectionHeader } from '@/components/ui/Section'
 
 export const metadata: Metadata = {
-  title: 'Sobre',
-  description: 'Conheça a história e os fundadores da LoudFit.',
+  title: { absolute: 'Sobre a Loud Fit | Muito mais do que uma academia' },
+  description:
+    'Conheça a história, a missão e os valores da Loud Fit, uma marca criada para transformar academias em ambientes de energia, atitude e resultados reais.',
   alternates: { canonical: '/sobre' },
   openGraph: {
-    title: 'Sobre | LoudFit',
-    description: 'Conheça a história e os fundadores da LoudFit.',
+    title: 'Sobre a Loud Fit | Muito mais do que uma academia',
+    description:
+      'Conheça a história, a missão e os valores da Loud Fit, uma marca criada para transformar academias em ambientes de energia, atitude e resultados reais.',
     url: '/sobre',
     images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sobre | LoudFit',
-    description: 'Conheça a história e os fundadores da LoudFit.',
+    title: 'Sobre a Loud Fit | Muito mais do que uma academia',
+    description:
+      'Conheça a história, a missão e os valores da Loud Fit, uma marca criada para transformar academias em ambientes de energia, atitude e resultados reais.',
     images: ['/opengraph-image'],
   },
 }
 
+const historyBlocks = [
+  {
+    step: '01',
+    title: 'Experiência de mercado',
+    body: 'A Loud Fit nasceu da experiência prática no mercado fitness e da vivência diária com alunos, equipes e operações de academia.',
+  },
+  {
+    step: '02',
+    title: 'Um olhar para a experiência',
+    body: 'Os fundadores perceberam que muitas academias tinham estrutura, mas poucas conseguiam entregar uma experiência marcante, consistente e próxima das pessoas.',
+  },
+  {
+    step: '03',
+    title: 'Identidade própria',
+    body: 'A partir dessa visão, criaram uma academia com presença forte, ambiente acolhedor, energia de treino e uma identidade reconhecível em cada detalhe.',
+  },
+  {
+    step: '04',
+    title: 'Pertencimento e resultado',
+    body: 'Desde o início, o foco foi gerar pertencimento, disciplina e resultados reais para quem escolhe fazer parte da Loud Fit.',
+  },
+]
+
+const loudMeaning = [
+  {
+    letter: 'L',
+    title: 'Liberdade',
+    body: 'Treine do seu jeito. Evolua no seu ritmo.',
+  },
+  {
+    letter: 'O',
+    title: 'Ousadia',
+    body: 'Desafiar limites faz parte da nossa cultura.',
+  },
+  {
+    letter: 'U',
+    title: 'União',
+    body: 'Uma comunidade que cresce junto.',
+  },
+  {
+    letter: 'D',
+    title: 'Determinação',
+    body: 'A constância é o caminho para os resultados.',
+  },
+]
+
+const values = [
+  { icon: 'DS', title: 'Disciplina' },
+  { icon: 'RP', title: 'Respeito' },
+  { icon: 'EV', title: 'Evolução' },
+  { icon: 'CP', title: 'Compromisso' },
+  { icon: 'EN', title: 'Energia' },
+  { icon: 'RS', title: 'Resultado' },
+]
+
+const founders = [
+  { name: 'Fundador', role: 'Loud Fit' },
+  { name: 'Fundadora', role: 'Loud Fit' },
+]
+
 export default function SobrePage() {
   return (
     <div className="pt-16">
-      <Section bg="black">
-        <SectionHeader label="Nossa história" title="Por que a Loud Fit existe" />
-        <div className="max-w-3xl space-y-6 text-lf-muted leading-relaxed">
-          <p>
-            A Loud Fit nasceu para ocupar o espaço entre o low cost e as academias de luxo:
-            estrutura completa, equipe qualificada e o mesmo padrão em cada unidade da rede.
-          </p>
+      <section className="relative flex min-h-[620px] items-end overflow-hidden bg-lf-black py-16 sm:min-h-[680px] md:min-h-[78vh] md:py-24 lg:min-h-[86vh] lg:py-28">
+        <Image
+          src="/assets/images/studio-community.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="absolute inset-0 h-full w-full object-cover object-[58%_50%] lf-ken-burns"
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,8,8,0.42)_0%,rgba(8,8,8,0.36)_36%,rgba(8,8,8,0.94)_100%),linear-gradient(90deg,rgba(8,8,8,0.96)_0%,rgba(8,8,8,0.62)_44%,rgba(8,8,8,0.2)_100%)]" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-lf-line" />
+        <div className="absolute bottom-0 left-0 h-[3px] w-56 -skew-x-12 origin-left bg-lf-volt" />
+
+        <div className="relative z-10 mx-auto w-full max-w-[1360px] px-5 sm:px-8 lg:px-12">
+          <Reveal>
+            <div className="max-w-[22rem] sm:max-w-4xl">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-lf-volt">
+                  Sobre a Loud Fit
+                </p>
+              </div>
+              <h1
+                className="text-[2rem] font-black uppercase leading-[1.02] text-lf-text sm:text-[clamp(3rem,8.2vw,7.25rem)]"
+              >
+                Muito mais do que
+                <br />
+                uma academia.
+                <br />
+                <span className="text-lf-volt">Um movimento.</span>
+              </h1>
+              <p className="mt-6 max-w-2xl text-lg leading-relaxed text-lf-text/82 md:text-xl">
+                A Loud Fit nasceu para transformar academias em ambientes de energia, atitude e
+                resultados reais.
+              </p>
+              <div className="mt-9 flex flex-wrap gap-3">
+                {['Energia', 'Atitude', 'Resultados reais'].map((chip) => (
+                  <span
+                    key={chip}
+                    className="border border-white/15 bg-white/[0.07] px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] text-lf-text backdrop-blur-[2px]"
+                  >
+                    {chip}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </Reveal>
         </div>
+      </section>
+
+      <Section bg="black" className="border-b border-lf-line">
+        <div className="grid gap-12 lg:grid-cols-[0.86fr_1.14fr] lg:items-start">
+          <Reveal>
+            <div className="lg:sticky lg:top-28">
+              <SectionHeader
+                label="Nossa história"
+                title="Uma marca criada para elevar a experiência fitness."
+                subtitle="A Loud Fit surgiu de uma leitura simples do mercado: estrutura importa, mas experiência é o que faz uma pessoa voltar, pertencer e evoluir."
+                className="mb-0"
+              />
+            </div>
+          </Reveal>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {historyBlocks.map((item, index) => (
+              <Reveal key={item.title} delay={index * 0.08}>
+                <article className="min-h-full border border-lf-line bg-lf-graphite/50 p-5 transition-colors hover:border-lf-volt/30 md:p-6">
+                  <span className="text-5xl font-black leading-none text-lf-volt/25">
+                    {item.step}
+                  </span>
+                  <h2 className="mt-6 text-2xl font-black uppercase leading-tight text-lf-text">
+                    {item.title}
+                  </h2>
+                  <p className="mt-4 text-sm leading-relaxed text-lf-muted md:text-base">
+                    {item.body}
+                  </p>
+                </article>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      <Section bg="graphite" className="relative overflow-hidden">
+        <div className="absolute right-0 top-0 h-28 w-28 -skew-x-12 bg-lf-volt" aria-hidden="true" />
+        <SectionHeader
+          label="Identidade"
+          title="O que significa LOUD?"
+          subtitle="Quatro princípios que traduzem a energia da marca dentro e fora do treino."
+        />
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {loudMeaning.map((item, index) => (
+            <Reveal key={item.letter} delay={index * 0.08}>
+              <article className="group relative min-h-[300px] overflow-hidden border border-lf-line bg-lf-black p-6 transition-all hover:-translate-y-1 hover:border-lf-volt/50 md:p-7">
+                <span className="absolute -right-3 -top-8 font-display text-[12rem] font-black leading-none text-lf-surface transition-colors group-hover:text-lf-volt/10">
+                  {item.letter}
+                </span>
+                <div className="relative z-10 flex h-full flex-col justify-between">
+                  <div>
+                    <span className="inline-flex h-14 w-14 items-center justify-center bg-lf-volt text-4xl font-black leading-none text-lf-black">
+                      {item.letter}
+                    </span>
+                    <h2 className="mt-8 text-4xl font-black uppercase leading-none text-lf-text">
+                      {item.title}
+                    </h2>
+                  </div>
+                  <p className="mt-10 max-w-xs text-base leading-relaxed text-lf-muted">
+                    {item.body}
+                  </p>
+                </div>
+              </article>
+            </Reveal>
+          ))}
+        </div>
+      </Section>
+
+      <Section bg="cream" className="text-[#141414]">
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Reveal>
+            <article className="min-h-full border-l-4 border-lf-volt bg-white p-6 shadow-[0_1px_0_0_rgba(20,20,20,0.08)] md:p-8">
+              <p className="mb-4 text-[11px] font-black uppercase tracking-[0.14em] text-[#7A6900]">
+                Nossa missão
+              </p>
+              <h2 className="text-4xl font-black uppercase leading-tight md:text-5xl">
+                Transformar vidas por meio da atividade física.
+              </h2>
+              <p className="mt-5 text-base leading-relaxed text-[#4A4A4A] md:text-lg">
+                Oferecendo uma experiência completa, acolhedora e motivadora para todos que
+                escolhem fazer parte da Loud Fit.
+              </p>
+            </article>
+          </Reveal>
+
+          <Reveal delay={0.08}>
+            <article className="min-h-full bg-[#141414] p-6 text-lf-text md:p-8">
+              <p className="mb-4 text-[11px] font-black uppercase tracking-[0.14em] text-lf-volt">
+                Nossa visão
+              </p>
+              <h2 className="text-4xl font-black uppercase leading-tight md:text-5xl">
+                Ser referência nacional em academias.
+              </h2>
+              <p className="mt-5 text-base leading-relaxed text-lf-muted md:text-lg">
+                Unindo estrutura, atendimento, tecnologia e uma comunidade forte, tornando a Loud
+                Fit uma das maiores redes fitness do Brasil.
+              </p>
+            </article>
+          </Reveal>
+        </div>
+      </Section>
+
+      <Section bg="black">
+        <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+          <Reveal>
+            <div>
+              <SectionHeader
+                label="Nossos valores"
+                title="O padrão que guia cada treino, unidade e decisão."
+                subtitle="Valores simples, repetidos todos os dias na operação, no atendimento e na relação com a comunidade."
+                className="mb-0"
+              />
+            </div>
+          </Reveal>
+
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {values.map((value, index) => (
+              <Reveal key={value.title} delay={index * 0.06}>
+                <article className="group flex min-h-[136px] items-end justify-between gap-4 border border-lf-line bg-lf-graphite p-5 transition-all hover:border-lf-volt/40 hover:bg-lf-surface">
+                  <h2 className="text-2xl font-black uppercase leading-none text-lf-text">
+                    {value.title}
+                  </h2>
+                  <span className="relative inline-flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden bg-lf-black text-xs font-black uppercase tracking-[0.08em] text-lf-volt ring-1 ring-lf-line transition-colors group-hover:bg-lf-volt group-hover:text-lf-black">
+                    <span className="absolute left-0 top-0 h-full w-1 -skew-x-12 bg-lf-volt/70 group-hover:bg-lf-black/80" />
+                    {value.icon}
+                  </span>
+                </article>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      <Section bg="graphite" className="overflow-hidden">
+        <div className="grid gap-10 lg:grid-cols-[1fr_0.85fr] lg:items-center">
+          <Reveal>
+            <div>
+              <SectionHeader
+                label="Pessoas"
+                title="Quem constrói a Loud Fit"
+                subtitle="Uma marca construída por pessoas apaixonadas por transformar vidas através do esporte."
+                className="mb-8"
+              />
+              <p className="max-w-xl border-l-2 border-lf-volt pl-5 text-base leading-relaxed text-lf-muted">
+                Em breve, esta seção receberá as fotos oficiais dos fundadores. A estrutura já está
+                preparada para substituir os placeholders mantendo a mesma composição visual.
+              </p>
+            </div>
+          </Reveal>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            {founders.map((person, index) => (
+              <Reveal key={person.name} delay={index * 0.08}>
+                <article className="overflow-hidden border border-lf-line bg-lf-black">
+                  <div className="relative aspect-[4/5] bg-[linear-gradient(135deg,#1C1C1C_0%,#101010_54%,#FFE500_54%,#D4B800_100%)]">
+                    <div className="absolute inset-5 border border-white/10" />
+                    <div className="absolute bottom-5 left-5 right-5">
+                      <span className="inline-flex h-16 w-16 items-center justify-center bg-lf-volt text-3xl font-black text-lf-black">
+                        LF
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-5">
+                    <h2 className="text-2xl font-black uppercase text-lf-text">{person.name}</h2>
+                    <p className="mt-1 text-sm font-medium uppercase tracking-[0.1em] text-lf-muted">
+                      {person.role}
+                    </p>
+                  </div>
+                </article>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      <Section bg="black" className="relative overflow-hidden border-t border-lf-line lg:py-32">
+        <Image
+          src="/assets/images/real-weights.jpg"
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover opacity-20"
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,8,8,0.98),rgba(8,8,8,0.88),rgba(8,8,8,0.65))]" />
+        <Reveal>
+          <div className="relative mx-auto flex max-w-4xl flex-col items-center text-center">
+            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.14em] text-lf-volt">
+              Próximo passo
+            </p>
+            <h2 className="text-4xl font-black uppercase leading-[1.04] text-lf-text sm:text-5xl md:text-6xl">
+              Venha viver a experiência Loud Fit.
+            </h2>
+            <div className="mt-9 flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row">
+              <Button href="/unidades" variant="volt" size="lg" className="w-full sm:w-auto">
+                Encontrar uma unidade
+              </Button>
+              <Button href="/franquias" variant="ghost" size="lg" className="w-full sm:w-auto">
+                Conheça nossa franquia
+              </Button>
+            </div>
+          </div>
+        </Reveal>
       </Section>
     </div>
   )
