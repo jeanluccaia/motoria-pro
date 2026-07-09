@@ -7,6 +7,8 @@
 {% assign image_alt = section.settings.image_alt | default: 'Fundadores da PattaMansa com cachorro em banner da marca' %}
 {% assign desktop_asset_name = section.settings.desktop_asset | default: 'pattamansa-hero-fundadores-desktop.png' %}
 {% assign default_desktop_asset = desktop_asset_name | asset_url %}
+{% assign full_image_link = section.settings.primary_link %}
+{% assign full_image_link_label = section.settings.primary_label | default: 'Ver coleção' %}
 {% assign has_hero_image = true %}
 {% if desktop_image == blank and default_desktop_asset == blank %}
   {% assign has_hero_image = false %}
@@ -15,6 +17,9 @@
 <section class="hero-premium hero-premium--{{ banner_mode }} {% unless has_hero_image %}hero-premium--fallback{% endunless %}">
   {% if has_hero_image %}
     <div class="hero-premium__media">
+      {% if banner_mode == 'full_image' and full_image_link != blank %}
+        <a class="hero-premium__media-link" href="{{ full_image_link }}" aria-label="{{ full_image_link_label | escape }}">
+      {% endif %}
       <picture>
         {% if mobile_image != blank %}
           <source
@@ -36,6 +41,9 @@
           >
         {% endif %}
       </picture>
+      {% if banner_mode == 'full_image' and full_image_link != blank %}
+        </a>
+      {% endif %}
     </div>
   {% endif %}
   {% unless banner_mode == 'full_image' %}

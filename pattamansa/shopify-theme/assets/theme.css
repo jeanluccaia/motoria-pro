@@ -374,6 +374,18 @@ input {
   height: auto;
 }
 
+.hero-premium--full_image .hero-premium__media-link {
+  display: block;
+  width: 100%;
+  color: inherit;
+  cursor: pointer;
+}
+
+.hero-premium--full_image .hero-premium__media-link:focus-visible {
+  outline: 3px solid var(--clay);
+  outline-offset: 4px;
+}
+
 .hero-premium--full_image .hero-premium__media img {
   position: static;
   width: 100%;
