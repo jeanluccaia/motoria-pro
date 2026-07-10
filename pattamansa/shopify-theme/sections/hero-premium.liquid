@@ -10,7 +10,6 @@
 {% assign desktop_asset_name = section.settings.desktop_asset | default: 'pattamansa-hero-fundadores-clean-desktop.webp' %}
 {% assign mobile_asset_name = section.settings.mobile_asset | default: 'pattamansa-hero-fundadores-clean-mobile.webp' %}
 {% assign desktop_asset_fallback = section.settings.desktop_asset_fallback | default: 'pattamansa-hero-fundadores-desktop.webp' %}
-{% assign mobile_asset_fallback = section.settings.mobile_asset_fallback | default: 'pattamansa-hero-fundadores-desktop.webp' %}
 
 {% assign primary_link = section.settings.primary_link | default: '/collections/todas-as-camisetas' %}
 {% assign primary_label = section.settings.primary_label | default: 'Ver camisetas' %}
@@ -64,7 +63,7 @@
           {% elsif mobile_asset_name != blank %}
             <source
               media="(max-width: 749px)"
-              srcset="{{ mobile_asset_name | asset_url }}, {{ mobile_asset_fallback | asset_url }}"
+              srcset="{{ mobile_asset_name | asset_url }}"
               sizes="100vw"
             >
           {% endif %}
@@ -72,10 +71,11 @@
             {{ desktop_image | image_url: width: 1400 | image_tag: loading: 'eager', fetchpriority: 'high', widths: '600, 900, 1200, 1400', sizes: '(min-width: 990px) 55vw, 100vw', alt: image_alt }}
           {% else %}
             <img
+              class="hero-premium__img"
               src="{{ desktop_asset_name | asset_url }}"
               alt="{{ image_alt | escape }}"
-              width="1400"
-              height="1400"
+              width="1536"
+              height="1024"
               loading="eager"
               fetchpriority="high"
               onerror="if(this.dataset.fallback && this.src !== this.dataset.fallback){this.src=this.dataset.fallback;}"
@@ -207,12 +207,6 @@
       "type": "text",
       "id": "desktop_asset_fallback",
       "label": "Fallback desktop",
-      "default": "pattamansa-hero-fundadores-desktop.webp"
-    },
-    {
-      "type": "text",
-      "id": "mobile_asset_fallback",
-      "label": "Fallback mobile",
       "default": "pattamansa-hero-fundadores-desktop.webp"
     },
     { "type": "image_picker", "id": "image", "label": "Imagem de fundo fallback (uploader)" },
