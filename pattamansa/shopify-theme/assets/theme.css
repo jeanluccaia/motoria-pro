@@ -278,6 +278,10 @@ input {
 
 .mobile-menu {
   position: relative;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
 }
 
 .mobile-menu summary {
