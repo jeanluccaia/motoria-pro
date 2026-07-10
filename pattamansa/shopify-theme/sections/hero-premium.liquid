@@ -4,7 +4,8 @@
 {% assign mobile_image = section.settings.image_mobile %}
 
 {% assign desktop_asset_name = section.settings.desktop_asset | default: 'pattamansa-hero-fundadores-clean-desktop.webp' %}
-{% assign mobile_asset_name = section.settings.mobile_asset | default: 'pattamansa-hero-fundadores-clean-mobile.webp' %}
+{% assign mobile_asset_name = section.settings.mobile_asset | default: 'pattamansa-hero-fundadores-mobile-9x16.webp' %}
+{% assign mobile_asset_fallback = section.settings.mobile_asset_fallback | default: 'pattamansa-hero-fundadores-mobile-9x16.png' %}
 {% assign desktop_asset_fallback = section.settings.desktop_asset_fallback | default: 'pattamansa-hero-fundadores-clean-desktop.webp' %}
 
 {% assign primary_link = section.settings.primary_link | default: '/collections/todas-as-camisetas' %}
@@ -36,9 +37,17 @@
       {% elsif mobile_asset_name != blank %}
         <source
           media="(max-width: 749px)"
+          type="image/webp"
           srcset="{{ mobile_asset_name | asset_url }}"
           sizes="100vw"
         >
+        {% if mobile_asset_fallback != blank %}
+          <source
+            media="(max-width: 749px)"
+            srcset="{{ mobile_asset_fallback | asset_url }}"
+            sizes="100vw"
+          >
+        {% endif %}
       {% endif %}
       {% if desktop_image != blank %}
         {{ desktop_image | image_url: width: 2000 | image_tag: loading: 'eager', fetchpriority: 'high', widths: '900, 1400, 1800, 2000', sizes: '100vw', alt: image_alt, class: 'hero-pm__img' }}
@@ -226,30 +235,27 @@
 
   @media (max-width: 749px) {
     .hero-pm {
-      min-height: 680px;
-      padding: 32px 0 40px;
+      min-height: 0;
+      aspect-ratio: 9 / 16;
+      max-height: 820px;
+      padding: 28px 0 32px;
       align-items: flex-start;
-      background: #1F1917;
-      color: var(--paper);
+      background: #E8DFCF;
+      color: var(--ink);
     }
 
     .hero-pm__media picture,
     .hero-pm__img {
-      object-position: 65% center;
+      object-position: center top;
     }
 
     .hero-pm__scrim {
       background:
         linear-gradient(180deg,
-          rgba(17, 17, 17, .78) 0%,
-          rgba(17, 17, 17, .55) 26%,
-          rgba(17, 17, 17, .25) 52%,
-          rgba(17, 17, 17, .05) 76%,
-          rgba(17, 17, 17, 0) 100%),
-        linear-gradient(90deg,
-          rgba(17, 17, 17, .35) 0%,
-          rgba(17, 17, 17, .1) 55%,
-          rgba(17, 17, 17, 0) 100%);
+          rgba(232, 223, 207, .88) 0%,
+          rgba(232, 223, 207, .68) 22%,
+          rgba(232, 223, 207, .28) 40%,
+          rgba(232, 223, 207, 0) 58%);
     }
 
     .hero-pm__copy {
@@ -260,26 +266,26 @@
     .hero-pm__eyebrow {
       font-size: 11px;
       letter-spacing: .2em;
-      color: rgba(242, 235, 224, .78);
-      margin: 0 0 12px;
+      color: rgba(31, 25, 23, .68);
+      margin: 0 0 10px;
     }
 
     .hero-pm__title {
-      font-size: clamp(40px, 11vw, 58px);
-      line-height: 1.0;
+      font-size: clamp(36px, 10vw, 48px);
+      line-height: 1.02;
       letter-spacing: -0.014em;
-      color: #FBF7EF;
-      text-shadow: 0 1px 18px rgba(0, 0, 0, .28);
+      color: var(--ink);
+      text-shadow: none;
       max-width: 100%;
     }
 
     .hero-pm__sub {
-      margin: 16px 0 0;
+      margin: 14px 0 0;
       max-width: 100%;
-      color: rgba(251, 247, 239, .88);
-      font-size: 15.5px;
-      line-height: 1.5;
-      text-shadow: 0 1px 12px rgba(0, 0, 0, .24);
+      color: rgba(31, 25, 23, .74);
+      font-size: 15px;
+      line-height: 1.45;
+      text-shadow: none;
     }
 
     .hero-pm__actions {
@@ -287,7 +293,7 @@
       align-items: stretch;
       width: 100%;
       gap: 10px;
-      margin-top: 24px;
+      margin-top: 20px;
     }
 
     .hero-pm__actions .button {
@@ -298,14 +304,14 @@
     }
 
     .hero-pm__ghost {
-      color: var(--paper);
-      border-color: rgba(251, 247, 239, .48);
-      background: rgba(17, 17, 17, .18);
+      color: var(--ink);
+      border-color: rgba(31, 25, 23, .32);
+      background: transparent;
     }
 
     .hero-pm__ghost:hover {
-      background: rgba(251, 247, 239, .1);
-      border-color: var(--paper);
+      background: rgba(31, 25, 23, .06);
+      border-color: var(--ink);
     }
 
     .hero-pm__trust {
@@ -330,7 +336,13 @@
       "type": "text",
       "id": "mobile_asset",
       "label": "Arquivo mobile em assets",
-      "default": "pattamansa-hero-fundadores-clean-mobile.webp"
+      "default": "pattamansa-hero-fundadores-mobile-9x16.webp"
+    },
+    {
+      "type": "text",
+      "id": "mobile_asset_fallback",
+      "label": "Fallback mobile (PNG)",
+      "default": "pattamansa-hero-fundadores-mobile-9x16.png"
     },
     {
       "type": "text",

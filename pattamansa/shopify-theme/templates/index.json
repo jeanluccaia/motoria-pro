@@ -4,7 +4,8 @@
       "type": "hero-premium",
       "settings": {
         "desktop_asset": "pattamansa-hero-fundadores-clean-desktop.webp",
-        "mobile_asset": "pattamansa-hero-fundadores-clean-mobile.webp",
+        "mobile_asset": "pattamansa-hero-fundadores-mobile-9x16.webp",
+        "mobile_asset_fallback": "pattamansa-hero-fundadores-mobile-9x16.png",
         "desktop_asset_fallback": "pattamansa-hero-fundadores-clean-desktop.webp",
         "image_alt": "Fundadores da PattaMansa com cachorro",
         "eyebrow": "PET LIFESTYLE PREMIUM",
