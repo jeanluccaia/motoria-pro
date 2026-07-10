@@ -3,22 +3,21 @@
     "hero": {
       "type": "hero-premium",
       "settings": {
-        "banner_mode": "full_image",
-        "desktop_asset": "pattamansa-hero-fundadores-desktop.png",
+        "banner_mode": "text_over_image",
+        "desktop_asset": "pattamansa-hero-fundadores-desktop.webp",
         "image_alt": "Fundadores da PattaMansa com cachorro em banner da marca",
-        "heading": "Pra quem tem cachorro como familia.",
-        "subheading": "Camisetas premium com design de verdade — feitas no padrao Reserva INK.",
+        "eyebrow": "Pet lifestyle premium",
+        "heading": "Pra quem tem cachorro como família.",
+        "subheading": "Camisetas premium com design de verdade.",
         "primary_label": "Ver camisetas",
         "primary_link": "/collections/todas-as-camisetas",
-        "secondary_label": "Conhecer a marca",
-        "secondary_link": "/pages/sobre"
+        "secondary_label": "Personalizar com a foto do meu cão"
       }
     },
     "custom_dog_shirt": {
       "type": "custom-dog-shirt",
       "settings": {
-        "desktop_asset": "pattamansa-personalizacao-cachorro-desktop.png",
-        "whatsapp_url": "/pages/contato"
+        "desktop_asset": "pattamansa-personalizacao-cachorro-desktop.webp"
       }
     },
     "positioning": {
@@ -26,9 +25,6 @@
     },
     "differentials": {
       "type": "brand-differentials"
-    },
-    "models": {
-      "type": "model-guide"
     },
     "collections": {
       "type": "collection-showcase",
@@ -39,9 +35,6 @@
         "collection_4": "basicas-pattamansa"
       }
     },
-    "story": {
-      "type": "emotional-block"
-    },
     "favorites": {
       "type": "featured-products",
       "settings": {
@@ -49,14 +42,31 @@
         "collection": "todas-as-camisetas"
       }
     },
+    "social_proof": {
+      "type": "social-proof",
+      "settings": {
+        "show_section": true,
+        "heading": "Quem veste, recomenda."
+      }
+    },
+    "story": {
+      "type": "emotional-block"
+    },
+    "models": {
+      "type": "model-guide"
+    },
     "faq": {
       "type": "faq"
     },
     "final_cta": {
       "type": "final-cta",
       "settings": {
-        "heading": "Escolha sua camiseta",
-        "link": "/collections/todas-as-camisetas"
+        "eyebrow": "PattaMansa",
+        "heading": "Vista a matilha.",
+        "subheading": "Escolha uma estampa pronta ou personalize uma camiseta com a cara do seu cachorro.",
+        "primary_label": "Ver camisetas",
+        "link": "/collections/todas-as-camisetas",
+        "secondary_label": "Personalizar a minha"
       }
     }
   },
@@ -65,10 +75,11 @@
     "custom_dog_shirt",
     "positioning",
     "differentials",
-    "models",
     "collections",
     "story",
     "favorites",
+    "social_proof",
+    "models",
     "faq",
     "final_cta"
   ]

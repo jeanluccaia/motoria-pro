@@ -1,16 +1,27 @@
+{%- assign msg_1 = section.settings.announcement_1 | default: 'Envio para todo o Brasil com rastreio' -%}
+{%- assign msg_2 = section.settings.announcement_2 | default: 'Troca fácil em até 7 dias' -%}
+{%- assign msg_3 = section.settings.announcement_3 | default: 'Personalize com a foto do seu cachorro' -%}
+{%- assign has_multi = false -%}
+{%- if msg_2 != blank or msg_3 != blank -%}
+  {%- assign has_multi = true -%}
+{%- endif -%}
+
 <header class="site-header">
-  <div class="announcement-bar">
-    Envio para todo o Brasil com rastreio
+  <div class="announcement-bar {% if has_multi %}announcement-bar--rotating{% endif %}" aria-label="Avisos da loja">
+    {% if has_multi %}
+      <div class="announcement-track" role="list">
+        {% if msg_1 != blank %}<span class="announcement-item" role="listitem">{{ msg_1 }}</span>{% endif %}
+        {% if msg_2 != blank %}<span class="announcement-item" role="listitem">{{ msg_2 }}</span>{% endif %}
+        {% if msg_3 != blank %}<span class="announcement-item" role="listitem">{{ msg_3 }}</span>{% endif %}
+      </div>
+    {% else %}
+      <span>{{ msg_1 }}</span>
+    {% endif %}
   </div>
+
   <div class="site-header__inner">
     <a class="brand" href="{{ routes.root_url }}" aria-label="PattaMansa">
-      {% if settings.logo != blank %}
-        {{ settings.logo | image_url: width: 220 | image_tag: loading: 'eager', widths: '120, 180, 220', class: 'brand__logo' }}
-      {% elsif settings.logo_asset != blank %}
-        <img class="brand__logo" src="{{ settings.logo_asset | asset_url }}" alt="PattaMansa" width="180" height="72" loading="eager">
-      {% else %}
-        <img class="brand__logo" src="{{ 'pattamansa-logo.png' | asset_url }}" alt="PattaMansa" width="180" height="72" loading="eager">
-      {% endif %}
+      {% render 'brand-mark' %}
     </a>
 
     <nav class="site-nav" aria-label="Menu principal">
@@ -21,36 +32,50 @@
         <summary>Ajuda</summary>
         <div>
           <a href="/pages/frete-e-prazos">Frete e Prazos</a>
-          <a href="/pages/trocas-e-devolucoes">Trocas e Devolucoes</a>
+          <a href="/pages/trocas-e-devolucoes">Trocas e Devolu&ccedil;&otilde;es</a>
           <a href="/pages/faq">FAQ</a>
           <a href="/pages/contato">Contato</a>
         </div>
       </details>
     </nav>
 
-    <details class="mobile-menu">
-      <summary>Menu</summary>
-      <nav aria-label="Menu mobile">
-        <a href="{{ routes.collections_url }}/todas-as-camisetas">Camisetas</a>
-        <a href="{{ routes.collections_url }}">Cole&ccedil;&otilde;es</a>
-        <a href="/pages/sobre">Sobre</a>
-        <a href="/pages/frete-e-prazos">Frete e Prazos</a>
-        <a href="/pages/trocas-e-devolucoes">Trocas e Devolucoes</a>
-        <a href="/pages/faq">FAQ</a>
-        <a href="/pages/contato">Contato</a>
-      </nav>
-    </details>
-
-    <a class="header-cart" href="{{ routes.cart_url }}" aria-label="Carrinho">
-      Carrinho
-      <span data-cart-count>{{ cart.item_count }}</span>
-    </a>
+    <div class="header-actions">
+      <a class="header-icon-btn" href="{{ routes.search_url }}" aria-label="Buscar">
+        {% render 'icon-search' %}
+      </a>
+      <button type="button" class="header-icon-btn" data-cart-toggle aria-haspopup="dialog" aria-expanded="false" aria-controls="CartDrawer" aria-label="Abrir carrinho">
+        {% render 'icon-bag' %}
+        <span class="cart-badge" data-cart-count {% if cart.item_count == 0 %}hidden{% endif %}>{{ cart.item_count }}</span>
+      </button>
+      <details class="mobile-menu">
+        <summary aria-label="Menu">Menu</summary>
+        <nav aria-label="Menu mobile">
+          <a href="{{ routes.collections_url }}/todas-as-camisetas">Camisetas</a>
+          <a href="{{ routes.collections_url }}">Cole&ccedil;&otilde;es</a>
+          <a href="/pages/sobre">Sobre</a>
+          <details class="mobile-menu__help">
+            <summary>Ajuda</summary>
+            <div>
+              <a href="/pages/frete-e-prazos">Frete e Prazos</a>
+              <a href="/pages/trocas-e-devolucoes">Trocas e Devolu&ccedil;&otilde;es</a>
+              <a href="/pages/faq">FAQ</a>
+              <a href="/pages/contato">Contato</a>
+            </div>
+          </details>
+        </nav>
+      </details>
+    </div>
   </div>
 </header>
 
 {% schema %}
 {
   "name": "Header",
-  "settings": []
+  "settings": [
+    { "type": "header", "content": "Announcement bar" },
+    { "type": "text", "id": "announcement_1", "label": "Mensagem 1", "default": "Envio para todo o Brasil com rastreio" },
+    { "type": "text", "id": "announcement_2", "label": "Mensagem 2", "default": "Troca fácil em até 7 dias" },
+    { "type": "text", "id": "announcement_3", "label": "Mensagem 3", "default": "Personalize com a foto do seu cachorro" }
+  ]
 }
 {% endschema %}

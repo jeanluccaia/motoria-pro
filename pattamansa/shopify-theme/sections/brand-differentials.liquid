@@ -1,24 +1,155 @@
+{%- comment -%}
+  Diferenciais em pills. Cada item tem título + descrição.
+  Substitui a grade de 5 patinhas iguais por selos compactos.
+{%- endcomment -%}
 <section class="section section--warm">
   <div class="page-width">
     <div class="section-heading">
       <p class="eyebrow">Por que PattaMansa</p>
       <h2>{{ section.settings.heading }}</h2>
     </div>
-    <div class="feature-grid">
-      <div><strong>Qualidade premium</strong><span>Toque confortavel, caimento bem resolvido e acabamento pensado para uso real.</span></div>
-      <div><strong>Estampas exclusivas</strong><span>Artes autorais para quem ve cachorro como parte da propria historia.</span></div>
-      <div><strong>Producao Reserva INK</strong><span>Base especializada para entregar consistencia e padrao.</span></div>
-      <div><strong>Compra segura</strong><span>Checkout nativo Shopify, com fluxo confiavel do produto ao pagamento.</span></div>
-      <div><strong>Envio com rastreio</strong><span>Acompanhamento do pedido desde o despacho ate a entrega.</span></div>
-    </div>
+
+    <ul class="differentials-pills" role="list">
+      <li class="pill">
+        <span class="pill__dot">01</span>
+        <div>
+          <strong>{{ section.settings.item_1_title | default: 'Produção Reserva INK' }}</strong>
+          <span>{{ section.settings.item_1_text | default: 'Base especializada em camisetas com padrão premium consistente.' }}</span>
+        </div>
+      </li>
+      <li class="pill">
+        <span class="pill__dot">02</span>
+        <div>
+          <strong>{{ section.settings.item_2_title | default: 'Envio com rastreio' }}</strong>
+          <span>{{ section.settings.item_2_text | default: 'Do despacho até a entrega, acompanhamento em cada etapa.' }}</span>
+        </div>
+      </li>
+      <li class="pill">
+        <span class="pill__dot">03</span>
+        <div>
+          <strong>{{ section.settings.item_3_title | default: 'Pagamento seguro' }}</strong>
+          <span>{{ section.settings.item_3_text | default: 'Checkout nativo Shopify: Pix, cartão e boleto sem enrolação.' }}</span>
+        </div>
+      </li>
+      <li class="pill">
+        <span class="pill__dot">04</span>
+        <div>
+          <strong>{{ section.settings.item_4_title | default: 'Troca fácil' }}</strong>
+          <span>{{ section.settings.item_4_text | default: 'Sete dias para trocar tamanho ou modelo sem dor de cabeça.' }}</span>
+        </div>
+      </li>
+      <li class="pill pill--accent">
+        <span class="pill__dot pill__dot--accent">{% render 'icon-paw-heart' %}</span>
+        <div>
+          <strong>{{ section.settings.item_5_title | default: 'Personalização via WhatsApp' }}</strong>
+          <span>{{ section.settings.item_5_text | default: 'Manda a foto do seu cachorro e a gente cria a estampa exclusiva.' }}</span>
+        </div>
+      </li>
+    </ul>
   </div>
 </section>
+
+<style>
+  .differentials-pills {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: 1fr;
+  }
+
+  .pill {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 14px;
+    align-items: center;
+    padding: 18px 20px;
+    background: #FFFFFF;
+    border: 1px solid rgba(61, 82, 65, .18);
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(26, 26, 26, .05);
+  }
+
+  .pill__dot {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    background: #F2EDE4;
+    color: #3D5241;
+    font-weight: 850;
+    font-size: 14px;
+  }
+
+  .pill__dot--accent {
+    background: #F5A04A;
+    color: #1A1A1A;
+  }
+
+  .pill__dot--accent .icon-paw-heart {
+    width: 22px;
+    height: 22px;
+  }
+
+  .pill div {
+    display: grid;
+    gap: 2px;
+  }
+
+  .pill strong {
+    font-size: 16px;
+    color: #1A1A1A;
+  }
+
+  .pill span:not(.pill__dot) {
+    color: rgba(26, 26, 26, .68);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .pill--accent {
+    background: #F5F1E5;
+    border-color: rgba(245, 160, 74, .35);
+  }
+
+  @media (min-width: 760px) {
+    .differentials-pills {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pill--accent {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (min-width: 990px) {
+    .differentials-pills {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .pill--accent {
+      grid-column: auto;
+    }
+  }
+</style>
 
 {% schema %}
 {
   "name": "Diferenciais",
   "settings": [
-    { "type": "text", "id": "heading", "label": "Titulo", "default": "Produto premium, experiencia simples e compra segura." }
+    { "type": "text", "id": "heading", "label": "Título", "default": "Produto premium, experiência simples e compra segura." },
+    { "type": "text", "id": "item_1_title", "label": "Item 1 - título", "default": "Produção Reserva INK" },
+    { "type": "text", "id": "item_1_text", "label": "Item 1 - texto", "default": "Base especializada em camisetas com padrão premium consistente." },
+    { "type": "text", "id": "item_2_title", "label": "Item 2 - título", "default": "Envio com rastreio" },
+    { "type": "text", "id": "item_2_text", "label": "Item 2 - texto", "default": "Do despacho até a entrega, acompanhamento em cada etapa." },
+    { "type": "text", "id": "item_3_title", "label": "Item 3 - título", "default": "Pagamento seguro" },
+    { "type": "text", "id": "item_3_text", "label": "Item 3 - texto", "default": "Checkout nativo Shopify: Pix, cartão e boleto sem enrolação." },
+    { "type": "text", "id": "item_4_title", "label": "Item 4 - título", "default": "Troca fácil" },
+    { "type": "text", "id": "item_4_text", "label": "Item 4 - texto", "default": "Sete dias para trocar tamanho ou modelo sem dor de cabeça." },
+    { "type": "text", "id": "item_5_title", "label": "Item 5 - título", "default": "Personalização via WhatsApp" },
+    { "type": "text", "id": "item_5_text", "label": "Item 5 - texto", "default": "Manda a foto do seu cachorro e a gente cria a estampa exclusiva." }
   ],
   "presets": [{ "name": "Diferenciais" }]
 }

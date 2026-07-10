@@ -2,11 +2,14 @@
   --ink: #1A1A1A;
   --paper: #F2EDE4;
   --cream: #fffaf2;
+  --card: #FFFFFF;
   --clay: #F5A04A;
   --sage: #3D5241;
+  --sage-soft: rgba(61, 82, 65, .18);
   --accent: #B8BC8A;
   --line: rgba(26, 26, 26, .12);
   --muted: rgba(26, 26, 26, .68);
+  --shadow-card: 0 6px 18px rgba(26, 26, 26, .06);
   --max: 1180px;
 }
 
@@ -84,6 +87,38 @@ input {
   text-align: center;
   font-size: 13px;
   font-weight: 850;
+  overflow: hidden;
+}
+
+.announcement-bar--rotating {
+  height: 30px;
+  padding: 0 16px;
+  position: relative;
+}
+
+.announcement-track {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  animation: pattamansa-announce 15s infinite;
+}
+
+.announcement-item {
+  flex: 0 0 100%;
+  text-align: center;
+  padding: 0 8px;
+}
+
+@keyframes pattamansa-announce {
+  0%, 26% { transform: translateX(0%); }
+  33%, 59% { transform: translateX(-100%); }
+  66%, 92% { transform: translateX(-200%); }
+  100% { transform: translateX(0%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .announcement-track { animation: none; }
+  .announcement-item ~ .announcement-item { display: none; }
 }
 
 .site-header__inner,
@@ -320,6 +355,96 @@ input {
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, rgba(20, 20, 20, .15), rgba(20, 20, 20, .72));
+}
+
+.hero-premium--text_over_image {
+  min-height: min(680px, calc(100svh - 68px));
+  color: #fffaf2;
+  background: var(--sage);
+}
+
+.hero-premium--text_over_image::after {
+  content: none;
+}
+
+.hero-premium--text_over_image .hero-premium__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-premium--text_over_image .hero-premium__media img,
+.hero-premium--text_over_image .hero-premium__media picture {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.hero-premium__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(105deg, rgba(20, 26, 22, .72) 0%, rgba(20, 26, 22, .48) 42%, rgba(20, 26, 22, .18) 70%, rgba(20, 26, 22, .05) 100%),
+    linear-gradient(180deg, rgba(20, 26, 22, .12), rgba(20, 26, 22, .55));
+  pointer-events: none;
+}
+
+.hero-premium__content--overlay {
+  position: relative;
+  z-index: 2;
+  display: block;
+  padding-block: clamp(56px, 8vw, 120px);
+}
+
+.hero-premium__content--overlay .hero-premium__copy {
+  max-width: 620px;
+}
+
+.hero-premium__content--overlay h1 {
+  color: #fffaf2;
+  font-size: clamp(38px, 6vw, 68px);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, .35);
+}
+
+.hero-premium__content--overlay p:not(.eyebrow) {
+  color: rgba(255, 253, 248, .92);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .35);
+}
+
+.hero-premium--text_over_image .eyebrow {
+  color: #F5A04A;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .35);
+}
+
+.button--ghost {
+  background: transparent;
+  color: #fffaf2;
+  border: 1px solid rgba(255, 253, 248, .6);
+}
+
+.button--ghost:hover {
+  background: rgba(255, 253, 248, .1);
+}
+
+@media (max-width: 749px) {
+  .hero-premium--text_over_image {
+    min-height: 560px;
+  }
+
+  .hero-premium__overlay {
+    background:
+      linear-gradient(180deg, rgba(20, 26, 22, .18) 0%, rgba(20, 26, 22, .72) 90%),
+      linear-gradient(105deg, rgba(20, 26, 22, .55), rgba(20, 26, 22, .3));
+  }
+
+  .hero-premium__content--overlay {
+    padding-block: 340px 40px;
+  }
 }
 
 .hero-premium--fallback {
@@ -562,9 +687,10 @@ h2 {
 .product-card,
 .proof-card,
 .feature-grid > div {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--cream);
+  border: 1px solid var(--sage-soft);
+  border-radius: 10px;
+  background: var(--card);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
 }
 
@@ -1369,12 +1495,17 @@ summary {
   }
 
   .brand-mark {
-    font-size: 0;
+    font-size: 15px;
+    gap: 6px;
   }
 
   .brand-mark .icon-paw-heart {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
+  }
+
+  .brand-mark__word {
+    display: inline;
   }
 
   .button {
@@ -1386,5 +1517,16 @@ summary {
     bottom: 12px;
     z-index: 20;
     box-shadow: 0 12px 30px rgba(26, 26, 26, .18);
+  }
+}
+
+@media (max-width: 380px) {
+  .brand-mark {
+    font-size: 14px;
+  }
+
+  .brand-mark .icon-paw-heart {
+    width: 24px;
+    height: 24px;
   }
 }

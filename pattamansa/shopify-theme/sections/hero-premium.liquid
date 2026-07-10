@@ -3,12 +3,25 @@
   {% assign desktop_image = section.settings.image %}
 {% endif %}
 {% assign mobile_image = section.settings.image_mobile %}
-{% assign banner_mode = section.settings.banner_mode | default: 'full_image' %}
+{% assign banner_mode = section.settings.banner_mode | default: 'text_over_image' %}
 {% assign image_alt = section.settings.image_alt | default: 'Fundadores da PattaMansa com cachorro em banner da marca' %}
-{% assign desktop_asset_name = section.settings.desktop_asset | default: 'pattamansa-hero-fundadores-desktop.png' %}
+{% assign desktop_asset_name = section.settings.desktop_asset | default: 'pattamansa-hero-fundadores-desktop.webp' %}
 {% assign default_desktop_asset = desktop_asset_name | asset_url %}
 {% assign full_image_link = section.settings.primary_link %}
-{% assign full_image_link_label = section.settings.primary_label | default: 'Ver coleção' %}
+{% assign full_image_link_label = section.settings.primary_label | default: 'Ver camisetas' %}
+
+{% assign primary_link = section.settings.primary_link | default: '/collections/todas-as-camisetas' %}
+{% assign primary_label = section.settings.primary_label | default: 'Ver camisetas' %}
+{% assign secondary_label = section.settings.secondary_label | default: 'Personalizar com a foto do meu cão' %}
+
+{% assign whatsapp_url = settings.whatsapp_url %}
+{% if whatsapp_url == blank %}
+  {% assign whatsapp_url = section.settings.secondary_link %}
+{% endif %}
+{% if whatsapp_url == blank %}
+  {% assign whatsapp_url = '/pages/contato' %}
+{% endif %}
+
 {% assign has_hero_image = true %}
 {% if desktop_image == blank and default_desktop_asset == blank %}
   {% assign has_hero_image = false %}
@@ -46,15 +59,31 @@
       {% endif %}
     </div>
   {% endif %}
-  {% unless banner_mode == 'full_image' %}
+
+  {% if banner_mode == 'text_over_image' %}
+    <div class="hero-premium__overlay" aria-hidden="true"></div>
+    <div class="page-width hero-premium__content hero-premium__content--overlay">
+      <div class="hero-premium__copy">
+        {% if section.settings.eyebrow != blank %}
+          <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+        {% endif %}
+        <h1>{{ section.settings.heading | default: 'Pra quem tem cachorro como família.' }}</h1>
+        <p>{{ section.settings.subheading | default: 'Camisetas premium com design de verdade.' }}</p>
+        <div class="button-row">
+          <a class="button button--primary" href="{{ primary_link }}">{{ primary_label }}</a>
+          <a class="button button--ghost" href="{{ whatsapp_url }}"{% if whatsapp_url contains 'wa.me' or whatsapp_url contains 'whatsapp' %} target="_blank" rel="noopener"{% endif %}>{{ secondary_label }}</a>
+        </div>
+      </div>
+    </div>
+  {% elsif banner_mode != 'full_image' %}
     <div class="page-width hero-premium__content">
       <div class="hero-premium__copy">
         <p class="eyebrow">{{ section.settings.eyebrow }}</p>
         <h1>{{ section.settings.heading }}</h1>
         <p>{{ section.settings.subheading }}</p>
         <div class="button-row">
-          <a class="button button--primary" href="{{ section.settings.primary_link }}">{{ section.settings.primary_label }}</a>
-          <a class="button button--secondary" href="{{ section.settings.secondary_link }}">{{ section.settings.secondary_label }}</a>
+          <a class="button button--primary" href="{{ primary_link }}">{{ primary_label }}</a>
+          <a class="button button--secondary" href="{{ whatsapp_url }}">{{ secondary_label }}</a>
         </div>
       </div>
 
@@ -64,7 +93,7 @@
         </div>
       {% endunless %}
     </div>
-  {% endunless %}
+  {% endif %}
 </section>
 
 {% schema %}
@@ -75,24 +104,25 @@
       "type": "select",
       "id": "banner_mode",
       "label": "Modo do banner",
-      "default": "full_image",
+      "default": "text_over_image",
       "options": [
+        { "value": "text_over_image", "label": "Imagem com texto HTML sobreposto (recomendado)" },
         { "value": "full_image", "label": "Imagem completa com copy no arquivo" },
         { "value": "split_copy", "label": "Imagem com textos do tema" }
       ]
     },
     { "type": "image_picker", "id": "image_desktop", "label": "Banner desktop" },
     { "type": "image_picker", "id": "image_mobile", "label": "Banner mobile" },
-    { "type": "text", "id": "desktop_asset", "label": "Arquivo desktop em assets", "default": "pattamansa-hero-fundadores-desktop.png" },
+    { "type": "text", "id": "desktop_asset", "label": "Arquivo desktop em assets", "default": "pattamansa-hero-fundadores-desktop.webp" },
     { "type": "image_picker", "id": "image", "label": "Imagem de fundo fallback" },
     { "type": "text", "id": "image_alt", "label": "Alt text da imagem", "default": "Fundadores da PattaMansa com cachorro em banner da marca" },
     { "type": "text", "id": "eyebrow", "label": "Chamada curta", "default": "Pet lifestyle premium" },
-    { "type": "text", "id": "heading", "label": "Headline", "default": "Pra quem tem cachorro como familia." },
-    { "type": "textarea", "id": "subheading", "label": "Subheadline", "default": "Camisetas premium com design de verdade — feitas no padrao Reserva INK." },
+    { "type": "text", "id": "heading", "label": "Headline", "default": "Pra quem tem cachorro como família." },
+    { "type": "textarea", "id": "subheading", "label": "Subheadline", "default": "Camisetas premium com design de verdade." },
     { "type": "text", "id": "primary_label", "label": "CTA principal", "default": "Ver camisetas" },
     { "type": "url", "id": "primary_link", "label": "Link CTA principal" },
-    { "type": "text", "id": "secondary_label", "label": "CTA secundario", "default": "Conhecer a marca" },
-    { "type": "url", "id": "secondary_link", "label": "Link CTA secundario" }
+    { "type": "text", "id": "secondary_label", "label": "CTA secundário", "default": "Personalizar com a foto do meu cão" },
+    { "type": "url", "id": "secondary_link", "label": "Link CTA secundário (fallback se WhatsApp global vazio)" }
   ],
   "presets": [{ "name": "Hero premium" }]
 }
