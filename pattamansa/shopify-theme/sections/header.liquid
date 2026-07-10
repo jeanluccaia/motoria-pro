@@ -1,6 +1,6 @@
-{%- assign msg_1 = section.settings.announcement_1 | default: 'Envio para todo o Brasil com rastreio' -%}
-{%- assign msg_2 = section.settings.announcement_2 | default: 'Troca fácil em até 7 dias' -%}
-{%- assign msg_3 = section.settings.announcement_3 | default: 'Personalize com a foto do seu cachorro' -%}
+{%- assign msg_1 = section.settings.announcement_1 | default: 'Personalize com a foto do seu cachorro' -%}
+{%- assign msg_2 = section.settings.announcement_2 | default: 'Envio para todo o Brasil com rastreio' -%}
+{%- assign msg_3 = section.settings.announcement_3 | default: 'Troca fácil em até 7 dias' -%}
 {%- assign has_multi = false -%}
 {%- if msg_2 != blank or msg_3 != blank -%}
   {%- assign has_multi = true -%}
@@ -73,9 +73,9 @@
   "name": "Header",
   "settings": [
     { "type": "header", "content": "Announcement bar" },
-    { "type": "text", "id": "announcement_1", "label": "Mensagem 1", "default": "Envio para todo o Brasil com rastreio" },
-    { "type": "text", "id": "announcement_2", "label": "Mensagem 2", "default": "Troca fácil em até 7 dias" },
-    { "type": "text", "id": "announcement_3", "label": "Mensagem 3", "default": "Personalize com a foto do seu cachorro" }
+    { "type": "text", "id": "announcement_1", "label": "Mensagem 1", "default": "Personalize com a foto do seu cachorro" },
+    { "type": "text", "id": "announcement_2", "label": "Mensagem 2", "default": "Envio para todo o Brasil com rastreio" },
+    { "type": "text", "id": "announcement_3", "label": "Mensagem 3", "default": "Troca fácil em até 7 dias" }
   ]
 }
 {% endschema %}

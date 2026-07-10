@@ -81,17 +81,20 @@ input {
 }
 
 .announcement-bar {
-  background: var(--sage);
-  color: var(--cream);
+  background: #111111;
+  color: #F2EDE4;
   padding: 8px 16px;
   text-align: center;
-  font-size: 13px;
-  font-weight: 850;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(242, 237, 228, .08);
   overflow: hidden;
 }
 
 .announcement-bar--rotating {
-  height: 30px;
+  height: 34px;
   padding: 0 16px;
   position: relative;
 }
@@ -105,8 +108,24 @@ input {
 
 .announcement-item {
   flex: 0 0 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   text-align: center;
   padding: 0 8px;
+  color: #F2EDE4;
+}
+
+.announcement-item::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #F5A04A;
+  box-shadow: 0 0 0 3px rgba(245, 160, 74, .14);
+  flex-shrink: 0;
 }
 
 @keyframes pattamansa-announce {
