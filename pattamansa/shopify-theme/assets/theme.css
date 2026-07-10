@@ -1,15 +1,19 @@
 :root {
-  --ink: #1A1A1A;
-  --paper: #F2EDE4;
-  --cream: #fffaf2;
+  --ink: #1F1917;
+  --paper: #F2EBE0;
+  --cream: #FBF7EF;
   --card: #FFFFFF;
-  --clay: #F5A04A;
-  --sage: #3D5241;
-  --sage-soft: rgba(61, 82, 65, .18);
+  --clay: #E6571F;
+  --clay-hover: #C7481A;
+  --sage: #10372C;
+  --sage-deep: #0B2A21;
+  --sage-soft: rgba(16, 55, 44, .18);
+  --charcoal: #1F1917;
+  --charcoal-2: #16110F;
   --accent: #B8BC8A;
-  --line: rgba(26, 26, 26, .12);
-  --muted: rgba(26, 26, 26, .68);
-  --shadow-card: 0 6px 18px rgba(26, 26, 26, .06);
+  --line: rgba(31, 25, 23, .12);
+  --muted: rgba(31, 25, 23, .68);
+  --shadow-card: 0 6px 18px rgba(31, 25, 23, .06);
   --max: 1180px;
 }
 
@@ -75,21 +79,21 @@ input {
   position: sticky;
   top: 0;
   z-index: 30;
-  background: rgba(255, 253, 248, .94);
-  border-bottom: 1px solid var(--line);
-  backdrop-filter: blur(14px);
+  background: var(--charcoal);
+  color: var(--paper);
+  border-bottom: 1px solid rgba(242, 235, 224, .08);
 }
 
 .announcement-bar {
-  background: #111111;
-  color: #F2EDE4;
-  padding: 8px 16px;
+  background: var(--charcoal-2);
+  color: var(--paper);
+  padding: 9px 16px;
   text-align: center;
-  font-size: 12.5px;
-  font-weight: 700;
-  letter-spacing: .06em;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .12em;
   text-transform: uppercase;
-  border-bottom: 1px solid rgba(242, 237, 228, .08);
+  border-bottom: 1px solid rgba(242, 235, 224, .08);
   overflow: hidden;
 }
 
@@ -120,11 +124,11 @@ input {
 .announcement-item::before {
   content: "";
   display: inline-block;
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   border-radius: 999px;
-  background: #F5A04A;
-  box-shadow: 0 0 0 3px rgba(245, 160, 74, .14);
+  background: var(--clay);
+  box-shadow: 0 0 0 3px rgba(230, 87, 31, .16);
   flex-shrink: 0;
 }
 
@@ -161,15 +165,18 @@ input {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--sage);
+  color: var(--paper);
   font-family: var(--font-display);
   font-weight: 800;
   font-size: 20px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
 }
 
 .brand-mark .icon-paw-heart {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
+  color: var(--clay);
 }
 
 .brand-mark--sm {
@@ -183,10 +190,15 @@ input {
 .site-nav {
   display: none;
   align-items: center;
-  gap: 22px;
-  color: var(--muted);
+  gap: 26px;
+  color: rgba(242, 235, 224, .82);
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+
+.site-nav a:hover {
+  color: var(--paper);
 }
 
 .help-menu {
@@ -219,20 +231,22 @@ input {
   width: 230px;
   display: grid;
   gap: 2px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(242, 235, 224, .14);
   border-radius: 8px;
-  background: var(--cream);
-  box-shadow: 0 18px 50px rgba(26, 26, 26, .14);
+  background: var(--charcoal-2);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .5);
   padding: 10px;
 }
 
 .help-menu div a {
   padding: 10px;
   border-radius: 6px;
+  color: rgba(242, 235, 224, .84);
 }
 
 .help-menu div a:hover {
-  background: var(--paper);
+  background: rgba(242, 235, 224, .08);
+  color: var(--paper);
 }
 
 .mobile-menu {
@@ -243,9 +257,11 @@ input {
   display: inline-flex;
   min-height: 40px;
   align-items: center;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(242, 235, 224, .18);
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 8px 12px;
+  color: var(--paper);
+  font-weight: 700;
   list-style: none;
 }
 
@@ -260,21 +276,24 @@ input {
   width: min(260px, calc(100vw - 32px));
   display: grid;
   gap: 4px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(242, 235, 224, .14);
   border-radius: 8px;
-  background: var(--cream);
-  box-shadow: 0 18px 50px rgba(26, 26, 26, .16);
+  background: var(--charcoal-2);
+  color: var(--paper);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .5);
   padding: 10px;
 }
 
 .mobile-menu nav a {
   padding: 12px;
   border-radius: 6px;
-  font-weight: 800;
+  color: rgba(242, 235, 224, .88);
+  font-weight: 700;
 }
 
 .mobile-menu nav a:hover {
-  background: var(--paper);
+  background: rgba(242, 235, 224, .08);
+  color: var(--paper);
 }
 
 .header-actions {
@@ -293,33 +312,33 @@ input {
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: var(--ink);
+  color: var(--paper);
   cursor: pointer;
 }
 
 .header-icon-btn:hover {
-  background: rgba(26, 26, 26, .06);
+  background: rgba(242, 235, 224, .08);
 }
 
 .header-icon-btn:focus-visible {
-  outline: 2px solid var(--sage);
+  outline: 2px solid var(--clay);
   outline-offset: 2px;
 }
 
 .cart-badge {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 4px;
+  right: 4px;
   display: inline-grid;
-  min-width: 16px;
-  height: 16px;
+  min-width: 18px;
+  height: 18px;
   place-items: center;
   background: var(--clay);
-  color: var(--ink);
+  color: #FFFFFF;
   border-radius: 999px;
-  font-size: 10px;
-  font-weight: 850;
-  padding: 0 3px;
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 0 4px;
 }
 
 .cart-badge[hidden] {
@@ -335,7 +354,8 @@ input {
 .mobile-menu__help summary {
   padding: 12px;
   border-radius: 6px;
-  font-weight: 800;
+  color: var(--paper);
+  font-weight: 700;
   list-style: none;
   outline: none;
 }
@@ -353,10 +373,12 @@ input {
 .mobile-menu__help div a {
   padding: 10px 12px;
   border-radius: 6px;
+  color: rgba(242, 235, 224, .84);
 }
 
 .mobile-menu__help div a:hover {
-  background: var(--paper);
+  background: rgba(242, 235, 224, .08);
+  color: var(--paper);
 }
 
 .hero-premium {
@@ -820,7 +842,7 @@ h2 {
 .button-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
   margin-top: 28px;
 }
 
@@ -830,22 +852,36 @@ h2 {
   align-items: center;
   justify-content: center;
   border: 1px solid transparent;
-  border-radius: 8px;
-  padding: 13px 18px;
-  font-weight: 800;
+  border-radius: 10px;
+  padding: 13px 22px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 15px;
   text-align: center;
   cursor: pointer;
+  transition: transform .18s ease, background .18s ease, border-color .18s ease;
 }
 
 .button--primary {
   background: var(--clay);
-  color: var(--ink);
+  color: #FFFFFF;
+  box-shadow: 0 10px 26px rgba(230, 87, 31, .28);
+}
+
+.button--primary:hover {
+  background: var(--clay-hover);
+  transform: translateY(-1px);
 }
 
 .button--secondary {
-  border-color: var(--line);
+  border-color: rgba(31, 25, 23, .22);
   background: transparent;
-  color: inherit;
+  color: var(--ink);
+}
+
+.button--secondary:hover {
+  border-color: var(--ink);
+  background: rgba(31, 25, 23, .04);
 }
 
 .section {

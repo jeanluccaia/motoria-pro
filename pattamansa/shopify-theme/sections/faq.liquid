@@ -1,23 +1,142 @@
-<section class="section section--faq">
+{% assign faq_1_q = section.settings.q_1 | default: 'Como funciona a personalização?' %}
+{% assign faq_1_a = section.settings.a_1 | default: 'Você manda a foto do seu cachorro no WhatsApp, nossa equipe cria uma estampa exclusiva e envia a arte pra você aprovar antes da produção.' %}
+{% assign faq_2_q = section.settings.q_2 | default: 'Qual a qualidade das camisetas?' %}
+{% assign faq_2_a = section.settings.a_2 | default: 'Produção Reserva INK: malha premium 100% algodão e estampa DTF de alta durabilidade que não desbota nas primeiras lavagens.' %}
+{% assign faq_3_q = section.settings.q_3 | default: 'Quanto tempo leva pra chegar?' %}
+{% assign faq_3_a = section.settings.a_3 | default: 'O prazo final aparece no checkout considerando preparo do pedido e transporte. Você recebe rastreio quando o pedido é despachado.' %}
+{% assign faq_4_q = section.settings.q_4 | default: 'Posso trocar se não servir?' %}
+{% assign faq_4_a = section.settings.a_4 | default: 'Sim. Troca fácil em até 7 dias após o recebimento, seguindo a política de trocas e devoluções.' %}
+
+<section class="faq" aria-label="Perguntas frequentes">
   <div class="page-width">
-    <div class="section-heading">
-      <p class="eyebrow">FAQ</p>
-      <h2>Duvidas antes de escolher?</h2>
+    <div class="faq__head">
+      <p class="eyebrow">{{ section.settings.eyebrow | default: 'DÚVIDAS RÁPIDAS' }}</p>
+      <h2 class="faq__title">{{ section.settings.heading | default: 'Perguntas frequentes' }}</h2>
     </div>
-    <div class="faq-list">
-      <details><summary>Qual e o prazo de entrega?</summary><p>O prazo final aparece no checkout depois do CEP, considerando preparo do pedido e transporte.</p></details>
-      <details><summary>Recebo codigo de rastreio?</summary><p>Sim. Quando o pedido for enviado, o rastreio fica disponivel nos canais de acompanhamento da loja.</p></details>
-      <details><summary>Como escolho meu tamanho?</summary><p>Compare a tabela de medidas do produto com uma camiseta que voce ja usa e escolha pelo caimento desejado.</p></details>
-      <details><summary>Posso trocar?</summary><p>Sim. A troca facil em 7 dias segue as condicoes descritas na politica de trocas e devolucoes.</p></details>
-      <details><summary>Quais formas de pagamento aceitam?</summary><p>O checkout Shopify mostra as opcoes ativas da loja, incluindo Pix e cartao quando configurados.</p></details>
+
+    <div class="faq__list">
+      <details class="faq__item">
+        <summary>{{ faq_1_q }}<span class="faq__icon" aria-hidden="true">+</span></summary>
+        <p>{{ faq_1_a }}</p>
+      </details>
+      <details class="faq__item">
+        <summary>{{ faq_2_q }}<span class="faq__icon" aria-hidden="true">+</span></summary>
+        <p>{{ faq_2_a }}</p>
+      </details>
+      <details class="faq__item">
+        <summary>{{ faq_3_q }}<span class="faq__icon" aria-hidden="true">+</span></summary>
+        <p>{{ faq_3_a }}</p>
+      </details>
+      <details class="faq__item">
+        <summary>{{ faq_4_q }}<span class="faq__icon" aria-hidden="true">+</span></summary>
+        <p>{{ faq_4_a }}</p>
+      </details>
     </div>
   </div>
 </section>
 
+<style>
+  .faq {
+    background: var(--paper);
+    padding-block: clamp(48px, 5vw, 88px);
+  }
+
+  .faq__head {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 26px;
+    text-align: center;
+    justify-items: center;
+  }
+
+  .faq .eyebrow {
+    margin: 0;
+    color: rgba(31, 25, 23, .58);
+    letter-spacing: .18em;
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+
+  .faq__title {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(26px, 3.4vw, 36px);
+    line-height: 1.08;
+  }
+
+  .faq__list {
+    display: grid;
+    gap: 10px;
+    max-width: 720px;
+    margin-inline: auto;
+  }
+
+  .faq__item {
+    background: var(--card);
+    border: 1px solid rgba(31, 25, 23, .1);
+    border-radius: 10px;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .faq__item summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14.5px;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .faq__item summary::-webkit-details-marker { display: none; }
+
+  .faq__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    color: var(--clay);
+    font-size: 20px;
+    font-weight: 400;
+    transition: transform .2s ease;
+  }
+
+  .faq__item[open] .faq__icon {
+    transform: rotate(45deg);
+  }
+
+  .faq__item p {
+    margin: 0;
+    padding: 0 18px 18px;
+    color: rgba(31, 25, 23, .68);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+</style>
+
 {% schema %}
 {
   "name": "FAQ",
-  "settings": [],
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "DÚVIDAS RÁPIDAS" },
+    { "type": "text", "id": "heading", "label": "Título", "default": "Perguntas frequentes" },
+    { "type": "text", "id": "q_1", "label": "Pergunta 1", "default": "Como funciona a personalização?" },
+    { "type": "textarea", "id": "a_1", "label": "Resposta 1", "default": "Você manda a foto do seu cachorro no WhatsApp, nossa equipe cria uma estampa exclusiva e envia a arte pra você aprovar antes da produção." },
+    { "type": "text", "id": "q_2", "label": "Pergunta 2", "default": "Qual a qualidade das camisetas?" },
+    { "type": "textarea", "id": "a_2", "label": "Resposta 2", "default": "Produção Reserva INK: malha premium 100% algodão e estampa DTF de alta durabilidade que não desbota nas primeiras lavagens." },
+    { "type": "text", "id": "q_3", "label": "Pergunta 3", "default": "Quanto tempo leva pra chegar?" },
+    { "type": "textarea", "id": "a_3", "label": "Resposta 3", "default": "O prazo final aparece no checkout considerando preparo do pedido e transporte. Você recebe rastreio quando o pedido é despachado." },
+    { "type": "text", "id": "q_4", "label": "Pergunta 4", "default": "Posso trocar se não servir?" },
+    { "type": "textarea", "id": "a_4", "label": "Resposta 4", "default": "Sim. Troca fácil em até 7 dias após o recebimento, seguindo a política de trocas e devoluções." }
+  ],
   "presets": [{ "name": "FAQ" }]
 }
 {% endschema %}

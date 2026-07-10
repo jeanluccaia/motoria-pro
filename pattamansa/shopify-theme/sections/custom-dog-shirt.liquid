@@ -18,32 +18,9 @@
   {% assign is_whatsapp = true %}
 {% endif %}
 
-<section class="custom-dog-shirt" aria-labelledby="CustomDogShirtTitle-{{ section.id }}">
-  <div class="page-width custom-dog-shirt__inner">
-    <div class="custom-dog-shirt__copy">
-      <p class="eyebrow">{{ section.settings.eyebrow }}</p>
-      <h2 id="CustomDogShirtTitle-{{ section.id }}">{{ section.settings.heading }}</h2>
-      <p class="custom-dog-shirt__text">{{ section.settings.text }}</p>
-
-      <ul class="custom-dog-shirt__bullets" aria-label="Benefícios da personalização">
-        <li>{{ section.settings.bullet_1 }}</li>
-        <li>{{ section.settings.bullet_2 }}</li>
-        <li>{{ section.settings.bullet_3 }}</li>
-      </ul>
-
-      {% if cta_href != blank %}
-        <a
-          class="custom-dog-shirt__button button"
-          href="{{ cta_href }}"
-          {% if is_whatsapp %}target="_blank" rel="noopener"{% endif %}
-          aria-label="{{ cta_label | escape }}"
-        >
-          {{ cta_label }}
-        </a>
-      {% endif %}
-    </div>
-
-    <div class="custom-dog-shirt__media">
+<section class="perso" aria-labelledby="PersoTitle-{{ section.id }}">
+  <div class="page-width perso__inner">
+    <div class="perso__media">
       <picture>
         {% if mobile_image != blank %}
           <source
@@ -60,182 +37,185 @@
         {% endif %}
 
         {% if desktop_image != blank %}
-          {{ desktop_image | image_url: width: 1400 | image_tag: loading: 'lazy', widths: '600, 900, 1200, 1400', sizes: '(min-width: 990px) 56vw, calc(100vw - 32px)', alt: image_alt }}
+          {{ desktop_image | image_url: width: 1400 | image_tag: loading: 'lazy', widths: '600, 900, 1200, 1400', sizes: '(min-width: 990px) 46vw, calc(100vw - 32px)', alt: image_alt, class: 'perso__img' }}
         {% else %}
           <img
+            class="perso__img"
             src="{{ desktop_asset_name | asset_url }}"
             alt="{{ image_alt | escape }}"
-            width="1680"
+            width="1200"
             height="900"
             loading="lazy"
           >
         {% endif %}
       </picture>
     </div>
+
+    <div class="perso__copy">
+      <p class="eyebrow perso__eyebrow">{{ section.settings.eyebrow | default: 'PERSONALIZAÇÃO' }}</p>
+      <h2 id="PersoTitle-{{ section.id }}" class="perso__title">{{ section.settings.heading | default: 'Seu cachorro na sua camiseta.' }}</h2>
+      <p class="perso__text">{{ section.settings.text | default: 'Manda a foto no WhatsApp e a gente cria uma estampa exclusiva com a cara do seu melhor amigo.' }}</p>
+
+      <ul class="perso__bullets" aria-label="Benefícios da personalização">
+        <li>{{ section.settings.bullet_1 | default: 'Estampa exclusiva a partir da foto' }}</li>
+        <li>{{ section.settings.bullet_2 | default: 'Produção com qualidade Reserva INK' }}</li>
+        <li>{{ section.settings.bullet_3 | default: 'Atendimento direto pelo WhatsApp' }}</li>
+      </ul>
+
+      {% if cta_href != blank %}
+        <a
+          class="button button--primary perso__cta"
+          href="{{ cta_href }}"
+          {% if is_whatsapp %}target="_blank" rel="noopener"{% endif %}
+          aria-label="{{ cta_label | escape }}"
+        >
+          {{ cta_label }}
+        </a>
+      {% endif %}
+    </div>
   </div>
 </section>
 
 <style>
-  .custom-dog-shirt {
+  .perso {
     overflow: hidden;
-    background: #3D5241;
-    color: #fffaf2;
-    padding-block: 88px;
+    background: var(--sage);
+    color: var(--paper);
+    padding-block: clamp(48px, 6vw, 96px);
   }
 
-  .custom-dog-shirt__inner {
+  .perso__inner {
     display: grid;
-    grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr);
-    gap: 64px;
+    grid-template-columns: 1fr;
+    gap: 32px;
     align-items: center;
   }
 
-  .custom-dog-shirt__copy {
+  .perso__media {
+    order: 1;
+    border-radius: 12px;
+    background: rgba(11, 42, 33, .6);
+    border: 1px solid rgba(242, 235, 224, .08);
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+  }
+
+  .perso__media picture,
+  .perso__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .perso__copy {
+    order: 2;
     display: grid;
-    gap: 20px;
+    gap: 12px;
     align-content: center;
     min-width: 0;
-    padding-block: 24px;
   }
 
-  .custom-dog-shirt .eyebrow {
+  .perso__eyebrow {
+    margin: 0 0 4px;
+    color: rgba(242, 235, 224, .58);
+    letter-spacing: .18em;
+    font-weight: 600;
+  }
+
+  .perso__title {
     margin: 0;
-    color: #F5A04A;
-    letter-spacing: .12em;
-  }
-
-  .custom-dog-shirt h2 {
-    max-width: 560px;
-    color: #fffaf2;
-    font-family: var(--font-display);
-    font-size: 54px;
-    line-height: 1.04;
-    letter-spacing: 0;
-  }
-
-  .custom-dog-shirt__text {
     max-width: 520px;
+    color: var(--paper);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(30px, 4.6vw, 48px);
+    line-height: 1.04;
+    letter-spacing: -0.01em;
+  }
+
+  .perso__text {
     margin: 0;
-    color: rgba(255, 253, 248, .86);
-    font-size: 19px;
+    max-width: 480px;
+    color: rgba(242, 235, 224, .82);
+    font-size: clamp(15px, 1.6vw, 17px);
     line-height: 1.55;
   }
 
-  .custom-dog-shirt__bullets {
+  .perso__bullets {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 4px;
     display: grid;
     gap: 10px;
-    max-width: 520px;
-    margin: 4px 0 6px;
-    padding-left: 20px;
-    color: #fffaf2;
-    font-weight: 700;
+    max-width: 500px;
   }
 
-  .custom-dog-shirt__bullets li::marker {
-    color: #F5A04A;
+  .perso__bullets li {
+    position: relative;
+    padding-left: 30px;
+    color: rgba(242, 235, 224, .92);
+    font-size: 15px;
+    font-weight: 500;
   }
 
-  .custom-dog-shirt__button {
-    width: fit-content;
-    min-width: 260px;
-    margin-top: 6px;
-    background: #F5A04A;
-    color: #1A1A1A;
-    border: 1px solid #F5A04A;
-    box-shadow: 0 14px 34px rgba(0, 0, 0, .28);
-    font-weight: 850;
+  .perso__bullets li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: var(--clay);
   }
 
-  .custom-dog-shirt__button:hover {
-    transform: translateY(-1px);
-    filter: brightness(1.04);
+  .perso__bullets li::after {
+    content: "";
+    position: absolute;
+    left: 4.5px;
+    top: 8.5px;
+    width: 9px;
+    height: 5px;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: rotate(-45deg);
   }
 
-  .custom-dog-shirt__button:focus-visible {
-    outline: 3px solid #fffaf2;
-    outline-offset: 3px;
+  .perso__cta {
+    justify-self: start;
+    margin-top: 12px;
+    min-width: 240px;
   }
 
-  .custom-dog-shirt__media {
-    min-width: 0;
-    border: 1px solid rgba(255, 253, 248, .16);
-    border-radius: 8px;
-    background: #fffaf2;
-    box-shadow: 0 24px 70px rgba(0, 0, 0, .34);
-    overflow: hidden;
-  }
-
-  .custom-dog-shirt__media picture {
-    display: block;
-    width: 100%;
-  }
-
-  .custom-dog-shirt__media img {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    height: auto;
-    object-fit: contain;
-    object-position: center;
-    background: #fffaf2;
-  }
-
-  @media (max-width: 989px) {
-    .custom-dog-shirt {
-      padding-block: 60px;
+  @media (min-width: 760px) {
+    .perso__inner {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 44px;
     }
 
-    .custom-dog-shirt__inner {
-      grid-template-columns: 1fr;
-      gap: 30px;
+    .perso__media {
+      aspect-ratio: 4 / 3.4;
     }
+  }
 
-    .custom-dog-shirt__copy {
-      padding-block: 8px;
-    }
-
-    .custom-dog-shirt h2 {
-      max-width: 620px;
-      font-size: 42px;
-    }
-
-    .custom-dog-shirt__text {
-      font-size: 18px;
+  @media (min-width: 990px) {
+    .perso__inner {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+      gap: 64px;
     }
   }
 
   @media (max-width: 749px) {
-    .custom-dog-shirt {
-      padding-block: 48px;
-    }
-
-    .custom-dog-shirt__inner {
-      gap: 24px;
-    }
-
-    .custom-dog-shirt h2 {
-      font-size: 34px;
-      line-height: 1.08;
-    }
-
-    .custom-dog-shirt__text {
-      font-size: 16px;
-    }
-
-    .custom-dog-shirt__bullets {
-      gap: 9px;
-      padding-left: 18px;
-      font-size: 15px;
-    }
-
-    .custom-dog-shirt__button {
+    .perso__cta {
       width: 100%;
       min-width: 0;
       min-height: 52px;
-      padding-inline: 14px;
     }
 
-    .custom-dog-shirt__media {
-      box-shadow: 0 18px 44px rgba(0, 0, 0, .28);
+    .perso__media {
+      aspect-ratio: 4 / 3;
     }
   }
 </style>

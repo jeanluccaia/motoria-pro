@@ -1,0 +1,301 @@
+{%- comment -%}
+  Seção editorial "Modelos autorais" — 4 cards configuráveis.
+  Não depende do catálogo. Se a coleção real existir e for informada,
+  o link do card usa ela. Caso contrário, cai para o link manual.
+{%- endcomment -%}
+
+{% assign see_all_link = section.settings.see_all_link | default: '/collections/todas-as-camisetas' %}
+
+<section class="models" aria-label="Modelos autorais PattaMansa">
+  <div class="page-width">
+    <div class="models__head">
+      <div class="models__title-wrap">
+        <p class="eyebrow">{{ section.settings.eyebrow | default: 'COLEÇÃO' }}</p>
+        <h2 class="models__title">{{ section.settings.heading | default: 'Modelos autorais' }}</h2>
+      </div>
+      <a class="models__see-all" href="{{ see_all_link }}">{{ section.settings.see_all_label | default: 'Ver tudo' }} <span aria-hidden="true">→</span></a>
+    </div>
+
+    <ul class="models__grid" role="list">
+      {% for i in (1..4) %}
+        {% assign title_key = 'card_' | append: i | append: '_title' %}
+        {% assign subtitle_key = 'card_' | append: i | append: '_subtitle' %}
+        {% assign price_key = 'card_' | append: i | append: '_price' %}
+        {% assign badge_key = 'card_' | append: i | append: '_badge' %}
+        {% assign link_key = 'card_' | append: i | append: '_link' %}
+        {% assign image_key = 'card_' | append: i | append: '_image' %}
+        {% assign asset_key = 'card_' | append: i | append: '_asset' %}
+        {% assign cta_key = 'card_' | append: i | append: '_cta_label' %}
+
+        {% assign card_title = section.settings[title_key] %}
+        {% assign card_subtitle = section.settings[subtitle_key] %}
+        {% assign card_price = section.settings[price_key] %}
+        {% assign card_badge = section.settings[badge_key] %}
+        {% assign card_link = section.settings[link_key] | default: see_all_link %}
+        {% assign card_image = section.settings[image_key] %}
+        {% assign card_asset = section.settings[asset_key] %}
+        {% assign card_cta = section.settings[cta_key] %}
+
+        <li class="models__card">
+          <a class="models__card-media" href="{{ card_link }}" aria-label="{{ card_title | escape }}">
+            {% if card_image != blank %}
+              {{ card_image | image_url: width: 700 | image_tag: loading: 'lazy', widths: '320, 520, 700', sizes: '(min-width: 990px) 25vw, 50vw', alt: card_title, class: 'models__img' }}
+            {% elsif card_asset != blank %}
+              <img class="models__img" src="{{ card_asset | asset_url }}" alt="{{ card_title | escape }}" loading="lazy" width="600" height="720">
+            {% else %}
+              <div class="models__placeholder" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M21 16l-5-5-9 9"/></svg>
+                <span>{{ card_title | default: 'Modelo' }}</span>
+              </div>
+            {% endif %}
+          </a>
+          <div class="models__body">
+            <div class="models__body-top">
+              <a class="models__card-title" href="{{ card_link }}">{{ card_title | default: 'Modelo' }}</a>
+              {% if card_badge != blank %}
+                <span class="models__badge">{{ card_badge }}</span>
+              {% endif %}
+            </div>
+            {% if card_subtitle != blank %}
+              <p class="models__card-sub">{{ card_subtitle }}</p>
+            {% endif %}
+            <div class="models__body-bottom">
+              {% if card_price != blank %}
+                <span class="models__price">{{ card_price }}</span>
+              {% endif %}
+              {% if card_cta != blank %}
+                <a class="models__card-cta" href="{{ card_link }}">{{ card_cta }}</a>
+              {% endif %}
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .models {
+    background: var(--paper);
+    padding-block: clamp(48px, 5vw, 88px);
+  }
+
+  .models__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+
+  .models__title-wrap { display: grid; gap: 4px; }
+
+  .models .eyebrow {
+    margin: 0;
+    color: rgba(31, 25, 23, .58);
+    letter-spacing: .18em;
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+
+  .models__title {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(26px, 3.4vw, 36px);
+    line-height: 1.06;
+  }
+
+  .models__see-all {
+    color: var(--ink);
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(31, 25, 23, .24);
+    padding-bottom: 2px;
+    white-space: nowrap;
+  }
+
+  .models__see-all:hover {
+    border-color: var(--ink);
+  }
+
+  .models__grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .models__card {
+    display: grid;
+    gap: 10px;
+    background: var(--card);
+    border: 1px solid rgba(31, 25, 23, .08);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 22px rgba(31, 25, 23, .04);
+  }
+
+  .models__card-media {
+    display: block;
+    aspect-ratio: 4 / 5;
+    background: #E8DFCF;
+    overflow: hidden;
+  }
+
+  .models__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .models__placeholder {
+    display: grid;
+    place-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 100%;
+    color: rgba(31, 25, 23, .34);
+    font-size: 12px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    background: #E8DFCF;
+  }
+
+  .models__placeholder svg { width: 32px; height: 32px; }
+
+  .models__body {
+    display: grid;
+    gap: 6px;
+    padding: 12px 14px 16px;
+  }
+
+  .models__body-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .models__card-title {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16px;
+    text-decoration: none;
+  }
+
+  .models__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--clay);
+    color: var(--clay);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+  }
+
+  .models__card-sub {
+    margin: 0;
+    color: rgba(31, 25, 23, .58);
+    font-size: 12.5px;
+    line-height: 1.4;
+  }
+
+  .models__body-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .models__price {
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .models__card-cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 14px;
+    background: var(--clay);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .models__card-cta:hover {
+    background: var(--clay-hover);
+  }
+
+  @media (min-width: 760px) {
+    .models__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Modelos autorais",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "COLEÇÃO" },
+    { "type": "text", "id": "heading", "label": "Título", "default": "Modelos autorais" },
+    { "type": "text", "id": "see_all_label", "label": "Link 'Ver tudo'", "default": "Ver tudo" },
+    { "type": "url", "id": "see_all_link", "label": "URL 'Ver tudo'" },
+
+    { "type": "header", "content": "Card 1" },
+    { "type": "text", "id": "card_1_title", "label": "Nome", "default": "Melhor Amigo" },
+    { "type": "text", "id": "card_1_subtitle", "label": "Descrição curta", "default": "Off-white · algodão pima" },
+    { "type": "text", "id": "card_1_price", "label": "Preço", "default": "R$ 129" },
+    { "type": "text", "id": "card_1_badge", "label": "Badge (opcional)" },
+    { "type": "text", "id": "card_1_cta_label", "label": "Botão (opcional)" },
+    { "type": "url", "id": "card_1_link", "label": "Link do card" },
+    { "type": "image_picker", "id": "card_1_image", "label": "Imagem" },
+    { "type": "text", "id": "card_1_asset", "label": "Ou arquivo em assets" },
+
+    { "type": "header", "content": "Card 2" },
+    { "type": "text", "id": "card_2_title", "label": "Nome", "default": "Vira-Lata Caramelo" },
+    { "type": "text", "id": "card_2_subtitle", "label": "Descrição curta", "default": "Verde musgo · fio penteado" },
+    { "type": "text", "id": "card_2_price", "label": "Preço", "default": "R$ 129" },
+    { "type": "text", "id": "card_2_badge", "label": "Badge (opcional)", "default": "Novo" },
+    { "type": "text", "id": "card_2_cta_label", "label": "Botão (opcional)" },
+    { "type": "url", "id": "card_2_link", "label": "Link do card" },
+    { "type": "image_picker", "id": "card_2_image", "label": "Imagem" },
+    { "type": "text", "id": "card_2_asset", "label": "Ou arquivo em assets" },
+
+    { "type": "header", "content": "Card 3" },
+    { "type": "text", "id": "card_3_title", "label": "Nome", "default": "Companheiro" },
+    { "type": "text", "id": "card_3_subtitle", "label": "Descrição curta", "default": "Carvão · corte oversized" },
+    { "type": "text", "id": "card_3_price", "label": "Preço", "default": "R$ 139" },
+    { "type": "text", "id": "card_3_badge", "label": "Badge (opcional)" },
+    { "type": "text", "id": "card_3_cta_label", "label": "Botão (opcional)" },
+    { "type": "url", "id": "card_3_link", "label": "Link do card" },
+    { "type": "image_picker", "id": "card_3_image", "label": "Imagem" },
+    { "type": "text", "id": "card_3_asset", "label": "Ou arquivo em assets" },
+
+    { "type": "header", "content": "Card 4 (personalização)" },
+    { "type": "text", "id": "card_4_title", "label": "Nome", "default": "Sua Estampa" },
+    { "type": "text", "id": "card_4_subtitle", "label": "Descrição curta", "default": "Personalizada · a sua cara" },
+    { "type": "text", "id": "card_4_price", "label": "Preço", "default": "R$ 159" },
+    { "type": "text", "id": "card_4_badge", "label": "Badge (opcional)" },
+    { "type": "text", "id": "card_4_cta_label", "label": "Botão", "default": "Personalizar" },
+    { "type": "url", "id": "card_4_link", "label": "Link do card" },
+    { "type": "image_picker", "id": "card_4_image", "label": "Imagem" },
+    { "type": "text", "id": "card_4_asset", "label": "Ou arquivo em assets" }
+  ],
+  "presets": [{ "name": "Modelos autorais" }]
+}
+{% endschema %}

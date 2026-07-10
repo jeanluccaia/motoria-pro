@@ -28,25 +28,25 @@
         "type": "color",
         "id": "background_color",
         "label": "Fundo",
-        "default": "#F2EDE4"
+        "default": "#F2EBE0"
       },
       {
         "type": "color",
         "id": "primary_color",
         "label": "Verde principal",
-        "default": "#3D5241"
+        "default": "#10372C"
       },
       {
         "type": "color",
         "id": "accent_color",
         "label": "CTA",
-        "default": "#F5A04A"
+        "default": "#E6571F"
       },
       {
         "type": "color",
         "id": "text_color",
         "label": "Texto",
-        "default": "#1A1A1A"
+        "default": "#1F1917"
       },
       {
         "type": "color",

@@ -1,64 +1,168 @@
-<footer class="site-footer">
-  <div class="site-footer__inner">
-    <div>
-      <a class="footer-brand" href="{{ routes.root_url }}" aria-label="PattaMansa">
-        {% if settings.logo != blank %}
-          {{ settings.logo | image_url: width: 220 | image_tag: loading: 'lazy', widths: '140, 180, 220', class: 'footer-brand__logo' }}
-        {% elsif settings.logo_asset != blank %}
-          <img class="footer-brand__logo" src="{{ settings.logo_asset | asset_url }}" alt="PattaMansa" width="180" height="72" loading="lazy">
-        {% else %}
-          <img class="footer-brand__logo" src="{{ 'pattamansa-logo.png' | asset_url }}" alt="PattaMansa" width="180" height="72" loading="lazy">
-        {% endif %}
+{% assign whatsapp_url = settings.whatsapp_url | default: '/pages/contato' %}
+
+<footer class="pm-footer" aria-label="Rodapé">
+  <div class="page-width pm-footer__grid">
+    <div class="pm-footer__col pm-footer__col--brand">
+      <a class="pm-footer__brand" href="{{ routes.root_url }}" aria-label="PattaMansa">
+        <span class="pm-footer__wordmark">PATTAMANSA</span>
       </a>
-      <p class="muted">Camisetas premium pra quem vive a vida com cachorro.</p>
-      <div class="footer-seals" aria-label="Selos de compra">
-        <span>Compra segura</span>
-        <span>Pix</span>
-        <span>Cartao</span>
-        <span>Boleto</span>
-      </div>
-      {% form 'customer', class: 'newsletter-form' %}
-        <label for="NewsletterEmail">Entre pra matilha</label>
-        <p>Novidades, lancamentos e estampas novas primeiro.</p>
-        {% if form.errors %}
-          <p class="form-error">Ops, faltou preencher esse campo.</p>
-        {% endif %}
-        {% if form.posted_successfully? %}
-          <p class="form-success">Cadastro recebido.</p>
-        {% endif %}
-        <div class="newsletter-form__row">
-          <input id="NewsletterEmail" type="email" name="contact[{{ 'email' }}]" required oninvalid="this.setCustomValidity('Ops, faltou preencher esse campo.')" oninput="this.setCustomValidity('')" aria-label="E-mail para newsletter">
-          <button class="button button--primary" type="submit">Quero entrar</button>
-        </div>
-      {% endform %}
+      <p class="pm-footer__lede">Camisetas premium para tutores que tratam cachorro como família. Feito no Brasil.</p>
     </div>
 
-    <nav class="footer-links" aria-label="Links institucionais">
-      <a href="{{ routes.collections_url }}/todas-as-camisetas">Camisetas</a>
-      <a href="{{ routes.collections_url }}">Cole&ccedil;&otilde;es</a>
-      <a href="/pages/sobre">Sobre</a>
-      <a href="/pages/frete-e-prazos">Frete e prazos</a>
-      <a href="/pages/trocas-e-devolucoes">Trocas e devolucoes</a>
-      <a href="/pages/faq">FAQ</a>
-      <a href="/pages/contato">Contato</a>
-      <a href="/pages/politica-de-privacidade">Privacidade</a>
-      <a href="/pages/termos-de-uso">Termos</a>
-      <a href="https://www.instagram.com/pattamansa" rel="noopener" target="_blank">Instagram @pattamansa</a>
-    </nav>
+    <div class="pm-footer__col">
+      <h3 class="pm-footer__title">Loja</h3>
+      <nav aria-label="Loja">
+        <a href="{{ routes.collections_url }}/todas-as-camisetas">Camisetas</a>
+        <a href="{{ routes.collections_url }}">Coleções</a>
+        <a href="{{ whatsapp_url }}"{% if whatsapp_url contains 'wa.me' or whatsapp_url contains 'whatsapp' %} target="_blank" rel="noopener"{% endif %}>Personalização</a>
+      </nav>
+    </div>
 
-    <div class="footer-bottom">
-      <img class="footer-sigla" src="{{ settings.favicon_asset | default: 'pattamansa-favicon.png' | asset_url }}" alt="PTM" width="42" height="42" loading="lazy">
-      <p>&copy; 2026 PattaMansa</p>
-      {% if settings.legal_name != blank or settings.cnpj != blank %}
-        <p>
-          {% if settings.legal_name != blank %}{{ settings.legal_name }}{% endif %}
-          {% if settings.legal_name != blank and settings.cnpj != blank %} · {% endif %}
-          {% if settings.cnpj != blank %}{{ settings.cnpj }}{% endif %}
-        </p>
-      {% endif %}
+    <div class="pm-footer__col">
+      <h3 class="pm-footer__title">Ajuda</h3>
+      <nav aria-label="Ajuda">
+        <a href="/pages/frete-e-prazos">Rastrear pedido</a>
+        <a href="/pages/trocas-e-devolucoes">Trocas e devoluções</a>
+        <a href="/pages/faq">Perguntas frequentes</a>
+        <a href="{{ whatsapp_url }}"{% if whatsapp_url contains 'wa.me' or whatsapp_url contains 'whatsapp' %} target="_blank" rel="noopener"{% endif %}>Falar no WhatsApp</a>
+      </nav>
+    </div>
+
+    <div class="pm-footer__col">
+      <h3 class="pm-footer__title">Marca</h3>
+      <nav aria-label="Marca">
+        <a href="/pages/sobre">Sobre a PattaMansa</a>
+        <a href="/pages/reserva-ink">Reserva INK</a>
+        <a href="https://www.instagram.com/pattamansa" rel="noopener" target="_blank">Instagram</a>
+      </nav>
     </div>
   </div>
+
+  <div class="page-width pm-footer__bottom">
+    <p class="pm-footer__legal">
+      &copy; 2026 PattaMansa
+      {%- if settings.legal_name != blank or settings.cnpj != blank -%}
+        <span aria-hidden="true"> · </span>
+        {% if settings.legal_name != blank %}{{ settings.legal_name }}{% endif %}
+        {% if settings.legal_name != blank and settings.cnpj != blank %} · {% endif %}
+        {% if settings.cnpj != blank %}CNPJ {{ settings.cnpj }}{% endif %}
+      {%- endif -%}
+    </p>
+    <ul class="pm-footer__seals" aria-label="Formas de pagamento">
+      <li>PIX</li>
+      <li>VISA</li>
+      <li>MASTER</li>
+      <li>BOLETO</li>
+    </ul>
+  </div>
 </footer>
+
+<style>
+  .pm-footer {
+    background: var(--charcoal);
+    color: var(--paper);
+    padding-block: 48px 24px;
+  }
+
+  .pm-footer__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid rgba(242, 235, 224, .1);
+  }
+
+  .pm-footer__col { display: grid; gap: 12px; align-content: start; }
+
+  .pm-footer__brand {
+    display: inline-flex;
+    color: var(--paper);
+    text-decoration: none;
+  }
+
+  .pm-footer__wordmark {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: .12em;
+  }
+
+  .pm-footer__lede {
+    margin: 0;
+    max-width: 320px;
+    color: rgba(242, 235, 224, .6);
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+
+  .pm-footer__title {
+    margin: 0 0 6px;
+    color: rgba(242, 235, 224, .5);
+    font-family: var(--font-body);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+
+  .pm-footer__col nav {
+    display: grid;
+    gap: 8px;
+  }
+
+  .pm-footer__col nav a {
+    color: rgba(242, 235, 224, .82);
+    font-size: 14px;
+    text-decoration: none;
+  }
+
+  .pm-footer__col nav a:hover {
+    color: var(--paper);
+  }
+
+  .pm-footer__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding-top: 20px;
+  }
+
+  .pm-footer__legal {
+    margin: 0;
+    color: rgba(242, 235, 224, .5);
+    font-size: 12px;
+  }
+
+  .pm-footer__seals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  .pm-footer__seals li {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border: 1px solid rgba(242, 235, 224, .22);
+    border-radius: 4px;
+    color: rgba(242, 235, 224, .78);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+  }
+
+  @media (min-width: 760px) {
+    .pm-footer__grid {
+      grid-template-columns: 1.4fr 1fr 1fr 1fr;
+      gap: 40px;
+    }
+  }
+</style>
 
 {% schema %}
 {
