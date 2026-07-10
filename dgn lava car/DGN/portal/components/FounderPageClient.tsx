@@ -5,7 +5,6 @@ import { motion, AnimatePresence, type Easing, type Variants } from "framer-moti
 import {
   ArrowDown,
   ArrowRight,
-  BadgeCheck,
   Calendar,
   Car,
   CheckCircle2,
@@ -13,11 +12,9 @@ import {
   Crown,
   Flag,
   Handshake,
-  History,
   Loader2,
   LockKeyhole,
   MessageCircle,
-  Sparkles,
   Star,
   X,
   type LucideIcon,
@@ -193,10 +190,8 @@ export function FounderPageClient({ founder }: FounderPageClientProps) {
         </section>
 
         <HistorySection historyCards={historyCards} />
-        <EmotionalInvite firstName={firstName} />
         <JourneySection timeline={timeline} number={number} totalFounders={totalFounders} />
         <CarePlanSection carePlan={carePlan} vehicleModel={vehicle.model} />
-        <BenefitsSection />
         <ConditionSection
           recommendedPlan={recommendedPlan}
           alternativePlan={alternativePlan}
@@ -341,34 +336,6 @@ function HistorySection({ historyCards }: { historyCards: Founder["historyCards"
   );
 }
 
-function EmotionalInvite({ firstName }: { firstName: string }) {
-  return (
-    <section className="py-10">
-      <motion.div
-        custom={0}
-        initial={false}
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.35 }}
-        variants={fadeUp}
-        className="mx-auto max-w-3xl rounded-lg border border-[#C9A84C]/20 bg-[linear-gradient(145deg,#15110A_0%,#0D0D0D_70%)] p-7 text-center sm:p-10"
-      >
-        <Sparkles size={24} className="mx-auto mb-5 text-[#C9A84C]" />
-        <h2 className="text-2xl font-semibold leading-tight text-white sm:text-3xl">
-          Você confiou na DGN durante todos esses anos.
-        </h2>
-        <div className="mx-auto mt-5 max-w-xl space-y-3 text-base leading-relaxed text-[#B8B8B8]">
-          <p>Cada atendimento representou muito mais do que uma lavagem.</p>
-          <p className="font-semibold text-white">Representou confiança.</p>
-          <p>
-            Hoje queremos retribuir esse relacionamento convidando {firstName} para fazer parte da
-            fundação do DGN Club.
-          </p>
-        </div>
-      </motion.div>
-    </section>
-  );
-}
-
 function JourneySection({
   timeline,
   number,
@@ -457,41 +424,6 @@ function CarePlanSection({ carePlan, vehicleModel }: { carePlan: Founder["carePl
             </div>
             <h3 className="text-lg font-semibold text-white">{item.service}</h3>
             <p className="mt-2 text-sm leading-relaxed text-[#9CA3AF]">{item.description}</p>
-          </motion.div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function BenefitsSection() {
-  const benefits = [
-    { icon: BadgeCheck, title: "Atendimento prioritário" },
-    { icon: Calendar, title: "Planejamento dos cuidados" },
-    { icon: LockKeyhole, title: "Área exclusiva" },
-    { icon: MessageCircle, title: "Concierge DGN" },
-    { icon: History, title: "Histórico completo" },
-    { icon: Sparkles, title: "Benefícios para membros" },
-  ];
-
-  return (
-    <section className="py-10">
-      <SectionHeader eyebrow="Experiência Founder" title="O que muda para você como Founder" />
-      <div className="mx-auto grid max-w-4xl gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {benefits.map((benefit, i) => (
-          <motion.div
-            key={benefit.title}
-            custom={i}
-            initial={false}
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-            variants={fadeUp}
-            className="flex min-h-24 items-center gap-4 rounded-lg border border-white/[0.07] bg-[#101010] p-4"
-          >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#C9A84C]/10 text-[#C9A84C]">
-              <benefit.icon size={19} />
-            </div>
-            <p className="text-sm font-semibold leading-snug text-white">{benefit.title}</p>
           </motion.div>
         ))}
       </div>
