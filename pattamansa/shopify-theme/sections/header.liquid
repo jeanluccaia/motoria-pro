@@ -48,7 +48,12 @@
         <span class="cart-badge" data-cart-count {% if cart.item_count == 0 %}hidden{% endif %}>{{ cart.item_count }}</span>
       </button>
       <details class="mobile-menu">
-        <summary aria-label="Menu">Menu</summary>
+        <summary aria-label="Abrir menu">
+          <span class="mobile-menu__icon" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+          <span class="mobile-menu__label">Menu</span>
+        </summary>
         <nav aria-label="Menu mobile">
           <a href="{{ routes.collections_url }}/todas-as-camisetas">Camisetas</a>
           <a href="{{ routes.collections_url }}">Cole&ccedil;&otilde;es</a>

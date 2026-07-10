@@ -5,7 +5,7 @@
 
 {% assign desktop_asset_name = section.settings.desktop_asset | default: 'pattamansa-hero-fundadores-clean-desktop.webp' %}
 {% assign mobile_asset_name = section.settings.mobile_asset | default: 'pattamansa-hero-fundadores-clean-mobile.webp' %}
-{% assign desktop_asset_fallback = section.settings.desktop_asset_fallback | default: 'pattamansa-hero-fundadores-desktop.webp' %}
+{% assign desktop_asset_fallback = section.settings.desktop_asset_fallback | default: 'pattamansa-hero-fundadores-clean-desktop.webp' %}
 
 {% assign primary_link = section.settings.primary_link | default: '/collections/todas-as-camisetas' %}
 {% assign primary_label = section.settings.primary_label | default: 'Ver camisetas' %}
@@ -25,21 +25,8 @@
 {% endif %}
 
 <section class="hero-pm" aria-label="Apresentação PattaMansa">
-  <div class="hero-pm__media" aria-hidden="true">
+  <div class="hero-pm__media hero-pm__media--desktop" aria-hidden="true">
     <picture>
-      {% if mobile_image != blank %}
-        <source
-          media="(max-width: 749px)"
-          srcset="{{ mobile_image | image_url: width: 750 }} 750w, {{ mobile_image | image_url: width: 1080 }} 1080w"
-          sizes="100vw"
-        >
-      {% elsif mobile_asset_name != blank %}
-        <source
-          media="(max-width: 749px)"
-          srcset="{{ mobile_asset_name | asset_url }}"
-          sizes="100vw"
-        >
-      {% endif %}
       {% if desktop_image != blank %}
         {{ desktop_image | image_url: width: 2000 | image_tag: loading: 'eager', fetchpriority: 'high', widths: '900, 1400, 1800, 2000', sizes: '100vw', alt: image_alt, class: 'hero-pm__img' }}
       {% else %}
@@ -79,6 +66,23 @@
           {% if section.settings.trust_left != blank %}<span class="hero-pm__trust-text">{{ section.settings.trust_left }}</span>{% endif %}
           {% if section.settings.trust_right != blank %}<span class="hero-pm__trust-sep" aria-hidden="true">·</span><span class="hero-pm__trust-text">{{ section.settings.trust_right }}</span>{% endif %}
         </div>
+      {% endif %}
+    </div>
+    <div class="hero-pm__mobile-image" aria-hidden="true">
+      {% if mobile_image != blank %}
+        {{ mobile_image | image_url: width: 1080 | image_tag: loading: 'eager', fetchpriority: 'high', widths: '600, 800, 1080', sizes: '(max-width: 749px) 100vw, 0px', alt: image_alt, class: 'hero-pm__mobile-img' }}
+      {% else %}
+        <img
+          class="hero-pm__mobile-img"
+          src="{{ mobile_asset_name | asset_url }}"
+          alt="{{ image_alt | escape }}"
+          width="1080"
+          height="1350"
+          loading="eager"
+          fetchpriority="high"
+          onerror="if(this.dataset.fallback && this.src !== this.dataset.fallback){this.src=this.dataset.fallback;}"
+          data-fallback="{{ desktop_asset_name | asset_url }}"
+        >
       {% endif %}
     </div>
   </div>
@@ -202,6 +206,8 @@
 
   .hero-pm__trust-sep { color: rgba(31, 25, 23, .32); }
 
+  .hero-pm__mobile-image { display: none; }
+
   @media (min-width: 760px) {
     .hero-pm { min-height: 680px; }
 
@@ -227,52 +233,83 @@
   @media (max-width: 749px) {
     .hero-pm {
       min-height: 0;
-      padding-block: 40px 44px;
+      padding: 28px 0 40px;
       align-items: flex-start;
+      background: #F2EDE4;
     }
 
-    .hero-pm__media {
-      position: relative;
-      inset: auto;
-      order: 2;
-      width: calc(100% + 32px);
-      margin: 28px -16px 0;
-      height: auto;
-      aspect-ratio: 4 / 4.4;
-    }
-
-    .hero-pm__img { object-position: center 30%; }
-
+    .hero-pm__media--desktop { display: none; }
     .hero-pm__scrim { display: none; }
 
     .hero-pm__inner {
-      display: flex;
-      flex-direction: column;
+      display: block;
     }
 
     .hero-pm__copy {
-      order: 1;
       max-width: 100%;
+      gap: 0;
+    }
+
+    .hero-pm__eyebrow {
+      font-size: 11px;
+      letter-spacing: .2em;
+      color: rgba(26, 26, 26, .62);
+      margin: 0 0 12px;
     }
 
     .hero-pm__title {
-      font-size: clamp(30px, 8.4vw, 40px);
+      font-size: clamp(36px, 10vw, 46px);
+      line-height: 1.02;
+      letter-spacing: -0.014em;
+      color: #1A1A1A;
+    }
+
+    .hero-pm__sub {
+      margin: 14px 0 0;
+      max-width: 100%;
+      color: rgba(26, 26, 26, .78);
+      font-size: 15.5px;
+      line-height: 1.5;
     }
 
     .hero-pm__actions {
       flex-direction: column;
       align-items: stretch;
       width: 100%;
+      gap: 10px;
+      margin-top: 22px;
     }
 
     .hero-pm__actions .button {
       width: 100%;
       justify-content: center;
-      min-height: 52px;
+      min-height: 50px;
+      font-size: 15px;
     }
 
-    .hero-pm__sub {
-      max-width: 100%;
+    .hero-pm__trust {
+      margin-top: 18px;
+      font-size: 12.5px;
+      color: rgba(26, 26, 26, .6);
+    }
+
+    .hero-pm__mobile-image {
+      display: block;
+      margin: 22px 0 0;
+      width: 100%;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #E8DFCF;
+      box-shadow: 0 12px 28px rgba(26, 26, 26, .08);
+    }
+
+    .hero-pm__mobile-img {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+      object-position: center 30%;
     }
   }
 </style>
@@ -299,7 +336,7 @@
       "type": "text",
       "id": "desktop_asset_fallback",
       "label": "Fallback desktop",
-      "default": "pattamansa-hero-fundadores-desktop.webp"
+      "default": "pattamansa-hero-fundadores-clean-desktop.webp"
     },
     { "type": "text", "id": "image_alt", "label": "Alt text da imagem", "default": "Fundadores da PattaMansa com cachorro" },
     { "type": "text", "id": "eyebrow", "label": "Chamada curta", "default": "PET LIFESTYLE PREMIUM" },
