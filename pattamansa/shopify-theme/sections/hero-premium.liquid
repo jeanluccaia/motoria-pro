@@ -273,8 +273,8 @@
     .hero-pm {
       min-height: 0;
       aspect-ratio: 9 / 16;
-      max-height: 820px;
-      padding: 28px 0 32px;
+      max-height: 780px;
+      padding: 22px 0 24px;
       align-items: flex-start;
       background: #E8DFCF;
       color: var(--ink);
@@ -288,10 +288,10 @@
     .hero-pm__scrim {
       background:
         linear-gradient(180deg,
-          rgba(232, 223, 207, .88) 0%,
-          rgba(232, 223, 207, .68) 22%,
-          rgba(232, 223, 207, .28) 40%,
-          rgba(232, 223, 207, 0) 58%);
+          rgba(232, 223, 207, .92) 0%,
+          rgba(232, 223, 207, .72) 22%,
+          rgba(232, 223, 207, .3) 38%,
+          rgba(232, 223, 207, 0) 55%);
     }
 
     .hero-pm__copy {
@@ -303,11 +303,11 @@
       font-size: 11px;
       letter-spacing: .2em;
       color: rgba(31, 25, 23, .68);
-      margin: 0 0 10px;
+      margin: 0 0 8px;
     }
 
     .hero-pm__title {
-      font-size: clamp(34px, 9vw, 46px);
+      font-size: clamp(32px, 8.6vw, 42px);
       line-height: 1.02;
       letter-spacing: -0.012em;
       color: var(--ink);
@@ -316,16 +316,11 @@
     }
 
     .hero-pm__sub {
-      margin: 12px 0 0;
-      max-width: 100%;
-      color: rgba(31, 25, 23, .74);
-      font-size: 14.5px;
-      line-height: 1.45;
-      text-shadow: none;
+      display: none;
     }
 
     .hero-pm__authority {
-      margin: 14px 0 0;
+      margin: 12px 0 0;
       font-size: 10.5px;
       letter-spacing: .18em;
       color: rgba(31, 25, 23, .58);
@@ -335,23 +330,29 @@
       flex-direction: column;
       align-items: stretch;
       width: 100%;
-      gap: 10px;
-      margin-top: 18px;
+      gap: 4px;
+      margin-top: 16px;
     }
 
-    .hero-pm__actions .button {
+    .hero-pm__actions .button--primary {
       width: 100%;
       justify-content: center;
-      min-height: 48px;
+      min-height: 46px;
       font-size: 14.5px;
     }
 
     .hero-pm__ghost {
-      justify-content: center;
-      width: 100%;
-      padding: 12px 4px;
-      border-bottom-color: rgba(31, 25, 23, .28);
-      font-size: 14px;
+      width: auto;
+      align-self: flex-start;
+      justify-content: flex-start;
+      padding: 10px 2px;
+      border-bottom: none;
+      font-size: 13.5px;
+      color: rgba(31, 25, 23, .82);
+    }
+
+    .hero-pm__ghost:hover {
+      color: var(--ink);
     }
 
     .hero-pm__trust {
