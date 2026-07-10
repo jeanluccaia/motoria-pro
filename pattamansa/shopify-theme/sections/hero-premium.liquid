@@ -4,7 +4,7 @@
 {% assign mobile_image = section.settings.image_mobile %}
 
 {% assign desktop_asset_name = section.settings.desktop_asset | default: 'pattamansa-hero-fundadores-clean-desktop.webp' %}
-{% assign mobile_asset_name = section.settings.mobile_asset | default: 'pattamansa-hero-fundadores-clean-mobile.webp' %}
+{% assign mobile_asset_name = section.settings.mobile_asset | default: 'pattamansa-hero-fundadores-clean-desktop.webp' %}
 {% assign desktop_asset_fallback = section.settings.desktop_asset_fallback | default: 'pattamansa-hero-fundadores-clean-desktop.webp' %}
 
 {% assign primary_link = section.settings.primary_link | default: '/collections/todas-as-camisetas' %}
@@ -76,12 +76,10 @@
           class="hero-pm__mobile-img"
           src="{{ mobile_asset_name | asset_url }}"
           alt="{{ image_alt | escape }}"
-          width="1080"
-          height="1350"
+          width="1516"
+          height="1011"
           loading="eager"
           fetchpriority="high"
-          onerror="if(this.dataset.fallback && this.src !== this.dataset.fallback){this.src=this.dataset.fallback;}"
-          data-fallback="{{ desktop_asset_name | asset_url }}"
         >
       {% endif %}
     </div>
@@ -288,14 +286,12 @@
     }
 
     .hero-pm__trust {
-      margin-top: 18px;
-      font-size: 12.5px;
-      color: rgba(26, 26, 26, .6);
+      display: none;
     }
 
     .hero-pm__mobile-image {
       display: block;
-      margin: 22px 0 0;
+      margin: 24px 0 0;
       width: 100%;
       border-radius: 14px;
       overflow: hidden;
@@ -307,9 +303,6 @@
       display: block;
       width: 100%;
       height: auto;
-      aspect-ratio: 4 / 5;
-      object-fit: cover;
-      object-position: center 30%;
     }
   }
 </style>
@@ -330,7 +323,7 @@
       "type": "text",
       "id": "mobile_asset",
       "label": "Arquivo mobile em assets",
-      "default": "pattamansa-hero-fundadores-clean-mobile.webp"
+      "default": "pattamansa-hero-fundadores-clean-desktop.webp"
     },
     {
       "type": "text",
