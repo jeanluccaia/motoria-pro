@@ -1,6 +1,20 @@
 {%- comment -%}
-  Wordmark PattaMansa em tipografia display, herda cor do contexto.
+  Logo real PattaMansa em versão creme para fundo escuro.
+  Se settings.logo estiver preenchido no admin, usa ele; senão,
+  cai para o asset local pattamansa-logo-white.png (gerado a partir
+  de Logo_10.png com traço convertido em creme sobre transparente).
 {%- endcomment -%}
 <span class="brand-mark {% if size == 'sm' %}brand-mark--sm{% endif %}">
-  <span class="brand-mark__word">PATTAMANSA</span>
+  {% if settings.logo != blank %}
+    {{ settings.logo | image_url: width: 480 | image_tag: alt: 'PattaMansa', class: 'brand-mark__img', loading: 'eager', widths: '240, 360, 480' }}
+  {% else %}
+    <img
+      class="brand-mark__img"
+      src="{{ 'pattamansa-logo-white.png' | asset_url }}"
+      alt="PattaMansa"
+      width="240"
+      height="85"
+      loading="eager"
+    >
+  {% endif %}
 </span>

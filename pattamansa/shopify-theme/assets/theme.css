@@ -79,13 +79,13 @@ input {
   position: sticky;
   top: 0;
   z-index: 30;
-  background: var(--charcoal);
+  background: #111111;
   color: var(--paper);
-  border-bottom: 1px solid rgba(242, 235, 224, .08);
+  border-bottom: 1px solid rgba(242, 235, 224, .06);
 }
 
 .announcement-bar {
-  background: var(--charcoal-2);
+  background: #111111;
   color: var(--paper);
   padding: 9px 16px;
   text-align: center;
@@ -93,7 +93,7 @@ input {
   font-weight: 600;
   letter-spacing: .12em;
   text-transform: uppercase;
-  border-bottom: 1px solid rgba(242, 235, 224, .08);
+  border-bottom: 1px solid rgba(242, 235, 224, .06);
   overflow: hidden;
 }
 
@@ -147,7 +147,7 @@ input {
 .site-header__inner,
 .site-footer__inner {
   width: min(100% - 32px, var(--max));
-  min-height: 68px;
+  min-height: 72px;
   margin-inline: auto;
   display: flex;
   align-items: center;
@@ -164,40 +164,46 @@ input {
 .brand-mark {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  color: var(--paper);
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 20px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
 }
 
-.brand-mark .icon-paw-heart {
-  width: 26px;
-  height: 26px;
-  color: var(--clay);
+.brand-mark__img {
+  display: block;
+  height: 30px;
+  width: auto;
+  max-width: 180px;
+  object-fit: contain;
 }
 
-.brand-mark--sm {
-  font-size: 16px;
+.brand-mark--sm .brand-mark__img {
+  height: 24px;
+  max-width: 140px;
 }
 
-.site-footer .brand-mark {
-  color: var(--paper);
+.brand:focus-visible,
+.footer-brand:focus-visible {
+  outline: 2px solid var(--clay);
+  outline-offset: 6px;
+  border-radius: 4px;
 }
 
 .site-nav {
   display: none;
   align-items: center;
-  gap: 26px;
+  gap: 28px;
   color: rgba(242, 235, 224, .82);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: .01em;
 }
 
-.site-nav a:hover {
+.site-nav > a,
+.site-nav .help-menu > summary {
+  color: rgba(242, 235, 224, .82);
+  transition: color .15s ease;
+}
+
+.site-nav > a:hover,
+.site-nav .help-menu > summary:hover {
   color: var(--paper);
 }
 
@@ -208,7 +214,11 @@ input {
 .help-menu summary {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   color: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
   list-style: none;
   outline: none;
   border: none;
@@ -219,9 +229,26 @@ input {
 }
 
 .help-menu summary:focus-visible {
-  outline: 2px solid var(--sage);
+  outline: 2px solid var(--clay);
   outline-offset: 4px;
   border-radius: 4px;
+}
+
+.help-menu[open] > summary {
+  color: var(--paper);
+}
+
+.help-menu__chev {
+  font-size: 8px;
+  line-height: 1;
+  margin-left: 2px;
+  opacity: .6;
+  transition: transform .18s ease;
+}
+
+.help-menu[open] .help-menu__chev {
+  transform: rotate(180deg);
+  opacity: 1;
 }
 
 .help-menu div {
