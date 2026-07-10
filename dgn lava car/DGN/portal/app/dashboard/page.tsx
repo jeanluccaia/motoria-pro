@@ -63,7 +63,7 @@ const actionButtons = [
   {
     icon: Calendar,
     label: "Agendar Lavagem",
-    desc: "Agenda da 4U",
+    desc: "Solicitar pelo WhatsApp",
     href: urls.agenda4U,
     color: "#C9A84C",
     bg: "rgba(201,168,76,0.1)",
@@ -72,7 +72,7 @@ const actionButtons = [
   {
     icon: Sparkles,
     label: "Serviços Extras",
-    desc: "Vitrine 4U",
+    desc: "Consultar pelo WhatsApp",
     href: urls.vitrine4U,
     color: "#818CF8",
     bg: "rgba(129,140,248,0.1)",

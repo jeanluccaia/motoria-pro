@@ -1,25 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence, type Easing, type Variants } from "framer-motion";
+import { motion, type Easing, type Variants } from "framer-motion";
 import {
   ArrowDown,
-  ArrowRight,
   Calendar,
   Car,
-  CheckCircle2,
-  Clock,
   Crown,
   Flag,
   Handshake,
-  Loader2,
   LockKeyhole,
   MessageCircle,
   Star,
-  X,
   type LucideIcon,
 } from "lucide-react";
 import type { Founder, FounderTimelineItem } from "@/lib/founders-data";
+import { WHATSAPP_DGN } from "@/lib/config";
 
 const easeOut: Easing = "easeOut";
 
@@ -72,24 +67,17 @@ export function FounderPageClient({ founder }: FounderPageClientProps) {
     memberSinceYear,
   } = founder;
 
-  const [reservationOpen, setReservationOpen] = useState(false);
-  const [reservationReady, setReservationReady] = useState(false);
-
-  const checkoutUrl = links.checkoutSmartFounder || links.whatsappVip;
   const founderLabel = `Convite reservado • Founder ${number} de ${totalFounders}`;
+
+  const acceptMessage = `Olá, sou ${fullName}. Recebi meu convite Founder DGN ${number} e quero confirmar minha vaga.`;
+  const acceptWhatsappUrl = `https://wa.me/${WHATSAPP_DGN}?text=${encodeURIComponent(acceptMessage)}`;
 
   const scrollToInvite = () => {
     document.getElementById("convite-founder")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const openReservation = () => {
-    setReservationOpen(true);
-    setReservationReady(false);
-    window.setTimeout(() => setReservationReady(true), 2300);
-  };
-
-  const continueToCheckout = () => {
-    window.open(checkoutUrl, "_blank", "noopener,noreferrer");
+  const openAccept = () => {
+    window.open(acceptWhatsappUrl, "_blank", "noopener,noreferrer");
   };
 
   const openVip = () => {
@@ -202,7 +190,7 @@ export function FounderPageClient({ founder }: FounderPageClientProps) {
         <FinalInvite
           firstName={firstName}
           vehicleModel={vehicle.model}
-          onAccept={openReservation}
+          onAccept={openAccept}
           onVip={openVip}
         />
       </main>
@@ -212,15 +200,6 @@ export function FounderPageClient({ founder }: FounderPageClientProps) {
           DGN Club • Cuidados automotivos premium
         </p>
       </footer>
-
-      <ReservationModal
-        open={reservationOpen}
-        ready={reservationReady}
-        number={number}
-        totalFounders={totalFounders}
-        onClose={() => setReservationOpen(false)}
-        onContinue={continueToCheckout}
-      />
     </div>
   );
 }
@@ -604,8 +583,8 @@ function FinalInvite({
                 boxShadow: "0 16px 42px rgba(201,168,76,0.2)",
               }}
             >
-              Aceitar meu convite
-              <ArrowRight size={17} />
+              <MessageCircle size={17} />
+              Confirmar minha vaga pelo WhatsApp
             </button>
             <button
               onClick={onVip}
@@ -621,105 +600,3 @@ function FinalInvite({
   );
 }
 
-function ReservationModal({
-  open,
-  ready,
-  number,
-  totalFounders,
-  onClose,
-  onContinue,
-}: {
-  open: boolean;
-  ready: boolean;
-  number: string;
-  totalFounders: number;
-  onClose: () => void;
-  onContinue: () => void;
-}) {
-  return (
-    <AnimatePresence>
-      {open ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-5 backdrop-blur-md"
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 18 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 18 }}
-            transition={{ duration: 0.28, ease: easeOut }}
-            className="relative w-full max-w-md overflow-hidden rounded-lg border border-[#C9A84C]/25 bg-[#0D0D0D] p-6 text-center shadow-2xl"
-          >
-            <button
-              onClick={onClose}
-              aria-label="Fechar"
-              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-[#9CA3AF]"
-            >
-              <X size={16} />
-            </button>
-
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(201,168,76,0.16),transparent_42%)]" />
-            <div className="relative pt-5">
-              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-lg border border-[#C9A84C]/25 bg-[#C9A84C]/10 text-[#C9A84C]">
-                {ready ? <CheckCircle2 size={25} /> : <Loader2 size={25} className="animate-spin" />}
-              </div>
-
-              <AnimatePresence mode="wait">
-                {ready ? (
-                  <motion.div
-                    key="reserved"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.24 }}
-                  >
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#C9A84C]">
-                      Vaga reservada
-                    </p>
-                    <h2 className="mt-3 text-2xl font-semibold leading-tight text-white">
-                      Sua vaga está reservada pelos próximos 30 minutos.
-                    </h2>
-                    <p className="mt-3 text-sm leading-relaxed text-[#9CA3AF]">
-                      Mantivemos a confirmação em um passo separado para que você siga com calma.
-                    </p>
-                    <button
-                      onClick={onContinue}
-                      className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg px-5 font-semibold text-[#080808]"
-                      style={{
-                        background: "linear-gradient(135deg, #C9A84C 0%, #F5DA78 48%, #B99132 100%)",
-                      }}
-                    >
-                      Continuar para confirmação
-                      <ArrowRight size={17} />
-                    </button>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="preparing"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.24 }}
-                  >
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#C9A84C]">
-                      Founder {number} de {totalFounders}
-                    </p>
-                    <h2 className="mt-3 text-2xl font-semibold leading-tight text-white">
-                      Preparando sua vaga de Membro Fundador...
-                    </h2>
-                    <div className="mx-auto mt-5 flex w-fit items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs text-[#9CA3AF]">
-                      <Clock size={14} className="text-[#C9A84C]" />
-                      Confirmação privada
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
-  );
-}

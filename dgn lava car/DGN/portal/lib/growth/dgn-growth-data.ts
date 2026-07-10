@@ -238,8 +238,8 @@ export function getCustomerTimeline(customer: DgnCustomer): DgnTimelineItem[] {
     },
     {
       title: "Aguardando curadoria",
-      detail: "Perfil pronto para validacao manual pelo Rodrigo/equipe DGN.",
-      dateLabel: "MVP",
+      detail: "Perfil pronto para validação manual pela equipe DGN.",
+      dateLabel: "Em análise",
     },
   ];
 
