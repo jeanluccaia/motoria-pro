@@ -3,13 +3,12 @@
     "hero": {
       "type": "hero-premium",
       "settings": {
-        "banner_mode": "split_right",
+        "banner_mode": "text_over_image",
         "desktop_asset": "pattamansa-hero-fundadores-clean-desktop.webp",
         "mobile_asset": "pattamansa-hero-fundadores-clean-mobile.webp",
         "desktop_asset_fallback": "pattamansa-hero-fundadores-desktop.webp",
-        "mobile_asset_fallback": "pattamansa-hero-fundadores-desktop.webp",
         "image_alt": "Fundadores da PattaMansa com cachorro",
-        "eyebrow": "Pet lifestyle premium",
+        "eyebrow": "PET LIFESTYLE PREMIUM",
         "heading": "Pra quem tem cachorro como família.",
         "subheading": "Camisetas premium e personalizadas para tutores que carregam esse amor no peito.",
         "primary_label": "Ver camisetas",
