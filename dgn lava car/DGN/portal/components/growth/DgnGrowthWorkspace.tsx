@@ -17,8 +17,6 @@ import {
   PanelRight,
   Search,
   Send,
-  ShieldAlert,
-  SlidersHorizontal,
   UserRound,
   X,
   type LucideIcon,
@@ -50,6 +48,7 @@ import {
 } from "@/lib/growth/dgn-growth-data";
 
 type GrowthView = "intelligence" | "curadoria" | "founders" | "profile";
+type ProfileTab = "overview" | "commercial" | "campaign" | "timeline";
 
 type CustomerDraft = Pick<DgnCustomer, "commercialStatus" | "recommendedPlan"> & {
   curation: DgnCustomer["curation"];
@@ -61,26 +60,60 @@ const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   currency: "BRL",
 });
 
-const statusTone: Record<string, string> = {
-  "Aguardando Curadoria DGN": "border-white/[0.08] bg-white/[0.035] text-[#D1D5DB]",
-  Curado: "border-sky-400/20 bg-sky-400/10 text-sky-200",
-  "Selecionado Founder": "border-[#C9A84C]/24 bg-[#C9A84C]/10 text-[#E7C96A]",
-  "Convite Criado": "border-amber-300/20 bg-amber-300/10 text-amber-200",
-  "Convite Enviado": "border-blue-300/20 bg-blue-300/10 text-blue-200",
-  Visualizou: "border-violet-300/20 bg-violet-300/10 text-violet-200",
-  Conversando: "border-teal-300/20 bg-teal-300/10 text-teal-200",
-  "Pagamento Enviado": "border-orange-300/20 bg-orange-300/10 text-orange-200",
-  "Assinante Ativo": "border-emerald-300/20 bg-emerald-300/10 text-emerald-200",
-  "Aguardando Kit Founder": "border-lime-300/20 bg-lime-300/10 text-lime-200",
-  Perdido: "border-red-300/20 bg-red-300/10 text-red-200",
-  "Nao Prioritario": "border-zinc-400/20 bg-zinc-400/10 text-zinc-300",
-  Selecionado: "border-[#C9A84C]/24 bg-[#C9A84C]/10 text-[#E7C96A]",
-  "Convite criado": "border-amber-300/20 bg-amber-300/10 text-amber-200",
-  "Mensagem enviada": "border-blue-300/20 bg-blue-300/10 text-blue-200",
-  "Pagamento enviado": "border-orange-300/20 bg-orange-300/10 text-orange-200",
-  "Assinante ativo": "border-emerald-300/20 bg-emerald-300/10 text-emerald-200",
+// ============================================================================
+// STATUS — 4 famílias unificadas
+// ============================================================================
+type StatusFamily = "neutral" | "active" | "action" | "blocked";
+
+const statusFamily: Record<string, StatusFamily> = {
+  // neutro
+  "Aguardando Curadoria DGN": "neutral",
+  "Nao Prioritario": "neutral",
+  Selecionado: "neutral",
+  "Selecionado Founder": "neutral",
+  "Slot disponivel": "neutral",
+  Pendente: "neutral",
+  // ação/atenção
+  Curado: "action",
+  "Convite Criado": "action",
+  "Convite criado": "action",
+  "Convite Enviado": "action",
+  "Mensagem enviada": "action",
+  Visualizou: "action",
+  Conversando: "action",
+  "Pagamento Enviado": "action",
+  "Pagamento enviado": "action",
+  "Aguardando Kit Founder": "action",
+  // ativo/positivo
+  "Assinante Ativo": "active",
+  "Assinante ativo": "active",
+  Convertido: "active",
+  // bloqueio/perda
+  Perdido: "blocked",
+  "Sem telefone": "blocked",
 };
 
+const statusTone: Record<StatusFamily, string> = {
+  neutral: "border-white/[0.08] bg-white/[0.04] text-[#D1D5DB]",
+  active: "border-emerald-400/25 bg-emerald-400/10 text-emerald-200",
+  action: "border-[#C9A84C]/25 bg-[#C9A84C]/10 text-[#E7C96A]",
+  blocked: "border-red-400/25 bg-red-400/10 text-red-200",
+};
+
+const statusDot: Record<StatusFamily, string> = {
+  neutral: "bg-[#9CA3AF]",
+  active: "bg-emerald-300",
+  action: "bg-[#E7C96A]",
+  blocked: "bg-red-300",
+};
+
+function getStatusFamily(label: string): StatusFamily {
+  return statusFamily[label] ?? "neutral";
+}
+
+// ============================================================================
+// Helpers
+// ============================================================================
 function formatCurrency(value: number) {
   return currencyFormatter.format(value);
 }
@@ -104,6 +137,16 @@ function createDrafts() {
   ) as Record<string, CustomerDraft>;
 }
 
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+// ============================================================================
+// Workspace
+// ============================================================================
 export function DgnGrowthWorkspace({
   view,
   customerId,
@@ -123,6 +166,7 @@ export function DgnGrowthWorkspace({
   const [notice, setNotice] = useState("");
   const [copiedKey, setCopiedKey] = useState("");
   const [copiedLinkKey, setCopiedLinkKey] = useState("");
+  const [profileTab, setProfileTab] = useState<ProfileTab>("overview");
 
   const customers = useMemo(
     () =>
@@ -173,7 +217,7 @@ export function DgnGrowthWorkspace({
         if (sortBy === "ultimo") return b.lastAttendance.localeCompare(a.lastAttendance);
         return b.scoreDgn - a.scoreDgn;
       });
-  }, [customers, planFilter, query, scoreFilter, statusFilter]);
+  }, [customers, planFilter, query, scoreFilter, sortBy, statusFilter]);
 
   const metrics = useMemo(() => {
     const awaiting = customers.filter(
@@ -186,10 +230,6 @@ export function DgnGrowthWorkspace({
       (sum, customer) => sum + getPotentialRevenue(customer),
       0
     );
-    const byPlan = recommendedPlans.map((plan) => ({
-      plan,
-      total: customers.filter((customer) => customer.recommendedPlan === plan).length,
-    }));
 
     return {
       total: customers.length,
@@ -198,7 +238,6 @@ export function DgnGrowthWorkspace({
       founders: founders.length,
       totalHistorical,
       potentialRevenue,
-      byPlan,
     };
   }, [customers]);
 
@@ -277,7 +316,7 @@ export function DgnGrowthWorkspace({
     const url = buildWhatsappUrl(customer, message);
 
     if (!url) {
-      setNotice("Telefone nao cadastrado.");
+      setNotice("Telefone não cadastrado.");
       window.setTimeout(() => setNotice(""), 2400);
       return;
     }
@@ -289,8 +328,12 @@ export function DgnGrowthWorkspace({
     <div className="min-h-screen bg-[#080808] text-white">
       <GrowthHeader current={view} />
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <InternalNotice notice={notice} />
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {notice ? (
+          <div className="fixed right-4 top-4 z-[70] rounded-xl border border-[#C9A84C]/30 bg-[#111111] px-4 py-3 text-sm font-semibold text-[#E7C96A] shadow-2xl">
+            {notice}
+          </div>
+        ) : null}
 
         {view === "intelligence" ? (
           <IntelligenceView
@@ -306,7 +349,10 @@ export function DgnGrowthWorkspace({
             onPlanFilter={setPlanFilter}
             onScoreFilter={setScoreFilter}
             onSortBy={setSortBy}
-            onOpenProfile={setSelectedCustomerId}
+            onOpenProfile={(id) => {
+              setSelectedCustomerId(id);
+              setProfileTab("overview");
+            }}
           />
         ) : null}
 
@@ -330,7 +376,10 @@ export function DgnGrowthWorkspace({
             copiedLinkKey={copiedLinkKey}
             onPatch={patchCustomer}
             onFounderFilter={setFounderFilter}
-            onOpenProfile={setSelectedCustomerId}
+            onOpenProfile={(id) => {
+              setSelectedCustomerId(id);
+              setProfileTab("overview");
+            }}
             onOpenWhatsapp={openWhatsapp}
             onCopy={(customer) =>
               copyText(`message-${customer.id}`, buildFounderWhatsappMessage(customer, getOrigin()))
@@ -342,6 +391,8 @@ export function DgnGrowthWorkspace({
         {view === "profile" && selectedCustomer ? (
           <CustomerProfileInline
             customer={selectedCustomer}
+            tab={profileTab}
+            onTabChange={setProfileTab}
             onPatch={patchCustomer}
             onOpenWhatsapp={openWhatsapp}
             onCopy={() =>
@@ -358,6 +409,8 @@ export function DgnGrowthWorkspace({
       {view !== "profile" && selectedCustomerId ? (
         <CustomerDrawer
           customer={selectedCustomer}
+          tab={profileTab}
+          onTabChange={setProfileTab}
           onClose={() => setSelectedCustomerId("")}
           onPatch={patchCustomer}
           onOpenWhatsapp={openWhatsapp}
@@ -374,6 +427,9 @@ export function DgnGrowthWorkspace({
   );
 }
 
+// ============================================================================
+// Header
+// ============================================================================
 function GrowthHeader({ current }: { current: GrowthView }) {
   const links = [
     { href: "/admin/growth/intelligence", label: "Intelligence", view: "intelligence" },
@@ -382,19 +438,15 @@ function GrowthHeader({ current }: { current: GrowthView }) {
   ];
 
   return (
-    <header className="border-b border-white/[0.08] bg-[#0B0B0B]/95 px-4 py-5 backdrop-blur sm:px-6 lg:px-8">
+    <header className="border-b border-white/[0.06] bg-[#0B0B0B]/95 px-4 py-6 backdrop-blur sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#C9A84C]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
             DGN Growth
           </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-normal text-white sm:text-3xl">
-            MVP comercial Founders 2026
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+            Central de relacionamento
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#A7A7A7]">
-            Intelligence, Curadoria DGN e Campaign Center em estrutura local preparada para
-            persistencia futura.
-          </p>
         </div>
 
         <nav className="flex flex-wrap items-center gap-2">
@@ -402,10 +454,10 @@ function GrowthHeader({ current }: { current: GrowthView }) {
             <Link
               key={link.href}
               href={link.href}
-              className={`inline-flex min-h-9 items-center gap-2 rounded-lg border px-3 text-sm font-semibold transition ${
+              className={`inline-flex min-h-9 items-center gap-2 rounded-xl border px-3 text-sm font-semibold transition ${
                 current === link.view
                   ? "border-[#C9A84C]/35 bg-[#C9A84C]/10 text-[#E7C96A]"
-                  : "border-white/[0.08] bg-white/[0.035] text-[#D1D5DB] hover:border-[#C9A84C]/30"
+                  : "border-white/[0.06] bg-white/[0.03] text-[#D1D5DB] hover:border-[#C9A84C]/25"
               }`}
             >
               {link.label}
@@ -413,7 +465,7 @@ function GrowthHeader({ current }: { current: GrowthView }) {
           ))}
           <Link
             href="/admin/growth/logout"
-            className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-white/[0.06] bg-transparent px-3 text-sm font-semibold text-[#6B6B6B] transition hover:border-red-500/30 hover:text-red-400"
+            className="inline-flex min-h-9 items-center gap-2 rounded-xl border border-white/[0.06] bg-transparent px-3 text-sm font-semibold text-[#6B6B6B] transition hover:border-red-500/30 hover:text-red-400"
           >
             Sair
           </Link>
@@ -423,30 +475,9 @@ function GrowthHeader({ current }: { current: GrowthView }) {
   );
 }
 
-function InternalNotice({ notice }: { notice: string }) {
-  return (
-    <>
-      <section className="mb-5 rounded-lg border border-[#C9A84C]/18 bg-[#111111] p-4">
-        <div className="flex gap-3">
-          <ShieldAlert size={18} className="mt-0.5 shrink-0 text-[#C9A84C]" />
-          <div>
-            <p className="text-sm font-semibold text-white">Rota interna</p>
-            <p className="mt-1 text-xs leading-relaxed text-[#9CA3AF]">
-              Proteger com autenticacao/admin antes de operar dados reais. MVP sem WhatsApp
-              Business API, disparo em massa, ERP, modulo financeiro ou banco definitivo.
-            </p>
-          </div>
-        </div>
-      </section>
-      {notice ? (
-        <div className="fixed right-4 top-4 z-[70] rounded-lg border border-[#C9A84C]/30 bg-[#111111] px-4 py-3 text-sm font-semibold text-[#E7C96A] shadow-2xl">
-          {notice}
-        </div>
-      ) : null}
-    </>
-  );
-}
-
+// ============================================================================
+// Intelligence — 4 KPIs + linha discreta financeira + filtros + tabela
+// ============================================================================
 function IntelligenceView({
   metrics,
   customers,
@@ -469,7 +500,6 @@ function IntelligenceView({
     founders: number;
     totalHistorical: number;
     potentialRevenue: number;
-    byPlan: { plan: RecommendedPlan; total: number }[];
   };
   customers: DgnCustomer[];
   query: string;
@@ -493,35 +523,27 @@ function IntelligenceView({
 
   return (
     <>
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+      {/* 4 KPIs principais */}
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label="Clientes importados" value={String(metrics.total)} icon={UserRound} />
         <MetricCard label="Aguardando curadoria" value={String(metrics.awaiting)} icon={Filter} />
         <MetricCard label="Alto score" value={String(metrics.highScore)} icon={BadgeCheck} />
         <MetricCard label="Selecionados Founder" value={String(metrics.founders)} icon={Crown} />
-        <MetricCard
-          label="Valor historico"
-          value={formatCurrency(metrics.totalHistorical)}
-          icon={Banknote}
-          wide
-        />
-        <MetricCard
-          label="Potencial receita"
-          value={formatCurrency(metrics.potentialRevenue)}
-          icon={ArrowRight}
-          wide
-        />
       </section>
 
-      <section className="mt-4 grid gap-3 sm:grid-cols-3">
-        {metrics.byPlan.map((item) => (
-          <div key={item.plan} className="rounded-lg border border-white/[0.08] bg-[#101010] p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">
-              Plano recomendado
-            </p>
-            <p className="mt-2 text-lg font-semibold text-white">{item.plan}</p>
-            <p className="mt-1 text-sm text-[#A7A7A7]">{item.total} clientes</p>
-          </div>
-        ))}
+      {/* Linha discreta financeira */}
+      <section className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl border border-white/[0.05] bg-white/[0.02] px-4 py-3 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] uppercase tracking-[0.14em] text-[#7D7D7D]">Histórico</span>
+          <span className="font-semibold text-white">{formatCurrency(metrics.totalHistorical)}</span>
+        </div>
+        <div className="h-4 w-px bg-white/[0.08]" />
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] uppercase tracking-[0.14em] text-[#7D7D7D]">Potencial</span>
+          <span className="font-semibold text-[#E7C96A]">
+            {formatCurrency(metrics.potentialRevenue)}
+          </span>
+        </div>
       </section>
 
       <FiltersBar
@@ -546,7 +568,7 @@ function IntelligenceView({
             className={`inline-flex h-8 items-center rounded-full border px-3 text-xs font-semibold transition ${
               sortBy === option.key
                 ? "border-[#C9A84C]/35 bg-[#C9A84C]/10 text-[#E7C96A]"
-                : "border-white/[0.08] bg-white/[0.035] text-[#A7A7A7] hover:border-[#C9A84C]/25"
+                : "border-white/[0.06] bg-white/[0.03] text-[#A7A7A7] hover:border-[#C9A84C]/25"
             }`}
           >
             {option.label}
@@ -579,7 +601,7 @@ function FiltersBar({
   onScoreFilter: (value: string) => void;
 }) {
   return (
-    <section className="mt-6 rounded-lg border border-white/[0.08] bg-[#101010] p-4">
+    <section className="mt-6 rounded-2xl border border-white/[0.06] bg-[#101010] p-4">
       <div className="grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr_0.7fr]">
         <label className="relative">
           <Search
@@ -589,8 +611,8 @@ function FiltersBar({
           <input
             value={query}
             onChange={(event) => onQuery(event.target.value)}
-            placeholder="Buscar por nome, veiculo, empresa ou telefone"
-            className="h-11 w-full rounded-lg border border-white/[0.08] bg-white/[0.035] pl-9 pr-3 text-sm text-white outline-none placeholder:text-[#666] focus:border-[#C9A84C]/35"
+            placeholder="Buscar por nome, veículo, empresa ou telefone"
+            className="h-11 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] pl-9 pr-3 text-sm text-white outline-none placeholder:text-[#666] focus:border-[#C9A84C]/35"
           />
         </label>
         <SelectField value={statusFilter} onChange={onStatusFilter}>
@@ -616,6 +638,9 @@ function FiltersBar({
   );
 }
 
+// ============================================================================
+// Intelligence — tabela enxuta (colunas essenciais, nome sticky)
+// ============================================================================
 function CustomersTable({
   customers,
   onOpenProfile,
@@ -624,75 +649,74 @@ function CustomersTable({
   onOpenProfile: (id: string) => void;
 }) {
   return (
-    <section className="mt-5 rounded-lg border border-white/[0.08] bg-[#101010]">
-      <div className="flex items-center justify-between border-b border-white/[0.08] px-4 py-4">
+    <section className="mt-5 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#101010]">
+      <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-4">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
             DGN Intelligence
           </p>
           <h2 className="mt-1 text-lg font-semibold text-white">Base importada e priorizada</h2>
         </div>
-        <SlidersHorizontal size={18} className="text-[#C9A84C]" />
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[1280px] border-collapse">
+        <table className="w-full min-w-[960px] border-collapse">
           <thead>
-            <tr className="border-b border-white/[0.07] text-left">
+            <tr className="border-b border-white/[0.06] text-left">
               {[
-                "Nome",
-                "Telefone",
-                "Veiculo",
-                "Placa",
-                "Empresa/vinculo",
-                "Origem",
-                "Atend.",
-                "Valor historico",
-                "Cliente desde",
-                "Ultimo",
-                "Score",
-                "Plano",
-                "Status",
-                "Acao",
+                { key: "name", label: "Nome", sticky: true },
+                { key: "vehicle", label: "Veículo" },
+                { key: "score", label: "Score" },
+                { key: "plan", label: "Plano" },
+                { key: "status", label: "Status" },
+                { key: "last", label: "Último" },
+                { key: "action", label: "" },
               ].map((column) => (
                 <th
-                  key={column}
-                  className="px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]"
+                  key={column.key}
+                  className={`px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D] ${
+                    column.sticky ? "sticky left-0 z-10 bg-[#101010]" : ""
+                  }`}
                 >
-                  {column}
+                  {column.label}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {customers.map((customer) => (
-              <tr key={customer.id} className="border-b border-white/[0.05] hover:bg-white/[0.025]">
-                <td className="px-4 py-4 text-sm font-semibold text-white">{customer.name}</td>
-                <td className="px-4 py-4 text-sm text-[#D1D5DB]">
-                  {customer.phone || "Nao cadastrado"}
-                </td>
-                <td className="px-4 py-4 text-sm text-[#E5E7EB]">{customer.vehicle}</td>
-                <td className="px-4 py-4 text-sm text-[#A7A7A7]">{maskPlate(customer.plate)}</td>
-                <td className="px-4 py-4 text-sm text-[#D1D5DB]">{customer.companyLink}</td>
-                <td className="px-4 py-4 text-sm text-[#A7A7A7]">{customer.origin}</td>
-                <td className="px-4 py-4 text-sm text-white">{customer.washCount}</td>
-                <td className="px-4 py-4 text-sm font-semibold text-white">
-                  {formatCurrency(customer.historicalValue)}
-                </td>
-                <td className="px-4 py-4 text-sm text-[#A7A7A7]">{customer.customerSince}</td>
-                <td className="px-4 py-4 text-sm text-[#A7A7A7]">{customer.lastAttendance}</td>
-                <td className="px-4 py-4">
-                  <ScorePill score={customer.scoreDgn} />
-                </td>
-                <td className="px-4 py-4 text-sm text-[#D1D5DB]">{customer.recommendedPlan}</td>
-                <td className="px-4 py-4">
-                  <StatusBadge label={customer.commercialStatus} />
-                </td>
-                <td className="px-4 py-4">
+            {customers.map((customer, index) => (
+              <tr
+                key={customer.id}
+                className={`border-b border-white/[0.04] transition hover:bg-white/[0.02] ${
+                  index % 2 === 1 ? "bg-white/[0.012]" : ""
+                }`}
+              >
+                <td className="sticky left-0 z-10 bg-inherit px-4 py-3">
                   <button
                     onClick={() => onOpenProfile(customer.id)}
-                    className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#C9A84C]/24 bg-[#C9A84C]/10 px-3 text-sm font-semibold text-[#E7C96A] transition hover:border-[#C9A84C]/45"
+                    className="flex items-center gap-3 text-left"
                   >
-                    <PanelRight size={15} />
+                    <Avatar name={customer.name} />
+                    <div>
+                      <p className="text-sm font-semibold text-white">{customer.name}</p>
+                      <p className="text-xs text-[#747474]">{customer.companyLink}</p>
+                    </div>
+                  </button>
+                </td>
+                <td className="px-4 py-3 text-sm text-[#E5E7EB]">{customer.vehicle}</td>
+                <td className="px-4 py-3">
+                  <ScorePill score={customer.scoreDgn} />
+                </td>
+                <td className="px-4 py-3 text-sm text-[#D1D5DB]">{customer.recommendedPlan}</td>
+                <td className="px-4 py-3">
+                  <StatusBadge label={customer.commercialStatus} />
+                </td>
+                <td className="px-4 py-3 text-sm text-[#A7A7A7]">{customer.lastAttendance}</td>
+                <td className="px-4 py-3">
+                  <button
+                    onClick={() => onOpenProfile(customer.id)}
+                    className="inline-flex min-h-8 items-center gap-2 rounded-xl border border-[#C9A84C]/25 bg-[#C9A84C]/10 px-3 text-xs font-semibold text-[#E7C96A] transition hover:border-[#C9A84C]/45"
+                  >
+                    <PanelRight size={13} />
                     Abrir
                   </button>
                 </td>
@@ -705,6 +729,9 @@ function CustomersTable({
   );
 }
 
+// ============================================================================
+// Curadoria — 3 fieldsets + avatar na lista
+// ============================================================================
 const curationFilterOptions = [
   { key: "Todos", label: "Todos" },
   { key: "Aguardando", label: "Aguardando curadoria" },
@@ -740,8 +767,8 @@ function CurationView({
 
   return (
     <section className="grid gap-5 lg:grid-cols-[22rem_1fr]">
-      <div className="rounded-lg border border-white/[0.08] bg-[#101010]">
-        <div className="border-b border-white/[0.08] p-4">
+      <div className="rounded-2xl border border-white/[0.06] bg-[#101010]">
+        <div className="border-b border-white/[0.06] p-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
             Curadoria DGN
           </p>
@@ -754,7 +781,7 @@ function CurationView({
                 className={`inline-flex h-7 items-center rounded-full border px-2.5 text-[11px] font-semibold transition ${
                   curationFilter === option.key
                     ? "border-[#C9A84C]/35 bg-[#C9A84C]/10 text-[#E7C96A]"
-                    : "border-white/[0.08] bg-white/[0.025] text-[#9CA3AF] hover:border-[#C9A84C]/20"
+                    : "border-white/[0.06] bg-white/[0.025] text-[#9CA3AF] hover:border-[#C9A84C]/20"
                 }`}
               >
                 {option.label}
@@ -767,65 +794,77 @@ function CurationView({
             <button
               key={customer.id}
               onClick={() => onSelect(customer.id)}
-              className={`mb-2 w-full rounded-lg border p-3 text-left transition ${
+              className={`mb-2 w-full rounded-2xl border p-3 text-left transition ${
                 selectedCustomer.id === customer.id
                   ? "border-[#C9A84C]/35 bg-[#C9A84C]/10"
-                  : "border-white/[0.06] bg-white/[0.025] hover:border-white/[0.12]"
+                  : "border-white/[0.05] bg-white/[0.02] hover:border-white/[0.12]"
               }`}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-white">{customer.name}</p>
-                  <p className="mt-1 text-xs text-[#9CA3AF]">{customer.vehicle}</p>
+              <div className="flex items-start gap-3">
+                <Avatar name={customer.name} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-white">{customer.name}</p>
+                      <p className="mt-0.5 truncate text-xs text-[#9CA3AF]">{customer.vehicle}</p>
+                    </div>
+                    <ScorePill score={customer.scoreDgn} />
+                  </div>
+                  <p className="mt-2 text-xs text-[#7D7D7D]">{customer.commercialStatus}</p>
                 </div>
-                <ScorePill score={customer.scoreDgn} />
               </div>
-              <p className="mt-2 text-xs text-[#7D7D7D]">{customer.commercialStatus}</p>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="rounded-lg border border-white/[0.08] bg-[#101010] p-5">
+      <div className="rounded-2xl border border-white/[0.06] bg-[#101010] p-5">
         <CustomerSnapshot customer={selectedCustomer} />
 
-        <div className="mt-5 grid gap-4 lg:grid-cols-2">
-          <SelectBlock
-            label="Perfil"
-            value={selectedCustomer.curation.profile}
-            options={curationProfiles}
-            onChange={(value) =>
-              onPatch(selectedCustomer.id, { curation: { profile: value } as CustomerDraft["curation"] })
-            }
-          />
-          <SelectBlock
-            label="Origem / Grupo"
-            value={selectedCustomer.curation.originGroup}
-            options={originGroups}
-            onChange={(value) =>
-              onPatch(selectedCustomer.id, {
-                curation: { originGroup: value } as CustomerDraft["curation"],
-              })
-            }
-          />
-          <SelectBlock
-            label="Perfil comercial"
-            value={selectedCustomer.curation.commercialProfile}
-            options={commercialProfiles}
-            onChange={(value) =>
-              onPatch(selectedCustomer.id, {
-                curation: { commercialProfile: value } as CustomerDraft["curation"],
-              })
-            }
-          />
-          <SelectBlock
-            label="Plano recomendado"
-            value={selectedCustomer.recommendedPlan}
-            options={recommendedPlans}
-            onChange={(value) =>
-              onPatch(selectedCustomer.id, { recommendedPlan: value as RecommendedPlan })
-            }
-          />
+        <Fieldset label="Perfil">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <SelectBlock
+              label="Perfil"
+              value={selectedCustomer.curation.profile}
+              options={curationProfiles}
+              onChange={(value) =>
+                onPatch(selectedCustomer.id, {
+                  curation: { profile: value } as CustomerDraft["curation"],
+                })
+              }
+            />
+            <SelectBlock
+              label="Origem / Grupo"
+              value={selectedCustomer.curation.originGroup}
+              options={originGroups}
+              onChange={(value) =>
+                onPatch(selectedCustomer.id, {
+                  curation: { originGroup: value } as CustomerDraft["curation"],
+                })
+              }
+            />
+            <SelectBlock
+              label="Perfil comercial"
+              value={selectedCustomer.curation.commercialProfile}
+              options={commercialProfiles}
+              onChange={(value) =>
+                onPatch(selectedCustomer.id, {
+                  curation: { commercialProfile: value } as CustomerDraft["curation"],
+                })
+              }
+            />
+            <SelectBlock
+              label="Plano recomendado"
+              value={selectedCustomer.recommendedPlan}
+              options={recommendedPlans}
+              onChange={(value) =>
+                onPatch(selectedCustomer.id, { recommendedPlan: value as RecommendedPlan })
+              }
+            />
+          </div>
+        </Fieldset>
+
+        <Fieldset label="Preferência de atendimento">
           <SelectBlock
             label="Agenda ideal"
             value={selectedCustomer.curation.idealSchedule}
@@ -836,58 +875,63 @@ function CurationView({
               })
             }
           />
-          <SelectBlock
-            label="Decisao Founder"
-            value={selectedCustomer.curation.founderDecision}
-            options={["Sim", "Nao"]}
-            onChange={(value) => {
-              const isFounder = value === "Sim";
-              const founderNumber =
-                selectedCustomer.curation.founderNumber ||
-                String(
-                  1 +
-                    customers.filter((customer) => customer.campaign.founderSelected).length
-                ).padStart(3, "0");
+        </Fieldset>
 
-              onPatch(selectedCustomer.id, {
-                commercialStatus: isFounder ? "Selecionado Founder" : "Curado",
-                curation: {
-                  founderDecision: value,
-                  founderNumber: isFounder ? founderNumber : "",
-                } as CustomerDraft["curation"],
-                campaign: {
-                  currentCampaign: isFounder ? "Founders 2026" : "",
-                  founderSelected: isFounder,
-                  founderNumber: isFounder ? founderNumber : "",
-                  founderCondition: isFounder
-                    ? planMonthlyLabel[selectedCustomer.recommendedPlan]
-                    : "",
-                  campaignStatus: isFounder ? "Selecionado" : "",
-                  lastAction: isFounder ? "Selecionado para Founders 2026" : "Curadoria realizada",
-                  nextAction: isFounder ? "Criar convite personalizado" : "Manter relacionamento",
-                } as CustomerDraft["campaign"],
-              });
-            }}
-          />
-          <label>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">
-              Numero Founder
-            </span>
-            <input
-              value={selectedCustomer.curation.founderNumber}
-              onChange={(event) =>
+        <Fieldset label="Decisão Founder">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <SelectBlock
+              label="Decisão"
+              value={selectedCustomer.curation.founderDecision}
+              options={["Sim", "Nao"]}
+              onChange={(value) => {
+                const isFounder = value === "Sim";
+                const founderNumber =
+                  selectedCustomer.curation.founderNumber ||
+                  String(
+                    1 +
+                      customers.filter((customer) => customer.campaign.founderSelected).length
+                  ).padStart(3, "0");
+
                 onPatch(selectedCustomer.id, {
-                  curation: { founderNumber: event.target.value } as CustomerDraft["curation"],
-                  campaign: { founderNumber: event.target.value } as CustomerDraft["campaign"],
-                })
-              }
-              placeholder="001 a 030"
-              className="mt-2 h-11 w-full rounded-lg border border-white/[0.08] bg-white/[0.035] px-3 text-sm text-white outline-none placeholder:text-[#666] focus:border-[#C9A84C]/35"
+                  commercialStatus: isFounder ? "Selecionado Founder" : "Curado",
+                  curation: {
+                    founderDecision: value,
+                    founderNumber: isFounder ? founderNumber : "",
+                  } as CustomerDraft["curation"],
+                  campaign: {
+                    currentCampaign: isFounder ? "Founders 2026" : "",
+                    founderSelected: isFounder,
+                    founderNumber: isFounder ? founderNumber : "",
+                    founderCondition: isFounder
+                      ? planMonthlyLabel[selectedCustomer.recommendedPlan]
+                      : "",
+                    campaignStatus: isFounder ? "Selecionado" : "",
+                    lastAction: isFounder ? "Selecionado para Founders 2026" : "Curadoria realizada",
+                    nextAction: isFounder ? "Criar convite personalizado" : "Manter relacionamento",
+                  } as CustomerDraft["campaign"],
+                });
+              }}
             />
-          </label>
-          <label className="lg:col-span-2">
+            <label>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">
+                Número Founder
+              </span>
+              <input
+                value={selectedCustomer.curation.founderNumber}
+                onChange={(event) =>
+                  onPatch(selectedCustomer.id, {
+                    curation: { founderNumber: event.target.value } as CustomerDraft["curation"],
+                    campaign: { founderNumber: event.target.value } as CustomerDraft["campaign"],
+                  })
+                }
+                placeholder="001 a 030"
+                className="mt-2 h-11 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-sm text-white outline-none placeholder:text-[#666] focus:border-[#C9A84C]/35"
+              />
+            </label>
+          </div>
+          <label className="mt-4 block">
             <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">
-              Observacoes internas
+              Observações internas
             </span>
             <textarea
               value={selectedCustomer.curation.internalNotes}
@@ -897,15 +941,30 @@ function CurationView({
                 })
               }
               rows={4}
-              className="mt-2 w-full rounded-lg border border-white/[0.08] bg-white/[0.035] px-3 py-3 text-sm text-white outline-none placeholder:text-[#666] focus:border-[#C9A84C]/35"
+              placeholder="Contexto, sensibilidade a preço, quem indicou, observações relevantes…"
+              className="mt-2 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-3 text-sm text-white outline-none placeholder:text-[#5F5F5F] focus:border-[#C9A84C]/35"
             />
           </label>
-        </div>
+        </Fieldset>
       </div>
     </section>
   );
 }
 
+function Fieldset({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <fieldset className="mt-6 border-t border-white/[0.06] pt-5">
+      <legend className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">
+        {label}
+      </legend>
+      {children}
+    </fieldset>
+  );
+}
+
+// ============================================================================
+// Founders 2026 — hero + funil compacto + tabela essencial
+// ============================================================================
 const founderFilterOptions = [
   { key: "Todos", label: "Todos" },
   { key: "Ativo", label: "Ativos" },
@@ -972,7 +1031,7 @@ function FoundersView({
           campaignStatus: "Selecionado" as FoundersPipelineStatus,
           personalizedPagePath: "",
           paymentLink: "",
-          lastAction: "Slot disponivel",
+          lastAction: "Slot disponível",
           nextAction: "Selecionar cliente na Curadoria DGN",
           notes: "Slot reservado para completar os 30 Founders.",
           founderSelected: false,
@@ -994,30 +1053,83 @@ function FoundersView({
     return true;
   });
 
+  const goalPercentage = Math.round((campaignMetrics.converted / 30) * 100);
+
   return (
     <>
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <MetricCard label="Slots disponíveis" value={String(campaignMetrics.available)} icon={Crown} />
-        <MetricCard label="Convites criados" value={String(campaignMetrics.created)} icon={Check} />
-        <MetricCard label="Enviados" value={String(campaignMetrics.sent)} icon={Send} />
-        <MetricCard label="Visualizados" value={String(campaignMetrics.viewed)} icon={Eye} />
-        <MetricCard label="Conversando" value={String(campaignMetrics.conversations)} icon={MessageCircle} />
-        <MetricCard label="Pagamentos enviados" value={String(campaignMetrics.payments)} icon={Banknote} />
-        <MetricCard label="Convertidos" value={`${campaignMetrics.converted} / 30`} icon={BadgeCheck} />
-        <MetricCard label="Aguardando kit" value={String(campaignMetrics.awaitingKit)} icon={Check} />
-        <MetricCard label="Perdidos" value={String(campaignMetrics.lost)} icon={X} />
-        <MetricCard label="Receita gerada" value={formatCurrency(campaignMetrics.revenue)} icon={Banknote} wide />
+      {/* HERO da campanha */}
+      <section
+        className="relative overflow-hidden rounded-3xl border border-[#C9A84C]/25 p-6 sm:p-8"
+        style={{
+          background: "linear-gradient(145deg,#1A1408 0%,#0B0B0B 65%,#0F0D06 100%)",
+        }}
+      >
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(circle at 85% 0%, rgba(201,168,76,0.18), transparent 40%)",
+          }}
+        />
+        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
+              Founders 2026
+            </p>
+            <div className="mt-3 flex items-baseline gap-3">
+              <p className="gold-gradient-text text-5xl font-semibold leading-none tracking-tight sm:text-6xl">
+                {campaignMetrics.converted}
+              </p>
+              <p className="text-2xl font-semibold text-white/60">/ 30</p>
+            </div>
+            <p className="mt-2 text-sm text-[#B8B8B8]">assinaturas semestrais confirmadas</p>
+          </div>
+
+          <div className="lg:w-96">
+            <div className="mb-2 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.14em] text-[#9CA3AF]">
+              <span>Progresso · meta 30</span>
+              <span className="text-[#E7C96A]">{goalPercentage}%</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+              <div
+                className="h-full rounded-full bg-[linear-gradient(90deg,#C9A84C,#F0D060)]"
+                style={{ width: `${goalPercentage}%` }}
+              />
+            </div>
+            <div className="mt-4 flex items-center gap-2">
+              <Banknote size={14} className="text-[#C9A84C]" />
+              <span className="text-[11px] uppercase tracking-[0.14em] text-[#7D7D7D]">
+                Receita confirmada
+              </span>
+              <span className="text-sm font-semibold text-white">
+                {formatCurrency(campaignMetrics.revenue)}
+              </span>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section className="mt-5 rounded-lg border border-white/[0.08] bg-[#101010]">
-        <div className="flex flex-col gap-3 border-b border-white/[0.08] px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* FUNIL compacto — 5 estágios */}
+      <section className="mt-4">
+        <Funnel
+          stages={[
+            { label: "Convidados", value: campaignMetrics.sent, family: "action" },
+            { label: "Visualizaram", value: campaignMetrics.viewed, family: "action" },
+            { label: "Conversando", value: campaignMetrics.conversations, family: "action" },
+            { label: "Pagamento", value: campaignMetrics.payments, family: "action" },
+            { label: "Convertidos", value: campaignMetrics.converted, family: "active" },
+          ]}
+        />
+      </section>
+
+      {/* Tabela essencial */}
+      <section className="mt-5 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#101010]">
+        <div className="flex flex-col gap-3 border-b border-white/[0.06] px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
               Membros Fundadores DGN Club
             </p>
-            <h2 className="mt-1 text-lg font-semibold text-white">
-              Meta: 30 assinaturas semestrais
-            </h2>
+            <h2 className="mt-1 text-lg font-semibold text-white">Pipeline dos 30 convites</h2>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {founderFilterOptions.map((option) => (
                 <button
@@ -1026,7 +1138,7 @@ function FoundersView({
                   className={`inline-flex h-7 items-center rounded-full border px-2.5 text-[11px] font-semibold transition ${
                     founderFilter === option.key
                       ? "border-[#C9A84C]/35 bg-[#C9A84C]/10 text-[#E7C96A]"
-                      : "border-white/[0.08] bg-white/[0.025] text-[#9CA3AF] hover:border-[#C9A84C]/20"
+                      : "border-white/[0.06] bg-white/[0.025] text-[#9CA3AF] hover:border-[#C9A84C]/20"
                   }`}
                 >
                   {option.label}
@@ -1034,45 +1146,33 @@ function FoundersView({
               ))}
             </div>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-white/[0.06] sm:w-80">
-            <div
-              className="h-full rounded-full bg-[linear-gradient(90deg,#C9A84C,#F0D060)]"
-              style={{ width: `${(campaignMetrics.converted / 30) * 100}%` }}
-            />
-          </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1520px] border-collapse">
+          <table className="w-full min-w-[960px] border-collapse">
             <thead>
-              <tr className="border-b border-white/[0.07] text-left">
+              <tr className="border-b border-white/[0.06] text-left">
                 {[
-                  "Founder",
-                  "Nome",
-                  "Telefone",
-                  "Veiculo",
-                  "Placa",
-                  "Score",
-                  "Plano",
-                  "Condicao",
-                  "Status",
-                  "Kit",
-                  "Cartão",
-                  "Pagina",
-                  "Ultima/proxima acao",
-                  "Acoes",
+                  { key: "num", label: "Nº" },
+                  { key: "name", label: "Nome", sticky: true },
+                  { key: "vehicle", label: "Veículo" },
+                  { key: "status", label: "Status" },
+                  { key: "actions_flow", label: "Última / próxima ação" },
+                  { key: "actions", label: "Ações" },
                 ].map((column) => (
                   <th
-                    key={column}
-                    className="px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]"
+                    key={column.key}
+                    className={`px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D] ${
+                      column.sticky ? "sticky left-0 z-10 bg-[#101010]" : ""
+                    }`}
                   >
-                    {column}
+                    {column.label}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {founderRows.map((row) => {
+              {founderRows.map((row, index) => {
                 const customer = row as DgnCustomer & { isSlot?: boolean };
                 const isSlot = customer.isSlot;
                 const status = customer.campaign.campaignStatus || "Selecionado";
@@ -1080,43 +1180,41 @@ function FoundersView({
                 return (
                   <tr
                     key={customer.id}
-                    className="border-b border-white/[0.05] hover:bg-white/[0.025]"
+                    className={`border-b border-white/[0.04] transition hover:bg-white/[0.02] ${
+                      index % 2 === 1 ? "bg-white/[0.012]" : ""
+                    }`}
                   >
-                    <td className="px-4 py-4">
-                      <span className="inline-flex items-center gap-2 rounded-lg border border-[#C9A84C]/18 bg-[#C9A84C]/8 px-2.5 py-1 text-xs font-semibold text-[#E7C96A]">
-                        <Crown size={14} />
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#C9A84C]/22 bg-[#C9A84C]/8 px-2.5 py-1 text-xs font-semibold text-[#E7C96A]">
+                        <Crown size={12} />
                         {customer.campaign.founderNumber || "000"}
                       </span>
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="sticky left-0 z-10 bg-inherit px-4 py-3">
                       <button
                         disabled={isSlot}
                         onClick={() => onOpenProfile(customer.id)}
-                        className="text-left disabled:cursor-not-allowed"
+                        className="flex items-center gap-3 text-left disabled:cursor-not-allowed"
                       >
-                        <span className="block text-sm font-semibold text-white">
-                          {customer.name}
-                        </span>
-                        <span className="mt-1 block text-xs text-[#747474]">
-                          {isSlot ? "Slot interno" : customer.companyLink}
-                        </span>
+                        {isSlot ? (
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-dashed border-white/[0.12] text-[#4B5563]">
+                            <Crown size={13} />
+                          </div>
+                        ) : (
+                          <Avatar name={customer.name} />
+                        )}
+                        <div>
+                          <span className="block text-sm font-semibold text-white">
+                            {customer.name}
+                          </span>
+                          <span className="mt-0.5 block text-xs text-[#747474]">
+                            {isSlot ? "Slot interno" : customer.companyLink}
+                          </span>
+                        </div>
                       </button>
                     </td>
-                    <td className="px-4 py-4 text-sm text-[#D1D5DB]">
-                      {customer.phone || "Nao cadastrado"}
-                    </td>
-                    <td className="px-4 py-4 text-sm text-[#E5E7EB]">{customer.vehicle}</td>
-                    <td className="px-4 py-4 text-sm text-[#A7A7A7]">{maskPlate(customer.plate)}</td>
-                    <td className="px-4 py-4">
-                      <ScorePill score={customer.scoreDgn} />
-                    </td>
-                    <td className="px-4 py-4 text-sm text-[#D1D5DB]">
-                      {customer.recommendedPlan}
-                    </td>
-                    <td className="px-4 py-4 text-sm text-[#D1D5DB]">
-                      {customer.campaign.founderCondition || "A definir"}
-                    </td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-3 text-sm text-[#E5E7EB]">{customer.vehicle}</td>
+                    <td className="px-4 py-3">
                       {isSlot ? (
                         <StatusBadge label="Slot disponivel" />
                       ) : (
@@ -1139,66 +1237,13 @@ function FoundersView({
                         </SelectField>
                       )}
                     </td>
-                    <td className="px-4 py-4">
-                      {isSlot ? (
-                        <span className="text-xs text-[#747474]">—</span>
-                      ) : (
-                        <SelectField
-                          value={customer.campaign.kitStatus || ""}
-                          onChange={(value) =>
-                            onPatch(customer.id, {
-                              campaign: { kitStatus: value as FounderKitStatus } as CustomerDraft["campaign"],
-                            })
-                          }
-                        >
-                          <option value="">Pendente</option>
-                          {founderKitStatuses.map((item) => (
-                            <option key={item}>{item}</option>
-                          ))}
-                        </SelectField>
-                      )}
-                    </td>
-                    <td className="px-4 py-4">
-                      {isSlot ? (
-                        <span className="text-xs text-[#747474]">—</span>
-                      ) : (
-                        <SelectField
-                          value={customer.campaign.cardStatus || ""}
-                          onChange={(value) =>
-                            onPatch(customer.id, {
-                              campaign: { cardStatus: value as FounderCardStatus } as CustomerDraft["campaign"],
-                            })
-                          }
-                        >
-                          <option value="">Pendente</option>
-                          {founderCardStatuses.map((item) => (
-                            <option key={item}>{item}</option>
-                          ))}
-                        </SelectField>
-                      )}
-                    </td>
-                    <td className="px-4 py-4">
-                      {customer.campaign.personalizedPagePath ? (
-                        <Link
-                          href={customer.campaign.personalizedPagePath}
-                          target="_blank"
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[#C9A84C]/25 bg-[#C9A84C]/10 text-[#E7C96A]"
-                          title="Ver pagina personalizada"
-                          aria-label="Ver pagina personalizada"
-                        >
-                          <ExternalLink size={14} />
-                        </Link>
-                      ) : (
-                        <span className="text-xs text-[#747474]">Pendente</span>
-                      )}
-                    </td>
-                    <td className="max-w-[230px] px-4 py-4">
+                    <td className="max-w-[240px] px-4 py-3">
                       <p className="text-xs font-semibold text-white">{customer.campaign.lastAction}</p>
                       <p className="mt-1 text-xs leading-relaxed text-[#8A8A8A]">
                         {customer.campaign.nextAction}
                       </p>
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
                         <IconButton
                           label="Abrir perfil"
@@ -1211,6 +1256,7 @@ function FoundersView({
                           icon={MessageCircle}
                           disabled={isSlot}
                           onClick={() => onOpenWhatsapp(customer)}
+                          highlight="green"
                         />
                         <IconButton
                           label="Copiar mensagem"
@@ -1219,7 +1265,7 @@ function FoundersView({
                           onClick={() => onCopy(customer)}
                         />
                         <IconButton
-                          label={copiedLinkKey === customer.id ? "Link copiado" : "Copiar link individual"}
+                          label={copiedLinkKey === customer.id ? "Link copiado" : "Copiar link"}
                           icon={copiedLinkKey === customer.id ? Check : ExternalLink}
                           disabled={isSlot || !customer.campaign.personalizedPagePath}
                           onClick={() => onCopyLink(customer)}
@@ -1228,11 +1274,11 @@ function FoundersView({
                           <Link
                             href={customer.campaign.paymentLink}
                             target="_blank"
-                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.035] text-[#BDBDBD]"
+                            className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] text-[#BDBDBD] transition hover:border-[#C9A84C]/35 hover:text-[#E7C96A]"
                             title="Link de pagamento"
                             aria-label="Link de pagamento"
                           >
-                            <Banknote size={14} />
+                            <Banknote size={13} />
                           </Link>
                         ) : (
                           <IconButton label="Pagamento pendente" icon={Banknote} disabled onClick={() => {}} />
@@ -1250,30 +1296,71 @@ function FoundersView({
   );
 }
 
+// ============================================================================
+// Funnel compacto — 5 estágios com setas
+// ============================================================================
+function Funnel({
+  stages,
+}: {
+  stages: { label: string; value: number; family: StatusFamily }[];
+}) {
+  return (
+    <div className="rounded-2xl border border-white/[0.06] bg-[#101010] p-4">
+      <div className="grid gap-2 sm:grid-cols-5">
+        {stages.map((stage, index) => (
+          <div
+            key={stage.label}
+            className="relative rounded-2xl border border-white/[0.05] bg-white/[0.02] p-4"
+          >
+            <div className="flex items-center gap-2">
+              <span className={`h-2 w-2 rounded-full ${statusDot[stage.family]}`} />
+              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9CA3AF]">
+                {stage.label}
+              </span>
+            </div>
+            <p className="mt-3 text-2xl font-semibold text-white">{stage.value}</p>
+            {index < stages.length - 1 ? (
+              <ArrowRight
+                size={14}
+                className="absolute -right-2 top-1/2 hidden -translate-y-1/2 text-[#4B5563] sm:block"
+              />
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Drawer + Profile Inline + Tabs
+// ============================================================================
 function CustomerDrawer({
   customer,
+  tab,
   copied,
+  onTabChange,
   onClose,
   onPatch,
   onOpenWhatsapp,
   onCopy,
 }: {
   customer: DgnCustomer;
+  tab: ProfileTab;
   copied: boolean;
+  onTabChange: (tab: ProfileTab) => void;
   onClose: () => void;
   onPatch: (id: string, patch: Partial<CustomerDraft>) => void;
   onOpenWhatsapp: (customer: DgnCustomer) => void;
   onCopy: () => void;
 }) {
   return (
-    <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-white/[0.08] bg-[#0D0D0D] shadow-2xl sm:w-[34rem]">
-      <div className="flex items-center justify-between border-b border-white/[0.08] px-5 py-4">
+    <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-white/[0.06] bg-[#0D0D0D] shadow-2xl sm:w-[36rem]">
+      <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#C9A84C]/25 bg-[#C9A84C]/10 text-[#C9A84C]">
-            <PanelRight size={18} />
-          </div>
+          <Avatar name={customer.name} />
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">
               Perfil individual
             </p>
             <h2 className="text-base font-semibold text-white">{customer.name}</h2>
@@ -1282,7 +1369,7 @@ function CustomerDrawer({
         <button
           onClick={onClose}
           aria-label="Fechar perfil"
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.035] text-[#A7A7A7] transition hover:text-white"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] text-[#A7A7A7] transition hover:text-white"
         >
           <X size={16} />
         </button>
@@ -1290,25 +1377,50 @@ function CustomerDrawer({
       <div className="flex-1 overflow-y-auto px-5 py-5">
         <CustomerProfileInline
           customer={customer}
+          tab={tab}
+          onTabChange={onTabChange}
           copied={copied}
           onPatch={onPatch}
           onOpenWhatsapp={onOpenWhatsapp}
           onCopy={onCopy}
         />
       </div>
+
+      {/* CTA fixo no rodapé */}
+      <div className="border-t border-white/[0.06] bg-[#0B0B0B] px-5 py-4">
+        <button
+          onClick={() => onOpenWhatsapp(customer)}
+          disabled={!customer.phone}
+          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#22C55E]/12 border border-[#22C55E]/25 text-sm font-semibold text-[#4ADE80] transition hover:bg-[#22C55E]/16 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <MessageCircle size={16} />
+          {customer.phone ? "Abrir WhatsApp" : "Telefone não cadastrado"}
+        </button>
+      </div>
     </aside>
   );
 }
 
+const profileTabs: { key: ProfileTab; label: string }[] = [
+  { key: "overview", label: "Visão geral" },
+  { key: "commercial", label: "Comercial" },
+  { key: "campaign", label: "Campanha" },
+  { key: "timeline", label: "Timeline" },
+];
+
 function CustomerProfileInline({
   customer,
+  tab,
   copied,
+  onTabChange,
   onPatch,
   onOpenWhatsapp,
   onCopy,
 }: {
   customer: DgnCustomer;
+  tab: ProfileTab;
   copied: boolean;
+  onTabChange: (tab: ProfileTab) => void;
   onPatch: (id: string, patch: Partial<CustomerDraft>) => void;
   onOpenWhatsapp: (customer: DgnCustomer) => void;
   onCopy: () => void;
@@ -1319,152 +1431,235 @@ function CustomerProfileInline({
     <div>
       <CustomerSnapshot customer={customer} />
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <ProfileFact label="Ticket medio" value={formatCurrency(getTicketAverage(customer))} />
-        <ProfileFact
-          label="Intervalo medio"
-          value={
-            customer.averageVisitIntervalDays
-              ? `${customer.averageVisitIntervalDays} dias`
-              : "A validar"
-          }
-        />
-        <ProfileFact
-          label="Campanha atual"
-          value={customer.campaign.currentCampaign || "Sem campanha ativa"}
-        />
-        <ProfileFact
-          label="Founder"
-          value={customer.campaign.founderSelected ? `Sim - ${customer.campaign.founderNumber}` : "Nao"}
-        />
+      <div className="mt-5 flex flex-wrap items-center gap-1.5 border-b border-white/[0.06] pb-3">
+        {profileTabs.map((item) => (
+          <button
+            key={item.key}
+            onClick={() => onTabChange(item.key)}
+            className={`inline-flex h-8 items-center rounded-full border px-3 text-xs font-semibold transition ${
+              tab === item.key
+                ? "border-[#C9A84C]/35 bg-[#C9A84C]/10 text-[#E7C96A]"
+                : "border-white/[0.06] bg-white/[0.03] text-[#9CA3AF] hover:border-[#C9A84C]/25"
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
       </div>
 
-      <div className="mt-4 rounded-lg border border-white/[0.08] bg-[#101010] p-4">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">
-          Links e WhatsApp manual assistido
-        </p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          {customer.campaign.personalizedPagePath ? (
-            <Link
-              href={customer.campaign.personalizedPagePath}
-              target="_blank"
-              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#C9A84C]/22 bg-[#C9A84C]/10 px-3 text-sm font-semibold text-[#E7C96A]"
-            >
-              <ExternalLink size={15} />
-              Pagina personalizada
-            </Link>
-          ) : (
-            <button
-              disabled
-              className="inline-flex min-h-10 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.025] px-3 text-sm font-semibold text-[#606060]"
-            >
-              <ExternalLink size={15} />
-              Pagina pendente
-            </button>
-          )}
-          <button
-            onClick={() => onOpenWhatsapp(customer)}
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-sm font-semibold text-white"
-          >
-            <MessageCircle size={15} />
-            Abrir WhatsApp
-          </button>
-          <button
-            onClick={onCopy}
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-sm font-semibold text-white sm:col-span-2"
-          >
-            {copied ? <Check size={15} /> : <Copy size={15} />}
-            {copied ? "Mensagem copiada" : "Copiar mensagem"}
-          </button>
+      {tab === "overview" ? (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <ProfileFact label="Ticket médio" value={formatCurrency(getTicketAverage(customer))} />
+          <ProfileFact
+            label="Intervalo médio"
+            value={
+              customer.averageVisitIntervalDays
+                ? `${customer.averageVisitIntervalDays} dias`
+                : "A validar"
+            }
+          />
+          <ProfileFact
+            label="Campanha atual"
+            value={customer.campaign.currentCampaign || "Sem campanha ativa"}
+          />
+          <ProfileFact
+            label="Founder"
+            value={customer.campaign.founderSelected ? `Sim · ${customer.campaign.founderNumber}` : "Não"}
+          />
+          <ProfileFact label="Telefone" value={customer.phone || "Não cadastrado"} />
+          <ProfileFact label="Placa" value={maskPlate(customer.plate)} />
+          <ProfileFact label="Empresa / vínculo" value={customer.companyLink || "—"} />
+          <ProfileFact label="Origem" value={customer.origin || "—"} />
         </div>
-        {!customer.phone ? (
-          <p className="mt-3 text-xs text-[#8A8A8A]">Telefone nao cadastrado.</p>
-        ) : null}
-      </div>
+      ) : null}
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <label>
-          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">
-            Ultimo contato
-          </span>
-          <input
-            value={customer.campaign.lastContact}
-            onChange={(event) =>
-              onPatch(customer.id, {
-                campaign: { lastContact: event.target.value } as CustomerDraft["campaign"],
-              })
-            }
-            placeholder="Ex.: 03/07/2026"
-            className="mt-2 h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.035] px-3 text-sm text-white outline-none focus:border-[#C9A84C]/35"
-          />
-        </label>
-        <label>
-          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">
-            Status da conversa
-          </span>
-          <input
-            value={customer.campaign.conversationStatus}
-            onChange={(event) =>
-              onPatch(customer.id, {
-                campaign: { conversationStatus: event.target.value } as CustomerDraft["campaign"],
-              })
-            }
-            className="mt-2 h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.035] px-3 text-sm text-white outline-none focus:border-[#C9A84C]/35"
-          />
-        </label>
-        <label className="sm:col-span-2">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">
-            Proxima acao
-          </span>
-          <input
-            value={customer.campaign.nextAction}
-            onChange={(event) =>
-              onPatch(customer.id, {
-                campaign: { nextAction: event.target.value } as CustomerDraft["campaign"],
-              })
-            }
-            className="mt-2 h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.035] px-3 text-sm text-white outline-none focus:border-[#C9A84C]/35"
-          />
-        </label>
-        <label className="sm:col-span-2">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">
-            Observacoes internas
-          </span>
-          <textarea
-            rows={3}
-            value={customer.campaign.notes}
-            onChange={(event) =>
-              onPatch(customer.id, {
-                campaign: { notes: event.target.value } as CustomerDraft["campaign"],
-              })
-            }
-            className="mt-2 w-full rounded-lg border border-white/[0.08] bg-white/[0.035] px-3 py-3 text-sm text-white outline-none focus:border-[#C9A84C]/35"
-          />
-        </label>
-      </div>
-
-      <div className="mt-4 rounded-lg border border-white/[0.08] bg-[#101010] p-4">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">
-          Timeline comercial
-        </p>
+      {tab === "commercial" ? (
         <div className="mt-4 space-y-3">
-          {timeline.map((item) => (
-            <div key={`${item.title}-${item.dateLabel}`} className="flex gap-3">
-              <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#C9A84C]/18 bg-[#C9A84C]/8 text-[#C9A84C]">
-                <UserRound size={13} />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-white">{item.title}</p>
-                <p className="mt-1 text-xs leading-relaxed text-[#8A8A8A]">{item.detail}</p>
-                <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-[#5F5F5F]">
-                  {item.dateLabel}
-                </p>
-              </div>
+          <div className="rounded-2xl border border-white/[0.06] bg-[#101010] p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">
+              Links e mensagem
+            </p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {customer.campaign.personalizedPagePath ? (
+                <Link
+                  href={customer.campaign.personalizedPagePath}
+                  target="_blank"
+                  className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-[#C9A84C]/25 bg-[#C9A84C]/10 px-3 text-sm font-semibold text-[#E7C96A]"
+                >
+                  <ExternalLink size={15} />
+                  Página personalizada
+                </Link>
+              ) : (
+                <button
+                  disabled
+                  className="inline-flex min-h-10 cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 text-sm font-semibold text-[#606060]"
+                >
+                  <ExternalLink size={15} />
+                  Página pendente
+                </button>
+              )}
+              <button
+                onClick={() => onOpenWhatsapp(customer)}
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-sm font-semibold text-white"
+              >
+                <MessageCircle size={15} />
+                Abrir WhatsApp
+              </button>
+              <button
+                onClick={onCopy}
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-sm font-semibold text-white sm:col-span-2"
+              >
+                {copied ? <Check size={15} /> : <Copy size={15} />}
+                {copied ? "Mensagem copiada" : "Copiar mensagem"}
+              </button>
             </div>
-          ))}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <ProfileInput
+              label="Último contato"
+              value={customer.campaign.lastContact}
+              placeholder="Ex.: 03/07/2026"
+              onChange={(value) =>
+                onPatch(customer.id, {
+                  campaign: { lastContact: value } as CustomerDraft["campaign"],
+                })
+              }
+            />
+            <ProfileInput
+              label="Status da conversa"
+              value={customer.campaign.conversationStatus}
+              onChange={(value) =>
+                onPatch(customer.id, {
+                  campaign: { conversationStatus: value } as CustomerDraft["campaign"],
+                })
+              }
+            />
+          </div>
         </div>
-      </div>
+      ) : null}
+
+      {tab === "campaign" ? (
+        <div className="mt-4 space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <ProfileFact
+              label="Campanha atual"
+              value={customer.campaign.currentCampaign || "Sem campanha ativa"}
+            />
+            <ProfileFact
+              label="Founder"
+              value={customer.campaign.founderSelected ? `Sim · ${customer.campaign.founderNumber}` : "Não"}
+            />
+            <ProfileFact
+              label="Condição Founder"
+              value={customer.campaign.founderCondition || "A definir"}
+            />
+            <ProfileFact label="Última ação" value={customer.campaign.lastAction || "—"} />
+          </div>
+
+          {customer.campaign.founderSelected ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <SelectBlock
+                label="Status Kit Founder"
+                value={customer.campaign.kitStatus || ""}
+                options={founderKitStatuses}
+                onChange={(value) =>
+                  onPatch(customer.id, {
+                    campaign: { kitStatus: value as FounderKitStatus } as CustomerDraft["campaign"],
+                  })
+                }
+              />
+              <SelectBlock
+                label="Status Cartão Founder"
+                value={customer.campaign.cardStatus || ""}
+                options={founderCardStatuses}
+                onChange={(value) =>
+                  onPatch(customer.id, {
+                    campaign: { cardStatus: value as FounderCardStatus } as CustomerDraft["campaign"],
+                  })
+                }
+              />
+            </div>
+          ) : null}
+
+          <ProfileInput
+            label="Próxima ação"
+            value={customer.campaign.nextAction}
+            onChange={(value) =>
+              onPatch(customer.id, {
+                campaign: { nextAction: value } as CustomerDraft["campaign"],
+              })
+            }
+          />
+          <label className="block">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">
+              Observações internas
+            </span>
+            <textarea
+              rows={3}
+              value={customer.campaign.notes}
+              onChange={(event) =>
+                onPatch(customer.id, {
+                  campaign: { notes: event.target.value } as CustomerDraft["campaign"],
+                })
+              }
+              placeholder="Contexto, objeções, próximo passo…"
+              className="mt-2 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-3 text-sm text-white outline-none placeholder:text-[#5F5F5F] focus:border-[#C9A84C]/35"
+            />
+          </label>
+        </div>
+      ) : null}
+
+      {tab === "timeline" ? (
+        <div className="mt-4 rounded-2xl border border-white/[0.06] bg-[#101010] p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">
+            Timeline comercial
+          </p>
+          <div className="mt-4 space-y-3">
+            {timeline.map((item) => (
+              <div key={`${item.title}-${item.dateLabel}`} className="flex gap-3">
+                <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-[#C9A84C]/20 bg-[#C9A84C]/10 text-[#C9A84C]">
+                  <UserRound size={13} />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-white">{item.title}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-[#8A8A8A]">{item.detail}</p>
+                  <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-[#5F5F5F]">
+                    {item.dateLabel}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
+  );
+}
+
+function ProfileInput({
+  label,
+  value,
+  placeholder,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  placeholder?: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="block">
+      <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">
+        {label}
+      </span>
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="mt-2 h-10 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-sm text-white outline-none placeholder:text-[#5F5F5F] focus:border-[#C9A84C]/35"
+      />
+    </label>
   );
 }
 
@@ -1472,23 +1667,26 @@ function CustomerSnapshot({ customer }: { customer: DgnCustomer }) {
   const incompleteRegistration = !customer.phone;
 
   return (
-    <div className="rounded-lg border border-[#C9A84C]/18 bg-[#121212] p-4">
+    <div className="rounded-2xl border border-[#C9A84C]/18 bg-[#121212] p-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-2xl font-semibold text-white">{customer.name}</p>
-            {incompleteRegistration ? (
-              <span className="inline-flex h-6 items-center rounded-full border border-red-400/30 bg-red-400/10 px-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-red-300">
-                Cadastro incompleto
-              </span>
-            ) : null}
+        <div className="flex items-center gap-3">
+          <Avatar name={customer.name} size="lg" />
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xl font-semibold text-white sm:text-2xl">{customer.name}</p>
+              {incompleteRegistration ? (
+                <span className="inline-flex h-6 items-center rounded-full border border-red-400/25 bg-red-400/10 px-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-red-300">
+                  Cadastro incompleto
+                </span>
+              ) : null}
+            </div>
+            <p className="mt-2 text-sm text-[#A7A7A7]">
+              {customer.vehicle} · {maskPlate(customer.plate)}
+            </p>
+            <p className="mt-0.5 text-sm text-[#A7A7A7]">
+              {customer.companyLink} · {customer.origin}
+            </p>
           </div>
-          <p className="mt-2 text-sm text-[#A7A7A7]">
-            {customer.vehicle} | Placa {maskPlate(customer.plate)}
-          </p>
-          <p className="mt-1 text-sm text-[#A7A7A7]">
-            {customer.companyLink} | {customer.origin}
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <ScorePill score={customer.scoreDgn} />
@@ -1497,35 +1695,32 @@ function CustomerSnapshot({ customer }: { customer: DgnCustomer }) {
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <ProfileFact label="Atendimentos" value={String(customer.washCount)} compact />
-        <ProfileFact label="Recorrencia" value={customer.recurrence} compact />
+        <ProfileFact label="Recorrência" value={customer.recurrence} compact />
         <ProfileFact label="Valor investido" value={formatCurrency(customer.historicalValue)} compact />
-        <ProfileFact label="Ultimo atendimento" value={customer.lastAttendance} compact />
+        <ProfileFact label="Último atendimento" value={customer.lastAttendance} compact />
       </div>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <ProfileFact label="Plano sugerido" value={customer.recommendedPlan} compact />
-        <ProfileFact label="Desde" value={customer.customerSince} compact />
+        <ProfileFact label="Cliente desde" value={customer.customerSince} compact />
       </div>
     </div>
   );
 }
 
+// ============================================================================
+// Primitives
+// ============================================================================
 function MetricCard({
   label,
   value,
   icon: Icon,
-  wide = false,
 }: {
   label: string;
   value: string;
   icon: LucideIcon;
-  wide?: boolean;
 }) {
   return (
-    <div
-      className={`rounded-lg border border-white/[0.08] bg-[#111111] p-4 ${
-        wide ? "lg:col-span-2" : ""
-      }`}
-    >
+    <div className="rounded-2xl border border-white/[0.06] bg-[#111111] p-4">
       <div className="flex items-center justify-between gap-3">
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">
           {label}
@@ -1547,7 +1742,7 @@ function ProfileFact({
   compact?: boolean;
 }) {
   return (
-    <div className="rounded-lg border border-white/[0.06] bg-white/[0.025] p-3">
+    <div className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-3">
       <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-[#7D7D7D]">
         {label}
       </p>
@@ -1560,21 +1755,33 @@ function ProfileFact({
 
 function ScorePill({ score }: { score: number }) {
   return (
-    <span className="inline-flex min-h-7 min-w-12 items-center justify-center rounded-full border border-[#C9A84C]/24 bg-[#C9A84C]/10 px-2.5 text-xs font-semibold text-[#E7C96A]">
+    <span className="inline-flex min-h-7 min-w-12 items-center justify-center rounded-full border border-[#C9A84C]/25 bg-[#C9A84C]/10 px-2.5 text-xs font-semibold text-[#E7C96A]">
       {score || "-"}
     </span>
   );
 }
 
 function StatusBadge({ label }: { label: string }) {
+  const family = getStatusFamily(label);
   return (
     <span
-      className={`inline-flex min-h-7 items-center rounded-full border px-2.5 text-xs font-semibold ${
-        statusTone[label] ?? "border-white/[0.08] bg-white/[0.035] text-[#D1D5DB]"
-      }`}
+      className={`inline-flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-semibold ${statusTone[family]}`}
     >
+      <span className={`h-1.5 w-1.5 rounded-full ${statusDot[family]}`} />
       {label}
     </span>
+  );
+}
+
+function Avatar({ name, size = "md" }: { name: string; size?: "md" | "lg" }) {
+  const initials = getInitials(name);
+  const dim = size === "lg" ? "h-14 w-14 text-base" : "h-9 w-9 text-[11px]";
+  return (
+    <div
+      className={`flex ${dim} items-center justify-center rounded-full border border-[#C9A84C]/30 bg-[#C9A84C]/10 font-semibold text-[#E7C96A]`}
+    >
+      {initials}
+    </div>
   );
 }
 
@@ -1591,7 +1798,7 @@ function SelectField({
     <select
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      className="h-11 w-full rounded-lg border border-white/[0.08] bg-[#151515] px-3 text-sm text-white outline-none focus:border-[#C9A84C]/35"
+      className="h-11 w-full rounded-xl border border-white/[0.06] bg-[#151515] px-3 text-sm text-white outline-none focus:border-[#C9A84C]/35"
     >
       {children}
     </select>
@@ -1629,12 +1836,18 @@ function IconButton({
   icon: Icon,
   disabled = false,
   onClick,
+  highlight,
 }: {
   label: string;
   icon: LucideIcon;
   disabled?: boolean;
   onClick: () => void;
+  highlight?: "green";
 }) {
+  const highlightClass =
+    highlight === "green"
+      ? "hover:border-[#22C55E]/35 hover:text-[#4ADE80]"
+      : "hover:border-[#C9A84C]/35 hover:text-[#E7C96A]";
   return (
     <button
       type="button"
@@ -1642,13 +1855,16 @@ function IconButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.035] text-[#BDBDBD] transition hover:border-[#C9A84C]/35 hover:text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-35"
+      className={`flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] text-[#BDBDBD] transition disabled:cursor-not-allowed disabled:opacity-35 ${highlightClass}`}
     >
-      <Icon size={14} />
+      <Icon size={13} />
     </button>
   );
 }
 
+// ============================================================================
+// Mapping helpers
+// ============================================================================
 function mapCampaignToCommercial(status: FoundersPipelineStatus): CommercialStatus {
   const map: Record<FoundersPipelineStatus, CommercialStatus> = {
     Selecionado: "Selecionado Founder",
@@ -1669,10 +1885,10 @@ function nextActionForCampaign(status: FoundersPipelineStatus) {
   const map: Record<FoundersPipelineStatus, string> = {
     Selecionado: "Criar convite personalizado",
     "Convite criado": "Enviar mensagem manual",
-    "Mensagem enviada": "Acompanhar visualizacao e resposta",
+    "Mensagem enviada": "Acompanhar visualização e resposta",
     Visualizou: "Chamar para confirmar interesse",
     Conversando: "Enviar link de pagamento",
-    "Pagamento enviado": "Acompanhar confirmacao",
+    "Pagamento enviado": "Acompanhar confirmação",
     "Assinante ativo": "Preparar kit Founder",
     "Aguardando Kit Founder": "Entregar kit e registrar boas-vindas",
     Perdido: "Registrar motivo e encerrar campanha",
