@@ -1,4 +1,4 @@
-{% assign banner_mode = section.settings.banner_mode | default: 'split_right' %}
+{% assign banner_mode = section.settings.banner_mode | default: 'text_over_image' %}
 {% assign image_alt = section.settings.image_alt | default: 'Fundadores da PattaMansa com cachorro' %}
 
 {% assign desktop_image = section.settings.image_desktop %}
@@ -95,17 +95,26 @@
             srcset="{{ mobile_image | image_url: width: 375 }} 375w, {{ mobile_image | image_url: width: 750 }} 750w, {{ mobile_image | image_url: width: 1080 }} 1080w"
             sizes="100vw"
           >
+        {% elsif mobile_asset_name != blank %}
+          <source
+            media="(max-width: 749px)"
+            srcset="{{ mobile_asset_name | asset_url }}"
+            sizes="100vw"
+          >
         {% endif %}
         {% if desktop_image != blank %}
-          {{ desktop_image | image_url: width: 1800 | image_tag: loading: 'eager', widths: '375, 750, 1100, 1500, 1800', sizes: '100vw', alt: image_alt }}
+          {{ desktop_image | image_url: width: 1800 | image_tag: loading: 'eager', widths: '375, 750, 1100, 1500, 1800', sizes: '100vw', alt: image_alt, class: 'hero-premium__img' }}
         {% else %}
           <img
+            class="hero-premium__img"
             src="{{ desktop_asset_name | asset_url }}"
             alt="{{ image_alt | escape }}"
             width="1536"
             height="1024"
             loading="eager"
             fetchpriority="high"
+            onerror="if(this.dataset.fallback && this.src !== this.dataset.fallback){this.src=this.dataset.fallback;}"
+            data-fallback="{{ desktop_asset_fallback | asset_url }}"
           >
         {% endif %}
       </picture>
@@ -117,7 +126,7 @@
           <p class="eyebrow">{{ section.settings.eyebrow }}</p>
         {% endif %}
         <h1>{{ section.settings.heading | default: 'Pra quem tem cachorro como família.' }}</h1>
-        <p>{{ section.settings.subheading | default: 'Camisetas premium com design de verdade.' }}</p>
+        <p class="hero-premium__sub">{{ section.settings.subheading | default: 'Camisetas premium e personalizadas para tutores que carregam esse amor no peito.' }}</p>
         <div class="button-row">
           <a class="button button--primary" href="{{ primary_link }}">{{ primary_label }}</a>
           <a class="button button--ghost" href="{{ whatsapp_url }}"{% if is_whatsapp %} target="_blank" rel="noopener"{% endif %}>{{ secondary_label }}</a>
@@ -179,7 +188,7 @@
       "type": "select",
       "id": "banner_mode",
       "label": "Modo do banner",
-      "default": "split_right",
+      "default": "text_over_image",
       "options": [
         { "value": "split_right", "label": "Texto à esquerda, imagem à direita (recomendado)" },
         { "value": "text_over_image", "label": "Imagem com texto HTML sobreposto" },
