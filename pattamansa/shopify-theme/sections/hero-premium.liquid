@@ -74,17 +74,20 @@
       {% endif %}
       <h1 class="hero-pm__title">{{ section.settings.heading | default: 'Pra quem tem cachorro como família.' }}</h1>
       <p class="hero-pm__sub">{{ section.settings.subheading | default: 'Camisetas premium e personalizadas para tutores que carregam esse amor no peito.' }}</p>
+      {% assign authority_text = section.settings.authority_text %}
+      {% if authority_text != blank %}
+        <p class="hero-pm__authority">{{ authority_text }}</p>
+      {% endif %}
       <div class="hero-pm__actions">
-        <a class="button button--primary" href="{{ primary_link }}">{{ primary_label }}</a>
+        <a class="button button--primary hero-pm__primary" href="{{ primary_link }}">{{ primary_label }}</a>
         <a
-          class="button hero-pm__ghost"
+          class="hero-pm__ghost"
           href="{{ whatsapp_url }}"
           {% if is_whatsapp %}target="_blank" rel="noopener"{% endif %}
-        >{{ secondary_label }}</a>
+        >{{ secondary_label }}<span class="hero-pm__ghost-arrow" aria-hidden="true">&rarr;</span></a>
       </div>
       {% if section.settings.trust_left != blank or section.settings.trust_right != blank %}
         <div class="hero-pm__trust" aria-label="Selos de confiança">
-          <span class="hero-pm__stars" aria-hidden="true">★★★★★</span>
           {% if section.settings.trust_left != blank %}<span class="hero-pm__trust-text">{{ section.settings.trust_left }}</span>{% endif %}
           {% if section.settings.trust_right != blank %}<span class="hero-pm__trust-sep" aria-hidden="true">·</span><span class="hero-pm__trust-text">{{ section.settings.trust_right }}</span>{% endif %}
         </div>
@@ -182,14 +185,47 @@
   }
 
   .hero-pm__ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 4px;
     background: transparent;
     color: var(--ink);
-    border: 1px solid rgba(31, 25, 23, .28);
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    font-weight: 600;
+    letter-spacing: .01em;
+    border: none;
+    border-bottom: 1px solid rgba(31, 25, 23, .35);
+    border-radius: 0;
+    transition: color .15s ease, border-color .15s ease, gap .2s ease;
+    cursor: pointer;
   }
 
   .hero-pm__ghost:hover {
-    background: rgba(31, 25, 23, .04);
-    border-color: var(--ink);
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+    gap: 10px;
+    background: transparent;
+  }
+
+  .hero-pm__ghost-arrow {
+    font-size: 15px;
+    line-height: 1;
+    transition: transform .2s ease;
+  }
+
+  .hero-pm__ghost:hover .hero-pm__ghost-arrow {
+    transform: translateX(2px);
+  }
+
+  .hero-pm__authority {
+    margin: 18px 0 0;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: rgba(31, 25, 23, .62);
   }
 
   .hero-pm__trust {
@@ -271,21 +307,28 @@
     }
 
     .hero-pm__title {
-      font-size: clamp(36px, 10vw, 48px);
+      font-size: clamp(34px, 9vw, 46px);
       line-height: 1.02;
-      letter-spacing: -0.014em;
+      letter-spacing: -0.012em;
       color: var(--ink);
       text-shadow: none;
       max-width: 100%;
     }
 
     .hero-pm__sub {
-      margin: 14px 0 0;
+      margin: 12px 0 0;
       max-width: 100%;
       color: rgba(31, 25, 23, .74);
-      font-size: 15px;
+      font-size: 14.5px;
       line-height: 1.45;
       text-shadow: none;
+    }
+
+    .hero-pm__authority {
+      margin: 14px 0 0;
+      font-size: 10.5px;
+      letter-spacing: .18em;
+      color: rgba(31, 25, 23, .58);
     }
 
     .hero-pm__actions {
@@ -293,25 +336,22 @@
       align-items: stretch;
       width: 100%;
       gap: 10px;
-      margin-top: 20px;
+      margin-top: 18px;
     }
 
     .hero-pm__actions .button {
       width: 100%;
       justify-content: center;
-      min-height: 50px;
-      font-size: 15px;
+      min-height: 48px;
+      font-size: 14.5px;
     }
 
     .hero-pm__ghost {
-      color: var(--ink);
-      border-color: rgba(31, 25, 23, .32);
-      background: transparent;
-    }
-
-    .hero-pm__ghost:hover {
-      background: rgba(31, 25, 23, .06);
-      border-color: var(--ink);
+      justify-content: center;
+      width: 100%;
+      padding: 12px 4px;
+      border-bottom-color: rgba(31, 25, 23, .28);
+      font-size: 14px;
     }
 
     .hero-pm__trust {
@@ -358,8 +398,9 @@
     { "type": "url", "id": "primary_link", "label": "Link CTA principal" },
     { "type": "text", "id": "secondary_label", "label": "CTA secundário", "default": "Personalizar com meu cachorro" },
     { "type": "url", "id": "secondary_link", "label": "Link CTA secundário (fallback WhatsApp)" },
-    { "type": "text", "id": "trust_left", "label": "Trust bar - esquerda", "default": "+2.100 tutores" },
-    { "type": "text", "id": "trust_right", "label": "Trust bar - direita", "default": "Produção Reserva INK" }
+    { "type": "text", "id": "authority_text", "label": "Linha de autoridade", "default": "Produção Reserva INK · Envio com rastreio" },
+    { "type": "text", "id": "trust_left", "label": "Trust bar - esquerda (opcional)" },
+    { "type": "text", "id": "trust_right", "label": "Trust bar - direita (opcional)" }
   ],
   "presets": [{ "name": "Hero premium" }]
 }
