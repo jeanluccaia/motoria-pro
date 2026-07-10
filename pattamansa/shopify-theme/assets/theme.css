@@ -287,20 +287,20 @@ input {
   width: 40px;
   height: 40px;
   gap: 0;
-  border: none;
+  border: 1px solid rgba(242, 235, 224, .28);
   border-radius: 8px;
   padding: 0;
+  background: transparent;
   color: var(--paper);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: .02em;
+  font-size: 0;
   list-style: none;
   cursor: pointer;
-  transition: background-color .15s ease;
+  transition: background-color .15s ease, border-color .15s ease;
 }
 
 .mobile-menu summary:hover {
-  background: rgba(242, 235, 224, .08);
+  background: rgba(242, 235, 224, .1);
+  border-color: rgba(242, 235, 224, .48);
 }
 
 .mobile-menu summary:focus-visible {
@@ -312,6 +312,10 @@ input {
   display: none;
 }
 
+.mobile-menu summary::marker {
+  content: "";
+}
+
 .mobile-menu__icon {
   display: inline-flex;
   flex-direction: column;
@@ -319,11 +323,12 @@ input {
   gap: 4px;
   width: 18px;
   height: 14px;
+  color: var(--paper);
 }
 
 .mobile-menu__icon > span {
   display: block;
-  height: 1.5px;
+  height: 2px;
   width: 100%;
   background: currentColor;
   border-radius: 2px;
@@ -331,7 +336,7 @@ input {
 }
 
 .mobile-menu[open] .mobile-menu__icon > span:nth-child(1) {
-  transform: translateY(5.5px) rotate(45deg);
+  transform: translateY(6px) rotate(45deg);
 }
 
 .mobile-menu[open] .mobile-menu__icon > span:nth-child(2) {
@@ -339,7 +344,7 @@ input {
 }
 
 .mobile-menu[open] .mobile-menu__icon > span:nth-child(3) {
-  transform: translateY(-5.5px) rotate(-45deg);
+  transform: translateY(-6px) rotate(-45deg);
 }
 
 .mobile-menu__label {

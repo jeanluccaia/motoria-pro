@@ -4,7 +4,7 @@
 {% assign mobile_image = section.settings.image_mobile %}
 
 {% assign desktop_asset_name = section.settings.desktop_asset | default: 'pattamansa-hero-fundadores-clean-desktop.webp' %}
-{% assign mobile_asset_name = section.settings.mobile_asset | default: 'pattamansa-hero-fundadores-clean-desktop.webp' %}
+{% assign mobile_asset_name = section.settings.mobile_asset | default: 'pattamansa-hero-fundadores-clean-mobile.webp' %}
 {% assign desktop_asset_fallback = section.settings.desktop_asset_fallback | default: 'pattamansa-hero-fundadores-clean-desktop.webp' %}
 
 {% assign primary_link = section.settings.primary_link | default: '/collections/todas-as-camisetas' %}
@@ -25,8 +25,21 @@
 {% endif %}
 
 <section class="hero-pm" aria-label="Apresentação PattaMansa">
-  <div class="hero-pm__media hero-pm__media--desktop" aria-hidden="true">
+  <div class="hero-pm__media" aria-hidden="true">
     <picture>
+      {% if mobile_image != blank %}
+        <source
+          media="(max-width: 749px)"
+          srcset="{{ mobile_image | image_url: width: 750 }} 750w, {{ mobile_image | image_url: width: 1080 }} 1080w"
+          sizes="100vw"
+        >
+      {% elsif mobile_asset_name != blank %}
+        <source
+          media="(max-width: 749px)"
+          srcset="{{ mobile_asset_name | asset_url }}"
+          sizes="100vw"
+        >
+      {% endif %}
       {% if desktop_image != blank %}
         {{ desktop_image | image_url: width: 2000 | image_tag: loading: 'eager', fetchpriority: 'high', widths: '900, 1400, 1800, 2000', sizes: '100vw', alt: image_alt, class: 'hero-pm__img' }}
       {% else %}
@@ -66,21 +79,6 @@
           {% if section.settings.trust_left != blank %}<span class="hero-pm__trust-text">{{ section.settings.trust_left }}</span>{% endif %}
           {% if section.settings.trust_right != blank %}<span class="hero-pm__trust-sep" aria-hidden="true">·</span><span class="hero-pm__trust-text">{{ section.settings.trust_right }}</span>{% endif %}
         </div>
-      {% endif %}
-    </div>
-    <div class="hero-pm__mobile-image" aria-hidden="true">
-      {% if mobile_image != blank %}
-        {{ mobile_image | image_url: width: 1080 | image_tag: loading: 'eager', fetchpriority: 'high', widths: '600, 800, 1080', sizes: '(max-width: 749px) 100vw, 0px', alt: image_alt, class: 'hero-pm__mobile-img' }}
-      {% else %}
-        <img
-          class="hero-pm__mobile-img"
-          src="{{ mobile_asset_name | asset_url }}"
-          alt="{{ image_alt | escape }}"
-          width="1516"
-          height="1011"
-          loading="eager"
-          fetchpriority="high"
-        >
       {% endif %}
     </div>
   </div>
@@ -204,8 +202,6 @@
 
   .hero-pm__trust-sep { color: rgba(31, 25, 23, .32); }
 
-  .hero-pm__mobile-image { display: none; }
-
   @media (min-width: 760px) {
     .hero-pm { min-height: 680px; }
 
@@ -230,17 +226,30 @@
 
   @media (max-width: 749px) {
     .hero-pm {
-      min-height: 0;
-      padding: 28px 0 40px;
+      min-height: 680px;
+      padding: 32px 0 40px;
       align-items: flex-start;
-      background: #F2EDE4;
+      background: #1F1917;
+      color: var(--paper);
     }
 
-    .hero-pm__media--desktop { display: none; }
-    .hero-pm__scrim { display: none; }
+    .hero-pm__media picture,
+    .hero-pm__img {
+      object-position: right center;
+    }
 
-    .hero-pm__inner {
-      display: block;
+    .hero-pm__scrim {
+      background:
+        linear-gradient(180deg,
+          rgba(17, 17, 17, .78) 0%,
+          rgba(17, 17, 17, .55) 26%,
+          rgba(17, 17, 17, .25) 52%,
+          rgba(17, 17, 17, .05) 76%,
+          rgba(17, 17, 17, 0) 100%),
+        linear-gradient(90deg,
+          rgba(17, 17, 17, .35) 0%,
+          rgba(17, 17, 17, .1) 55%,
+          rgba(17, 17, 17, 0) 100%);
     }
 
     .hero-pm__copy {
@@ -251,23 +260,26 @@
     .hero-pm__eyebrow {
       font-size: 11px;
       letter-spacing: .2em;
-      color: rgba(26, 26, 26, .62);
+      color: rgba(242, 235, 224, .78);
       margin: 0 0 12px;
     }
 
     .hero-pm__title {
-      font-size: clamp(36px, 10vw, 46px);
-      line-height: 1.02;
+      font-size: clamp(40px, 11vw, 58px);
+      line-height: 1.0;
       letter-spacing: -0.014em;
-      color: #1A1A1A;
+      color: #FBF7EF;
+      text-shadow: 0 1px 18px rgba(0, 0, 0, .28);
+      max-width: 100%;
     }
 
     .hero-pm__sub {
-      margin: 14px 0 0;
+      margin: 16px 0 0;
       max-width: 100%;
-      color: rgba(26, 26, 26, .78);
+      color: rgba(251, 247, 239, .88);
       font-size: 15.5px;
       line-height: 1.5;
+      text-shadow: 0 1px 12px rgba(0, 0, 0, .24);
     }
 
     .hero-pm__actions {
@@ -275,7 +287,7 @@
       align-items: stretch;
       width: 100%;
       gap: 10px;
-      margin-top: 22px;
+      margin-top: 24px;
     }
 
     .hero-pm__actions .button {
@@ -285,24 +297,19 @@
       font-size: 15px;
     }
 
+    .hero-pm__ghost {
+      color: var(--paper);
+      border-color: rgba(251, 247, 239, .48);
+      background: rgba(17, 17, 17, .18);
+    }
+
+    .hero-pm__ghost:hover {
+      background: rgba(251, 247, 239, .1);
+      border-color: var(--paper);
+    }
+
     .hero-pm__trust {
       display: none;
-    }
-
-    .hero-pm__mobile-image {
-      display: block;
-      margin: 24px 0 0;
-      width: 100%;
-      border-radius: 14px;
-      overflow: hidden;
-      background: #E8DFCF;
-      box-shadow: 0 12px 28px rgba(26, 26, 26, .08);
-    }
-
-    .hero-pm__mobile-img {
-      display: block;
-      width: 100%;
-      height: auto;
     }
   }
 </style>
@@ -323,7 +330,7 @@
       "type": "text",
       "id": "mobile_asset",
       "label": "Arquivo mobile em assets",
-      "default": "pattamansa-hero-fundadores-clean-desktop.webp"
+      "default": "pattamansa-hero-fundadores-clean-mobile.webp"
     },
     {
       "type": "text",
