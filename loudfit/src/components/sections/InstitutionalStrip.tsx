@@ -27,7 +27,7 @@ export function InstitutionalStrip() {
             </h2>
 
             <p className="mt-5 max-w-[42ch] text-base leading-[1.6] text-[#4A4A4A]">
-              Academias completas de bairro, com estrutura, aulas coletivas e uma comunidade que treina junto todo dia.
+              Uma rede em expansão, com estrutura completa, aulas coletivas inclusas e uma comunidade que treina junto todo dia.
             </p>
 
             <div className="mt-8">
