@@ -1,38 +1,41 @@
-import { Button } from '@/components/ui/Button'
-import { Section } from '@/components/ui/Section'
-import { Reveal } from '@/components/ui/Reveal'
+import Link from 'next/link'
 
 export function FinalCta() {
   return (
-    <Section bg="black" className="relative border-t border-lf-line lg:py-32">
-      <Reveal>
-        <div className="relative flex flex-col items-center text-center">
-          <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
-            Comece agora
-          </p>
-          <h2 className="max-w-2xl text-4xl font-black leading-[1.04] text-lf-text sm:text-5xl md:text-6xl">
-            Escolha sua unidade.<br className="hidden sm:block" /> Comece a treinar.
-          </h2>
-          <p className="mt-5 max-w-lg text-base leading-relaxed text-lf-muted">
-            Veja a unidade mais próxima e finalize sua matrícula online.
-          </p>
+    <section className="relative overflow-hidden bg-lf-volt text-lf-black">
+      {/* Traço superior sutil para separar do bloco anterior */}
+      <div aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-lf-black/10" />
 
-          <div className="mt-9">
-            <Button href="/unidades" variant="volt" size="lg">
-              Ver todas as unidades
-            </Button>
+      <div className="relative mx-auto max-w-[1360px] px-5 py-14 sm:px-8 md:py-20 lg:px-12 lg:py-24">
+        <div className="flex flex-col items-start gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-14">
+          <div className="max-w-2xl">
+            <p className="mb-3 text-[10px] font-black uppercase tracking-[0.24em] text-lf-black/70">
+              Começa aqui
+            </p>
+            <h2 className="text-balance text-4xl font-black uppercase leading-[0.98] tracking-[-0.005em] sm:text-5xl md:text-6xl">
+              Escolha sua unidade.<br />Comece a treinar
+            </h2>
+            <p className="mt-4 max-w-[42ch] text-sm leading-[1.55] text-lf-black/75 md:text-base">
+              Veja a unidade mais próxima e finalize sua matrícula online.
+            </p>
           </div>
 
-          <p className="mt-8 text-sm text-lf-muted">
-            Primeira mensalidade por{' '}
-            <span className="font-bold text-lf-volt">R$9,90</span>{' '}
-            no Power Anual Recorrente.*
-          </p>
-          <p className="mt-2 text-[11px] text-lf-muted/60">
-            *Valores e condições podem variar conforme a unidade.
-          </p>
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+            <Link
+              href="/unidades"
+              className="inline-flex min-h-[52px] items-center justify-center bg-lf-black px-8 py-4 text-xs font-black uppercase tracking-[0.14em] text-lf-volt transition hover:-translate-y-0.5 hover:bg-lf-black/90 sm:text-sm"
+            >
+              Ver todas as unidades
+            </Link>
+            <Link
+              href="#planos"
+              className="inline-flex min-h-[52px] items-center justify-center border-2 border-lf-black px-8 py-4 text-xs font-black uppercase tracking-[0.14em] text-lf-black transition hover:-translate-y-0.5 hover:bg-lf-black hover:text-lf-volt sm:text-sm"
+            >
+              Ver planos
+            </Link>
+          </div>
         </div>
-      </Reveal>
-    </Section>
+      </div>
+    </section>
   )
 }

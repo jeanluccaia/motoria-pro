@@ -1,11 +1,12 @@
-﻿import type { Metadata } from 'next'
+import type { Metadata } from 'next'
 import { Hero } from '@/components/sections/Hero'
-import { HomeUnitsGrid } from '@/components/sections/HomeUnitsGrid'
+import { InstitutionalStrip } from '@/components/sections/InstitutionalStrip'
+import { StructureCards } from '@/components/sections/StructureCards'
 import { PlansSection } from '@/components/sections/PlansSection'
-import { CollectiveClassesSection } from '@/components/sections/CollectiveClassesSection'
-import { BrandVideo } from '@/components/sections/BrandVideo'
-import { OfferBanner } from '@/components/sections/OfferBanner'
-import { ExpansionBanner } from '@/components/sections/ExpansionBanner'
+import { StepsSection } from '@/components/sections/StepsSection'
+import { UnitsCompactList } from '@/components/sections/UnitsCompactList'
+import { EnergiaQueSeOuve } from '@/components/sections/EnergiaQueSeOuve'
+import { FranchiseSecondary } from '@/components/sections/FranchiseSecondary'
 import { FinalCta } from '@/components/sections/FinalCta'
 import { WhatsAppFloat } from '@/components/ui/WhatsAppFloat'
 
@@ -33,22 +34,33 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
-      {/* 1. Hero — preto */}
+      {/* 1. Hero — vídeo, headline "Aqui, o treino fala mais alto" */}
       <Hero />
-      {/* 2. Encontre sua LoudFit — claro */}
-      <HomeUnitsGrid />
-      {/* 3. Planos — claro */}
+
+      {/* 2. Institucional clara — lema "O melhor ainda está por vir" acima do título */}
+      <InstitutionalStrip />
+
+      {/* 3. Estrutura escura — 3 cards (Musculação, Cardio, Aulas Coletivas) */}
+      <StructureCards />
+
+      {/* 4. Planos claros — 4 cards com "Ver benefícios e condições" */}
       <PlansSection />
-      {/* 4. Um plano. Tudo incluso. — preto */}
-      <CollectiveClassesSection />
-      {/* 5. Estrutura + Vídeo — claro */}
-      <BrandVideo />
-      {/* 6. Como funciona — claro */}
-      <OfferBanner />
-      {/* 7. Franquia — preto */}
-      <ExpansionBanner />
-      {/* 8. CTA Final — preto */}
+
+      {/* 5. Como funciona — 3 passos, fundo claro */}
+      <StepsSection />
+
+      {/* 6. Unidades escura — lista compacta */}
+      <UnitsCompactList />
+
+      {/* 7. Energia que se ouve — só renderiza se houver conteúdo real */}
+      <EnergiaQueSeOuve />
+
+      {/* 8. Franquia secundária escura */}
+      <FranchiseSecondary />
+
+      {/* 9. CTA final amarelo full-width */}
       <FinalCta />
+
       <WhatsAppFloat />
     </>
   )
