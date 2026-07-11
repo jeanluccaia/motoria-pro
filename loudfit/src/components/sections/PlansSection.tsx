@@ -59,23 +59,15 @@ function ChevronIcon({ open }: { open: boolean }) {
   )
 }
 
-interface CardProps {
-  plan: Plan
-  isOpen: boolean
-  onToggle: (slug: string) => void
-  panelIdMobile: string
-  panelIdDesktop: string
-}
-
-function BenefitsList({ id, dark, hiddenClasses = 'hidden' }: { id?: string; dark?: boolean; hiddenClasses?: string }) {
+function BenefitsInline({ dark }: { dark?: boolean }) {
   return (
-    <div id={id} role="region" aria-label="Benefícios do plano" className={cn(hiddenClasses, 'pt-4')}>
-      <p className={cn('text-[11px] font-bold uppercase tracking-[0.14em]', dark ? 'text-lf-volt' : 'text-[#7A6900]')}>
+    <div className="mt-4">
+      <p className={cn('text-[10px] font-bold uppercase tracking-[0.14em]', dark ? 'text-lf-volt' : 'text-[#7A6900]')}>
         Benefícios inclusos
       </p>
-      <ul className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+      <ul className="mt-3 flex flex-col gap-2">
         {commonBenefits.map((b) => (
-          <li key={b} className={cn('flex items-start gap-2 text-[13px] leading-snug', dark ? 'text-lf-text/85' : 'text-[#3B3832]')}>
+          <li key={b} className={cn('flex items-start gap-2 text-[12.5px] leading-snug', dark ? 'text-lf-text/85' : 'text-[#3B3832]')}>
             <CheckIcon />
             {b}
           </li>
@@ -85,30 +77,36 @@ function BenefitsList({ id, dark, hiddenClasses = 'hidden' }: { id?: string; dar
   )
 }
 
-function ConditionsBlock({ plan, dark }: { plan: Plan; dark?: boolean }) {
+function ConditionsInline({ plan, dark }: { plan: Plan; dark?: boolean }) {
   return (
     <div className="mt-5">
-      <p className={cn('text-[11px] font-bold uppercase tracking-[0.14em]', dark ? 'text-lf-volt' : 'text-[#7A6900]')}>
+      <p className={cn('text-[10px] font-bold uppercase tracking-[0.14em]', dark ? 'text-lf-volt' : 'text-[#7A6900]')}>
         Condições
       </p>
-      <p className={cn('mt-2 text-[13px] leading-[1.6]', dark ? 'text-lf-text/75' : 'text-[#4A4A4A]')}>
+      <p className={cn('mt-2 text-[12.5px] leading-[1.55]', dark ? 'text-lf-text/75' : 'text-[#4A4A4A]')}>
         {planConditions[plan.slug]}
       </p>
     </div>
   )
 }
 
-function ExpandableCard({ plan, isOpen, onToggle, panelIdMobile, panelIdDesktop }: CardProps) {
+interface CardProps {
+  plan: Plan
+  isOpen: boolean
+  onToggle: (slug: string) => void
+  panelId: string
+}
+
+function ExpandableCard({ plan, isOpen, onToggle, panelId }: CardProps) {
   const description = homePlanDescriptions[plan.slug] ?? plan.description
   const isFeatured = plan.featured
   const buttonId = `plan-toggle-${plan.slug}`
 
   if (isFeatured) {
-    /* Card destaque — sempre escuro */
     return (
       <article
         className={cn(
-          'group relative flex h-full flex-col overflow-hidden rounded-3xl bg-[#0F0F0F] shadow-[0_10px_40px_rgba(0,0,0,0.35)] transition duration-200 hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:translate-y-0',
+          'group relative flex h-full flex-col overflow-hidden rounded-3xl bg-[#0F0F0F] shadow-[0_10px_40px_rgba(0,0,0,0.35)] transition-all duration-200 motion-reduce:transition-none',
           'order-first md:order-none',
           isOpen && 'ring-2 ring-lf-volt/50',
         )}
@@ -160,21 +158,27 @@ function ExpandableCard({ plan, isOpen, onToggle, panelIdMobile, panelIdDesktop 
               id={buttonId}
               onClick={() => onToggle(plan.slug)}
               aria-expanded={isOpen}
-              aria-controls={`${panelIdMobile} ${panelIdDesktop}`}
-              className="flex w-full items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2.5 text-left text-[12px] font-semibold text-lf-text/70 transition hover:border-lf-volt/40 hover:text-lf-volt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lf-volt/50 motion-reduce:transition-none"
+              aria-controls={panelId}
+              className={cn(
+                'flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left text-[12px] font-semibold transition motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lf-volt/50',
+                isOpen
+                  ? 'border-lf-volt/60 bg-lf-volt/10 text-lf-volt'
+                  : 'border-white/10 bg-white/[0.02] text-lf-text/70 hover:border-lf-volt/40 hover:text-lf-volt',
+              )}
             >
-              <span>Ver benefícios e condições</span>
+              <span>{isOpen ? 'Ocultar benefícios e condições' : 'Ver benefícios e condições'}</span>
               <ChevronIcon open={isOpen} />
             </button>
 
-            {/* Painel mobile — dentro do card */}
             <div
-              id={panelIdMobile}
+              id={panelId}
+              role="region"
+              aria-labelledby={buttonId}
               hidden={!isOpen}
-              className="lg:hidden"
+              className="border-t border-white/10 pt-3 mt-3"
             >
-              <BenefitsList dark hiddenClasses="block" />
-              <ConditionsBlock plan={plan} dark />
+              <BenefitsInline dark />
+              <ConditionsInline plan={plan} dark />
             </div>
           </div>
         </div>
@@ -186,8 +190,10 @@ function ExpandableCard({ plan, isOpen, onToggle, panelIdMobile, panelIdDesktop 
   return (
     <article
       className={cn(
-        'group relative flex h-full flex-col overflow-hidden rounded-3xl border border-[#E4DFD4] bg-white shadow-[0_1px_6px_rgba(0,0,0,0.04),0_6px_20px_rgba(0,0,0,0.05)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_28px_rgba(0,0,0,0.10)] motion-reduce:transition-none motion-reduce:hover:translate-y-0',
-        isOpen && 'ring-2 ring-lf-volt/40',
+        'group relative flex h-full flex-col overflow-hidden rounded-3xl border bg-white shadow-[0_1px_6px_rgba(0,0,0,0.04),0_6px_20px_rgba(0,0,0,0.05)] transition-all duration-200 motion-reduce:transition-none',
+        isOpen
+          ? 'border-lf-volt/60 ring-2 ring-lf-volt/40 shadow-[0_10px_30px_rgba(255,224,0,0.15)]'
+          : 'border-[#E4DFD4] hover:-translate-y-0.5 hover:shadow-[0_4px_28px_rgba(0,0,0,0.10)]',
       )}
     >
       <div className="flex flex-1 flex-col p-6">
@@ -224,21 +230,27 @@ function ExpandableCard({ plan, isOpen, onToggle, panelIdMobile, panelIdDesktop 
             id={buttonId}
             onClick={() => onToggle(plan.slug)}
             aria-expanded={isOpen}
-            aria-controls={`${panelIdMobile} ${panelIdDesktop}`}
-            className="flex w-full items-center justify-between gap-3 rounded-lg border border-[#E4DFD4] bg-[#FAF9F5] px-3 py-2.5 text-left text-[12px] font-semibold text-[#5E5B54] transition hover:border-[#7A6900] hover:text-[#141414] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lf-volt/60 motion-reduce:transition-none"
+            aria-controls={panelId}
+            className={cn(
+              'flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left text-[12px] font-semibold transition motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lf-volt/60',
+              isOpen
+                ? 'border-[#7A6900] bg-[#FFF6C2] text-[#141414]'
+                : 'border-[#E4DFD4] bg-[#FAF9F5] text-[#5E5B54] hover:border-[#7A6900] hover:text-[#141414]',
+            )}
           >
-            <span>Ver benefícios e condições</span>
+            <span>{isOpen ? 'Ocultar benefícios e condições' : 'Ver benefícios e condições'}</span>
             <ChevronIcon open={isOpen} />
           </button>
 
-          {/* Painel mobile — dentro do card */}
           <div
-            id={panelIdMobile}
+            id={panelId}
+            role="region"
+            aria-labelledby={buttonId}
             hidden={!isOpen}
-            className="lg:hidden"
+            className="border-t border-[#EDEBE5] pt-3 mt-3"
           >
-            <BenefitsList hiddenClasses="block" />
-            <ConditionsBlock plan={plan} />
+            <BenefitsInline />
+            <ConditionsInline plan={plan} />
           </div>
         </div>
       </div>
@@ -249,8 +261,6 @@ function ExpandableCard({ plan, isOpen, onToggle, panelIdMobile, panelIdDesktop 
 export function PlansSection() {
   const plans = getPlans()
   const [openSlug, setOpenSlug] = useState<string | null>(null)
-
-  const openPlan = plans.find((p) => p.slug === openSlug) ?? null
 
   function handleToggle(slug: string) {
     setOpenSlug((current) => (current === slug ? null : slug))
@@ -270,49 +280,19 @@ export function PlansSection() {
         </h2>
       </Reveal>
 
-      <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 md:mt-10 xl:grid-cols-4 xl:items-stretch">
+      {/* items-start deixa cada card crescer para baixo quando expandido, sem esticar os outros */}
+      <div className="mt-8 grid grid-cols-1 items-start gap-5 sm:grid-cols-2 md:mt-10 xl:grid-cols-4">
         {plans.map((plan, i) => (
           <Reveal key={plan.slug} delay={i * 0.06} className="flex h-full flex-col">
             <ExpandableCard
               plan={plan}
               isOpen={openSlug === plan.slug}
               onToggle={handleToggle}
-              panelIdMobile={`plan-panel-mobile-${plan.slug}`}
-              panelIdDesktop={`plan-panel-desktop-${plan.slug}`}
+              panelId={`plan-panel-${plan.slug}`}
             />
           </Reveal>
         ))}
       </div>
-
-      {/* Painel desktop único — abaixo da grade (xl+) */}
-      {openPlan && (
-        <div
-          id={`plan-panel-desktop-${openPlan.slug}`}
-          role="region"
-          aria-label={`Benefícios e condições: ${openPlan.name}`}
-          className="mt-6 hidden overflow-hidden rounded-2xl border border-[#E4DFD4] bg-white px-6 py-6 shadow-[0_6px_28px_rgba(0,0,0,0.06)] xl:block"
-        >
-          <div className="grid gap-8 lg:grid-cols-[0.6fr_0.8fr_0.6fr]">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#7A6900]">
-                Plano selecionado
-              </p>
-              <h3 className="mt-2 text-2xl font-black leading-tight text-[#141414]">
-                {openPlan.name}
-              </h3>
-              <p className="mt-2 text-[13px] text-[#5E5B54]">
-                {openPlan.badge}
-              </p>
-            </div>
-            <div>
-              <BenefitsList hiddenClasses="block" />
-            </div>
-            <div>
-              <ConditionsBlock plan={openPlan} />
-            </div>
-          </div>
-        </div>
-      )}
 
       <Reveal delay={0.28}>
         <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-[#E4DFD4] bg-white px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
