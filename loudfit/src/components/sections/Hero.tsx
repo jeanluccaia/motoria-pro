@@ -5,23 +5,52 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 
-const POSTER = '/assets/images/hero-gym-desktop.png'
+const DESKTOP_IMAGE = '/assets/images/hero-gym-desktop.png'
+const MOBILE_POSTER_INLINE =
+  'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 6"><rect width="10" height="6" fill="%23080808"/></svg>'
 const VIDEO_SRC = '/hero.mp4'
+const MOBILE_QUERY = '(max-width: 767px)'
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 
+/* ------------ prefers-reduced-motion ------------ */
 function subscribeReducedMotion(callback: () => void) {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => {}
-  const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+  const mq = window.matchMedia(REDUCED_MOTION_QUERY)
   mq.addEventListener('change', callback)
   return () => mq.removeEventListener('change', callback)
 }
-
 function getReducedMotion() {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  return window.matchMedia(REDUCED_MOTION_QUERY).matches
 }
-
 function getReducedMotionServer() {
   return false
+}
+
+/* ------------ mobile breakpoint ------------ */
+function subscribeMobile(callback: () => void) {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => {}
+  const mq = window.matchMedia(MOBILE_QUERY)
+  mq.addEventListener('change', callback)
+  return () => mq.removeEventListener('change', callback)
+}
+function getIsMobile() {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
+  return window.matchMedia(MOBILE_QUERY).matches
+}
+function getIsMobileServer() {
+  return false
+}
+
+function safePlay(v: HTMLVideoElement) {
+  const p = v.play()
+  if (p && typeof p.then === 'function') {
+    p.catch(() => {
+      v.muted = true
+      const retry = v.play()
+      if (retry && typeof retry.then === 'function') retry.catch(() => {})
+    })
+  }
 }
 
 export function Hero() {
@@ -29,17 +58,20 @@ export function Hero() {
   const [videoFailed, setVideoFailed] = useState(false)
   const [muted, setMuted] = useState(true)
   const reduceMotion = useSyncExternalStore(subscribeReducedMotion, getReducedMotion, getReducedMotionServer)
+  const isMobile = useSyncExternalStore(subscribeMobile, getIsMobile, getIsMobileServer)
+
+  // Vídeo só existe no mobile e quando não há redução de movimento
+  const showVideo = isMobile && !videoFailed && !reduceMotion
 
   useEffect(() => {
     const v = videoRef.current
     if (!v) return
-    if (reduceMotion) {
+    if (!showVideo) {
       try { v.pause() } catch {}
-    } else if (!videoFailed) {
-      const p = v.play()
-      if (p && typeof p.then === 'function') p.catch(() => { /* autoplay bloqueado — poster segura */ })
+      return
     }
-  }, [reduceMotion, videoFailed])
+    safePlay(v)
+  }, [showVideo])
 
   function toggleSound() {
     const v = videoRef.current
@@ -47,18 +79,30 @@ export function Hero() {
     const next = !muted
     v.muted = next
     setMuted(next)
-    if (v.paused) {
-      const p = v.play()
-      if (p && typeof p.then === 'function') p.catch(() => { /* autoplay bloqueado */ })
-    }
+    if (v.paused) safePlay(v)
   }
-
-  const showVideo = !videoFailed && !reduceMotion
 
   return (
     <section className="relative isolate flex min-h-[560px] items-end overflow-hidden bg-lf-black pt-16 md:min-h-[72vh] lg:min-h-[86vh]">
 
-      {/* Vídeo de fundo */}
+      {/* Preload agressivo do vídeo — apenas em mobile (economia de banda no desktop) */}
+      <link rel="preload" as="video" href={VIDEO_SRC} type="video/mp4" media={MOBILE_QUERY} />
+
+      {/* Imagem desktop — sempre presente. No mobile fica invisível quando o vídeo estiver ativo. */}
+      <Image
+        src={DESKTOP_IMAGE}
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        aria-hidden="true"
+        className={
+          'absolute inset-0 -z-10 h-full w-full object-cover object-[62%_35%] opacity-70 md:object-[58%_28%] md:opacity-70 lg:object-[60%_22%] 2xl:object-[62%_18%]' +
+          (showVideo ? ' hidden' : '')
+        }
+      />
+
+      {/* Vídeo — só em mobile */}
       {showVideo && (
         <video
           ref={videoRef}
@@ -67,32 +111,16 @@ export function Hero() {
           loop
           playsInline
           preload="auto"
-          poster={POSTER}
-          onCanPlay={(e) => {
-            const v = e.currentTarget
-            const p = v.play()
-            if (p && typeof p.then === 'function') p.catch(() => { /* autoplay bloqueado */ })
-          }}
+          poster={MOBILE_POSTER_INLINE}
+          onCanPlay={(e) => safePlay(e.currentTarget)}
+          onLoadedData={(e) => safePlay(e.currentTarget)}
           onError={() => setVideoFailed(true)}
           aria-hidden="true"
           disablePictureInPicture
-          className="absolute inset-0 -z-10 h-full w-full object-cover object-[58%_28%] opacity-75 md:object-[58%_28%] md:opacity-70 lg:object-[60%_22%] 2xl:object-[62%_18%]"
+          className="absolute inset-0 -z-10 h-full w-full bg-lf-black object-cover object-[58%_28%] opacity-80"
         >
           <source src={VIDEO_SRC} type="video/mp4" />
         </video>
-      )}
-
-      {/* Poster fallback (visível se vídeo falhar OU se prefers-reduced-motion) */}
-      {!showVideo && (
-        <Image
-          src={POSTER}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          aria-hidden="true"
-          className="absolute inset-0 -z-10 h-full w-full object-cover object-[62%_35%] opacity-70 md:object-[58%_28%] lg:object-[60%_22%] 2xl:object-[62%_18%]"
-        />
       )}
 
       {/* Overlay para contraste — mais leve no mobile, mais forte no desktop */}
@@ -105,19 +133,19 @@ export function Hero() {
       <div aria-hidden="true" className="absolute bottom-0 left-0 right-0 h-px bg-lf-line" />
       <div aria-hidden="true" className="absolute bottom-0 left-0 h-[3px] w-56 -skew-x-12 origin-left bg-lf-volt" />
 
-      {/* Controle de som — premium, discreto, canto superior direito */}
+      {/* Controle de som — só aparece quando há vídeo (mobile) */}
       {showVideo && (
         <button
           type="button"
           onClick={toggleSound}
           aria-label={muted ? 'Ativar som do vídeo' : 'Silenciar vídeo'}
           aria-pressed={!muted}
-          className="group absolute right-4 top-20 z-20 flex items-center gap-2 border border-white/15 bg-lf-black/45 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-lf-text/85 backdrop-blur-md transition-all duration-200 hover:border-lf-volt/60 hover:bg-lf-black/70 hover:text-lf-volt focus-visible:outline-none focus-visible:border-lf-volt md:right-8 md:top-24 md:px-4 md:py-2.5 md:text-[11px] lg:right-12"
+          className="group absolute right-4 top-20 z-20 flex items-center gap-2 border border-white/15 bg-lf-black/45 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-lf-text/85 backdrop-blur-md transition-all duration-200 hover:border-lf-volt/60 hover:bg-lf-black/70 hover:text-lf-volt focus-visible:outline-none focus-visible:border-lf-volt"
         >
           <span aria-hidden="true" className="flex h-4 w-4 items-center justify-center">
             {muted ? <SoundOffIcon /> : <SoundOnIcon />}
           </span>
-          <span className="hidden sm:inline">{muted ? 'Ativar som' : 'Silenciar'}</span>
+          <span className="hidden xs:inline sm:inline">{muted ? 'Ativar som' : 'Silenciar'}</span>
         </button>
       )}
 
