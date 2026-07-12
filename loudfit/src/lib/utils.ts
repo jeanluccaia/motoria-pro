@@ -19,7 +19,7 @@ export function shortUnitName(unit: Pick<Unit, 'nome'>) {
 
 export function unitDisplayName(unit: Pick<Unit, 'nome'>) {
   const name = shortUnitName(unit)
-  return name ? `Loud Fit ${name}` : 'Loud Fit'
+  return name ? `LoudFit ${name}` : 'LoudFit'
 }
 
 export const displayUnitName = unitDisplayName

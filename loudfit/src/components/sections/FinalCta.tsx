@@ -13,7 +13,7 @@ export function FinalCta() {
               Começa aqui
             </p>
             <h2 className="text-balance text-4xl font-black uppercase leading-[0.98] tracking-[-0.005em] sm:text-5xl md:text-6xl">
-              Escolha sua unidade.<br />Comece a treinar
+              Escolha sua unidade<br />comece a treinar
             </h2>
             <p className="mt-4 max-w-[42ch] text-sm leading-[1.55] text-lf-black/75 md:text-base">
               Veja a unidade mais próxima e finalize sua matrícula online.
@@ -25,7 +25,7 @@ export function FinalCta() {
               href="/unidades"
               className="inline-flex min-h-[52px] items-center justify-center bg-lf-black px-8 py-4 text-xs font-black uppercase tracking-[0.14em] text-lf-volt transition hover:-translate-y-0.5 hover:bg-lf-black/90 sm:text-sm"
             >
-              Ver todas as unidades
+              Escolha sua unidade
             </Link>
             <Link
               href="#planos"

@@ -23,24 +23,24 @@ export const metadata: Metadata = {
 const doors = [
   {
     tag: 'Aluno',
-    title: 'Quero treinar na Loud Fit',
-    body: 'Encontre a unidade mais próxima de você e fale diretamente com a equipe.',
-    cta: 'Encontrar unidade',
+    title: 'Quero treinar na LoudFit',
+    body: 'Encontre a unidade mais próxima de você e fale direto com a equipe local.',
+    cta: 'Escolher unidade',
     href: '/unidades',
     accent: true,
   },
   {
     tag: 'Franqueado',
-    title: 'Quero ser dono de uma Loud Fit',
-    body: 'Conheça o modelo de franquia, os números e o processo de qualificação.',
-    cta: 'Ver franquias',
+    title: 'Quero abrir uma LoudFit',
+    body: 'Conheça a operação, o modelo comercial e como funciona o processo de expansão.',
+    cta: 'Conheça a franquia',
     href: '/franquias',
     accent: false,
   },
   {
     tag: 'Imprensa / Parceria',
-    title: 'Imprensa & parcerias',
-    body: 'Para assessoria, colaborações e oportunidades de marca.',
+    title: 'Imprensa e parcerias',
+    body: 'Assessoria, colaborações e oportunidades para trabalhar com a marca.',
     cta: 'Enviar e-mail',
     href: 'mailto:contato@loudfit.com.br',
     accent: false,
@@ -53,7 +53,7 @@ export default function ContatoPage() {
       <Section bg="black">
         <SectionHeader
           label="Contato"
-          title="Como podemos ajudar?"
+          title="Como podemos ajudar"
           centered
         />
 

@@ -80,7 +80,7 @@ export default function ModalidadesPage() {
             </div>
 
             <h1 className="text-4xl font-black leading-[1.02] text-lf-text md:text-6xl">
-              Tudo isso já está<br className="hidden sm:block" /> no seu plano.
+              Tudo isso já está<br className="hidden sm:block" /> no seu plano
             </h1>
 
             <p className="mt-5 max-w-xl text-base leading-relaxed text-lf-muted">
@@ -110,7 +110,7 @@ export default function ModalidadesPage() {
             </p>
           </div>
           <h2 className="text-3xl font-black leading-[1.02] text-lf-text md:text-4xl">
-            Já incluídas no seu plano.
+            Já incluídas no seu plano
           </h2>
         </div>
 
@@ -151,7 +151,7 @@ export default function ModalidadesPage() {
             </p>
           </div>
           <h2 className="text-3xl font-black leading-[1.02] text-lf-text md:text-4xl">
-            A grade varia por unidade.
+            A grade varia por unidade
           </h2>
           <p className="mt-4 text-base leading-relaxed text-lf-muted">
             Consulte as aulas disponíveis na unidade mais próxima de você.
@@ -170,12 +170,12 @@ export default function ModalidadesPage() {
           <div className="mb-5 flex items-center justify-center gap-3">
             <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
-              Planos Loud Fit
+              Planos LoudFit
             </p>
             <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
           </div>
           <h2 className="text-4xl font-black leading-[1.02] text-lf-text md:text-5xl">
-            Um plano. Tudo incluso.
+            Um plano<br />Tudo incluso
           </h2>
           <p className="mx-auto mt-5 max-w-[50ch] text-base leading-relaxed text-lf-muted">
             Musculação e todas as aulas coletivas da sua unidade na mesma mensalidade.

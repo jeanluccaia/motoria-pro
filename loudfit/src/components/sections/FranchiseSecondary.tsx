@@ -29,16 +29,16 @@ export function FranchiseSecondary() {
             <div className="mb-4 flex items-center gap-3">
               <span aria-hidden="true" className="h-[3px] w-8 shrink-0 bg-lf-volt" />
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
-                Expansão Loud Fit
+                Expansão LoudFit
               </p>
             </div>
 
             <h2 className="text-balance text-4xl font-black uppercase leading-[1.02] text-lf-text md:text-5xl">
-              Leve a Loud Fit para <span className="text-lf-volt">sua cidade</span>
+              Leve a LoudFit para <span className="text-lf-volt">sua cidade</span>
             </h2>
 
             <p className="mt-5 max-w-[46ch] text-base leading-[1.6] text-lf-muted">
-              Faça parte de uma rede construída para crescer com estrutura, posicionamento e experiência.
+              Leve para sua cidade uma marca forte, uma operação estruturada e uma experiência que já está em movimento.
             </p>
 
             <div className="mt-8">
@@ -55,7 +55,7 @@ export function FranchiseSecondary() {
             <div className="relative aspect-[4/5] overflow-hidden border border-lf-line bg-lf-graphite">
               <Image
                 src="/assets/images/real-opening.jpg"
-                alt="Inauguração de uma unidade Loud Fit"
+                alt="Inauguração de uma unidade LoudFit"
                 fill
                 sizes="40vw"
                 className="object-cover"

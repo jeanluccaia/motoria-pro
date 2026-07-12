@@ -35,11 +35,11 @@ export function ExpansionBanner() {
               </div>
 
               <h2 className="max-w-2xl text-4xl font-black leading-[1.06] text-lf-text text-balance md:text-5xl">
-                Rede em expansão. 6 unidades Loud Fit e a próxima pode ser sua.
+                Rede em expansão<br />a próxima LoudFit pode ser sua
               </h2>
 
               <p className="mt-5 max-w-lg text-base leading-[1.6] text-lf-muted">
-                Leve uma marca de academia com operação real, presença de bairro e modelo comercial validado para a sua região.
+                Leve para sua cidade uma marca forte, uma operação estruturada e uma experiência que já está em movimento.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">

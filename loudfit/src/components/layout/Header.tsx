@@ -60,10 +60,10 @@ export function Header() {
 
         <div className="hidden lg:flex items-center gap-2.5">
           <Button href="/#planos" variant="ghost" size="sm">
-            Planos
+            Ver planos
           </Button>
           <Button href="/unidades" variant="volt" size="sm">
-            Matricular
+            Escolha sua unidade
           </Button>
         </div>
 
@@ -101,7 +101,7 @@ export function Header() {
               Ver planos
             </Button>
             <Button href="/unidades" variant="volt" className="w-full justify-center" onClick={() => setOpen(false)}>
-              Começar matrícula
+              Escolha sua unidade
             </Button>
           </div>
         </div>

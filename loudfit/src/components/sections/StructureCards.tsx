@@ -28,7 +28,7 @@ export function StructureCards() {
           <div className="mb-4 flex items-center gap-3">
             <span aria-hidden="true" className="h-[3px] w-8 shrink-0 bg-lf-volt" />
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
-              Estrutura Loud Fit
+              Estrutura LoudFit
             </p>
           </div>
           <h2 className="text-balance text-4xl font-black uppercase leading-[1.02] tracking-[-0.005em] text-lf-text md:text-5xl">

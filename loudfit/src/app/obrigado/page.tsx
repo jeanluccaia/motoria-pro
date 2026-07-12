@@ -13,8 +13,8 @@ export default function ObrigadoPage() {
     <div className="pt-16">
       <Section bg="black">
         <div className="max-w-xl mx-auto text-center py-16">
-          <span className="text-6xl font-black text-lf-volt">OK.</span>
-          <h1 className="mt-4 text-4xl font-black text-lf-text">Recebemos seu contato.</h1>
+          <span className="text-6xl font-black text-lf-volt">OK</span>
+          <h1 className="mt-4 text-4xl font-black text-lf-text">Recebemos sua candidatura</h1>
           <p className="mt-4 text-lf-muted text-lg leading-relaxed">
             Nosso time de expansão vai analisar o seu perfil e entrar em contato em até{' '}
             <strong className="text-lf-text">48 horas úteis</strong>.

@@ -20,7 +20,7 @@ export async function UnitsCompactList() {
               </p>
             </div>
             <h2 className="text-4xl font-black leading-[1.02] text-lf-text md:text-5xl">
-              Encontre sua Loud Fit
+              Encontre sua LoudFit
             </h2>
             <p className="mt-3 max-w-xl text-sm leading-[1.6] text-lf-muted md:text-base">
               Escolha a unidade mais próxima. Veja horários, aulas e finalize sua matrícula online.

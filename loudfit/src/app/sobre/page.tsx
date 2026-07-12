@@ -5,22 +5,22 @@ import { Reveal } from '@/components/ui/Reveal'
 import { Section, SectionHeader } from '@/components/ui/Section'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Sobre a Loud Fit | Muito mais do que uma academia' },
+  title: { absolute: 'Sobre a LoudFit | Muito mais do que uma academia' },
   description:
-    'Conheça a história, a missão e os valores da Loud Fit, uma marca criada para transformar academias em ambientes de energia, atitude e resultados reais.',
+    'Conheça a história, a missão e os valores da LoudFit, uma marca criada para transformar academias em ambientes de energia, atitude e resultados reais.',
   alternates: { canonical: '/sobre' },
   openGraph: {
-    title: 'Sobre a Loud Fit | Muito mais do que uma academia',
+    title: 'Sobre a LoudFit | Muito mais do que uma academia',
     description:
-      'Conheça a história, a missão e os valores da Loud Fit, uma marca criada para transformar academias em ambientes de energia, atitude e resultados reais.',
+      'Conheça a história, a missão e os valores da LoudFit, uma marca criada para transformar academias em ambientes de energia, atitude e resultados reais.',
     url: '/sobre',
     images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sobre a Loud Fit | Muito mais do que uma academia',
+    title: 'Sobre a LoudFit | Muito mais do que uma academia',
     description:
-      'Conheça a história, a missão e os valores da Loud Fit, uma marca criada para transformar academias em ambientes de energia, atitude e resultados reais.',
+      'Conheça a história, a missão e os valores da LoudFit, uma marca criada para transformar academias em ambientes de energia, atitude e resultados reais.',
     images: ['/opengraph-image'],
   },
 }
@@ -28,15 +28,15 @@ export const metadata: Metadata = {
 const historyBlocks = [
   {
     title: 'Estrutura completa',
-    body: 'Musculação, cardio e ambientes preparados para diferentes objetivos.',
+    body: 'Musculação, cardio e ambientes preparados para diferentes objetivos',
   },
   {
     title: 'Aulas inclusas',
-    body: 'Coletivas dentro do plano, sem cobrança à parte.',
+    body: 'Aulas coletivas da unidade dentro do plano, sem cobrança à parte',
   },
   {
     title: 'Presença de bairro',
-    body: 'Unidades próximas, com operação real e foco na rotina do aluno.',
+    body: 'Unidades próximas, pensadas para quem quer treinar todos os dias sem fricção',
   },
 ]
 
@@ -44,22 +44,22 @@ const loudMeaning = [
   {
     letter: 'L',
     title: 'Liberdade',
-    body: 'Treine do seu jeito. Evolua no seu ritmo.',
+    body: 'Treine do seu jeito, no ritmo que faz sentido para a sua rotina.',
   },
   {
     letter: 'O',
     title: 'Ousadia',
-    body: 'Desafiar limites faz parte da nossa cultura.',
+    body: 'Desafiar limites faz parte da nossa cultura, dentro e fora do treino.',
   },
   {
     letter: 'U',
     title: 'União',
-    body: 'Uma comunidade que cresce junto.',
+    body: 'Uma comunidade que cresce junto, com pessoas que treinam por perto todos os dias.',
   },
   {
     letter: 'D',
     title: 'Determinação',
-    body: 'A constância é o caminho para os resultados.',
+    body: 'Constância é o que sustenta os resultados que aparecem no espelho.',
   },
 ]
 
@@ -73,8 +73,8 @@ const values = [
 ]
 
 const founders = [
-  { name: 'Fundador', role: 'Loud Fit' },
-  { name: 'Fundadora', role: 'Loud Fit' },
+  { name: 'Fundador', role: 'LoudFit' },
+  { name: 'Fundadora', role: 'LoudFit' },
 ]
 
 export default function SobrePage() {
@@ -100,15 +100,14 @@ export default function SobrePage() {
               <div className="mb-5 flex items-center gap-3">
                 <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-lf-volt">
-                  Sobre a Loud Fit
+                  Sobre a LoudFit
                 </p>
               </div>
               <h1 className="text-[1.9rem] font-black uppercase leading-[1.02] text-lf-text sm:text-[clamp(2.4rem,5.5vw,5rem)]">
                 Uma rede criada para transformar treino em experiência
               </h1>
               <p className="mt-6 max-w-xl text-base leading-relaxed text-lf-text/80 md:text-lg">
-                Academias completas, aulas coletivas inclusas e uma operação pensada para aproximar
-                pessoas do treino todos os dias.
+                Academias completas, aulas coletivas inclusas e uma operação que aproxima cada pessoa da rotina de treino todos os dias.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button href="/unidades" variant="volt" size="md" className="font-extrabold sm:px-8 sm:py-4 sm:text-base">
@@ -129,11 +128,11 @@ export default function SobrePage() {
             <div className="lg:sticky lg:top-28">
               <SectionHeader
                 label="Nossa história"
-                title="A Loud Fit nasceu para entregar uma academia completa, acessível e com energia de comunidade."
+                title="A LoudFit nasceu para entregar uma academia completa, acessível e com energia de comunidade"
                 className="mb-6"
               />
               <p className="max-w-sm text-base leading-relaxed text-lf-muted">
-                Mais do que equipamentos, a Loud Fit reúne estrutura, aulas coletivas, atendimento
+                Mais do que equipamentos, a LoudFit reúne estrutura, aulas coletivas, atendimento
                 próximo e uma rotina de treino pensada para quem quer começar, evoluir e se manter
                 em movimento.
               </p>
@@ -200,11 +199,11 @@ export default function SobrePage() {
                 Nossa missão
               </p>
               <h2 className="text-4xl font-black uppercase leading-tight md:text-5xl">
-                Transformar vidas por meio da atividade física.
+                Transformar vidas por meio da atividade física
               </h2>
               <p className="mt-5 text-base leading-relaxed text-[#4A4A4A] md:text-lg">
                 Oferecendo uma experiência completa, acolhedora e motivadora para todos que
-                escolhem fazer parte da Loud Fit.
+                escolhem fazer parte da LoudFit.
               </p>
             </article>
           </Reveal>
@@ -215,7 +214,7 @@ export default function SobrePage() {
                 Nossa visão
               </p>
               <h2 className="text-4xl font-black uppercase leading-tight md:text-5xl">
-                Ser referência nacional em academias.
+                Ser referência nacional em academias
               </h2>
               <p className="mt-5 text-base leading-relaxed text-lf-muted md:text-lg">
                 Unindo estrutura, atendimento, tecnologia e uma comunidade forte, tornando a Loud
@@ -232,7 +231,7 @@ export default function SobrePage() {
             <div>
               <SectionHeader
                 label="Nossos valores"
-                title="O padrão que guia cada treino, unidade e decisão."
+                title="O padrão que guia cada treino, unidade e decisão"
                 subtitle="Valores simples, repetidos todos os dias na operação, no atendimento e na relação com a comunidade."
                 className="mb-0"
               />
@@ -263,7 +262,7 @@ export default function SobrePage() {
             <div>
               <SectionHeader
                 label="Pessoas"
-                title="Quem constrói a Loud Fit"
+                title="Quem constrói a LoudFit"
                 subtitle="Uma marca construída por pessoas apaixonadas por transformar vidas através do esporte."
                 className="mb-8"
               />
@@ -315,14 +314,14 @@ export default function SobrePage() {
               Próximo passo
             </p>
             <h2 className="text-4xl font-black uppercase leading-[1.04] text-lf-text sm:text-5xl md:text-6xl">
-              Venha viver a experiência Loud Fit.
+              Venha viver a experiência LoudFit
             </h2>
             <div className="mt-9 flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row">
               <Button href="/unidades" variant="volt" size="lg" className="w-full sm:w-auto">
-                Encontrar uma unidade
+                Escolha sua unidade
               </Button>
               <Button href="/franquias" variant="ghost" size="lg" className="w-full sm:w-auto">
-                Conheça nossa franquia
+                Conheça a franquia
               </Button>
             </div>
           </div>

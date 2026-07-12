@@ -8,10 +8,10 @@ import { cn } from '@/lib/utils'
 import { getPlans, type Plan } from '@/lib/plans'
 
 const homePlanDescriptions: Record<string, string> = {
-  'power-mensal': 'Mês a mês, sem compromisso.',
-  'power-mensal-recorrente': 'Cobrança automática mensal.',
-  'power-semestral-recorrente': '6 meses com mensalidade reduzida.',
-  'power-anual-recorrente': '12 meses com a menor mensalidade.',
+  'power-mensal': 'Mês a mês, sem compromisso',
+  'power-mensal-recorrente': 'Cobrança automática mensal',
+  'power-semestral-recorrente': '6 meses com mensalidade reduzida',
+  'power-anual-recorrente': '12 meses com a menor mensalidade',
 }
 
 const commonBenefits = [

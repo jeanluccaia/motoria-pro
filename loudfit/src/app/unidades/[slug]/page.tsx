@@ -194,10 +194,10 @@ export default async function UnitPage({ params }: Props) {
             <div className="bg-white border-t-4 border-t-lf-volt border border-gray-200 p-6">
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lf-volt">Matrícula online</p>
               <h2 className="mt-3 text-3xl font-black text-gray-900 leading-tight">
-                Primeira mensalidade por R$9,90.
+                Primeira mensalidade por R$ 9,90
               </h2>
               <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-gray-400">
-                No Power Anual Recorrente.
+                No Power Anual Recorrente
               </p>
               <p className="mt-3 text-sm leading-relaxed text-gray-500">
                 {isIpiranga && hasCheckout
@@ -261,7 +261,7 @@ export default async function UnitPage({ params }: Props) {
         <Section id="planos" bg="graphite">
           <SectionHeader
             label="Planos da unidade"
-            title="Escolha como começar."
+            title="Escolha como começar"
             subtitle={
               isIpiranga
                 ? 'Tabela própria da unidade Ipiranga.'
@@ -304,7 +304,7 @@ export default async function UnitPage({ params }: Props) {
           <Section bg="black">
             <SectionHeader
               label="Aulas coletivas"
-              title="Grade de aulas."
+              title="Grade de aulas"
               subtitle="Estas aulas estão inclusas no seu plano nesta unidade, sem custo adicional."
             />
             <div className="flex flex-wrap gap-2">
