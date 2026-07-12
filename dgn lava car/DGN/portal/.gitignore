@@ -36,6 +36,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# db migration reports (contain PII from customer base)
+/db/reports/
+next-dev.err.log
+next-dev.out.log
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
