@@ -41,7 +41,7 @@ export function FounderOffer({ selectedPlanId, onSelect, onCtaClick }: FounderOf
       className="relative border-t border-white/[0.10] bg-[#0A0A0A]"
       style={{
         fontFamily: 'var(--font-founder-body), Archivo, sans-serif',
-        padding: 'clamp(52px, 8vw, 96px) clamp(22px, 5vw, 80px)',
+        padding: 'clamp(72px, 9vw, 108px) clamp(24px, 5vw, 80px)',
       }}
     >
       <div className="mx-auto flex max-w-[620px] flex-col items-center text-center">
@@ -60,12 +60,12 @@ export function FounderOffer({ selectedPlanId, onSelect, onCtaClick }: FounderOf
           DE FUNDADOR
         </h2>
 
-        <p className="mt-5 max-w-[440px] text-[14px] leading-[1.55] text-white/60 sm:text-[15px]">
+        <p className="mt-6 max-w-[440px] text-[14.5px] leading-[1.65] text-white/60 sm:text-[15.5px]">
           Uma proposta reservada para quem recebeu o convite — R$ 10 de vantagem mensal em relação ao valor regular da rede
         </p>
 
         {/* Plan selector */}
-        <div className="mt-8 w-full max-w-[460px]">
+        <div className="mt-10 w-full max-w-[460px] sm:mt-11">
           <span className="sr-only" id="founder-plan-selector-label">
             Escolha o plano
           </span>
@@ -106,10 +106,10 @@ export function FounderOffer({ selectedPlanId, onSelect, onCtaClick }: FounderOf
 
         {/* Card */}
         <div
-          className="relative mt-8 w-full max-w-[480px] overflow-hidden rounded-2xl border border-white/[0.12] text-left shadow-[0_30px_80px_rgba(0,0,0,0.35)]"
+          className="relative mt-10 w-full max-w-[480px] overflow-hidden rounded-2xl border border-white/[0.12] text-left shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:mt-12"
           style={{
             background: 'linear-gradient(180deg,#111 0%,#0c0c0c 100%)',
-            padding: 'clamp(24px, 4vw, 40px)',
+            padding: 'clamp(28px, 4vw, 40px)',
           }}
         >
           <div

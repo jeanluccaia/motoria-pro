@@ -22,7 +22,7 @@ export function FounderBenefits() {
       className="border-t border-white/[0.10] bg-[#0A0A0A]"
       style={{
         fontFamily: 'var(--font-founder-body), Archivo, sans-serif',
-        padding: 'clamp(48px, 7vw, 80px) clamp(22px, 5vw, 80px)',
+        padding: 'clamp(72px, 8vw, 96px) clamp(24px, 5vw, 80px)',
       }}
     >
       <span
@@ -31,11 +31,11 @@ export function FounderBenefits() {
       >
         STATUS MEMBRO FUNDADOR
       </span>
-      <p className="mx-auto mb-10 max-w-[540px] text-center text-[14px] leading-[1.55] text-white/60 sm:text-[15px]">
+      <p className="mx-auto mb-14 max-w-[540px] text-center text-[14.5px] leading-[1.65] text-white/60 sm:mb-12 sm:text-[15.5px]">
         Uma condição reservada para um grupo pequeno — quem chegou aqui pelo convite
       </p>
 
-      <div className="mx-auto grid max-w-[920px] gap-8 sm:grid-cols-3 sm:gap-10 lg:gap-12">
+      <div className="mx-auto grid max-w-[920px] gap-11 sm:grid-cols-3 sm:gap-10 lg:gap-12">
         {benefits.map((b) => (
           <div key={b.n} className="border-t border-white/[0.10] pt-5 sm:pt-6">
             <span

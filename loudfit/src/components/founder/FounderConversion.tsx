@@ -12,7 +12,7 @@ export function FounderConversion({ plan }: FounderConversionProps) {
       className="border-t border-white/[0.10] bg-[#0A0A0A]"
       style={{
         fontFamily: 'var(--font-founder-body), Archivo, sans-serif',
-        padding: 'clamp(54px, 8vw, 96px) clamp(22px, 5vw, 80px)',
+        padding: 'clamp(76px, 9vw, 108px) clamp(24px, 5vw, 80px)',
       }}
     >
       <div className="mx-auto flex max-w-[520px] flex-col items-center text-center">
@@ -30,7 +30,7 @@ export function FounderConversion({ plan }: FounderConversionProps) {
           <br />
           DO LOTE FUNDADOR
         </h2>
-        <p className="mb-8 mt-5 max-w-[420px] text-[14px] leading-[1.55] text-white/60 sm:text-[15px]">
+        <p className="mb-11 mt-6 max-w-[420px] text-[14.5px] leading-[1.65] text-white/60 sm:mb-12 sm:text-[15.5px]">
           Confirme seu interesse para a equipe continuar o atendimento
         </p>
 
