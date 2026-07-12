@@ -3,6 +3,7 @@ import { Inter, Big_Shoulders } from 'next/font/google'
 import './globals.css'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+import { GlobalChrome } from '@/components/layout/GlobalChrome'
 import { siteUrl } from '@/lib/site'
 
 const bodyFont = Inter({ subsets: ['latin'], variable: '--font-body' })
@@ -47,9 +48,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR" className={`h-full ${bodyFont.variable} ${displayFont.variable}`}>
       <body className="min-h-full flex flex-col bg-lf-black text-lf-text">
-        <Header />
+        <GlobalChrome>
+          <Header />
+        </GlobalChrome>
         <main className="flex-1">{children}</main>
-        <Footer />
+        <GlobalChrome>
+          <Footer />
+        </GlobalChrome>
       </body>
     </html>
   )

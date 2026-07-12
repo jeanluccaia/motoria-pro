@@ -123,3 +123,20 @@ h1, h2, h3, h4 {
     animation: none;
   }
 }
+
+/* Founder page animations */
+@keyframes lfFounderUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes lfFounderFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes lfFounderPrice {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.founder-scope {
+  overflow-x: hidden;
+}
