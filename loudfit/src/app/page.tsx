@@ -11,7 +11,7 @@ import { FinalCta } from '@/components/sections/FinalCta'
 import { WhatsAppFloat } from '@/components/ui/WhatsAppFloat'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Loud Fit | Academia com musculação e aulas inclusas' },
+  title: { absolute: 'LoudFit | Academia com musculação e aulas inclusas' },
   description:
     'Escolha sua unidade, veja os planos e faça sua matrícula online. Musculação e aulas coletivas em um só plano.',
   alternates: { canonical: '/' },
