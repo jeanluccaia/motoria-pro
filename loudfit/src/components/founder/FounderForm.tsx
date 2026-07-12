@@ -7,6 +7,7 @@ import { z } from 'zod'
 import Link from 'next/link'
 import { trackFounderEvent } from '@/lib/founder-analytics'
 import type { FounderPlan } from '@/lib/founder-plans'
+import { founderUnits } from '@/lib/founder-units'
 
 const schema = z.object({
   nome: z.string().trim().min(2, 'Informe seu nome'),
@@ -18,6 +19,7 @@ const schema = z.object({
     .refine((v) => !v || z.string().email().safeParse(v).success, {
       message: 'Informe um e-mail válido',
     }),
+  unit_id: z.string().trim().min(1, 'Escolha uma unidade'),
   consent: z.literal(true, { message: 'Aceite necessário para envio' }),
 })
 
@@ -69,6 +71,7 @@ export function FounderForm({ plan }: FounderFormProps) {
       nome: '',
       whatsapp: '',
       email: '',
+      unit_id: '',
       consent: false as unknown as true,
     },
   })
@@ -109,6 +112,7 @@ export function FounderForm({ plan }: FounderFormProps) {
     })
 
     try {
+      const unit = founderUnits.find((u) => u.id === data.unit_id)
       const response = await fetch('/api/founder-leads', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
@@ -116,6 +120,8 @@ export function FounderForm({ plan }: FounderFormProps) {
           nome: data.nome,
           whatsapp: data.whatsapp,
           email: data.email ?? '',
+          unit_id: data.unit_id,
+          unit_name: unit?.label ?? data.unit_id,
           plan_id: plan.id,
           plan_name: plan.name,
           regular_price: plan.regularPriceValue,
@@ -260,6 +266,34 @@ export function FounderForm({ plan }: FounderFormProps) {
         {errors.email && (
           <p role="alert" className="mt-1.5 text-[12px] text-[#F0665F]">
             {errors.email.message}
+          </p>
+        )}
+      </div>
+
+      <div>
+        <label htmlFor="founder-unit" className="sr-only">
+          Unidade Loud Fit
+        </label>
+        <select
+          id="founder-unit"
+          aria-invalid={!!errors.unit_id}
+          {...register('unit_id')}
+          className="w-full rounded-[10px] border bg-white/[0.04] px-4 py-4 text-[15px] text-lf-text outline-none transition-colors focus:border-[#FFE000]"
+          style={{ borderColor: errors.unit_id ? '#B4231B' : 'rgba(244,244,242,0.13)' }}
+          defaultValue=""
+        >
+          <option value="" disabled>
+            Unidade Loud Fit
+          </option>
+          {founderUnits.map((u) => (
+            <option key={u.id} value={u.id} className="bg-[#111]">
+              {u.label}
+            </option>
+          ))}
+        </select>
+        {errors.unit_id && (
+          <p role="alert" className="mt-1.5 text-[12px] text-[#F0665F]">
+            {errors.unit_id.message}
           </p>
         )}
       </div>

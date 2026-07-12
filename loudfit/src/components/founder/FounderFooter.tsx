@@ -16,11 +16,12 @@ export function FounderFooter() {
           className="h-auto w-[112px] object-contain sm:w-[124px]"
         />
         <p
-          className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/60"
+          className="font-extrabold uppercase text-lf-text"
           style={{
-            fontFamily: 'var(--font-founder-display), Anton, sans-serif',
-            fontSize: 'clamp(14px, 1.4vw, 17px)',
-            letterSpacing: '0.03em',
+            fontFamily: 'var(--font-founder-body), Archivo, sans-serif',
+            fontSize: 'clamp(13px, 1.15vw, 15px)',
+            letterSpacing: '0.14em',
+            lineHeight: 1.2,
           }}
         >
           O MELHOR AINDA ESTÁ POR VIR

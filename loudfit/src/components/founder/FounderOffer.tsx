@@ -60,9 +60,9 @@ export function FounderOffer({ selectedPlanId, onSelect, onCtaClick }: FounderOf
           DE FUNDADOR
         </h2>
 
-        <span className="mt-4 inline-flex items-center rounded-full border border-white/10 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.20em] text-white/50">
-          Sugestão de oferta
-        </span>
+        <p className="mt-5 max-w-[440px] text-[14px] leading-[1.55] text-white/60 sm:text-[15px]">
+          Uma proposta reservada para quem recebeu o convite — R$ 10 de vantagem mensal em relação ao valor regular da rede
+        </p>
 
         {/* Plan selector */}
         <div className="mt-8 w-full max-w-[460px]">
@@ -175,7 +175,7 @@ export function FounderOffer({ selectedPlanId, onSelect, onCtaClick }: FounderOf
             </div>
 
             <p className="text-[13px] leading-[1.55] text-white/55">
-              Uma condição pensada para os primeiros membros desta campanha
+              Válido em qualquer unidade Loud Fit — a equipe finaliza a matrícula por você
             </p>
 
             <button

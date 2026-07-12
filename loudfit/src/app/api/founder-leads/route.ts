@@ -4,6 +4,8 @@ const leadSchema = z.object({
   nome: z.string().trim().min(2),
   whatsapp: z.string().trim().min(10),
   email: z.string().trim().email().or(z.literal('')).optional(),
+  unit_id: z.string().trim().min(1),
+  unit_name: z.string().trim().min(1),
   plan_id: z.string().trim().min(1),
   plan_name: z.string().trim().min(1),
   regular_price: z.number(),

@@ -1,8 +1,8 @@
 const benefits = [
   {
     n: '01',
-    title: 'ACESSO ANTECIPADO',
-    desc: 'Conheça a unidade antes da abertura oficial, quando essa experiência estiver disponível',
+    title: 'VÁLIDO EM TODAS AS UNIDADES',
+    desc: 'Condição aplicável em qualquer uma das seis unidades Loud Fit em operação',
   },
   {
     n: '02',
@@ -11,8 +11,8 @@ const benefits = [
   },
   {
     n: '03',
-    title: 'PRIMEIRA GERAÇÃO LOUD FIT',
-    desc: 'Faça parte dos primeiros membros da campanha de lançamento',
+    title: 'PRIMEIRA GERAÇÃO DA CAMPANHA',
+    desc: 'Faça parte dos primeiros membros desta campanha da Loud Fit',
   },
 ]
 
@@ -31,8 +31,8 @@ export function FounderBenefits() {
       >
         STATUS MEMBRO FUNDADOR
       </span>
-      <p className="mx-auto mb-10 max-w-[520px] text-center text-[14px] leading-[1.55] text-white/60 sm:text-[15px]">
-        Você não está apenas entrando em uma academia — está entrando desde o começo
+      <p className="mx-auto mb-10 max-w-[540px] text-center text-[14px] leading-[1.55] text-white/60 sm:text-[15px]">
+        Uma condição reservada para um grupo pequeno — quem chegou aqui pelo convite
       </p>
 
       <div className="mx-auto grid max-w-[920px] gap-8 sm:grid-cols-3 sm:gap-10 lg:gap-12">

@@ -172,10 +172,10 @@ export function FounderHero({ guestName }: FounderHeroProps) {
           </h1>
 
           <p
-            className="mt-5 max-w-[440px] text-[15px] leading-[1.55] text-white/70 sm:text-base md:mt-6 md:text-[17px]"
+            className="mt-5 max-w-[460px] text-[15px] leading-[1.55] text-white/70 sm:text-base md:mt-6 md:text-[17px]"
             style={{ animation: 'lfFounderUp 0.6s cubic-bezier(0.2,0.7,0.2,1) 0.24s both' }}
           >
-            Uma condição pensada para quem entra desde o começo
+            Uma condição reservada — enviada apenas para quem recebeu este convite
           </p>
 
           <div
