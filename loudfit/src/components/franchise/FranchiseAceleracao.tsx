@@ -20,52 +20,49 @@ const phases: Phase[] = [
     id: 'antes',
     label: 'Antes da inauguração',
     eyebrow: 'Fase 01',
-    headline: 'Sua unidade começa a captar antes de abrir',
+    headline: 'Comece a captar antes da inauguração',
     intro:
-      'A preparação comercial da praça começa antes da porta abrir. O objetivo é chegar à inauguração com base de interessados, presença digital ativa e um público local já aquecido.',
+      'A rede prepara a praça enquanto a obra acontece: presença digital, público local aquecido e primeiras matrículas antes da porta abrir.',
     bullets: [
-      'Preparação da presença digital da unidade',
+      'Presença digital da unidade',
       'Captação de interessados e lista de espera',
       'Campanhas locais de reconhecimento',
-      'Ações de pré-venda e primeiras matrículas',
-      'Preparação comercial da praça',
+      'Pré-venda e primeiras matrículas',
     ],
     image: '/assets/images/real-facade.jpg',
-    imageAlt: 'Fachada de uma unidade LoudFit em preparação para abertura',
+    imageAlt: 'Fachada de uma unidade Loud Fit em preparação para abertura',
   },
   {
     id: 'inauguracao',
     label: 'Inauguração',
     eyebrow: 'Fase 02',
-    headline: 'Um lançamento estruturado, não apenas uma festa',
+    headline: 'Um lançamento coordenado com a rede',
     intro:
-      'A inauguração da LoudFit funciona como uma operação de lançamento coordenada — comercial, marketing e comunicação da rede alinhados com o time local.',
+      'Comercial, marketing e comunicação da rede alinhados com o time local no dia da abertura.',
     bullets: [
       'Operação de lançamento com apoio da rede',
       'Comunicação coordenada nas redes',
       'Ativação comercial no dia da abertura',
-      'Ações locais e presença da equipe LoudFit',
       'Onboarding dos primeiros alunos ativos',
     ],
     image: '/assets/images/real-opening.jpg',
-    imageAlt: 'Momento de abertura de uma unidade LoudFit com pessoas presentes',
+    imageAlt: 'Momento de abertura de uma unidade Loud Fit com pessoas presentes',
   },
   {
     id: 'primeiros',
     label: 'Primeiros meses',
     eyebrow: 'Fase 03',
-    headline: 'Consolidação com leitura real da operação',
+    headline: 'Acompanhamento próximo pós-abertura',
     intro:
-      'Depois da inauguração, o trabalho continua. A rede acompanha métricas, aponta ajustes e conduz o franqueado nos primeiros ciclos comerciais da unidade.',
+      'A rede acompanha métricas, aponta ajustes e conduz a unidade nos primeiros ciclos comerciais.',
     bullets: [
-      'Acompanhamento próximo do time de expansão',
-      'Leitura de métricas de matrícula e retenção',
+      'Time de expansão presente',
+      'Leitura de matrícula e retenção',
       'Ajustes comerciais e de marketing local',
-      'Rotinas de retenção estruturadas',
-      'Consolidação da base de alunos ativos',
+      'Consolidação da base de alunos',
     ],
     image: '/assets/images/studio-community.jpg',
-    imageAlt: 'Ambiente de aula coletiva com alunos treinando em uma unidade LoudFit',
+    imageAlt: 'Ambiente de aula coletiva com alunos treinando em uma unidade Loud Fit',
   },
 ]
 
@@ -86,7 +83,7 @@ export function FranchiseAceleracao() {
           <div className="mb-4 flex items-center gap-3">
             <span aria-hidden="true" className="h-[3px] w-8 shrink-0 bg-lf-volt" />
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-lf-volt">
-              Diferencial LoudFit
+              Diferencial Loud Fit
             </p>
           </div>
           <h2
@@ -94,17 +91,17 @@ export function FranchiseAceleracao() {
             className="text-balance font-black uppercase leading-[0.96] tracking-[-0.005em] text-lf-text"
             style={{ fontSize: 'clamp(2.2rem, 4.4vw, 4rem)' }}
           >
-            Aceleração LoudFit
+            Aceleração Loud Fit
           </h2>
-          <p className="mt-6 max-w-[52ch] text-base leading-[1.65] text-lf-muted md:text-lg">
-            Um programa de três fases desenhado para preparar a demanda antes da inauguração e sustentar o crescimento da unidade nos primeiros ciclos.
+          <p className="mt-6 max-w-[48ch] text-base leading-[1.65] text-lf-muted md:text-lg">
+            Três fases pensadas para preparar a demanda antes da inauguração e sustentar os primeiros ciclos da unidade.
           </p>
         </div>
 
         {/* Tablist */}
         <div
           role="tablist"
-          aria-label="Fases da Aceleração LoudFit"
+          aria-label="Fases da Aceleração Loud Fit"
           id={tablistId}
           className="mb-8 grid grid-cols-1 gap-px bg-lf-line sm:grid-cols-3 md:mb-10"
         >

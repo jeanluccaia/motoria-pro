@@ -8,22 +8,22 @@ const pillars: Pillar[] = [
   {
     number: '01',
     title: 'Marca com identidade',
-    body: 'A LoudFit tem estética própria — urbana, forte e reconhecível. Você abre com uma marca que já se comunica sozinha na fachada.',
+    body: 'Estética urbana, forte e reconhecível — a fachada já comunica antes da porta abrir.',
   },
   {
     number: '02',
     title: 'Operação documentada',
-    body: 'Playbook comercial, operação e marketing formalizados. O que já funciona nas unidades vira padrão para a sua.',
+    body: 'Playbook comercial, operação e marketing formalizados para você seguir sem improvisar.',
   },
   {
     number: '03',
-    title: 'Aceleração LoudFit',
-    body: 'Sua unidade começa a captar antes de abrir. Pré-venda, presença digital e ativação local estruturados desde a assinatura.',
+    title: 'Aceleração Loud Fit',
+    body: 'Pré-venda, presença digital e ativação local ativas antes mesmo da inauguração.',
   },
   {
     number: '04',
     title: 'Suporte contínuo',
-    body: 'Expansão, implantação, marketing e operação ao lado da sua unidade em cada fase — não só até a inauguração.',
+    body: 'Expansão, implantação, marketing e operação ao lado da unidade em cada fase.',
   },
 ]
 
@@ -41,7 +41,7 @@ export function FranchiseWhy() {
             <div className="mb-4 flex items-center gap-3">
               <span aria-hidden="true" className="h-[3px] w-8 shrink-0 bg-[#0B0B0C]" />
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#4a4a4f]">
-                Por que a LoudFit
+                Por que a Loud Fit
               </p>
             </div>
             <h2
@@ -49,17 +49,12 @@ export function FranchiseWhy() {
               className="text-balance font-black uppercase leading-[0.96] tracking-[-0.005em] text-[#0B0B0C]"
               style={{ fontSize: 'clamp(2.2rem, 4.4vw, 4rem)' }}
             >
-              Você não abre<br />uma academia.<br />Você entra numa<br /><span className="bg-lf-volt px-2 pb-1 text-[#0B0B0C]">operação</span>.
+              Estrutura para abrir<br />e <span className="bg-lf-volt px-2 pb-1 text-[#0B0B0C]">suporte</span> para crescer
             </h2>
           </div>
-          <div className="text-[15.5px] leading-[1.65] text-[#333]">
-            <p>
-              A LoudFit não vende uma franquia isolada. Você entra em uma rede que já opera, que documenta o próprio modelo e que trabalha para gerar demanda na sua praça antes mesmo da inauguração.
-            </p>
-            <p className="mt-4">
-              Os pilares abaixo estruturam essa proposta. Cada um deles conecta com uma seção específica desta página.
-            </p>
-          </div>
+          <p className="max-w-[46ch] text-[15.5px] leading-[1.65] text-[#333]">
+            Você entra em uma rede que já opera, documenta o próprio modelo e prepara a demanda da praça antes mesmo da inauguração.
+          </p>
         </div>
 
         <ol className="grid gap-px bg-[#0B0B0C]/12 sm:grid-cols-2">

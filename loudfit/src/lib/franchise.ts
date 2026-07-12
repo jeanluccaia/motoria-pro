@@ -21,7 +21,7 @@
  */
 
 export const franchiseConfig = {
-  showFinancialNumbers: false as boolean,
+  showFinancialNumbers: true as boolean,
 
   expansionWhatsApp: {
     enabled: false as boolean,
@@ -49,7 +49,7 @@ export const franchiseNumbers = {
 } as const
 
 export const franchiseDisclaimer =
-  'Estimativas baseadas no modelo atual. Os resultados variam conforme praça, gestão, ponto comercial e operação. Consulte a Circular de Oferta de Franquia.'
+  'Valores e estimativas podem variar conforme praça, ponto comercial, projeto, operação e condições definidas na Circular de Oferta de Franquia.'
 
 /**
  * Capital ranges shown in the form. Kept neutral until commercial team
@@ -89,6 +89,6 @@ export const brazilianStates = [
 
 export const successCopy = () => {
   const sla = franchiseConfig.leadResponseSla.advertisedHours
-  const timing = sla ? ` Nosso time responde em até ${sla} horas úteis.` : ''
-  return `Recebemos sua candidatura. Nosso time analisará seu perfil e entrará em contato.${timing}`
+  const timing = sla ? ` O time responde em até ${sla} horas úteis.` : ''
+  return `Recebemos sua candidatura. O time de expansão vai analisar as informações e entrar em contato.${timing}`
 }

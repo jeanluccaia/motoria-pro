@@ -128,7 +128,7 @@ export function FranchiseHero({ units }: FranchiseHeroProps) {
         <div className="mb-5 flex items-center gap-3">
           <span aria-hidden="true" className="h-[3px] w-8 shrink-0 bg-lf-volt" />
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-lf-volt">
-            Expansão LoudFit
+            Expansão Loud Fit
           </p>
         </div>
 
@@ -140,8 +140,8 @@ export function FranchiseHero({ units }: FranchiseHeroProps) {
           Sua cidade pode ser a próxima<br />a treinar <span className="text-lf-volt">mais alto</span>
         </h1>
 
-        <p className="mt-6 max-w-[42ch] text-base leading-[1.55] text-lf-text/85 sm:text-lg md:mt-7 md:max-w-[52ch]">
-          A LoudFit é uma rede em expansão, com estrutura completa, aulas coletivas inclusas e operação real em quatro cidades.
+        <p className="mt-6 max-w-[40ch] text-base leading-[1.55] text-lf-text/85 sm:text-lg md:mt-7 md:max-w-[46ch]">
+          Leve para sua região uma academia com marca forte, estrutura completa e suporte para implantação.
         </p>
 
         <div className="mt-8 flex flex-col items-start gap-3 sm:mt-10 sm:flex-row sm:items-center sm:gap-4">
@@ -153,11 +153,11 @@ export function FranchiseHero({ units }: FranchiseHeroProps) {
             Quero ser franqueado
           </a>
           <a
-            href="#modelo"
+            href="#numeros"
             onClick={() => trackFranchiseEvent('franchise_cta_hero_secondary')}
             className="inline-flex min-h-[52px] items-center justify-center border border-lf-text/25 px-8 py-4 text-sm font-black uppercase tracking-[0.12em] text-lf-text/90 transition-colors hover:border-lf-volt hover:text-lf-volt sm:text-base"
           >
-            Conhecer o modelo
+            Ver números
           </a>
         </div>
 

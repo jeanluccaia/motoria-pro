@@ -13,48 +13,48 @@ function buildFaq(): FaqItem[] {
   const show = franchiseConfig.showFinancialNumbers
   return [
     {
-      q: 'Qual é o investimento para abrir uma LoudFit?',
+      q: 'Qual é o investimento para abrir uma Loud Fit?',
       a: show
-        ? `O investimento estimado parte de ${franchiseNumbers.totalInvestment}, mais equipamentos importados. A taxa de franquia tem condição promocional para as 10 primeiras unidades (${franchiseNumbers.franchiseFee.firstUnits}). Os detalhes financeiros completos são apresentados durante a qualificação junto da COF.`
-        : 'Os valores exatos de investimento, taxa e royalties são apresentados durante a etapa de qualificação, junto da Circular de Oferta de Franquia. Isso garante que cada candidato receba a versão oficial e atualizada.',
+        ? `O investimento estimado parte de ${franchiseNumbers.totalInvestment}, mais equipamentos importados. A taxa de franquia tem condição promocional para as dez primeiras unidades (${franchiseNumbers.franchiseFee.firstUnits}). Os detalhes completos são apresentados na qualificação, junto da Circular de Oferta de Franquia.`
+        : 'Os valores exatos de investimento, taxa e royalties são apresentados durante a etapa de qualificação, junto da Circular de Oferta de Franquia.',
     },
     {
       q: 'Preciso ter experiência no mercado fitness?',
-      a: 'Não. O que importa é o perfil empreendedor, capacidade de investimento e disposição para operar dentro do padrão LoudFit. A rede documenta a operação e treina a equipe local.',
+      a: 'Não. O que importa é o perfil empreendedor, a capacidade de investimento e a disposição para operar dentro do padrão da rede.',
     },
     {
-      q: 'A LoudFit ajuda na escolha do ponto?',
-      a: 'Sim. O time de expansão faz análise de praça e dá parecer técnico sobre o ponto comercial antes de qualquer comprometimento maior.',
+      q: 'A Loud Fit ajuda na escolha do ponto?',
+      a: 'Sim. O time de expansão faz análise de praça e emite parecer técnico sobre o ponto antes de qualquer contrato.',
     },
     {
       q: 'Qual é a área mínima da unidade?',
       a: show
-        ? `A metragem viável parte de ${franchiseNumbers.minArea}, sempre validada durante a análise do ponto comercial.`
-        : 'A metragem viável é avaliada durante a análise do ponto, dentro do padrão da rede. Os detalhes ficam para a etapa de apresentação do modelo.',
+        ? `A metragem viável parte de ${franchiseNumbers.minArea}, validada durante a análise do ponto comercial.`
+        : 'A metragem viável é avaliada durante a análise do ponto, dentro do padrão da rede.',
     },
     {
       q: 'Como funciona a implantação da unidade?',
-      a: 'A rede acompanha o projeto, a obra, o padrão visual, os equipamentos e o treinamento da equipe local. A Aceleração LoudFit ocorre em paralelo, preparando a demanda comercial da praça.',
+      a: 'A rede acompanha o projeto, a obra, o padrão visual, os equipamentos e o treinamento da equipe. A Aceleração Loud Fit ocorre em paralelo para preparar a demanda da praça.',
     },
     {
       q: 'Qual suporte é oferecido depois da inauguração?',
-      a: 'Suporte operacional, marketing e comunicação da rede, rotinas de gestão, leitura de métricas e acompanhamento próximo de retenção e ocupação. O relacionamento é contínuo, não termina na inauguração.',
+      a: 'Suporte operacional, marketing e comunicação da rede, rotinas de gestão, leitura de métricas e acompanhamento próximo de retenção e ocupação.',
     },
     {
-      q: 'Como funciona a Aceleração LoudFit?',
-      a: 'É o programa que prepara a demanda antes da unidade abrir, sustenta o lançamento e acompanha os primeiros ciclos da operação. Três fases: antes da inauguração, inauguração e primeiros meses de operação.',
+      q: 'Como funciona a Aceleração Loud Fit?',
+      a: 'É o programa que prepara a demanda antes da unidade abrir, sustenta o lançamento e acompanha os primeiros ciclos comerciais.',
     },
     {
       q: 'Quais cidades estão disponíveis?',
-      a: 'A expansão está aberta em novas praças. A definição de disponibilidade e prioridade acontece na etapa de qualificação, junto do time de expansão.',
+      a: 'A expansão está aberta em novas praças. A definição de disponibilidade acontece durante a qualificação.',
     },
     {
       q: 'Existe exclusividade territorial?',
-      a: 'A regra de território é definida contratualmente por praça e discutida na etapa de apresentação do modelo. Não é um tema fechado antes da conversa direta com o time.',
+      a: 'A regra de território é definida contratualmente por praça e discutida na etapa de apresentação do modelo.',
     },
     {
       q: 'O que acontece depois que eu envio a candidatura?',
-      a: 'A candidatura é analisada pelo time de expansão. Se o perfil for compatível, entramos em contato para a conversa de qualificação. A partir daí, o processo segue conforme apresentado nesta página.',
+      a: 'O time de expansão analisa o perfil. Se houver aderência, seguimos para a conversa de qualificação. A partir daí, o processo segue como descrito nesta página.',
     },
   ]
 }
@@ -97,7 +97,7 @@ export function FranchiseFaq() {
               Antes<br />de perguntar
             </h2>
             <p className="mt-6 max-w-md text-[15px] leading-[1.65] text-[#3f3f42]">
-              As respostas cobrem o que mais aparece nas primeiras conversas. Se ficar alguma dúvida, use o formulário — o time responde na qualificação.
+              As respostas cobrem o que mais aparece nas primeiras conversas. Se restar alguma dúvida, envie a candidatura — o time responde na qualificação.
             </p>
           </div>
 

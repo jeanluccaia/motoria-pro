@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import { getUnits } from '@/lib/supabase'
 import { FranchiseHero } from '@/components/franchise/FranchiseHero'
+import { FranchiseInvestment } from '@/components/franchise/FranchiseInvestment'
 import { FranchiseNetwork } from '@/components/franchise/FranchiseNetwork'
 import { FranchiseWhy } from '@/components/franchise/FranchiseWhy'
 import { FranchiseAceleracao } from '@/components/franchise/FranchiseAceleracao'
-import { FranchiseModel } from '@/components/franchise/FranchiseModel'
 import { FranchiseSupport } from '@/components/franchise/FranchiseSupport'
 import { FranchiseProfile } from '@/components/franchise/FranchiseProfile'
 import { FranchiseProcess } from '@/components/franchise/FranchiseProcess'
@@ -14,22 +14,22 @@ import { FranchiseStickyCta } from '@/components/franchise/FranchiseStickyCta'
 import { QualifyFormPro } from '@/components/franchise/QualifyFormPro'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Franquias LoudFit — Sua cidade pode ser a próxima' },
+  title: { absolute: 'Franquias Loud Fit — Sua cidade pode ser a próxima' },
   description:
-    'Expansão LoudFit: rede em movimento, com estrutura completa, aulas coletivas inclusas e Aceleração LoudFit. Candidate-se para abrir uma unidade na sua cidade.',
+    'Expansão Loud Fit: rede em crescimento, com estrutura completa, aulas coletivas inclusas e Aceleração Loud Fit. Candidate-se para abrir uma unidade na sua cidade.',
   alternates: { canonical: '/franquias' },
   openGraph: {
-    title: 'Franquias LoudFit — Sua cidade pode ser a próxima',
+    title: 'Franquias Loud Fit — Sua cidade pode ser a próxima',
     description:
-      'Expansão LoudFit: rede em movimento, com estrutura completa, aulas coletivas inclusas e Aceleração LoudFit. Candidate-se para abrir uma unidade na sua cidade.',
+      'Expansão Loud Fit: rede em crescimento, com estrutura completa, aulas coletivas inclusas e Aceleração Loud Fit.',
     url: '/franquias',
     images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Franquias LoudFit — Sua cidade pode ser a próxima',
+    title: 'Franquias Loud Fit — Sua cidade pode ser a próxima',
     description:
-      'Expansão LoudFit: rede em movimento, com estrutura completa e Aceleração LoudFit.',
+      'Expansão Loud Fit: rede em crescimento, com estrutura completa e Aceleração Loud Fit.',
     images: ['/opengraph-image'],
   },
 }
@@ -48,10 +48,10 @@ export default async function FranquiasPage() {
   return (
     <>
       <FranchiseHero units={proof} />
+      <FranchiseInvestment />
       <FranchiseNetwork units={orderedUnits} />
       <FranchiseWhy />
       <FranchiseAceleracao />
-      <FranchiseModel />
       <FranchiseSupport />
       <FranchiseProfile />
       <FranchiseProcess />
@@ -77,13 +77,13 @@ export default async function FranquiasPage() {
                 className="text-balance font-black uppercase leading-[0.96] tracking-[-0.005em] text-[#0B0B0C]"
                 style={{ fontSize: 'clamp(2.2rem, 4.4vw, 4rem)' }}
               >
-                Envie sua<br />candidatura
+                Quero levar a Loud Fit<br />para minha cidade
               </h2>
-              <p className="mt-6 max-w-[52ch] text-base leading-[1.65] text-[#3f3f42] md:text-lg">
-                Duas etapas. Na primeira, contamos com dados básicos e a região de interesse. Na segunda, você conta sobre o seu momento e o time de expansão analisa a candidatura.
+              <p className="mt-6 max-w-[48ch] text-base leading-[1.65] text-[#3f3f42] md:text-lg">
+                Preencha seus dados para o time de expansão conhecer seu perfil e sua região de interesse.
               </p>
               <ul className="mt-8 flex flex-col gap-3 text-[14px] leading-[1.55] text-[#0B0B0C]">
-                {['O time de expansão analisa o perfil.', 'Se houver aderência, seguimos para a etapa de qualificação.', 'O processo segue conforme apresentado nesta página.'].map((line) => (
+                {['O time de expansão analisa o perfil.', 'Se houver aderência, seguimos para a qualificação.', 'A partir daí, o processo segue como descrito nesta página.'].map((line) => (
                   <li key={line} className="flex items-start gap-3">
                     <span aria-hidden="true" className="mt-[6px] inline-block h-1.5 w-3 shrink-0 bg-lf-volt" />
                     {line}

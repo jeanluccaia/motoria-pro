@@ -9,7 +9,7 @@ interface FooterLink {
 
 const navGroups: { title: string; items: FooterLink[] }[] = [
   {
-    title: 'Treine na LoudFit',
+    title: 'Treine na Loud Fit',
     items: [
       { label: 'Unidades', href: '/unidades' },
       { label: 'Planos', href: '/#planos' },
@@ -18,7 +18,7 @@ const navGroups: { title: string; items: FooterLink[] }[] = [
     ],
   },
   {
-    title: 'LoudFit',
+    title: 'Loud Fit',
     items: [
       { label: 'Sobre', href: '/sobre' },
       { label: 'Contato', href: '/contato' },
@@ -44,12 +44,12 @@ const navGroups: { title: string; items: FooterLink[] }[] = [
 // Redes sociais oficiais. Só entram no footer quando existir URL confirmada.
 const socials: { label: string; href: string; icon: 'instagram' | 'whatsapp' }[] = [
   {
-    label: 'Instagram LoudFit',
+    label: 'Instagram Loud Fit',
     href: 'https://instagram.com/loudfit',
     icon: 'instagram',
   },
   {
-    label: 'WhatsApp LoudFit',
+    label: 'WhatsApp Loud Fit',
     href: 'https://wa.me/5519988291946',
     icon: 'whatsapp',
   },
@@ -75,10 +75,10 @@ export function Footer() {
         <div className="grid gap-12 lg:grid-cols-[1.15fr_2fr] lg:gap-16">
 
           <div className="flex flex-col gap-6">
-            <Link href="/" aria-label="LoudFit — página inicial" className="inline-flex">
+            <Link href="/" aria-label="Loud Fit — página inicial" className="inline-flex">
               <Image
                 src="/assets/images/loudfit-logo-official-lockup-yellow.png"
-                alt="LoudFit"
+                alt="Loud Fit"
                 width={168}
                 height={48}
                 className="h-auto w-[168px] object-contain"
@@ -98,7 +98,7 @@ export function Footer() {
 
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-lf-muted/70">
-                Siga a LoudFit
+                Siga a Loud Fit
               </p>
               <ul className="mt-3 flex items-center gap-3">
                 {socials.map((social) => (
@@ -147,7 +147,7 @@ export function Footer() {
         <div className="mt-14 grid gap-8 border-t border-lf-line pt-10 md:grid-cols-3 md:gap-6">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-lf-muted/70">
-              Fale com a LoudFit
+              Fale com a Loud Fit
             </p>
             <a
               href={`mailto:${contactInfo.email}`}
@@ -189,7 +189,7 @@ export function Footer() {
 
         {/* Rodapé legal */}
         <div className="mt-10 flex flex-col gap-3 border-t border-lf-line pt-6 text-[12px] text-lf-muted/60 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} LoudFit — Todos os direitos reservados</p>
+          <p>© {new Date().getFullYear()} Loud Fit — Todos os direitos reservados</p>
           <p>Rede em expansão · SP</p>
         </div>
 

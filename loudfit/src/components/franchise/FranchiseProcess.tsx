@@ -8,42 +8,42 @@ const steps: Step[] = [
   {
     number: '01',
     title: 'Candidatura',
-    body: 'Você preenche o formulário nesta página. O time de expansão recebe e analisa o perfil.',
+    body: 'Formulário desta página. O time de expansão recebe e analisa o perfil.',
   },
   {
     number: '02',
     title: 'Qualificação',
-    body: 'Conversa inicial de alinhamento para entender objetivo, praça e capacidade de investimento.',
+    body: 'Conversa inicial para entender objetivo, praça e capacidade de investimento.',
   },
   {
     number: '03',
     title: 'Apresentação do modelo',
-    body: 'A rede apresenta a operação real — o que já existe, como funciona e o padrão LoudFit.',
+    body: 'Apresentação de como a operação funciona no dia a dia.',
   },
   {
     number: '04',
     title: 'Análise da praça',
-    body: 'Estudo da cidade e região, avaliando potencial de demanda, concorrência e público.',
+    body: 'Estudo da cidade e da região — demanda, concorrência e público.',
   },
   {
     number: '05',
     title: 'Avaliação do ponto',
-    body: 'Se você já tem um ponto em vista, a rede dá parecer técnico antes de qualquer contrato.',
+    body: 'Parecer técnico da rede sobre o ponto comercial antes do contrato.',
   },
   {
     number: '06',
     title: 'COF e contrato',
-    body: 'Circular de Oferta de Franquia, contrato e formalização jurídica da relação.',
+    body: 'Circular de Oferta de Franquia e formalização jurídica.',
   },
   {
     number: '07',
     title: 'Implantação',
-    body: 'Obra, equipamentos, padrão visual, treinamento e preparação da equipe local.',
+    body: 'Obra, equipamentos, padrão visual, treinamento e equipe.',
   },
   {
     number: '08',
     title: 'Aceleração e inauguração',
-    body: 'A Aceleração LoudFit entra em ação. Sua unidade abre com base de interessados e presença local.',
+    body: 'A Aceleração Loud Fit ativa a captação enquanto a unidade se prepara para abrir.',
   },
 ]
 
@@ -70,8 +70,8 @@ export function FranchiseProcess() {
           >
             Da candidatura<br />à inauguração
           </h2>
-          <p className="mt-5 max-w-[52ch] text-base leading-[1.65] text-[#3f3f42] md:text-lg">
-            Um processo estruturado em oito etapas. Sem prazos prometidos — cada praça tem sua realidade, e a rede só avança quando os fundamentos estão prontos.
+          <p className="mt-5 max-w-[48ch] text-base leading-[1.65] text-[#3f3f42] md:text-lg">
+            Oito etapas. Sem prazos prometidos — cada praça tem sua realidade e a rede só avança com os fundamentos prontos.
           </p>
         </div>
 

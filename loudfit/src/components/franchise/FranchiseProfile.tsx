@@ -1,11 +1,11 @@
 const traits = [
   'Perfil empreendedor com foco em construir uma operação',
-  'Capacidade de investimento compatível com o modelo LoudFit',
-  'Compromisso com a operação da unidade — presença e gestão',
-  'Disposição para seguir o modelo, o padrão e a marca',
+  'Capacidade de investimento compatível com o modelo',
+  'Compromisso com a presença e a gestão da unidade',
+  'Disposição para seguir o padrão da marca',
   'Foco em gestão de equipe e leitura de indicadores',
-  'Alinhamento com a cultura da rede — treino, comunidade e ambiente',
-  'Interesse real em construir a marca LoudFit na sua região',
+  'Alinhamento com a cultura da rede',
+  'Interesse em construir a Loud Fit na sua região',
 ]
 
 export function FranchiseProfile() {
@@ -31,8 +31,8 @@ export function FranchiseProfile() {
             >
               Estamos procurando<br />os <span className="text-lf-volt">parceiros certos</span>
             </h2>
-            <p className="mt-6 max-w-[46ch] text-base leading-[1.65] text-lf-muted md:text-lg">
-              Uma franquia LoudFit não é só um investimento — é entrar numa rede em construção. Por isso, também escolhemos com quem operar. Não é preciso experiência prévia no mercado fitness; é preciso comprometimento com a operação, alinhamento com a marca e vontade de construir na sua praça.
+            <p className="mt-6 max-w-[44ch] text-base leading-[1.65] text-lf-muted md:text-lg">
+              Não é preciso experiência prévia em academia. É preciso comprometimento com a operação, alinhamento com a marca e vontade de construir na sua praça.
             </p>
           </div>
           <ul className="grid gap-px bg-lf-line">

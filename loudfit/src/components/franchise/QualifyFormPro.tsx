@@ -352,7 +352,7 @@ export function QualifyFormPro() {
               onChange={(e) => setValue('consentimento', e.target.checked as unknown as true, { shouldValidate: true })}
             />
             <span>
-              Concordo em compartilhar meus dados com o time de expansão LoudFit para análise de candidatura. Leia a{' '}
+              Concordo em compartilhar meus dados com o time de expansão Loud Fit para análise de candidatura. Leia a{' '}
               <a href="/politica-de-privacidade" className="underline underline-offset-4 hover:text-[#0B0B0C]">
                 política de privacidade
               </a>.

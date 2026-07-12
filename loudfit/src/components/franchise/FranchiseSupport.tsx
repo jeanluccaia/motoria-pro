@@ -13,34 +13,31 @@ const groups: SupportGroup[] = [
     items: [
       'Time de expansão dedicado',
       'Análise de praça',
-      'Parecer técnico sobre o ponto comercial',
+      'Parecer técnico sobre o ponto',
       'Planejamento comercial e financeiro',
-      'Preparação de posicionamento local',
     ],
   },
   {
     moment: 'Durante a implantação',
     eyebrow: '02',
-    intro: 'Padrão LoudFit sendo replicado com apoio direto da rede.',
+    intro: 'Padrão Loud Fit replicado com apoio direto da rede.',
     items: [
       'Acompanhamento da obra e do projeto',
       'Padrão visual e identidade da marca',
-      'Contatos com fornecedores de equipamentos',
-      'Treinamento operacional inicial',
-      'Preparação da equipe local',
-      'Aceleração LoudFit ativa em paralelo',
+      'Fornecedores de equipamentos indicados',
+      'Treinamento da equipe local',
+      'Aceleração Loud Fit em paralelo',
     ],
   },
   {
     moment: 'Depois da inauguração',
     eyebrow: '03',
-    intro: 'Suporte contínuo após a porta abrir — o mais importante da relação.',
+    intro: 'Suporte contínuo após a porta abrir.',
     items: [
       'Suporte operacional recorrente',
       'Marketing e comunicação da rede',
       'Rotinas de gestão e métricas',
       'Acompanhamento de retenção e ocupação',
-      'Evolução da unidade dentro do padrão LoudFit',
     ],
   },
 ]
@@ -66,10 +63,10 @@ export function FranchiseSupport() {
             className="text-balance font-black uppercase leading-[0.96] tracking-[-0.005em] text-[#0B0B0C]"
             style={{ fontSize: 'clamp(2.2rem, 4.4vw, 4rem)' }}
           >
-            Você não opera<br />sozinho
+            Você não precisa<br />abrir sozinho
           </h2>
-          <p className="mt-5 max-w-[52ch] text-base leading-[1.65] text-[#3f3f42] md:text-lg">
-            O suporte é um ecossistema com três momentos. Cada fase tem o seu foco de atuação — antes da abertura, durante a implantação e depois da inauguração.
+          <p className="mt-5 max-w-[48ch] text-base leading-[1.65] text-[#3f3f42] md:text-lg">
+            A equipe acompanha as etapas de planejamento, implantação, lançamento e operação.
           </p>
         </div>
 

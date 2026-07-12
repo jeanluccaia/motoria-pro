@@ -22,15 +22,12 @@ export function FranchiseClosing() {
           className="text-balance font-black uppercase leading-[0.92] tracking-[-0.005em] text-lf-text"
           style={{ fontSize: 'clamp(2.6rem, 6vw, 6.4rem)' }}
         >
-          Uma marca em movimento<br />
-          um modelo em operação<br />
-          e uma cidade pronta<br />
-          para conhecer<br />
-          a <span className="text-lf-volt">LoudFit</span>
+          Leve a <span className="text-lf-volt">Loud Fit</span><br />
+          para a sua cidade
         </h2>
 
-        <p className="max-w-[54ch] text-base leading-[1.65] text-lf-text/80 sm:text-lg">
-          A próxima LoudFit pode começar com você. Deixe a candidatura e o time de expansão volta para conversar sobre a sua praça.
+        <p className="max-w-[48ch] text-base leading-[1.65] text-lf-text/80 sm:text-lg">
+          Tenha estrutura, acompanhamento e suporte para tirar a nova unidade do papel.
         </p>
 
         <ClosingCta />

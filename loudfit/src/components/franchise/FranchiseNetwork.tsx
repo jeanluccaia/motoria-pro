@@ -42,7 +42,7 @@ export function FranchiseNetwork({ units }: FranchiseNetworkProps) {
             <div className="mb-4 flex items-center gap-3">
               <span aria-hidden="true" className="h-[3px] w-8 shrink-0 bg-lf-volt" />
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-lf-volt">
-                A rede em movimento
+                A rede já está crescendo
               </p>
             </div>
             <h2
@@ -50,11 +50,11 @@ export function FranchiseNetwork({ units }: FranchiseNetworkProps) {
               className="text-balance font-black uppercase leading-[0.98] tracking-[-0.005em] text-lf-text"
               style={{ fontSize: 'clamp(2.2rem, 4.4vw, 4rem)' }}
             >
-              A LoudFit já opera.<br />Sua cidade pode ser a próxima.
+              A Loud Fit já está<br />em expansão
             </h2>
           </div>
           <p className="max-w-md text-base leading-[1.6] text-lf-muted md:text-right">
-            Cada unidade abaixo é uma operação real — com estrutura, aulas coletivas e comunidade em rotina.
+            Conheça algumas das unidades que já levam a marca para diferentes cidades.
           </p>
         </div>
 
@@ -71,7 +71,7 @@ export function FranchiseNetwork({ units }: FranchiseNetworkProps) {
             >
               <Image
                 src={item.image}
-                alt={`Fachada ou ambiente da LoudFit ${item.displayName}`}
+                alt={`Fachada ou ambiente da Loud Fit ${item.displayName}`}
                 fill
                 sizes={idx === 0 ? '(max-width: 768px) 100vw, 50vw' : '(max-width: 768px) 50vw, 25vw'}
                 className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
@@ -111,7 +111,7 @@ export function FranchiseNetwork({ units }: FranchiseNetworkProps) {
         </ul>
 
         <p className="mt-10 max-w-2xl border-l-2 border-lf-volt/60 pl-4 text-sm leading-[1.65] text-lf-text/80">
-          Novas praças em estudo. Se você imagina a LoudFit na sua cidade, a próxima candidatura pode ser a sua.
+          Novas praças em estudo. Se você imagina a Loud Fit na sua cidade, a próxima candidatura pode ser a sua.
         </p>
 
       </div>
