@@ -31,8 +31,8 @@ export function StructureCards() {
               Estrutura Loud Fit
             </p>
           </div>
-          <h2 className="text-balance text-4xl font-black leading-[1.02] text-lf-text md:text-5xl">
-            Completo para treinar como <span className="text-lf-volt">eu sou</span>
+          <h2 className="text-balance text-4xl font-black uppercase leading-[1.02] tracking-[-0.005em] text-lf-text md:text-5xl">
+            Estrutura completa<br />treino <span className="text-lf-volt">do seu jeito</span>
           </h2>
           <p className="mt-4 max-w-[52ch] text-base leading-[1.6] text-lf-muted">
             Musculação, cardio e aulas coletivas no mesmo plano. Tudo o que você precisa para uma rotina real de treino.

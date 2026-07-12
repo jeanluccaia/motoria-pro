@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 
 const DESKTOP_IMAGE = '/assets/images/hero-gym-desktop.png'
@@ -152,40 +151,26 @@ export function Hero() {
       {/* Conteúdo */}
       <div className="relative z-10 mx-auto w-full max-w-[1360px] px-5 pb-14 sm:px-8 md:pb-20 lg:px-12 lg:pb-28">
 
-        <div className="mb-5 flex items-center gap-3">
-          <span aria-hidden="true" className="h-[3px] w-8 shrink-0 bg-lf-volt" />
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
-            Rede de academias
-          </p>
-        </div>
-
         <h1
-          className="max-w-[15ch] font-black uppercase leading-[0.98] tracking-[-0.005em] text-lf-text"
-          style={{ fontSize: 'clamp(2.4rem, 5.4vw, 5.6rem)' }}
+          className="max-w-[16ch] font-black uppercase leading-[0.98] tracking-[-0.005em] text-lf-text md:max-w-[15ch]"
+          style={{ fontSize: 'clamp(2.3rem, 5.4vw, 5.6rem)' }}
         >
           Aqui, o treino<br />fala mais <span className="text-lf-volt">alto</span>
         </h1>
 
-        <p className="mt-5 max-w-[36ch] text-sm leading-[1.55] text-lf-text/85 sm:text-base md:mt-6 md:max-w-[42ch] md:text-lg">
-          Musculação, cardio e aulas coletivas em um só plano.
+        <p className="mt-5 max-w-[34ch] text-sm leading-[1.55] text-lf-text/85 sm:text-base md:mt-6 md:max-w-[42ch] md:text-lg">
+          Musculação, cardio e aulas coletivas em um só plano
         </p>
 
-        <div className="mt-8 flex flex-col items-start gap-3 sm:mt-10 sm:flex-row sm:items-center sm:gap-6">
+        <div className="mt-7 sm:mt-10">
           <Button
             href="#encontre-sua-loudfit"
             variant="volt"
-            size="lg"
-            className="min-h-[52px] px-8 py-4 text-sm font-black tracking-[0.12em] sm:text-base"
+            size="md"
+            className="min-h-[46px] px-6 py-3 text-[13px] font-black tracking-[0.12em] sm:min-h-[52px] sm:px-8 sm:py-4 sm:text-base"
           >
             Escolha sua unidade
           </Button>
-          <Link
-            href="#planos"
-            className="group text-[12px] font-semibold uppercase tracking-[0.18em] text-lf-text/70 transition-colors hover:text-lf-volt focus-visible:outline-none focus-visible:text-lf-volt sm:text-[13px]"
-          >
-            Ver planos
-            <span aria-hidden="true" className="ml-1.5 inline-block transition-transform duration-200 group-hover:translate-x-0.5">→</span>
-          </Link>
         </div>
 
       </div>
