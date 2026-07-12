@@ -13,54 +13,32 @@ function buildFaq(): FaqItem[] {
   const show = franchiseConfig.showFinancialNumbers
   return [
     {
-      q: 'Qual é o investimento para abrir uma Loud Fit?',
+      q: 'Qual é o investimento?',
       a: show
-        ? `O investimento estimado parte de ${franchiseNumbers.totalInvestment}, mais equipamentos importados. A taxa de franquia tem condição promocional para as dez primeiras unidades (${franchiseNumbers.franchiseFee.firstUnits}). Os detalhes completos são apresentados na qualificação, junto da Circular de Oferta de Franquia.`
-        : 'Os valores exatos de investimento, taxa e royalties são apresentados durante a etapa de qualificação, junto da Circular de Oferta de Franquia.',
+        ? `O investimento estimado parte de ${franchiseNumbers.totalInvestment}, mais equipamentos importados. A taxa promocional para as dez primeiras unidades é de ${franchiseNumbers.franchiseFee.firstUnits}. Detalhes completos ficam para a qualificação, junto da Circular de Oferta de Franquia.`
+        : 'Os valores exatos são apresentados durante a qualificação, junto da Circular de Oferta de Franquia.',
     },
     {
       q: 'Preciso ter experiência no mercado fitness?',
-      a: 'Não. O que importa é o perfil empreendedor, a capacidade de investimento e a disposição para operar dentro do padrão da rede.',
+      a: 'Não. Importa o perfil empreendedor, a capacidade de investimento e a disposição para operar dentro do padrão da rede.',
     },
     {
       q: 'A Loud Fit ajuda na escolha do ponto?',
       a: 'Sim. O time de expansão faz análise de praça e emite parecer técnico sobre o ponto antes de qualquer contrato.',
     },
     {
-      q: 'Qual é a área mínima da unidade?',
-      a: show
-        ? `A metragem viável parte de ${franchiseNumbers.minArea}, validada durante a análise do ponto comercial.`
-        : 'A metragem viável é avaliada durante a análise do ponto, dentro do padrão da rede.',
+      q: 'Como funciona a implantação?',
+      a: 'A rede acompanha projeto, obra, padrão visual, equipamentos e treinamento da equipe. A Aceleração Loud Fit ocorre em paralelo para preparar a demanda da praça.',
     },
     {
-      q: 'Como funciona a implantação da unidade?',
-      a: 'A rede acompanha o projeto, a obra, o padrão visual, os equipamentos e o treinamento da equipe. A Aceleração Loud Fit ocorre em paralelo para preparar a demanda da praça.',
-    },
-    {
-      q: 'Qual suporte é oferecido depois da inauguração?',
-      a: 'Suporte operacional, marketing e comunicação da rede, rotinas de gestão, leitura de métricas e acompanhamento próximo de retenção e ocupação.',
-    },
-    {
-      q: 'Como funciona a Aceleração Loud Fit?',
-      a: 'É o programa que prepara a demanda antes da unidade abrir, sustenta o lançamento e acompanha os primeiros ciclos comerciais.',
-    },
-    {
-      q: 'Quais cidades estão disponíveis?',
-      a: 'A expansão está aberta em novas praças. A definição de disponibilidade acontece durante a qualificação.',
-    },
-    {
-      q: 'Existe exclusividade territorial?',
-      a: 'A regra de território é definida contratualmente por praça e discutida na etapa de apresentação do modelo.',
-    },
-    {
-      q: 'O que acontece depois que eu envio a candidatura?',
-      a: 'O time de expansão analisa o perfil. Se houver aderência, seguimos para a conversa de qualificação. A partir daí, o processo segue como descrito nesta página.',
+      q: 'O que acontece após a candidatura?',
+      a: 'O time de expansão analisa o perfil. Se houver aderência, seguimos para a conversa de qualificação e, a partir daí, para as próximas etapas.',
     },
   ]
 }
 
 export function FranchiseFaq() {
-  const [openIdx, setOpenIdx] = useState<number | null>(0)
+  const [openIdx, setOpenIdx] = useState<number | null>(null)
   const idBase = useId()
   const faq = buildFaq()
 

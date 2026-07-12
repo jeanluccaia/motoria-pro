@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import type { Unit } from '@/types'
 
 interface FranchiseNetworkProps {
@@ -11,33 +12,35 @@ interface NetworkItem {
   city: string
   status: 'operando' | 'inauguracao'
   image: string
-  span: 'wide' | 'tall' | 'square'
 }
 
-/**
- * Editorial mosaic. Each tile represents a real unit — no invented facades.
- * Layout uses CSS grid areas so unit tiles have distinct sizes instead of a
- * uniform six-card grid.
- */
+const HIGHLIGHT_SLUGS = ['carrefour-valinhos', 'amoreiras', 'anchieta-sp']
+
 export function FranchiseNetwork({ units }: FranchiseNetworkProps) {
-  const items: NetworkItem[] = units.map((unit, idx) => ({
+  const chosen = HIGHLIGHT_SLUGS
+    .map((slug) => units.find((u) => u.slug === slug))
+    .filter((u): u is Unit => !!u)
+    .slice(0, 3)
+
+  const items: NetworkItem[] = chosen.map((unit) => ({
     slug: unit.slug,
-    displayName: unit.nome.replace(/^LoudFit\s+/i, ''),
+    displayName: unit.nome.replace(/^LoudFit\s+/i, '').replace(/^Loud Fit\s+/i, ''),
     city: `${unit.cidade} · ${unit.estado}`,
     status: unit.status === 'ativa' ? 'operando' : 'inauguracao',
     image: unit.foto_capa || '/assets/images/real-facade.jpg',
-    span: idx === 0 ? 'wide' : idx === 3 ? 'tall' : 'square',
   }))
+
+  if (items.length === 0) return null
 
   return (
     <section
       id="rede"
-      className="relative bg-lf-black py-20 md:py-28 lg:py-32"
+      className="relative bg-lf-black py-16 md:py-20 lg:py-24"
       aria-labelledby="rede-title"
     >
       <div className="mx-auto w-full max-w-[1360px] px-5 sm:px-8 lg:px-12">
 
-        <div className="mb-12 flex flex-col gap-6 md:mb-16 md:flex-row md:items-end md:justify-between md:gap-16">
+        <div className="mb-10 flex flex-col gap-6 md:mb-12 md:flex-row md:items-end md:justify-between md:gap-12">
           <div className="max-w-2xl">
             <div className="mb-4 flex items-center gap-3">
               <span aria-hidden="true" className="h-[3px] w-8 shrink-0 bg-lf-volt" />
@@ -48,71 +51,64 @@ export function FranchiseNetwork({ units }: FranchiseNetworkProps) {
             <h2
               id="rede-title"
               className="text-balance font-black uppercase leading-[0.98] tracking-[-0.005em] text-lf-text"
-              style={{ fontSize: 'clamp(2.2rem, 4.4vw, 4rem)' }}
+              style={{ fontSize: 'clamp(2rem, 3.6vw, 3.2rem)' }}
             >
               A Loud Fit já está<br />em expansão
             </h2>
           </div>
-          <p className="max-w-md text-base leading-[1.6] text-lf-muted md:text-right">
-            Conheça algumas das unidades que já levam a marca para diferentes cidades.
-          </p>
+          <Link
+            href="/unidades"
+            className="inline-flex items-center gap-2 self-start text-[11px] font-black uppercase tracking-[0.2em] text-lf-text/85 transition-colors hover:text-lf-volt md:self-end"
+          >
+            Conheça nossas unidades
+            <span aria-hidden="true">→</span>
+          </Link>
         </div>
 
-        <ul className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 md:grid-rows-2 md:gap-5">
-          {items.map((item, idx) => (
-            <li
-              key={item.slug}
-              className={
-                'group relative overflow-hidden border border-lf-line bg-lf-graphite ' +
-                (item.span === 'wide' ? 'aspect-[4/5] sm:aspect-[3/4] md:col-span-2 md:row-span-2 md:aspect-auto' : '') +
-                (item.span === 'tall' ? 'aspect-[4/5] md:col-span-1 md:row-span-2 md:aspect-auto' : '') +
-                (item.span === 'square' ? 'aspect-[4/5] md:aspect-auto' : '')
-              }
-            >
-              <Image
-                src={item.image}
-                alt={`Fachada ou ambiente da Loud Fit ${item.displayName}`}
-                fill
-                sizes={idx === 0 ? '(max-width: 768px) 100vw, 50vw' : '(max-width: 768px) 50vw, 25vw'}
-                className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-              />
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 bg-[linear-gradient(180deg,rgba(11,11,12,0.05)_45%,rgba(11,11,12,0.92)_100%)]"
-              />
+        <ul className="grid gap-3 sm:grid-cols-3 sm:gap-4">
+          {items.map((item) => (
+            <li key={item.slug} className="group relative overflow-hidden border border-lf-line bg-lf-graphite">
+              <div className="relative aspect-[4/5] sm:aspect-[3/4]">
+                <Image
+                  src={item.image}
+                  alt={`Ambiente da Loud Fit ${item.displayName}`}
+                  fill
+                  sizes="(max-width: 640px) 100vw, 33vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                />
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 bg-[linear-gradient(180deg,rgba(11,11,12,0.05)_50%,rgba(11,11,12,0.9)_100%)]"
+                />
 
-              <div className="absolute top-3 left-3 flex items-center gap-2">
-                <span
-                  className={
-                    'inline-flex items-center gap-1.5 border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] backdrop-blur-sm ' +
-                    (item.status === 'operando'
-                      ? 'border-lf-volt/60 bg-lf-volt/10 text-lf-volt'
-                      : 'border-lf-text/25 bg-lf-black/50 text-lf-text/80')
-                  }
-                >
-                  <span aria-hidden="true" className={item.status === 'operando' ? 'inline-block h-1.5 w-1.5 rounded-full bg-lf-volt' : 'inline-block h-1.5 w-1.5 rounded-full bg-lf-text/60'} />
-                  {item.status === 'operando' ? 'Em operação' : 'Em inauguração'}
-                </span>
-              </div>
+                <div className="absolute top-3 left-3">
+                  <span
+                    className={
+                      'inline-flex items-center gap-1.5 border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] backdrop-blur-sm ' +
+                      (item.status === 'operando'
+                        ? 'border-lf-volt/60 bg-lf-volt/10 text-lf-volt'
+                        : 'border-lf-text/25 bg-lf-black/50 text-lf-text/80')
+                    }
+                  >
+                    {item.status === 'operando' ? 'Em operação' : 'Em inauguração'}
+                  </span>
+                </div>
 
-              <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-lf-text/60">
-                  {item.city}
-                </p>
-                <h3
-                  className="mt-1 font-black uppercase leading-[1] tracking-[-0.005em] text-lf-text"
-                  style={{ fontSize: item.span === 'wide' ? 'clamp(1.6rem, 2.6vw, 2.4rem)' : 'clamp(1.15rem, 1.6vw, 1.6rem)' }}
-                >
-                  {item.displayName}
-                </h3>
+                <div className="absolute inset-x-0 bottom-0 p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-lf-text/60">
+                    {item.city}
+                  </p>
+                  <h3
+                    className="mt-1 font-black uppercase leading-[1] tracking-[-0.005em] text-lf-text"
+                    style={{ fontSize: 'clamp(1.15rem, 1.6vw, 1.6rem)' }}
+                  >
+                    {item.displayName}
+                  </h3>
+                </div>
               </div>
             </li>
           ))}
         </ul>
-
-        <p className="mt-10 max-w-2xl border-l-2 border-lf-volt/60 pl-4 text-sm leading-[1.65] text-lf-text/80">
-          Novas praças em estudo. Se você imagina a Loud Fit na sua cidade, a próxima candidatura pode ser a sua.
-        </p>
 
       </div>
     </section>
