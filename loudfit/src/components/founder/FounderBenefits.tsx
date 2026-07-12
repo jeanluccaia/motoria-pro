@@ -1,18 +1,18 @@
 const benefits = [
   {
     n: '01',
-    title: 'VÁLIDO EM TODAS AS UNIDADES',
-    desc: 'Condição aplicável em qualquer uma das seis unidades Loud Fit em operação',
+    title: 'R$ 10 A MENOS TODOS OS MESES',
+    desc: 'Vantagem mensal em relação ao valor regular da rede — enquanto o plano estiver ativo',
   },
   {
     n: '02',
-    title: 'INFORMAÇÕES EM PRIMEIRA MÃO',
-    desc: 'Receba novidades, horários e programação antes do público geral',
+    title: 'CAMISETA EXCLUSIVA DE MEMBRO FUNDADOR',
+    desc: 'Um símbolo de pertencimento à primeira geração da campanha, entregue após a confirmação da matrícula',
   },
   {
     n: '03',
-    title: 'PRIMEIRA GERAÇÃO DA CAMPANHA',
-    desc: 'Faça parte dos primeiros membros desta campanha da Loud Fit',
+    title: 'VANTAGENS EM PARCEIROS LOUD FIT',
+    desc: 'Condições especiais em parceiros selecionados da Loud Fit',
   },
 ]
 
