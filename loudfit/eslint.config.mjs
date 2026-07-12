@@ -13,6 +13,7 @@ const eslintConfig = defineConfig([
     "build/**",
     "loudfit-prototipo/**",
     "next-env.d.ts",
+    "prd/**",
   ]),
 ]);
 

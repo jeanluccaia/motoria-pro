@@ -10,6 +10,19 @@ const leadSchema = z.object({
   ja_tem_ponto: z.boolean(),
   prazo_investimento: z.enum(['agora', '3m', '6m+']),
   origem: z.string().trim().min(1).default('direto'),
+
+  // Optional metadata carried by the premium franchise form. Forwarded to
+  // the webhook when set; stripped before the Supabase insert to keep the
+  // existing table schema unchanged.
+  experiencia: z.string().trim().optional(),
+  mensagem: z.string().trim().max(500).optional(),
+  submitted_page: z.string().trim().optional(),
+  submitted_at: z.string().trim().optional(),
+  utm_source: z.string().trim().optional(),
+  utm_medium: z.string().trim().optional(),
+  utm_campaign: z.string().trim().optional(),
+  utm_term: z.string().trim().optional(),
+  utm_content: z.string().trim().optional(),
 })
 
 export async function POST(request: Request) {
@@ -51,7 +64,26 @@ export async function POST(request: Request) {
   }
 
   try {
-    await submitLeadFranquia(parsed.data)
+    const {
+      nome,
+      whatsapp,
+      email,
+      cidade_interesse,
+      capital_disponivel,
+      ja_tem_ponto,
+      prazo_investimento,
+      origem,
+    } = parsed.data
+    await submitLeadFranquia({
+      nome,
+      whatsapp,
+      email,
+      cidade_interesse,
+      capital_disponivel,
+      ja_tem_ponto,
+      prazo_investimento,
+      origem,
+    })
     return Response.json({ ok: true, destination: 'supabase' })
   } catch {
     return Response.json(
