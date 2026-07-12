@@ -43,7 +43,7 @@ const navGroups: { title: string; items: FooterLink[] }[] = [
 const socials: { label: string; href: string; icon: 'instagram' | 'whatsapp' }[] = [
   {
     label: 'Instagram Loud Fit',
-    href: 'https://instagram.com/loudfit',
+    href: 'https://www.instagram.com/loudfit.academia/',
     icon: 'instagram',
   },
   {
@@ -83,7 +83,7 @@ export function Footer() {
 
             <p
               className="font-black uppercase leading-none tracking-[-0.005em] text-lf-text"
-              style={{ fontSize: 'clamp(22px, 2.2vw, 28px)' }}
+              style={{ fontSize: 'clamp(14px, 1.3vw, 17px)' }}
             >
               O melhor ainda está por vir
             </p>
