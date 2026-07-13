@@ -73,19 +73,19 @@ export function FounderHero({ config, guestName }: CampaignHeroProps) {
           {config.headline.map((line, i) => (
             <Fragment key={i}>
               {i > 0 && <br />}
-              {line.includes('R$ 9,90') || line.includes('LOUD FIT') ? (
-                line.split(/(R\$ 9,90|LOUD FIT)/g).map((chunk, j) =>
-                  chunk === 'R$ 9,90' || chunk === 'LOUD FIT' ? (
-                    <span key={j} style={{ color: '#FFE000' }}>
-                      {chunk}
-                    </span>
-                  ) : (
-                    <Fragment key={j}>{chunk}</Fragment>
-                  ),
-                )
-              ) : (
-                line
-              )}
+              <span style={{ whiteSpace: 'nowrap' }}>
+                {line.includes('R$ 9,90')
+                  ? line.split(/(R\$ 9,90)/g).map((chunk, j) =>
+                      chunk === 'R$ 9,90' ? (
+                        <span key={j} style={{ color: '#FFE000' }}>
+                          {chunk}
+                        </span>
+                      ) : (
+                        <Fragment key={j}>{chunk}</Fragment>
+                      ),
+                    )
+                  : line}
+              </span>
             </Fragment>
           ))}
         </h1>
