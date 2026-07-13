@@ -18,7 +18,8 @@ export const metadata: Metadata = {
     title: conviteConfig.metadata.title,
     description: conviteConfig.metadata.description,
     url: '/convite',
-    images: ['/opengraph-image'],
+    type: 'website',
+    locale: 'pt_BR',
   },
 }
 

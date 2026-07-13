@@ -18,7 +18,8 @@ export const metadata: Metadata = {
     title: volteConfig.metadata.title,
     description: volteConfig.metadata.description,
     url: '/volte',
-    images: ['/opengraph-image'],
+    type: 'website',
+    locale: 'pt_BR',
   },
 }
 
