@@ -107,16 +107,29 @@ export function FounderHero({ config, guestName }: CampaignHeroProps) {
         )}
 
         <div
-          className="mt-11 md:mt-12"
+          className="mt-11 flex flex-col items-center gap-4 md:mt-12"
           style={{ animation: 'lfFounderUp 0.6s cubic-bezier(0.2,0.7,0.2,1) 0.32s both' }}
         >
           <button
             type="button"
             onClick={handleCtaClick}
-            className="lf-cta-volt inline-flex min-h-[54px] items-center justify-center gap-2 rounded-[10px] px-8 py-4 text-[13px] font-black uppercase tracking-[0.10em] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_34px_rgba(255,224,0,0.24)] active:translate-y-0 sm:text-[14px]"
+            className="lf-cta-volt lf-cta-pulse inline-flex min-h-[54px] items-center justify-center gap-2 rounded-[10px] px-8 py-4 text-[13px] font-black uppercase tracking-[0.10em] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_34px_rgba(255,224,0,0.24)] active:translate-y-0 sm:text-[14px]"
           >
             {config.heroCtaLabel}
           </button>
+
+          <div className="mt-1 flex items-center gap-2.5">
+            <span
+              aria-hidden="true"
+              className="lf-live-dot h-1.5 w-1.5 rounded-full bg-[#FFE000]"
+            />
+            <span className="text-[10.5px] font-bold uppercase tracking-[0.22em] text-white/70 sm:text-[11px]">
+              {config.scarcity.label}
+            </span>
+          </div>
+          <p className="max-w-[380px] text-[12.5px] leading-[1.55] text-white/45">
+            {config.scarcity.detail}
+          </p>
         </div>
       </div>
     </section>

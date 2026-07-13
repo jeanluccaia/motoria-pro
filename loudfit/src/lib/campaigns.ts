@@ -115,6 +115,10 @@ export interface CampaignPageConfig {
   benefitsSupport?: string
   benefits: CampaignBenefit[]
   eligibilityText?: string
+  scarcity: {
+    label: string
+    detail: string
+  }
   formTitle: string[]
   formSupport: string
   formCtaLabel: string
@@ -161,6 +165,10 @@ export const conviteConfig: CampaignPageConfig = {
       note: 'Sujeita à disponibilidade de tamanho e estoque',
     },
   ],
+  scarcity: {
+    label: 'OPORTUNIDADE LIMITADA',
+    detail: 'Convite ativo por tempo limitado · vagas por unidade',
+  },
   formTitle: ['QUERO TREINAR', 'NA LOUD FIT'],
   formSupport: 'Preencha seus dados para a equipe continuar seu atendimento',
   formCtaLabel: 'QUERO APROVEITAR O CONVITE',
@@ -208,6 +216,10 @@ export const volteConfig: CampaignPageConfig = {
       note: 'Sujeita à disponibilidade de tamanho e estoque',
     },
   ],
+  scarcity: {
+    label: 'OPORTUNIDADE LIMITADA',
+    detail: 'Convite de retorno ativo por tempo limitado · vagas por unidade',
+  },
   eligibilityText: 'Condição destinada a clientes elegíveis sem plano ativo',
   formTitle: ['QUERO VOLTAR', 'PARA A LOUD FIT'],
   formSupport: 'Confirme seus dados para a equipe verificar sua condição de retorno',

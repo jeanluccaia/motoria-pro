@@ -81,7 +81,22 @@ export function FounderOffer({
           {config.offerSubtitle}
         </p>
 
-        <span className="mt-6 inline-flex items-center rounded-full border border-white/10 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.20em] text-white/45">
+        <div className="mt-6 flex flex-col items-center gap-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#FFE000]/25 bg-[#FFE000]/[0.06] px-3.5 py-1.5">
+            <span
+              aria-hidden="true"
+              className="lf-live-dot h-1.5 w-1.5 rounded-full bg-[#FFE000]"
+            />
+            <span className="text-[9.5px] font-bold uppercase tracking-[0.22em] text-[#FFE000]">
+              {config.scarcity.label}
+            </span>
+          </div>
+          <p className="max-w-[360px] text-[12px] leading-[1.55] text-white/45">
+            {config.scarcity.detail}
+          </p>
+        </div>
+
+        <span className="mt-5 inline-flex items-center rounded-full border border-white/10 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.20em] text-white/40">
           {config.suggestionLabel}
         </span>
 
@@ -243,10 +258,20 @@ export function FounderOffer({
                 })
                 onCtaClick()
               }}
-              className="lf-cta-volt mt-1 inline-flex min-h-[54px] w-full items-center justify-center rounded-[10px] px-6 py-4 text-[13.5px] font-black uppercase tracking-[0.08em] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_34px_rgba(255,224,0,0.24)] active:translate-y-0 sm:text-[14px]"
+              className="lf-cta-volt lf-cta-pulse mt-1 inline-flex min-h-[54px] w-full items-center justify-center rounded-[10px] px-6 py-4 text-[13.5px] font-black uppercase tracking-[0.08em] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_34px_rgba(255,224,0,0.24)] active:translate-y-0 sm:text-[14px]"
             >
               {config.cardCtaLabel}
             </button>
+
+            <div className="mt-3 flex items-center justify-center gap-2.5 text-center">
+              <span
+                aria-hidden="true"
+                className="lf-live-dot h-1.5 w-1.5 rounded-full bg-[#FFE000]"
+              />
+              <span className="text-[10.5px] font-bold uppercase tracking-[0.20em] text-white/60">
+                {config.scarcity.label}
+              </span>
+            </div>
           </div>
         </div>
       </div>

@@ -338,7 +338,10 @@ export function FounderForm({ config, plan }: CampaignFormProps) {
       <button
         type="submit"
         disabled={submitting}
-        className="lf-cta-volt mt-1 inline-flex min-h-[54px] items-center justify-center rounded-[10px] px-6 py-4 text-[13.5px] font-black uppercase tracking-[0.08em] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_34px_rgba(255,224,0,0.24)] active:translate-y-0 disabled:cursor-wait disabled:opacity-70 sm:text-[14px]"
+        className={
+          'lf-cta-volt mt-1 inline-flex min-h-[54px] items-center justify-center rounded-[10px] px-6 py-4 text-[13.5px] font-black uppercase tracking-[0.08em] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_34px_rgba(255,224,0,0.24)] active:translate-y-0 disabled:cursor-wait disabled:opacity-70 sm:text-[14px] ' +
+          (submitting ? '' : 'lf-cta-pulse')
+        }
       >
         {submitting ? 'ENVIANDO…' : config.formCtaLabel}
       </button>
