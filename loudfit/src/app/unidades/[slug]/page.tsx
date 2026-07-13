@@ -329,14 +329,32 @@ export default async function UnitPage({ params }: Props) {
         )}
 
         {/* Galeria */}
-        {unit.galeria?.length > 0 && (
+        {(unit.media?.gallery?.length ?? unit.galeria?.length ?? 0) > 0 && (
           <Section bg="black" tight>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              {unit.galeria.map((img, i) => (
-                <div key={img} className="relative aspect-square overflow-hidden">
-                  <Image src={img} alt={`${displayName} - foto ${i + 1}`} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover" />
-                </div>
-              ))}
+              {unit.media?.gallery?.length
+                ? unit.media.gallery.map((item) => (
+                    <div key={item.src} className="relative aspect-square overflow-hidden">
+                      <Image
+                        src={item.src}
+                        alt={item.alt}
+                        fill
+                        sizes="(max-width: 768px) 50vw, 25vw"
+                        className="object-cover"
+                      />
+                    </div>
+                  ))
+                : unit.galeria.map((img, i) => (
+                    <div key={img} className="relative aspect-square overflow-hidden">
+                      <Image
+                        src={img}
+                        alt={`${displayName} - foto ${i + 1}`}
+                        fill
+                        sizes="(max-width: 768px) 50vw, 25vw"
+                        className="object-cover"
+                      />
+                    </div>
+                  ))}
             </div>
           </Section>
         )}
