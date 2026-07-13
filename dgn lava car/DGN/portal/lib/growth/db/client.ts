@@ -60,7 +60,11 @@ export async function getSupabaseServerClient(operation = "supabase.query"): Pro
 
   const env = readSupabaseEnv();
   try {
-    const mod = await import("@supabase/supabase-js");
+    // dep entra no package.json quando DGN_GROWTH_DATA_SOURCE=db for habilitado
+    const packageName = "@supabase/supabase-js";
+    const mod = (await import(/* webpackIgnore: true */ packageName)) as {
+      createClient: (url: string, key: string, opts?: unknown) => unknown;
+    };
     cached = mod.createClient(env.url, env.serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     }) as unknown as SupabaseServerClient;
