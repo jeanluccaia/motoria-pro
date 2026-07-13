@@ -5,8 +5,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Link from 'next/link'
-import { trackFounderEvent } from '@/lib/founder-analytics'
-import type { FounderPlan } from '@/lib/founder-plans'
+import { trackCampaignEvent } from '@/lib/campaign-analytics'
+import type { CampaignPageConfig, CampaignPlan } from '@/lib/campaigns'
 import { founderUnits } from '@/lib/founder-units'
 
 const schema = z.object({
@@ -46,17 +46,17 @@ function readUtms() {
   return utms
 }
 
-interface FounderFormProps {
-  plan: FounderPlan
+interface CampaignFormProps {
+  config: CampaignPageConfig
+  plan: CampaignPlan
 }
 
-export function FounderForm({ plan }: FounderFormProps) {
+export function FounderForm({ config, plan }: CampaignFormProps) {
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [utms, setUtms] = useState<Record<string, string>>({})
   const startedRef = useRef(false)
-  const nameInputRef = useRef<HTMLInputElement>(null)
 
   const {
     register,
@@ -82,21 +82,19 @@ export function FounderForm({ plan }: FounderFormProps) {
     setUtms(readUtms())
   }, [])
 
-  const nameField = register('nome', {
-    onChange: () => {
-      if (!startedRef.current) {
-        startedRef.current = true
-        trackFounderEvent('founder_form_start')
-      }
-    },
-  })
+  function reportStart() {
+    if (startedRef.current) return
+    startedRef.current = true
+    trackCampaignEvent(config.tracking.formStart, config.audience, {
+      campaign_id: config.campaignId,
+    })
+  }
+
+  const nameField = register('nome', { onChange: reportStart })
 
   const whatsField = register('whatsapp', {
     onChange: (e) => {
-      if (!startedRef.current) {
-        startedRef.current = true
-        trackFounderEvent('founder_form_start')
-      }
+      reportStart()
       e.target.value = maskPhone(e.target.value)
     },
   })
@@ -105,10 +103,11 @@ export function FounderForm({ plan }: FounderFormProps) {
     if (submitting) return
     setSubmitting(true)
     setErrorMsg('')
-    trackFounderEvent('founder_form_submit', {
+    trackCampaignEvent(config.tracking.formSubmit, config.audience, {
+      campaign_id: config.campaignId,
       plan_name: plan.name,
       regular_price: plan.regularPriceValue,
-      founder_price: plan.founderPriceValue,
+      first_month_price: plan.firstMonthPriceValue,
     })
 
     try {
@@ -125,9 +124,10 @@ export function FounderForm({ plan }: FounderFormProps) {
           plan_id: plan.id,
           plan_name: plan.name,
           regular_price: plan.regularPriceValue,
-          founder_price: plan.founderPriceValue,
-          source: 'founder_page',
-          campaign: 'lote_fundador_conceito',
+          first_month_price: plan.firstMonthPriceValue,
+          source: config.leadSource,
+          campaign: config.campaignId,
+          campaign_audience: config.audience,
           page_url: typeof window !== 'undefined' ? window.location.href : undefined,
           consent: true,
           ...utms,
@@ -140,21 +140,25 @@ export function FounderForm({ plan }: FounderFormProps) {
       }
 
       setSubmitted(true)
-      trackFounderEvent('founder_form_success', {
+      trackCampaignEvent(config.tracking.formSuccess, config.audience, {
+        campaign_id: config.campaignId,
         plan_name: plan.name,
-        founder_price: plan.founderPriceValue,
+        first_month_price: plan.firstMonthPriceValue,
       })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao enviar interesse.'
       setErrorMsg(message)
-      trackFounderEvent('founder_form_error', { message })
+      trackCampaignEvent(config.tracking.formError, config.audience, {
+        campaign_id: config.campaignId,
+        message,
+      })
       setSubmitting(false)
     }
   }
 
   useEffect(() => {
     if (submitted && typeof document !== 'undefined') {
-      const el = document.getElementById('founder-success')
+      const el = document.getElementById('campaign-success')
       if (el) el.focus()
     }
   }, [submitted])
@@ -162,7 +166,7 @@ export function FounderForm({ plan }: FounderFormProps) {
   if (submitted) {
     return (
       <div
-        id="founder-success"
+        id="campaign-success"
         role="status"
         tabIndex={-1}
         className="w-full max-w-[420px] rounded-2xl border p-7 text-left focus:outline-none focus:ring-2 focus:ring-[#FFE000]/60 sm:p-8"
@@ -183,11 +187,10 @@ export function FounderForm({ plan }: FounderFormProps) {
             marginBottom: 10,
           }}
         >
-          INTERESSE CONFIRMADO
+          {config.successTitle}
         </div>
         <p className="text-[14px] leading-[1.55] text-white/70">
-          Recebemos seus dados. A equipe da Loud Fit continuará o atendimento pelo contato
-          informado.
+          {config.successMessage}
         </p>
       </div>
     )
@@ -199,24 +202,18 @@ export function FounderForm({ plan }: FounderFormProps) {
       className="flex w-full max-w-[420px] flex-col gap-3.5 text-left"
       style={{ fontFamily: 'var(--font-founder-body), Archivo, sans-serif' }}
       noValidate
-      aria-describedby="founder-form-plan"
+      aria-describedby="campaign-form-plan"
     >
       <div>
-        <label htmlFor="founder-nome" className="sr-only">
+        <label htmlFor="campaign-nome" className="sr-only">
           Nome
         </label>
         <input
-          id="founder-nome"
+          id="campaign-nome"
           autoComplete="name"
           placeholder="Nome"
           aria-invalid={!!errors.nome}
-          ref={(el) => {
-            nameField.ref(el)
-            nameInputRef.current = el
-          }}
-          onBlur={nameField.onBlur}
-          onChange={nameField.onChange}
-          name={nameField.name}
+          {...nameField}
           className="w-full rounded-[10px] border bg-white/[0.04] px-4 py-4 text-[15px] text-lf-text outline-none transition-colors placeholder:text-white/40 focus:border-[#FFE000]"
           style={{ borderColor: errors.nome ? '#B4231B' : 'rgba(244,244,242,0.13)' }}
         />
@@ -228,11 +225,11 @@ export function FounderForm({ plan }: FounderFormProps) {
       </div>
 
       <div>
-        <label htmlFor="founder-whats" className="sr-only">
+        <label htmlFor="campaign-whats" className="sr-only">
           WhatsApp
         </label>
         <input
-          id="founder-whats"
+          id="campaign-whats"
           type="tel"
           inputMode="numeric"
           autoComplete="tel-national"
@@ -250,11 +247,11 @@ export function FounderForm({ plan }: FounderFormProps) {
       </div>
 
       <div>
-        <label htmlFor="founder-email" className="sr-only">
+        <label htmlFor="campaign-email" className="sr-only">
           E-mail (opcional)
         </label>
         <input
-          id="founder-email"
+          id="campaign-email"
           type="email"
           autoComplete="email"
           placeholder="E-mail (opcional)"
@@ -271,11 +268,11 @@ export function FounderForm({ plan }: FounderFormProps) {
       </div>
 
       <div>
-        <label htmlFor="founder-unit" className="sr-only">
+        <label htmlFor="campaign-unit" className="sr-only">
           Unidade Loud Fit
         </label>
         <select
-          id="founder-unit"
+          id="campaign-unit"
           aria-invalid={!!errors.unit_id}
           {...register('unit_id')}
           className="w-full rounded-[10px] border bg-white/[0.04] px-4 py-4 text-[15px] text-lf-text outline-none transition-colors focus:border-[#FFE000]"
@@ -299,7 +296,7 @@ export function FounderForm({ plan }: FounderFormProps) {
       </div>
 
       <div
-        id="founder-form-plan"
+        id="campaign-form-plan"
         className="flex items-center justify-between rounded-[10px] border border-white/[0.10] bg-white/[0.02] px-4 py-3 text-[12px] uppercase tracking-[0.12em] text-white/55"
       >
         <span className="font-semibold">Plano selecionado</span>
@@ -343,7 +340,7 @@ export function FounderForm({ plan }: FounderFormProps) {
         disabled={submitting}
         className="lf-cta-volt mt-1 inline-flex min-h-[54px] items-center justify-center rounded-[10px] px-6 py-4 text-[13.5px] font-black uppercase tracking-[0.08em] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_34px_rgba(255,224,0,0.24)] active:translate-y-0 disabled:cursor-wait disabled:opacity-70 sm:text-[14px]"
       >
-        {submitting ? 'ENVIANDO…' : 'CONFIRMAR MEU INTERESSE'}
+        {submitting ? 'ENVIANDO…' : config.formCtaLabel}
       </button>
     </form>
   )

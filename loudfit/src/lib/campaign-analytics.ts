@@ -5,10 +5,14 @@ type WindowWithAnalytics = Window & {
   gtag?: (command: 'event', eventName: string, params?: EventPayload) => void
 }
 
-export function trackFounderEvent(eventName: string, payload: EventPayload = {}) {
+export function trackCampaignEvent(
+  eventName: string,
+  audience: string,
+  payload: EventPayload = {},
+) {
   if (typeof window === 'undefined') return
   const w = window as WindowWithAnalytics
-  const enriched = { ...payload, funnel: 'founder' }
+  const enriched = { ...payload, campaign_audience: audience }
 
   try {
     if (Array.isArray(w.dataLayer)) {

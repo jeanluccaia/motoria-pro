@@ -2,30 +2,34 @@
 
 import { useEffect, useState } from 'react'
 import {
-  DEFAULT_FOUNDER_PLAN_ID,
-  founderPlans,
-  type FounderPlan,
-} from '@/lib/founder-plans'
-import { trackFounderEvent } from '@/lib/founder-analytics'
+  DEFAULT_CAMPAIGN_PLAN_ID,
+  campaignPlans,
+  type CampaignPageConfig,
+  type CampaignPlan,
+} from '@/lib/campaigns'
+import { trackCampaignEvent } from '@/lib/campaign-analytics'
 import { FounderHero } from './FounderHero'
 import { FounderOffer } from './FounderOffer'
 import { FounderBenefits } from './FounderBenefits'
 import { FounderConversion } from './FounderConversion'
 
-interface FounderPageProps {
+interface CampaignPageProps {
+  config: CampaignPageConfig
   guestName?: string
 }
 
-export function FounderPage({ guestName }: FounderPageProps) {
-  const [selectedPlanId, setSelectedPlanId] = useState<FounderPlan['id']>(
-    DEFAULT_FOUNDER_PLAN_ID,
+export function FounderPage({ config, guestName }: CampaignPageProps) {
+  const [selectedPlanId, setSelectedPlanId] = useState<CampaignPlan['id']>(
+    DEFAULT_CAMPAIGN_PLAN_ID,
   )
   const selectedPlan =
-    founderPlans.find((p) => p.id === selectedPlanId) ?? founderPlans[3]
+    campaignPlans.find((p) => p.id === selectedPlanId) ?? campaignPlans[3]
 
   useEffect(() => {
-    trackFounderEvent('founder_page_view', { campaign: 'lote_fundador_conceito' })
-  }, [])
+    trackCampaignEvent(config.tracking.view, config.audience, {
+      campaign_id: config.campaignId,
+    })
+  }, [config])
 
   function scrollToForm() {
     if (typeof document === 'undefined') return
@@ -37,14 +41,15 @@ export function FounderPage({ guestName }: FounderPageProps) {
 
   return (
     <>
-      <FounderHero guestName={guestName} />
+      <FounderHero config={config} guestName={guestName} />
       <FounderOffer
+        config={config}
         selectedPlanId={selectedPlanId}
         onSelect={setSelectedPlanId}
         onCtaClick={scrollToForm}
       />
-      <FounderBenefits />
-      <FounderConversion plan={selectedPlan} />
+      <FounderBenefits config={config} />
+      <FounderConversion config={config} plan={selectedPlan} />
     </>
   )
 }

@@ -1,22 +1,11 @@
-const benefits = [
-  {
-    n: '01',
-    title: 'MENSALIDADE DE MEMBRO FUNDADOR',
-    desc: 'Uma tabela reservada aos convidados, abaixo do valor regular da rede',
-  },
-  {
-    n: '02',
-    title: 'CAMISETA EXCLUSIVA DE MEMBRO FUNDADOR',
-    desc: 'Um símbolo de pertencimento à primeira geração da campanha, entregue após a confirmação da matrícula',
-  },
-  {
-    n: '03',
-    title: 'VANTAGENS EM PARCEIROS LOUD FIT',
-    desc: 'Condições especiais em parceiros selecionados da Loud Fit',
-  },
-]
+import { Fragment } from 'react'
+import type { CampaignPageConfig } from '@/lib/campaigns'
 
-export function FounderBenefits() {
+interface CampaignBenefitsProps {
+  config: CampaignPageConfig
+}
+
+export function FounderBenefits({ config }: CampaignBenefitsProps) {
   return (
     <section
       className="border-t border-white/[0.10] bg-[#0A0A0A]"
@@ -25,18 +14,32 @@ export function FounderBenefits() {
         padding: 'clamp(72px, 8vw, 96px) clamp(24px, 5vw, 80px)',
       }}
     >
-      <span
-        className="block text-center text-[11px] font-bold uppercase tracking-[0.26em] text-[#FFE000]"
-        style={{ marginBottom: '10px' }}
+      <h2
+        className="mx-auto max-w-[720px] text-center uppercase text-lf-text"
+        style={{
+          fontFamily: 'var(--font-founder-display), Anton, sans-serif',
+          fontSize: 'clamp(26px, 3.5vw, 42px)',
+          letterSpacing: '-0.01em',
+          lineHeight: 0.98,
+          margin: 0,
+        }}
       >
-        STATUS MEMBRO FUNDADOR
-      </span>
-      <p className="mx-auto mb-14 max-w-[540px] text-center text-[14.5px] leading-[1.65] text-white/60 sm:mb-12 sm:text-[15.5px]">
-        Uma condição reservada para um grupo pequeno — quem chegou aqui pelo convite
-      </p>
+        {config.benefitsTitle.map((line, i) => (
+          <Fragment key={i}>
+            {i > 0 && <br />}
+            {line}
+          </Fragment>
+        ))}
+      </h2>
 
-      <div className="mx-auto grid max-w-[920px] gap-11 sm:grid-cols-3 sm:gap-10 lg:gap-12">
-        {benefits.map((b) => (
+      {config.benefitsSupport && (
+        <p className="mx-auto mb-14 mt-5 max-w-[540px] text-center text-[14.5px] leading-[1.65] text-white/60 sm:mb-12 sm:text-[15.5px]">
+          {config.benefitsSupport}
+        </p>
+      )}
+
+      <div className="mx-auto grid max-w-[820px] gap-11 sm:grid-cols-2 sm:gap-10 lg:gap-12">
+        {config.benefits.map((b) => (
           <div key={b.n} className="border-t border-white/[0.10] pt-5 sm:pt-6">
             <span
               className="block"
@@ -56,9 +59,18 @@ export function FounderBenefits() {
               {b.title}
             </h3>
             <p className="mt-2 text-[14px] leading-[1.55] text-white/60">{b.desc}</p>
+            {b.note && (
+              <p className="mt-2 text-[12.5px] leading-[1.5] text-white/40">{b.note}</p>
+            )}
           </div>
         ))}
       </div>
+
+      {config.eligibilityText && (
+        <p className="mx-auto mt-12 max-w-[540px] text-center text-[12.5px] leading-[1.6] text-white/45">
+          {config.eligibilityText}
+        </p>
+      )}
     </section>
   )
 }

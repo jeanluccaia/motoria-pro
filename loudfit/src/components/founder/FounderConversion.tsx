@@ -1,11 +1,13 @@
+import { Fragment } from 'react'
 import { FounderForm } from './FounderForm'
-import type { FounderPlan } from '@/lib/founder-plans'
+import type { CampaignPageConfig, CampaignPlan } from '@/lib/campaigns'
 
-interface FounderConversionProps {
-  plan: FounderPlan
+interface CampaignConversionProps {
+  config: CampaignPageConfig
+  plan: CampaignPlan
 }
 
-export function FounderConversion({ plan }: FounderConversionProps) {
+export function FounderConversion({ config, plan }: CampaignConversionProps) {
   return (
     <section
       id="fazer-parte"
@@ -26,15 +28,18 @@ export function FounderConversion({ plan }: FounderConversionProps) {
             margin: 0,
           }}
         >
-          QUERO FAZER PARTE
-          <br />
-          DO LOTE FUNDADOR
+          {config.formTitle.map((line, i) => (
+            <Fragment key={i}>
+              {i > 0 && <br />}
+              {line}
+            </Fragment>
+          ))}
         </h2>
         <p className="mb-11 mt-6 max-w-[420px] text-[14.5px] leading-[1.65] text-white/60 sm:mb-12 sm:text-[15.5px]">
-          Confirme seu interesse para a equipe continuar o atendimento
+          {config.formSupport}
         </p>
 
-        <FounderForm plan={plan} />
+        <FounderForm config={config} plan={plan} />
       </div>
     </section>
   )
