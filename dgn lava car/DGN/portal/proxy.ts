@@ -29,6 +29,9 @@ export async function proxy(request: NextRequest) {
   const expected = await computeToken(password);
 
   if (session !== expected) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    }
     const loginUrl = new URL("/admin/growth/login", request.url);
     loginUrl.searchParams.set("from", pathname);
     return NextResponse.redirect(loginUrl);
@@ -38,5 +41,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/growth/:path*"],
+  matcher: ["/admin/growth/:path*", "/api/admin/growth/:path*"],
 };

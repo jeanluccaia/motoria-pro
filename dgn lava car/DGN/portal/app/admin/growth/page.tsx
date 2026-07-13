@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Brain, Crown, UserCheck } from "lucide-react";
+import { ArrowRight, Brain, Crown, ShieldCheck, UserCheck } from "lucide-react";
 
 const modules = [
   {
@@ -22,6 +22,13 @@ const modules = [
     title: "Founders 2026",
     text: "Acompanhe os 30 convites, mensagens manuais, status e conversões.",
     icon: Crown,
+  },
+  {
+    href: "/admin/growth/assinantes-detectados",
+    eyebrow: "Fila operacional",
+    title: "Assinantes detectados",
+    text: "Assinantes com evidência 4uCar aguardando validação humana — fora da fila de aquisição.",
+    icon: ShieldCheck,
   },
 ];
 
