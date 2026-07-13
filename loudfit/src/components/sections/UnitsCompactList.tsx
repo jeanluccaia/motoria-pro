@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Section } from '@/components/ui/Section'
 import { Reveal } from '@/components/ui/Reveal'
 import { UnitBadge } from '@/components/ui/Badge'
@@ -38,28 +39,46 @@ export async function UnitsCompactList() {
           <ul className="overflow-hidden rounded-2xl border border-lf-line bg-lf-graphite/70 shadow-[0_10px_40px_rgba(0,0,0,0.28)]">
             {units.map((unit) => {
               const name = shortUnitName(unit)
+              const thumb = unit.media?.cover ?? (unit.foto_capa && !unit.foto_capa.startsWith('/assets/images/real-') ? unit.foto_capa : null)
               return (
                 <li key={unit.id} className="border-b border-lf-line last:border-b-0">
                   <Link
                     href={`/unidades/${unit.slug}`}
-                    className="group flex flex-col gap-3 px-5 py-5 transition-colors hover:bg-white/[0.03] focus-visible:bg-white/[0.03] focus-visible:outline-none md:flex-row md:items-center md:justify-between md:gap-6 md:px-7 md:py-6"
+                    className="group flex items-center gap-4 px-4 py-4 transition-colors hover:bg-white/[0.03] focus-visible:bg-white/[0.03] focus-visible:outline-none md:gap-6 md:px-7 md:py-5"
                   >
-                    <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center md:gap-5">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                          <h3 className="text-lg font-black uppercase leading-tight text-lf-text transition-colors group-hover:text-lf-volt md:text-xl">
-                            {name}
-                          </h3>
-                          <UnitBadge status={unit.status} />
+                    <div
+                      aria-hidden="true"
+                      className="relative h-16 w-16 shrink-0 overflow-hidden border border-lf-line bg-lf-black/60 sm:h-20 sm:w-20 md:h-24 md:w-24"
+                    >
+                      {thumb ? (
+                        <Image
+                          src={thumb}
+                          alt=""
+                          fill
+                          sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, 96px"
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-xs font-black uppercase tracking-[0.14em] text-lf-muted/60">
+                          LF
                         </div>
-                        <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-lf-volt/85">
-                          {unit.bairro} / {unit.cidade} — {unit.estado}
-                        </p>
-                      </div>
+                      )}
                     </div>
 
-                    <div className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-[0.14em] text-lf-text/70 transition-colors group-hover:text-lf-volt md:gap-3">
-                      <span>Ver unidade</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <h3 className="text-base font-black uppercase leading-tight text-lf-text transition-colors group-hover:text-lf-volt md:text-xl">
+                          {name}
+                        </h3>
+                        <UnitBadge status={unit.status} />
+                      </div>
+                      <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.14em] text-lf-volt/85 md:tracking-[0.16em]">
+                        {unit.bairro} / {unit.cidade} — {unit.estado}
+                      </p>
+                    </div>
+
+                    <div className="hidden items-center gap-2 text-[12px] font-bold uppercase tracking-[0.14em] text-lf-text/70 transition-colors group-hover:text-lf-volt sm:flex md:gap-3">
+                      <span className="hidden md:inline">Ver unidade</span>
                       <span
                         aria-hidden="true"
                         className="flex h-8 w-8 items-center justify-center border border-white/25 text-sm text-lf-text transition-all duration-200 group-hover:border-lf-volt group-hover:bg-lf-volt group-hover:text-lf-black group-hover:translate-x-0.5"

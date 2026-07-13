@@ -1,6 +1,53 @@
 import { createClient } from '@supabase/supabase-js'
-import type { Unit, Testimonial } from '@/types'
+import type { Unit, UnitMedia, Testimonial } from '@/types'
 import { normalizeEvoCheckoutUrl } from '@/lib/utils'
+
+const ipirangaMedia: UnitMedia = {
+  cover: '/media/ipiranga-sp/fotos/fachada-01.webp',
+  featured: '/media/ipiranga-sp/fotos/musculacao-visao-geral-01.webp',
+  gallery: [
+    {
+      src: '/media/ipiranga-sp/fotos/fachada-01.webp',
+      alt: 'Fachada da LoudFit Ipiranga com identidade visual da marca',
+      category: 'fachada',
+    },
+    {
+      src: '/media/ipiranga-sp/fotos/musculacao-visao-geral-01.webp',
+      alt: 'Visão geral da área de musculação da LoudFit Ipiranga',
+      category: 'musculacao',
+    },
+    {
+      src: '/media/ipiranga-sp/fotos/musculacao-01.webp',
+      alt: 'Máquinas de musculação alinhadas na LoudFit Ipiranga',
+      category: 'musculacao',
+    },
+    {
+      src: '/media/ipiranga-sp/fotos/peso-livre-01.webp',
+      alt: 'Área de peso livre com halteres na LoudFit Ipiranga',
+      category: 'peso-livre',
+    },
+    {
+      src: '/media/ipiranga-sp/fotos/cardio-esteiras-01.webp',
+      alt: 'Sala de cardio com esteiras LoudFit na unidade Ipiranga',
+      category: 'cardio',
+    },
+    {
+      src: '/media/ipiranga-sp/fotos/cardio-elipticos-01.webp',
+      alt: 'Sala de cardio com elípticos e bikes de spinning na LoudFit Ipiranga',
+      category: 'cardio',
+    },
+    {
+      src: '/media/ipiranga-sp/fotos/estrutura-funcional-01.webp',
+      alt: 'Área integrada de estrutura da LoudFit Ipiranga',
+      category: 'estrutura',
+    },
+    {
+      src: '/media/ipiranga-sp/fotos/sala-coletiva-01.webp',
+      alt: 'Sala de aulas coletivas com piso de madeira e mural LoudFit',
+      category: 'aula-coletiva',
+    },
+  ],
+}
 
 const fallbackUnits: Unit[] = [
   {
@@ -58,8 +105,9 @@ const fallbackUnits: Unit[] = [
       { label: 'Sábado', value: '08h às 15h' },
       { label: 'Domingo e feriados', value: '08h às 14h' },
     ],
-    foto_capa: '/assets/images/real-machines.jpg',
-    galeria: ['/assets/images/real-machines.jpg', '/assets/images/real-weights.jpg'],
+    foto_capa: ipirangaMedia.cover,
+    galeria: ipirangaMedia.gallery.map((item) => item.src),
+    media: ipirangaMedia,
     modalidades: [],
     ano_abertura: 2025,
     alunos_ativos: null,

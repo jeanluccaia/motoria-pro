@@ -1,5 +1,25 @@
 export type UnitStatus = 'ativa' | 'em_breve' | 'em_obras'
 
+export type UnitMediaCategory =
+  | 'fachada'
+  | 'musculacao'
+  | 'cardio'
+  | 'peso-livre'
+  | 'aula-coletiva'
+  | 'estrutura'
+
+export interface UnitMediaItem {
+  src: string
+  alt: string
+  category: UnitMediaCategory
+}
+
+export interface UnitMedia {
+  cover: string
+  featured?: string
+  gallery: UnitMediaItem[]
+}
+
 export interface Unit {
   id: string
   slug: string
@@ -18,6 +38,7 @@ export interface Unit {
   whatsapp_url?: string | null
   foto_capa: string
   galeria: string[]
+  media?: UnitMedia
   modalidades: string[]
   ano_abertura: number
   alunos_ativos: number | null
