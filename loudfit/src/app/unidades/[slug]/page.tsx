@@ -8,7 +8,7 @@ import { formatWhatsApp, shortUnitName, unitDisplayName } from '@/lib/utils'
 import { UnitBadge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Section, SectionHeader } from '@/components/ui/Section'
-import { PlanCard } from '@/components/ui/PlanCard'
+import { PlansGrid } from '@/components/plans/PlansGrid'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -274,7 +274,7 @@ export default async function UnitPage({ params }: Props) {
             <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-lf-muted/50">
               Todos os planos incluem:
             </p>
-            {['Musculação', 'Aulas coletivas', 'Estrutura completa', 'Reconhecimento facial'].map((b) => (
+            {['Musculação', 'Aulas coletivas', 'Estrutura completa', 'Reconhecimento facial', 'Máquina de gelo'].map((b) => (
               <span key={b} className="flex items-center gap-2 text-xs text-lf-muted">
                 <span className="h-1 w-1 shrink-0 bg-lf-volt" />
                 {b}
@@ -282,16 +282,13 @@ export default async function UnitPage({ params }: Props) {
             ))}
           </div>
 
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4 lg:items-stretch">
-            {plans.map((plan) => (
-              <PlanCard
-                key={plan.name}
-                plan={plan}
-                ctaBase={planCtaBase}
-                ctaLabel={planCtaLabel}
-              />
-            ))}
-          </div>
+          <PlansGrid
+            plans={plans}
+            variant="unit"
+            ctaBase={planCtaBase}
+            ctaLabel={planCtaLabel ?? 'Começar matrícula'}
+          />
+
           <p className="mt-6 text-xs text-lf-muted/50">
             Após a primeira mensalidade promocional,
             aplica-se o valor mensal do Power Anual Recorrente desta unidade. Os demais planos

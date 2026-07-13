@@ -105,12 +105,44 @@ export function getPlans(unitSlug?: string): Plan[] {
   return unitSlug === 'ipiranga' ? ipirangaPlans : standardPlans
 }
 
-export const planBenefits = [
+/**
+ * Fonte central de benefícios da rede Loud Fit.
+ * Exibidos dentro do painel expansível "Ver benefícios e condições" em
+ * todos os cards de planos (Home + páginas de unidade).
+ * Sem ponto final por regra de copy.
+ */
+export const networkBenefits = [
   'Musculação',
   'Aulas coletivas inclusas',
   'Estrutura completa',
-  'Acesso por reconhecimento facial',
+  'Reconhecimento facial',
+  'Máquina de gelo',
+  'Convidados: até 5 acessos',
+  'Aula experimental grátis',
 ] as const
+
+/** Alias retido para compatibilidade com consumidores existentes. */
+export const planBenefits = networkBenefits
+
+/** Descrição curta do plano exibida no card. Reutilizada por Home e unidades. */
+export const planShortDescriptions: Record<string, string> = {
+  'power-mensal': 'Mês a mês, sem compromisso',
+  'power-mensal-recorrente': 'Cobrança automática mensal',
+  'power-semestral-recorrente': '6 meses com mensalidade reduzida',
+  'power-anual-recorrente': '12 meses com a menor mensalidade',
+}
+
+/** Texto de condições exibido dentro do painel expansível de cada plano. */
+export const planConditions: Record<string, string> = {
+  'power-mensal':
+    'Mês a mês, sem cobrança automática. Ideal para quem quer experimentar sem compromisso de longo prazo.',
+  'power-mensal-recorrente':
+    'Cobrança automática todo mês. Você treina, a renovação acontece sozinha.',
+  'power-semestral-recorrente':
+    'Seis meses de treino com mensalidade mais baixa que o plano mensal. Cobrança mensal automática.',
+  'power-anual-recorrente':
+    'Plano de 12 meses com a menor mensalidade. Cobrança mensal recorrente, sem comprometer de uma só vez o valor total do contrato no limite do cartão. Primeira mensalidade por R$ 9,90.',
+}
 
 /** Mapa slug → nome legível, importável em Client Components */
 export const PLAN_NAMES: Record<string, string> = {
