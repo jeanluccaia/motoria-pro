@@ -61,7 +61,7 @@ export function FounderOffer({ selectedPlanId, onSelect, onCtaClick }: FounderOf
         </h2>
 
         <p className="mt-6 max-w-[440px] text-[14.5px] leading-[1.65] text-white/60 sm:text-[15.5px]">
-          Uma proposta reservada para quem recebeu o convite — R$ 10 de vantagem mensal em relação ao valor regular da rede
+          Uma tabela reservada aos membros fundadores desta campanha — enviada apenas para quem recebeu este convite
         </p>
 
         {/* Plan selector */}
@@ -152,13 +152,9 @@ export function FounderOffer({ selectedPlanId, onSelect, onCtaClick }: FounderOf
               </span>
 
               <span className="mt-2 flex flex-wrap items-baseline gap-2 text-[13px] leading-[1.5] text-white/55">
-                <span>De</span>
+                <span>Tabela regular</span>
                 <span className="line-through decoration-white/35">{selected.regularPrice}</span>
               </span>
-
-              <p className="mt-1 text-[13px] leading-[1.5] text-white/60">
-                R$ 10 de vantagem mensal em relação ao valor regular
-              </p>
             </div>
 
             <div className="h-px w-full bg-white/[0.10]" />
@@ -177,6 +173,54 @@ export function FounderOffer({ selectedPlanId, onSelect, onCtaClick }: FounderOf
             <p className="text-[13px] leading-[1.55] text-white/55">
               Válido em qualquer unidade Loud Fit — a equipe finaliza a matrícula por você
             </p>
+
+            <details className="group border-t border-white/[0.10] pt-1">
+              <summary
+                className="flex cursor-pointer select-none list-none items-center justify-between py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45 transition-colors hover:text-white/70 [&::-webkit-details-marker]:hidden"
+              >
+                <span>O que está incluído no plano</span>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-open:rotate-180"
+                  aria-hidden="true"
+                >
+                  <path d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <ul className="mt-2 flex flex-col gap-2.5 pb-1">
+                {[
+                  'Musculação',
+                  'Aulas coletivas inclusas',
+                  'Acesso completo à unidade',
+                  'Reconhecimento facial',
+                ].map((b) => (
+                  <li key={b} className="flex items-start gap-2.5 text-[13px] leading-[1.45] text-white/70">
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                      aria-hidden="true"
+                      className="mt-1 shrink-0 text-[#FFE000]"
+                    >
+                      <path
+                        d="M2 6l3 3 5-5"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    {b}
+                  </li>
+                ))}
+              </ul>
+            </details>
 
             <button
               type="button"

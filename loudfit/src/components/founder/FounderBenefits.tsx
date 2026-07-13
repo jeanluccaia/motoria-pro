@@ -1,8 +1,8 @@
 const benefits = [
   {
     n: '01',
-    title: 'R$ 10 A MENOS TODOS OS MESES',
-    desc: 'Vantagem mensal em relação ao valor regular da rede — enquanto o plano estiver ativo',
+    title: 'MENSALIDADE DE MEMBRO FUNDADOR',
+    desc: 'Uma tabela reservada aos convidados, abaixo do valor regular da rede',
   },
   {
     n: '02',
