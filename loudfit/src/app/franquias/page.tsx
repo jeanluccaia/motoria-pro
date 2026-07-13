@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getUnits } from '@/lib/supabase'
 import { FranchiseHero } from '@/components/franchise/FranchiseHero'
+import { FranchiseProofStrip } from '@/components/franchise/FranchiseProofStrip'
 import { FranchiseInvestment } from '@/components/franchise/FranchiseInvestment'
 import { FranchiseNetwork } from '@/components/franchise/FranchiseNetwork'
 import { FranchiseGrowth } from '@/components/franchise/FranchiseGrowth'
@@ -45,7 +46,8 @@ export default async function FranquiasPage() {
 
   return (
     <>
-      <FranchiseHero units={proof} />
+      <FranchiseHero />
+      <FranchiseProofStrip proof={proof} />
       <FranchiseInvestment />
       <FranchiseNetwork units={orderedUnits} />
       <FranchiseGrowth />

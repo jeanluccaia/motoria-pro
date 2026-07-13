@@ -1,190 +1,105 @@
 'use client'
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import Image from 'next/image'
+import { motion, useReducedMotion } from 'framer-motion'
 import { trackFranchiseEvent } from '@/lib/franchise-analytics'
 
-const DESKTOP_IMAGE = '/assets/images/real-facade.jpg'
-const MOBILE_POSTER = '/assets/images/real-opening.jpg'
-const MOBILE_POSTER_INLINE =
-  'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 6"><rect width="10" height="6" fill="%230B0B0C"/></svg>'
-const VIDEO_SRC = '/hero.mp4'
-const MOBILE_QUERY = '(max-width: 767px)'
-const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
+const HERO_IMAGE = '/media/franquias/hero/fachada-premium-franquias.webp'
 
-function subscribeMedia(query: string) {
-  return (callback: () => void) => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => {}
-    const mq = window.matchMedia(query)
-    mq.addEventListener('change', callback)
-    return () => mq.removeEventListener('change', callback)
-  }
-}
-function matchesMedia(query: string) {
-  return () => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
-    return window.matchMedia(query).matches
-  }
-}
-const serverFalse = () => false
+export function FranchiseHero() {
+  const reduce = useReducedMotion()
 
-function safePlay(v: HTMLVideoElement) {
-  const p = v.play()
-  if (p && typeof p.then === 'function') {
-    p.catch(() => {
-      v.muted = true
-      const retry = v.play()
-      if (retry && typeof retry.then === 'function') retry.catch(() => {})
-    })
-  }
-}
+  const enter = (delay: number) =>
+    reduce
+      ? {}
+      : {
+          initial: { opacity: 0, y: 16 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] as [number, number, number, number], delay },
+        }
 
-interface FranchiseHeroProps {
-  units: { operating: number; total: number; cities: number }
-}
-
-export function FranchiseHero({ units }: FranchiseHeroProps) {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const [videoFailed, setVideoFailed] = useState(false)
-  const isMobile = useSyncExternalStore(subscribeMedia(MOBILE_QUERY), matchesMedia(MOBILE_QUERY), serverFalse)
-  const reduceMotion = useSyncExternalStore(subscribeMedia(REDUCED_MOTION_QUERY), matchesMedia(REDUCED_MOTION_QUERY), serverFalse)
-
-  const showVideo = isMobile && !videoFailed && !reduceMotion
-
-  useEffect(() => {
-    const v = videoRef.current
-    if (!v) return
-    if (!showVideo) {
-      try { v.pause() } catch {}
-      return
-    }
-    safePlay(v)
-  }, [showVideo])
+  const imageEnter = reduce
+    ? {}
+    : {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] as [number, number, number, number], delay: 0.15 },
+      }
 
   return (
     <section
-      className="relative isolate flex min-h-[620px] items-end overflow-hidden bg-lf-black pt-16 md:min-h-[78vh] lg:min-h-[88vh]"
+      className="relative isolate flex items-center overflow-hidden bg-lf-black pt-24 pb-14 md:min-h-[640px] md:py-16 lg:min-h-[720px] lg:py-20"
       aria-labelledby="franchise-hero-title"
     >
-      <link rel="preload" as="video" href={VIDEO_SRC} type="video/mp4" media={MOBILE_QUERY} />
+      <div className="relative mx-auto grid w-full max-w-[1360px] gap-10 px-5 sm:px-8 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:items-center md:gap-12 lg:gap-16 lg:px-12">
 
-      <Image
-        src={DESKTOP_IMAGE}
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        aria-hidden="true"
-        className={
-          'absolute inset-0 -z-10 h-full w-full object-cover object-[62%_42%] opacity-75 md:object-[64%_32%] md:opacity-72 lg:object-[65%_28%]' +
-          (showVideo ? ' hidden' : '')
-        }
-      />
+        {/* Coluna texto */}
+        <div className="max-w-[36rem]">
+          <motion.div {...enter(0)} className="mb-6 flex items-center gap-3">
+            <span aria-hidden="true" className="h-[2px] w-8 shrink-0 bg-lf-volt" />
+            <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-lf-volt">
+              Expansão Loud Fit
+            </p>
+          </motion.div>
 
-      {showVideo && (
-        <video
-          ref={videoRef}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          poster={MOBILE_POSTER_INLINE}
-          onCanPlay={(e) => safePlay(e.currentTarget)}
-          onLoadedData={(e) => safePlay(e.currentTarget)}
-          onError={() => setVideoFailed(true)}
-          aria-hidden="true"
-          disablePictureInPicture
-          className="absolute inset-0 -z-10 h-full w-full bg-lf-black object-cover object-[62%_35%] opacity-85"
+          <motion.h1
+            {...enter(0.05)}
+            id="franchise-hero-title"
+            className="font-black uppercase leading-[1.02] tracking-[-0.01em] text-lf-text"
+            style={{ fontSize: 'clamp(2.25rem, 4.4vw, 3.75rem)' }}
+          >
+            Leve a Loud Fit<br />para a sua cidade
+          </motion.h1>
+
+          <motion.p
+            {...enter(0.12)}
+            className="mt-6 max-w-[38ch] text-[15.5px] leading-[1.6] text-lf-text/80 md:mt-7 md:text-base"
+          >
+            Leve para sua região uma academia com identidade forte, estrutura completa e suporte em cada etapa
+          </motion.p>
+
+          <motion.div
+            {...enter(0.2)}
+            className="mt-8 flex flex-col items-start gap-4 md:mt-10 md:flex-row md:items-center md:gap-6"
+          >
+            <a
+              href="#candidatura"
+              onClick={() => trackFranchiseEvent('franchise_cta_hero_primary')}
+              className="lf-cta-volt inline-flex min-h-[52px] w-full items-center justify-center px-8 py-4 text-sm font-black uppercase tracking-[0.12em] transition-all hover:-translate-y-0.5 active:scale-[0.99] sm:w-auto sm:text-[15px]"
+            >
+              Quero ser franqueado
+            </a>
+            <a
+              href="#estrutura"
+              onClick={() => trackFranchiseEvent('franchise_cta_hero_secondary')}
+              className="group inline-flex min-h-[44px] items-center gap-2 text-[12px] font-bold uppercase tracking-[0.2em] text-lf-text/70 transition-colors hover:text-lf-volt focus-visible:text-lf-volt focus-visible:outline-none"
+            >
+              <span className="border-b border-lf-text/25 pb-1 transition-colors group-hover:border-lf-volt">
+                Conhecer o modelo
+              </span>
+            </a>
+          </motion.div>
+        </div>
+
+        {/* Coluna imagem */}
+        <motion.div
+          {...imageEnter}
+          className="relative mx-auto w-full max-w-[420px] md:mx-0 md:ml-auto md:max-w-none"
         >
-          <source src={VIDEO_SRC} type="video/mp4" />
-        </video>
-      )}
-
-      {/* Poster below the video — reduces flash while the video buffers on slow mobile. */}
-      {showVideo && (
-        <Image
-          src={MOBILE_POSTER}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          aria-hidden="true"
-          className="absolute inset-0 -z-20 h-full w-full object-cover object-[62%_35%]"
-        />
-      )}
-
-      {/* Overlay — keeps facility visible while providing legibility */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(11,11,12,0.55)_0%,rgba(11,11,12,0.30)_45%,rgba(11,11,12,0.94)_100%)] md:bg-[linear-gradient(180deg,rgba(11,11,12,0.62)_0%,rgba(11,11,12,0.32)_38%,rgba(11,11,12,0.94)_100%),linear-gradient(90deg,rgba(11,11,12,0.82)_0%,rgba(11,11,12,0.3)_58%,rgba(11,11,12,0.08)_100%)]"
-      />
-
-      <div aria-hidden="true" className="absolute bottom-0 left-0 right-0 h-px bg-lf-line" />
-      <div aria-hidden="true" className="absolute bottom-0 left-0 h-[3px] w-56 -skew-x-12 origin-left bg-lf-volt" />
-
-      <div className="relative z-10 mx-auto w-full max-w-[1360px] px-5 pb-14 sm:px-8 md:pb-24 lg:px-12 lg:pb-28">
-
-        <div className="mb-5 flex items-center gap-3">
-          <span aria-hidden="true" className="h-[3px] w-8 shrink-0 bg-lf-volt" />
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-lf-volt">
-            Expansão Loud Fit
+          <div className="relative aspect-[4/5] w-full overflow-hidden border border-lf-line/60 bg-lf-graphite/50">
+            <Image
+              src={HERO_IMAGE}
+              alt="Imagem conceitual de fachada de uma unidade Loud Fit"
+              fill
+              priority
+              sizes="(max-width: 768px) 88vw, (max-width: 1280px) 42vw, 560px"
+              className="object-cover"
+            />
+          </div>
+          <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.22em] text-lf-muted/60">
+            Imagem conceitual
           </p>
-        </div>
-
-        <h1
-          id="franchise-hero-title"
-          className="max-w-[18ch] font-black uppercase leading-[0.94] tracking-[-0.005em] text-lf-text md:max-w-[22ch]"
-          style={{ fontSize: 'clamp(2.5rem, 5.6vw, 6.2rem)' }}
-        >
-          Sua cidade pode ser a próxima<br />a treinar <span className="text-lf-volt">mais alto</span>
-        </h1>
-
-        <p className="mt-6 max-w-[40ch] text-base leading-[1.55] text-lf-text/85 sm:text-lg md:mt-7 md:max-w-[46ch]">
-          Leve para sua região uma academia com marca forte, estrutura completa e suporte para implantação.
-        </p>
-
-        <div className="mt-8 flex flex-col items-start gap-3 sm:mt-10 sm:flex-row sm:items-center sm:gap-4">
-          <a
-            href="#candidatura"
-            onClick={() => trackFranchiseEvent('franchise_cta_hero_primary')}
-            className="lf-cta-volt inline-flex min-h-[52px] items-center justify-center px-8 py-4 text-sm font-black uppercase tracking-[0.12em] transition-all hover:-translate-y-0.5 active:scale-[0.99] sm:text-base"
-          >
-            Quero ser franqueado
-          </a>
-          <a
-            href="#numeros"
-            onClick={() => trackFranchiseEvent('franchise_cta_hero_secondary')}
-            className="inline-flex min-h-[52px] items-center justify-center border border-lf-text/25 px-8 py-4 text-sm font-black uppercase tracking-[0.12em] text-lf-text/90 transition-colors hover:border-lf-volt hover:text-lf-volt sm:text-base"
-          >
-            Ver números
-          </a>
-        </div>
-
-        {/* Prova qualitativa — dados validados a partir de src/lib/supabase.ts */}
-        <dl
-          aria-label="Prova de operação"
-          className="mt-10 flex flex-wrap gap-x-8 gap-y-4 border-t border-lf-line/70 pt-6 md:mt-14"
-        >
-          <div>
-            <dt className="text-[10px] font-bold uppercase tracking-[0.24em] text-lf-muted">Unidades</dt>
-            <dd className="mt-1 font-black leading-none text-lf-text" style={{ fontSize: 'clamp(2rem, 3.4vw, 3rem)' }}>
-              0{units.total}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-[10px] font-bold uppercase tracking-[0.24em] text-lf-muted">Em operação</dt>
-            <dd className="mt-1 font-black leading-none text-lf-text" style={{ fontSize: 'clamp(2rem, 3.4vw, 3rem)' }}>
-              0{units.operating}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-[10px] font-bold uppercase tracking-[0.24em] text-lf-muted">Cidades</dt>
-            <dd className="mt-1 font-black leading-none text-lf-text" style={{ fontSize: 'clamp(2rem, 3.4vw, 3rem)' }}>
-              0{units.cities}
-            </dd>
-          </div>
-        </dl>
+        </motion.div>
 
       </div>
     </section>
