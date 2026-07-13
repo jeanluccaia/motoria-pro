@@ -12,6 +12,7 @@ interface NetworkItem {
   city: string
   status: 'operando' | 'inauguracao'
   image: string
+  imageAlt: string
 }
 
 const HIGHLIGHT_SLUGS = ['carrefour-valinhos', 'amoreiras', 'anchieta-sp']
@@ -22,13 +23,18 @@ export function FranchiseNetwork({ units }: FranchiseNetworkProps) {
     .filter((u): u is Unit => !!u)
     .slice(0, 3)
 
-  const items: NetworkItem[] = chosen.map((unit) => ({
-    slug: unit.slug,
-    displayName: unit.nome.replace(/^LoudFit\s+/i, '').replace(/^Loud Fit\s+/i, ''),
-    city: `${unit.cidade} · ${unit.estado}`,
-    status: unit.status === 'ativa' ? 'operando' : 'inauguracao',
-    image: unit.foto_capa || '/assets/images/real-facade.jpg',
-  }))
+  const items: NetworkItem[] = chosen.map((unit) => {
+    const displayName = unit.nome.replace(/^LoudFit\s+/i, '').replace(/^Loud Fit\s+/i, '')
+    const facadeItem = unit.media?.gallery.find((item) => item.category === 'fachada')
+    return {
+      slug: unit.slug,
+      displayName,
+      city: `${unit.cidade} · ${unit.estado}`,
+      status: unit.status === 'ativa' ? 'operando' : 'inauguracao',
+      image: unit.media?.cover ?? unit.foto_capa,
+      imageAlt: facadeItem?.alt ?? `Fachada da unidade Loud Fit ${displayName}`,
+    }
+  })
 
   if (items.length === 0) return null
 
@@ -71,10 +77,10 @@ export function FranchiseNetwork({ units }: FranchiseNetworkProps) {
               <div className="relative aspect-[4/5] sm:aspect-[3/4]">
                 <Image
                   src={item.image}
-                  alt={`Ambiente da Loud Fit ${item.displayName}`}
+                  alt={item.imageAlt}
                   fill
                   sizes="(max-width: 640px) 100vw, 33vw"
-                  className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                  className="object-cover object-[50%_35%] transition-transform duration-700 group-hover:scale-[1.04]"
                 />
                 <div
                   aria-hidden="true"

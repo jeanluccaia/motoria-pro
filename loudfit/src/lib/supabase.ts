@@ -2,52 +2,74 @@ import { createClient } from '@supabase/supabase-js'
 import type { Unit, UnitMedia, Testimonial } from '@/types'
 import { normalizeEvoCheckoutUrl } from '@/lib/utils'
 
+/** Monta o UnitMedia mínimo (só fachada oficial) para unidades sem galeria completa ainda. */
+function facadeOnlyMedia(folderSlug: string, displayName: string): UnitMedia {
+  const facadeSrc = `/media/unidades/${folderSlug}/fotos/fachada-01.webp`
+  return {
+    cover: facadeSrc,
+    gallery: [
+      {
+        src: facadeSrc,
+        alt: `Fachada da unidade Loud Fit ${displayName}`,
+        category: 'fachada',
+      },
+    ],
+  }
+}
+
+const IPIRANGA_ROOT = '/media/unidades/ipiranga-sp/fotos'
 const ipirangaMedia: UnitMedia = {
-  cover: '/media/ipiranga-sp/fotos/fachada-01.webp',
-  featured: '/media/ipiranga-sp/fotos/musculacao-visao-geral-01.webp',
+  cover: `${IPIRANGA_ROOT}/fachada-01.webp`,
+  featured: `${IPIRANGA_ROOT}/musculacao-visao-geral-01.webp`,
   gallery: [
     {
-      src: '/media/ipiranga-sp/fotos/fachada-01.webp',
-      alt: 'Fachada da LoudFit Ipiranga com identidade visual da marca',
+      src: `${IPIRANGA_ROOT}/fachada-01.webp`,
+      alt: 'Fachada da unidade Loud Fit Ipiranga SP',
       category: 'fachada',
     },
     {
-      src: '/media/ipiranga-sp/fotos/musculacao-visao-geral-01.webp',
-      alt: 'Visão geral da área de musculação da LoudFit Ipiranga',
+      src: `${IPIRANGA_ROOT}/musculacao-visao-geral-01.webp`,
+      alt: 'Visão geral da área de musculação da Loud Fit Ipiranga',
       category: 'musculacao',
     },
     {
-      src: '/media/ipiranga-sp/fotos/musculacao-01.webp',
-      alt: 'Máquinas de musculação alinhadas na LoudFit Ipiranga',
+      src: `${IPIRANGA_ROOT}/musculacao-01.webp`,
+      alt: 'Máquinas de musculação alinhadas na Loud Fit Ipiranga',
       category: 'musculacao',
     },
     {
-      src: '/media/ipiranga-sp/fotos/peso-livre-01.webp',
-      alt: 'Área de peso livre com halteres na LoudFit Ipiranga',
+      src: `${IPIRANGA_ROOT}/peso-livre-01.webp`,
+      alt: 'Área de peso livre com halteres na Loud Fit Ipiranga',
       category: 'peso-livre',
     },
     {
-      src: '/media/ipiranga-sp/fotos/cardio-esteiras-01.webp',
-      alt: 'Sala de cardio com esteiras LoudFit na unidade Ipiranga',
+      src: `${IPIRANGA_ROOT}/cardio-esteiras-01.webp`,
+      alt: 'Sala de cardio com esteiras Loud Fit na unidade Ipiranga',
       category: 'cardio',
     },
     {
-      src: '/media/ipiranga-sp/fotos/cardio-elipticos-01.webp',
-      alt: 'Sala de cardio com elípticos e bikes de spinning na LoudFit Ipiranga',
+      src: `${IPIRANGA_ROOT}/cardio-elipticos-01.webp`,
+      alt: 'Sala de cardio com elípticos e bikes de spinning na Loud Fit Ipiranga',
       category: 'cardio',
     },
     {
-      src: '/media/ipiranga-sp/fotos/estrutura-funcional-01.webp',
-      alt: 'Área integrada de estrutura da LoudFit Ipiranga',
+      src: `${IPIRANGA_ROOT}/estrutura-funcional-01.webp`,
+      alt: 'Área integrada de estrutura da Loud Fit Ipiranga',
       category: 'estrutura',
     },
     {
-      src: '/media/ipiranga-sp/fotos/sala-coletiva-01.webp',
-      alt: 'Sala de aulas coletivas com piso de madeira e mural LoudFit',
+      src: `${IPIRANGA_ROOT}/sala-coletiva-01.webp`,
+      alt: 'Sala de aulas coletivas com piso de madeira e mural Loud Fit',
       category: 'aula-coletiva',
     },
   ],
 }
+
+const carrefourValinhosMedia = facadeOnlyMedia('carrefour-valinhos', 'Carrefour Valinhos')
+const amoreirasMedia = facadeOnlyMedia('amoreiras', 'Amoreiras')
+const anchietaMedia = facadeOnlyMedia('anchieta-sp', 'Anchieta SP')
+const mogiMirimMedia = facadeOnlyMedia('mogi-mirim', 'Mogi Mirim')
+const vilaIndustrialMedia = facadeOnlyMedia('vila-industrial', 'Vila Industrial')
 
 const fallbackUnits: Unit[] = [
   {
@@ -70,8 +92,9 @@ const fallbackUnits: Unit[] = [
       { label: 'Sexta', value: '06h às 22h' },
       { label: 'Sábado, domingo e feriados', value: '08h às 18h' },
     ],
-    foto_capa: '/assets/images/studio-community.jpg',
-    galeria: ['/assets/images/studio-community.jpg', '/assets/images/real-machines.jpg', '/assets/images/real-weights.jpg'],
+    foto_capa: carrefourValinhosMedia.cover,
+    galeria: carrefourValinhosMedia.gallery.map((item) => item.src),
+    media: carrefourValinhosMedia,
     modalidades: [
       'Step', 'Crosstreino', 'Fit Dance', 'Jump', 'Muay Thai',
       'Zumba', 'Loud Dance', 'GAP', 'Pilates', 'Pump', 'Alongamento',
@@ -137,8 +160,9 @@ const fallbackUnits: Unit[] = [
       { label: 'Sexta', value: '05h às 22h' },
       { label: 'Sábado, domingo e feriados', value: '08h às 18h' },
     ],
-    foto_capa: '/assets/images/real-weights.jpg',
-    galeria: ['/assets/images/real-weights.jpg', '/assets/images/real-machines.jpg'],
+    foto_capa: anchietaMedia.cover,
+    galeria: anchietaMedia.gallery.map((item) => item.src),
+    media: anchietaMedia,
     modalidades: [],
     ano_abertura: 2024,
     alunos_ativos: null,
@@ -169,8 +193,9 @@ const fallbackUnits: Unit[] = [
       { label: 'Sábado', value: '08h às 18h' },
       { label: 'Domingo e feriados', value: '08h às 14h' },
     ],
-    foto_capa: '/assets/images/real-facade.jpg',
-    galeria: ['/assets/images/real-facade.jpg', '/assets/images/studio-community.jpg'],
+    foto_capa: amoreirasMedia.cover,
+    galeria: amoreirasMedia.gallery.map((item) => item.src),
+    media: amoreirasMedia,
     modalidades: [
       'Spinning', 'Pump', 'Pilates', 'FitDance', 'Ritbox',
       'Alongamento', 'GAP', 'Muay Thai', 'Jump',
@@ -204,8 +229,9 @@ const fallbackUnits: Unit[] = [
       { label: 'Sábado', value: '08h às 20h' },
       { label: 'Domingo e feriados', value: '08h às 14h' },
     ],
-    foto_capa: '/assets/images/real-machines.jpg',
-    galeria: ['/assets/images/real-machines.jpg', '/assets/images/real-weights.jpg'],
+    foto_capa: vilaIndustrialMedia.cover,
+    galeria: vilaIndustrialMedia.gallery.map((item) => item.src),
+    media: vilaIndustrialMedia,
     modalidades: [
       'FitDance', 'Funcional', 'GAP', 'Spinning', 'Pilates', 'Yoga', 'Jiu-Jitsu',
     ],
@@ -239,8 +265,9 @@ const fallbackUnits: Unit[] = [
       { label: 'Domingo', value: '08h às 16h' },
       { label: 'Feriados', value: '08h às 14h' },
     ],
-    foto_capa: '/assets/images/real-opening.jpg',
-    galeria: ['/assets/images/real-opening.jpg'],
+    foto_capa: mogiMirimMedia.cover,
+    galeria: mogiMirimMedia.gallery.map((item) => item.src),
+    media: mogiMirimMedia,
     modalidades: [
       'Pilates Solo', 'FitDance', 'Muay Thai', 'Spinning', 'Ritbox',
       'Jump', 'Funcional', 'Alongamento/Mobilidade',
