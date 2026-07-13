@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { Hero } from '@/components/sections/Hero'
-import { InstitutionalStrip } from '@/components/sections/InstitutionalStrip'
-import { StructureCards } from '@/components/sections/StructureCards'
+import { HomeShowcase } from '@/components/sections/HomeShowcase'
 import { PlansSection } from '@/components/sections/PlansSection'
 import { StepsSection } from '@/components/sections/StepsSection'
 import { UnitsCompactList } from '@/components/sections/UnitsCompactList'
@@ -37,13 +36,10 @@ export default function HomePage() {
       {/* 1. Hero — vídeo, headline "Aqui, o treino fala mais alto" */}
       <Hero />
 
-      {/* 2. Institucional clara — lema "O melhor ainda está por vir" acima do título */}
-      <InstitutionalStrip />
+      {/* 2. Editorial "Treino de verdade, perto de você" — 3 fotos da unidade Ipiranga SP */}
+      <HomeShowcase />
 
-      {/* 3. Estrutura escura — 3 cards (Musculação, Cardio, Aulas Coletivas) */}
-      <StructureCards />
-
-      {/* 4. Planos claros — 4 cards com "Ver benefícios e condições" */}
+      {/* 3. Planos claros — 4 cards com "Ver benefícios e condições" */}
       <PlansSection />
 
       {/* 5. Como funciona — 3 passos, fundo claro */}

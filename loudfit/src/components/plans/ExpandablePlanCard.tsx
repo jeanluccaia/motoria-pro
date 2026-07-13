@@ -138,7 +138,7 @@ export function ExpandablePlanCard({
     return (
       <article
         className={cn(
-          'group relative flex h-full flex-col overflow-hidden rounded-3xl transition-all duration-200 motion-reduce:transition-none',
+          'group relative flex flex-col self-start overflow-hidden rounded-3xl transition-all duration-200 motion-reduce:transition-none',
           shellBg,
           'order-first md:order-none',
           isOpen && 'ring-2 ring-lf-volt/50',
@@ -245,7 +245,7 @@ export function ExpandablePlanCard({
   return (
     <article
       className={cn(
-        'group relative flex h-full flex-col overflow-hidden rounded-3xl transition-all duration-200 motion-reduce:transition-none',
+        'group relative flex flex-col self-start overflow-hidden rounded-3xl transition-all duration-200 motion-reduce:transition-none',
         shellClasses,
       )}
     >
