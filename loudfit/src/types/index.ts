@@ -12,6 +12,10 @@ export interface UnitMediaItem {
   src: string
   alt: string
   category: UnitMediaCategory
+  /** Como enquadrar quando a foto for exibida em um quadro; default 'cover' */
+  fit?: 'cover' | 'contain'
+  /** object-position CSS. Ex.: 'center', '50% 30%'. Default 'center' */
+  position?: string
 }
 
 export interface UnitMedia {

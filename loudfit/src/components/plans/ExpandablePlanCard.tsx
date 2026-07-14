@@ -174,6 +174,23 @@ export function ExpandablePlanCard({
                 Depois, mensalidade conforme a unidade escolhida.
               </p>
             </div>
+          ) : variant === 'unit' && plan.firstPayment ? (
+            <div className="mt-5 border-t border-white/10 pt-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-lf-volt">
+                Primeiro mês
+              </p>
+              <p className={cn('mt-1.5 flex items-baseline text-lf-text', BODY)}>
+                <strong className="text-[48px] font-black leading-none">
+                  {plan.firstPayment.value}
+                </strong>
+              </p>
+              <p className="mt-2 text-[13px] leading-snug text-white/70">
+                Depois <strong className="font-bold text-white">{plan.price}</strong> por mês
+              </p>
+              <p className="mt-1 text-[11px] leading-snug text-white/45">
+                Cobrança mensal recorrente
+              </p>
+            </div>
           ) : (
             <div className="mt-5 border-t border-white/10 pt-5">
               <p className={cn('flex items-baseline text-lf-text', BODY)}>
