@@ -1,4 +1,4 @@
-import Image from 'next/image'
+﻿import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
 
 export function Hero() {
@@ -29,7 +29,7 @@ export function Hero() {
       <div className="absolute inset-0 hidden bg-[linear-gradient(90deg,rgba(9,9,9,0.96)_0%,rgba(9,9,9,0.68)_44%,rgba(9,9,9,0.16)_100%),linear-gradient(180deg,rgba(9,9,9,0.08)_0%,rgba(9,9,9,0.34)_46%,rgba(9,9,9,0.92)_100%)] md:block" />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,9,9,0.62)_0%,rgba(9,9,9,0.22)_34%,rgba(9,9,9,0.72)_100%),linear-gradient(90deg,rgba(9,9,9,0.72)_0%,rgba(9,9,9,0.12)_100%)] md:hidden" />
 
-      {/* Linha diagonal — identidade LoudFit */}
+      {/* Linha diagonal — identidade Loud Fit */}
       <div className="absolute bottom-0 left-0 right-0 h-px bg-lf-line" />
       <div className="absolute bottom-0 left-0 h-[3px] w-48 -skew-x-12 origin-left bg-lf-volt" />
 

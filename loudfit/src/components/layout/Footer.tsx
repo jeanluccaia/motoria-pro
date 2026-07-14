@@ -28,10 +28,10 @@ export function Footer() {
 
           {/* Coluna de marca */}
           <div className="col-span-2 lg:col-span-2">
-            <Link href="/" aria-label="LoudFit Home">
+            <Link href="/" aria-label="Loud Fit Home">
               <Image
                 src="/assets/images/loudfit-logo-official-lockup-yellow.png"
-                alt="LoudFit"
+                alt="Loud Fit"
                 width={148}
                 height={42}
                 className="h-auto w-[148px] object-contain"
@@ -47,7 +47,7 @@ export function Footer() {
                 href="https://instagram.com/loudfit"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Instagram LoudFit"
+                aria-label="Instagram Loud Fit"
                 className="flex h-8 w-8 items-center justify-center border border-lf-line text-lf-muted transition-colors hover:border-lf-volt hover:text-lf-volt"
               >
                 <InstagramIcon />
@@ -56,7 +56,7 @@ export function Footer() {
                 href="https://wa.me/5519988291946"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="WhatsApp LoudFit"
+                aria-label="WhatsApp Loud Fit"
                 className="flex h-8 w-8 items-center justify-center border border-lf-line text-lf-muted transition-colors hover:border-lf-volt hover:text-lf-volt"
               >
                 <WhatsAppIcon />
@@ -112,7 +112,7 @@ export function Footer() {
 
             {/* Copyright */}
             <p className="shrink-0 text-xs text-lf-muted/40">
-              © {new Date().getFullYear()} LoudFit — Todos os direitos reservados.
+              © {new Date().getFullYear()} Loud Fit — Todos os direitos reservados.
             </p>
           </div>
         </div>

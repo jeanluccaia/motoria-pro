@@ -34,10 +34,10 @@ export function Header() {
       }`}
     >
       <div className="max-w-[1360px] mx-auto px-5 sm:px-8 lg:px-12 flex items-center justify-between h-16">
-        <Link href="/" aria-label="LoudFit Home">
+        <Link href="/" aria-label="Loud Fit Home">
           <Image
             src="/assets/images/loudfit-logo-official-lockup-yellow.png"
-            alt="LoudFit"
+            alt="Loud Fit"
             width={140}
             height={40}
             className="h-auto w-[140px] object-contain"

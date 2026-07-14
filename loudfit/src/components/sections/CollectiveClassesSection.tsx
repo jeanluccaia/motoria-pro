@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/Button'
+﻿import { Button } from '@/components/ui/Button'
 import { Section } from '@/components/ui/Section'
 import { Reveal } from '@/components/ui/Reveal'
 
@@ -25,7 +25,7 @@ export function CollectiveClassesSection() {
           <div className="mb-5 flex items-center gap-3">
             <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
-              Planos LoudFit
+              Planos Loud Fit
             </p>
           </div>
 
@@ -45,7 +45,7 @@ export function CollectiveClassesSection() {
             Um plano. Tudo incluso.
           </h2>
           <p className="mt-4 max-w-xl text-base leading-[1.6] text-lf-muted md:text-lg">
-            Muay Thai, Pilates, Spinning, Zumba, Jump… Na LoudFit, nenhuma aula é cobrada à parte. O preço do plano — qualquer plano — já inclui toda a grade da sua unidade.
+            Muay Thai, Pilates, Spinning, Zumba, Jump… Na Loud Fit, nenhuma aula é cobrada à parte. O preço do plano — qualquer plano — já inclui toda a grade da sua unidade.
           </p>
         </Reveal>
 

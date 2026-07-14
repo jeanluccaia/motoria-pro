@@ -8,42 +8,42 @@ const ipirangaMedia: UnitMedia = {
   gallery: [
     {
       src: '/media/unidades/ipiranga-sp/fotos/fachada-01.webp',
-      alt: 'Fachada da LoudFit Ipiranga com identidade visual da marca',
+      alt: 'Fachada da Loud Fit Ipiranga com identidade visual da marca',
       category: 'fachada',
     },
     {
       src: '/media/unidades/ipiranga-sp/fotos/musculacao-visao-geral-01.webp',
-      alt: 'Visão geral da área de musculação da LoudFit Ipiranga',
+      alt: 'Visão geral da área de musculação da Loud Fit Ipiranga',
       category: 'musculacao',
     },
     {
       src: '/media/unidades/ipiranga-sp/fotos/musculacao-01.webp',
-      alt: 'Máquinas de musculação alinhadas na LoudFit Ipiranga',
+      alt: 'Máquinas de musculação alinhadas na Loud Fit Ipiranga',
       category: 'musculacao',
     },
     {
       src: '/media/unidades/ipiranga-sp/fotos/peso-livre-01.webp',
-      alt: 'Área de peso livre com halteres na LoudFit Ipiranga',
+      alt: 'Área de peso livre com halteres na Loud Fit Ipiranga',
       category: 'peso-livre',
     },
     {
       src: '/media/unidades/ipiranga-sp/fotos/cardio-esteiras-01.webp',
-      alt: 'Sala de cardio com esteiras LoudFit na unidade Ipiranga',
+      alt: 'Sala de cardio com esteiras Loud Fit na unidade Ipiranga',
       category: 'cardio',
     },
     {
       src: '/media/unidades/ipiranga-sp/fotos/cardio-elipticos-01.webp',
-      alt: 'Sala de cardio com elípticos e bikes de spinning na LoudFit Ipiranga',
+      alt: 'Sala de cardio com elípticos e bikes de spinning na Loud Fit Ipiranga',
       category: 'cardio',
     },
     {
       src: '/media/unidades/ipiranga-sp/fotos/estrutura-funcional-01.webp',
-      alt: 'Área integrada de estrutura da LoudFit Ipiranga',
+      alt: 'Área integrada de estrutura da Loud Fit Ipiranga',
       category: 'estrutura',
     },
     {
       src: '/media/unidades/ipiranga-sp/fotos/sala-coletiva-01.webp',
-      alt: 'Sala de aulas coletivas com piso de madeira e mural LoudFit',
+      alt: 'Sala de aulas coletivas com piso de madeira e mural Loud Fit',
       category: 'aula-coletiva',
     },
   ],
@@ -53,7 +53,7 @@ const fallbackUnits: Unit[] = [
   {
     id: 'fallback-carrefour-valinhos',
     slug: 'carrefour-valinhos',
-    nome: 'LoudFit Carrefour Valinhos',
+    nome: 'Loud Fit Carrefour Valinhos',
     bairro: 'Carrefour Valinhos',
     cidade: 'Valinhos',
     estado: 'SP',
@@ -87,7 +87,7 @@ const fallbackUnits: Unit[] = [
   {
     id: 'fallback-ipiranga',
     slug: 'ipiranga',
-    nome: 'LoudFit Ipiranga',
+    nome: 'Loud Fit Ipiranga',
     bairro: 'Ipiranga',
     cidade: 'São Paulo',
     estado: 'SP',
@@ -120,7 +120,7 @@ const fallbackUnits: Unit[] = [
   {
     id: 'fallback-anchieta',
     slug: 'anchieta-sp',
-    nome: 'LoudFit Anchieta SP',
+    nome: 'Loud Fit Anchieta SP',
     bairro: 'Vila Moinho Velho',
     cidade: 'São Paulo',
     estado: 'SP',
@@ -151,7 +151,7 @@ const fallbackUnits: Unit[] = [
   {
     id: 'fallback-amoreiras',
     slug: 'amoreiras',
-    nome: 'LoudFit Amoreiras',
+    nome: 'Loud Fit Amoreiras',
     bairro: 'Amoreiras',
     cidade: 'Campinas',
     estado: 'SP',
@@ -169,8 +169,8 @@ const fallbackUnits: Unit[] = [
       { label: 'Sábado', value: '08h às 18h' },
       { label: 'Domingo e feriados', value: '08h às 14h' },
     ],
-    foto_capa: '/assets/images/real-facade.jpg',
-    galeria: ['/assets/images/real-facade.jpg', '/assets/images/studio-community.jpg'],
+    foto_capa: '/media/unidades/amoreiras/fotos/fachada-01.png',
+    galeria: ['/media/unidades/amoreiras/fotos/fachada-01.png', '/assets/images/studio-community.jpg'],
     modalidades: [
       'Spinning', 'Pump', 'Pilates', 'FitDance', 'Ritbox',
       'Alongamento', 'GAP', 'Muay Thai', 'Jump',
@@ -186,7 +186,7 @@ const fallbackUnits: Unit[] = [
   {
     id: 'fallback-vila-industrial',
     slug: 'vila-industrial',
-    nome: 'LoudFit Vila Industrial',
+    nome: 'Loud Fit Vila Industrial',
     bairro: 'Vila Industrial',
     cidade: 'Campinas',
     estado: 'SP',
@@ -220,7 +220,7 @@ const fallbackUnits: Unit[] = [
   {
     id: 'fallback-mogi-mirim',
     slug: 'mogi-mirim',
-    nome: 'LoudFit Mogi Mirim',
+    nome: 'Loud Fit Mogi Mirim',
     bairro: 'Centro',
     cidade: 'Mogi Mirim',
     estado: 'SP',

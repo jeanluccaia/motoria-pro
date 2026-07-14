@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import { Section, SectionHeader } from '@/components/ui/Section'
 import { Button } from '@/components/ui/Button'
 import { Reveal } from '@/components/ui/Reveal'
@@ -7,29 +7,29 @@ import { getUnits } from '@/lib/supabase'
 import { UnitCard } from '@/components/ui/UnitCard'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Franquias LoudFit — Seja franqueado' },
+  title: { absolute: 'Franquias Loud Fit — Seja franqueado' },
   description:
-    'Seja dono de uma academia LoudFit. Conheça o modelo de franquia, investimento e o suporte da rede.',
+    'Seja dono de uma academia Loud Fit. Conheça o modelo de franquia, investimento e o suporte da rede.',
   alternates: { canonical: '/franquias' },
   openGraph: {
-    title: 'Franquias LoudFit — Seja franqueado',
+    title: 'Franquias Loud Fit — Seja franqueado',
     description:
-      'Seja dono de uma academia LoudFit. Conheça o modelo de franquia, investimento e o suporte da rede.',
+      'Seja dono de uma academia Loud Fit. Conheça o modelo de franquia, investimento e o suporte da rede.',
     url: '/franquias',
     images: ['/assets/images/campaign-gym-16x9.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Franquias LoudFit — Seja franqueado',
+    title: 'Franquias Loud Fit — Seja franqueado',
     description:
-      'Seja dono de uma academia LoudFit. Conheça o modelo de franquia, investimento e o suporte da rede.',
+      'Seja dono de uma academia Loud Fit. Conheça o modelo de franquia, investimento e o suporte da rede.',
     images: ['/assets/images/campaign-gym-16x9.png'],
   },
 }
 
 const diferenciais = [
   { title: 'Marca que atrai', body: 'Identidade premium que já tem reconhecimento nas praças onde operamos.' },
-  { title: 'Aceleração LoudFit', body: 'Sua unidade não abre vazia. Metodologia própria de captação pré e pós-inauguração.' },
+  { title: 'Aceleração Loud Fit', body: 'Sua unidade não abre vazia. Metodologia própria de captação pré e pós-inauguração.' },
   { title: 'Playbook completo', body: 'Gestão, operação, marketing e captação documentados. Não reinventa a roda.' },
   { title: 'Suporte contínuo', body: 'Time de expansão, operação e marketing ao lado da sua unidade desde o dia 1.' },
 ]
@@ -39,7 +39,7 @@ const steps = [
   { n: '02', title: 'Call de qualificação', body: 'Conversa de 30min para entender seu perfil e praça.' },
   { n: '03', title: 'Apresentação completa', body: 'Números, modelo de operação e tour nas unidades.' },
   { n: '04', title: 'Análise de praça', body: 'Estudo do ponto e aprovação da localização.' },
-  { n: '05', title: 'Assinatura e kick-off', body: 'Contrato assinado. Aceleração LoudFit começa.' },
+  { n: '05', title: 'Assinatura e kick-off', body: 'Contrato assinado. Aceleração Loud Fit começa.' },
 ]
 
 const faqItems = [
@@ -56,7 +56,7 @@ const faqItems = [
     a: 'Em média 4 a 6 meses após a assinatura do contrato, dependendo da obra e do ponto.',
   },
   {
-    q: 'A LoudFit ajuda a encontrar o ponto?',
+    q: 'A Loud Fit ajuda a encontrar o ponto?',
     a: 'Sim. Nosso time faz a análise de praça e dá parecer técnico sobre o ponto antes de qualquer comprometimento.',
   },
 ]
@@ -74,7 +74,7 @@ export default async function FranquiasPage() {
             <p className="text-xs uppercase tracking-[0.3em] text-lf-volt mb-6">Franquias</p>
             <h1 className="text-6xl md:text-8xl font-black text-lf-text leading-none">
               SEJA DONO DE<br />
-              <span className="text-lf-volt">UMA LOUDFIT.</span>
+              <span className="text-lf-volt">UMA Loud Fit.</span>
             </h1>
             <p className="mt-6 text-xl text-lf-muted max-w-2xl leading-relaxed">
               Academia premium com rede em crescimento, metodologia própria de captação e marca que já funciona.
@@ -123,7 +123,7 @@ export default async function FranquiasPage() {
 
       {/* Diferenciais */}
       <Section bg="black">
-        <SectionHeader label="Por que a LoudFit" title="O que está no modelo" />
+        <SectionHeader label="Por que a Loud Fit" title="O que está no modelo" />
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {diferenciais.map((d, i) => (
             <Reveal key={d.title} delay={i * 0.1}>
@@ -176,13 +176,13 @@ export default async function FranquiasPage() {
         </p>
       </Section>
 
-      {/* Aceleração LoudFit */}
+      {/* Aceleração Loud Fit */}
       <Section bg="graphite">
-        <SectionHeader label="Diferencial exclusivo" title="Aceleração LoudFit" subtitle="Sua academia não abre vazia." />
+        <SectionHeader label="Diferencial exclusivo" title="Aceleração Loud Fit" subtitle="Sua academia não abre vazia." />
         <div className="grid md:grid-cols-3 gap-6">
           {[
             { fase: 'Antes da inauguração', desc: 'Captação de pré-alunos, lista de espera e ações de lançamento da praça antes de abrir a porta.' },
-            { fase: 'Dia da inauguração', desc: 'Protocolo de abertura, presença do time LoudFit, cobertura de redes e primeiros alunos já no sistema.' },
+            { fase: 'Dia da inauguração', desc: 'Protocolo de abertura, presença do time Loud Fit, cobertura de redes e primeiros alunos já no sistema.' },
             { fase: 'Primeiros 90 dias', desc: 'Acompanhamento intensivo de retenção, métricas e ajuste de operação para consolidar a base.' },
           ].map((f) => (
             <Reveal key={f.fase}>

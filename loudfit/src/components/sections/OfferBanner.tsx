@@ -1,11 +1,11 @@
-import { Section } from '@/components/ui/Section'
+﻿import { Section } from '@/components/ui/Section'
 import { Reveal } from '@/components/ui/Reveal'
 
 const steps = [
   {
     num: '01',
     title: 'Escolha a unidade',
-    desc: 'Veja a LoudFit mais próxima e confira a grade disponível.',
+    desc: 'Veja a Loud Fit mais próxima e confira a grade disponível.',
   },
   {
     num: '02',

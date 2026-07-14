@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import { Inter, Big_Shoulders } from 'next/font/google'
 import './globals.css'
 import { Header } from '@/components/layout/Header'
@@ -15,8 +15,8 @@ const displayFont = Big_Shoulders({
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | LoudFit',
-    default: 'LoudFit | O melhor ainda está por vir',
+    template: '%s | Loud Fit',
+    default: 'Loud Fit | O melhor ainda está por vir',
   },
   description:
     'Rede de academias com energia, estrutura e experiência para quem leva o treino a sério.',
@@ -25,18 +25,18 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'LoudFit | O melhor ainda está por vir',
+    title: 'Loud Fit | O melhor ainda está por vir',
     description:
       'Rede de academias com energia, estrutura e experiência para quem leva o treino a sério.',
     url: '/',
-    siteName: 'LoudFit',
+    siteName: 'Loud Fit',
     locale: 'pt_BR',
     type: 'website',
     images: ['/assets/images/campaign-gym-16x9.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'LoudFit | O melhor ainda está por vir',
+    title: 'Loud Fit | O melhor ainda está por vir',
     description:
       'Rede de academias com energia, estrutura e experiência para quem leva o treino a sério.',
     images: ['/assets/images/campaign-gym-16x9.png'],

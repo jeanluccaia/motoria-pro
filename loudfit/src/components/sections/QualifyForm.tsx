@@ -150,7 +150,7 @@ export function QualifyForm() {
       </Button>
 
       <p className="text-xs text-lf-muted">
-        Seus dados são usados apenas para contato da equipe LoudFit. Nada de spam.
+        Seus dados são usados apenas para contato da equipe Loud Fit. Nada de spam.
       </p>
     </form>
   )

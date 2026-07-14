@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import { getUnits } from '@/lib/supabase'
 import { UnitCard } from '@/components/ui/UnitCard'
 import { Section, SectionHeader } from '@/components/ui/Section'
@@ -6,18 +6,18 @@ import { PlanChip } from '@/components/ui/PlanChip'
 
 export const metadata: Metadata = {
   title: 'Unidades',
-  description: 'Encontre uma LoudFit perto de você. 6 unidades em SP com matrícula online.',
+  description: 'Encontre uma Loud Fit perto de você. 6 unidades em SP com matrícula online.',
   alternates: { canonical: '/unidades' },
   openGraph: {
-    title: 'Unidades | LoudFit',
-    description: 'Encontre uma LoudFit perto de você. 6 unidades em SP com matrícula online.',
+    title: 'Unidades | Loud Fit',
+    description: 'Encontre uma Loud Fit perto de você. 6 unidades em SP com matrícula online.',
     url: '/unidades',
     images: ['/assets/images/campaign-gym-16x9.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Unidades | LoudFit',
-    description: 'Encontre uma LoudFit perto de você. 6 unidades em SP com matrícula online.',
+    title: 'Unidades | Loud Fit',
+    description: 'Encontre uma Loud Fit perto de você. 6 unidades em SP com matrícula online.',
     images: ['/assets/images/campaign-gym-16x9.png'],
   },
 }
@@ -31,7 +31,7 @@ export default async function UnidadesPage() {
         <SectionHeader
           dark
           label="Nossa Rede"
-          title="Unidades LoudFit"
+          title="Unidades"
           subtitle="Escolha sua unidade, escolha seu plano e comece a treinar."
         />
 

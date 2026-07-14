@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import Image from 'next/image'
 import { UnitBadge } from './Badge'
 import type { Unit } from '@/types'
@@ -32,7 +32,7 @@ export function UnitCard({ unit }: { unit: Unit }) {
         {/* Overlay permanente — gradiente do baixo */}
         <div className="absolute inset-0 bg-gradient-to-t from-lf-black via-lf-black/30 to-transparent" />
 
-        {/* Diagonal corner mark — identidade LoudFit */}
+        {/* Diagonal corner mark — identidade Loud Fit */}
         <div className="absolute top-0 left-0 z-10 h-0 w-0 border-t-[32px] border-t-lf-volt border-r-[32px] border-r-transparent" />
 
         {/* Badge status */}

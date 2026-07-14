@@ -1,22 +1,22 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
 import { Section } from '@/components/ui/Section'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Modalidades LoudFit — Aulas e treinos' },
-  description: 'Modalidades LoudFit para treinar com força, ritmo e energia.',
+  title: { absolute: 'Modalidades Loud Fit — Aulas e treinos' },
+  description: 'Modalidades Loud Fit para treinar com força, ritmo e energia.',
   alternates: { canonical: '/modalidades' },
   openGraph: {
-    title: 'Modalidades LoudFit — Aulas e treinos',
-    description: 'Modalidades LoudFit para treinar com força, ritmo e energia.',
+    title: 'Modalidades Loud Fit — Aulas e treinos',
+    description: 'Modalidades Loud Fit para treinar com força, ritmo e energia.',
     url: '/modalidades',
     images: ['/assets/images/campaign-gym-16x9.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Modalidades LoudFit — Aulas e treinos',
-    description: 'Modalidades LoudFit para treinar com força, ritmo e energia.',
+    title: 'Modalidades Loud Fit — Aulas e treinos',
+    description: 'Modalidades Loud Fit para treinar com força, ritmo e energia.',
     images: ['/assets/images/campaign-gym-16x9.png'],
   },
 }
@@ -170,7 +170,7 @@ export default function ModalidadesPage() {
           <div className="mb-5 flex items-center justify-center gap-3">
             <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
-              Planos LoudFit
+              Planos Loud Fit
             </p>
             <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
           </div>

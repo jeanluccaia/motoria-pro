@@ -1,4 +1,4 @@
-import { type ClassValue, clsx } from 'clsx'
+﻿import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import type { Unit } from '@/types'
 
@@ -14,12 +14,12 @@ export function formatWhatsApp(numberOrUrl: string, message?: string) {
 }
 
 export function shortUnitName(unit: Pick<Unit, 'nome'>) {
-  return unit.nome.replace(/^LoudFit\s+/i, '').replace(/\s+/g, ' ').trim()
+  return unit.nome.replace(/^Loud Fit\s+/i, '').replace(/\s+/g, ' ').trim()
 }
 
 export function unitDisplayName(unit: Pick<Unit, 'nome'>) {
   const name = shortUnitName(unit)
-  return name ? `LoudFit ${name}` : 'LoudFit'
+  return name ? `Loud Fit ${name}` : 'Loud Fit'
 }
 
 export const displayUnitName = unitDisplayName

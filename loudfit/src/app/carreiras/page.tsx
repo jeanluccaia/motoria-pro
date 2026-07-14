@@ -4,18 +4,18 @@ import { Button } from '@/components/ui/Button'
 
 export const metadata: Metadata = {
   title: 'Carreiras',
-  description: 'Trabalhe na LoudFit. Vagas abertas na rede de academias.',
+  description: 'Trabalhe na Loud Fit. Vagas abertas na rede de academias.',
   alternates: { canonical: '/carreiras' },
   openGraph: {
-    title: 'Carreiras | LoudFit',
-    description: 'Trabalhe na LoudFit. Vagas abertas na rede de academias.',
+    title: 'Carreiras | Loud Fit',
+    description: 'Trabalhe na Loud Fit. Vagas abertas na rede de academias.',
     url: '/carreiras',
     images: ['/assets/images/campaign-gym-16x9.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Carreiras | LoudFit',
-    description: 'Trabalhe na LoudFit. Vagas abertas na rede de academias.',
+    title: 'Carreiras | Loud Fit',
+    description: 'Trabalhe na Loud Fit. Vagas abertas na rede de academias.',
     images: ['/assets/images/campaign-gym-16x9.png'],
   },
 }
@@ -27,7 +27,7 @@ export default function CarreirasPage() {
         <div className="max-w-3xl">
           <SectionHeader
             label="Carreiras"
-            title="Trabalhe na LoudFit"
+            title="Trabalhe na Loud Fit"
             subtitle="Pessoas que querem crescer junto com a rede. Se você tem energia, vontade e gosta de resultado, fale com a gente."
           />
         </div>

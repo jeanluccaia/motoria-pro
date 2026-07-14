@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import { getUnits } from '@/lib/supabase'
 import { Section, SectionHeader } from '@/components/ui/Section'
 import { UnitBadge } from '@/components/ui/Badge'
@@ -13,7 +13,7 @@ export async function HomeUnitsGrid() {
       <Reveal>
         <SectionHeader
           label="Unidades"
-          title="Encontre sua LoudFit."
+          title="Encontre sua Loud Fit."
           subtitle="5 unidades em operação e 1 em inauguração — Campinas, Valinhos, São Paulo e Mogi Mirim."
           dark
           className="mb-8 md:mb-12"
