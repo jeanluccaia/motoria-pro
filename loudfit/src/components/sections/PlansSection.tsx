@@ -8,7 +8,7 @@ export function PlansSection() {
   const plans = getPlans()
 
   return (
-    <Section id="planos" bg="cream" className="relative overflow-hidden py-16 md:py-24 lg:py-28">
+    <Section id="planos" bg="cream" className="relative overflow-hidden pt-16 pb-24 md:py-24 lg:py-28">
       <Reveal>
         <div className="mb-3 flex items-center gap-3">
           <span aria-hidden="true" className="h-[3px] w-8 shrink-0 bg-lf-volt" />
