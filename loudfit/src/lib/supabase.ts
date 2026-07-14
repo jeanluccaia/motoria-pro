@@ -3,8 +3,8 @@ import type { Unit, UnitMedia, Testimonial } from '@/types'
 import { normalizeEvoCheckoutUrl } from '@/lib/utils'
 
 /** Monta o UnitMedia mínimo (só fachada oficial) para unidades sem galeria completa ainda. */
-function facadeOnlyMedia(folderSlug: string, displayName: string, ext: 'webp' | 'png' = 'webp'): UnitMedia {
-  const facadeSrc = `/media/unidades/${folderSlug}/fotos/fachada-01.${ext}`
+function facadeOnlyMedia(folderSlug: string, displayName: string): UnitMedia {
+  const facadeSrc = `/media/unidades/${folderSlug}/fotos/fachada-01.webp`
   return {
     cover: facadeSrc,
     gallery: [
@@ -66,7 +66,7 @@ const ipirangaMedia: UnitMedia = {
 }
 
 const carrefourValinhosMedia = facadeOnlyMedia('carrefour-valinhos', 'Carrefour Valinhos')
-const amoreirasMedia = facadeOnlyMedia('amoreiras', 'Amoreiras', 'png')
+const amoreirasMedia = facadeOnlyMedia('amoreiras', 'Amoreiras')
 const anchietaMedia = facadeOnlyMedia('anchieta-sp', 'Anchieta SP')
 const mogiMirimMedia = facadeOnlyMedia('mogi-mirim', 'Mogi Mirim')
 const vilaIndustrialMedia = facadeOnlyMedia('vila-industrial', 'Vila Industrial')

@@ -14,7 +14,7 @@ export function formatWhatsApp(numberOrUrl: string, message?: string) {
 }
 
 export function shortUnitName(unit: Pick<Unit, 'nome'>) {
-  return unit.nome.replace(/^Loud Fit\s+/i, '').replace(/\s+/g, ' ').trim()
+  return unit.nome.replace(/Loud\s*Fit/gi, '').replace(/\s+/g, ' ').trim()
 }
 
 export function unitDisplayName(unit: Pick<Unit, 'nome'>) {
