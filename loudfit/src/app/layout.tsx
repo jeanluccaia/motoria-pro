@@ -1,9 +1,12 @@
 import type { Metadata } from 'next'
 import { Inter, Big_Shoulders } from 'next/font/google'
 import './globals.css'
+import { Suspense } from 'react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { GlobalChrome } from '@/components/layout/GlobalChrome'
+import { AnalyticsScripts } from '@/components/analytics/AnalyticsScripts'
+import { ConsentBanner } from '@/components/analytics/ConsentBanner'
 import { siteUrl } from '@/lib/site'
 
 const bodyFont = Inter({ subsets: ['latin'], variable: '--font-body' })
@@ -48,6 +51,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR" className={`h-full ${bodyFont.variable} ${displayFont.variable}`}>
       <body className="min-h-full flex flex-col bg-lf-black text-lf-text">
+        <Suspense fallback={null}>
+          <AnalyticsScripts />
+        </Suspense>
         <GlobalChrome>
           <Header />
         </GlobalChrome>
@@ -55,6 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <GlobalChrome>
           <Footer />
         </GlobalChrome>
+        <ConsentBanner />
       </body>
     </html>
   )

@@ -2,12 +2,31 @@
 
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { trackEvent } from '@/lib/analytics'
 import {
   networkBenefits,
   planConditions,
   planShortDescriptions,
   type Plan,
 } from '@/lib/plans'
+
+/** Extrai o slug da unidade quando ctaHref segue o padrão /matricula/{slug}. */
+function unitSlugFromHref(href: string): string | undefined {
+  const match = href.match(/\/matricula\/([^/?#]+)/)
+  return match?.[1]
+}
+
+function fireSelectPlan(plan: Plan, ctaHref: string) {
+  trackEvent('select_plan', {
+    unit_slug: unitSlugFromHref(ctaHref),
+    plan_id: plan.slug,
+    plan_name: plan.name,
+    displayed_price: plan.firstPayment?.value ?? plan.price,
+    regular_price: plan.price,
+    currency: 'BRL',
+    promotion: plan.firstPayment ? 'first_month' : undefined,
+  })
+}
 
 export type PlansVariant = 'home' | 'unit'
 
@@ -203,6 +222,7 @@ export function ExpandablePlanCard({
           <div className="mt-6">
             <Link
               href={ctaHref}
+              onClick={() => fireSelectPlan(plan, ctaHref)}
               className="lf-cta-volt inline-flex w-full min-h-[44px] items-center justify-center rounded-full px-5 py-3 text-[13px] font-bold tracking-normal"
             >
               {ctaLabel}

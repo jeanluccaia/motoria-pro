@@ -5,6 +5,7 @@ import { getUnits, getUnitBySlug } from '@/lib/supabase'
 import { CheckoutFrame } from '@/components/ui/CheckoutFrame'
 import { UnitBadge } from '@/components/ui/Badge'
 import { PlanReminder } from '@/components/ui/PlanReminder'
+import { CheckoutBeginTracker } from '@/components/analytics/CheckoutBeginTracker'
 import { formatWhatsApp, shortUnitName, unitDisplayName } from '@/lib/utils'
 
 interface Props {
@@ -65,6 +66,7 @@ export default async function MatriculaPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-[#F2F2F0]">
+      <CheckoutBeginTracker unitSlug={unit.slug} unitName={displayName} />
 
       {/* Barra de identidade escura */}
       <div className="bg-lf-black pt-16">

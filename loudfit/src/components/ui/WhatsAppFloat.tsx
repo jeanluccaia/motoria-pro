@@ -3,14 +3,15 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { trackEvent } from '@/lib/analytics'
 
 const units = [
-  { name: 'Carrefour Valinhos', href: 'https://wa.me/5519994410440' },
-  { name: 'Vila Industrial',    href: 'https://wa.me/5519988291946' },
-  { name: 'Amoreiras',          href: 'https://wa.me/5519998554252' },
-  { name: 'Anchieta SP',        href: 'https://wa.me/5511992989496' },
-  { name: 'Mogi Mirim',         href: 'https://wa.me/5519991429998' },
-  { name: 'Ipiranga',           href: 'https://wa.me/5511937334895' },
+  { name: 'Carrefour Valinhos', slug: 'carrefour-valinhos', href: 'https://wa.me/5519994410440' },
+  { name: 'Vila Industrial',    slug: 'vila-industrial',    href: 'https://wa.me/5519988291946' },
+  { name: 'Amoreiras',          slug: 'amoreiras',          href: 'https://wa.me/5519998554252' },
+  { name: 'Anchieta SP',        slug: 'anchieta-sp',        href: 'https://wa.me/5511992989496' },
+  { name: 'Mogi Mirim',         slug: 'mogi-mirim',         href: 'https://wa.me/5519991429998' },
+  { name: 'Ipiranga',           slug: 'ipiranga',           href: 'https://wa.me/5511937334895' },
 ]
 
 export function WhatsAppFloat() {
@@ -75,7 +76,10 @@ export function WhatsAppFloat() {
                   href={u.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    trackEvent('whatsapp_click', { location: 'float', unit_slug: u.slug })
+                    setOpen(false)
+                  }}
                   className="flex items-center justify-between gap-3 rounded-[10px] bg-white/[0.05] px-3 py-2.5 transition-colors hover:bg-white/[0.10] active:bg-white/[0.08]"
                 >
                   <span className="text-sm font-semibold leading-tight text-white">

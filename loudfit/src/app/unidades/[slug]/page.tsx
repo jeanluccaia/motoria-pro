@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button'
 import { Section, SectionHeader } from '@/components/ui/Section'
 import { PlansGrid } from '@/components/plans/PlansGrid'
 import { UnitGallery, type UnitGalleryImage } from '@/components/ui/UnitGallery'
+import { UnitViewTracker } from '@/components/analytics/UnitViewTracker'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -104,6 +105,12 @@ export default async function UnitPage({ params }: Props) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <UnitViewTracker
+        unitSlug={unit.slug}
+        unitName={displayName}
+        city={unit.cidade}
+        state={unit.estado}
+      />
 
       <div className="pt-16">
         {/* Hero */}
