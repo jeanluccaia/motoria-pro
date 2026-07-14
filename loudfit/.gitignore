@@ -44,4 +44,6 @@ next-env.d.ts
 
 # Local design working folder (extracted deliverables from the design team)
 /prd/design pagina franquias/
+/prd/design pagina sobre/
 /.playwright-mcp/
+/.screenshots/
