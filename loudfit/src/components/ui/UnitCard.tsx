@@ -21,7 +21,7 @@ export function UnitCard({ unit }: { unit: Unit }) {
             alt={`Academia ${unitName}`}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover transition duration-500 group-hover:scale-105"
+            className="object-cover object-top transition duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
@@ -32,7 +32,7 @@ export function UnitCard({ unit }: { unit: Unit }) {
         {/* Overlay permanente — gradiente do baixo */}
         <div className="absolute inset-0 bg-gradient-to-t from-lf-black via-lf-black/30 to-transparent" />
 
-        {/* Diagonal corner mark — identidade LoudFit */}
+        {/* Diagonal corner mark — identidade Loud Fit */}
         <div className="absolute top-0 left-0 z-10 h-0 w-0 border-t-[32px] border-t-lf-volt border-r-[32px] border-r-transparent" />
 
         {/* Badge status */}

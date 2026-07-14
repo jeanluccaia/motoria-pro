@@ -5,7 +5,7 @@ import { Reveal } from '@/components/ui/Reveal'
 type EnergiaItem = { type: 'image'; src: string; alt: string; caption: string }
 
 /**
- * Preenchimento manual quando houver conteúdo real (fotos autorais LoudFit
+ * Preenchimento manual quando houver conteúdo real (fotos autorais Loud Fit
  * de comunidade, eventos, treinos). Deixe vazio para ocultar a seção — a Home
  * não deve exibir placeholders cinza.
  */

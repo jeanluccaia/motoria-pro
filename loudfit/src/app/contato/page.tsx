@@ -1,21 +1,21 @@
-﻿import type { Metadata } from 'next'
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Section, SectionHeader } from '@/components/ui/Section'
 
 export const metadata: Metadata = {
   title: 'Contato',
-  description: 'Fale com a LoudFit — seja como aluno, franqueado ou parceiro.',
+  description: 'Fale com a Loud Fit — seja como aluno, franqueado ou parceiro.',
   alternates: { canonical: '/contato' },
   openGraph: {
-    title: 'Contato | LoudFit',
-    description: 'Fale com a LoudFit — seja como aluno, franqueado ou parceiro.',
+    title: 'Contato | Loud Fit',
+    description: 'Fale com a Loud Fit — seja como aluno, franqueado ou parceiro.',
     url: '/contato',
     images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Contato | LoudFit',
-    description: 'Fale com a LoudFit — seja como aluno, franqueado ou parceiro.',
+    title: 'Contato | Loud Fit',
+    description: 'Fale com a Loud Fit — seja como aluno, franqueado ou parceiro.',
     images: ['/opengraph-image'],
   },
 }
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 const doors = [
   {
     tag: 'Aluno',
-    title: 'Quero treinar na LoudFit',
+    title: 'Quero treinar na Loud Fit',
     body: 'Encontre a unidade mais próxima de você e fale direto com a equipe local.',
     cta: 'Escolher unidade',
     href: '/unidades',
@@ -31,7 +31,7 @@ const doors = [
   },
   {
     tag: 'Franqueado',
-    title: 'Quero abrir uma LoudFit',
+    title: 'Quero abrir uma Loud Fit',
     body: 'Conheça a operação, o modelo comercial e como funciona o processo de expansão.',
     cta: 'Conheça a franquia',
     href: '/franquias',

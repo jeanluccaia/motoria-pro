@@ -35,7 +35,7 @@ export function ExpansionBanner() {
               </div>
 
               <h2 className="max-w-2xl text-4xl font-black leading-[1.06] text-lf-text text-balance md:text-5xl">
-                Rede em expansão<br />a próxima LoudFit pode ser sua
+                Rede em expansão<br />a próxima Loud Fit pode ser sua
               </h2>
 
               <p className="mt-5 max-w-lg text-base leading-[1.6] text-lf-muted">

@@ -73,7 +73,7 @@ export function ModalitiesTeaser() {
               >
                 <Image
                   src={item.image}
-                  alt={`LoudFit — ${item.title}`}
+                  alt={`Loud Fit — ${item.title}`}
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   className="object-cover opacity-65 transition duration-500 group-hover:scale-105 group-hover:opacity-80"

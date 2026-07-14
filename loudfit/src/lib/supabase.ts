@@ -3,8 +3,8 @@ import type { Unit, UnitMedia, Testimonial } from '@/types'
 import { normalizeEvoCheckoutUrl } from '@/lib/utils'
 
 /** Monta o UnitMedia mínimo (só fachada oficial) para unidades sem galeria completa ainda. */
-function facadeOnlyMedia(folderSlug: string, displayName: string): UnitMedia {
-  const facadeSrc = `/media/unidades/${folderSlug}/fotos/fachada-01.webp`
+function facadeOnlyMedia(folderSlug: string, displayName: string, ext: 'webp' | 'png' = 'webp'): UnitMedia {
+  const facadeSrc = `/media/unidades/${folderSlug}/fotos/fachada-01.${ext}`
   return {
     cover: facadeSrc,
     gallery: [
@@ -66,7 +66,7 @@ const ipirangaMedia: UnitMedia = {
 }
 
 const carrefourValinhosMedia = facadeOnlyMedia('carrefour-valinhos', 'Carrefour Valinhos')
-const amoreirasMedia = facadeOnlyMedia('amoreiras', 'Amoreiras')
+const amoreirasMedia = facadeOnlyMedia('amoreiras', 'Amoreiras', 'png')
 const anchietaMedia = facadeOnlyMedia('anchieta-sp', 'Anchieta SP')
 const mogiMirimMedia = facadeOnlyMedia('mogi-mirim', 'Mogi Mirim')
 const vilaIndustrialMedia = facadeOnlyMedia('vila-industrial', 'Vila Industrial')
@@ -75,7 +75,7 @@ const fallbackUnits: Unit[] = [
   {
     id: 'fallback-carrefour-valinhos',
     slug: 'carrefour-valinhos',
-    nome: 'LoudFit Carrefour Valinhos',
+    nome: 'Loud Fit Carrefour Valinhos',
     bairro: 'Carrefour Valinhos',
     cidade: 'Valinhos',
     estado: 'SP',
@@ -110,7 +110,7 @@ const fallbackUnits: Unit[] = [
   {
     id: 'fallback-ipiranga',
     slug: 'ipiranga',
-    nome: 'LoudFit Ipiranga',
+    nome: 'Loud Fit Ipiranga',
     bairro: 'Ipiranga',
     cidade: 'São Paulo',
     estado: 'SP',
@@ -143,7 +143,7 @@ const fallbackUnits: Unit[] = [
   {
     id: 'fallback-anchieta',
     slug: 'anchieta-sp',
-    nome: 'LoudFit Anchieta SP',
+    nome: 'Loud Fit Anchieta SP',
     bairro: 'Vila Moinho Velho',
     cidade: 'São Paulo',
     estado: 'SP',
@@ -175,7 +175,7 @@ const fallbackUnits: Unit[] = [
   {
     id: 'fallback-amoreiras',
     slug: 'amoreiras',
-    nome: 'LoudFit Amoreiras',
+    nome: 'Loud Fit Amoreiras',
     bairro: 'Amoreiras',
     cidade: 'Campinas',
     estado: 'SP',
@@ -211,7 +211,7 @@ const fallbackUnits: Unit[] = [
   {
     id: 'fallback-vila-industrial',
     slug: 'vila-industrial',
-    nome: 'LoudFit Vila Industrial',
+    nome: 'Loud Fit Vila Industrial',
     bairro: 'Vila Industrial',
     cidade: 'Campinas',
     estado: 'SP',
@@ -246,7 +246,7 @@ const fallbackUnits: Unit[] = [
   {
     id: 'fallback-mogi-mirim',
     slug: 'mogi-mirim',
-    nome: 'LoudFit Mogi Mirim',
+    nome: 'Loud Fit Mogi Mirim',
     bairro: 'Centro',
     cidade: 'Mogi Mirim',
     estado: 'SP',

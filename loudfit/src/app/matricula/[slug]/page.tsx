@@ -189,7 +189,7 @@ export default async function MatriculaPage({ params }: Props) {
               <a
                 href={formatWhatsApp(
                   whatsapp,
-                  `Olá, quero tirar uma dúvida sobre a unidade ${shortName} da LoudFit.`,
+                  `Olá, quero tirar uma dúvida sobre a unidade ${shortName} da Loud Fit.`,
                 )}
                 target="_blank"
                 rel="noopener noreferrer"

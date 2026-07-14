@@ -26,7 +26,7 @@ export const franchiseConfig = {
   expansionWhatsApp: {
     enabled: false as boolean,
     number: '' as string,
-    message: 'Olá! Quero conversar sobre a expansão LoudFit.' as string,
+    message: 'Olá! Quero conversar sobre a expansão Loud Fit.' as string,
   },
 
   leadResponseSla: {

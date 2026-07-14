@@ -5,22 +5,22 @@ import { Reveal } from '@/components/ui/Reveal'
 import { Section, SectionHeader } from '@/components/ui/Section'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Sobre a LoudFit | Muito mais do que uma academia' },
+  title: { absolute: 'Sobre a Loud Fit | Muito mais do que uma academia' },
   description:
-    'Conheça a história, a missão e os valores da LoudFit, uma marca criada para transformar academias em ambientes de energia, atitude e resultados reais.',
+    'Conheça a história, a missão e os valores da Loud Fit, uma marca criada para transformar academias em ambientes de energia, atitude e resultados reais.',
   alternates: { canonical: '/sobre' },
   openGraph: {
-    title: 'Sobre a LoudFit | Muito mais do que uma academia',
+    title: 'Sobre a Loud Fit | Muito mais do que uma academia',
     description:
-      'Conheça a história, a missão e os valores da LoudFit, uma marca criada para transformar academias em ambientes de energia, atitude e resultados reais.',
+      'Conheça a história, a missão e os valores da Loud Fit, uma marca criada para transformar academias em ambientes de energia, atitude e resultados reais.',
     url: '/sobre',
     images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sobre a LoudFit | Muito mais do que uma academia',
+    title: 'Sobre a Loud Fit | Muito mais do que uma academia',
     description:
-      'Conheça a história, a missão e os valores da LoudFit, uma marca criada para transformar academias em ambientes de energia, atitude e resultados reais.',
+      'Conheça a história, a missão e os valores da Loud Fit, uma marca criada para transformar academias em ambientes de energia, atitude e resultados reais.',
     images: ['/opengraph-image'],
   },
 }
@@ -73,8 +73,8 @@ const values = [
 ]
 
 const founders = [
-  { name: 'Fundador', role: 'LoudFit' },
-  { name: 'Fundadora', role: 'LoudFit' },
+  { name: 'Fundador', role: 'Loud Fit' },
+  { name: 'Fundadora', role: 'Loud Fit' },
 ]
 
 export default function SobrePage() {
@@ -100,7 +100,7 @@ export default function SobrePage() {
               <div className="mb-5 flex items-center gap-3">
                 <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-lf-volt">
-                  Sobre a LoudFit
+                  Sobre a Loud Fit
                 </p>
               </div>
               <h1 className="text-[1.9rem] font-black uppercase leading-[1.02] text-lf-text sm:text-[clamp(2.4rem,5.5vw,5rem)]">
@@ -128,11 +128,11 @@ export default function SobrePage() {
             <div className="lg:sticky lg:top-28">
               <SectionHeader
                 label="Nossa história"
-                title="A LoudFit nasceu para entregar uma academia completa, acessível e com energia de comunidade"
+                title="A Loud Fit nasceu para entregar uma academia completa, acessível e com energia de comunidade"
                 className="mb-6"
               />
               <p className="max-w-sm text-base leading-relaxed text-lf-muted">
-                Mais do que equipamentos, a LoudFit reúne estrutura, aulas coletivas, atendimento
+                Mais do que equipamentos, a Loud Fit reúne estrutura, aulas coletivas, atendimento
                 próximo e uma rotina de treino pensada para quem quer começar, evoluir e se manter
                 em movimento.
               </p>
@@ -203,7 +203,7 @@ export default function SobrePage() {
               </h2>
               <p className="mt-5 text-base leading-relaxed text-[#4A4A4A] md:text-lg">
                 Oferecendo uma experiência completa, acolhedora e motivadora para todos que
-                escolhem fazer parte da LoudFit.
+                escolhem fazer parte da Loud Fit.
               </p>
             </article>
           </Reveal>
@@ -262,7 +262,7 @@ export default function SobrePage() {
             <div>
               <SectionHeader
                 label="Pessoas"
-                title="Quem constrói a LoudFit"
+                title="Quem constrói a Loud Fit"
                 subtitle="Uma marca construída por pessoas apaixonadas por transformar vidas através do esporte."
                 className="mb-8"
               />
@@ -314,7 +314,7 @@ export default function SobrePage() {
               Próximo passo
             </p>
             <h2 className="text-4xl font-black uppercase leading-[1.04] text-lf-text sm:text-5xl md:text-6xl">
-              Venha viver a experiência LoudFit
+              Venha viver a experiência Loud Fit
             </h2>
             <div className="mt-9 flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row">
               <Button href="/unidades" variant="volt" size="lg" className="w-full sm:w-auto">

@@ -8,7 +8,7 @@ export function HomeUnitsGrid() {
       <Reveal>
         <SectionHeader
           label="Unidades"
-          title="Encontre sua LoudFit"
+          title="Encontre sua Loud Fit"
           subtitle="Escolha a unidade mais próxima e veja planos, horários, aulas e matrícula online."
           dark
           className="mb-6 md:mb-8"

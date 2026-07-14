@@ -1,20 +1,20 @@
-﻿import type { Metadata } from 'next'
+import type { Metadata } from 'next'
 import { Section } from '@/components/ui/Section'
 
 export const metadata: Metadata = {
   title: 'Política de Privacidade',
-  description: 'Política de privacidade da LoudFit.',
+  description: 'Política de privacidade da Loud Fit.',
   alternates: { canonical: '/politica-de-privacidade' },
   openGraph: {
-    title: 'Política de Privacidade | LoudFit',
-    description: 'Política de privacidade da LoudFit.',
+    title: 'Política de Privacidade | Loud Fit',
+    description: 'Política de privacidade da Loud Fit.',
     url: '/politica-de-privacidade',
     images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Política de Privacidade | LoudFit',
-    description: 'Política de privacidade da LoudFit.',
+    title: 'Política de Privacidade | Loud Fit',
+    description: 'Política de privacidade da Loud Fit.',
     images: ['/opengraph-image'],
   },
 }

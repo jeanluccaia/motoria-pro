@@ -64,7 +64,7 @@ export function BrandVideo() {
             <div className="mb-5 flex items-center gap-3">
               <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
-                Estrutura LoudFit
+                Estrutura Loud Fit
               </p>
             </div>
             <h2 className="text-balance text-4xl font-black leading-[1.02] text-[#141414] md:text-5xl">
@@ -91,7 +91,7 @@ export function BrandVideo() {
                 <span className="h-2 w-2 rounded-full bg-[#D8D5CE]" />
               </div>
               <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#A09A90]">
-                LoudFit
+                Loud Fit
               </span>
             </div>
 
@@ -99,7 +99,7 @@ export function BrandVideo() {
               {videoFailed ? (
                 <Image
                   src={poster}
-                  alt="Estrutura interna da academia LoudFit"
+                  alt="Estrutura interna da academia Loud Fit"
                   fill
                   sizes="(max-width: 1024px) 100vw, 58vw"
                   className="object-cover"
@@ -119,7 +119,7 @@ export function BrandVideo() {
                   onError={() => setVideoFailed(true)}
                   className="h-full w-full object-cover"
                   style={{ objectPosition: videoObjectPosition }}
-                  aria-label="Vídeo da academia LoudFit"
+                  aria-label="Vídeo da academia Loud Fit"
                 />
               )}
 
@@ -172,7 +172,7 @@ export function BrandVideo() {
             <article className="group relative aspect-[4/3] overflow-hidden bg-[#EFEFED]">
               <Image
                 src={card.image}
-                alt={`LoudFit — ${card.title}`}
+                alt={`Loud Fit — ${card.title}`}
                 fill
                 sizes="(max-width: 640px) 100vw, 33vw"
                 className="object-cover transition duration-500 group-hover:scale-105"

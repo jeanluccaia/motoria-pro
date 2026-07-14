@@ -128,7 +128,7 @@ export function Hero() {
         className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(8,8,8,0.35)_0%,rgba(8,8,8,0.20)_45%,rgba(8,8,8,0.90)_100%)] md:bg-[linear-gradient(180deg,rgba(8,8,8,0.55)_0%,rgba(8,8,8,0.30)_40%,rgba(8,8,8,0.92)_100%),linear-gradient(90deg,rgba(8,8,8,0.85)_0%,rgba(8,8,8,0.35)_55%,rgba(8,8,8,0.10)_100%)]"
       />
 
-      {/* Traço diagonal amarelo — identidade LoudFit */}
+      {/* Traço diagonal amarelo — identidade Loud Fit */}
       <div aria-hidden="true" className="absolute bottom-0 left-0 right-0 h-px bg-lf-line" />
       <div aria-hidden="true" className="absolute bottom-0 left-0 h-[3px] w-56 -skew-x-12 origin-left bg-lf-volt" />
 

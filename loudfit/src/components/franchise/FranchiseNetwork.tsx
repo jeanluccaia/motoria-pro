@@ -23,7 +23,7 @@ function buildItems(units: Unit[]): NetworkItem[] {
     .slice()
     .sort((a, b) => (a.ordem ?? 99) - (b.ordem ?? 99))
     .map((unit) => {
-      const displayName = unit.nome.replace(/^LoudFit\s+/i, '').replace(/^Loud Fit\s+/i, '')
+      const displayName = unit.nome.replace(/^Loud Fit\s+/i, '').replace(/^Loud Fit\s+/i, '')
       const facadeItem = unit.media?.gallery.find((item) => item.category === 'fachada')
       return {
         slug: unit.slug,

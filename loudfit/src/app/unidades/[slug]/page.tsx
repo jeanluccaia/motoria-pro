@@ -124,7 +124,7 @@ export default async function UnitPage({ params }: Props) {
               <div className="mb-5">
                 <UnitBadge status={unit.status} />
               </div>
-              <p className="mb-4 text-xs uppercase tracking-[0.28em] text-lf-volt">Unidade LoudFit</p>
+              <p className="mb-4 text-xs uppercase tracking-[0.28em] text-lf-volt">Unidade Loud Fit</p>
               <h1 className="text-5xl font-black text-lf-text md:text-7xl">{displayName}</h1>
               <p className="mt-4 max-w-[21rem] text-base leading-relaxed text-lf-muted md:max-w-2xl md:text-lg">
                 {unit.bairro} / {unit.cidade}, {unit.estado}.{' '}
@@ -224,7 +224,7 @@ export default async function UnitPage({ params }: Props) {
                 <a
                   href={formatWhatsApp(
                     whatsapp,
-                    `Olá, quero tirar uma dúvida sobre a unidade ${shortName} da LoudFit.`,
+                    `Olá, quero tirar uma dúvida sobre a unidade ${shortName} da Loud Fit.`,
                   )}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -266,7 +266,7 @@ export default async function UnitPage({ params }: Props) {
             subtitle={
               isIpiranga
                 ? 'Tabela própria da unidade Ipiranga.'
-                : 'Tabela padrão LoudFit para esta unidade.'
+                : 'Tabela padrão Loud Fit para esta unidade.'
             }
           />
 

@@ -1,21 +1,21 @@
-﻿import type { Metadata } from 'next'
+import type { Metadata } from 'next'
 import { Section, SectionHeader } from '@/components/ui/Section'
 import { Button } from '@/components/ui/Button'
 
 export const metadata: Metadata = {
   title: 'Carreiras',
-  description: 'Trabalhe na LoudFit. Vagas abertas na rede de academias.',
+  description: 'Trabalhe na Loud Fit. Vagas abertas na rede de academias.',
   alternates: { canonical: '/carreiras' },
   openGraph: {
-    title: 'Carreiras | LoudFit',
-    description: 'Trabalhe na LoudFit. Vagas abertas na rede de academias.',
+    title: 'Carreiras | Loud Fit',
+    description: 'Trabalhe na Loud Fit. Vagas abertas na rede de academias.',
     url: '/carreiras',
     images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Carreiras | LoudFit',
-    description: 'Trabalhe na LoudFit. Vagas abertas na rede de academias.',
+    title: 'Carreiras | Loud Fit',
+    description: 'Trabalhe na Loud Fit. Vagas abertas na rede de academias.',
     images: ['/opengraph-image'],
   },
 }
@@ -27,7 +27,7 @@ export default function CarreirasPage() {
         <div className="max-w-3xl">
           <SectionHeader
             label="Carreiras"
-            title="Trabalhe na LoudFit"
+            title="Trabalhe na Loud Fit"
             subtitle="Estamos formando um time que gosta de energia, gosta de resultado e quer crescer junto com a rede."
           />
         </div>
