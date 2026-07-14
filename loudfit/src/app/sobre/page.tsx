@@ -5,22 +5,22 @@ import { Reveal } from '@/components/ui/Reveal'
 import { Section, SectionHeader } from '@/components/ui/Section'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Sobre a Loud Fit | Muito mais do que uma academia' },
+  title: { absolute: 'Sobre a Loud Fit | A rede que faz o treino falar mais alto' },
   description:
-    'Conheça a história, a missão e os valores da Loud Fit, uma marca criada para transformar academias em ambientes de energia, atitude e resultados reais.',
+    'Conheça a história, o propósito e a expansão da Loud Fit, uma rede de academias com estrutura completa e mensalidade acessível',
   alternates: { canonical: '/sobre' },
   openGraph: {
-    title: 'Sobre a Loud Fit | Muito mais do que uma academia',
+    title: 'Sobre a Loud Fit | A rede que faz o treino falar mais alto',
     description:
-      'Conheça a história, a missão e os valores da Loud Fit, uma marca criada para transformar academias em ambientes de energia, atitude e resultados reais.',
+      'Conheça a história, o propósito e a expansão da Loud Fit, uma rede de academias com estrutura completa e mensalidade acessível',
     url: '/sobre',
     images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sobre a Loud Fit | Muito mais do que uma academia',
+    title: 'Sobre a Loud Fit | A rede que faz o treino falar mais alto',
     description:
-      'Conheça a história, a missão e os valores da Loud Fit, uma marca criada para transformar academias em ambientes de energia, atitude e resultados reais.',
+      'Conheça a história, o propósito e a expansão da Loud Fit, uma rede de academias com estrutura completa e mensalidade acessível',
     images: ['/opengraph-image'],
   },
 }
@@ -64,18 +64,16 @@ const loudMeaning = [
 ]
 
 const values = [
-  { icon: 'DS', title: 'Disciplina' },
-  { icon: 'RP', title: 'Respeito' },
-  { icon: 'EV', title: 'Evolução' },
-  { icon: 'CP', title: 'Compromisso' },
-  { icon: 'EN', title: 'Energia' },
-  { icon: 'RS', title: 'Resultado' },
+  { title: 'Disciplina', body: 'Fazer o que precisa ser feito, todos os dias' },
+  { title: 'Respeito', body: 'Cuidar das pessoas, dos espaços e da experiência' },
+  { title: 'Evolução', body: 'Melhorar um pouco a cada semana, dentro e fora do treino' },
+  { title: 'Compromisso', body: 'Assumir o combinado e entregar o combinado' },
+  { title: 'Energia', body: 'Ambiente que puxa quem entra pra treinar de verdade' },
+  { title: 'Resultado', body: 'Consistência que aparece na saúde, no espelho e no dia a dia' },
 ]
 
-const founders = [
-  { name: 'Fundador', role: 'Loud Fit' },
-  { name: 'Fundadora', role: 'Loud Fit' },
-]
+// Flag desligada até termos fotos e biografias oficiais dos fundadores.
+const showFounders = false
 
 export default function SobrePage() {
   return (
@@ -199,11 +197,11 @@ export default function SobrePage() {
                 Nossa missão
               </p>
               <h2 className="text-4xl font-black uppercase leading-tight md:text-5xl">
-                Transformar vidas por meio da atividade física
+                Fazer treino de qualidade caber na rotina e no bolso de mais gente
               </h2>
               <p className="mt-5 text-base leading-relaxed text-[#4A4A4A] md:text-lg">
-                Oferecendo uma experiência completa, acolhedora e motivadora para todos que
-                escolhem fazer parte da Loud Fit.
+                Estrutura completa, aulas coletivas inclusas e uma operação de bairro para quem
+                quer começar, evoluir e não parar.
               </p>
             </article>
           </Reveal>
@@ -241,14 +239,13 @@ export default function SobrePage() {
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {values.map((value, index) => (
               <Reveal key={value.title} delay={index * 0.06}>
-                <article className="group flex min-h-[136px] items-end justify-between gap-4 border border-lf-line bg-lf-graphite p-5 transition-all hover:border-lf-volt/40 hover:bg-lf-surface">
+                <article className="group flex min-h-[136px] flex-col justify-between gap-3 border border-lf-line bg-lf-graphite p-5 transition-all hover:border-lf-volt/40 hover:bg-lf-surface">
                   <h2 className="text-2xl font-black uppercase leading-none text-lf-text">
                     {value.title}
                   </h2>
-                  <span className="relative inline-flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden bg-lf-black text-xs font-black uppercase tracking-[0.08em] text-lf-volt ring-1 ring-lf-line transition-colors group-hover:bg-lf-volt group-hover:text-lf-black">
-                    <span className="absolute left-0 top-0 h-full w-1 -skew-x-12 bg-lf-volt/70 group-hover:bg-lf-black/80" />
-                    {value.icon}
-                  </span>
+                  <p className="text-sm leading-relaxed text-lf-muted">
+                    {value.body}
+                  </p>
                 </article>
               </Reveal>
             ))}
@@ -256,47 +253,23 @@ export default function SobrePage() {
         </div>
       </Section>
 
-      <Section bg="graphite" className="overflow-hidden">
-        <div className="grid gap-10 lg:grid-cols-[1fr_0.85fr] lg:items-center">
-          <Reveal>
-            <div>
-              <SectionHeader
-                label="Pessoas"
-                title="Quem constrói a Loud Fit"
-                subtitle="Uma marca construída por pessoas apaixonadas por transformar vidas através do esporte."
-                className="mb-8"
-              />
-              <p className="max-w-xl border-l-2 border-lf-volt pl-5 text-base leading-relaxed text-lf-muted">
-                Em breve, esta seção receberá as fotos oficiais dos fundadores. A estrutura já está
-                preparada para substituir os placeholders mantendo a mesma composição visual.
-              </p>
-            </div>
-          </Reveal>
-
-          <div className="grid gap-5 sm:grid-cols-2">
-            {founders.map((person, index) => (
-              <Reveal key={person.name} delay={index * 0.08}>
-                <article className="overflow-hidden border border-lf-line bg-lf-black">
-                  <div className="relative aspect-[4/5] bg-[linear-gradient(135deg,#1C1C1C_0%,#101010_54%,#FFE500_54%,#D4B800_100%)]">
-                    <div className="absolute inset-5 border border-white/10" />
-                    <div className="absolute bottom-5 left-5 right-5">
-                      <span className="inline-flex h-16 w-16 items-center justify-center bg-lf-volt text-3xl font-black text-lf-black">
-                        LF
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-5">
-                    <h2 className="text-2xl font-black uppercase text-lf-text">{person.name}</h2>
-                    <p className="mt-1 text-sm font-medium uppercase tracking-[0.1em] text-lf-muted">
-                      {person.role}
-                    </p>
-                  </div>
-                </article>
-              </Reveal>
-            ))}
+      {showFounders && (
+        <Section bg="graphite" className="overflow-hidden">
+          <div className="grid gap-10 lg:grid-cols-[1fr_0.85fr] lg:items-center">
+            <Reveal>
+              <div>
+                <SectionHeader
+                  label="Pessoas"
+                  title="Quem constrói a Loud Fit"
+                  subtitle="Uma marca construída por pessoas apaixonadas por transformar vidas através do esporte."
+                  className="mb-8"
+                />
+              </div>
+            </Reveal>
+            {/* Cards de fundadores entram aqui quando fotos oficiais estiverem disponíveis. */}
           </div>
-        </div>
-      </Section>
+        </Section>
+      )}
 
       <Section bg="black" className="relative overflow-hidden border-t border-lf-line lg:py-32">
         <Image

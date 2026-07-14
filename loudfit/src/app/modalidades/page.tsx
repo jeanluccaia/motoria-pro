@@ -4,19 +4,19 @@ import { Button } from '@/components/ui/Button'
 import { Section } from '@/components/ui/Section'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Modalidades Loud Fit — Aulas e treinos' },
-  description: 'Modalidades Loud Fit para treinar com força, ritmo e energia.',
+  title: { absolute: 'Modalidades Loud Fit | Aulas inclusas no seu plano' },
+  description: 'Conheça as modalidades e aulas coletivas disponíveis nas unidades Loud Fit, inclusas na mensalidade',
   alternates: { canonical: '/modalidades' },
   openGraph: {
-    title: 'Modalidades Loud Fit — Aulas e treinos',
-    description: 'Modalidades Loud Fit para treinar com força, ritmo e energia.',
+    title: 'Modalidades Loud Fit | Aulas inclusas no seu plano',
+    description: 'Conheça as modalidades e aulas coletivas disponíveis nas unidades Loud Fit, inclusas na mensalidade',
     url: '/modalidades',
     images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Modalidades Loud Fit — Aulas e treinos',
-    description: 'Modalidades Loud Fit para treinar com força, ritmo e energia.',
+    title: 'Modalidades Loud Fit | Aulas inclusas no seu plano',
+    description: 'Conheça as modalidades e aulas coletivas disponíveis nas unidades Loud Fit, inclusas na mensalidade',
     images: ['/opengraph-image'],
   },
 }
@@ -75,24 +75,23 @@ export default function ModalidadesPage() {
             <div className="mb-5 flex items-center gap-3">
               <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lf-volt">
-                Aulas coletivas
+                Modalidades
               </p>
             </div>
 
-            <h1 className="text-4xl font-black leading-[1.02] text-lf-text md:text-6xl">
+            <h1 className="text-4xl font-black uppercase leading-[1.02] text-lf-text md:text-6xl">
               Tudo isso já está<br className="hidden sm:block" /> no seu plano
             </h1>
 
             <p className="mt-5 max-w-xl text-base leading-relaxed text-lf-muted">
-              16 modalidades inclusas na mensalidade, sem custo por aula.
+              Aulas coletivas inclusas na mensalidade, sem custo por aula
             </p>
 
-            <p className="mt-2 text-xs text-lf-muted/50">
-              A grade pode variar por unidade.
-            </p>
-
-            <div className="mt-8">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button href="/unidades" variant="volt" size="lg">
+                Ver aulas por unidade
+              </Button>
+              <Button href="/unidades" variant="outline" size="lg">
                 Começar matrícula
               </Button>
             </div>
@@ -174,14 +173,17 @@ export default function ModalidadesPage() {
             </p>
             <div className="h-[3px] w-8 shrink-0 bg-lf-volt" />
           </div>
-          <h2 className="text-4xl font-black leading-[1.02] text-lf-text md:text-5xl">
+          <h2 className="text-4xl font-black uppercase leading-[1.02] text-lf-text md:text-5xl">
             Um plano<br />Tudo incluso
           </h2>
           <p className="mx-auto mt-5 max-w-[50ch] text-base leading-relaxed text-lf-muted">
-            Musculação e todas as aulas coletivas da sua unidade na mesma mensalidade.
+            A grade de aulas varia por unidade
           </p>
-          <div className="mt-8">
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Button href="/unidades" variant="volt" size="lg">
+              Ver aulas por unidade
+            </Button>
+            <Button href="/unidades" variant="outline" size="lg">
               Começar matrícula
             </Button>
           </div>
