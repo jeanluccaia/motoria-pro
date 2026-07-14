@@ -44,14 +44,7 @@ const differentials = [
 
 const loudWords = ['LIBERDADE', 'OUSADIA', 'UNIÃO', 'DETERMINAÇÃO']
 
-const values = [
-  { label: 'Disciplina', accent: false },
-  { label: 'Respeito', accent: false },
-  { label: 'Evolução', accent: true },
-  { label: 'Compromisso', accent: true },
-  { label: 'Energia', accent: false },
-  { label: 'Resultado', accent: false },
-]
+const values = ['Disciplina', 'Respeito', 'Evolução', 'Compromisso', 'Energia', 'Resultado']
 
 const stripUnitPrefix = (label: string) => label.replace(/^Loud Fit\s+/i, '')
 
@@ -103,12 +96,12 @@ export default function SobrePage() {
                 </h2>
                 <div className="mt-7 flex max-w-[52ch] flex-col gap-5 text-base leading-relaxed text-[#3d3b34] md:mt-8 md:text-lg">
                   <p>
-                    A Loud Fit nasceu de uma percepção simples: muita academia entregava
-                    estrutura, mas faltava experiência, identidade e gente por perto.
+                    A Loud Fit nasceu de uma ideia simples: estrutura sozinha não basta. Faltava
+                    experiência, identidade e gente por perto
                   </p>
                   <p>
                     A gente juntou equipamento bom, aulas coletivas no mesmo plano e atendimento
-                    próximo. Treinar virou parte natural do dia.
+                    próximo. Treinar virou parte natural do dia
                   </p>
                 </div>
               </div>
@@ -131,7 +124,7 @@ export default function SobrePage() {
                   </video>
                 </div>
                 <p className="mt-4 text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#8b8880]">
-                  Conheça a Loud Fit por dentro
+                  A Loud Fit por dentro
                 </p>
                 <p className="mt-1.5 text-[11.5px] leading-relaxed text-[#8b8880]">
                   Apresentação gravada na unidade Vila Industrial
@@ -147,7 +140,7 @@ export default function SobrePage() {
         <div className="mx-auto max-w-[1200px] px-6 py-20 sm:px-8 md:py-28 lg:px-12 lg:py-32">
           <Reveal>
             <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-lf-volt">
-              Por que Loud Fit
+              Por que a Loud Fit
             </p>
           </Reveal>
 
@@ -184,17 +177,17 @@ export default function SobrePage() {
 
       {/* 4. LOUD É — bloco amarelo */}
       <section className="bg-lf-volt text-[#0B0B0C]">
-        <div className="mx-auto max-w-[1200px] px-6 py-16 sm:px-8 md:py-24 lg:px-12 lg:py-28">
+        <div className="mx-auto max-w-[1200px] px-6 py-12 sm:px-8 sm:py-16 md:py-24 lg:px-12 lg:py-28">
           <div className="lg:flex lg:items-center lg:gap-14">
             <p
               className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#0B0B0C]/60 lg:[writing-mode:vertical-rl] lg:rotate-180"
             >
               Loud é
             </p>
-            <div className="mt-6 flex flex-col gap-0.5 lg:mt-0">
+            <div className="mt-4 flex flex-col gap-0 sm:mt-6 sm:gap-0.5 lg:mt-0">
               {loudWords.map((word, i) => (
                 <Reveal key={word} delay={i * 0.05}>
-                  <div className="text-[clamp(2.6rem,9vw,4.75rem)] font-black uppercase leading-[0.94] tracking-[-0.02em] text-[#0B0B0C]">
+                  <div className="text-[clamp(2.35rem,9vw,4.75rem)] font-black uppercase leading-[0.9] tracking-[-0.02em] text-[#0B0B0C] sm:leading-[0.94]">
                     {word}
                   </div>
                 </Reveal>
@@ -233,43 +226,41 @@ export default function SobrePage() {
                       fontSize: 'clamp(4.5rem,14vw,8rem)',
                     }}
                   >
-                    06
+                    6
                   </span>
-                  <span className="max-w-[130px] text-[11px] font-bold uppercase tracking-[0.16em] text-white/60">
+                  <span className="max-w-[140px] text-[11px] font-bold uppercase tracking-[0.16em] text-white/60">
                     Unidades em SP
                   </span>
                 </div>
 
                 <ul className="mt-8 grid grid-cols-1 gap-x-11 sm:grid-cols-2">
-                  {founderUnits.map((u, i) => (
-                    <li
-                      key={u.id}
-                      className={[
-                        'flex items-center justify-between border-t border-white/10 py-4',
-                        i === founderUnits.length - 1 || i === founderUnits.length - 2
-                          ? 'sm:border-b sm:border-white/10'
-                          : '',
-                        founderUnits.length % 2 === 1 && i === founderUnits.length - 1
-                          ? 'border-b border-white/10 sm:border-b'
-                          : '',
-                      ].join(' ')}
-                    >
-                      <span className="text-[15px] font-bold uppercase tracking-[-0.005em] text-lf-text">
-                        {stripUnitPrefix(u.label)}
-                      </span>
-                      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-lf-volt">
-                        Em operação
-                      </span>
-                    </li>
-                  ))}
+                  {founderUnits.map((u, i) => {
+                    const isLastRowLeft =
+                      founderUnits.length % 2 === 0 && i === founderUnits.length - 2
+                    const isLastRowRight = i === founderUnits.length - 1
+                    return (
+                      <li
+                        key={u.id}
+                        className={[
+                          'flex items-baseline justify-between gap-4 border-t border-white/10 py-4',
+                          isLastRowRight ? 'border-b border-white/10' : '',
+                          isLastRowLeft ? 'sm:border-b sm:border-white/10' : '',
+                        ].join(' ')}
+                      >
+                        <span className="text-[15px] font-bold uppercase tracking-[-0.005em] text-lf-text">
+                          {stripUnitPrefix(u.label)}
+                        </span>
+                        <span className="shrink-0 text-[11px] font-medium tracking-[0.02em] text-white/55">
+                          {u.city} · {u.state}
+                        </span>
+                      </li>
+                    )
+                  })}
                 </ul>
 
-                <div className="mt-6 flex items-center gap-3">
-                  <span className="text-[13px] font-bold uppercase tracking-[0.06em] text-lf-volt">
-                    Novas cidades em breve
-                  </span>
-                  <span aria-hidden="true" className="h-px flex-1 bg-white/15" />
-                </div>
+                <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.2em] text-lf-volt/90">
+                  Novas cidades estão chegando
+                </p>
               </div>
             </Reveal>
           </div>
@@ -292,18 +283,21 @@ export default function SobrePage() {
             </Reveal>
 
             <Reveal delay={0.08}>
-              <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:gap-3">
-                {values.map((v) => (
+              <ul className="grid grid-cols-2 gap-x-6 border-t border-[#d8d5cc] md:grid-cols-3 md:gap-x-8">
+                {values.map((label, i) => (
                   <li
-                    key={v.label}
-                    className={[
-                      'flex items-center justify-center rounded-xl px-4 py-4 text-center text-sm font-bold uppercase leading-tight tracking-[-0.01em] sm:px-5 sm:py-5 sm:text-[15px] lg:py-6 lg:text-base',
-                      v.accent
-                        ? 'bg-[#0B0B0C] text-lf-volt'
-                        : 'border border-[#e2dfd6] bg-white text-[#0B0B0C]',
-                    ].join(' ')}
+                    key={label}
+                    className="flex items-baseline gap-3 border-b border-[#d8d5cc] py-4 md:py-5"
                   >
-                    {v.label}
+                    <span
+                      className="text-[11px] font-bold tracking-[0.14em] text-[#0B0B0C]/45"
+                      style={{ fontFamily: 'var(--font-display)' }}
+                    >
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span className="text-[15px] font-black uppercase leading-none tracking-[-0.01em] text-[#0B0B0C] md:text-base lg:text-lg">
+                      {label}
+                    </span>
                   </li>
                 ))}
               </ul>
