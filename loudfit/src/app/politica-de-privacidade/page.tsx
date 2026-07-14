@@ -106,7 +106,7 @@ export default function PrivacidadePage() {
           </h2>
           <p className="mb-4 text-sm leading-relaxed text-lf-muted">
             Dúvidas sobre esta política ou sobre o tratamento dos seus dados podem ser
-            enviadas para <a href="mailto:contato@loudfit.com.br" className="text-lf-volt underline underline-offset-4">contato@loudfit.com.br</a>.
+            enviadas para <a href="mailto:juridico@loudfit.com.br" className="text-lf-volt underline underline-offset-4">juridico@loudfit.com.br</a>.
           </p>
 
           <p className="mt-10 text-xs text-lf-muted/60">

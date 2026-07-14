@@ -106,6 +106,7 @@ const fallbackUnits: Unit[] = [
     destaque: true,
     ordem: 1,
     checkoutUrl: 'https://evo-totem.w12app.com.br/loudfit/1/site/%5BPLUS%5DeIL%5BPLUS%5DfzZNcy7Gt%5BBAR%5DPl5KIrQ%5BEQUAL%5D%5BEQUAL%5D',
+    email: 'carrefourvalinhos@loudfit.com.br',
   },
   {
     id: 'fallback-ipiranga',
@@ -139,6 +140,7 @@ const fallbackUnits: Unit[] = [
     destaque: true,
     ordem: 2,
     checkoutUrl: 'https://evo-totem.w12app.com.br/loudfit/6/site/0GaE9Ux52vXSBHXLH2E5hg%5BEQUAL%5D%5BEQUAL%5D',
+    email: null,
   },
   {
     id: 'fallback-anchieta',
@@ -171,6 +173,7 @@ const fallbackUnits: Unit[] = [
     destaque: true,
     ordem: 3,
     checkoutUrl: 'https://evo-totem.w12app.com.br/loudfit/3/site/h%5BBAR%5DKEL8uI95qdrw2eJYudZQ%5BEQUAL%5D%5BEQUAL%5D',
+    email: 'anchieta@loudfit.com.br',
   },
   {
     id: 'fallback-amoreiras',
@@ -207,6 +210,7 @@ const fallbackUnits: Unit[] = [
     destaque: true,
     ordem: 4,
     checkoutUrl: 'https://evo-totem.w12app.com.br/loudfit/2/site/uRcgN1BLXvcYzmC%5BBAR%5DZHe3rg%5BEQUAL%5D%5BEQUAL%5D',
+    email: 'amoreiras@loudfit.com.br',
   },
   {
     id: 'fallback-vila-industrial',
@@ -242,6 +246,7 @@ const fallbackUnits: Unit[] = [
     destaque: true,
     ordem: 5,
     checkoutUrl: 'https://evo-totem.w12app.com.br/loudfit/4/site/7rlDfyRNEkamlvXH5WMvow%5BEQUAL%5D%5BEQUAL%5D',
+    email: 'vilaindustrial@loudfit.com.br',
   },
   {
     id: 'fallback-mogi-mirim',
@@ -279,13 +284,14 @@ const fallbackUnits: Unit[] = [
     destaque: true,
     ordem: 6,
     checkoutUrl: 'https://evo-totem.w12app.com.br/loudfit/5/site/QhXXzoY7OMy%5BPLUS%5DFpULG15Wrw%5BEQUAL%5D%5BEQUAL%5D',
+    email: 'mogimirim@loudfit.com.br',
   },
 ]
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
 
-const officialUnitData: Record<string, Pick<Unit, 'horarios' | 'checkoutUrl'> & { whatsapp_url: string | null }> = {
+const officialUnitData: Record<string, Pick<Unit, 'horarios' | 'checkoutUrl'> & { whatsapp_url: string | null; email: string | null }> = {
   'carrefour-valinhos': {
     whatsapp_url: 'https://wa.me/5519994410440',
     horarios: [
@@ -294,6 +300,7 @@ const officialUnitData: Record<string, Pick<Unit, 'horarios' | 'checkoutUrl'> & 
       { label: 'Sábado, domingo e feriados', value: '08h às 18h' },
     ],
     checkoutUrl: 'https://evo-totem.w12app.com.br/loudfit/1/site/%5BPLUS%5DeIL%5BPLUS%5DfzZNcy7Gt%5BBAR%5DPl5KIrQ%5BEQUAL%5D%5BEQUAL%5D',
+    email: 'carrefourvalinhos@loudfit.com.br',
   },
   amoreiras: {
     whatsapp_url: 'https://wa.me/5519998554252',
@@ -304,6 +311,7 @@ const officialUnitData: Record<string, Pick<Unit, 'horarios' | 'checkoutUrl'> & 
       { label: 'Domingo e feriados', value: '08h às 14h' },
     ],
     checkoutUrl: 'https://evo-totem.w12app.com.br/loudfit/2/site/uRcgN1BLXvcYzmC%5BBAR%5DZHe3rg%5BEQUAL%5D%5BEQUAL%5D',
+    email: 'amoreiras@loudfit.com.br',
   },
   'anchieta-sp': {
     whatsapp_url: 'https://wa.me/5511992989496',
@@ -313,6 +321,7 @@ const officialUnitData: Record<string, Pick<Unit, 'horarios' | 'checkoutUrl'> & 
       { label: 'Sábado, domingo e feriados', value: '08h às 18h' },
     ],
     checkoutUrl: 'https://evo-totem.w12app.com.br/loudfit/3/site/h%5BBAR%5DKEL8uI95qdrw2eJYudZQ%5BEQUAL%5D%5BEQUAL%5D',
+    email: 'anchieta@loudfit.com.br',
   },
   'vila-industrial': {
     whatsapp_url: 'https://wa.me/5519988291946',
@@ -323,6 +332,7 @@ const officialUnitData: Record<string, Pick<Unit, 'horarios' | 'checkoutUrl'> & 
       { label: 'Domingo e feriados', value: '08h às 14h' },
     ],
     checkoutUrl: 'https://evo-totem.w12app.com.br/loudfit/4/site/7rlDfyRNEkamlvXH5WMvow%5BEQUAL%5D%5BEQUAL%5D',
+    email: 'vilaindustrial@loudfit.com.br',
   },
   'mogi-mirim': {
     whatsapp_url: 'https://wa.me/5519991429998',
@@ -334,6 +344,7 @@ const officialUnitData: Record<string, Pick<Unit, 'horarios' | 'checkoutUrl'> & 
       { label: 'Feriados', value: '08h às 14h' },
     ],
     checkoutUrl: 'https://evo-totem.w12app.com.br/loudfit/5/site/QhXXzoY7OMy%5BPLUS%5DFpULG15Wrw%5BEQUAL%5D%5BEQUAL%5D',
+    email: 'mogimirim@loudfit.com.br',
   },
   ipiranga: {
     whatsapp_url: 'https://wa.me/5511937334895',
@@ -344,6 +355,7 @@ const officialUnitData: Record<string, Pick<Unit, 'horarios' | 'checkoutUrl'> & 
       { label: 'Domingo e feriados', value: '08h às 14h' },
     ],
     checkoutUrl: 'https://evo-totem.w12app.com.br/loudfit/6/site/0GaE9Ux52vXSBHXLH2E5hg%5BEQUAL%5D%5BEQUAL%5D',
+    email: null,
   },
 }
 
@@ -375,6 +387,7 @@ function normalizeUnit(unit: Unit): Unit {
     ...official,
     horarios: official?.horarios ?? normalizeHours(unit.horarios),
     checkoutUrl: normalizeEvoCheckoutUrl(official?.checkoutUrl ?? unit.checkoutUrl),
+    email: official ? official.email : unit.email ?? null,
   }
 }
 

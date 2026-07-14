@@ -39,7 +39,7 @@ export default function CarreirasPage() {
             Não temos vagas abertas no momento, mas estamos sempre crescendo.
           </p>
           <div className="mt-6">
-            <Button href="mailto:contato@loudfit.com.br" variant="outline">
+            <Button href="mailto:comercial@loudfit.com.br" variant="outline">
               Enviar currículo
             </Button>
           </div>

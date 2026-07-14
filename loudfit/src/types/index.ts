@@ -51,6 +51,7 @@ export interface Unit {
   destaque: boolean
   ordem: number
   checkoutUrl?: string | null
+  email?: string | null
 }
 
 export type TestimonialType = 'aluno' | 'franqueado' | 'gestor'

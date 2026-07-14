@@ -136,7 +136,7 @@ export function QualifyForm() {
                 WhatsApp
               </a>{' '}
               ou{' '}
-              <a href="mailto:vilaindustrial@loudfit.com.br" className="text-lf-volt underline-offset-4 hover:underline">
+              <a href="mailto:comercial@loudfit.com.br" className="text-lf-volt underline-offset-4 hover:underline">
                 e-mail
               </a>
               .

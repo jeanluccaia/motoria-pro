@@ -42,7 +42,7 @@ const doors = [
     title: 'Imprensa e parcerias',
     body: 'Assessoria, colaborações e oportunidades para trabalhar com a marca.',
     cta: 'Enviar e-mail',
-    href: 'mailto:contato@loudfit.com.br',
+    href: 'mailto:comercial@loudfit.com.br',
     accent: false,
   },
 ]

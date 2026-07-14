@@ -241,6 +241,14 @@ export default async function UnitPage({ params }: Props) {
                   Falar com a unidade
                 </a>
               )}
+              {unit.email && (
+                <a
+                  href={`mailto:${unit.email}`}
+                  className="mt-2 flex w-full items-center justify-center gap-1.5 break-all border border-gray-200 py-2.5 text-xs font-medium text-gray-600 transition hover:border-lf-volt hover:text-gray-900 focus-visible:border-lf-volt focus-visible:text-gray-900 focus-visible:outline-none"
+                >
+                  {unit.email}
+                </a>
+              )}
               {unit.google_maps_url && (
                 <a
                   href={unit.google_maps_url}

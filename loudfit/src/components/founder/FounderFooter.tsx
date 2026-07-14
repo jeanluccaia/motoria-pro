@@ -35,10 +35,10 @@ export function FounderFooter() {
           </Link>
           <span aria-hidden="true">·</span>
           <a
-            href="mailto:vilaindustrial@loudfit.com.br"
+            href="mailto:comercial@loudfit.com.br"
             className="transition-colors hover:text-white/80"
           >
-            vilaindustrial@loudfit.com.br
+            comercial@loudfit.com.br
           </a>
         </div>
       </div>

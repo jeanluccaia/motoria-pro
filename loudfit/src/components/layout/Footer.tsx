@@ -36,6 +36,7 @@ const navGroups: { title: string; items: FooterLink[] }[] = [
     title: 'Legal',
     items: [
       { label: 'Política de privacidade', href: '/politica-de-privacidade' },
+      { label: 'juridico@loudfit.com.br', href: 'mailto:juridico@loudfit.com.br' },
     ],
   },
 ]
@@ -54,7 +55,7 @@ const socials: { label: string; href: string; icon: 'instagram' | 'whatsapp' }[]
 ]
 
 const contactInfo = {
-  email: 'vilaindustrial@loudfit.com.br',
+  email: 'comercial@loudfit.com.br',
   phone: '+5519988291946',
   phoneLabel: '(19) 98829-1946',
   legalName: 'LOUD FRANQUEADORA LTDA',
