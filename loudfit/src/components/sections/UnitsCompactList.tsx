@@ -21,10 +21,10 @@ export async function UnitsCompactList() {
               </p>
             </div>
             <h2 className="text-4xl font-black leading-[1.02] text-lf-text md:text-5xl">
-              Encontre sua LoudFit
+              Encontre sua Loud Fit
             </h2>
             <p className="mt-3 max-w-xl text-sm leading-[1.6] text-lf-muted md:text-base">
-              Escolha a unidade mais próxima. Veja horários, aulas e finalize sua matrícula online.
+              Escolha a unidade mais próxima e conheça planos, horários e estrutura
             </p>
           </div>
         </div>
@@ -72,8 +72,8 @@ export async function UnitsCompactList() {
                         </h3>
                         <UnitBadge status={unit.status} />
                       </div>
-                      <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.14em] text-lf-volt/85 md:tracking-[0.16em]">
-                        {unit.bairro} / {unit.cidade} — {unit.estado}
+                      <p className="mt-1.5 truncate text-[11px] font-medium tracking-[0.04em] text-lf-muted md:text-[12px]">
+                        {unit.bairro} · {unit.cidade} — {unit.estado}
                       </p>
                     </div>
 
