@@ -1,4 +1,5 @@
 import { Fragment } from 'react'
+import Image from 'next/image'
 import type { CampaignPageConfig } from '@/lib/campaigns'
 
 interface CampaignBenefitsProps {
@@ -38,7 +39,7 @@ export function FounderBenefits({ config }: CampaignBenefitsProps) {
         </p>
       )}
 
-      <div className="mx-auto grid max-w-[820px] gap-11 sm:grid-cols-2 sm:gap-10 lg:gap-12">
+      <div className="mx-auto mb-4 grid max-w-[820px] gap-11 sm:grid-cols-2 sm:gap-10 lg:gap-12">
         {config.benefits.map((b) => (
           <div key={b.n} className="border-t border-white/[0.10] pt-5 sm:pt-6">
             <span
@@ -61,6 +62,22 @@ export function FounderBenefits({ config }: CampaignBenefitsProps) {
             <p className="mt-2 text-[14px] leading-[1.55] text-white/60">{b.desc}</p>
             {b.note && (
               <p className="mt-2 text-[12.5px] leading-[1.5] text-white/40">{b.note}</p>
+            )}
+            {b.image && (
+              <div className="mt-5 flex items-center justify-start">
+                <div
+                  className="relative w-[120px] overflow-hidden rounded-[10px] border border-white/[0.08] bg-white/[0.02] sm:w-[132px]"
+                  style={{ aspectRatio: `${b.image.width} / ${b.image.height}` }}
+                >
+                  <Image
+                    src={b.image.src}
+                    alt={b.image.alt}
+                    fill
+                    sizes="132px"
+                    className="object-contain"
+                  />
+                </div>
+              </div>
             )}
           </div>
         ))}

@@ -105,6 +105,9 @@ export function FounderForm({ config, plan }: CampaignFormProps) {
     },
   })
 
+  const effectiveFirstMonthPrice =
+    config.firstMonthPriceValueOverride ?? plan.firstMonthPriceValue
+
   async function onSubmit(data: FormData) {
     if (submitting) return
     setSubmitting(true)
@@ -113,7 +116,7 @@ export function FounderForm({ config, plan }: CampaignFormProps) {
       campaign_id: config.campaignId,
       plan_name: plan.name,
       regular_price: plan.regularPriceValue,
-      first_month_price: plan.firstMonthPriceValue,
+      first_month_price: effectiveFirstMonthPrice,
     })
 
     try {
@@ -130,7 +133,7 @@ export function FounderForm({ config, plan }: CampaignFormProps) {
           plan_id: plan.id,
           plan_name: plan.name,
           regular_price: plan.regularPriceValue,
-          first_month_price: plan.firstMonthPriceValue,
+          first_month_price: effectiveFirstMonthPrice,
           source: config.leadSource,
           campaign: config.campaignId,
           campaign_audience: config.audience,
@@ -149,7 +152,7 @@ export function FounderForm({ config, plan }: CampaignFormProps) {
       trackCampaignEvent(config.tracking.formSuccess, config.audience, {
         campaign_id: config.campaignId,
         plan_name: plan.name,
-        first_month_price: plan.firstMonthPriceValue,
+        first_month_price: effectiveFirstMonthPrice,
       })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao enviar interesse.'

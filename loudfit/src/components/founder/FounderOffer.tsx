@@ -36,6 +36,10 @@ export function FounderOffer({
   const cardValidityText =
     config.cardValidityText ??
     'Válido em qualquer unidade Loud Fit — a equipe finaliza a matrícula por você'
+  const firstMonthPriceLabel =
+    config.firstMonthPriceOverride ?? selected.firstMonthPrice
+  const firstMonthPriceValue =
+    config.firstMonthPriceValueOverride ?? selected.firstMonthPriceValue
   const sectionRef = useRef<HTMLElement>(null)
   const seenRef = useRef(false)
 
@@ -193,13 +197,14 @@ export function FounderOffer({
                       key={`price-${selected.id}`}
                       className="font-extrabold text-lf-text"
                       style={{
-                        fontSize: 'clamp(48px, 8.5vw, 80px)',
+                        fontSize: 'clamp(44px, 7.6vw, 72px)',
                         lineHeight: 0.9,
                         letterSpacing: '-0.02em',
+                        whiteSpace: 'nowrap',
                         animation: 'lfFounderPrice 0.35s cubic-bezier(0.2,0.7,0.2,1) both',
                       }}
                     >
-                      {selected.firstMonthPrice}
+                      {firstMonthPriceLabel}
                     </span>
                   </div>
 
@@ -299,7 +304,7 @@ export function FounderOffer({
                   campaign_id: config.campaignId,
                   plan_name: selected.name,
                   regular_price: selected.regularPriceValue,
-                  first_month_price: selected.firstMonthPriceValue,
+                  first_month_price: firstMonthPriceValue,
                 })
                 onCtaClick()
               }}

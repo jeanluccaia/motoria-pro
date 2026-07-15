@@ -71,6 +71,12 @@ export interface CampaignBenefit {
   title: string
   desc: string
   note?: string
+  image?: {
+    src: string
+    alt: string
+    width: number
+    height: number
+  }
 }
 
 export interface CampaignTrackingEvents {
@@ -131,6 +137,8 @@ export interface CampaignPageConfig {
   planIds?: CampaignPlan['id'][]
   hidePlanSelector?: boolean
   showFirstMonthPrice?: boolean
+  firstMonthPriceOverride?: string
+  firstMonthPriceValueOverride?: number
   unitIds?: string[]
   productImage?: {
     src: string
@@ -138,6 +146,8 @@ export interface CampaignPageConfig {
     width: number
     height: number
   }
+  giftChips?: string[]
+  headlineHighlights?: string[]
   tracking: CampaignTrackingEvents
   metadata: {
     title: string
@@ -170,11 +180,17 @@ export const conviteConfig: CampaignPageConfig = {
       n: '01',
       title: 'COQUETELEIRA LOUD FIT',
       desc: 'Uma coqueteleira para acompanhar sua nova rotina de treino',
+      image: {
+        src: '/assets/images/garrafa-loud-fit.webp',
+        alt: 'Coqueteleira Loud Fit oferecida na campanha de inauguração',
+        width: 1086,
+        height: 1448,
+      },
     },
     {
       n: '02',
       title: '30 DIAS PARA PRESENTEAR',
-      desc: 'Escolha uma pessoa para treinar durante 30 dias na Loud Fit',
+      desc: 'Escolha uma pessoa para treinar durante 30 dias na Loud Fit ao seu lado',
     },
   ],
   eligibilityText:
@@ -195,14 +211,15 @@ export const conviteConfig: CampaignPageConfig = {
   showPartnerBenefit: false,
   planIds: ['mensal-recorrente'],
   hidePlanSelector: true,
-  showFirstMonthPrice: false,
+  showFirstMonthPrice: true,
+  firstMonthPriceOverride: 'R$ 65,00',
+  firstMonthPriceValueOverride: 65,
   unitIds: ['ipiranga'],
-  productImage: {
-    src: '/assets/images/garrafa-loud-fit.webp',
-    alt: 'Coqueteleira Loud Fit oferecida na campanha de inauguração',
-    width: 1086,
-    height: 1448,
-  },
+  headlineHighlights: ['ALGUÉM'],
+  giftChips: [
+    'Ganhe uma coqueteleira Loud Fit',
+    'Ganhe 30 dias para presentear alguém',
+  ],
   tracking: buildTracking('new_customer'),
   metadata: {
     title: 'Oferta de inauguração | Loud Fit',
