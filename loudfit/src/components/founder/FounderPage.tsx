@@ -42,6 +42,8 @@ export function FounderPage({ config, guestName }: CampaignPageProps) {
     target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
   }
 
+  const showLeadForm = config.showLeadForm !== false
+
   return (
     <>
       <FounderHero config={config} guestName={guestName} />
@@ -52,7 +54,7 @@ export function FounderPage({ config, guestName }: CampaignPageProps) {
         onCtaClick={scrollToForm}
       />
       <FounderBenefits config={config} />
-      <FounderConversion config={config} plan={selectedPlan} />
+      {showLeadForm && <FounderConversion config={config} plan={selectedPlan} />}
     </>
   )
 }

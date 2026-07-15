@@ -154,6 +154,13 @@ export interface CampaignPageConfig {
   checkoutCtaLabel?: string
   checkoutSupportText?: string
   assistanceCtaLabel?: string
+  assistanceHref?: string
+  showLeadForm?: boolean
+  benefitsHighlight?: {
+    videoSlot?: {
+      note: string
+    }
+  }
   tracking: CampaignTrackingEvents
   metadata: {
     title: string
@@ -232,7 +239,10 @@ export const conviteConfig: CampaignPageConfig = {
   checkoutCtaLabel: 'MATRICULAR AGORA',
   checkoutSupportText:
     'Você segue para o checkout oficial EVO da unidade Ipiranga e cadastra seus dados em poucos passos',
-  assistanceCtaLabel: 'PREFIRO QUE A EQUIPE ME AJUDE',
+  assistanceCtaLabel: 'FALAR NO WHATSAPP',
+  assistanceHref:
+    'https://wa.me/5511937334895?text=Ol%C3%A1%2C%20quero%20aproveitar%20a%20oferta%20de%20inaugura%C3%A7%C3%A3o%20da%20Loud%20Fit%20Ipiranga.',
+  showLeadForm: false,
   tracking: buildTracking('new_customer'),
   metadata: {
     title: 'Oferta de inauguração | Loud Fit',
