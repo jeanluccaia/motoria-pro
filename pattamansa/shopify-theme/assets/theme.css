@@ -1142,6 +1142,18 @@ summary {
   font-weight: 800;
 }
 
+/* reset do estilo generico de <details> (FAQ) dentro do header */
+.site-header details {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.site-header summary {
+  font-weight: 500;
+}
+
 .final-cta__inner {
   display: grid;
   gap: 18px;
