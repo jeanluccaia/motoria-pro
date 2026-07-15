@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
 import { Section } from '@/components/ui/Section'
@@ -32,11 +32,28 @@ export function BrandVideo() {
   const poster = '/assets/images/real-machines.jpg'
   const videoObjectPosition = 'center center'
 
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    video.muted = true
+    video.defaultMuted = true
+    video.setAttribute('muted', '')
+    const attempt = video.play()
+    if (attempt && typeof attempt.catch === 'function') {
+      attempt.catch(() => {
+        // Autoplay blocked — poster stays; user can tap the play button.
+      })
+    }
+  }, [])
+
   function togglePlay() {
     const video = videoRef.current
     if (!video) return
     if (video.paused) {
-      void video.play()
+      video.muted = true
+      video.defaultMuted = true
+      const p = video.play()
+      if (p && typeof p.catch === 'function') p.catch(() => {})
     } else {
       video.pause()
     }
@@ -47,9 +64,6 @@ export function BrandVideo() {
     if (!video) return
     video.muted = !video.muted
     setMuted(video.muted)
-    if (video.paused) {
-      void video.play()
-    }
   }
 
   return (
@@ -110,7 +124,8 @@ export function BrandVideo() {
                   ref={videoRef}
                   src="/hero.mp4"
                   loop
-                  muted={muted}
+                  muted
+                  autoPlay
                   playsInline
                   preload="metadata"
                   poster={poster}
