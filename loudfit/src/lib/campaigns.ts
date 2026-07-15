@@ -132,6 +132,12 @@ export interface CampaignPageConfig {
   hidePlanSelector?: boolean
   showFirstMonthPrice?: boolean
   unitIds?: string[]
+  productImage?: {
+    src: string
+    alt: string
+    width: number
+    height: number
+  }
   tracking: CampaignTrackingEvents
   metadata: {
     title: string
@@ -191,6 +197,12 @@ export const conviteConfig: CampaignPageConfig = {
   hidePlanSelector: true,
   showFirstMonthPrice: false,
   unitIds: ['ipiranga'],
+  productImage: {
+    src: '/assets/images/garrafa-loud-fit.webp',
+    alt: 'Coqueteleira Loud Fit oferecida na campanha de inauguração',
+    width: 1086,
+    height: 1448,
+  },
   tracking: buildTracking('new_customer'),
   metadata: {
     title: 'Oferta de inauguração | Loud Fit',

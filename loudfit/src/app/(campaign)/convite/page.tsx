@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { FounderHeader } from '@/components/founder/FounderHeader'
 import { FounderFooter } from '@/components/founder/FounderFooter'
 import { FounderPage } from '@/components/founder/FounderPage'
+import { CampaignCountdownBar } from '@/components/founder/CampaignCountdownBar'
 import { conviteConfig } from '@/lib/campaigns'
 
 export const metadata: Metadata = {
@@ -32,6 +33,7 @@ export default function Page() {
   return (
     <>
       <FounderHeader label={conviteConfig.headerLabel} href="/convite" />
+      <CampaignCountdownBar />
       <main className="bg-[#0A0A0A]">
         <FounderPage config={conviteConfig} />
       </main>
