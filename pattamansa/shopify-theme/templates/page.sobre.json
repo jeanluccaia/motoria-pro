@@ -1,0 +1,13 @@
+{
+  "sections": {
+    "main": {
+      "type": "institutional-content",
+      "settings": {
+        "eyebrow": "Sobre",
+        "heading": "Pra quem tem cachorro como familia.",
+        "content": "<p>A PattaMansa cria camisetas premium para tutores que vivem essa relacao todos os dias. A marca combina design autoral, produto bem acabado e uma experiencia de compra simples, segura e permanente.</p><p>As pecas sao produzidas via Reserva INK, com foco em acabamento consistente, impressao bem definida e conforto para a rotina.</p>"
+      }
+    }
+  },
+  "order": ["main"]
+}

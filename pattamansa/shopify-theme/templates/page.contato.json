@@ -1,0 +1,12 @@
+{
+  "sections": {
+    "main": {
+      "type": "contact-form",
+      "settings": {
+        "heading": "Fale com a PattaMansa",
+        "intro": "<p>Use o formulario abaixo para falar sobre pedidos, trocas, produtos ou parcerias. O atendimento responde pelo canal informado na mensagem.</p>"
+      }
+    }
+  },
+  "order": ["main"]
+}

@@ -1,0 +1,55 @@
+{% assign featured_collection = collections[section.settings.collection] %}
+{% assign real_product_count = 0 %}
+{% capture product_cards %}
+  {% if featured_collection.products_count > 0 %}
+    {% for product in featured_collection.products limit: section.settings.products_to_show %}
+      {% if product.price > 0 %}
+        {% assign real_product_count = real_product_count | plus: 1 %}
+        <a class="product-card" href="{{ product.url }}">
+          {% if product.featured_image != blank %}
+            {{ product.featured_image | image_url: width: 700 | image_tag: loading: 'lazy', widths: '320, 520, 700', sizes: '(min-width: 900px) 25vw, 50vw', alt: product.title }}
+          {% endif %}
+          {% unless product.available %}
+            <span class="product-card__badge">Esgotado</span>
+          {% endunless %}
+          <span class="product-card__title">{{ product.title }}</span>
+          <span class="product-card__price">
+            {% if product.compare_at_price > product.price %}
+              <s>{{ product.compare_at_price | money }}</s>
+            {% endif %}
+            {{ product.price | money }}
+          </span>
+          <span class="product-card__installments">ou 3x de {{ product.price | divided_by: 3 | money }}</span>
+          <span class="product-card__cta">Ver produto</span>
+        </a>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endcapture %}
+
+{% if real_product_count > 0 %}
+  <section class="section section--favorites">
+    <div class="page-width">
+      <div class="section-heading">
+        <p class="eyebrow">Curadoria</p>
+        <h2>{{ section.settings.heading }}</h2>
+      </div>
+
+      <div class="product-grid">
+        {{ product_cards }}
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Produtos favoritos",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Titulo", "default": "Os favoritos da matilha" },
+    { "type": "collection", "id": "collection", "label": "Colecao" },
+    { "type": "range", "id": "products_to_show", "label": "Produtos exibidos", "min": 2, "max": 8, "step": 1, "default": 4 }
+  ],
+  "presets": [{ "name": "Produtos favoritos" }]
+}
+{% endschema %}

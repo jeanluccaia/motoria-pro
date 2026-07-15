@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="{{ request.locale.iso_code | default: 'pt-BR' }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="{{ settings.primary_color | default: '#10372C' }}">
+    <link rel="canonical" href="{{ canonical_url }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap">
+    {% if settings.favicon != blank %}
+      <link rel="icon" href="{{ settings.favicon | image_url: width: 64, height: 64 }}">
+    {% elsif settings.favicon_asset != blank %}
+      <link rel="icon" href="{{ settings.favicon_asset | asset_url }}">
+    {% else %}
+      <link rel="icon" href="{{ 'pattamansa-favicon.png' | asset_url }}">
+    {% endif %}
+
+    <title>
+      {% if template.name == 'index' %}
+        PattaMansa &mdash; Camisetas premium para tutores de cachorro
+      {% else %}
+        {{ page_title }} &mdash; PattaMansa
+      {% endif %}
+      {%- if current_tags %} &ndash; {{ current_tags | join: ', ' }}{% endif -%}
+    </title>
+
+    {% if page_description %}
+      <meta name="description" content="{{ page_description | escape }}">
+    {% else %}
+      <meta name="description" content="PattaMansa: camisetas premium para tutores de cachorro, com design autoral e padrao de qualidade Reserva INK.">
+    {% endif %}
+    <meta property="og:site_name" content="PattaMansa">
+    <meta property="og:title" content="{{ page_title | escape }}">
+    <meta property="og:url" content="{{ canonical_url }}">
+    <meta property="og:type" content="{% if template.name == 'product' %}product{% else %}website{% endif %}">
+    {% if page_description %}
+      <meta property="og:description" content="{{ page_description | escape }}">
+    {% endif %}
+
+    {{ content_for_header }}
+
+    <style>
+      {% if settings.heading_font != blank %}
+        {{ settings.heading_font | font_face: font_display: 'swap' }}
+      {% endif %}
+      {% if settings.body_font != blank %}
+        {{ settings.body_font | font_face: font_display: 'swap' }}
+      {% endif %}
+
+      :root {
+        --ink: {{ settings.text_color | default: '#1F1917' }};
+        --paper: {{ settings.background_color | default: '#F2EBE0' }};
+        --clay: {{ settings.accent_color | default: '#E6571F' }};
+        --sage: {{ settings.primary_color | default: '#10372C' }};
+        --charcoal: #1F1917;
+        --cream-card: #FFFFFF;
+        --accent: {{ settings.support_color | default: '#B8BC8A' }};
+        --font-display: 'Bricolage Grotesque', {% if settings.heading_font != blank %}'{{ settings.heading_font.family }}', {% endif %}Georgia, serif;
+        --font-body: 'Hanken Grotesk', {% if settings.body_font != blank %}'{{ settings.body_font.family }}', {% endif %}ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-accent: 'Instrument Serif', Georgia, serif;
+      }
+    </style>
+    {{ 'theme.css' | asset_url | stylesheet_tag }}
+    <script src="{{ 'theme.js' | asset_url }}" defer></script>
+  </head>
+
+  <body class="template-{{ template.name | handle }}">
+    <a class="skip-link" href="#MainContent">Pular para o conteudo</a>
+    {% sections 'header-group' %}
+
+    <main id="MainContent" role="main" tabindex="-1">
+      {{ content_for_layout }}
+    </main>
+
+    {% sections 'footer-group' %}
+    {% render 'cart-drawer' %}
+  </body>
+</html>

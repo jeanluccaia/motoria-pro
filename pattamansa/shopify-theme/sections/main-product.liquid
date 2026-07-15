@@ -1,0 +1,181 @@
+<section class="product-page page-width" data-product-root>
+  <div class="product-gallery" aria-label="Galeria do produto">
+    {% if product.media.size > 0 %}
+      {% for media in product.media %}
+        <div class="product-gallery__item" data-media-id="{{ media.id }}">
+          {{ media | image_url: width: 1200 | image_tag: loading: 'lazy', widths: '360, 720, 960, 1200', sizes: '(min-width: 900px) 50vw, 100vw', alt: product.title }}
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="product-gallery__item product-gallery__empty">Imagem em breve</div>
+    {% endif %}
+  </div>
+
+  <div class="product-info">
+    <p class="eyebrow">PattaMansa</p>
+    <h1>{{ product.title }}</h1>
+    <p class="product-price" data-product-price>
+      {% if product.price > 0 %}
+        {{ product.price | money }}
+      {% else %}
+        Em breve
+      {% endif %}
+    </p>
+    <p class="product-installments">
+      {% if product.price > 0 %}
+        ou 3x de {{ product.price | divided_by: 3 | money }}
+      {% else %}
+        {{ section.settings.installment_text }}
+      {% endif %}
+    </p>
+
+    {% form 'product', product, class: 'product-form', data-product-form: '' %}
+      <input
+        type="hidden"
+        name="id"
+        value="{% if product.has_only_default_variant %}{{ product.selected_or_first_available_variant.id }}{% endif %}"
+        data-variant-id-input
+      >
+
+      {% unless product.has_only_default_variant %}
+        <div class="variant-picker" data-variant-picker>
+          {% for option in product.options_with_values %}
+            <fieldset class="variant-fieldset" data-option-index="{{ forloop.index0 }}">
+              <legend>{{ option.name }}</legend>
+              <div class="option-values">
+                {% for value in option.values %}
+                  <label class="option-pill">
+                    <input
+                      type="radio"
+                      name="option-{{ section.id }}-{{ forloop.parentloop.index0 }}"
+                      value="{{ value | escape }}"
+                      data-option-value
+                    >
+                    <span>{{ value }}</span>
+                  </label>
+                {% endfor %}
+              </div>
+            </fieldset>
+          {% endfor %}
+        </div>
+        <p class="variant-message" data-variant-message>Selecione modelo, cor e tamanho para continuar.</p>
+      {% endunless %}
+
+      <button
+        class="button button--primary product-submit"
+        type="submit"
+        name="add"
+        data-product-submit
+        {% unless product.has_only_default_variant %}disabled{% endunless %}
+      >
+        Adicionar ao carrinho
+      </button>
+      <p class="trust-line">Compra segura &middot; Troca facil em 7 dias &middot; Envio com rastreio</p>
+    {% endform %}
+
+    <div class="product-benefits">
+      <span>Compra segura Shopify</span>
+      <span>Padrao de qualidade Reserva INK</span>
+      <span>Envio com rastreio</span>
+    </div>
+
+    <div class="product-accordions">
+      <details open>
+        <summary>Tecido</summary>
+        <div class="rte">
+          {% if product.description != blank %}
+            {{ product.description }}
+          {% else %}
+            <p>{{ section.settings.fabric_fit }}</p>
+          {% endif %}
+        </div>
+      </details>
+      <details>
+        <summary>Tabela de medidas</summary>
+        <p>{{ section.settings.size_guide }}</p>
+      </details>
+      <details>
+        <summary>Cuidados com a peca</summary>
+        <p>{{ section.settings.care_text }}</p>
+      </details>
+      <details>
+        <summary>Frete e trocas</summary>
+        <p>{{ section.settings.shipping_returns }}</p>
+      </details>
+    </div>
+
+    <div class="reserve-block">
+      <p class="eyebrow">Qualidade Reserva INK</p>
+      <h2>{{ section.settings.reserve_heading }}</h2>
+      <p>{{ section.settings.reserve_text }}</p>
+    </div>
+
+    <div class="product-mini-faq">
+      <h2>Duvidas rapidas</h2>
+      <details><summary>Como sei qual tamanho comprar?</summary><p>Use a tabela de medidas e compare com uma camiseta que ja fica bem em voce.</p></details>
+      <details><summary>Tem rastreio?</summary><p>Sim. O acompanhamento fica disponivel depois do envio do pedido.</p></details>
+      <details><summary>Posso trocar?</summary><p>Sim, dentro das condicoes da politica de trocas e devolucoes.</p></details>
+    </div>
+  </div>
+
+  {% assign cross_sell_collection = collections[section.settings.cross_sell_collection] %}
+  {% assign related_count = 0 %}
+  {% capture related_cards %}
+    {% if cross_sell_collection.products_count > 0 %}
+      {% for related_product in cross_sell_collection.products limit: 4 %}
+        {% if related_product.id != product.id and related_product.price > 0 %}
+          {% assign related_count = related_count | plus: 1 %}
+          <a class="product-card" href="{{ related_product.url }}">
+            {% if related_product.featured_image != blank %}
+              {{ related_product.featured_image | image_url: width: 700 | image_tag: loading: 'lazy', widths: '320, 520, 700', alt: related_product.title }}
+            {% endif %}
+            {% unless related_product.available %}
+              <span class="product-card__badge">Esgotado</span>
+            {% endunless %}
+            <span class="product-card__title">{{ related_product.title }}</span>
+            <span class="product-card__price">
+              {% if related_product.compare_at_price > related_product.price %}
+                <s>{{ related_product.compare_at_price | money }}</s>
+              {% endif %}
+              {{ related_product.price | money }}
+            </span>
+            <span class="product-card__installments">ou 3x de {{ related_product.price | divided_by: 3 | money }}</span>
+            <span class="product-card__cta">Ver produto</span>
+          </a>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  {% endcapture %}
+  {% if related_count > 0 %}
+    <aside class="cross-sell">
+      <div class="section-heading">
+        <p class="eyebrow">Complete a matilha</p>
+        <h2>{{ section.settings.cross_sell_heading }}</h2>
+      </div>
+      <div class="product-grid">
+        {{ related_cards }}
+      </div>
+    </aside>
+  {% endif %}
+
+  <script type="application/json" data-variant-json>
+    {{ product.variants | json }}
+  </script>
+</section>
+
+{% schema %}
+{
+  "name": "Produto principal",
+  "settings": [
+    { "type": "text", "id": "installment_text", "label": "Texto de parcelamento", "default": "Parcelamento e meios de pagamento aparecem no checkout." },
+    { "type": "textarea", "id": "fabric_fit", "label": "Tecido e caimento", "default": "Camiseta premium com toque confortavel, boa estrutura e caimento pensado para uso no dia a dia." },
+    { "type": "textarea", "id": "size_guide", "label": "Tabela de medidas", "default": "Compare as medidas do produto com uma camiseta que voce ja usa. Se estiver entre dois tamanhos, escolha pelo caimento que prefere." },
+    { "type": "textarea", "id": "care_text", "label": "Cuidados com a peca", "default": "Lave do avesso, em agua fria, sem alvejante. Seque a sombra e evite passar ferro diretamente sobre a estampa." },
+    { "type": "textarea", "id": "shipping_returns", "label": "Frete e trocas", "default": "O frete e o prazo aparecem no checkout conforme CEP. Trocas seguem a politica da loja e podem ser solicitadas em ate 7 dias corridos apos o recebimento." },
+    { "type": "text", "id": "reserve_heading", "label": "Titulo Reserva INK", "default": "Padrao de qualidade para uma camiseta que dura na rotina." },
+    { "type": "textarea", "id": "reserve_text", "label": "Texto Reserva INK", "default": "Peca produzida via Reserva INK, com processo voltado a acabamento consistente, impressao bem definida e experiencia premium." },
+    { "type": "collection", "id": "cross_sell_collection", "label": "Colecao de cross-sell" },
+    { "type": "text", "id": "cross_sell_heading", "label": "Titulo do cross-sell", "default": "Outras escolhas que combinam com esta peca." }
+  ]
+}
+{% endschema %}

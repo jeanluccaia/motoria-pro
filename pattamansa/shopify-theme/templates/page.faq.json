@@ -1,0 +1,13 @@
+{
+  "sections": {
+    "main": {
+      "type": "institutional-content",
+      "settings": {
+        "eyebrow": "FAQ",
+        "heading": "Perguntas frequentes",
+        "content": "<h2>Qual e o prazo de entrega?</h2><p>O prazo aparece no checkout apos informar o CEP e escolher a modalidade disponivel.</p><h2>Como acompanho meu pedido?</h2><p>Quando o pedido for enviado, o rastreio fica disponivel nos canais de acompanhamento da loja.</p><h2>Como escolho meu tamanho?</h2><p>Compare a tabela de medidas do produto com uma camiseta que voce ja usa e escolha pelo caimento desejado.</p><h2>Posso trocar?</h2><p>Sim. A troca facil em 7 dias segue as condicoes da politica de trocas e devolucoes.</p><h2>E se a peca tiver defeito?</h2><p>Entre em contato pelo formulario da loja com numero do pedido e fotos da peca para avaliacao do atendimento.</p><h2>Como lavar?</h2><p>Lave do avesso, em agua fria, sem alvejante. Seque a sombra e evite ferro diretamente sobre a estampa.</p><h2>Qual e o tecido?</h2><p>A composicao e os detalhes de caimento devem ser conferidos na pagina de cada produto.</p><h2>Quais formas de pagamento aceitam?</h2><p>O checkout Shopify mostra as opcoes ativas da loja, incluindo Pix e cartao quando configurados.</p><h2>Tem nota fiscal?</h2><p>A emissao fiscal segue a configuracao operacional ativa da loja.</p><h2>Vai ter personalizacao?</h2><p>A personalizacao esta no radar da marca, mas ainda nao faz parte da experiencia atual de compra.</p>"
+      }
+    }
+  },
+  "order": ["main"]
+}

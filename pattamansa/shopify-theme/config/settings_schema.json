@@ -1,0 +1,95 @@
+[
+  {
+    "name": "PattaMansa",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "Logo"
+      },
+      {
+        "type": "text",
+        "id": "logo_asset",
+        "label": "Logo fallback em assets",
+        "default": "pattamansa-logo.png"
+      },
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "Favicon"
+      },
+      {
+        "type": "text",
+        "id": "favicon_asset",
+        "label": "Favicon fallback em assets",
+        "default": "pattamansa-favicon.png"
+      },
+      {
+        "type": "color",
+        "id": "background_color",
+        "label": "Fundo",
+        "default": "#F2EBE0"
+      },
+      {
+        "type": "color",
+        "id": "primary_color",
+        "label": "Verde principal",
+        "default": "#10372C"
+      },
+      {
+        "type": "color",
+        "id": "accent_color",
+        "label": "CTA",
+        "default": "#E6571F"
+      },
+      {
+        "type": "color",
+        "id": "text_color",
+        "label": "Texto",
+        "default": "#1F1917"
+      },
+      {
+        "type": "color",
+        "id": "support_color",
+        "label": "Acento",
+        "default": "#B8BC8A"
+      },
+      {
+        "type": "header",
+        "content": "Tipografia"
+      },
+      {
+        "type": "font_picker",
+        "id": "heading_font",
+        "label": "Fonte dos titulos (display)",
+        "default": "playfair_display_n7"
+      },
+      {
+        "type": "font_picker",
+        "id": "body_font",
+        "label": "Fonte do corpo de texto",
+        "default": "assistant_n4"
+      },
+      {
+        "type": "text",
+        "id": "legal_name",
+        "label": "Razao social"
+      },
+      {
+        "type": "text",
+        "id": "cnpj",
+        "label": "CNPJ"
+      },
+      {
+        "type": "header",
+        "content": "Contato / WhatsApp"
+      },
+      {
+        "type": "url",
+        "id": "whatsapp_url",
+        "label": "URL do WhatsApp (personalização)",
+        "info": "Ex: https://wa.me/55DDDNUMERO?text=Oi%2C%20quero%20personalizar%20uma%20camiseta%20PattaMansa%20com%20a%20foto%20do%20meu%20cachorro. Se vazio, os CTAs usam /pages/contato."
+      }
+    ]
+  }
+]

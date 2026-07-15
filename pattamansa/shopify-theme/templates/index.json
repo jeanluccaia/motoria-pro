@@ -1,0 +1,115 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero": {
+      "type": "hero-premium",
+      "settings": {
+        "desktop_asset": "pattamansa-hero-fundadores-clean-desktop.webp",
+        "mobile_asset": "pattamansa-hero-fundadores-mobile-9x16.webp",
+        "mobile_asset_fallback": "pattamansa-hero-fundadores-mobile-9x16.png",
+        "desktop_asset_fallback": "pattamansa-hero-fundadores-clean-desktop.webp",
+        "image_alt": "Fundadores da PattaMansa com cachorro",
+        "eyebrow": "PET LIFESTYLE PREMIUM",
+        "heading": "Pra quem tem cachorro como família.",
+        "subheading": "Camisetas premium e personalizadas para tutores que carregam esse amor no peito.",
+        "primary_label": "Ver camisetas",
+        "primary_link": "/collections/todas-as-camisetas",
+        "secondary_label": "Personalizar com meu cachorro",
+        "authority_text": "Produção Reserva INK · Envio com rastreio",
+        "trust_left": "",
+        "trust_right": ""
+      }
+    },
+    "custom_dog_shirt": {
+      "type": "custom-dog-shirt",
+      "settings": {
+        "desktop_asset": "pattamansa-personalizacao-cachorro-desktop.webp",
+        "eyebrow": "PERSONALIZAÇÃO",
+        "heading": "Seu cachorro na sua camiseta.",
+        "text": "Manda a foto no WhatsApp e a gente cria uma estampa exclusiva com a cara do seu melhor amigo.",
+        "bullet_1": "Estampa exclusiva a partir da foto",
+        "bullet_2": "Produção com qualidade Reserva INK",
+        "bullet_3": "Atendimento direto pelo WhatsApp",
+        "cta_label": "Personalizar no WhatsApp"
+      }
+    },
+    "differentials": {
+      "type": "brand-differentials",
+      "settings": {
+        "item_1_title": "Produção Reserva INK",
+        "item_1_text": "Malha premium e estampa que não desbota.",
+        "item_2_title": "Envio com rastreio",
+        "item_2_text": "Acompanhe seu pedido do envio à porta.",
+        "item_3_title": "Pagamento seguro",
+        "item_3_text": "Pix, cartão e checkout protegido.",
+        "item_4_title": "Troca fácil",
+        "item_4_text": "Não serviu? A gente troca sem drama."
+      }
+    },
+    "signature_models": {
+      "type": "signature-models",
+      "settings": {
+        "eyebrow": "COLEÇÃO",
+        "heading": "Modelos autorais",
+        "see_all_label": "Ver tudo",
+        "see_all_link": "/collections/todas-as-camisetas",
+        "card_1_title": "Melhor Amigo",
+        "card_1_subtitle": "Off-white · algodão pima",
+        "card_1_price": "R$ 129",
+        "card_2_title": "Vira-Lata Caramelo",
+        "card_2_subtitle": "Verde musgo · fio penteado",
+        "card_2_price": "R$ 129",
+        "card_2_badge": "Novo",
+        "card_3_title": "Companheiro",
+        "card_3_subtitle": "Carvão · corte oversized",
+        "card_3_price": "R$ 139",
+        "card_4_title": "Sua Estampa",
+        "card_4_subtitle": "Personalizada · a sua cara",
+        "card_4_price": "R$ 159",
+        "card_4_cta_label": "Personalizar"
+      }
+    },
+    "story": {
+      "type": "emotional-block",
+      "settings": {
+        "quote_before": "O amor por um cachorro não cabe no peito.",
+        "quote_accent": "Então a gente veste.",
+        "text": "Cada camiseta PattaMansa nasce da relação real entre tutor e cachorro. Não é estampa de pet shop — é peça do guarda-roupa que conta a sua história."
+      }
+    },
+    "faq": {
+      "type": "faq",
+      "settings": {
+        "eyebrow": "DÚVIDAS RÁPIDAS",
+        "heading": "Perguntas frequentes"
+      }
+    },
+    "final_cta": {
+      "type": "final-cta",
+      "settings": {
+        "heading": "Vista esse amor.",
+        "subheading": "Escolha um modelo autoral ou crie a sua estampa com a cara do seu melhor amigo.",
+        "primary_label": "Ver camisetas",
+        "link": "/collections/todas-as-camisetas",
+        "secondary_label": "Personalizar com meu cachorro"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "custom_dog_shirt",
+    "differentials",
+    "signature_models",
+    "story",
+    "faq",
+    "final_cta"
+  ]
+}

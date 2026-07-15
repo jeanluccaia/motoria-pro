@@ -1,0 +1,408 @@
+{% assign image_alt = section.settings.image_alt | default: 'Fundadores da PattaMansa com cachorro' %}
+
+{% assign desktop_image = section.settings.image_desktop %}
+{% assign mobile_image = section.settings.image_mobile %}
+
+{% assign desktop_asset_name = section.settings.desktop_asset | default: 'pattamansa-hero-fundadores-clean-desktop.webp' %}
+{% assign mobile_asset_name = section.settings.mobile_asset | default: 'pattamansa-hero-fundadores-mobile-9x16.webp' %}
+{% assign mobile_asset_fallback = section.settings.mobile_asset_fallback | default: 'pattamansa-hero-fundadores-mobile-9x16.png' %}
+{% assign desktop_asset_fallback = section.settings.desktop_asset_fallback | default: 'pattamansa-hero-fundadores-clean-desktop.webp' %}
+
+{% assign primary_link = section.settings.primary_link | default: '/collections/todas-as-camisetas' %}
+{% assign primary_label = section.settings.primary_label | default: 'Ver camisetas' %}
+{% assign secondary_label = section.settings.secondary_label | default: 'Personalizar com meu cachorro' %}
+
+{% assign whatsapp_url = settings.whatsapp_url %}
+{% if whatsapp_url == blank %}
+  {% assign whatsapp_url = section.settings.secondary_link %}
+{% endif %}
+{% if whatsapp_url == blank %}
+  {% assign whatsapp_url = '/pages/contato' %}
+{% endif %}
+
+{% assign is_whatsapp = false %}
+{% if whatsapp_url contains 'wa.me' or whatsapp_url contains 'whatsapp' %}
+  {% assign is_whatsapp = true %}
+{% endif %}
+
+<section class="hero-pm" aria-label="Apresentação PattaMansa">
+  <div class="hero-pm__media" aria-hidden="true">
+    <picture>
+      {% if mobile_image != blank %}
+        <source
+          media="(max-width: 749px)"
+          srcset="{{ mobile_image | image_url: width: 750 }} 750w, {{ mobile_image | image_url: width: 1080 }} 1080w"
+          sizes="100vw"
+        >
+      {% elsif mobile_asset_name != blank %}
+        <source
+          media="(max-width: 749px)"
+          type="image/webp"
+          srcset="{{ mobile_asset_name | asset_url }}"
+          sizes="100vw"
+        >
+        {% if mobile_asset_fallback != blank %}
+          <source
+            media="(max-width: 749px)"
+            srcset="{{ mobile_asset_fallback | asset_url }}"
+            sizes="100vw"
+          >
+        {% endif %}
+      {% endif %}
+      {% if desktop_image != blank %}
+        {{ desktop_image | image_url: width: 2000 | image_tag: loading: 'eager', fetchpriority: 'high', widths: '900, 1400, 1800, 2000', sizes: '100vw', alt: image_alt, class: 'hero-pm__img' }}
+      {% else %}
+        <img
+          class="hero-pm__img"
+          src="{{ desktop_asset_name | asset_url }}"
+          alt="{{ image_alt | escape }}"
+          width="1600"
+          height="1067"
+          loading="eager"
+          fetchpriority="high"
+          onerror="if(this.dataset.fallback && this.src !== this.dataset.fallback){this.src=this.dataset.fallback;}"
+          data-fallback="{{ desktop_asset_fallback | asset_url }}"
+        >
+      {% endif %}
+    </picture>
+  </div>
+  <div class="hero-pm__scrim" aria-hidden="true"></div>
+  <div class="page-width hero-pm__inner">
+    <div class="hero-pm__copy">
+      {% if section.settings.eyebrow != blank %}
+        <p class="eyebrow hero-pm__eyebrow">{{ section.settings.eyebrow }}</p>
+      {% endif %}
+      <h1 class="hero-pm__title">{{ section.settings.heading | default: 'Pra quem tem cachorro como família.' }}</h1>
+      <p class="hero-pm__sub">{{ section.settings.subheading | default: 'Camisetas premium e personalizadas para tutores que carregam esse amor no peito.' }}</p>
+      {% assign authority_text = section.settings.authority_text %}
+      {% if authority_text != blank %}
+        <p class="hero-pm__authority">{{ authority_text }}</p>
+      {% endif %}
+      <div class="hero-pm__actions">
+        <a class="button button--primary hero-pm__primary" href="{{ primary_link }}">{{ primary_label }}</a>
+        <a
+          class="hero-pm__ghost"
+          href="{{ whatsapp_url }}"
+          {% if is_whatsapp %}target="_blank" rel="noopener"{% endif %}
+        >{{ secondary_label }}<span class="hero-pm__ghost-arrow" aria-hidden="true">&rarr;</span></a>
+      </div>
+      {% if section.settings.trust_left != blank or section.settings.trust_right != blank %}
+        <div class="hero-pm__trust" aria-label="Selos de confiança">
+          {% if section.settings.trust_left != blank %}<span class="hero-pm__trust-text">{{ section.settings.trust_left }}</span>{% endif %}
+          {% if section.settings.trust_right != blank %}<span class="hero-pm__trust-sep" aria-hidden="true">·</span><span class="hero-pm__trust-text">{{ section.settings.trust_right }}</span>{% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero-pm {
+    position: relative;
+    overflow: hidden;
+    background: #E8DFCF;
+    color: var(--ink);
+    min-height: 640px;
+    display: flex;
+    align-items: center;
+    isolation: isolate;
+  }
+
+  .hero-pm__media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .hero-pm__media picture,
+  .hero-pm__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center right;
+  }
+
+  .hero-pm__scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+      linear-gradient(90deg,
+        rgba(242, 235, 224, .92) 0%,
+        rgba(242, 235, 224, .82) 24%,
+        rgba(242, 235, 224, .5) 44%,
+        rgba(242, 235, 224, .12) 60%,
+        rgba(242, 235, 224, 0) 74%);
+    pointer-events: none;
+  }
+
+  .hero-pm__inner {
+    position: relative;
+    z-index: 2;
+    width: min(100% - 32px, var(--max));
+    display: block;
+  }
+
+  .hero-pm__copy {
+    max-width: 520px;
+    display: grid;
+    gap: 4px;
+  }
+
+  .hero-pm__eyebrow {
+    margin: 0 0 4px;
+    color: rgba(31, 25, 23, .68);
+    font-size: 11.5px;
+    letter-spacing: .18em;
+    font-weight: 600;
+  }
+
+  .hero-pm__title {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: clamp(38px, 6vw, 60px);
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: -0.012em;
+    max-width: 520px;
+  }
+
+  .hero-pm__sub {
+    margin: 18px 0 0;
+    max-width: 460px;
+    color: rgba(31, 25, 23, .74);
+    font-size: clamp(16px, 1.6vw, 18px);
+    line-height: 1.5;
+  }
+
+  .hero-pm__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 26px;
+  }
+
+  .hero-pm__ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 4px;
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    font-weight: 600;
+    letter-spacing: .01em;
+    border: none;
+    border-bottom: 1px solid rgba(31, 25, 23, .35);
+    border-radius: 0;
+    transition: color .15s ease, border-color .15s ease, gap .2s ease;
+    cursor: pointer;
+  }
+
+  .hero-pm__ghost:hover {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+    gap: 10px;
+    background: transparent;
+  }
+
+  .hero-pm__ghost-arrow {
+    font-size: 15px;
+    line-height: 1;
+    transition: transform .2s ease;
+  }
+
+  .hero-pm__ghost:hover .hero-pm__ghost-arrow {
+    transform: translateX(2px);
+  }
+
+  .hero-pm__authority {
+    margin: 18px 0 0;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: rgba(31, 25, 23, .62);
+  }
+
+  .hero-pm__trust {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 26px;
+    color: rgba(31, 25, 23, .62);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .hero-pm__stars {
+    color: var(--clay);
+    letter-spacing: 1px;
+    font-size: 14px;
+  }
+
+  .hero-pm__trust-sep { color: rgba(31, 25, 23, .32); }
+
+  @media (min-width: 760px) {
+    .hero-pm { min-height: 680px; }
+
+    .hero-pm__scrim {
+      background:
+        linear-gradient(90deg,
+          rgba(242, 235, 224, .95) 0%,
+          rgba(242, 235, 224, .82) 26%,
+          rgba(242, 235, 224, .5) 46%,
+          rgba(242, 235, 224, .1) 62%,
+          rgba(242, 235, 224, 0) 74%);
+    }
+  }
+
+  @media (min-width: 990px) {
+    .hero-pm { min-height: 720px; }
+
+    .hero-pm__copy {
+      max-width: 560px;
+    }
+  }
+
+  @media (max-width: 749px) {
+    .hero-pm {
+      min-height: 0;
+      aspect-ratio: 9 / 16;
+      max-height: 780px;
+      padding: 22px 0 24px;
+      align-items: flex-start;
+      background: #E8DFCF;
+      color: var(--ink);
+    }
+
+    .hero-pm__media picture,
+    .hero-pm__img {
+      object-position: center top;
+    }
+
+    .hero-pm__scrim {
+      background:
+        linear-gradient(180deg,
+          rgba(232, 223, 207, .92) 0%,
+          rgba(232, 223, 207, .72) 22%,
+          rgba(232, 223, 207, .3) 38%,
+          rgba(232, 223, 207, 0) 55%);
+    }
+
+    .hero-pm__copy {
+      max-width: 100%;
+      gap: 0;
+    }
+
+    .hero-pm__eyebrow {
+      font-size: 11px;
+      letter-spacing: .2em;
+      color: rgba(31, 25, 23, .68);
+      margin: 0 0 8px;
+    }
+
+    .hero-pm__title {
+      font-size: clamp(32px, 8.6vw, 42px);
+      line-height: 1.02;
+      letter-spacing: -0.012em;
+      color: var(--ink);
+      text-shadow: none;
+      max-width: 100%;
+    }
+
+    .hero-pm__sub {
+      display: none;
+    }
+
+    .hero-pm__authority {
+      margin: 12px 0 0;
+      font-size: 10.5px;
+      letter-spacing: .18em;
+      color: rgba(31, 25, 23, .58);
+    }
+
+    .hero-pm__actions {
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+      gap: 4px;
+      margin-top: 16px;
+    }
+
+    .hero-pm__actions .button--primary {
+      width: 100%;
+      justify-content: center;
+      min-height: 46px;
+      font-size: 14.5px;
+    }
+
+    .hero-pm__ghost {
+      width: auto;
+      align-self: flex-start;
+      justify-content: flex-start;
+      padding: 10px 2px;
+      border-bottom: none;
+      font-size: 13.5px;
+      color: rgba(31, 25, 23, .82);
+    }
+
+    .hero-pm__ghost:hover {
+      color: var(--ink);
+    }
+
+    .hero-pm__trust {
+      display: none;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Hero premium",
+  "settings": [
+    { "type": "image_picker", "id": "image_desktop", "label": "Imagem desktop" },
+    { "type": "image_picker", "id": "image_mobile", "label": "Imagem mobile" },
+    {
+      "type": "text",
+      "id": "desktop_asset",
+      "label": "Arquivo desktop em assets",
+      "default": "pattamansa-hero-fundadores-clean-desktop.webp"
+    },
+    {
+      "type": "text",
+      "id": "mobile_asset",
+      "label": "Arquivo mobile em assets",
+      "default": "pattamansa-hero-fundadores-mobile-9x16.webp"
+    },
+    {
+      "type": "text",
+      "id": "mobile_asset_fallback",
+      "label": "Fallback mobile (PNG)",
+      "default": "pattamansa-hero-fundadores-mobile-9x16.png"
+    },
+    {
+      "type": "text",
+      "id": "desktop_asset_fallback",
+      "label": "Fallback desktop",
+      "default": "pattamansa-hero-fundadores-clean-desktop.webp"
+    },
+    { "type": "text", "id": "image_alt", "label": "Alt text da imagem", "default": "Fundadores da PattaMansa com cachorro" },
+    { "type": "text", "id": "eyebrow", "label": "Chamada curta", "default": "PET LIFESTYLE PREMIUM" },
+    { "type": "text", "id": "heading", "label": "Headline", "default": "Pra quem tem cachorro como família." },
+    { "type": "textarea", "id": "subheading", "label": "Subheadline", "default": "Camisetas premium e personalizadas para tutores que carregam esse amor no peito." },
+    { "type": "text", "id": "primary_label", "label": "CTA principal", "default": "Ver camisetas" },
+    { "type": "url", "id": "primary_link", "label": "Link CTA principal" },
+    { "type": "text", "id": "secondary_label", "label": "CTA secundário", "default": "Personalizar com meu cachorro" },
+    { "type": "url", "id": "secondary_link", "label": "Link CTA secundário (fallback WhatsApp)" },
+    { "type": "text", "id": "authority_text", "label": "Linha de autoridade", "default": "Produção Reserva INK · Envio com rastreio" },
+    { "type": "text", "id": "trust_left", "label": "Trust bar - esquerda (opcional)" },
+    { "type": "text", "id": "trust_right", "label": "Trust bar - direita (opcional)" }
+  ],
+  "presets": [{ "name": "Hero premium" }]
+}
+{% endschema %}
