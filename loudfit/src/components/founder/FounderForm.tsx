@@ -58,6 +58,12 @@ export function FounderForm({ config, plan }: CampaignFormProps) {
   const [utms, setUtms] = useState<Record<string, string>>({})
   const startedRef = useRef(false)
 
+  const availableUnits =
+    config.unitIds && config.unitIds.length > 0
+      ? founderUnits.filter((u) => config.unitIds!.includes(u.id))
+      : founderUnits
+  const singleUnit = availableUnits.length === 1 ? availableUnits[0] : null
+
   const {
     register,
     handleSubmit,
@@ -71,7 +77,7 @@ export function FounderForm({ config, plan }: CampaignFormProps) {
       nome: '',
       whatsapp: '',
       email: '',
-      unit_id: '',
+      unit_id: singleUnit?.id ?? '',
       consent: false as unknown as true,
     },
   })
@@ -111,7 +117,7 @@ export function FounderForm({ config, plan }: CampaignFormProps) {
     })
 
     try {
-      const unit = founderUnits.find((u) => u.id === data.unit_id)
+      const unit = availableUnits.find((u) => u.id === data.unit_id)
       const response = await fetch('/api/founder-leads', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
@@ -267,33 +273,44 @@ export function FounderForm({ config, plan }: CampaignFormProps) {
         )}
       </div>
 
-      <div>
-        <label htmlFor="campaign-unit" className="sr-only">
-          Unidade Loud Fit
-        </label>
-        <select
-          id="campaign-unit"
-          aria-invalid={!!errors.unit_id}
-          {...register('unit_id')}
-          className="w-full rounded-[10px] border bg-white/[0.04] px-4 py-4 text-[15px] text-lf-text outline-none transition-colors focus:border-[#FFE000]"
-          style={{ borderColor: errors.unit_id ? '#B4231B' : 'rgba(244,244,242,0.13)' }}
-          defaultValue=""
+      {singleUnit ? (
+        <div
+          className="flex items-center justify-between rounded-[10px] border border-white/[0.10] bg-white/[0.02] px-4 py-3 text-[12px] uppercase tracking-[0.12em] text-white/55"
+          aria-live="polite"
         >
-          <option value="" disabled>
+          <span className="font-semibold">Unidade</span>
+          <span className="font-bold text-lf-text">{singleUnit.label}</span>
+          <input type="hidden" {...register('unit_id')} value={singleUnit.id} />
+        </div>
+      ) : (
+        <div>
+          <label htmlFor="campaign-unit" className="sr-only">
             Unidade Loud Fit
-          </option>
-          {founderUnits.map((u) => (
-            <option key={u.id} value={u.id} className="bg-[#111]">
-              {u.label}
+          </label>
+          <select
+            id="campaign-unit"
+            aria-invalid={!!errors.unit_id}
+            {...register('unit_id')}
+            className="w-full rounded-[10px] border bg-white/[0.04] px-4 py-4 text-[15px] text-lf-text outline-none transition-colors focus:border-[#FFE000]"
+            style={{ borderColor: errors.unit_id ? '#B4231B' : 'rgba(244,244,242,0.13)' }}
+            defaultValue=""
+          >
+            <option value="" disabled>
+              Unidade Loud Fit
             </option>
-          ))}
-        </select>
-        {errors.unit_id && (
-          <p role="alert" className="mt-1.5 text-[12px] text-[#F0665F]">
-            {errors.unit_id.message}
-          </p>
-        )}
-      </div>
+            {availableUnits.map((u) => (
+              <option key={u.id} value={u.id} className="bg-[#111]">
+                {u.label}
+              </option>
+            ))}
+          </select>
+          {errors.unit_id && (
+            <p role="alert" className="mt-1.5 text-[12px] text-[#F0665F]">
+              {errors.unit_id.message}
+            </p>
+          )}
+        </div>
+      )}
 
       <div
         id="campaign-form-plan"

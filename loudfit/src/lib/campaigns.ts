@@ -131,6 +131,7 @@ export interface CampaignPageConfig {
   planIds?: CampaignPlan['id'][]
   hidePlanSelector?: boolean
   showFirstMonthPrice?: boolean
+  unitIds?: string[]
   tracking: CampaignTrackingEvents
   metadata: {
     title: string
@@ -189,6 +190,7 @@ export const conviteConfig: CampaignPageConfig = {
   planIds: ['mensal-recorrente'],
   hidePlanSelector: true,
   showFirstMonthPrice: false,
+  unitIds: ['ipiranga'],
   tracking: buildTracking('new_customer'),
   metadata: {
     title: 'Oferta de inauguração | Loud Fit',
