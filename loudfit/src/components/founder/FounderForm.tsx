@@ -107,6 +107,8 @@ export function FounderForm({ config, plan }: CampaignFormProps) {
 
   const effectiveFirstMonthPrice =
     config.firstMonthPriceValueOverride ?? plan.firstMonthPriceValue
+  const effectiveRegularPrice =
+    config.regularPriceValueOverride ?? plan.regularPriceValue
 
   async function onSubmit(data: FormData) {
     if (submitting) return
@@ -115,7 +117,7 @@ export function FounderForm({ config, plan }: CampaignFormProps) {
     trackCampaignEvent(config.tracking.formSubmit, config.audience, {
       campaign_id: config.campaignId,
       plan_name: plan.name,
-      regular_price: plan.regularPriceValue,
+      regular_price: effectiveRegularPrice,
       first_month_price: effectiveFirstMonthPrice,
     })
 
@@ -132,7 +134,7 @@ export function FounderForm({ config, plan }: CampaignFormProps) {
           unit_name: unit?.label ?? data.unit_id,
           plan_id: plan.id,
           plan_name: plan.name,
-          regular_price: plan.regularPriceValue,
+          regular_price: effectiveRegularPrice,
           first_month_price: effectiveFirstMonthPrice,
           source: config.leadSource,
           campaign: config.campaignId,

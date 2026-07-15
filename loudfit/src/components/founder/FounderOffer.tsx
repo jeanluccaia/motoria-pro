@@ -40,6 +40,10 @@ export function FounderOffer({
     config.firstMonthPriceOverride ?? selected.firstMonthPrice
   const firstMonthPriceValue =
     config.firstMonthPriceValueOverride ?? selected.firstMonthPriceValue
+  const regularPriceLabel =
+    config.regularPriceOverride ?? selected.regularPrice
+  const regularPriceValue =
+    config.regularPriceValueOverride ?? selected.regularPriceValue
   const sectionRef = useRef<HTMLElement>(null)
   const seenRef = useRef(false)
 
@@ -211,7 +215,7 @@ export function FounderOffer({
                   <p className="mt-3 text-[14px] leading-[1.5] text-white/70">
                     Depois{' '}
                     <span className="font-semibold text-lf-text">
-                      {selected.regularPrice}
+                      {regularPriceLabel}
                     </span>{' '}
                     por mês
                   </p>
@@ -234,7 +238,7 @@ export function FounderOffer({
                         animation: 'lfFounderPrice 0.35s cubic-bezier(0.2,0.7,0.2,1) both',
                       }}
                     >
-                      {selected.regularPrice}
+                      {regularPriceLabel}
                     </span>
                     <span className="text-[14px] font-semibold uppercase tracking-[0.16em] text-white/55">
                       /mês
@@ -296,22 +300,63 @@ export function FounderOffer({
               </ul>
             </details>
 
-            <button
-              type="button"
-              onClick={() => {
-                trackCampaignEvent(config.tracking.ctaClick, config.audience, {
-                  source: 'offer_card',
-                  campaign_id: config.campaignId,
-                  plan_name: selected.name,
-                  regular_price: selected.regularPriceValue,
-                  first_month_price: firstMonthPriceValue,
-                })
-                onCtaClick()
-              }}
-              className="lf-cta-volt lf-cta-pulse mt-1 inline-flex min-h-[54px] w-full items-center justify-center rounded-[10px] px-6 py-4 text-[13.5px] font-black uppercase tracking-[0.08em] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_34px_rgba(255,224,0,0.24)] active:translate-y-0 sm:text-[14px]"
-            >
-              {config.cardCtaLabel}
-            </button>
+            {config.checkoutHref ? (
+              <>
+                <a
+                  href={config.checkoutHref}
+                  onClick={() => {
+                    trackCampaignEvent(config.tracking.ctaClick, config.audience, {
+                      source: 'offer_card_checkout',
+                      campaign_id: config.campaignId,
+                      plan_name: selected.name,
+                      regular_price: regularPriceValue,
+                      first_month_price: firstMonthPriceValue,
+                    })
+                  }}
+                  className="lf-cta-volt lf-cta-pulse mt-1 inline-flex min-h-[54px] w-full items-center justify-center rounded-[10px] px-6 py-4 text-[13.5px] font-black uppercase tracking-[0.08em] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_34px_rgba(255,224,0,0.24)] active:translate-y-0 sm:text-[14px]"
+                >
+                  {config.checkoutCtaLabel ?? config.cardCtaLabel}
+                </a>
+                {config.checkoutSupportText && (
+                  <p className="mt-2 text-center text-[12px] leading-[1.5] text-white/50">
+                    {config.checkoutSupportText}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    trackCampaignEvent(config.tracking.ctaClick, config.audience, {
+                      source: 'offer_card_assistance',
+                      campaign_id: config.campaignId,
+                      plan_name: selected.name,
+                      regular_price: regularPriceValue,
+                      first_month_price: firstMonthPriceValue,
+                    })
+                    onCtaClick()
+                  }}
+                  className="mt-3 inline-flex min-h-[46px] w-full items-center justify-center rounded-[10px] border border-white/20 bg-transparent px-5 py-3 text-[12px] font-bold uppercase tracking-[0.10em] text-white/80 transition-all duration-200 hover:border-white/50 hover:text-white active:translate-y-0 sm:text-[12.5px]"
+                >
+                  {config.assistanceCtaLabel ?? config.cardCtaLabel}
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  trackCampaignEvent(config.tracking.ctaClick, config.audience, {
+                    source: 'offer_card',
+                    campaign_id: config.campaignId,
+                    plan_name: selected.name,
+                    regular_price: regularPriceValue,
+                    first_month_price: firstMonthPriceValue,
+                  })
+                  onCtaClick()
+                }}
+                className="lf-cta-volt lf-cta-pulse mt-1 inline-flex min-h-[54px] w-full items-center justify-center rounded-[10px] px-6 py-4 text-[13.5px] font-black uppercase tracking-[0.08em] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_34px_rgba(255,224,0,0.24)] active:translate-y-0 sm:text-[14px]"
+              >
+                {config.cardCtaLabel}
+              </button>
+            )}
 
             <div className="mt-3 flex items-center justify-center gap-2.5 text-center">
               <span

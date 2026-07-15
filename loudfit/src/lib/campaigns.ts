@@ -139,6 +139,8 @@ export interface CampaignPageConfig {
   showFirstMonthPrice?: boolean
   firstMonthPriceOverride?: string
   firstMonthPriceValueOverride?: number
+  regularPriceOverride?: string
+  regularPriceValueOverride?: number
   unitIds?: string[]
   productImage?: {
     src: string
@@ -148,6 +150,10 @@ export interface CampaignPageConfig {
   }
   giftChips?: string[]
   headlineHighlights?: string[]
+  checkoutHref?: string
+  checkoutCtaLabel?: string
+  checkoutSupportText?: string
+  assistanceCtaLabel?: string
   tracking: CampaignTrackingEvents
   metadata: {
     title: string
@@ -212,14 +218,21 @@ export const conviteConfig: CampaignPageConfig = {
   planIds: ['mensal-recorrente'],
   hidePlanSelector: true,
   showFirstMonthPrice: true,
-  firstMonthPriceOverride: 'R$ 65,00',
-  firstMonthPriceValueOverride: 65,
+  firstMonthPriceOverride: 'R$ 69,90',
+  firstMonthPriceValueOverride: 69.9,
+  regularPriceOverride: 'R$ 179,00',
+  regularPriceValueOverride: 179,
   unitIds: ['ipiranga'],
   headlineHighlights: ['ALGUÉM'],
   giftChips: [
     'Ganhe uma coqueteleira Loud Fit',
     'Ganhe 30 dias para presentear alguém',
   ],
+  checkoutHref: '/matricula/ipiranga?utm_source=convite&utm_medium=campanha&utm_campaign=convite_inauguracao',
+  checkoutCtaLabel: 'MATRICULAR AGORA',
+  checkoutSupportText:
+    'Você segue para o checkout oficial EVO da unidade Ipiranga e cadastra seus dados em poucos passos',
+  assistanceCtaLabel: 'PREFIRO QUE A EQUIPE ME AJUDE',
   tracking: buildTracking('new_customer'),
   metadata: {
     title: 'Oferta de inauguração | Loud Fit',
