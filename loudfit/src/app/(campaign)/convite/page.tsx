@@ -21,6 +21,11 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'pt_BR',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: conviteConfig.metadata.title,
+    description: conviteConfig.metadata.description,
+  },
 }
 
 export default function Page() {

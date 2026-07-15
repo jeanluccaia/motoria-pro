@@ -111,6 +111,7 @@ export interface CampaignPageConfig {
   suggestionLabel: string
   cardEyebrow: string
   cardCtaLabel: string
+  cardValidityText?: string
   benefitsTitle: string[]
   benefitsSupport?: string
   benefits: CampaignBenefit[]
@@ -127,6 +128,9 @@ export interface CampaignPageConfig {
   leadSource: string
   campaignId: string
   showPartnerBenefit: boolean
+  planIds?: CampaignPlan['id'][]
+  hidePlanSelector?: boolean
+  showFirstMonthPrice?: boolean
   tracking: CampaignTrackingEvents
   metadata: {
     title: string
@@ -137,52 +141,59 @@ export interface CampaignPageConfig {
 export const conviteConfig: CampaignPageConfig = {
   id: 'convite',
   audience: 'new_customer',
-  headerLabel: 'Convite Especial',
-  eyebrow: 'CONVITE ESPECIAL',
-  headline: ['COMECE NA', 'LOUD FIT', 'POR R$ 9,90'],
-  supportText: 'Seu primeiro mês por R$ 9,90 em um dos planos desta campanha',
-  supportSecondary: 'Depois, o plano segue pelo valor normal escolhido',
-  heroCtaLabel: 'VER MEU CONVITE',
-  offerTitle: ['SUA CONDIÇÃO', 'ESPECIAL'],
+  headerLabel: 'Oferta de Inauguração',
+  eyebrow: 'OFERTA DE INAUGURAÇÃO',
+  headline: ['ENTRE AGORA', 'E LEVE ALGUÉM', 'COM VOCÊ'],
+  supportText:
+    'Matricule-se no Plano Mensal Recorrente e ganhe uma coqueteleira Loud Fit + 30 dias de treino para presentear quem você escolher',
+  heroCtaLabel: 'QUERO GARANTIR A OFERTA',
+  offerTitle: ['OFERTA DE', 'INAUGURAÇÃO'],
   offerSubtitle:
-    'Seu primeiro mês por R$ 9,90 em qualquer um dos planos desta campanha',
-  suggestionLabel: 'Sugestão de campanha',
-  cardEyebrow: 'Seu convite especial',
-  cardCtaLabel: 'QUERO APROVEITAR O CONVITE',
-  benefitsTitle: ['O QUE VEM', 'COM SEU CONVITE'],
+    'Matricule-se no Plano Mensal Recorrente e ganhe uma coqueteleira Loud Fit + 30 dias de treino para presentear quem você escolher',
+  suggestionLabel: 'Plano da campanha',
+  cardEyebrow: 'Sua oferta de inauguração',
+  cardCtaLabel: 'QUERO GARANTIR A OFERTA',
+  cardValidityText:
+    'Mensalidade recorrente com os benefícios da oferta de inauguração',
+  benefitsTitle: ['O QUE VEM', 'COM A OFERTA'],
   benefitsSupport:
-    'Uma condição especial para começar a treinar com a Loud Fit',
+    'Dois benefícios que chegam junto com a sua matrícula na nova unidade',
   benefits: [
     {
       n: '01',
-      title: 'PRIMEIRO MÊS POR R$ 9,90',
-      desc: 'Comece em um dos planos desta campanha pagando R$ 9,90 no primeiro mês',
+      title: 'COQUETELEIRA LOUD FIT',
+      desc: 'Uma coqueteleira para acompanhar sua nova rotina de treino',
     },
     {
       n: '02',
-      title: 'CAMISETA EXCLUSIVA LOUD FIT',
-      desc: 'Confirme sua matrícula e receba uma camiseta exclusiva da Loud Fit',
-      note: 'Sujeita à disponibilidade de tamanho e estoque',
+      title: '30 DIAS PARA PRESENTEAR',
+      desc: 'Escolha uma pessoa para treinar durante 30 dias na Loud Fit',
     },
   ],
+  eligibilityText:
+    'Os benefícios serão liberados após a confirmação da matrícula no Plano Mensal Recorrente. A pessoa presenteada estará sujeita ao cadastro e às regras de utilização da unidade.',
   scarcity: {
-    label: 'OPORTUNIDADE LIMITADA',
-    detail: 'Convite ativo por tempo limitado · vagas por unidade',
+    label: 'OFERTA DE INAUGURAÇÃO POR TEMPO LIMITADO',
+    detail: 'Benefícios sujeitos à disponibilidade e às regras da unidade',
   },
-  formTitle: ['QUERO TREINAR', 'NA LOUD FIT'],
-  formSupport: 'Preencha seus dados para a equipe continuar seu atendimento',
-  formCtaLabel: 'QUERO APROVEITAR O CONVITE',
+  formTitle: ['QUERO COMEÇAR', 'NA LOUD FIT'],
+  formSupport:
+    'Deixe seus dados que a equipe da Loud Fit continua o atendimento por você',
+  formCtaLabel: 'QUERO GARANTIR A OFERTA',
   successTitle: 'INTERESSE CONFIRMADO',
   successMessage:
-    'Recebemos seus dados. A equipe da Loud Fit continuará o atendimento pelo contato informado.',
+    'Recebemos seus dados. A equipe da Loud Fit entrará em contato para confirmar sua matrícula e explicar como retirar os benefícios.',
   leadSource: 'new_customer_invite',
-  campaignId: 'convite_novo_cliente',
+  campaignId: 'convite_inauguracao',
   showPartnerBenefit: false,
+  planIds: ['mensal-recorrente'],
+  hidePlanSelector: true,
+  showFirstMonthPrice: false,
   tracking: buildTracking('new_customer'),
   metadata: {
-    title: 'Convite Especial | Loud Fit',
+    title: 'Oferta de inauguração | Loud Fit',
     description:
-      'Comece na Loud Fit por R$ 9,90 no primeiro mês em um dos planos desta campanha.',
+      'Matricule-se no Plano Mensal Recorrente e ganhe uma coqueteleira Loud Fit + 30 dias de treino para presentear quem você escolher.',
   },
 }
 

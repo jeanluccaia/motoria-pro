@@ -19,9 +19,12 @@ interface CampaignPageProps {
 }
 
 export function FounderPage({ config, guestName }: CampaignPageProps) {
-  const [selectedPlanId, setSelectedPlanId] = useState<CampaignPlan['id']>(
-    DEFAULT_CAMPAIGN_PLAN_ID,
-  )
+  const initialPlanId: CampaignPlan['id'] =
+    config.planIds && config.planIds.length > 0
+      ? config.planIds[0]
+      : DEFAULT_CAMPAIGN_PLAN_ID
+  const [selectedPlanId, setSelectedPlanId] =
+    useState<CampaignPlan['id']>(initialPlanId)
   const selectedPlan =
     campaignPlans.find((p) => p.id === selectedPlanId) ?? campaignPlans[3]
 

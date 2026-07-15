@@ -22,8 +22,20 @@ export function FounderOffer({
   onSelect,
   onCtaClick,
 }: CampaignOfferProps) {
+  const availablePlans =
+    config.planIds && config.planIds.length > 0
+      ? campaignPlans.filter((p) => config.planIds!.includes(p.id))
+      : campaignPlans
   const selected =
-    campaignPlans.find((p) => p.id === selectedPlanId) ?? campaignPlans[3]
+    availablePlans.find((p) => p.id === selectedPlanId) ??
+    availablePlans[0] ??
+    campaignPlans[3]
+  const showFirstMonthPrice = config.showFirstMonthPrice !== false
+  const showPlanSelector =
+    !config.hidePlanSelector && availablePlans.length > 1
+  const cardValidityText =
+    config.cardValidityText ??
+    'Válido em qualquer unidade Loud Fit — a equipe finaliza a matrícula por você'
   const sectionRef = useRef<HTMLElement>(null)
   const seenRef = useRef(false)
 
@@ -100,46 +112,47 @@ export function FounderOffer({
           {config.suggestionLabel}
         </span>
 
-        {/* Plan selector */}
-        <div className="mt-10 w-full max-w-[460px] sm:mt-11">
-          <span className="sr-only" id="campaign-plan-selector-label">
-            Escolha o plano
-          </span>
-          <div
-            role="radiogroup"
-            aria-labelledby="campaign-plan-selector-label"
-            className="grid grid-cols-2 gap-2 sm:grid-cols-4"
-          >
-            {campaignPlans.map((plan) => {
-              const active = plan.id === selected.id
-              return (
-                <button
-                  key={plan.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  onClick={() => {
-                    onSelect(plan.id)
-                    trackCampaignEvent(config.tracking.planSelect, config.audience, {
-                      campaign_id: config.campaignId,
-                      plan_name: plan.name,
-                      regular_price: plan.regularPriceValue,
-                      first_month_price: plan.firstMonthPriceValue,
-                    })
-                  }}
-                  className={
-                    'inline-flex min-h-[44px] items-center justify-center rounded-[10px] border px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-[0.10em] transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE000]/60 sm:text-[11px] ' +
-                    (active
-                      ? 'border-[#FFE000] bg-[#FFE000] text-[#0A0A0A]'
-                      : 'border-white/12 bg-transparent text-white/65 hover:border-white/30 hover:text-white/85')
-                  }
-                >
-                  {plan.shortLabel}
-                </button>
-              )
-            })}
+        {showPlanSelector && (
+          <div className="mt-10 w-full max-w-[460px] sm:mt-11">
+            <span className="sr-only" id="campaign-plan-selector-label">
+              Escolha o plano
+            </span>
+            <div
+              role="radiogroup"
+              aria-labelledby="campaign-plan-selector-label"
+              className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+            >
+              {availablePlans.map((plan) => {
+                const active = plan.id === selected.id
+                return (
+                  <button
+                    key={plan.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => {
+                      onSelect(plan.id)
+                      trackCampaignEvent(config.tracking.planSelect, config.audience, {
+                        campaign_id: config.campaignId,
+                        plan_name: plan.name,
+                        regular_price: plan.regularPriceValue,
+                        first_month_price: plan.firstMonthPriceValue,
+                      })
+                    }}
+                    className={
+                      'inline-flex min-h-[44px] items-center justify-center rounded-[10px] border px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-[0.10em] transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE000]/60 sm:text-[11px] ' +
+                      (active
+                        ? 'border-[#FFE000] bg-[#FFE000] text-[#0A0A0A]'
+                        : 'border-white/12 bg-transparent text-white/65 hover:border-white/30 hover:text-white/85')
+                    }
+                  >
+                    {plan.shortLabel}
+                  </button>
+                )
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Card */}
         <div
@@ -169,37 +182,69 @@ export function FounderOffer({
                 {selected.name.toUpperCase()}
               </span>
 
-              <span className="mt-1 text-[11px] font-bold uppercase tracking-[0.20em] text-white/45">
-                1º MÊS
-              </span>
+              {showFirstMonthPrice ? (
+                <>
+                  <span className="mt-1 text-[11px] font-bold uppercase tracking-[0.20em] text-white/45">
+                    1º MÊS
+                  </span>
 
-              <div className="flex items-baseline gap-2">
-                <span
-                  key={`price-${selected.id}`}
-                  className="font-extrabold text-lf-text"
-                  style={{
-                    fontSize: 'clamp(48px, 8.5vw, 80px)',
-                    lineHeight: 0.9,
-                    letterSpacing: '-0.02em',
-                    animation: 'lfFounderPrice 0.35s cubic-bezier(0.2,0.7,0.2,1) both',
-                  }}
-                >
-                  {selected.firstMonthPrice}
-                </span>
-              </div>
+                  <div className="flex items-baseline gap-2">
+                    <span
+                      key={`price-${selected.id}`}
+                      className="font-extrabold text-lf-text"
+                      style={{
+                        fontSize: 'clamp(48px, 8.5vw, 80px)',
+                        lineHeight: 0.9,
+                        letterSpacing: '-0.02em',
+                        animation: 'lfFounderPrice 0.35s cubic-bezier(0.2,0.7,0.2,1) both',
+                      }}
+                    >
+                      {selected.firstMonthPrice}
+                    </span>
+                  </div>
 
-              <p className="mt-3 text-[14px] leading-[1.5] text-white/70">
-                Depois <span className="font-semibold text-lf-text">{selected.regularPrice}</span> por
-                mês
-              </p>
+                  <p className="mt-3 text-[14px] leading-[1.5] text-white/70">
+                    Depois{' '}
+                    <span className="font-semibold text-lf-text">
+                      {selected.regularPrice}
+                    </span>{' '}
+                    por mês
+                  </p>
 
-              <p className="mt-1 text-[12.5px] leading-[1.5] text-white/50">
-                {selected.recurrenceLabel}
-              </p>
+                  <p className="mt-1 text-[12.5px] leading-[1.5] text-white/50">
+                    {selected.recurrenceLabel}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <span
+                      key={`price-${selected.id}`}
+                      className="font-extrabold text-lf-text"
+                      style={{
+                        fontSize: 'clamp(44px, 7.5vw, 68px)',
+                        lineHeight: 0.9,
+                        letterSpacing: '-0.02em',
+                        whiteSpace: 'nowrap',
+                        animation: 'lfFounderPrice 0.35s cubic-bezier(0.2,0.7,0.2,1) both',
+                      }}
+                    >
+                      {selected.regularPrice}
+                    </span>
+                    <span className="text-[14px] font-semibold uppercase tracking-[0.16em] text-white/55">
+                      /mês
+                    </span>
+                  </div>
+
+                  <p className="mt-3 text-[13.5px] leading-[1.5] text-white/60">
+                    {selected.recurrenceLabel}
+                  </p>
+                </>
+              )}
             </div>
 
             <p className="text-[13px] leading-[1.55] text-white/55">
-              Válido em qualquer unidade Loud Fit — a equipe finaliza a matrícula por você
+              {cardValidityText}
             </p>
 
             <details className="group border-t border-white/[0.10] pt-1">
