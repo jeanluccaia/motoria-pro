@@ -1,53 +1,20 @@
 'use client'
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
 
 const DESKTOP_IMAGE = '/assets/images/hero-gym-desktop.png'
-const MOBILE_POSTER_INLINE =
-  'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 6"><rect width="10" height="6" fill="%23080808"/></svg>'
+const MOBILE_POSTER = '/assets/images/hero-gym-mobile.png'
 const VIDEO_SRC = '/hero.mp4'
-const MOBILE_QUERY = '(max-width: 767px)'
-const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
-
-/* ------------ prefers-reduced-motion ------------ */
-function subscribeReducedMotion(callback: () => void) {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => {}
-  const mq = window.matchMedia(REDUCED_MOTION_QUERY)
-  mq.addEventListener('change', callback)
-  return () => mq.removeEventListener('change', callback)
-}
-function getReducedMotion() {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
-  return window.matchMedia(REDUCED_MOTION_QUERY).matches
-}
-function getReducedMotionServer() {
-  return false
-}
-
-/* ------------ mobile breakpoint ------------ */
-function subscribeMobile(callback: () => void) {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => {}
-  const mq = window.matchMedia(MOBILE_QUERY)
-  mq.addEventListener('change', callback)
-  return () => mq.removeEventListener('change', callback)
-}
-function getIsMobile() {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
-  return window.matchMedia(MOBILE_QUERY).matches
-}
-function getIsMobileServer() {
-  return false
-}
 
 function safePlay(v: HTMLVideoElement) {
+  v.muted = true
+  v.defaultMuted = true
   const p = v.play()
   if (p && typeof p.then === 'function') {
     p.catch(() => {
-      v.muted = true
-      const retry = v.play()
-      if (retry && typeof retry.then === 'function') retry.catch(() => {})
+      // Autoplay bloqueado — poster real (hero-gym-mobile) segue visível.
     })
   }
 }
@@ -56,21 +23,15 @@ export function Hero() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [videoFailed, setVideoFailed] = useState(false)
   const [muted, setMuted] = useState(true)
-  const reduceMotion = useSyncExternalStore(subscribeReducedMotion, getReducedMotion, getReducedMotionServer)
-  const isMobile = useSyncExternalStore(subscribeMobile, getIsMobile, getIsMobileServer)
-
-  // Vídeo só existe no mobile e quando não há redução de movimento
-  const showVideo = isMobile && !videoFailed && !reduceMotion
 
   useEffect(() => {
     const v = videoRef.current
     if (!v) return
-    if (!showVideo) {
-      try { v.pause() } catch {}
-      return
-    }
+    v.muted = true
+    v.defaultMuted = true
+    v.setAttribute('muted', '')
     safePlay(v)
-  }, [showVideo])
+  }, [])
 
   function toggleSound() {
     const v = videoRef.current
@@ -78,16 +39,12 @@ export function Hero() {
     const next = !muted
     v.muted = next
     setMuted(next)
-    if (v.paused) safePlay(v)
   }
 
   return (
     <section className="relative isolate flex min-h-[560px] items-end overflow-hidden bg-lf-black pt-16 md:min-h-[72vh] lg:min-h-[86vh]">
 
-      {/* Preload agressivo do vídeo — apenas em mobile (economia de banda no desktop) */}
-      <link rel="preload" as="video" href={VIDEO_SRC} type="video/mp4" media={MOBILE_QUERY} />
-
-      {/* Imagem desktop — sempre presente. No mobile fica invisível quando o vídeo estiver ativo. */}
+      {/* Imagem desktop — sempre visível como fallback estrutural */}
       <Image
         src={DESKTOP_IMAGE}
         alt=""
@@ -95,28 +52,36 @@ export function Hero() {
         priority
         sizes="100vw"
         aria-hidden="true"
-        className={
-          'absolute inset-0 -z-10 h-full w-full object-cover object-[62%_35%] opacity-70 md:object-[58%_28%] md:opacity-70 lg:object-[60%_22%] 2xl:object-[62%_18%]' +
-          (showVideo ? ' hidden' : '')
-        }
+        className="absolute inset-0 -z-10 hidden h-full w-full object-cover object-[58%_28%] opacity-70 md:block lg:object-[60%_22%] 2xl:object-[62%_18%]"
       />
 
-      {/* Vídeo — só em mobile */}
-      {showVideo && (
+      {/* Imagem mobile — sempre visível abaixo do vídeo. Garante que nunca haja tela preta. */}
+      <Image
+        src={MOBILE_POSTER}
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        aria-hidden="true"
+        className="absolute inset-0 -z-20 h-full w-full object-cover object-[62%_35%] opacity-80 md:hidden"
+      />
+
+      {/* Vídeo — só em mobile via CSS (sem gating de JS). Sempre presente no SSR. */}
+      {!videoFailed && (
         <video
           ref={videoRef}
           autoPlay
           muted
           loop
           playsInline
-          preload="auto"
-          poster={MOBILE_POSTER_INLINE}
+          preload="metadata"
+          poster={MOBILE_POSTER}
           onCanPlay={(e) => safePlay(e.currentTarget)}
           onLoadedData={(e) => safePlay(e.currentTarget)}
           onError={() => setVideoFailed(true)}
           aria-hidden="true"
           disablePictureInPicture
-          className="absolute inset-0 -z-10 h-full w-full bg-lf-black object-cover object-[58%_28%] opacity-80"
+          className="absolute inset-0 -z-10 h-full w-full bg-lf-black object-cover object-[58%_28%] opacity-80 md:hidden"
         >
           <source src={VIDEO_SRC} type="video/mp4" />
         </video>
@@ -132,14 +97,14 @@ export function Hero() {
       <div aria-hidden="true" className="absolute bottom-0 left-0 right-0 h-px bg-lf-line" />
       <div aria-hidden="true" className="absolute bottom-0 left-0 h-[3px] w-56 -skew-x-12 origin-left bg-lf-volt" />
 
-      {/* Controle de som — só aparece quando há vídeo (mobile) */}
-      {showVideo && (
+      {/* Controle de som — só aparece no mobile (via CSS) e apenas quando o vídeo não falhou */}
+      {!videoFailed && (
         <button
           type="button"
           onClick={toggleSound}
           aria-label={muted ? 'Ativar som do vídeo' : 'Silenciar vídeo'}
           aria-pressed={!muted}
-          className="group absolute right-4 top-20 z-20 flex items-center gap-2 border border-white/15 bg-lf-black/45 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-lf-text/85 backdrop-blur-md transition-all duration-200 hover:border-lf-volt/60 hover:bg-lf-black/70 hover:text-lf-volt focus-visible:outline-none focus-visible:border-lf-volt"
+          className="group absolute right-4 top-20 z-20 flex items-center gap-2 border border-white/15 bg-lf-black/45 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-lf-text/85 backdrop-blur-md transition-all duration-200 hover:border-lf-volt/60 hover:bg-lf-black/70 hover:text-lf-volt focus-visible:outline-none focus-visible:border-lf-volt md:hidden"
         >
           <span aria-hidden="true" className="flex h-4 w-4 items-center justify-center">
             {muted ? <SoundOffIcon /> : <SoundOnIcon />}
