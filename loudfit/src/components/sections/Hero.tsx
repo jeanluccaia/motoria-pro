@@ -1,20 +1,26 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
 
 const DESKTOP_IMAGE = '/assets/images/hero-gym-desktop.png'
 const MOBILE_POSTER = '/assets/images/hero-gym-mobile.png'
 const VIDEO_SRC = '/hero.mp4'
+const MOBILE_QUERY = '(max-width: 767px)'
 
-function safePlay(v: HTMLVideoElement) {
+function forceMuted(v: HTMLVideoElement) {
   v.muted = true
   v.defaultMuted = true
+  v.setAttribute('muted', '')
+}
+
+function safePlay(v: HTMLVideoElement) {
+  forceMuted(v)
   const p = v.play()
   if (p && typeof p.then === 'function') {
     p.catch(() => {
-      // Autoplay bloqueado — poster real (hero-gym-mobile) segue visível.
+      // Autoplay bloqueado — imagem mobile abaixo do vídeo segue cobrindo a hero.
     })
   }
 }
@@ -24,12 +30,21 @@ export function Hero() {
   const [videoFailed, setVideoFailed] = useState(false)
   const [muted, setMuted] = useState(true)
 
+  const attachVideo = useCallback((node: HTMLVideoElement | null) => {
+    videoRef.current = node
+    if (!node) return
+    // Força o atributo `muted` no elemento antes de qualquer interação —
+    // sem isso Chrome Android / Safari iOS podem bloquear o autoplay.
+    forceMuted(node)
+    // Solicita o download desde já para diminuir o tempo até o primeiro frame.
+    try { node.load() } catch {}
+    safePlay(node)
+  }, [])
+
   useEffect(() => {
     const v = videoRef.current
     if (!v) return
-    v.muted = true
-    v.defaultMuted = true
-    v.setAttribute('muted', '')
+    forceMuted(v)
     safePlay(v)
   }, [])
 
@@ -43,6 +58,9 @@ export function Hero() {
 
   return (
     <section className="relative isolate flex min-h-[560px] items-end overflow-hidden bg-lf-black pt-16 md:min-h-[72vh] lg:min-h-[86vh]">
+
+      {/* Preload agressivo do vídeo — apenas em mobile (economia de banda no desktop) */}
+      <link rel="preload" as="video" href={VIDEO_SRC} type="video/mp4" media={MOBILE_QUERY} />
 
       {/* Imagem desktop — sempre visível como fallback estrutural */}
       <Image
@@ -69,22 +87,22 @@ export function Hero() {
       {/* Vídeo — só em mobile via CSS (sem gating de JS). Sempre presente no SSR. */}
       {!videoFailed && (
         <video
-          ref={videoRef}
+          ref={attachVideo}
+          src={VIDEO_SRC}
           autoPlay
           muted
           loop
           playsInline
-          preload="metadata"
+          preload="auto"
           poster={MOBILE_POSTER}
+          onLoadedMetadata={(e) => safePlay(e.currentTarget)}
           onCanPlay={(e) => safePlay(e.currentTarget)}
           onLoadedData={(e) => safePlay(e.currentTarget)}
           onError={() => setVideoFailed(true)}
           aria-hidden="true"
           disablePictureInPicture
           className="absolute inset-0 -z-10 h-full w-full bg-lf-black object-cover object-[58%_28%] opacity-80 md:hidden"
-        >
-          <source src={VIDEO_SRC} type="video/mp4" />
-        </video>
+        />
       )}
 
       {/* Overlay para contraste — mais leve no mobile, mais forte no desktop */}
