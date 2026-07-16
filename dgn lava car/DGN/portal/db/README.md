@@ -62,7 +62,34 @@ Tabelas protegidas por RLS:
 
 ## Como aplicar as migrations
 
-Estado local verificado nesta etapa:
+Estado local atualizado em 2026-07-15:
+
+- Supabase CLI instalada como dev dependency do portal (`supabase` via `npx`).
+- Projeto local inicializado com `npx supabase init`.
+- Configuracao local criada em `supabase/config.toml`.
+- Migrations sincronizadas para a pasta esperada pela CLI:
+  - `supabase/migrations/20260715210000_crm_schema.sql`
+  - `supabase/migrations/20260715211000_crm_rls_policies.sql`
+- `db/migrations/` permanece como a pasta legivel/manual do projeto; para testes via CLI, manter `supabase/migrations/` sincronizada com ela.
+- Seed SQL da CLI esta desativado no teste local (`[db.seed].enabled = false`) porque ainda nao ha `supabase/seed.sql`.
+- Este fluxo local nao usa `supabase link`, nao conecta ao projeto remoto e nao executa `--apply`.
+
+### Teste local isolado via Supabase CLI
+
+```bash
+npx supabase start
+npx supabase db reset
+```
+
+Para executar SQL de validacao contra o banco local:
+
+```bash
+npx supabase db query --local "<sql>"
+```
+
+Ou usar a connection string local informada pela CLI com `psql`.
+
+Estado anterior verificado antes da inicializacao:
 
 - Supabase CLI nao esta instalada no PATH local (`supabase` nao reconhecido).
 - Nao existe `supabase/config.toml`.
