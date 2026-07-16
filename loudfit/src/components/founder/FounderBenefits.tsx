@@ -11,15 +11,7 @@ function BenefitVisual({ benefit }: { benefit: CampaignBenefit }) {
     return (
       <div className="relative w-full overflow-hidden rounded-[14px]">
         <div
-          aria-hidden="true"
-          className="absolute inset-0 -z-10"
-          style={{
-            background:
-              'radial-gradient(120% 90% at 50% 0%, rgba(255,224,0,0.22) 0%, rgba(255,224,0,0.06) 45%, rgba(255,224,0,0) 70%)',
-          }}
-        />
-        <div
-          className="relative mx-auto flex aspect-[4/5] w-full items-center justify-center rounded-[14px] border border-white/[0.10] bg-[#0f0f0f]"
+          className="relative mx-auto flex aspect-[4/5] w-full items-center justify-center rounded-[14px] border border-white/[0.10]"
           style={{
             background:
               'linear-gradient(180deg,#141414 0%,#0b0b0b 60%,#080808 100%)',
@@ -39,28 +31,21 @@ function BenefitVisual({ benefit }: { benefit: CampaignBenefit }) {
               className="object-contain drop-shadow-[0_18px_28px_rgba(0,0,0,0.55)]"
             />
           </div>
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-6 bottom-6 h-[3px] rounded-full"
-            style={{
-              background:
-                'linear-gradient(90deg, rgba(255,224,0,0) 0%, rgba(255,224,0,0.65) 50%, rgba(255,224,0,0) 100%)',
-            }}
-          />
         </div>
       </div>
     )
   }
 
+  const visual = benefit.visual
   return (
     <div
-      className="relative flex aspect-[4/5] w-full items-center justify-center overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#0f0f0f]"
+      className="relative flex aspect-[4/5] w-full items-center justify-center overflow-hidden rounded-[14px] border border-white/[0.10]"
       style={{
         background:
-          'radial-gradient(120% 90% at 50% 30%, rgba(255,224,0,0.14) 0%, rgba(255,224,0,0.04) 40%, #0b0b0b 75%)',
+          'radial-gradient(120% 90% at 50% 30%, rgba(255,224,0,0.14) 0%, rgba(255,224,0,0.03) 45%, #0b0b0b 78%)',
       }}
     >
-      <div className="flex flex-col items-center text-center">
+      <div className="flex flex-col items-center px-6 text-center">
         <span
           style={{
             fontFamily: 'var(--font-founder-display), Anton, sans-serif',
@@ -70,43 +55,21 @@ function BenefitVisual({ benefit }: { benefit: CampaignBenefit }) {
             letterSpacing: '-0.02em',
           }}
         >
-          30
+          {visual?.bigLabel ?? benefit.n}
         </span>
-        <span
-          className="mt-2 text-[16px] font-black uppercase tracking-[0.28em] text-white/90 sm:text-[18px]"
-          style={{ fontFamily: 'var(--font-founder-body), Archivo, sans-serif' }}
-        >
-          DIAS
-        </span>
-        <span className="mt-3 text-[12px] font-semibold uppercase tracking-[0.20em] text-white/55">
-          para presentear
-        </span>
-        <span
-          aria-hidden="true"
-          className="mt-5 flex items-center justify-center gap-2 text-white/70"
-        >
-          <span className="grid h-8 w-8 place-items-center rounded-full border border-white/25 text-[11px] font-black">
-            EU
-          </span>
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M12 5v14M5 12h14" />
-          </svg>
+        {visual?.unitLabel && (
           <span
-            className="grid h-8 w-8 place-items-center rounded-full text-[11px] font-black text-[#0A0A0A]"
-            style={{ background: '#FFE000' }}
+            className="mt-2 text-[16px] font-black uppercase tracking-[0.28em] text-white/90 sm:text-[18px]"
+            style={{ fontFamily: 'var(--font-founder-body), Archivo, sans-serif' }}
           >
-            +1
+            {visual.unitLabel}
           </span>
-        </span>
+        )}
+        {visual?.captionLabel && (
+          <span className="mt-3 text-[11.5px] font-semibold uppercase tracking-[0.20em] text-white/55 sm:text-[12px]">
+            {visual.captionLabel}
+          </span>
+        )}
       </div>
     </div>
   )
@@ -167,7 +130,7 @@ export function FounderBenefits({ config }: CampaignBenefitsProps) {
                 {b.n}
               </span>
               <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#FFE000]/85">
-                {b.n === '01' ? 'Presente físico' : 'Presente para alguém'}
+                {b.visual?.captionLabel ?? 'Presente exclusivo'}
               </span>
             </div>
 

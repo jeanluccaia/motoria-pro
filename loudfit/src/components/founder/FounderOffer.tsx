@@ -97,28 +97,9 @@ export function FounderOffer({
           ))}
         </h2>
 
-        <p className="mt-6 max-w-[440px] text-[14.5px] leading-[1.65] text-white/60 sm:text-[15.5px]">
+        <p className="mt-6 max-w-[460px] text-[14.5px] leading-[1.65] text-white/60 sm:text-[15.5px]">
           {config.offerSubtitle}
         </p>
-
-        <div className="mt-6 flex flex-col items-center gap-3">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#FFE000]/25 bg-[#FFE000]/[0.06] px-3.5 py-1.5">
-            <span
-              aria-hidden="true"
-              className="lf-live-dot h-1.5 w-1.5 rounded-full bg-[#FFE000]"
-            />
-            <span className="text-[9.5px] font-bold uppercase tracking-[0.22em] text-[#FFE000]">
-              {config.scarcity.label}
-            </span>
-          </div>
-          <p className="max-w-[360px] text-[12px] leading-[1.55] text-white/45">
-            {config.scarcity.detail}
-          </p>
-        </div>
-
-        <span className="mt-5 inline-flex items-center rounded-full border border-white/10 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.20em] text-white/40">
-          {config.suggestionLabel}
-        </span>
 
         {showPlanSelector && (
           <div className="mt-10 w-full max-w-[460px] sm:mt-11">

@@ -77,6 +77,11 @@ export interface CampaignBenefit {
     width: number
     height: number
   }
+  visual?: {
+    bigLabel: string
+    unitLabel?: string
+    captionLabel?: string
+  }
 }
 
 export interface CampaignTrackingEvents {
@@ -108,6 +113,8 @@ export interface CampaignPageConfig {
   audience: CampaignAudience
   headerLabel: string
   eyebrow: string
+  eyebrowLocation?: string
+  heroPersonalNote?: string
   headline: string[]
   supportText: string
   supportSecondary?: string
@@ -171,46 +178,52 @@ export interface CampaignPageConfig {
 export const conviteConfig: CampaignPageConfig = {
   id: 'convite',
   audience: 'new_customer',
-  headerLabel: 'Oferta de Inauguração',
-  eyebrow: 'OFERTA DE INAUGURAÇÃO',
+  headerLabel: 'Convite VIP · Loud Fit Ipiranga',
+  eyebrow: 'CONVITE VIP',
+  eyebrowLocation: 'LOUD FIT IPIRANGA · SÃO PAULO',
+  heroPersonalNote: 'Este convite foi liberado para você',
   headline: ['ENTRE AGORA', 'E LEVE ALGUÉM', 'COM VOCÊ'],
   supportText:
-    'Matricule-se no Plano Mensal Recorrente e ganhe uma coqueteleira Loud Fit + 30 dias de treino para presentear quem você escolher',
-  heroCtaLabel: 'QUERO GARANTIR A OFERTA',
-  offerTitle: ['OFERTA DE', 'INAUGURAÇÃO'],
+    'Reservado para quem receber este convite. Válido até 31 de julho na nova Loud Fit Ipiranga',
+  heroCtaLabel: 'GARANTIR MEU CONVITE',
+  offerTitle: ['SEU CONVITE', 'ESTÁ ATIVO'],
   offerSubtitle:
-    'Matricule-se no Plano Mensal Recorrente e ganhe uma coqueteleira Loud Fit + 30 dias de treino para presentear quem você escolher',
+    'Matricule-se no Plano Mensal Recorrente e receba os dois presentes da inauguração',
   suggestionLabel: 'Plano da campanha',
-  cardEyebrow: 'Sua oferta de inauguração',
-  cardCtaLabel: 'QUERO GARANTIR A OFERTA',
+  cardEyebrow: 'Seu convite VIP',
+  cardCtaLabel: 'GARANTIR MEU CONVITE',
   cardValidityText:
-    'Mensalidade recorrente com os benefícios da oferta de inauguração',
-  benefitsTitle: ['O QUE VEM', 'COM A OFERTA'],
+    'Mensalidade recorrente com os presentes exclusivos deste convite',
+  benefitsTitle: ['O QUE VEM', 'NO SEU CONVITE'],
   benefitsSupport:
-    'Dois benefícios que chegam junto com a sua matrícula na nova unidade',
+    'Dois presentes exclusivos entregues com a sua matrícula na Loud Fit Ipiranga',
   benefits: [
     {
       n: '01',
       title: 'COQUETELEIRA LOUD FIT',
-      desc: 'Uma coqueteleira para acompanhar sua nova rotina de treino',
-      image: {
-        src: '/assets/images/garrafa-loud-fit.webp',
-        alt: 'Coqueteleira Loud Fit oferecida na campanha de inauguração',
-        width: 1086,
-        height: 1448,
+      desc: 'Item físico da rede Loud Fit entregue na retirada da sua matrícula',
+      visual: {
+        bigLabel: '01',
+        unitLabel: 'ITEM',
+        captionLabel: 'presente físico',
       },
     },
     {
       n: '02',
       title: '30 DIAS PARA PRESENTEAR',
       desc: 'Escolha uma pessoa para treinar durante 30 dias na Loud Fit ao seu lado',
+      visual: {
+        bigLabel: '30',
+        unitLabel: 'DIAS',
+        captionLabel: 'para presentear',
+      },
     },
   ],
   eligibilityText:
-    'Os benefícios serão liberados após a confirmação da matrícula no Plano Mensal Recorrente. A pessoa presenteada estará sujeita ao cadastro e às regras de utilização da unidade.',
+    'Presentes liberados após a confirmação da matrícula no Plano Mensal Recorrente. A pessoa presenteada segue o cadastro e as regras de utilização da unidade Ipiranga.',
   scarcity: {
-    label: 'OFERTA DE INAUGURAÇÃO POR TEMPO LIMITADO',
-    detail: 'Benefícios sujeitos à disponibilidade e às regras da unidade',
+    label: 'CONVITE ATIVO ATÉ 31 DE JULHO',
+    detail: 'Reservado para você — presentes sujeitos às regras da unidade',
   },
   formTitle: ['QUERO COMEÇAR', 'NA LOUD FIT'],
   formSupport:
@@ -238,7 +251,7 @@ export const conviteConfig: CampaignPageConfig = {
   checkoutHref: '/matricula/ipiranga?utm_source=convite&utm_medium=campanha&utm_campaign=convite_inauguracao',
   checkoutCtaLabel: 'MATRICULAR AGORA',
   checkoutSupportText:
-    'Você segue para o checkout oficial EVO da unidade Ipiranga e cadastra seus dados em poucos passos',
+    'Cadastro seguro no checkout oficial EVO da Loud Fit Ipiranga',
   assistanceCtaLabel: 'FALAR NO WHATSAPP',
   assistanceHref:
     'https://wa.me/5511937334895?text=Ol%C3%A1%2C%20quero%20aproveitar%20a%20oferta%20de%20inaugura%C3%A7%C3%A3o%20da%20Loud%20Fit%20Ipiranga.',

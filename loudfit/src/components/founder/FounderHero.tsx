@@ -69,12 +69,32 @@ export function FounderHero({ config, guestName }: CampaignHeroProps) {
         className="relative z-10 mx-auto flex w-full max-w-[720px] flex-col items-center px-6 py-20 text-center sm:px-8 sm:py-24 md:py-28"
         style={{ fontFamily: 'var(--font-founder-body), Archivo, sans-serif' }}
       >
-        <p
-          className="text-[10.5px] font-bold uppercase tracking-[0.34em] text-[#FFE000] sm:text-[11px]"
+        <div
+          className="flex flex-col items-center gap-1.5"
           style={{ animation: 'lfFounderUp 0.55s cubic-bezier(0.2,0.7,0.2,1) both' }}
         >
-          {config.eyebrow}
-        </p>
+          <p className="text-[10.5px] font-bold uppercase tracking-[0.34em] text-[#FFE000] sm:text-[11px]">
+            {config.eyebrow}
+          </p>
+          {config.eyebrowLocation && (
+            <p className="text-[9.5px] font-semibold uppercase tracking-[0.28em] text-white/45 sm:text-[10px]">
+              {config.eyebrowLocation}
+            </p>
+          )}
+        </div>
+
+        {config.heroPersonalNote && (
+          <p
+            className="mt-5 flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-[0.22em] text-white/70 sm:text-[11px]"
+            style={{ animation: 'lfFounderUp 0.55s cubic-bezier(0.2,0.7,0.2,1) 0.06s both' }}
+          >
+            <span
+              aria-hidden="true"
+              className="lf-live-dot h-1.5 w-1.5 rounded-full bg-[#FFE000]"
+            />
+            {config.heroPersonalNote}
+          </p>
+        )}
 
         {greetName && (
           <p
