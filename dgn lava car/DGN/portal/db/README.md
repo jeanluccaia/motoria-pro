@@ -32,29 +32,119 @@ SUPABASE_SERVICE_ROLE_KEY=
 DGN_GROWTH_DATA_SOURCE=json
 ```
 
-`SUPABASE_SERVICE_ROLE_KEY` **nunca** deve ser exposta ao cliente. É usada apenas em route handlers, server actions e scripts server-side.
+`SUPABASE_SERVICE_ROLE_KEY` **nunca** deve ser exposta ao cliente/browser. Ela deve ser usada apenas em route handlers, server actions e scripts server-side.
+
+## Modelo de seguranca
+
+- O browser nao consulta tabelas `crm_*` diretamente.
+- O admin atual (`/admin/growth`) valida a sessao no Next e chama apenas API/server actions internas.
+- O servidor usa `SUPABASE_SERVICE_ROLE_KEY` para operacoes administrativas controladas.
+- `DGN_GROWTH_DATA_SOURCE=json` continua sendo o default ate migrations, dry-run seletivo e fluxo de escrita estarem aprovados.
+- A migration `0002_crm_rls_policies.sql` habilita RLS defensiva em todas as tabelas CRM e bloqueia `anon`.
+- Claims futuras de Supabase Auth podem liberar acesso direto somente para usuarios `authenticated` com `dgn_growth_role` em `app_metadata` ou `user_metadata`.
+- Roles aceitas pela RLS: `admin`, `operator`, `auditor`.
+- `auditor` le CRM e audit log, mas nao escreve.
+- `operator` le/escreve CRM operacional e insere audit log, mas nao le audit log.
+- `admin` le/escreve CRM operacional e le/insere audit log.
+
+Tabelas protegidas por RLS:
+
+- `crm_customers`
+- `crm_vehicles`
+- `crm_subscriptions`
+- `crm_campaign_members`
+- `crm_interactions`
+- `crm_audit_logs`
+- `crm_score_snapshots`
+- `crm_duplicate_candidates`
+
+`crm_interactions` e `crm_audit_logs` sao append-only por trigger: update/delete sao bloqueados. Nao ha policy de delete em nenhuma tabela CRM.
 
 ## Como aplicar as migrations
+
+Nao aplicar no remoto sem revisar o diff, confirmar ambiente e ter backup. A ordem correta e:
 
 Via Supabase CLI (recomendado):
 
 ```bash
 supabase db push --file db/migrations/0001_crm_schema.sql
+supabase db push --file db/migrations/0002_crm_rls_policies.sql
 ```
 
 Via psql direto:
 
 ```bash
 psql "$POSTGRES_URL" -f db/migrations/0001_crm_schema.sql
+psql "$POSTGRES_URL" -f db/migrations/0002_crm_rls_policies.sql
+```
+
+## Validacao de RLS depois da aplicacao
+
+Confirmar que RLS esta ligado:
+
+```sql
+select relname, relrowsecurity, relforcerowsecurity
+from pg_class
+where relname in (
+  'crm_customers',
+  'crm_vehicles',
+  'crm_subscriptions',
+  'crm_campaign_members',
+  'crm_interactions',
+  'crm_audit_logs',
+  'crm_score_snapshots',
+  'crm_duplicate_candidates'
+)
+order by relname;
+```
+
+Confirmar policies:
+
+```sql
+select schemaname, tablename, policyname, cmd, roles
+from pg_policies
+where schemaname = 'public' and tablename like 'crm_%'
+order by tablename, policyname;
+```
+
+Testar acesso anon negado:
+
+```bash
+curl "$NEXT_PUBLIC_SUPABASE_URL/rest/v1/crm_customers?select=id&limit=1" \
+  -H "apikey: $NEXT_PUBLIC_SUPABASE_ANON_KEY"
+```
+
+Esperado: erro de permissao ou lista vazia sem dados sensiveis.
+
+Testar acesso administrativo futuro com JWT `authenticated` contendo `dgn_growth_role=admin`:
+
+```sql
+select public.crm_growth_role();
+select count(*) from public.crm_customers;
+```
+
+Testar protecao do audit log:
+
+```sql
+update public.crm_audit_logs set actor = 'tamper-test';
+delete from public.crm_audit_logs;
 ```
 
 ## Rollback
+
+Rollback apenas da camada RLS:
+
+```bash
+psql "$POSTGRES_URL" -f db/migrations/0002_crm_rls_policies.down.sql
+```
+
+Rollback completo do schema:
 
 ```bash
 psql "$POSTGRES_URL" -f db/migrations/0001_crm_schema.down.sql
 ```
 
-O rollback é destrutivo — apaga todas as tabelas `crm_*` e os enums. Fazer backup antes.
+O rollback de `0001` e destrutivo: apaga todas as tabelas `crm_*` e os enums. Fazer backup antes.
 
 ## Migração do JSON legado
 
@@ -119,4 +209,4 @@ Paulo (nome incompleto) é sempre marcado para conciliação manual.
 npm test
 ```
 
-Roda os 40 testes de `normalizers`, `reconciliation` e `score-engine` via `node:test`.
+Roda os testes de `dgn-growth-data`, `normalizers`, `reconciliation` e `score-engine` via `node:test`.
