@@ -10,6 +10,15 @@ Sem persistência real ainda. Este diretório contém:
 
 **Enquanto as 3 variáveis do Supabase não estiverem configuradas na Vercel, features de escrita permanecem desabilitadas via feature flag `DGN_GROWTH_DATA_SOURCE=json`.**
 
+## Base historica x base operacional
+
+- `lib/growth/dgn-customers.json` permanece como historico completo, com 2.354 clientes unicos.
+- A operacao atual do DGN Growth usa `dgnCustomers`, exportado por `lib/growth/dgn-growth-data.ts`.
+- `dgnCustomers` e uma visao operacional de `allDgnCustomers`, filtrada por `lastAttendance >= 2025-01-01`.
+- O corte unico fica em `DGN_OPERATIONAL_CUTOFF` e nao apaga nem regrava o historico.
+- Founders confirmados e assinantes ativos confirmados continuam preservados mesmo se houver excecao de data.
+- O Excel original nao precisa ser processado novamente para aplicar este recorte.
+
 ## Variáveis de ambiente esperadas (Vercel + `.env.local`)
 
 ```

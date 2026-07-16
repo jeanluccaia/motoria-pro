@@ -6,7 +6,7 @@ const modules = [
     href: "/admin/growth/intelligence",
     eyebrow: "Base e score",
     title: "DGN Intelligence",
-    text: "Importe, visualize, filtre e priorize clientes pela base DGN Intelligence 3.0.",
+    text: "Visualize, filtre e priorize clientes atendidos desde 2025 pela base DGN Intelligence.",
     icon: Brain,
   },
   {
@@ -44,7 +44,7 @@ export default function DgnGrowthPage() {
             Central de relacionamento e curadoria.
           </h1>
           <p className="mt-5 max-w-2xl text-sm leading-relaxed text-[#A7A7A7]">
-            Intelligence, curadoria e campanhas em uma única mesa de operação.
+            Intelligence, curadoria e campanhas em uma única mesa de operação para a base ativa desde 2025.
           </p>
         </header>
 

@@ -22,10 +22,12 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import {
+  allDgnCustomers,
   buildFounderWhatsappMessage,
   buildWhatsappUrl,
   commercialProfiles,
   commercialStatuses,
+  DGN_OPERATIONAL_CUTOFF,
   curationProfiles,
   dgnCustomers,
   founderCardStatuses,
@@ -39,6 +41,7 @@ import {
   originGroups,
   planMonthlyLabel,
   recommendedPlans,
+  matchesDgnCustomerSearch,
   type CommercialStatus,
   type DgnCustomer,
   type FounderCardStatus,
@@ -184,22 +187,9 @@ export function DgnGrowthWorkspace({
     customers.find((customer) => customer.id === selectedCustomerId) ?? customers[0];
 
   const visibleCustomers = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-
     return customers
       .filter((customer) => {
-        const matchesQuery =
-          !normalizedQuery ||
-          [
-            customer.name,
-            customer.vehicle,
-            customer.companyLink,
-            customer.origin,
-            customer.phone,
-          ]
-            .join(" ")
-            .toLowerCase()
-            .includes(normalizedQuery);
+        const matchesQuery = matchesDgnCustomerSearch(customer, query);
         const matchesStatus =
           statusFilter === "Todos" || customer.commercialStatus === statusFilter;
         const matchesPlan = planFilter === "Todos" || customer.recommendedPlan === planFilter;
@@ -233,6 +223,7 @@ export function DgnGrowthWorkspace({
 
     return {
       total: customers.length,
+      historicalTotal: allDgnCustomers.length,
       awaiting: awaiting.length,
       highScore: highScore.length,
       founders: founders.length,
@@ -495,6 +486,7 @@ function IntelligenceView({
 }: {
   metrics: {
     total: number;
+    historicalTotal: number;
     awaiting: number;
     highScore: number;
     founders: number;
@@ -525,7 +517,7 @@ function IntelligenceView({
     <>
       {/* 4 KPIs principais */}
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard label="Clientes importados" value={String(metrics.total)} icon={UserRound} />
+        <MetricCard label="Base operacional" value={String(metrics.total)} icon={UserRound} />
         <MetricCard label="Aguardando curadoria" value={String(metrics.awaiting)} icon={Filter} />
         <MetricCard label="Alto score" value={String(metrics.highScore)} icon={BadgeCheck} />
         <MetricCard label="Selecionados Founder" value={String(metrics.founders)} icon={Crown} />
@@ -534,7 +526,23 @@ function IntelligenceView({
       {/* Linha discreta financeira */}
       <section className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl border border-white/[0.05] bg-white/[0.02] px-4 py-3 text-sm">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] uppercase tracking-[0.14em] text-[#7D7D7D]">Histórico</span>
+          <span className="text-[11px] uppercase tracking-[0.14em] text-[#7D7D7D]">
+            Desde {DGN_OPERATIONAL_CUTOFF}
+          </span>
+          <span className="font-semibold text-white">{metrics.total} clientes</span>
+        </div>
+        <div className="h-4 w-px bg-white/[0.08]" />
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] uppercase tracking-[0.14em] text-[#7D7D7D]">
+            Base historica
+          </span>
+          <span className="font-semibold text-white/80">{metrics.historicalTotal} clientes</span>
+        </div>
+        <div className="h-4 w-px bg-white/[0.08]" />
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] uppercase tracking-[0.14em] text-[#7D7D7D]">
+            Valor historico operacional
+          </span>
           <span className="font-semibold text-white">{formatCurrency(metrics.totalHistorical)}</span>
         </div>
         <div className="h-4 w-px bg-white/[0.08]" />

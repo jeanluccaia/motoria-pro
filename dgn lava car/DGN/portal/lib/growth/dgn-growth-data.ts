@@ -1,4 +1,12 @@
-import rawCustomers from "./dgn-customers.json";
+import rawCustomers from "./dgn-customers.json" with { type: "json" };
+
+export const DGN_OPERATIONAL_CUTOFF = "2025-01-01";
+
+export const CONFIRMED_FOUNDER_LEGACY_IDS = [
+  "benedito-constantino",
+  "jose-moreira",
+  "rikardo-oliveira",
+] as const;
 
 export const commercialStatuses = [
   "Aguardando Curadoria DGN",
@@ -155,7 +163,69 @@ export const planMonthlyLabel: Record<RecommendedPlan, string> = {
   "Corporate Care": "Corporate Care - proposta assistida",
 };
 
-export const dgnCustomers: DgnCustomer[] = rawCustomers as unknown as DgnCustomer[];
+const importedCustomers = rawCustomers as unknown as DgnCustomer[];
+const parsedCutoffTimestamp = parseDgnDateAsUtcTimestamp(DGN_OPERATIONAL_CUTOFF);
+
+if (parsedCutoffTimestamp === null) {
+  throw new Error(`DGN_OPERATIONAL_CUTOFF invalido: ${DGN_OPERATIONAL_CUTOFF}`);
+}
+
+const cutoffTimestamp: number = parsedCutoffTimestamp;
+
+export const allDgnCustomers: DgnCustomer[] = importedCustomers;
+
+export const dgnCustomers: DgnCustomer[] = allDgnCustomers.filter(isOperationalDgnCustomer);
+
+export function parseDgnDateAsUtcTimestamp(value: string | null | undefined): number | null {
+  if (typeof value !== "string") return null;
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const timestamp = Date.UTC(year, month - 1, day);
+  const date = new Date(timestamp);
+
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return timestamp;
+}
+
+export function hasOperationalLastAttendance(customer: Pick<DgnCustomer, "lastAttendance">) {
+  const lastAttendanceTimestamp = parseDgnDateAsUtcTimestamp(customer.lastAttendance);
+  return lastAttendanceTimestamp !== null && lastAttendanceTimestamp >= cutoffTimestamp;
+}
+
+export function isConfirmedFounder(customer: Pick<DgnCustomer, "id">) {
+  return CONFIRMED_FOUNDER_LEGACY_IDS.includes(
+    customer.id as (typeof CONFIRMED_FOUNDER_LEGACY_IDS)[number]
+  );
+}
+
+export function isConfirmedActiveSubscriber(
+  customer: Pick<DgnCustomer, "commercialStatus" | "campaign">
+) {
+  return (
+    customer.commercialStatus === "Assinante Ativo" ||
+    customer.campaign.campaignStatus === "Assinante ativo"
+  );
+}
+
+export function isOperationalDgnCustomer(customer: DgnCustomer) {
+  return (
+    hasOperationalLastAttendance(customer) ||
+    isConfirmedFounder(customer) ||
+    isConfirmedActiveSubscriber(customer)
+  );
+}
 
 export function parseDgnIntelligenceRows(rows: DgnIntelligenceRow[]): DgnCustomer[] {
   return rows.map((row, index) => {
@@ -211,6 +281,26 @@ export function parseDgnIntelligenceRows(rows: DgnIntelligenceRow[]): DgnCustome
 
 export function getCustomerById(id: string) {
   return dgnCustomers.find((customer) => customer.id === id);
+}
+
+export function matchesDgnCustomerSearch(customer: DgnCustomer, query: string) {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) return true;
+
+  return [
+    customer.name,
+    customer.vehicle,
+    customer.companyLink,
+    customer.origin,
+    customer.phone,
+  ]
+    .join(" ")
+    .toLowerCase()
+    .includes(normalizedQuery);
+}
+
+export function searchDgnCustomers(query: string, customers: DgnCustomer[] = dgnCustomers) {
+  return customers.filter((customer) => matchesDgnCustomerSearch(customer, query));
 }
 
 export function maskPlate(plate: string) {
