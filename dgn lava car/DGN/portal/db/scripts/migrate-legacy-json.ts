@@ -3,8 +3,10 @@
  * schema persistente crm_*.
  *
  * Uso:
- *   tsx db/scripts/migrate-legacy-json.ts --dry-run
- *   tsx db/scripts/migrate-legacy-json.ts --apply
+ *   node --test-reporter spec db/scripts/migrate-legacy-json.ts --dry-run
+ *   node db/scripts/migrate-legacy-json.ts --dry-run
+ *   node db/scripts/migrate-legacy-json.ts --dry-run --select db/scripts/example-selection.json
+ *   node db/scripts/migrate-legacy-json.ts --apply
  *
  * Regras críticas:
  * - preserva legacy_id (id do JSON) em crm_customers.legacy_id
@@ -13,6 +15,15 @@
  *   audit log registra reabertura da vaga
  * - assinantes detectados são apenas os que o seed 13-assinantes aplica depois
  * - nunca faz merge automático em casos ambíguos (regras 5, 6 da conciliação)
+ *
+ * Modos:
+ * - --dry-run           processa toda a base (2354 linhas) sem gravar
+ * - --dry-run --select  processa APENAS os legacy_ids listados no arquivo dado
+ *                       (aceita JSON com string[] ou {ids:string[]}, ou texto
+ *                       com um id por linha). Usado como preview da importação
+ *                       seletiva antes de habilitar --apply.
+ * - --apply             ainda não implementado (aguarda decisão de importação
+ *                       seletiva; ver retomada 2026-07-15 em db/reports/)
  *
  * Requer as 3 variáveis do Supabase para modo --apply:
  *   NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
@@ -356,6 +367,60 @@ async function loadLegacyJson(): Promise<LegacyCustomer[]> {
   return JSON.parse(raw) as LegacyCustomer[];
 }
 
+/**
+ * Carrega uma lista explícita de legacy_ids para importação seletiva.
+ * Aceita:
+ *   - JSON com string[]           → ["id-1", "id-2"]
+ *   - JSON com {ids: string[]}    → {"ids": ["id-1", "id-2"]}
+ *   - texto puro, um id por linha (linhas iniciadas por # são ignoradas)
+ * Sempre normaliza para Set<string>. Lança erro se o arquivo estiver vazio
+ * ou em formato desconhecido — preferimos falhar cedo a rodar tudo por engano.
+ */
+async function loadSelection(selectionPath: string): Promise<Set<string>> {
+  const raw = await readFile(selectionPath, "utf8");
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    throw new Error(`arquivo de seleção "${selectionPath}" está vazio — abortando`);
+  }
+  let ids: string[] = [];
+  if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
+    const parsed = JSON.parse(trimmed) as unknown;
+    if (Array.isArray(parsed)) {
+      ids = parsed.filter((v): v is string => typeof v === "string");
+    } else if (
+      parsed &&
+      typeof parsed === "object" &&
+      Array.isArray((parsed as { ids?: unknown }).ids)
+    ) {
+      ids = ((parsed as { ids: unknown[] }).ids).filter((v): v is string => typeof v === "string");
+    } else {
+      throw new Error(
+        `formato JSON não reconhecido em "${selectionPath}" — use string[] ou {"ids": string[]}`,
+      );
+    }
+  } else {
+    ids = trimmed
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter((l) => l && !l.startsWith("#"));
+  }
+  const set = new Set(ids.map((id) => id.trim()).filter(Boolean));
+  if (set.size === 0) {
+    throw new Error(`nenhum legacy_id válido em "${selectionPath}"`);
+  }
+  return set;
+}
+
+function readFlagValue(argv: string[], flag: string): string | null {
+  const idx = argv.indexOf(flag);
+  if (idx === -1) return null;
+  const next = argv[idx + 1];
+  if (!next || next.startsWith("--")) {
+    throw new Error(`flag ${flag} exige um valor (caminho de arquivo)`);
+  }
+  return next;
+}
+
 function printSummary(report: DryRunReport) {
   const line = "─".repeat(60);
   console.log("\n" + line);
@@ -386,21 +451,50 @@ function printSummary(report: DryRunReport) {
 }
 
 async function main() {
-  const args = new Set(process.argv.slice(2));
-  const apply = args.has("--apply");
-  const dryRun = args.has("--dry-run") || !apply;
+  const argv = process.argv.slice(2);
+  const argSet = new Set(argv);
+  const apply = argSet.has("--apply");
+  const dryRun = argSet.has("--dry-run") || !apply;
+  const selectionPath = readFlagValue(argv, "--select");
 
-  const rows = await loadLegacyJson();
+  const allRows = await loadLegacyJson();
+
+  let rows = allRows;
+  let selectionInfo: { total: number; selected: number; missing: string[] } | null = null;
+  if (selectionPath) {
+    const selectedIds = await loadSelection(selectionPath);
+    const present = allRows.filter((r) => selectedIds.has(r.id));
+    const foundIds = new Set(present.map((r) => r.id));
+    const missing = [...selectedIds].filter((id) => !foundIds.has(id));
+    rows = present;
+    selectionInfo = {
+      total: selectedIds.size,
+      selected: present.length,
+      missing,
+    };
+    console.log(
+      `\nModo seletivo: --select ${selectionPath}\n` +
+      `  IDs solicitados: ${selectedIds.size}\n` +
+      `  Encontrados no legado: ${present.length}\n` +
+      `  Ausentes: ${missing.length}${missing.length ? " → " + missing.slice(0, 5).join(", ") + (missing.length > 5 ? " …" : "") : ""}\n`,
+    );
+    if (present.length === 0) {
+      console.error("Nenhum dos IDs selecionados existe no JSON legado — abortando.\n");
+      process.exit(4);
+    }
+  }
 
   if (dryRun) {
     const report = runDryRun(rows);
     printSummary(report);
-    // Também salva o relatório detalhado como JSON ao lado
     const outPath = resolve(dirname(fileURLToPath(import.meta.url)), "../reports");
     const { mkdir, writeFile } = await import("node:fs/promises");
     await mkdir(outPath, { recursive: true });
-    const file = resolve(outPath, `dry-run-${new Date().toISOString().replace(/[:.]/g, "-")}.json`);
-    await writeFile(file, JSON.stringify(report, null, 2), "utf8");
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const prefix = selectionInfo ? "dry-run-selective" : "dry-run";
+    const file = resolve(outPath, `${prefix}-${stamp}.json`);
+    const payload = selectionInfo ? { ...report, selection: selectionInfo } : report;
+    await writeFile(file, JSON.stringify(payload, null, 2), "utf8");
     console.log(`Relatório completo: ${file}\n`);
     return;
   }
@@ -410,11 +504,24 @@ async function main() {
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!url || !key) {
       console.error("\nERRO: --apply requer NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY no ambiente.");
-      console.error("Configure as variáveis na Vercel (ou .env.local) antes de rodar a migração real.\n");
+      console.error("Configure as variáveis (Vercel / .env.local) antes de rodar a migração real.\n");
       process.exit(2);
     }
-    console.error("\nApply ainda não implementado no cliente — depende do Supabase estar plugado.");
-    console.error("Rode o dry-run, aprove o relatório, então habilite o apply nesta etapa.\n");
+    console.error(
+      "\n--apply ainda não implementado neste script.\n" +
+      "Decisão comercial vigente (retomada 2026-07-15): não migrar os 2354\n" +
+      "registros em massa. A 4uCar continua sendo a base operacional; o\n" +
+      "Supabase deve receber apenas registros selecionados manualmente\n" +
+      "(assinantes confirmados, Founders 001/002/003, candidatos aprovados,\n" +
+      "lista de espera).\n\n" +
+      "Próximo passo antes de implementar --apply:\n" +
+      "  1) montar um arquivo db/scripts/selection-<data>.json com os\n" +
+      "     legacy_ids que devem ir para o Supabase.\n" +
+      "  2) rodar `node db/scripts/migrate-legacy-json.ts --dry-run --select <arquivo>`\n" +
+      "     e conferir o relatório em db/reports/.\n" +
+      "  3) só então habilitar apply (ainda por implementar) para essa lista.\n\n" +
+      "Ver DGN/portal/db/reports/supabase-auth-resume-*.md para contexto.\n",
+    );
     process.exit(3);
   }
 }

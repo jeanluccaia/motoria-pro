@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --test lib/growth/db/normalizers.test.ts lib/growth/db/reconciliation.test.ts lib/growth/db/score-engine.test.ts",
+    "db:dry-run": "node db/scripts/migrate-legacy-json.ts --dry-run",
+    "db:dry-run:selective": "node db/scripts/migrate-legacy-json.ts --dry-run --select"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

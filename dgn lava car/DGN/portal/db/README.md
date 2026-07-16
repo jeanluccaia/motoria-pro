@@ -49,21 +49,41 @@ O rollback é destrutivo — apaga todas as tabelas `crm_*` e os enums. Fazer ba
 
 ## Migração do JSON legado
 
-**Sempre rodar dry-run primeiro:**
+**Sempre rodar dry-run primeiro.** Node 24 executa arquivos `.ts` nativamente, então não precisa mais de `tsx`:
 
 ```bash
-tsx db/scripts/migrate-legacy-json.ts --dry-run
+# base inteira (2354 linhas) — só para revisão de qualidade e duplicidades
+npm run db:dry-run
+
+# ou, equivalente:
+node db/scripts/migrate-legacy-json.ts --dry-run
 ```
 
-O relatório imprime: novos, atualizados, duplicidades prováveis, rejeitados, assinaturas detectadas, Founders preservados.
+### Modo seletivo (recomendado para import real)
 
-Somente depois do dry-run aprovado:
+Decisão comercial vigente (retomada 2026-07-15): **não** migrar a base inteira.
+A 4uCar continua sendo a base operacional completa; o Supabase recebe só o
+que precisa da campanha (assinantes confirmados, Founders 001/002/003,
+candidatos aprovados, lista de espera).
+
+Montar um arquivo `db/scripts/selection-<data>.json` com os `legacy_ids` que
+devem entrar (aceita `string[]` ou `{ "ids": string[] }`, ou texto puro com um
+id por linha). Ver `db/scripts/example-selection.json`.
 
 ```bash
-tsx db/scripts/migrate-legacy-json.ts --apply
+node db/scripts/migrate-legacy-json.ts --dry-run --select db/scripts/example-selection.json
 ```
 
-Regras críticas:
+O relatório sai em `db/reports/dry-run-selective-<timestamp>.json` com o campo
+extra `selection: { total, selected, missing }` para rastrear o que casou.
+
+### Apply
+
+`--apply` **ainda não está implementado** — para não expor risco de import em
+massa antes da lista seletiva estar aprovada. O script sai com exit 3 e
+mensagem explicando o próximo passo. Ver `db/reports/supabase-auth-resume-*.md`.
+
+### Regras críticas
 
 - Idempotente: rodar duas vezes não duplica.
 - Preserva `legacy_id` do JSON atual.
@@ -73,13 +93,21 @@ Regras críticas:
 
 ## Seed dos 13 assinantes detectados
 
-Só rodar depois da migração base:
+Só rodar depois que houver base persistida (hoje, ler-apenas via view em memória):
 
 ```bash
-tsx db/seeds/subscribers-2026-q3.ts --dry-run
-tsx db/seeds/subscribers-2026-q3.ts --apply
+node db/seeds/subscribers-2026-q3.ts --dry-run
+node db/seeds/subscribers-2026-q3.ts --apply
 ```
 
 Aplica os 13 registros como `subscription_status = 'detectado'` (evidência de agendamento futuro) ou `'pendente_validacao'` (falta plano/ciclo). **Nunca** `'ativo'` automático.
 
 Paulo (nome incompleto) é sempre marcado para conciliação manual.
+
+## Testes
+
+```bash
+npm test
+```
+
+Roda os 40 testes de `normalizers`, `reconciliation` e `score-engine` via `node:test`.

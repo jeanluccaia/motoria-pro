@@ -60,7 +60,8 @@ export async function getSupabaseServerClient(operation = "supabase.query"): Pro
 
   const env = readSupabaseEnv();
   try {
-    // dep entra no package.json quando DGN_GROWTH_DATA_SOURCE=db for habilitado
+    // Import dinâmico mantém a dep opcional em ambientes que rodam com
+    // DGN_GROWTH_DATA_SOURCE=json. O pacote já está no package.json.
     const packageName = "@supabase/supabase-js";
     const mod = (await import(/* webpackIgnore: true */ packageName)) as {
       createClient: (url: string, key: string, opts?: unknown) => unknown;
@@ -71,8 +72,8 @@ export async function getSupabaseServerClient(operation = "supabase.query"): Pro
     return cached;
   } catch (err) {
     throw new Error(
-      `@supabase/supabase-js não está instalado ainda. ` +
-      `Rodar \`pnpm add @supabase/supabase-js\` antes de habilitar DGN_GROWTH_DATA_SOURCE=db. ` +
+      `Falha ao carregar @supabase/supabase-js. ` +
+      `Se o pacote foi removido, rodar \`npm install\` para restaurar. ` +
       `Erro original: ${err instanceof Error ? err.message : String(err)}`,
     );
   }

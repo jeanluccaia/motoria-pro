@@ -1,0 +1,9 @@
+{
+  "_comment": "Exemplo de arquivo aceito por --select. Rode: node db/scripts/migrate-legacy-json.ts --dry-run --select db/scripts/example-selection.json — só faz dry-run, não grava. Substitua os ids pelos legacy_ids reais que devem entrar no Supabase (Founders confirmados, assinantes validados, candidatos aprovados). Aceita string[] também.",
+  "ids": [
+    "benedito-constantino",
+    "jose-moreira",
+    "rikardo-oliveira",
+    "iara"
+  ]
+}
