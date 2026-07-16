@@ -34,18 +34,18 @@ DGN_GROWTH_DATA_SOURCE=json
 
 `SUPABASE_SERVICE_ROLE_KEY` **nunca** deve ser exposta ao cliente/browser. Ela deve ser usada apenas em route handlers, server actions e scripts server-side.
 
-## Modelo de seguranca
+## Modelo de seguranca vigente
 
 - O browser nao consulta tabelas `crm_*` diretamente.
 - O admin atual (`/admin/growth`) valida a sessao no Next e chama apenas API/server actions internas.
-- O servidor usa `SUPABASE_SERVICE_ROLE_KEY` para operacoes administrativas controladas.
+- Cada route handler/server action deve validar a sessao administrativa atual antes de consultar o banco.
+- Nenhuma rota deve aceitar campo enviado pelo browser como prova de permissao.
+- Somente apos a validacao administrativa, o servidor usa `SUPABASE_SERVICE_ROLE_KEY` para operacoes controladas.
+- Chamadas com `service_role` ignoram RLS por `BYPASSRLS`; por isso a autorizacao real desta fase acontece antes da consulta ao Supabase.
 - `DGN_GROWTH_DATA_SOURCE=json` continua sendo o default ate migrations, dry-run seletivo e fluxo de escrita estarem aprovados.
-- A migration `0002_crm_rls_policies.sql` habilita RLS defensiva em todas as tabelas CRM e bloqueia `anon`.
-- Claims futuras de Supabase Auth podem liberar acesso direto somente para usuarios `authenticated` com `dgn_growth_role` em `app_metadata` ou `user_metadata`.
-- Roles aceitas pela RLS: `admin`, `operator`, `auditor`.
-- `auditor` le CRM e audit log, mas nao escreve.
-- `operator` le/escreve CRM operacional e insere audit log, mas nao le audit log.
-- `admin` le/escreve CRM operacional e le/insere audit log.
+- A migration `0002_crm_rls_policies.sql` habilita RLS defensiva em todas as tabelas CRM e bloqueia `anon` e `authenticated`.
+- O portal ainda nao usa Supabase Auth; portanto claims como `dgn_growth_role`, `admin`, `operator` e `auditor` nao sao efetivas hoje.
+- Claims e policies por usuario ficam para arquitetura futura, depois de autenticação compativel.
 
 Tabelas protegidas por RLS:
 
@@ -58,24 +58,64 @@ Tabelas protegidas por RLS:
 - `crm_score_snapshots`
 - `crm_duplicate_candidates`
 
-`crm_interactions` e `crm_audit_logs` sao append-only por trigger: update/delete sao bloqueados. Nao ha policy de delete em nenhuma tabela CRM.
+`crm_interactions` e `crm_audit_logs` sao append-only por trigger: update/delete sao bloqueados. Nao ha grant nem policy de delete em nenhuma tabela CRM.
 
 ## Como aplicar as migrations
 
-Nao aplicar no remoto sem revisar o diff, confirmar ambiente e ter backup. A ordem correta e:
+Estado local verificado nesta etapa:
 
-Via Supabase CLI (recomendado):
+- Supabase CLI nao esta instalada no PATH local (`supabase` nao reconhecido).
+- Nao existe `supabase/config.toml`.
+- Nao existe diretorio `supabase/migrations`.
+- Este repo ainda nao esta preparado como projeto Supabase CLI vinculado.
+
+Nao usar `supabase db push --file ...` como instrucao de aplicacao: esse comando nao foi validado localmente e nao deve ser assumido.
+
+### Alternativa atual: psql manual
+
+Enquanto nao houver projeto Supabase CLI inicializado, a alternativa explicita e aplicar manualmente, em ordem, com `ON_ERROR_STOP`:
 
 ```bash
-supabase db push --file db/migrations/0001_crm_schema.sql
-supabase db push --file db/migrations/0002_crm_rls_policies.sql
+psql "$POSTGRES_URL" -v ON_ERROR_STOP=1 -f db/migrations/0001_crm_schema.sql
+psql "$POSTGRES_URL" -v ON_ERROR_STOP=1 -f db/migrations/0002_crm_rls_policies.sql
 ```
 
-Via psql direto:
+Antes de rodar:
+
+- confirmar ambiente/projeto;
+- fazer backup;
+- confirmar que as tabelas `crm_*` ainda nao existem ou que a aplicacao idempotente foi revisada;
+- nao inserir dados reais nesta etapa.
+
+### Alternativa futura: Supabase CLI oficial
+
+Para usar historico de migrations da CLI, primeiro inicializar e vincular o projeto. Nao fazer isso automaticamente.
 
 ```bash
-psql "$POSTGRES_URL" -f db/migrations/0001_crm_schema.sql
-psql "$POSTGRES_URL" -f db/migrations/0002_crm_rls_policies.sql
+supabase init
+supabase link --project-ref <project-ref>
+supabase migration list --linked
+```
+
+A CLI espera migrations em `supabase/migrations`. Se esta rota for adotada, escolher uma fonte canonica:
+
+- mover/espelhar `db/migrations/0001_crm_schema.sql` e `0002_crm_rls_policies.sql` para `supabase/migrations/<timestamp>_<nome>.sql`;
+- registrar no README qual pasta passa a ser canonica;
+- evitar manter duas copias editaveis divergentes.
+
+Aplicacao remota via CLI, depois de link e migrations na pasta esperada:
+
+```bash
+supabase migration list --linked
+supabase db push --linked
+supabase migration list --linked
+```
+
+Teste local via CLI, depois de `supabase init` e migrations na pasta esperada:
+
+```bash
+supabase start
+supabase db reset
 ```
 
 ## Validacao de RLS depois da aplicacao
@@ -98,7 +138,7 @@ where relname in (
 order by relname;
 ```
 
-Confirmar policies:
+Confirmar que nao ha policies abrindo acesso direto nesta fase:
 
 ```sql
 select schemaname, tablename, policyname, cmd, roles
@@ -106,6 +146,8 @@ from pg_policies
 where schemaname = 'public' and tablename like 'crm_%'
 order by tablename, policyname;
 ```
+
+Esperado nesta fase: nenhuma policy ativa para `crm_*`.
 
 Testar acesso anon negado:
 
@@ -116,12 +158,18 @@ curl "$NEXT_PUBLIC_SUPABASE_URL/rest/v1/crm_customers?select=id&limit=1" \
 
 Esperado: erro de permissao ou lista vazia sem dados sensiveis.
 
-Testar acesso administrativo futuro com JWT `authenticated` contendo `dgn_growth_role=admin`:
+Testar insert anon negado:
 
-```sql
-select public.crm_growth_role();
-select count(*) from public.crm_customers;
+```bash
+curl "$NEXT_PUBLIC_SUPABASE_URL/rest/v1/crm_customers" \
+  -H "apikey: $NEXT_PUBLIC_SUPABASE_ANON_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"blocked","normalized_name":"blocked"}'
 ```
+
+Testar `authenticated` comum negado: usar um JWT real de usuario Supabase sem claims administrativas e repetir os SELECT/INSERT acima com `Authorization: Bearer <jwt>`. Esperado: sem acesso.
+
+Claims ausentes ou invalidas tambem nao concedem acesso, porque a migration atual nao cria grants/policies baseadas em claims.
 
 Testar protecao do audit log:
 
@@ -129,6 +177,21 @@ Testar protecao do audit log:
 update public.crm_audit_logs set actor = 'tamper-test';
 delete from public.crm_audit_logs;
 ```
+
+Testar protecao de interacoes:
+
+```sql
+update public.crm_interactions set actor = 'tamper-test';
+delete from public.crm_interactions;
+```
+
+Testar rota server-side sem sessao admin valida:
+
+```bash
+curl -i "$APP_ORIGIN/api/admin/growth/subscribers/detected"
+```
+
+Esperado em ambiente com `DGN_ADMIN_PASSWORD`: `401 unauthorized` sem cookie administrativo valido.
 
 ## Rollback
 
