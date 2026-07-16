@@ -116,9 +116,10 @@ export interface CampaignPageConfig {
   eyebrowLocation?: string
   heroPersonalNote?: string
   headline: string[]
-  supportText: string
+  supportText?: string
   supportSecondary?: string
   heroCtaLabel: string
+  hideHeroScarcity?: boolean
   offerTitle: string[]
   offerSubtitle: string
   suggestionLabel: string
@@ -179,13 +180,10 @@ export const conviteConfig: CampaignPageConfig = {
   id: 'convite',
   audience: 'new_customer',
   headerLabel: 'Convite VIP · Loud Fit Ipiranga',
-  eyebrow: 'CONVITE VIP',
-  eyebrowLocation: 'LOUD FIT IPIRANGA · SÃO PAULO',
-  heroPersonalNote: 'Este convite foi liberado para você',
-  headline: ['ENTRE AGORA', 'E LEVE ALGUÉM', 'COM VOCÊ'],
-  supportText:
-    'Reservado para quem receber este convite. Válido até 31 de julho na nova Loud Fit Ipiranga',
-  heroCtaLabel: 'GARANTIR MEU CONVITE',
+  eyebrow: 'CONVITE VIP · LOUD FIT IPIRANGA',
+  headline: ['SEU CONVITE', 'CHEGOU'],
+  heroCtaLabel: 'ABRIR CONVITE',
+  hideHeroScarcity: true,
   offerTitle: ['SEU CONVITE', 'ESTÁ ATIVO'],
   offerSubtitle:
     'Matricule-se no Plano Mensal Recorrente e receba os dois presentes da inauguração',
@@ -243,11 +241,6 @@ export const conviteConfig: CampaignPageConfig = {
   regularPriceOverride: 'R$ 179,00',
   regularPriceValueOverride: 179,
   unitIds: ['ipiranga'],
-  headlineHighlights: ['ALGUÉM'],
-  giftChips: [
-    'Ganhe uma coqueteleira Loud Fit',
-    'Ganhe 30 dias para presentear alguém',
-  ],
   checkoutHref: '/matricula/ipiranga?utm_source=convite&utm_medium=campanha&utm_campaign=convite_inauguracao',
   checkoutCtaLabel: 'MATRICULAR AGORA',
   checkoutSupportText:

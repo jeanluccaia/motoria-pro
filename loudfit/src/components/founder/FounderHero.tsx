@@ -131,12 +131,14 @@ export function FounderHero({ config, guestName }: CampaignHeroProps) {
           ))}
         </h1>
 
-        <p
-          className="mx-auto mt-8 max-w-[440px] text-[15px] leading-[1.65] text-white/60 sm:mt-9 sm:text-[16px] md:text-[17px]"
-          style={{ animation: 'lfFounderUp 0.6s cubic-bezier(0.2,0.7,0.2,1) 0.24s both' }}
-        >
-          {config.supportText}
-        </p>
+        {config.supportText && (
+          <p
+            className="mx-auto mt-8 max-w-[440px] text-[15px] leading-[1.65] text-white/60 sm:mt-9 sm:text-[16px] md:text-[17px]"
+            style={{ animation: 'lfFounderUp 0.6s cubic-bezier(0.2,0.7,0.2,1) 0.24s both' }}
+          >
+            {config.supportText}
+          </p>
+        )}
 
         {config.supportSecondary && (
           <p
@@ -191,20 +193,37 @@ export function FounderHero({ config, guestName }: CampaignHeroProps) {
             className="lf-cta-volt lf-cta-pulse inline-flex min-h-[54px] items-center justify-center gap-2 rounded-[10px] px-8 py-4 text-[13px] font-black uppercase tracking-[0.10em] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_34px_rgba(255,224,0,0.24)] active:translate-y-0 sm:text-[14px]"
           >
             {config.heroCtaLabel}
+            <svg
+              aria-hidden="true"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M5 12h14M13 5l7 7-7 7" />
+            </svg>
           </button>
 
-          <div className="mt-1 flex items-center gap-2.5">
-            <span
-              aria-hidden="true"
-              className="lf-live-dot h-1.5 w-1.5 rounded-full bg-[#FFE000]"
-            />
-            <span className="text-[10.5px] font-bold uppercase tracking-[0.22em] text-white/70 sm:text-[11px]">
-              {config.scarcity.label}
-            </span>
-          </div>
-          <p className="max-w-[380px] text-[12.5px] leading-[1.55] text-white/45">
-            {config.scarcity.detail}
-          </p>
+          {!config.hideHeroScarcity && (
+            <>
+              <div className="mt-1 flex items-center gap-2.5">
+                <span
+                  aria-hidden="true"
+                  className="lf-live-dot h-1.5 w-1.5 rounded-full bg-[#FFE000]"
+                />
+                <span className="text-[10.5px] font-bold uppercase tracking-[0.22em] text-white/70 sm:text-[11px]">
+                  {config.scarcity.label}
+                </span>
+              </div>
+              <p className="max-w-[380px] text-[12.5px] leading-[1.55] text-white/45">
+                {config.scarcity.detail}
+              </p>
+            </>
+          )}
         </div>
       </div>
     </section>
