@@ -12,13 +12,15 @@ import { FounderHero } from './FounderHero'
 import { FounderOffer } from './FounderOffer'
 import { FounderBenefits } from './FounderBenefits'
 import { FounderConversion } from './FounderConversion'
+import { FounderPresentationVideo } from './FounderPresentationVideo'
 
 interface CampaignPageProps {
   config: CampaignPageConfig
   guestName?: string
+  showPresentationVideo?: boolean
 }
 
-export function FounderPage({ config, guestName }: CampaignPageProps) {
+export function FounderPage({ config, guestName, showPresentationVideo }: CampaignPageProps) {
   const initialPlanId: CampaignPlan['id'] =
     config.planIds && config.planIds.length > 0
       ? config.planIds[0]
@@ -47,6 +49,7 @@ export function FounderPage({ config, guestName }: CampaignPageProps) {
   return (
     <>
       <FounderHero config={config} guestName={guestName} />
+      {showPresentationVideo && <FounderPresentationVideo />}
       <FounderOffer
         config={config}
         selectedPlanId={selectedPlanId}

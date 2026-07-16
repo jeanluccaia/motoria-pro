@@ -35,7 +35,7 @@ export default function Page() {
       <FounderHeader label={conviteConfig.headerLabel} href="/convite" />
       <CampaignCountdownBar />
       <main className="bg-[#0A0A0A]">
-        <FounderPage config={conviteConfig} />
+        <FounderPage config={conviteConfig} showPresentationVideo />
       </main>
       <FounderFooter />
     </>
