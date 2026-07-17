@@ -10,6 +10,7 @@ export function FounderPresentationVideo() {
       <div className="mx-auto flex w-full max-w-[400px] justify-center">
         <video
           src="/media/ipiranga-sp/videos/video-apresentacao-ipiranga.mp4"
+          poster="/media/ipiranga-sp/fotos/thumb-video-apresentacao-ipiranga.webp"
           controls
           playsInline
           preload="metadata"
