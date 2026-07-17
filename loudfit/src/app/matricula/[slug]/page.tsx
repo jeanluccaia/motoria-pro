@@ -6,6 +6,7 @@ import { CheckoutFrame } from '@/components/ui/CheckoutFrame'
 import { UnitBadge } from '@/components/ui/Badge'
 import { PlanReminder } from '@/components/ui/PlanReminder'
 import { CheckoutBeginTracker } from '@/components/analytics/CheckoutBeginTracker'
+import { IpirangaEvoCheckoutLink } from '@/components/analytics/IpirangaEvoCheckoutLink'
 import { formatWhatsApp, shortUnitName, unitDisplayName } from '@/lib/utils'
 
 interface Props {
@@ -66,7 +67,11 @@ export default async function MatriculaPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-[#F2F2F0]">
-      <CheckoutBeginTracker unitSlug={unit.slug} unitName={displayName} />
+      <CheckoutBeginTracker
+        unitSlug={unit.slug}
+        unitName={displayName}
+        skipMetaMapping={isIpiranga}
+      />
 
       {/* Barra de identidade escura */}
       <div className="bg-lf-black pt-16">
@@ -171,14 +176,23 @@ export default async function MatriculaPage({ params }: Props) {
         <div className="bg-white border border-gray-200 overflow-hidden">
           <div className="flex items-center justify-between gap-4 border-b border-gray-100 px-5 py-4">
             <p className="text-sm font-black text-gray-800">Finalize sua matrícula</p>
-            <a
-              href={checkoutUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0 border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-500 transition-colors hover:border-gray-500 hover:text-gray-700"
-            >
-              Abrir checkout em nova aba ↗
-            </a>
+            {isIpiranga ? (
+              <IpirangaEvoCheckoutLink
+                checkoutUrl={checkoutUrl}
+                className="shrink-0 border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-500 transition-colors hover:border-gray-500 hover:text-gray-700"
+              >
+                Abrir checkout em nova aba ↗
+              </IpirangaEvoCheckoutLink>
+            ) : (
+              <a
+                href={checkoutUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-500 transition-colors hover:border-gray-500 hover:text-gray-700"
+              >
+                Abrir checkout em nova aba ↗
+              </a>
+            )}
           </div>
 
           <div className="p-4 sm:p-5">

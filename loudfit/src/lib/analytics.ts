@@ -59,10 +59,20 @@ function sanitize(params: AnalyticsParams): AnalyticsParams {
   return out
 }
 
+export interface TrackEventOptions {
+  /**
+   * Suprime o disparo automático via META_EVENT_MAP para este evento.
+   * Usado quando o Meta Pixel será instrumentado explicitamente em outro
+   * ponto do fluxo (ex.: click autoritativo em vez do mount da página).
+   */
+  skipMetaMapping?: boolean
+}
+
 /** Emite um evento respeitando consentimento. Safe no server, no-op sem consumers. */
 export function trackEvent(
   eventName: AnalyticsEventName,
   params: AnalyticsParams = {},
+  options?: TrackEventOptions,
 ) {
   if (typeof window === 'undefined') return
 
@@ -80,7 +90,7 @@ export function trackEvent(
       w.gtag('event', eventName, clean)
     }
 
-    if (consent.marketing && typeof w.fbq === 'function') {
+    if (consent.marketing && typeof w.fbq === 'function' && !options?.skipMetaMapping) {
       const metaName = META_EVENT_MAP[eventName]
       if (metaName) {
         // Meta espera o segundo argumento como objeto; passamos os mesmos params.
