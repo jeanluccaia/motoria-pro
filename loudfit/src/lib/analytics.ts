@@ -92,6 +92,27 @@ export function trackEvent(
   }
 }
 
+/**
+ * Envio direto para o Meta Pixel com shape livre — usado por eventos padrão do
+ * Meta cujos parâmetros (ex.: `content_ids: string[]`) não cabem no tipo genérico
+ * `AnalyticsParams`. Respeita consentimento de marketing e nunca lança.
+ */
+export function trackMetaEvent(
+  eventName: string,
+  parameters: Record<string, unknown> = {},
+) {
+  if (typeof window === 'undefined') return
+  const w = window as WindowWithAnalytics
+  const consent = readStoredConsent()
+  if (!consent.marketing) return
+  if (typeof w.fbq !== 'function') return
+  try {
+    w.fbq('track', eventName, parameters)
+  } catch {
+    /* silent */
+  }
+}
+
 /** page_view manual — o snippet do GA4 já dispara no primeiro load. */
 export function trackPageView(url: string) {
   if (typeof window === 'undefined') return

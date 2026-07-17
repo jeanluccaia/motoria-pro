@@ -8,6 +8,7 @@ import {
   type CampaignPlan,
 } from '@/lib/campaigns'
 import { trackCampaignEvent } from '@/lib/campaign-analytics'
+import { trackMetaEvent } from '@/lib/analytics'
 
 interface CampaignOfferProps {
   config: CampaignPageConfig
@@ -293,6 +294,26 @@ export function FounderOffer({
                       regular_price: regularPriceValue,
                       first_month_price: firstMonthPriceValue,
                     })
+                    if (config.campaignId === 'convite_inauguracao') {
+                      trackMetaEvent('InitiateCheckout', {
+                        content_name: 'Plano Mensal Recorrente - Loud Fit Ipiranga',
+                        content_category: 'Academia',
+                        content_type: 'product',
+                        content_ids: ['ipiranga-mensal-recorrente'],
+                        value: 69.9,
+                        currency: 'BRL',
+                      })
+                      const w = window as Window & { dataLayer?: unknown[] }
+                      if (Array.isArray(w.dataLayer)) {
+                        w.dataLayer.push({
+                          event: 'initiate_checkout',
+                          unit: 'ipiranga',
+                          plan: 'mensal_recorrente',
+                          value: 69.9,
+                          currency: 'BRL',
+                        })
+                      }
+                    }
                   }}
                   className="lf-cta-volt lf-cta-pulse mt-1 inline-flex min-h-[54px] w-full items-center justify-center rounded-[10px] px-6 py-4 text-[13.5px] font-black uppercase tracking-[0.08em] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_34px_rgba(255,224,0,0.24)] active:translate-y-0 sm:text-[14px]"
                 >
