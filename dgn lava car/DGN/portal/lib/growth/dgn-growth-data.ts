@@ -108,6 +108,14 @@ export interface DgnCustomer {
   commercialStatus: CommercialStatus;
   recurrence: string;
   averageVisitIntervalDays: number;
+  commercial?: {
+    owner: string;
+    commercialNotes: string;
+    nextAction: string;
+    nextActionAt: string;
+    priority: "baixa" | "normal" | "alta" | "urgente";
+    updatedAt: string;
+  };
   curation: {
     profile: (typeof curationProfiles)[number] | "";
     originGroup: (typeof originGroups)[number] | "";

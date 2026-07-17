@@ -2,13 +2,15 @@
 
 ## Estado atual
 
-Sem persistência real ainda. Este diretório contém:
+Leitura server-side e a primeira persistência comercial controlada estão ativas.
+Este diretório contém:
 
 - `migrations/` — SQL versionado (schema Postgres para Supabase).
 - `scripts/` — utilitários (migração de JSON legado, seeds).
 - `seeds/` — dados iniciais idempotentes (13 assinantes detectados).
 
-**Enquanto as 3 variáveis do Supabase não estiverem configuradas na Vercel, features de escrita permanecem desabilitadas via feature flag `DGN_GROWTH_DATA_SOURCE=json`.**
+**Sem a configuração server-side do Supabase, ou com `DGN_GROWTH_DATA_SOURCE=json`,
+as gravações permanecem desabilitadas.**
 
 ## Fonte de leitura do DGN Growth
 
@@ -36,9 +38,28 @@ Oliveira (003) e Iara Menezes selecionada sem confirmação. Recarregar deve man
 os mesmos quatro registros, veículos e assinaturas. Não rode o apply para essa
 verificação.
 
-As ações comerciais permanecem somente leitura no modo DB. O cabeçalho e um aviso
-no workspace deixam claro que a persistência está em implementação; tentativas de
-alteração são interceptadas e não aparentam ter sido salvas.
+As ações fora do primeiro conjunto comercial persistido permanecem somente leitura
+no modo DB. O cabeçalho e o workspace distinguem os cinco campos habilitados das
+demais alterações bloqueadas.
+
+### Primeiros campos comerciais persistidos
+
+A migration `20260717180000_commercial_customer_fields.sql` mantém em
+`crm_campaign_members` a fonte única para responsável, observação comercial,
+próxima ação, data/hora da próxima ação e prioridade. A data passou a usar
+`timestamptz`, e a prioridade é validada pela aplicação e pelo banco como baixa,
+normal, alta ou urgente (1 a 4 no armazenamento).
+
+A rota protegida
+`PATCH /api/admin/growth/customers/:id/commercial` revalida o cookie
+administrativo, aceita somente os cinco campos habilitados e usa comparação
+otimista por `updated_at`. A função transacional
+`crm_update_customer_commercial_fields` atualiza o campaign member e insere uma
+auditoria em `crm_audit_logs` no mesmo commit. No-op não cria auditoria. O ator e
+a origem são definidos no servidor, nunca pelo browser.
+
+Status Founder, assinatura, campanha, pagamento, kit, score, duplicidades e
+importação continuam sem escrita pela interface.
 
 ## Base historica x base operacional
 

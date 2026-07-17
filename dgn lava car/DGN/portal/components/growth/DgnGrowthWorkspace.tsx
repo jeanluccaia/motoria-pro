@@ -52,6 +52,7 @@ type GrowthView = "intelligence" | "curadoria" | "founders" | "profile";
 type ProfileTab = "overview" | "commercial" | "campaign" | "timeline";
 
 type CustomerDraft = Pick<DgnCustomer, "commercialStatus" | "recommendedPlan"> & {
+  commercial: NonNullable<DgnCustomer["commercial"]>;
   curation: DgnCustomer["curation"];
   campaign: DgnCustomer["campaign"];
 };
@@ -131,6 +132,14 @@ function createDrafts(customers: DgnCustomer[]) {
       {
         commercialStatus: customer.commercialStatus,
         recommendedPlan: customer.recommendedPlan,
+        commercial: customer.commercial ?? {
+          owner: "",
+          commercialNotes: "",
+          nextAction: customer.campaign.nextAction,
+          nextActionAt: "",
+          priority: "normal",
+          updatedAt: "",
+        },
         curation: { ...customer.curation },
         campaign: { ...customer.campaign },
       },
@@ -181,6 +190,7 @@ export function DgnGrowthWorkspace({
         ...customer,
         commercialStatus: drafts[customer.id]?.commercialStatus ?? customer.commercialStatus,
         recommendedPlan: drafts[customer.id]?.recommendedPlan ?? customer.recommendedPlan,
+        commercial: drafts[customer.id]?.commercial ?? customer.commercial,
         curation: drafts[customer.id]?.curation ?? customer.curation,
         campaign: drafts[customer.id]?.campaign ?? customer.campaign,
       })),
@@ -296,6 +306,24 @@ export function DgnGrowthWorkspace({
     });
   };
 
+  const applyCommercialSaved = (
+    id: string,
+    commercial: NonNullable<DgnCustomer["commercial"]>,
+  ) => {
+    setDrafts((current) => ({
+      ...current,
+      [id]: {
+        ...current[id],
+        commercial,
+        campaign: {
+          ...current[id].campaign,
+          nextAction: commercial.nextAction,
+          notes: commercial.commercialNotes,
+        },
+      },
+    }));
+  };
+
   const copyText = async (key: string, value: string) => {
     await navigator.clipboard?.writeText(value);
     setCopiedKey(key);
@@ -329,7 +357,7 @@ export function DgnGrowthWorkspace({
       <GrowthHeader current={view} dataOrigin={dataOrigin} />
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {readOnly ? <div className="mb-5 rounded-xl border border-[#C9A84C]/20 bg-[#C9A84C]/[0.06] px-4 py-3 text-xs text-[#E7C96A]">Modo somente leitura · persistência comercial em implementação.</div> : null}
+        {readOnly ? <div className="mb-5 rounded-xl border border-[#C9A84C]/20 bg-[#C9A84C]/[0.06] px-4 py-3 text-xs text-[#E7C96A]">{dataOrigin === "db" ? "Somente responsável, observação, próxima ação, data e prioridade podem ser salvos. Os demais campos continuam bloqueados." : "Fonte local somente leitura · mudanças não são salvas."}</div> : null}
         {notice ? (
           <div className="fixed right-4 top-4 z-[70] rounded-xl border border-[#C9A84C]/30 bg-[#111111] px-4 py-3 text-sm font-semibold text-[#E7C96A] shadow-2xl">
             {notice}
@@ -403,6 +431,8 @@ export function DgnGrowthWorkspace({
               )
             }
             copied={copiedKey === `message-${selectedCustomer.id}`}
+            canPersistCommercial={dataOrigin === "db"}
+            onCommercialSaved={applyCommercialSaved}
           />
         ) : null}
       </main>
@@ -422,6 +452,8 @@ export function DgnGrowthWorkspace({
             )
           }
           copied={copiedKey === `message-${selectedCustomer.id}`}
+          canPersistCommercial={dataOrigin === "db"}
+          onCommercialSaved={applyCommercialSaved}
         />
       ) : null}
     </div>
@@ -1363,6 +1395,8 @@ function CustomerDrawer({
   onPatch,
   onOpenWhatsapp,
   onCopy,
+  canPersistCommercial,
+  onCommercialSaved,
 }: {
   customer: DgnCustomer;
   tab: ProfileTab;
@@ -1372,6 +1406,8 @@ function CustomerDrawer({
   onPatch: (id: string, patch: Partial<CustomerDraft>) => void;
   onOpenWhatsapp: (customer: DgnCustomer) => void;
   onCopy: () => void;
+  canPersistCommercial: boolean;
+  onCommercialSaved: (id: string, commercial: NonNullable<DgnCustomer["commercial"]>) => void;
 }) {
   return (
     <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-white/[0.06] bg-[#0D0D0D] shadow-2xl sm:w-[36rem]">
@@ -1402,6 +1438,8 @@ function CustomerDrawer({
           onPatch={onPatch}
           onOpenWhatsapp={onOpenWhatsapp}
           onCopy={onCopy}
+          canPersistCommercial={canPersistCommercial}
+          onCommercialSaved={onCommercialSaved}
         />
       </div>
 
@@ -1435,6 +1473,8 @@ function CustomerProfileInline({
   onPatch,
   onOpenWhatsapp,
   onCopy,
+  canPersistCommercial,
+  onCommercialSaved,
 }: {
   customer: DgnCustomer;
   tab: ProfileTab;
@@ -1443,6 +1483,8 @@ function CustomerProfileInline({
   onPatch: (id: string, patch: Partial<CustomerDraft>) => void;
   onOpenWhatsapp: (customer: DgnCustomer) => void;
   onCopy: () => void;
+  canPersistCommercial: boolean;
+  onCommercialSaved: (id: string, commercial: NonNullable<DgnCustomer["commercial"]>) => void;
 }) {
   const timeline = getCustomerTimeline(customer);
 
@@ -1494,6 +1536,12 @@ function CustomerProfileInline({
 
       {tab === "commercial" ? (
         <div className="mt-4 space-y-3">
+          <CommercialEditor
+            key={customer.id}
+            customer={customer}
+            enabled={canPersistCommercial}
+            onSaved={onCommercialSaved}
+          />
           <div className="rounded-2xl border border-white/[0.06] bg-[#101010] p-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">
               Links e mensagem
@@ -1534,27 +1582,6 @@ function CustomerProfileInline({
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <ProfileInput
-              label="Último contato"
-              value={customer.campaign.lastContact}
-              placeholder="Ex.: 03/07/2026"
-              onChange={(value) =>
-                onPatch(customer.id, {
-                  campaign: { lastContact: value } as CustomerDraft["campaign"],
-                })
-              }
-            />
-            <ProfileInput
-              label="Status da conversa"
-              value={customer.campaign.conversationStatus}
-              onChange={(value) =>
-                onPatch(customer.id, {
-                  campaign: { conversationStatus: value } as CustomerDraft["campaign"],
-                })
-              }
-            />
-          </div>
         </div>
       ) : null}
 
@@ -1652,6 +1679,100 @@ function CustomerProfileInline({
           </div>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function toLocalDateTimeInput(value: string) {
+  if (!value) return "";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  const local = new Date(parsed.getTime() - parsed.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 16);
+}
+
+function CommercialEditor({
+  customer,
+  enabled,
+  onSaved,
+}: {
+  customer: DgnCustomer;
+  enabled: boolean;
+  onSaved: (id: string, commercial: NonNullable<DgnCustomer["commercial"]>) => void;
+}) {
+  const current = customer.commercial ?? {
+    owner: "",
+    commercialNotes: "",
+    nextAction: "",
+    nextActionAt: "",
+    priority: "normal" as const,
+    updatedAt: "",
+  };
+  const [form, setForm] = useState({
+    owner: current.owner,
+    commercialNotes: current.commercialNotes,
+    nextAction: current.nextAction,
+    nextActionAt: toLocalDateTimeInput(current.nextActionAt),
+    priority: current.priority,
+  });
+  const [saving, setSaving] = useState(false);
+  const [result, setResult] = useState<{ tone: "success" | "error"; message: string } | null>(null);
+
+  const save = async () => {
+    if (!enabled || saving) return;
+    if (!current.updatedAt) {
+      setResult({ tone: "error", message: "Recarregue a página antes de salvar." });
+      return;
+    }
+    setSaving(true);
+    setResult(null);
+    try {
+      const response = await fetch(`/api/admin/growth/customers/${encodeURIComponent(customer.id)}/commercial`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          nextActionAt: form.nextActionAt ? new Date(form.nextActionAt).toISOString() : "",
+          expectedUpdatedAt: current.updatedAt,
+        }),
+      });
+      const body = await response.json() as { error?: string; changed?: boolean; commercial?: NonNullable<DgnCustomer["commercial"]> };
+      if (!response.ok || !body.commercial) throw new Error(body.error || "Falha ao salvar.");
+      onSaved(customer.id, body.commercial);
+      setResult({
+        tone: "success",
+        message: body.changed ? "Campos comerciais salvos." : "Nenhuma alteração necessária.",
+      });
+    } catch (error) {
+      setResult({ tone: "error", message: error instanceof Error ? error.message : "Falha ao salvar." });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inputClass = "mt-2 h-10 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-sm text-white outline-none disabled:cursor-not-allowed disabled:opacity-45 focus:border-[#C9A84C]/35";
+  const labelClass = "text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]";
+
+  return (
+    <div className="rounded-2xl border border-[#C9A84C]/20 bg-[#101010] p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">Gestão comercial</p>
+          <p className="mt-1 text-xs text-[#777]">Únicos campos com persistência ativa nesta etapa.</p>
+        </div>
+        <span className="rounded-full border border-white/[0.08] px-2 py-1 text-[10px] text-[#888]">{enabled ? "DB" : "Somente leitura"}</span>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <label><span className={labelClass}>Responsável</span><input disabled={!enabled} maxLength={80} value={form.owner} onChange={(event) => setForm((state) => ({ ...state, owner: event.target.value }))} className={inputClass} /></label>
+        <label><span className={labelClass}>Prioridade</span><select disabled={!enabled} value={form.priority} onChange={(event) => setForm((state) => ({ ...state, priority: event.target.value as typeof state.priority }))} className={inputClass}><option value="baixa">Baixa</option><option value="normal">Normal</option><option value="alta">Alta</option><option value="urgente">Urgente</option></select></label>
+        <label><span className={labelClass}>Próxima ação</span><input disabled={!enabled} maxLength={240} value={form.nextAction} onChange={(event) => setForm((state) => ({ ...state, nextAction: event.target.value }))} className={inputClass} /></label>
+        <label><span className={labelClass}>Data da próxima ação</span><input disabled={!enabled} type="datetime-local" value={form.nextActionAt} onChange={(event) => setForm((state) => ({ ...state, nextActionAt: event.target.value }))} className={inputClass} /></label>
+      </div>
+      <label className="mt-3 block"><span className={labelClass}>Observação comercial</span><textarea disabled={!enabled} maxLength={2000} rows={4} value={form.commercialNotes} onChange={(event) => setForm((state) => ({ ...state, commercialNotes: event.target.value }))} className="mt-2 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-3 text-sm text-white outline-none disabled:cursor-not-allowed disabled:opacity-45 focus:border-[#C9A84C]/35" /></label>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <p className={`text-xs ${result?.tone === "error" ? "text-red-300" : "text-emerald-300"}`}>{result?.message}</p>
+        <button type="button" disabled={!enabled || saving} onClick={save} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 text-sm font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-40">{saving ? "Salvando…" : "Salvar campos comerciais"}</button>
+      </div>
     </div>
   );
 }

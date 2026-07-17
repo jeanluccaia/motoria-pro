@@ -72,6 +72,12 @@ const plan = (value: unknown): RecommendedPlan => value === "Priority" ? "Priori
 const text = (value: unknown) => typeof value === "string" ? value : "";
 const number = (value: unknown) => Number.isFinite(Number(value)) ? Number(value) : 0;
 const date = (value: unknown) => text(value).slice(0, 10) || "A definir";
+const priority = (value: unknown): "baixa" | "normal" | "alta" | "urgente" => {
+  if (Number(value) === 1) return "baixa";
+  if (Number(value) === 3) return "alta";
+  if (Number(value) === 4) return "urgente";
+  return "normal";
+};
 
 export function mapGrowthSnapshot(snapshot: GrowthDbSnapshot): DgnCustomer[] {
   return snapshot.customers.map((customer) => {
@@ -101,6 +107,9 @@ export function mapGrowthSnapshot(snapshot: GrowthDbSnapshot): DgnCustomer[] {
       commercialStatus: active ? "Assinante Ativo" : (commercialStatus[campaignStatus] ?? "Aguardando Curadoria DGN"),
       recurrence: text(subscription?.subscription_cycle) || "A validar na curadoria",
       averageVisitIntervalDays: number(customer.average_interval_days),
+      commercial: { owner: text(member?.owner), commercialNotes: text(member?.commercial_notes),
+        nextAction: text(member?.next_action), nextActionAt: text(member?.next_action_at),
+        priority: priority(member?.priority), updatedAt: text(member?.updated_at) },
       curation: { profile: "", originGroup: "", commercialProfile: "", idealSchedule: "",
         founderDecision: founderSelected ? "Sim" : "", founderNumber: text(member?.founder_number),
         internalNotes: text(member?.commercial_notes) },
@@ -117,7 +126,7 @@ export function mapGrowthSnapshot(snapshot: GrowthDbSnapshot): DgnCustomer[] {
 
 export async function loadGrowthData(options: { env?: GrowthEnv; db?: SupabaseClient; logger?: Pick<Console, "error"> } = {}): Promise<GrowthDataResult> {
   const config = readGrowthDataConfig(options.env);
-  if (config.source === "json") return { customers: dgnCustomers, origin: "json", readOnly: false };
+  if (config.source === "json") return { customers: dgnCustomers, origin: "json", readOnly: true };
   try {
     const snapshot = await readGrowthSnapshot(options.db ?? getSupabaseAdminClient("growth.read"));
     return { customers: mapGrowthSnapshot(snapshot), origin: "db", readOnly: true };
