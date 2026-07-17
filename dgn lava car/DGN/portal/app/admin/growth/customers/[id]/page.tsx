@@ -1,6 +1,4 @@
-import { notFound } from "next/navigation";
-import { DgnGrowthWorkspace } from "@/components/growth/DgnGrowthWorkspace";
-import { getCustomerById } from "@/lib/growth/dgn-growth-data";
+import { renderGrowthWorkspace } from "@/lib/growth/growth-page";
 
 export default async function DgnGrowthCustomerPage({
   params,
@@ -9,9 +7,5 @@ export default async function DgnGrowthCustomerPage({
 }) {
   const { id } = await params;
 
-  if (!getCustomerById(id)) {
-    notFound();
-  }
-
-  return <DgnGrowthWorkspace view="profile" customerId={id} />;
+  return renderGrowthWorkspace("profile", id);
 }

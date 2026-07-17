@@ -1,5 +1,7 @@
-import { DgnGrowthWorkspace } from "@/components/growth/DgnGrowthWorkspace";
+import { renderGrowthWorkspace } from "@/lib/growth/growth-page";
+
+export const dynamic = "force-dynamic";
 
 export default function DgnIntelligencePage() {
-  return <DgnGrowthWorkspace view="intelligence" />;
+  return renderGrowthWorkspace("intelligence");
 }

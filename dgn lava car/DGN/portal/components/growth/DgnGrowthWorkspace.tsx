@@ -22,14 +22,12 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import {
-  allDgnCustomers,
   buildFounderWhatsappMessage,
   buildWhatsappUrl,
   commercialProfiles,
   commercialStatuses,
   DGN_OPERATIONAL_CUTOFF,
   curationProfiles,
-  dgnCustomers,
   founderCardStatuses,
   founderKitStatuses,
   foundersPipelineStatuses,
@@ -126,9 +124,9 @@ function getOrigin() {
   return window.location.origin;
 }
 
-function createDrafts() {
+function createDrafts(customers: DgnCustomer[]) {
   return Object.fromEntries(
-    dgnCustomers.map((customer) => [
+    customers.map((customer) => [
       customer.id,
       {
         commercialStatus: customer.commercialStatus,
@@ -153,12 +151,18 @@ function getInitials(name: string): string {
 export function DgnGrowthWorkspace({
   view,
   customerId,
+  initialCustomers,
+  dataOrigin,
+  readOnly,
 }: {
   view: GrowthView;
   customerId?: string;
+  initialCustomers: DgnCustomer[];
+  dataOrigin: "json" | "db" | "json-fallback";
+  readOnly: boolean;
 }) {
-  const [drafts, setDrafts] = useState(createDrafts);
-  const [selectedCustomerId, setSelectedCustomerId] = useState(customerId ?? dgnCustomers[0]?.id);
+  const [drafts, setDrafts] = useState(() => createDrafts(initialCustomers));
+  const [selectedCustomerId, setSelectedCustomerId] = useState(customerId ?? initialCustomers[0]?.id);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
   const [planFilter, setPlanFilter] = useState("Todos");
@@ -173,14 +177,14 @@ export function DgnGrowthWorkspace({
 
   const customers = useMemo(
     () =>
-      dgnCustomers.map((customer) => ({
+      initialCustomers.map((customer) => ({
         ...customer,
         commercialStatus: drafts[customer.id]?.commercialStatus ?? customer.commercialStatus,
         recommendedPlan: drafts[customer.id]?.recommendedPlan ?? customer.recommendedPlan,
         curation: drafts[customer.id]?.curation ?? customer.curation,
         campaign: drafts[customer.id]?.campaign ?? customer.campaign,
       })),
-    [drafts]
+    [drafts, initialCustomers]
   );
 
   const selectedCustomer =
@@ -223,14 +227,14 @@ export function DgnGrowthWorkspace({
 
     return {
       total: customers.length,
-      historicalTotal: allDgnCustomers.length,
+      historicalTotal: initialCustomers.length,
       awaiting: awaiting.length,
       highScore: highScore.length,
       founders: founders.length,
       totalHistorical,
       potentialRevenue,
     };
-  }, [customers]);
+  }, [customers, initialCustomers.length]);
 
   const campaignMetrics = useMemo(() => {
     const founders = customers.filter((customer) => customer.campaign.founderSelected);
@@ -272,6 +276,11 @@ export function DgnGrowthWorkspace({
   }, [customers]);
 
   const patchCustomer = (id: string, patch: Partial<CustomerDraft>) => {
+    if (readOnly) {
+      setNotice("Persistência em implementação — nenhuma alteração foi salva.");
+      window.setTimeout(() => setNotice(""), 3000);
+      return;
+    }
     setDrafts((current) => {
       const previous = current[id];
 
@@ -317,9 +326,10 @@ export function DgnGrowthWorkspace({
 
   return (
     <div className="min-h-screen bg-[#080808] text-white">
-      <GrowthHeader current={view} />
+      <GrowthHeader current={view} dataOrigin={dataOrigin} />
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {readOnly ? <div className="mb-5 rounded-xl border border-[#C9A84C]/20 bg-[#C9A84C]/[0.06] px-4 py-3 text-xs text-[#E7C96A]">Modo somente leitura · persistência comercial em implementação.</div> : null}
         {notice ? (
           <div className="fixed right-4 top-4 z-[70] rounded-xl border border-[#C9A84C]/30 bg-[#111111] px-4 py-3 text-sm font-semibold text-[#E7C96A] shadow-2xl">
             {notice}
@@ -421,7 +431,7 @@ export function DgnGrowthWorkspace({
 // ============================================================================
 // Header
 // ============================================================================
-function GrowthHeader({ current }: { current: GrowthView }) {
+function GrowthHeader({ current, dataOrigin }: { current: GrowthView; dataOrigin: "json" | "db" | "json-fallback" }) {
   const links = [
     { href: "/admin/growth/intelligence", label: "Intelligence", view: "intelligence" },
     { href: "/admin/growth/curadoria", label: "Curadoria", view: "curadoria" },
@@ -438,6 +448,7 @@ function GrowthHeader({ current }: { current: GrowthView }) {
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
             Central de relacionamento
           </h1>
+          <p className="mt-2 text-[11px] text-[#777]">Fonte: {dataOrigin === "db" ? "Supabase" : dataOrigin === "json-fallback" ? "JSON local temporário" : "JSON local"}</p>
         </div>
 
         <nav className="flex flex-wrap items-center gap-2">

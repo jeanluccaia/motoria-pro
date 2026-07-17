@@ -10,6 +10,36 @@ Sem persistência real ainda. Este diretório contém:
 
 **Enquanto as 3 variáveis do Supabase não estiverem configuradas na Vercel, features de escrita permanecem desabilitadas via feature flag `DGN_GROWTH_DATA_SOURCE=json`.**
 
+## Fonte de leitura do DGN Growth
+
+`DGN_GROWTH_DATA_SOURCE` aceita somente `json` (padrão seguro) ou `db`. No modo
+`json`, o workspace usa os 1.152 clientes operacionais locais. No modo `db`, uma
+camada server-side consulta clientes, veículos, assinaturas, membros de campanha,
+interações e snapshots de score e os converte centralmente para o modelo da tela.
+Um valor diferente falha com uma mensagem de configuração clara.
+
+O fallback de `db` para JSON nunca é silencioso. Ele só ocorre quando
+`DGN_GROWTH_ALLOW_JSON_FALLBACK` está explicitamente configurada como `true`; a
+interface então informa `Fonte: JSON local temporário`. Sem essa opção, uma falha
+do banco produz uma tela administrativa de erro e registra no servidor apenas a
+mensagem operacional, sem credenciais.
+
+A URL e a service role são lidas exclusivamente por módulos marcados como
+server-only. O componente client recebe somente o modelo já mapeado, portanto a
+service role não entra no bundle do navegador e não há consulta direta ao
+Supabase pela interface.
+
+Para validar o modo DB sem escrita, configure a fonte como `db`, acesse
+`/admin/growth/intelligence` com uma sessão administrativa válida e confirme
+quatro registros: Benedito Constantino (Founder 001), José Moreira (002), Rikardo
+Oliveira (003) e Iara Menezes selecionada sem confirmação. Recarregar deve manter
+os mesmos quatro registros, veículos e assinaturas. Não rode o apply para essa
+verificação.
+
+As ações comerciais permanecem somente leitura no modo DB. O cabeçalho e um aviso
+no workspace deixam claro que a persistência está em implementação; tentativas de
+alteração são interceptadas e não aparentam ter sido salvas.
+
 ## Base historica x base operacional
 
 - `lib/growth/dgn-customers.json` permanece como historico completo, com 2.354 clientes unicos.

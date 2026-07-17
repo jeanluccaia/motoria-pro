@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test lib/growth/dgn-growth-data.test.ts lib/growth/db/normalizers.test.ts lib/growth/db/reconciliation.test.ts lib/growth/db/score-engine.test.ts db/scripts/migrate-legacy-json.test.ts",
+    "test": "node --conditions=react-server --test lib/growth/dgn-growth-data.test.ts lib/growth/db/growth-reader.test.ts lib/growth/db/normalizers.test.ts lib/growth/db/reconciliation.test.ts lib/growth/db/score-engine.test.ts db/scripts/migrate-legacy-json.test.ts",
     "db:dry-run": "node db/scripts/migrate-legacy-json.ts --dry-run",
     "db:dry-run:selective": "node db/scripts/migrate-legacy-json.ts --dry-run --select"
   },
