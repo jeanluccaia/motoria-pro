@@ -29,7 +29,7 @@
  *   NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
  */
 
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import {
@@ -47,12 +47,21 @@ import {
   type DataQualityIssue,
   type ScoreInput,
 } from "../../lib/growth/db/score-engine.ts";
+import { SUBSCRIBERS_2026_Q3 } from "../seeds/subscribers-2026-q3.ts";
+import type {
+  CampaignMemberWrite,
+  CrmRepository,
+  CustomerWrite,
+  SubscriptionWrite,
+  VehicleWrite,
+  WriteAction,
+} from "../../lib/growth/db/repositories.ts";
 
 // ---------------------------------------------------------------------------
 // Tipos do JSON legado
 // ---------------------------------------------------------------------------
 
-interface LegacyCustomer {
+export interface LegacyCustomer {
   id: string;
   name: string;
   phone: string;
@@ -101,7 +110,7 @@ interface LegacyCustomer {
 // Preserved Founders (project rule)
 // ---------------------------------------------------------------------------
 
-const PRESERVED_FOUNDERS: Record<string, { number: string; legacyIdHint?: string }> = {
+export const PRESERVED_FOUNDERS: Record<string, { number: string; legacyIdHint?: string }> = {
   "benedito constantino": { number: "001" },
   "jose moreira":          { number: "002" },
   "rikardo oliveira":      { number: "003", legacyIdHint: "rikardo-oliveira" },
@@ -109,6 +118,12 @@ const PRESERVED_FOUNDERS: Record<string, { number: string; legacyIdHint?: string
 
 // Iara aparece no JSON legado com founderNumber 004. Não promover.
 const REOPEN_FOUNDER_LEGACY = new Set<string>(["iara"]); // legacy_id que devem ter Nº004 reaberto
+export const SELECTIVE_APPLY_CONFIRMATION = "APPLY_SELECTIVE_DGN_CRM";
+export const APPROVED_SELECTIVE_IDS = new Set(["benedito-constantino", "jose-moreira", "rikardo-oliveira", "iara"]);
+export type ApplyRepository = Pick<CrmRepository,
+  "findCustomerByExternalId" | "findCustomersByNormalizedPhone" | "createCustomer" | "updateCustomer" |
+  "upsertVehicle" | "upsertSubscription" | "upsertCampaignMember" | "createAuditLog" | "createInteraction"
+>;
 
 // ---------------------------------------------------------------------------
 // Report
@@ -229,7 +244,7 @@ function prepare(row: LegacyCustomer): PreparedCustomer {
 // Núcleo do dry-run
 // ---------------------------------------------------------------------------
 
-function runDryRun(rows: LegacyCustomer[]): DryRunReport {
+export function runDryRun(rows: LegacyCustomer[]): DryRunReport {
   const prepared = rows.map(prepare);
   const report: DryRunReport = {
     totalInput: rows.length,
@@ -376,7 +391,7 @@ async function loadLegacyJson(): Promise<LegacyCustomer[]> {
  * Sempre normaliza para Set<string>. Lança erro se o arquivo estiver vazio
  * ou em formato desconhecido — preferimos falhar cedo a rodar tudo por engano.
  */
-async function loadSelection(selectionPath: string): Promise<Set<string>> {
+export async function loadSelection(selectionPath: string): Promise<Set<string>> {
   const raw = await readFile(selectionPath, "utf8");
   const trimmed = raw.trim();
   if (!trimmed) {
@@ -419,6 +434,189 @@ function readFlagValue(argv: string[], flag: string): string | null {
     throw new Error(`flag ${flag} exige um valor (caminho de arquivo)`);
   }
   return next;
+}
+
+export function validateApplyGate(argv: string[], selectedIds: Set<string>): void {
+  if (!argv.includes("--apply")) return;
+  if (!argv.includes("--select")) throw new Error("--apply exige --select <arquivo>");
+  const confirmation = readFlagValue(argv, "--confirm");
+  if (confirmation !== SELECTIVE_APPLY_CONFIRMATION) {
+    throw new Error(`confirmação inválida: use --confirm ${SELECTIVE_APPLY_CONFIRMATION}`);
+  }
+  if (readFlagValue(argv, "--target") !== "remote") {
+    throw new Error("ambiente não identificado: use --target remote");
+  }
+  if (selectedIds.size === 0) throw new Error("seleção vazia");
+  const unauthorized = [...selectedIds].filter((id) => !APPROVED_SELECTIVE_IDS.has(id));
+  const missingApproved = [...APPROVED_SELECTIVE_IDS].filter((id) => !selectedIds.has(id));
+  if (unauthorized.length || missingApproved.length || selectedIds.size !== APPROVED_SELECTIVE_IDS.size) {
+    throw new Error("apply bloqueado: esta etapa aceita exatamente os quatro IDs aprovados");
+  }
+}
+
+export async function assertRemoteIdentity(projectRoot: string, rawUrl: string | undefined): Promise<void> {
+  if (!rawUrl) throw new Error("NEXT_PUBLIC_SUPABASE_URL ausente no ambiente server-side");
+  let hostname: string;
+  try {
+    hostname = new URL(rawUrl).hostname;
+  } catch {
+    throw new Error("NEXT_PUBLIC_SUPABASE_URL inválida");
+  }
+  const linkedRef = (await readFile(resolve(projectRoot, "supabase/.temp/project-ref"), "utf8")).trim();
+  if (!linkedRef || hostname !== `${linkedRef}.supabase.co`) {
+    throw new Error("projeto remoto do ambiente não corresponde ao projeto vinculado pela Supabase CLI");
+  }
+}
+
+interface ApplyReport {
+  selected: number;
+  created: number;
+  updated: number;
+  ignored: number;
+  conflicts: number;
+  audits: number;
+  interactions: number;
+  failures: Array<{ legacy_id: string; error: string }>;
+  records: Array<{ legacy_id: string; customer: WriteAction; vehicle: WriteAction; subscription: WriteAction; campaign: WriteAction }>;
+}
+
+function qualityStatus(issues: DataQualityIssue[]): CustomerWrite["data_quality_status"] {
+  if (issues.length === 0 || issues.every((issue) => issue === "atendimento_antigo")) return "ok";
+  if (issues.length > 1) return "multiplas_pendencias";
+  if (issues[0] === "telefone_invalido" || issues[0] === "telefone_ausente") return "telefone_invalido";
+  if (issues[0] === "veiculo_indefinido") return "placa_invalida";
+  return "incompleto";
+}
+
+function subscriptionFor(row: LegacyCustomer): SubscriptionWrite | null {
+  const normalized = normalizeName(row.name).normalized;
+  const seed = SUBSCRIBERS_2026_Q3.find((candidate) =>
+    [candidate.name, ...(candidate.aliases ?? [])].some((name) => normalizeName(name).normalized === normalized),
+  );
+  if (!seed) return null;
+  return {
+    customer_id: "",
+    is_active_subscriber: false,
+    subscription_plan: seed.plan,
+    subscription_cycle: seed.cycle,
+    subscription_status: seed.status,
+    subscription_source: "Importação",
+    subscription_detected_at: null,
+    next_scheduled_service_at: seed.nextScheduledServiceAt,
+    source_reference: seed.sourceReference,
+    notes: seed.notes ?? null,
+  };
+}
+
+function customerWrite(prepared: PreparedCustomer): CustomerWrite {
+  const row = prepared.legacy;
+  return {
+    legacy_id: row.id,
+    name: row.id === "iara" ? "Iara Menezes" : row.name,
+    normalized_name: row.id === "iara" ? normalizeName("Iara Menezes").normalized : prepared.name.normalized,
+    primary_phone: row.phone || null,
+    normalized_phone: prepared.phone.classification === "valido" ? prepared.phone.digits : null,
+    email: null,
+    company_or_link: row.companyLink || null,
+    origin: row.origin || null,
+    first_service_at: row.customerSince || null,
+    last_service_at: row.lastAttendance || null,
+    service_count: row.washCount || 0,
+    historical_value: row.historicalValue || 0,
+    average_ticket: row.washCount ? Math.round((row.historicalValue / row.washCount) * 100) / 100 : 0,
+    average_interval_days: row.averageVisitIntervalDays || null,
+    data_quality_status: qualityStatus(prepared.dataQualityIssues),
+    data_quality_notes: prepared.dataQualityIssues.length ? prepared.dataQualityIssues.join(", ") : null,
+  };
+}
+
+function sameWrite(current: Record<string, unknown>, wanted: Record<string, unknown>): boolean {
+  return Object.entries(wanted).every(([key, value]) => JSON.stringify(current[key] ?? null) === JSON.stringify(value ?? null));
+}
+
+export async function applySelected(rows: LegacyCustomer[], repository: ApplyRepository): Promise<ApplyReport> {
+  const report: ApplyReport = { selected: rows.length, created: 0, updated: 0, ignored: 0, conflicts: 0, audits: 0, interactions: 0, failures: [], records: [] };
+  for (const row of rows) {
+    try {
+      const prepared = prepare(row);
+      const wantedCustomer = customerWrite(prepared);
+      let customer = await repository.findCustomerByExternalId(row.id);
+      if (!customer && wantedCustomer.normalized_phone) {
+        const phoneMatches = await repository.findCustomersByNormalizedPhone(wantedCustomer.normalized_phone);
+        if (phoneMatches.length > 1 || (phoneMatches.length === 1 && phoneMatches[0].legacy_id !== row.id)) {
+          report.conflicts += 1;
+          throw new Error("duplicidade ambígua por telefone normalizado");
+        }
+        customer = phoneMatches[0] ?? null;
+      }
+
+      let customerAction: WriteAction;
+      if (!customer) {
+        customer = await repository.createCustomer(wantedCustomer);
+        customerAction = "created";
+      } else if (sameWrite(customer, wantedCustomer)) {
+        customerAction = "noop";
+      } else {
+        customer = await repository.updateCustomer(customer.id, wantedCustomer);
+        customerAction = "updated";
+      }
+
+      const vehicle: VehicleWrite = {
+        customer_id: customer.id,
+        brand: null,
+        model: row.vehicle && row.vehicle.toLowerCase() !== "a definir" ? row.vehicle : null,
+        normalized_model: row.vehicle && row.vehicle.toLowerCase() !== "a definir" ? row.vehicle.trim().toLowerCase() : null,
+        plate: row.plate || null,
+        masked_plate: row.plate || null,
+        normalized_plate: prepared.plate.classification.startsWith("valida") ? prepared.plate.compact : null,
+        is_primary: true,
+        source: "legacy-json-selective",
+      };
+      const vehicleResult = await repository.upsertVehicle(vehicle);
+
+      const subscription = subscriptionFor(row);
+      if (!subscription) throw new Error("evidência de assinatura controlada não encontrada");
+      subscription.customer_id = customer.id;
+      const subscriptionResult = await repository.upsertSubscription(subscription);
+
+      const founder = PRESERVED_FOUNDERS[prepared.name.normalized];
+      const campaign: CampaignMemberWrite = {
+        campaign_id: "founders-2026",
+        customer_id: customer.id,
+        founder_status: founder ? "confirmado" : "selecionado",
+        commercial_stage: founder ? "convertido" : "aguardando_analise",
+        recommendation_reason: founder ? `Founder ${founder.number} preservado` : "Vaga 004 reaberta; requer confirmação humana",
+        commercial_notes: row.curation.internalNotes || row.campaign.notes || null,
+        founder_number: founder?.number ?? null,
+        kit_status: "não_aplicável",
+        card_status: "não_aplicável",
+      };
+      const campaignResult = await repository.upsertCampaignMember(campaign);
+
+      const actions = [customerAction, vehicleResult.action, subscriptionResult.action, campaignResult.action];
+      const changed = actions.some((action) => action !== "noop");
+      if (changed) {
+        await repository.createAuditLog({
+          entity_type: "customer",
+          entity_id: customer.id,
+          action: customerAction === "created" ? "selective_import.created" : "selective_import.reconciled",
+          previous_value: null,
+          new_value: { legacy_id: row.id, customer: customerAction, vehicle: vehicleResult.action, subscription: subscriptionResult.action, campaign: campaignResult.action },
+          actor: "dgn-selective-import",
+          reason: "apply seletivo aprovado",
+        });
+        await repository.createInteraction({ customer_id: customer.id, campaign_id: "founders-2026", interaction_type: "importação", channel: "server-script", description: "Registro conciliado pelo apply seletivo", metadata: { legacy_id: row.id }, actor: "dgn-selective-import" });
+        report.audits += 1;
+        report.interactions += 1;
+      }
+      report[customerAction === "created" ? "created" : customerAction === "updated" ? "updated" : "ignored"] += 1;
+      report.records.push({ legacy_id: row.id, customer: customerAction, vehicle: vehicleResult.action, subscription: subscriptionResult.action, campaign: campaignResult.action });
+    } catch (error) {
+      report.failures.push({ legacy_id: row.id, error: error instanceof Error ? error.message : "erro desconhecido" });
+      break;
+    }
+  }
+  return report;
 }
 
 function printSummary(report: DryRunReport) {
@@ -482,6 +680,9 @@ async function main() {
       console.error("Nenhum dos IDs selecionados existe no JSON legado — abortando.\n");
       process.exit(4);
     }
+    if (missing.length) {
+      throw new Error(`IDs inexistentes no legado: ${missing.join(", ")}`);
+    }
   }
 
   if (dryRun) {
@@ -500,29 +701,33 @@ async function main() {
   }
 
   if (apply) {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!url || !key) {
-      console.error("\nERRO: --apply requer NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY no ambiente.");
-      console.error("Configure as variáveis (Vercel / .env.local) antes de rodar a migração real.\n");
-      process.exit(2);
+    if (!selectionPath) throw new Error("--apply exige --select <arquivo>");
+    const selectedIds = await loadSelection(selectionPath);
+    validateApplyGate(argv, selectedIds);
+    console.log(`Ambiente: REMOTO\nRegistros autorizados antes da escrita: ${rows.length}`);
+
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+        process.loadEnvFile(resolve(projectRoot, ".env.local"));
+      } catch {
+        // A mensagem segura abaixo cobre ambiente ausente sem expor valores.
+      }
     }
-    console.error(
-      "\n--apply ainda não implementado neste script.\n" +
-      "Decisão comercial vigente (retomada 2026-07-15): não migrar os 2354\n" +
-      "registros em massa. A 4uCar continua sendo a base operacional; o\n" +
-      "Supabase deve receber apenas registros selecionados manualmente\n" +
-      "(assinantes confirmados, Founders 001/002/003, candidatos aprovados,\n" +
-      "lista de espera).\n\n" +
-      "Próximo passo antes de implementar --apply:\n" +
-      "  1) montar um arquivo db/scripts/selection-<data>.json com os\n" +
-      "     legacy_ids que devem ir para o Supabase.\n" +
-      "  2) rodar `node db/scripts/migrate-legacy-json.ts --dry-run --select <arquivo>`\n" +
-      "     e conferir o relatório em db/reports/.\n" +
-      "  3) só então habilitar apply (ainda por implementar) para essa lista.\n\n" +
-      "Ver DGN/portal/db/reports/supabase-auth-resume-*.md para contexto.\n",
-    );
-    process.exit(3);
+    const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+    await assertRemoteIdentity(projectRoot, process.env.NEXT_PUBLIC_SUPABASE_URL);
+    const { CrmRepository } = await import("../../lib/growth/db/repositories.ts");
+    const repository = new CrmRepository();
+    const report = await applySelected(rows, repository);
+    const outPath = resolve(dirname(fileURLToPath(import.meta.url)), "../reports");
+    await mkdir(outPath, { recursive: true });
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const file = resolve(outPath, `apply-selective-${stamp}.json`);
+    await writeFile(file, JSON.stringify(report, null, 2), "utf8");
+    console.log(`Resultado: criados=${report.created} atualizados=${report.updated} ignorados=${report.ignored} conflitos=${report.conflicts} auditorias=${report.audits} falhas=${report.failures.length}`);
+    console.log(`Relatório local: ${file}`);
+    if (report.failures.length) throw new Error(`apply interrompido em ${report.failures[0].legacy_id}: ${report.failures[0].error}`);
+    return;
   }
 }
 
