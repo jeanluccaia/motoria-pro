@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter, Big_Shoulders } from 'next/font/google'
+import { GoogleTagManager } from '@next/third-parties/google'
 import './globals.css'
 import { Suspense } from 'react'
 import { Header } from '@/components/layout/Header'
@@ -50,6 +51,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className={`h-full ${bodyFont.variable} ${displayFont.variable}`}>
+      <GoogleTagManager gtmId="GTM-KF5DBT6L" />
       <body className="min-h-full flex flex-col bg-lf-black text-lf-text">
         <Suspense fallback={null}>
           <AnalyticsScripts />
