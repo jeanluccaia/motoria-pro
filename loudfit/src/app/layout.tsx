@@ -42,6 +42,11 @@ export const metadata: Metadata = {
       'Rede de academias com energia, estrutura e experiência para quem leva o treino a sério.',
     images: ['/assets/images/campaign-gym-16x9.png'],
   },
+  verification: {
+    other: {
+      'facebook-domain-verification': '1mr7t2qceqtw2c4k9ebowwz5cumsv5',
+    },
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
