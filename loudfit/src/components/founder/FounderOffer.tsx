@@ -8,6 +8,7 @@ import {
   type CampaignPlan,
 } from '@/lib/campaigns'
 import { trackCampaignEvent } from '@/lib/campaign-analytics'
+import { dispatchIpirangaInitiateCheckout } from '@/lib/meta-checkout'
 
 interface CampaignOfferProps {
   config: CampaignPageConfig
@@ -293,6 +294,13 @@ export function FounderOffer({
                       regular_price: regularPriceValue,
                       first_month_price: firstMonthPriceValue,
                     })
+                    // Clique autoritativo que leva à tela do checkout EVO
+                    // (a página /matricula/ipiranga embuta o iframe da EVO no
+                    // mount). Dispara antes da navegação; helper é deduplicado
+                    // por sessão e respeita consentimento de marketing.
+                    if (config.checkoutHref?.startsWith('/matricula/ipiranga')) {
+                      dispatchIpirangaInitiateCheckout()
+                    }
                   }}
                   className="lf-cta-volt lf-cta-pulse mt-1 inline-flex min-h-[54px] w-full items-center justify-center rounded-[10px] px-6 py-4 text-[13.5px] font-black uppercase tracking-[0.08em] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_34px_rgba(255,224,0,0.24)] active:translate-y-0 sm:text-[14px]"
                 >

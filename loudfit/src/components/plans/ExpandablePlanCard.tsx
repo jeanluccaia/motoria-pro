@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { trackEvent } from '@/lib/analytics'
+import { dispatchIpirangaInitiateCheckout } from '@/lib/meta-checkout'
 import {
   networkBenefits,
   planConditions,
@@ -16,7 +17,7 @@ function unitSlugFromHref(href: string): string | undefined {
   return match?.[1]
 }
 
-function fireSelectPlan(plan: Plan, ctaHref: string) {
+function firePlanCtaClick(plan: Plan, ctaHref: string) {
   trackEvent('select_plan', {
     unit_slug: unitSlugFromHref(ctaHref),
     plan_id: plan.slug,
@@ -26,6 +27,11 @@ function fireSelectPlan(plan: Plan, ctaHref: string) {
     currency: 'BRL',
     promotion: plan.firstPayment ? 'first_month' : undefined,
   })
+  // CTA de plano na unidade Ipiranga também é um clique autoritativo que
+  // leva ao checkout EVO. Helper é deduplicado por sessão.
+  if (ctaHref.startsWith('/matricula/ipiranga')) {
+    dispatchIpirangaInitiateCheckout()
+  }
 }
 
 export type PlansVariant = 'home' | 'unit'
@@ -222,7 +228,7 @@ export function ExpandablePlanCard({
           <div className="mt-6">
             <Link
               href={ctaHref}
-              onClick={() => fireSelectPlan(plan, ctaHref)}
+              onClick={() => firePlanCtaClick(plan, ctaHref)}
               className="lf-cta-volt inline-flex w-full min-h-[44px] items-center justify-center rounded-full px-5 py-3 text-[13px] font-bold tracking-normal"
             >
               {ctaLabel}
@@ -337,6 +343,7 @@ export function ExpandablePlanCard({
         <div className="mt-6">
           <Link
             href={ctaHref}
+            onClick={() => firePlanCtaClick(plan, ctaHref)}
             className="lf-cta-volt inline-flex w-full min-h-[44px] items-center justify-center rounded-full px-5 py-3 text-[13px] font-bold tracking-normal"
           >
             {ctaLabel}

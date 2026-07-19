@@ -29,6 +29,10 @@ const sizes: Record<Size, string> = {
 const base =
   'inline-flex max-w-full items-center justify-center rounded-none text-center font-bold uppercase leading-tight tracking-[0.1em] whitespace-normal transition-all duration-200 min-h-[44px] cursor-pointer hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]'
 
+export function buttonClasses(variant: Variant = 'volt', size: Size = 'md', className?: string) {
+  return cn(base, variants[variant], sizes[size], className)
+}
+
 export function Button({
   variant = 'volt',
   size = 'md',
@@ -38,7 +42,7 @@ export function Button({
   onClick,
   ...props
 }: ButtonProps) {
-  const cls = cn(base, variants[variant], sizes[size], className)
+  const cls = buttonClasses(variant, size, className)
 
   if (href) {
     return (

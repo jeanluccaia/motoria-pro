@@ -1,6 +1,6 @@
 'use client'
 
-import { trackMetaEvent } from '@/lib/analytics'
+import { dispatchIpirangaInitiateCheckout } from '@/lib/meta-checkout'
 
 interface Props {
   checkoutUrl: string
@@ -10,12 +10,11 @@ interface Props {
 
 /**
  * Wrapper do link "Abrir checkout em nova aba" para /matricula/ipiranga.
- * Este é o click autoritativo que envia o usuário ao checkout externo da EVO
- * dentro do fluxo /convite → /matricula/ipiranga → EVO. Dispara
- * `InitiateCheckout` no Meta Pixel e `initiate_checkout` no dataLayer,
- * ambos gated no consentimento de marketing dentro dos helpers.
- * O redirecionamento acontece via `href` normal e não é bloqueado por falhas
- * de tracking.
+ * Caminho secundário do fluxo /convite → /matricula/ipiranga → EVO — para
+ * usuários em que o iframe embutido não funciona. Compartilha o helper
+ * `dispatchIpirangaInitiateCheckout`, que já é deduplicado por sessão e
+ * gated no consentimento de marketing. A navegação para EVO segue pelo
+ * `href` normal e nunca é bloqueada por falhas de tracking.
  */
 export function IpirangaEvoCheckoutLink({ checkoutUrl, className, children }: Props) {
   return (
@@ -25,24 +24,7 @@ export function IpirangaEvoCheckoutLink({ checkoutUrl, className, children }: Pr
       rel="noopener noreferrer"
       className={className}
       onClick={() => {
-        trackMetaEvent('InitiateCheckout', {
-          content_name: 'Plano Mensal Recorrente - Loud Fit Ipiranga',
-          content_category: 'Academia',
-          content_type: 'product',
-          content_ids: ['ipiranga-mensal-recorrente'],
-          value: 69.9,
-          currency: 'BRL',
-        })
-        const w = window as Window & { dataLayer?: unknown[] }
-        if (Array.isArray(w.dataLayer)) {
-          w.dataLayer.push({
-            event: 'initiate_checkout',
-            unit: 'ipiranga',
-            plan: 'mensal_recorrente',
-            value: 69.9,
-            currency: 'BRL',
-          })
-        }
+        dispatchIpirangaInitiateCheckout()
       }}
     >
       {children}

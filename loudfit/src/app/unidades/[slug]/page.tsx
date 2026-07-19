@@ -6,11 +6,12 @@ import { getUnits, getUnitBySlug } from '@/lib/supabase'
 import { getPlans } from '@/lib/plans'
 import { formatWhatsApp, shortUnitName, unitDisplayName } from '@/lib/utils'
 import { UnitBadge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
+import { Button, buttonClasses } from '@/components/ui/Button'
 import { Section, SectionHeader } from '@/components/ui/Section'
 import { PlansGrid } from '@/components/plans/PlansGrid'
 import { UnitGallery, type UnitGalleryImage } from '@/components/ui/UnitGallery'
 import { UnitViewTracker } from '@/components/analytics/UnitViewTracker'
+import { IpirangaMatriculaCta } from '@/components/analytics/IpirangaMatriculaCta'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -141,14 +142,32 @@ export default async function UnitPage({ params }: Props) {
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 {unit.status !== 'em_breve' && (
-                  <Button href={checkoutHref} variant="volt" size="lg" className="w-full sm:w-auto">
-                    {hasCheckout ? 'Matricular online' : 'Ver planos'}
-                  </Button>
+                  isIpiranga && hasCheckout ? (
+                    <IpirangaMatriculaCta
+                      href={checkoutHref}
+                      className={buttonClasses('volt', 'lg', 'w-full sm:w-auto')}
+                    >
+                      Matricular online
+                    </IpirangaMatriculaCta>
+                  ) : (
+                    <Button href={checkoutHref} variant="volt" size="lg" className="w-full sm:w-auto">
+                      {hasCheckout ? 'Matricular online' : 'Ver planos'}
+                    </Button>
+                  )
                 )}
                 {unit.status === 'em_breve' && hasCheckout && (
-                  <Button href={checkoutHref} variant="volt" size="lg" className="w-full sm:w-auto">
-                    Garantir matrícula online
-                  </Button>
+                  isIpiranga ? (
+                    <IpirangaMatriculaCta
+                      href={checkoutHref}
+                      className={buttonClasses('volt', 'lg', 'w-full sm:w-auto')}
+                    >
+                      Garantir matrícula online
+                    </IpirangaMatriculaCta>
+                  ) : (
+                    <Button href={checkoutHref} variant="volt" size="lg" className="w-full sm:w-auto">
+                      Garantir matrícula online
+                    </Button>
+                  )
                 )}
                 {unit.status === 'em_breve' && !hasCheckout && (
                   <Button href="#planos" variant="volt" size="lg" className="w-full sm:w-auto">
@@ -214,19 +233,26 @@ export default async function UnitPage({ params }: Props) {
                   ? 'Escolha seu plano abaixo e finalize a matrícula online.'
                   : 'Escolha um plano e finalize sua matrícula.'}
               </p>
-              <Button
-                href={unit.status === 'em_breve' && !hasCheckout ? '#planos' : checkoutHref}
-                variant="volt"
-                className="mt-5 w-full justify-center"
-              >
-                {unit.status === 'em_breve' && !hasCheckout
-                  ? 'Ver planos'
-                  : isIpiranga
-                  ? 'Garantir matrícula online'
-                  : hasCheckout
-                  ? 'Matricular online'
-                  : 'Ver planos'}
-              </Button>
+              {isIpiranga && hasCheckout ? (
+                <IpirangaMatriculaCta
+                  href={checkoutHref}
+                  className={buttonClasses('volt', 'md', 'mt-5 w-full justify-center')}
+                >
+                  Garantir matrícula online
+                </IpirangaMatriculaCta>
+              ) : (
+                <Button
+                  href={unit.status === 'em_breve' && !hasCheckout ? '#planos' : checkoutHref}
+                  variant="volt"
+                  className="mt-5 w-full justify-center"
+                >
+                  {unit.status === 'em_breve' && !hasCheckout
+                    ? 'Ver planos'
+                    : hasCheckout
+                    ? 'Matricular online'
+                    : 'Ver planos'}
+                </Button>
+              )}
               {whatsapp && (
                 <a
                   href={formatWhatsApp(
