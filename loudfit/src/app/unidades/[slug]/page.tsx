@@ -12,6 +12,7 @@ import { PlansGrid } from '@/components/plans/PlansGrid'
 import { UnitGallery, type UnitGalleryImage } from '@/components/ui/UnitGallery'
 import { UnitViewTracker } from '@/components/analytics/UnitViewTracker'
 import { IpirangaMatriculaCta } from '@/components/analytics/IpirangaMatriculaCta'
+import { siteUrl } from '@/lib/site'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -80,7 +81,7 @@ export default async function UnitPage({ params }: Props) {
       name: item.label,
       description: item.value,
     })),
-    url: `https://loudfit.vercel.app/unidades/${unit.slug}`,
+    url: `${siteUrl}/unidades/${unit.slug}`,
     ...(unit.nota_google && { aggregateRating: { '@type': 'AggregateRating', ratingValue: unit.nota_google, ratingCount: 50 } }),
   }
 
