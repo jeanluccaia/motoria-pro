@@ -18,33 +18,38 @@ const displayFont = Big_Shoulders({
   variable: '--font-display',
 })
 
+const siteTitle = 'Loud Fit | Academia com musculação e aulas inclusas'
+const siteDescription =
+  'Aqui, o treino fala mais alto. Musculação, cardio e aulas coletivas em um só plano. Escolha sua unidade. O melhor ainda está por vir'
+
 export const metadata: Metadata = {
   title: {
     template: '%s | Loud Fit',
-    default: 'Loud Fit | O melhor ainda está por vir',
+    default: siteTitle,
   },
-  description:
-    'Rede de academias com energia, estrutura e experiência para quem leva o treino a sério.',
+  description: siteDescription,
   metadataBase: new URL(siteUrl),
   alternates: {
     canonical: '/',
   },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-icon.png',
+  },
   openGraph: {
-    title: 'Loud Fit | O melhor ainda está por vir',
-    description:
-      'Rede de academias com energia, estrutura e experiência para quem leva o treino a sério.',
+    title: siteTitle,
+    description: siteDescription,
     url: '/',
     siteName: 'Loud Fit',
     locale: 'pt_BR',
     type: 'website',
-    images: ['/opengraph-image'],
+    images: ['/og-image.jpg'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Loud Fit | O melhor ainda está por vir',
-    description:
-      'Rede de academias com energia, estrutura e experiência para quem leva o treino a sério.',
-    images: ['/opengraph-image'],
+    title: siteTitle,
+    description: siteDescription,
+    images: ['/og-image.jpg'],
   },
   verification: {
     other: {
