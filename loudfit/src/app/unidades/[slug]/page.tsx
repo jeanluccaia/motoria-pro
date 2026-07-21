@@ -91,6 +91,8 @@ export default async function UnitPage({ params }: Props) {
 
   const aulasUnit = unit.modalidades.filter((m) => AULAS_COLETIVAS.has(m))
   const hasAulas = aulasUnit.length > 0
+  const atividades = unit.atividades ?? []
+  const hasAtividades = atividades.length > 0
 
   const structureItems = Array.from(
     new Set(['Musculação', 'Aulas coletivas', 'Estrutura completa', 'Reconhecimento facial'])
@@ -300,6 +302,27 @@ export default async function UnitPage({ params }: Props) {
           </div>
         </Section>
 
+        {/* Atividades da unidade */}
+        {hasAtividades && (
+          <Section bg="black">
+            <SectionHeader
+              label="Atividades disponíveis"
+              title="Atividades da unidade"
+              subtitle="Modalidades disponíveis nesta unidade, inclusas no seu plano."
+            />
+            <div className="flex flex-wrap gap-2">
+              {atividades.map((atividade) => (
+                <span
+                  key={atividade}
+                  className="border border-lf-line px-3 py-1.5 text-sm font-medium text-lf-muted transition-colors hover:border-lf-volt hover:text-lf-text"
+                >
+                  {atividade}
+                </span>
+              ))}
+            </div>
+          </Section>
+        )}
+
         {/* Planos */}
         <Section id="planos" bg="graphite">
           <SectionHeader
@@ -360,7 +383,7 @@ export default async function UnitPage({ params }: Props) {
           </Section>
         )}
 
-        {!hasAulas && (
+        {!hasAulas && !hasAtividades && (
           <Section bg="black" tight>
             <p className="text-sm text-lf-muted/60">
               Grade de aulas coletivas desta unidade a confirmar. Consulte a unidade.
