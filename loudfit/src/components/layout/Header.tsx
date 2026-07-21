@@ -11,6 +11,7 @@ const nav = [
   { label: 'Modalidades', href: '/modalidades' },
   { label: 'Franquias', href: '/franquias' },
   { label: 'Sobre', href: '/sobre' },
+  { label: 'Área do Cliente', href: '/area-do-cliente' },
 ]
 
 export function Header() {
