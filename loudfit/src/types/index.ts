@@ -40,6 +40,7 @@ export interface Unit {
   galeria: string[]
   media?: UnitMedia
   modalidades: string[]
+  atividades?: string[]
   ano_abertura: number
   alunos_ativos: number | null
   nota_google: number | null
