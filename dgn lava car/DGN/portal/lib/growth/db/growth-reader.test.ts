@@ -20,7 +20,7 @@ function snapshot(): GrowthDbSnapshot {
 
 function mockDb(data: GrowthDbSnapshot, fail = false) {
   const tables: Record<string, unknown[]> = { crm_customers: data.customers, crm_vehicles: data.vehicles, crm_subscriptions: data.subscriptions, crm_campaign_members: data.campaignMembers, crm_interactions: data.interactions, crm_score_snapshots: data.scores };
-  return { from: (table: string) => ({ select: async () => fail ? { data: null, error: { message: "offline" } } : { data: tables[table], error: null } }) } as never;
+  return { from: (table: string) => ({ select: () => ({ range: async (from: number, to: number) => fail ? { data: null, error: { message: "offline" } } : { data: tables[table].slice(from, to + 1), error: null } }) }) } as never;
 }
 
 test("json é a fonte segura padrão e variável inválida falha claramente", () => {
@@ -54,6 +54,13 @@ test("banco indisponível falha sem fallback e usa JSON apenas quando explicitam
   await assert.rejects(loadGrowthData({ env: { DGN_GROWTH_DATA_SOURCE: "db" }, db, logger }), /fallback local está desativado/);
   const result = await loadGrowthData({ env: { DGN_GROWTH_DATA_SOURCE: "db", DGN_GROWTH_ALLOW_JSON_FALLBACK: "true" }, db, logger });
   assert.equal(result.origin, "json-fallback"); assert.equal(result.customers.length, 1152); assert.equal(result.readOnly, true);
+});
+
+test("modo DB pagina sem perder registros acima do limite do Supabase", async () => {
+  const data = snapshot();
+  data.customers = Array.from({ length: 1152 }, (_, index) => customer(String(index + 1), `legacy-${index + 1}`, `Cliente ${index + 1}`));
+  const result = await loadGrowthData({ env: { DGN_GROWTH_DATA_SOURCE: "db" }, db: mockDb(data) });
+  assert.equal(result.customers.length, 1152);
 });
 
 test("service role não é referenciada pelo componente client", async () => {

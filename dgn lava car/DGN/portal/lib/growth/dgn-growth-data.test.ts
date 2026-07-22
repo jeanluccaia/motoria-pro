@@ -8,6 +8,8 @@ import {
   hasOperationalLastAttendance,
   isConfirmedFounder,
   isOperationalDgnCustomer,
+  maskPhone,
+  matchesDgnCustomerSearch,
   searchDgnCustomers,
   type DgnCustomer,
 } from "./dgn-growth-data.ts";
@@ -94,6 +96,13 @@ test("busca padrao usa apenas a base operacional", () => {
 
   assert.ok(historicalOnly, "Esperava encontrar cliente historico fora da operacao");
   assert.equal(searchDgnCustomers(historicalOnly.phone).length, 0);
+});
+
+test("busca aceita acentos e placa, e telefone exibido fica mascarado", () => {
+  const customer = { ...dgnCustomers[0], name: "Jose Moreira", plate: "ABC1D23", phone: "(19) 99999-1234" };
+  assert.equal(matchesDgnCustomerSearch(customer, "José Moreira"), true);
+  assert.equal(matchesDgnCustomerSearch(customer, "abc1d23"), true);
+  assert.equal(maskPhone(customer.phone), "(19) *****-1234");
 });
 
 test("Curadoria recebe a fonte operacional, nao os 2354 historicos", () => {

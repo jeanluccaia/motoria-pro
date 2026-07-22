@@ -36,6 +36,7 @@ import {
   getTicketAverage,
   idealSchedules,
   maskPlate,
+  maskPhone,
   originGroups,
   planMonthlyLabel,
   recommendedPlans,
@@ -183,6 +184,9 @@ export function DgnGrowthWorkspace({
   const [copiedKey, setCopiedKey] = useState("");
   const [copiedLinkKey, setCopiedLinkKey] = useState("");
   const [profileTab, setProfileTab] = useState<ProfileTab>("overview");
+  const [intelligencePage, setIntelligencePage] = useState(1);
+  const [curationPage, setCurationPage] = useState(1);
+  const pageSize = 50;
 
   const customers = useMemo(
     () =>
@@ -222,6 +226,9 @@ export function DgnGrowthWorkspace({
         return b.scoreDgn - a.scoreDgn;
       });
   }, [customers, planFilter, query, scoreFilter, sortBy, statusFilter]);
+
+  const intelligencePageCount = Math.max(1, Math.ceil(visibleCustomers.length / pageSize));
+  const pagedIntelligenceCustomers = visibleCustomers.slice((intelligencePage - 1) * pageSize, intelligencePage * pageSize);
 
   const metrics = useMemo(() => {
     const awaiting = customers.filter(
@@ -367,17 +374,21 @@ export function DgnGrowthWorkspace({
         {view === "intelligence" ? (
           <IntelligenceView
             metrics={metrics}
-            customers={visibleCustomers}
+            customers={pagedIntelligenceCustomers}
+            totalFiltered={visibleCustomers.length}
+            page={intelligencePage}
+            pageCount={intelligencePageCount}
+            onPage={setIntelligencePage}
             query={query}
             statusFilter={statusFilter}
             planFilter={planFilter}
             scoreFilter={scoreFilter}
             sortBy={sortBy}
-            onQuery={setQuery}
-            onStatusFilter={setStatusFilter}
-            onPlanFilter={setPlanFilter}
-            onScoreFilter={setScoreFilter}
-            onSortBy={setSortBy}
+            onQuery={(value) => { setQuery(value); setIntelligencePage(1); }}
+            onStatusFilter={(value) => { setStatusFilter(value); setIntelligencePage(1); }}
+            onPlanFilter={(value) => { setPlanFilter(value); setIntelligencePage(1); }}
+            onScoreFilter={(value) => { setScoreFilter(value); setIntelligencePage(1); }}
+            onSortBy={(value) => { setSortBy(value); setIntelligencePage(1); }}
             onOpenProfile={(id) => {
               setSelectedCustomerId(id);
               setProfileTab("overview");
@@ -392,7 +403,10 @@ export function DgnGrowthWorkspace({
             curationFilter={curationFilter}
             onSelect={setSelectedCustomerId}
             onPatch={patchCustomer}
-            onCurationFilter={setCurationFilter}
+            onCurationFilter={(value) => { setCurationFilter(value); setCurationPage(1); }}
+            page={curationPage}
+            pageSize={pageSize}
+            onPage={setCurationPage}
           />
         ) : null}
 
@@ -515,6 +529,10 @@ function GrowthHeader({ current, dataOrigin }: { current: GrowthView; dataOrigin
 function IntelligenceView({
   metrics,
   customers,
+  totalFiltered,
+  page,
+  pageCount,
+  onPage,
   query,
   statusFilter,
   planFilter,
@@ -537,6 +555,10 @@ function IntelligenceView({
     potentialRevenue: number;
   };
   customers: DgnCustomer[];
+  totalFiltered: number;
+  page: number;
+  pageCount: number;
+  onPage: (page: number) => void;
   query: string;
   statusFilter: string;
   planFilter: string;
@@ -627,7 +649,7 @@ function IntelligenceView({
         ))}
       </div>
 
-      <CustomersTable customers={customers} onOpenProfile={onOpenProfile} />
+      <CustomersTable customers={customers} total={totalFiltered} page={page} pageCount={pageCount} onPage={onPage} onOpenProfile={onOpenProfile} />
     </>
   );
 }
@@ -694,9 +716,17 @@ function FiltersBar({
 // ============================================================================
 function CustomersTable({
   customers,
+  total,
+  page,
+  pageCount,
+  onPage,
   onOpenProfile,
 }: {
   customers: DgnCustomer[];
+  total: number;
+  page: number;
+  pageCount: number;
+  onPage: (page: number) => void;
   onOpenProfile: (id: string) => void;
 }) {
   return (
@@ -708,6 +738,7 @@ function CustomersTable({
           </p>
           <h2 className="mt-1 text-lg font-semibold text-white">Base importada e priorizada</h2>
         </div>
+        <span className="text-xs text-[#7D7D7D]">{total} resultados · até 50 por página</span>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[960px] border-collapse">
@@ -776,6 +807,7 @@ function CustomersTable({
           </tbody>
         </table>
       </div>
+      <Pagination page={page} pageCount={pageCount} onPage={onPage} />
     </section>
   );
 }
@@ -789,6 +821,7 @@ const curationFilterOptions = [
   { key: "Curado", label: "Curado" },
   { key: "Founder", label: "Founder selecionado" },
   { key: "SemTelefone", label: "Sem telefone" },
+  { key: "Revisao", label: "Revisão manual" },
 ] as const;
 
 function CurationView({
@@ -798,6 +831,9 @@ function CurationView({
   onSelect,
   onPatch,
   onCurationFilter,
+  page,
+  pageSize,
+  onPage,
 }: {
   customers: DgnCustomer[];
   selectedCustomer: DgnCustomer;
@@ -805,16 +841,22 @@ function CurationView({
   onSelect: (id: string) => void;
   onPatch: (id: string, patch: Partial<CustomerDraft>) => void;
   onCurationFilter: (value: string) => void;
+  page: number;
+  pageSize: number;
+  onPage: (page: number) => void;
 }) {
   const filteredCustomers = [...customers]
     .filter((customer) => {
       if (curationFilter === "Aguardando") return customer.commercialStatus === "Aguardando Curadoria DGN";
       if (curationFilter === "Curado") return customer.commercialStatus === "Curado";
       if (curationFilter === "Founder") return customer.campaign.founderSelected;
-      if (curationFilter === "SemTelefone") return !customer.phone;
+      if (curationFilter === "SemTelefone") return customer.hasValidPhone === false;
+      if (curationFilter === "Revisao") return customer.dataQualityNotes?.includes("revisao_manual") === true;
       return true;
     })
     .sort((a, b) => b.scoreDgn - a.scoreDgn);
+  const pageCount = Math.max(1, Math.ceil(filteredCustomers.length / pageSize));
+  const pagedCustomers = filteredCustomers.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <section className="grid gap-5 lg:grid-cols-[22rem_1fr]">
@@ -841,7 +883,7 @@ function CurationView({
           </div>
         </div>
         <div className="max-h-[calc(100vh-18rem)] overflow-y-auto p-2">
-          {filteredCustomers.map((customer) => (
+          {pagedCustomers.map((customer) => (
             <button
               key={customer.id}
               onClick={() => onSelect(customer.id)}
@@ -858,6 +900,7 @@ function CurationView({
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-white">{customer.name}</p>
                       <p className="mt-0.5 truncate text-xs text-[#9CA3AF]">{customer.vehicle}</p>
+                      {customer.dataQualityNotes?.includes("revisao_manual") ? <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-amber-400">Revisão manual</p> : null}
                     </div>
                     <ScorePill score={customer.scoreDgn} />
                   </div>
@@ -866,6 +909,7 @@ function CurationView({
               </div>
             </button>
           ))}
+          <Pagination page={page} pageCount={pageCount} onPage={onPage} />
         </div>
       </div>
 
@@ -999,6 +1043,17 @@ function CurationView({
         </Fieldset>
       </div>
     </section>
+  );
+}
+
+function Pagination({ page, pageCount, onPage }: { page: number; pageCount: number; onPage: (page: number) => void }) {
+  if (pageCount <= 1) return null;
+  return (
+    <div className="flex items-center justify-between border-t border-white/[0.06] px-4 py-3 text-xs text-[#A7A7A7]">
+      <button disabled={page <= 1} onClick={() => onPage(page - 1)} className="rounded-lg border border-white/[0.08] px-3 py-2 disabled:opacity-30">Anterior</button>
+      <span>Página {page} de {pageCount}</span>
+      <button disabled={page >= pageCount} onClick={() => onPage(page + 1)} className="rounded-lg border border-white/[0.08] px-3 py-2 disabled:opacity-30">Próxima</button>
+    </div>
   );
 }
 
@@ -1527,7 +1582,7 @@ function CustomerProfileInline({
             label="Founder"
             value={customer.campaign.founderSelected ? `Sim · ${customer.campaign.founderNumber}` : "Não"}
           />
-          <ProfileFact label="Telefone" value={customer.phone || "Não cadastrado"} />
+          <ProfileFact label="Telefone" value={maskPhone(customer.phone)} />
           <ProfileFact label="Placa" value={maskPlate(customer.plate)} />
           <ProfileFact label="Empresa / vínculo" value={customer.companyLink || "—"} />
           <ProfileFact label="Origem" value={customer.origin || "—"} />
@@ -1804,7 +1859,7 @@ function ProfileInput({
 }
 
 function CustomerSnapshot({ customer }: { customer: DgnCustomer }) {
-  const incompleteRegistration = !customer.phone;
+  const incompleteRegistration = customer.dataQualityStatus !== "ok";
 
   return (
     <div className="rounded-2xl border border-[#C9A84C]/18 bg-[#121212] p-4">

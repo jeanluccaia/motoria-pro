@@ -37,10 +37,17 @@ export function readGrowthDataConfig(env: GrowthEnv = process.env) {
   };
 }
 
+const DB_PAGE_SIZE = 500;
+
 async function selectAll(db: SupabaseClient, table: string): Promise<Row[]> {
-  const result = await db.from(table).select("*");
-  if (result.error) throw new Error(`${table}: ${result.error.message}`);
-  return (result.data ?? []) as Row[];
+  const rows: Row[] = [];
+  for (let from = 0; ; from += DB_PAGE_SIZE) {
+    const result = await db.from(table).select("*").range(from, from + DB_PAGE_SIZE - 1);
+    if (result.error) throw new Error(`${table}: ${result.error.message}`);
+    const page = (result.data ?? []) as Row[];
+    rows.push(...page);
+    if (page.length < DB_PAGE_SIZE) return rows;
+  }
 }
 
 export async function readGrowthSnapshot(db: SupabaseClient): Promise<GrowthDbSnapshot> {
@@ -107,6 +114,9 @@ export function mapGrowthSnapshot(snapshot: GrowthDbSnapshot): DgnCustomer[] {
       commercialStatus: active ? "Assinante Ativo" : (commercialStatus[campaignStatus] ?? "Aguardando Curadoria DGN"),
       recurrence: text(subscription?.subscription_cycle) || "A validar na curadoria",
       averageVisitIntervalDays: number(customer.average_interval_days),
+      dataQualityStatus: text(customer.data_quality_status),
+      dataQualityNotes: text(customer.data_quality_notes),
+      hasValidPhone: Boolean(text(customer.normalized_phone)),
       commercial: { owner: text(member?.owner), commercialNotes: text(member?.commercial_notes),
         nextAction: text(member?.next_action), nextActionAt: text(member?.next_action_at),
         priority: priority(member?.priority), updatedAt: text(member?.updated_at) },
@@ -124,14 +134,17 @@ export function mapGrowthSnapshot(snapshot: GrowthDbSnapshot): DgnCustomer[] {
   });
 }
 
-export async function loadGrowthData(options: { env?: GrowthEnv; db?: SupabaseClient; logger?: Pick<Console, "error"> } = {}): Promise<GrowthDataResult> {
+export async function loadGrowthData(options: { env?: GrowthEnv; db?: SupabaseClient; logger?: Partial<Pick<Console, "error" | "info">> } = {}): Promise<GrowthDataResult> {
   const config = readGrowthDataConfig(options.env);
   if (config.source === "json") return { customers: dgnCustomers, origin: "json", readOnly: true };
   try {
+    const started = performance.now();
     const snapshot = await readGrowthSnapshot(options.db ?? getSupabaseAdminClient("growth.read"));
-    return { customers: mapGrowthSnapshot(snapshot), origin: "db", readOnly: true };
+    const customers = mapGrowthSnapshot(snapshot);
+    options.logger?.info?.(`[DGN Growth] data source: db | total: ${customers.length} | query: ${Math.round(performance.now() - started)}ms`);
+    return { customers, origin: "db", readOnly: true };
   } catch (error) {
-    options.logger?.error("[DGN Growth] Falha na leitura do Supabase", error instanceof Error ? error.message : "erro desconhecido");
+    options.logger?.error?.("[DGN Growth] Falha na leitura do Supabase", error instanceof Error ? error.message : "erro desconhecido");
     if (config.allowJsonFallback) return { customers: dgnCustomers, origin: "json-fallback", readOnly: true };
     throw new Error("Não foi possível carregar os dados do Supabase. O fallback local está desativado.", { cause: error });
   }

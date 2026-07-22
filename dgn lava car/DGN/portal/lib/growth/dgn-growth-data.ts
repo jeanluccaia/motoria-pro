@@ -108,6 +108,9 @@ export interface DgnCustomer {
   commercialStatus: CommercialStatus;
   recurrence: string;
   averageVisitIntervalDays: number;
+  dataQualityStatus?: string;
+  dataQualityNotes?: string;
+  hasValidPhone?: boolean;
   commercial?: {
     owner: string;
     commercialNotes: string;
@@ -292,19 +295,18 @@ export function getCustomerById(id: string) {
 }
 
 export function matchesDgnCustomerSearch(customer: DgnCustomer, query: string) {
-  const normalizedQuery = query.trim().toLowerCase();
+  const normalizeSearch = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const normalizedQuery = normalizeSearch(query.trim());
   if (!normalizedQuery) return true;
 
-  return [
+  return normalizeSearch([
     customer.name,
     customer.vehicle,
     customer.companyLink,
     customer.origin,
     customer.phone,
-  ]
-    .join(" ")
-    .toLowerCase()
-    .includes(normalizedQuery);
+    customer.plate,
+  ].join(" ")).includes(normalizedQuery);
 }
 
 export function searchDgnCustomers(query: string, customers: DgnCustomer[] = dgnCustomers) {
@@ -316,6 +318,14 @@ export function maskPlate(plate: string) {
   const clean = plate.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
   if (clean.length <= 3) return clean;
   return `${clean.slice(0, 3)}***${clean.slice(-1)}`;
+}
+
+export function maskPhone(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return "Não cadastrado";
+  const local = digits.slice(-11);
+  if (local.length < 10) return "Telefone inválido";
+  return `(${local.slice(0, 2)}) *****-${local.slice(-4)}`;
 }
 
 export function getTicketAverage(customer: DgnCustomer) {

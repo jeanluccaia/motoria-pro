@@ -16,7 +16,7 @@ async function pages(db: SupabaseClient, table: string, select = "*"): Promise<D
   for (let from = 0; ; from += 1000) {
     const result = await db.from(table).select(select).range(from, from + 999);
     if (result.error) throw new Error(`${table}: ${result.error.message}`);
-    const page = (result.data ?? []) as DbRow[];
+    const page = (result.data ?? []) as unknown as DbRow[];
     output.push(...page);
     if (page.length < 1000) return output;
   }
