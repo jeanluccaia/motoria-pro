@@ -30,7 +30,6 @@ import {
   curationProfiles,
   founderCardStatuses,
   founderKitStatuses,
-  foundersPipelineStatuses,
   getCustomerTimeline,
   getPotentialRevenue,
   getTicketAverage,
@@ -235,7 +234,7 @@ export function DgnGrowthWorkspace({
       (customer) => customer.commercialStatus === "Aguardando Curadoria DGN"
     );
     const highScore = customers.filter((customer) => customer.scoreDgn >= 80);
-    const founders = customers.filter((customer) => customer.campaign.founderSelected);
+    const founders = customers.filter((customer) => customer.campaign.currentCampaign === "Founders 2026");
     const totalHistorical = customers.reduce((sum, customer) => sum + customer.historicalValue, 0);
     const potentialRevenue = customers.reduce(
       (sum, customer) => sum + getPotentialRevenue(customer),
@@ -268,9 +267,9 @@ export function DgnGrowthWorkspace({
     const payments = founders.filter(
       (customer) => customer.campaign.campaignStatus === "Pagamento enviado"
     );
-    const converted = founders.filter(
-      (customer) => customer.campaign.campaignStatus === "Assinante ativo"
-    );
+    const confirmed = founders.filter((customer) => customer.campaign.founderStatus === "confirmado");
+    const selected = founders.filter((customer) => customer.campaign.founderStatus === "selecionado");
+    const converted = founders.filter((customer) => customer.campaign.commercialStage === "convertido");
 
     const awaitingKit = founders.filter(
       (customer) => customer.campaign.campaignStatus === "Aguardando Kit Founder"
@@ -278,7 +277,9 @@ export function DgnGrowthWorkspace({
     const lost = founders.filter((customer) => customer.campaign.campaignStatus === "Perdido");
 
     return {
-      available: 30 - founders.length,
+      available: 30 - confirmed.length,
+      confirmed: confirmed.length,
+      selected: selected.length,
       created: withPage.length,
       sent: sent.length,
       viewed: viewed.length,
@@ -412,12 +413,10 @@ export function DgnGrowthWorkspace({
 
         {view === "founders" ? (
           <FoundersView
-            customers={customers}
             campaignMetrics={campaignMetrics}
             founderFilter={founderFilter}
             copiedKey={copiedKey}
             copiedLinkKey={copiedLinkKey}
-            onPatch={patchCustomer}
             onFounderFilter={setFounderFilter}
             onOpenProfile={(id) => {
               setSelectedCustomerId(id);
@@ -1081,21 +1080,20 @@ const founderFilterOptions = [
 ] as const;
 
 function FoundersView({
-  customers,
   campaignMetrics,
   founderFilter,
   copiedKey,
   copiedLinkKey,
-  onPatch,
   onFounderFilter,
   onOpenProfile,
   onOpenWhatsapp,
   onCopy,
   onCopyLink,
 }: {
-  customers: DgnCustomer[];
   campaignMetrics: {
     available: number;
+    confirmed: number;
+    selected: number;
     created: number;
     sent: number;
     viewed: number;
@@ -1110,7 +1108,6 @@ function FoundersView({
   founderFilter: string;
   copiedKey: string;
   copiedLinkKey: string;
-  onPatch: (id: string, patch: Partial<CustomerDraft>) => void;
   onFounderFilter: (value: string) => void;
   onOpenProfile: (id: string) => void;
   onOpenWhatsapp: (customer: DgnCustomer) => void;
@@ -1119,7 +1116,7 @@ function FoundersView({
 }) {
   const allFounderRows = [
     ...campaignMetrics.founders,
-    ...Array.from({ length: Math.max(0, 30 - campaignMetrics.founders.length) }, (_, index) => {
+    ...(false ? Array.from({ length: Math.max(0, 30 - campaignMetrics.founders.length) }, (_, index) => {
       const number = String(campaignMetrics.founders.length + index + 1).padStart(3, "0");
 
       return {
@@ -1146,8 +1143,8 @@ function FoundersView({
         },
         isSlot: true,
       };
-    }),
-  ];
+    }) : []),
+  ] as DgnCustomer[];
 
   const founderRows = allFounderRows.filter((row) => {
     const customer = row as DgnCustomer & { isSlot?: boolean };
@@ -1159,7 +1156,19 @@ function FoundersView({
     return true;
   });
 
-  const goalPercentage = Math.round((campaignMetrics.converted / 30) * 100);
+  const goalPercentage = Math.round((campaignMetrics.confirmed / 30) * 100);
+  const operationalGroups = [
+    ["Prontos para convite", allFounderRows.filter((c) => c.campaign.commercialStage === "pronto_para_contato")],
+    ["Precisam de validação", allFounderRows.filter((c) => ["nao_avaliado", "recomendado", "selecionado"].includes(c.campaign.founderStatus ?? "nao_avaliado") && c.campaign.commercialStage === "aguardando_analise")],
+    ["Em andamento", allFounderRows.filter((c) => ["contato_preparado", "contatado", "visualizou", "respondeu", "conversando", "pagamento_enviado"].includes(c.campaign.commercialStage ?? ""))],
+    ["Convertidos", allFounderRows.filter((c) => c.campaign.commercialStage === "convertido")],
+    ["Lista de espera", allFounderRows.filter((c) => c.campaign.founderStatus === "lista_espera")],
+    ["Bloqueados / perdidos", allFounderRows.filter((c) => c.campaign.founderStatus === "descartado" || c.campaign.commercialStage === "descartado")],
+  ] as const;
+  const todayContacts = [...allFounderRows]
+    .filter((c) => c.commercial?.nextActionAt && !["convertido", "descartado"].includes(c.campaign.commercialStage ?? ""))
+    .sort((a, b) => new Date(a.commercial!.nextActionAt).getTime() - new Date(b.commercial!.nextActionAt).getTime() || b.scoreDgn - a.scoreDgn)
+    .slice(0, 8);
 
   return (
     <>
@@ -1184,7 +1193,7 @@ function FoundersView({
             </p>
             <div className="mt-3 flex items-baseline gap-3">
               <p className="gold-gradient-text text-5xl font-semibold leading-none tracking-tight sm:text-6xl">
-                {campaignMetrics.converted}
+                {campaignMetrics.confirmed}
               </p>
               <p className="text-2xl font-semibold text-white/60">/ 30</p>
             </div>
@@ -1212,6 +1221,28 @@ function FoundersView({
               </span>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {operationalGroups.map(([label, rows]) => (
+          <div key={label} className="rounded-2xl border border-white/[0.06] bg-[#101010] p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">{label}</p>
+            <p className="mt-2 text-2xl font-semibold text-white">{rows.length}</p>
+          </div>
+        ))}
+      </section>
+
+      <section className="mt-4 rounded-2xl border border-white/[0.06] bg-[#101010] p-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">Quem contatar hoje</p>
+        <div className="mt-3 grid gap-2 md:grid-cols-2">
+          {todayContacts.length ? todayContacts.map((customer) => (
+            <button key={customer.id} onClick={() => onOpenProfile(customer.id)} className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-3 text-left">
+              <span className="text-sm font-semibold text-white">{customer.name}</span>
+              <span className="ml-2 text-xs text-[#C9A84C]">Score {customer.scoreDgn}</span>
+              <p className="mt-1 text-xs text-[#8A8A8A]">{customer.commercial?.nextAction} · {customer.commercial?.owner || "Sem responsável"}</p>
+            </button>
+          )) : <p className="text-sm text-[#777]">Nenhuma próxima ação agendada.</p>}
         </div>
       </section>
 
@@ -1324,23 +1355,9 @@ function FoundersView({
                       {isSlot ? (
                         <StatusBadge label="Slot disponivel" />
                       ) : (
-                        <SelectField
-                          value={status}
-                          onChange={(value) =>
-                            onPatch(customer.id, {
-                              commercialStatus: mapCampaignToCommercial(value as FoundersPipelineStatus),
-                              campaign: {
-                                campaignStatus: value as FoundersPipelineStatus,
-                                lastAction: value,
-                                nextAction: nextActionForCampaign(value as FoundersPipelineStatus),
-                              } as CustomerDraft["campaign"],
-                            })
-                          }
-                        >
-                          {foundersPipelineStatuses.map((item) => (
-                            <option key={item}>{item}</option>
-                          ))}
-                        </SelectField>
+                        <button onClick={() => onOpenProfile(customer.id)} title="Alterar no perfil persistente">
+                          <StatusBadge label={`${customer.campaign.founderStatus ?? "nao_avaliado"} · ${status}`} />
+                        </button>
                       )}
                     </td>
                     <td className="max-w-[240px] px-4 py-3">
@@ -1642,6 +1659,7 @@ function CustomerProfileInline({
 
       {tab === "campaign" ? (
         <div className="mt-4 space-y-3">
+          <CampaignPipelineEditor customer={customer} enabled={canPersistCommercial} />
           <div className="grid gap-3 sm:grid-cols-2">
             <ProfileFact
               label="Campanha atual"
@@ -1736,6 +1754,59 @@ function CustomerProfileInline({
       ) : null}
     </div>
   );
+}
+
+function CampaignPipelineEditor({ customer, enabled }: { customer: DgnCustomer; enabled: boolean }) {
+  const campaign = customer.campaign;
+  const [founderStatus, setFounderStatus] = useState(campaign.founderStatus ?? "nao_avaliado");
+  const [stage, setStage] = useState(campaign.commercialStage ?? "aguardando_analise");
+  const [founderNumber, setFounderNumber] = useState(campaign.founderNumber ?? "");
+  const [selectionReason, setSelectionReason] = useState(campaign.selectionReason ?? "");
+  const [lostReason, setLostReason] = useState(campaign.lostReason ?? "");
+  const [kitStatus, setKitStatus] = useState(campaign.kitStatusRaw ?? "nao_aplicavel");
+  const [cardStatus, setCardStatus] = useState(campaign.cardStatusRaw ?? "nao_aplicavel");
+  const [notice, setNotice] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    if (!enabled || !campaign.updatedAt) return;
+    const oldOrder = ["aguardando_analise", "pronto_para_contato", "contato_preparado", "contatado", "visualizou", "respondeu", "conversando", "pagamento_enviado", "convertido", "descartado"];
+    const backwards = oldOrder.indexOf(stage) < oldOrder.indexOf(campaign.commercialStage ?? "aguardando_analise");
+    const transitionReason = backwards ? window.prompt("Motivo obrigatório para voltar a etapa:")?.trim() : "";
+    if (backwards && !transitionReason) return;
+    setSaving(true); setNotice("");
+    try {
+      const response = await fetch(`/api/admin/growth/customers/${encodeURIComponent(customer.id)}/campaign`, {
+        method: "PATCH", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ campaignId: "founders-2026", founderStatus, commercialStage: stage,
+          founderNumber: founderStatus === "confirmado" ? founderNumber : "", selectionReason,
+          lostReason, kitStatus, cardStatus, expectedUpdatedAt: campaign.updatedAt,
+          transitionReason: transitionReason || undefined, confirmBackward: backwards }),
+      });
+      const result = await response.json() as { changed?: boolean; error?: string };
+      if (!response.ok) throw new Error(result.error || "Falha ao salvar pipeline.");
+      setNotice(result.changed ? "Pipeline salvo. Recarregando…" : "Nenhuma alteração; histórico preservado.");
+      if (result.changed) window.setTimeout(() => window.location.reload(), 500);
+    } catch (error) { setNotice(error instanceof Error ? error.message : "Falha ao salvar pipeline."); }
+    finally { setSaving(false); }
+  }
+
+  const founderOptions = ["nao_avaliado", "recomendado", "selecionado", "confirmado", "lista_espera", "descartado"];
+  const stageOptions = ["aguardando_analise", "pronto_para_contato", "contato_preparado", "contatado", "visualizou", "respondeu", "conversando", "pagamento_enviado", "convertido", "descartado"];
+  return <div className="rounded-2xl border border-[#C9A84C]/20 bg-[#101010] p-4">
+    <div className="flex items-center justify-between gap-3"><div><p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">Pipeline persistente</p><p className="mt-1 text-xs text-[#8A8A8A]">Alterações manuais, auditadas e protegidas por versão.</p></div><button disabled={!enabled || saving} onClick={save} className="rounded-xl bg-[#C9A84C] px-4 py-2 text-xs font-semibold text-black disabled:opacity-40">{saving ? "Salvando…" : "Salvar pipeline"}</button></div>
+    {notice ? <p className="mt-3 rounded-lg border border-white/[0.08] px-3 py-2 text-xs text-[#E7C96A]">{notice}</p> : null}
+    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <SelectBlock label="Status Founder" value={founderStatus} options={founderOptions} onChange={(value) => setFounderStatus(value as typeof founderStatus)} />
+      <SelectBlock label="Etapa comercial" value={stage} options={stageOptions} onChange={(value) => setStage(value as typeof stage)} />
+      <ProfileInput label="Número Founder (somente confirmado)" value={founderNumber} onChange={setFounderNumber} placeholder="001" />
+      <ProfileInput label="Motivo da seleção/confirmação" value={selectionReason} onChange={setSelectionReason} placeholder="Decisão humana obrigatória" />
+      <SelectBlock label="Kit" value={kitStatus} options={["nao_aplicavel", "pendente", "em_preparacao", "pronto", "entregue"]} onChange={(value) => setKitStatus(value as typeof kitStatus)} />
+      <SelectBlock label="Cartão" value={cardStatus} options={["nao_aplicavel", "pendente", "solicitado", "produzido", "entregue"]} onChange={(value) => setCardStatus(value as typeof cardStatus)} />
+      <div className="sm:col-span-2"><ProfileInput label="Motivo de perda/descarte" value={lostReason} onChange={setLostReason} placeholder="Obrigatório ao descartar" /></div>
+    </div>
+    <p className="mt-3 text-[11px] text-[#696969]">Abrir WhatsApp não altera etapa, envio, visualização ou resposta.</p>
+  </div>;
 }
 
 function toLocalDateTimeInput(value: string) {

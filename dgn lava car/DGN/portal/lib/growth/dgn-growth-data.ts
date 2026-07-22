@@ -143,6 +143,15 @@ export interface DgnCustomer {
     notes: string;
     kitStatus: FounderKitStatus;
     cardStatus: FounderCardStatus;
+    founderStatus?: "nao_avaliado" | "recomendado" | "selecionado" | "confirmado" | "lista_espera" | "descartado";
+    commercialStage?: "aguardando_analise" | "pronto_para_contato" | "contato_preparado" | "contatado" | "visualizou" | "respondeu" | "conversando" | "pagamento_enviado" | "convertido" | "descartado";
+    selectionReason?: string;
+    lostReason?: string;
+    kitStatusRaw?: "nao_aplicavel" | "pendente" | "em_preparacao" | "pronto" | "entregue";
+    cardStatusRaw?: "nao_aplicavel" | "pendente" | "solicitado" | "produzido" | "entregue";
+    dates?: Record<string, string>;
+    history?: { type: string; description: string; occurredAt: string; actor: string }[];
+    updatedAt?: string;
   };
 }
 

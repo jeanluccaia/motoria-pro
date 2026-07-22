@@ -129,7 +129,15 @@ export function mapGrowthSnapshot(snapshot: GrowthDbSnapshot): DgnCustomer[] {
         nextAction: text(member?.next_action), lastContact: date(interactions[0]?.occurred_at),
         conversationStatus: campaignStatus || "Sem contato recente", notes: text(member?.commercial_notes),
         kitStatus: text(member?.kit_status) === "entregue" ? "Entregue" : text(member?.kit_status) === "pronto" ? "Separado" : founderSelected ? "Pendente" : "",
-        cardStatus: text(member?.card_status) === "entregue" ? "Enviado" : ["solicitado", "produzido"].includes(text(member?.card_status)) ? "Gerado" : founderSelected ? "Pendente" : "" },
+        cardStatus: text(member?.card_status) === "entregue" ? "Enviado" : ["solicitado", "produzido"].includes(text(member?.card_status)) ? "Gerado" : founderSelected ? "Pendente" : "",
+        founderStatus: text(member?.founder_status).replace("não_avaliado", "nao_avaliado") || "nao_avaliado",
+        commercialStage: text(member?.commercial_stage) || "aguardando_analise",
+        selectionReason: text(member?.selection_reason), lostReason: text(member?.lost_reason),
+        kitStatusRaw: text(member?.kit_status).replace("não_aplicável", "nao_aplicavel") || "nao_aplicavel",
+        cardStatusRaw: text(member?.card_status).replace("não_aplicável", "nao_aplicavel") || "nao_aplicavel",
+        dates: { inviteCreatedAt: text(member?.invite_created_at), inviteSentAt: text(member?.invite_sent_at), viewedAt: text(member?.viewed_at), respondedAt: text(member?.responded_at), conversationStartedAt: text(member?.conversation_started_at), paymentSentAt: text(member?.payment_sent_at), convertedAt: text(member?.converted_at), lostAt: text(member?.lost_at), kitUpdatedAt: text(member?.kit_updated_at), cardUpdatedAt: text(member?.card_updated_at) },
+        history: interactions.filter((row) => row.campaign_id === member?.campaign_id).map((row) => ({ type: text(row.interaction_type), description: text(row.description), occurredAt: text(row.occurred_at), actor: text(row.actor) })),
+        updatedAt: text(member?.updated_at) },
     } as DgnCustomer;
   });
 }
