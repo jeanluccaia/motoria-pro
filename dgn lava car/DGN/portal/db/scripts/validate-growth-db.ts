@@ -3,13 +3,14 @@ import { createClient } from "@supabase/supabase-js";
 import { resolve } from "node:path";
 import { loadGrowthData } from "../../lib/growth/db/growth-reader.ts";
 import { maskPlate, matchesDgnCustomerSearch } from "../../lib/growth/dgn-growth-data.ts";
+import { supabaseSecretKeyFetch } from "../../lib/growth/db/secret-key-fetch.ts";
 
 const root = resolve(import.meta.dirname, "../..");
 try { process.loadEnvFile(resolve(root, ".env.local")); } catch { /* checked below */ }
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!url || !key) throw new Error("credenciais server-side ausentes");
-const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: supabaseSecretKeyFetch } });
 const timed = async <T>(run: () => Promise<T>) => {
   const started = performance.now();
   const value = await run();

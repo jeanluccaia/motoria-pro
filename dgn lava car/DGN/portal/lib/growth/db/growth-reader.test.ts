@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { loadGrowthData, mapGrowthSnapshot, readGrowthDataConfig, type GrowthDbSnapshot } from "./growth-reader.ts";
+import { supabaseSecretKeyFetch } from "./secret-key-fetch.ts";
 
 const customer = (id: string, legacy_id: string, name: string) => ({ id, legacy_id, name, primary_phone: "19999999999", company_or_link: "", origin: "4uCar", first_service_at: "2025-01-01", last_service_at: "2026-07-01", service_count: 4, historical_value: 400, average_interval_days: 30 });
 
@@ -66,6 +67,26 @@ test("modo DB pagina sem perder registros acima do limite do Supabase", async ()
 test("service role não é referenciada pelo componente client", async () => {
   const source = await readFile(new URL("../../../components/growth/DgnGrowthWorkspace.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(source, /SUPABASE_SERVICE_ROLE_KEY|getSupabaseAdminClient|growth-reader/);
+});
+
+test("chave sb_secret permanece em apikey e não é enviada como Bearer JWT", async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedApiKey: string | null = null;
+  let capturedAuthorization: string | null = null;
+  globalThis.fetch = (async (_input, init) => {
+    const headers = new Headers(init?.headers);
+    capturedApiKey = headers.get("apikey");
+    capturedAuthorization = headers.get("authorization");
+    return new Response("[]", { status: 200 });
+  }) as typeof fetch;
+  try {
+    const request = new Request("https://example.test", { headers: { apikey: "sb_secret_example", authorization: "Bearer sb_secret_example" } });
+    await supabaseSecretKeyFetch(request);
+    assert.equal(capturedApiKey, "sb_secret_example");
+    assert.equal(capturedAuthorization, null);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("rotas administrativas continuam negadas sem sessão válida", async () => {
