@@ -124,9 +124,11 @@ export default async function UnitPage({ params }: Props) {
               src={unit.foto_capa}
               alt={displayName}
               fill
-              sizes="100vw"
+              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 1280px"
               className="object-cover opacity-65"
               priority
+              fetchPriority="high"
+              quality={60}
             />
           )}
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,10,10,0.96),rgba(10,10,10,0.68)_52%,rgba(10,10,10,0.25)),linear-gradient(180deg,rgba(10,10,10,0.25),rgba(10,10,10,0.98))]" />
@@ -230,7 +232,7 @@ export default async function UnitPage({ params }: Props) {
                 No Power Anual Recorrente
               </p>
               <p className="mt-3 text-sm leading-relaxed text-gray-500">
-                {isIpiranga && hasCheckout
+                {isIpiranga && unit.status === 'em_breve' && hasCheckout
                   ? 'Unidade em inauguração. Garanta sua matrícula online antes da abertura.'
                   : hasCheckout
                   ? 'Escolha seu plano abaixo e finalize a matrícula online.'

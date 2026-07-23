@@ -105,7 +105,8 @@ export function UnitGallery({ images, unitName }: UnitGalleryProps) {
                 alt={img.alt}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 1100px"
-                priority={i === 0}
+                loading="lazy"
+                quality={70}
                 style={{ objectPosition: img.position ?? 'center' }}
                 className={img.fit === 'contain' ? 'object-contain' : 'object-cover'}
               />
