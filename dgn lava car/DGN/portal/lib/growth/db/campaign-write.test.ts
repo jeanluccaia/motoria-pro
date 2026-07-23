@@ -32,3 +32,19 @@ test("migration exige motivo para descarte e reabertura", async () => {
   const sql = await readFile(new URL("../../../supabase/migrations/20260722170000_founders_pipeline.sql", import.meta.url), "utf8");
   assert.match(sql, /descarte exige motivo/); assert.match(sql, /retorno de etapa exige confirmação e motivo/);
 });
+test("RPC permite somente service_role", async () => {
+  const sql = await readFile(new URL("../../../supabase/migrations/20260722170000_founders_pipeline.sql", import.meta.url), "utf8");
+  const signature = "public\\.crm_update_founders_pipeline\\(text, text, jsonb, timestamptz, text\\)";
+  for (const role of ["public", "anon", "authenticated"]) {
+    assert.match(sql, new RegExp(`revoke all on function ${signature} from ${role};`, "i"));
+  }
+  assert.match(sql, new RegExp(`grant execute on function ${signature} to service_role;`, "i"));
+  assert.match(sql, /security invoker set search_path=public/i);
+  assert.doesNotMatch(sql, /security definer/i);
+});
+test("rollback remove apenas os objetos criados pelo pipeline", async () => {
+  const sql = await readFile(new URL("../../../db/migrations/20260722170000_founders_pipeline.down.sql", import.meta.url), "utf8");
+  assert.match(sql, /drop function if exists public\.crm_update_founders_pipeline\(text, text, jsonb, timestamptz, text\)/i);
+  assert.match(sql, /alter table if exists public\.crm_campaign_members drop column if exists selection_reason/i);
+  assert.doesNotMatch(sql, /truncate|delete from|drop table|crm_customers|crm_subscriptions/i);
+});

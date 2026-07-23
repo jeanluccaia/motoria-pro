@@ -11,12 +11,10 @@ import {
   Copy,
   Crown,
   ExternalLink,
-  Eye,
   Filter,
   MessageCircle,
   PanelRight,
   Search,
-  Send,
   UserRound,
   X,
   type LucideIcon,
@@ -2126,39 +2124,4 @@ function IconButton({
       <Icon size={13} />
     </button>
   );
-}
-
-// ============================================================================
-// Mapping helpers
-// ============================================================================
-function mapCampaignToCommercial(status: FoundersPipelineStatus): CommercialStatus {
-  const map: Record<FoundersPipelineStatus, CommercialStatus> = {
-    Selecionado: "Selecionado Founder",
-    "Convite criado": "Convite Criado",
-    "Mensagem enviada": "Convite Enviado",
-    Visualizou: "Visualizou",
-    Conversando: "Conversando",
-    "Pagamento enviado": "Pagamento Enviado",
-    "Assinante ativo": "Assinante Ativo",
-    "Aguardando Kit Founder": "Aguardando Kit Founder",
-    Perdido: "Perdido",
-  };
-
-  return map[status];
-}
-
-function nextActionForCampaign(status: FoundersPipelineStatus) {
-  const map: Record<FoundersPipelineStatus, string> = {
-    Selecionado: "Criar convite personalizado",
-    "Convite criado": "Enviar mensagem manual",
-    "Mensagem enviada": "Acompanhar visualização e resposta",
-    Visualizou: "Chamar para confirmar interesse",
-    Conversando: "Enviar link de pagamento",
-    "Pagamento enviado": "Acompanhar confirmação",
-    "Assinante ativo": "Preparar kit Founder",
-    "Aguardando Kit Founder": "Entregar kit e registrar boas-vindas",
-    Perdido: "Registrar motivo e encerrar campanha",
-  };
-
-  return map[status];
 }

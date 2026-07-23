@@ -273,6 +273,29 @@ Esperado em ambiente com `DGN_ADMIN_PASSWORD`: `401 unauthorized` sem cookie adm
 
 ## Rollback
 
+### Pipeline Founders 2026
+
+Para reverter `20260722170000_founders_pipeline.sql`, primeiro publique uma
+versao da aplicacao anterior ao pipeline, para que nenhuma rota tente chamar a
+RPC ou ler `selection_reason`. Depois faca backup dos valores de
+`crm_campaign_members.selection_reason` que precisem ser preservados e execute,
+com parada no primeiro erro:
+
+```bash
+psql "$POSTGRES_URL" -v ON_ERROR_STOP=1 -f db/migrations/20260722170000_founders_pipeline.down.sql
+```
+
+O rollback remove somente `crm_update_founders_pipeline(text, text, jsonb,
+timestamptz, text)` e a coluna `selection_reason`. A remocao da coluna perde os
+motivos de selecao gravados nela; clientes, veiculos, assinaturas, campanhas,
+interacoes e logs de auditoria permanecem intactos. O arquivo fica fora de
+`supabase/migrations`, evitando que `supabase db push` execute o rollback.
+
+Depois da reversao, valide que a aplicacao anterior inicia normalmente, que a
+funcao nao aparece em `pg_proc`, que `selection_reason` nao aparece em
+`information_schema.columns` e que os registros e logs CRM continuam com as
+mesmas contagens do backup anterior.
+
 Rollback apenas da camada RLS:
 
 ```bash

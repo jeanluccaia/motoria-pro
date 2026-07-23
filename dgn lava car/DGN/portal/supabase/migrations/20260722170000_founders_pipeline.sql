@@ -58,3 +58,10 @@ begin
   insert into public.crm_audit_logs(entity_type,entity_id,action,previous_value,new_value,actor,reason) values('campaign_member',m.id,'founders_pipeline.updated',old,nxt,p_actor,coalesce(tr,sr,lr));
   return jsonb_build_object('changed',true,'customerId',p_customer_legacy_id,'campaign',nxt||jsonb_build_object('updatedAt',u.updated_at));
 end; $$;
+
+-- A RPC e chamada exclusivamente pelo route handler administrativo, depois da
+-- validacao da sessao. O browser e usuarios Supabase comuns nao podem executa-la.
+revoke all on function public.crm_update_founders_pipeline(text, text, jsonb, timestamptz, text) from public;
+revoke all on function public.crm_update_founders_pipeline(text, text, jsonb, timestamptz, text) from anon;
+revoke all on function public.crm_update_founders_pipeline(text, text, jsonb, timestamptz, text) from authenticated;
+grant execute on function public.crm_update_founders_pipeline(text, text, jsonb, timestamptz, text) to service_role;
