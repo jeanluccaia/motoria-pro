@@ -1,27 +1,23 @@
 "use client";
 
-import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Shield, Lock } from "lucide-react";
 import { useState, Suspense } from "react";
-import { loginAdmin } from "./actions";
 
 function LoginForm() {
-  const [state, action, pending] = useActionState(loginAdmin, null);
   const [show, setShow] = useState(false);
   const searchParams = useSearchParams();
-  const from = searchParams.get("from") ?? "";
+  const hasError = searchParams.get("error") === "invalid";
 
   return (
     <div className="rounded-2xl border border-white/[0.08] bg-[#0F0F0F] p-6 space-y-4">
-      {state?.error ? (
+      {hasError ? (
         <div className="rounded-lg border border-red-500/20 bg-red-500/8 px-4 py-3">
-          <p className="text-sm text-red-400">{state.error}</p>
+          <p className="text-sm text-red-400">Senha incorreta.</p>
         </div>
       ) : null}
 
-      <form action={action} className="space-y-4">
-        <input type="hidden" name="from" value={from} />
+      <form action="/admin/growth/session" method="post" className="space-y-4">
 
         <label className="block">
           <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">
@@ -49,10 +45,9 @@ function LoginForm() {
 
         <button
           type="submit"
-          disabled={pending}
           className="h-11 w-full rounded-lg bg-[linear-gradient(135deg,#C9A84C,#F0D060)] text-sm font-semibold text-[#080808] transition-opacity hover:opacity-90 disabled:opacity-50"
         >
-          {pending ? "Verificando..." : "Entrar"}
+          Entrar
         </button>
       </form>
     </div>

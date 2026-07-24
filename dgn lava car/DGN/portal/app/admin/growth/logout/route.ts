@@ -1,8 +1,8 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { NextRequest, NextResponse } from "next/server";
+import { DGN_ADMIN_COOKIE, DGN_ADMIN_COOKIE_OPTIONS } from "@/lib/growth/admin-session-core";
 
-export async function GET() {
-  const jar = await cookies();
-  jar.delete("dgn_admin_session");
-  redirect("/admin/growth/login");
+export function GET(request: NextRequest) {
+  const response = NextResponse.redirect(new URL("/admin/growth/login", request.url), 303);
+  response.cookies.set(DGN_ADMIN_COOKIE, "", { ...DGN_ADMIN_COOKIE_OPTIONS, maxAge: 0 });
+  return response;
 }

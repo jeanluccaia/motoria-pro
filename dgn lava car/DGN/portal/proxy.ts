@@ -1,34 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const COOKIE_NAME = "dgn_admin_session";
-const SALT = ":dgn-growth-admin-v1";
-
-async function computeToken(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + SALT);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(hashBuffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
+import { DGN_ADMIN_COOKIE, validateAdminSessionToken } from "@/lib/growth/admin-session-core";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname === "/admin/growth/login") {
+  if (pathname === "/admin/growth/login" || pathname === "/admin/growth/session") {
     return NextResponse.next();
   }
 
   const password = process.env.DGN_ADMIN_PASSWORD;
 
   if (!password) {
-    return NextResponse.next();
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "admin session unavailable" }, { status: 503 });
+    }
+    return NextResponse.redirect(new URL("/admin/growth/login", request.url));
   }
 
-  const session = request.cookies.get(COOKIE_NAME)?.value;
-  const expected = await computeToken(password);
-
-  if (session !== expected) {
+  const session = request.cookies.get(DGN_ADMIN_COOKIE)?.value;
+  if (!(await validateAdminSessionToken(session, password))) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }

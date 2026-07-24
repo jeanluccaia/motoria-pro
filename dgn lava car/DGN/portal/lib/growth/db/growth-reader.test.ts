@@ -91,8 +91,8 @@ test("chave sb_secret permanece em apikey e não é enviada como Bearer JWT", as
 
 test("rotas administrativas continuam negadas sem sessão válida", async () => {
   const source = await readFile(new URL("../../../proxy.ts", import.meta.url), "utf8");
-  assert.match(source, /dgn_admin_session/);
-  assert.match(source, /session !== expected/);
+  assert.match(source, /DGN_ADMIN_COOKIE/);
+  assert.match(source, /validateAdminSessionToken/);
   assert.match(source, /\/admin\/growth\/login/);
   assert.match(source, /\/admin\/growth\/:path\*/);
 });
