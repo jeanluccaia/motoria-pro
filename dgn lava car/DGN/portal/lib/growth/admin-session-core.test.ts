@@ -44,3 +44,20 @@ test("proxy, APIs e logout compartilham o mesmo cookie", async () => {
   assert.match(files[0], /validateAdminSessionToken/);
   assert.match(files[1], /maxAge: 0/);
 });
+
+test("logout responde só a POST — GET seria prefetchado pelo Link e mataria a sessão", async () => {
+  const route = await readFile(new URL("../../app/admin/growth/logout/route.ts", import.meta.url), "utf8");
+  assert.match(route, /export function POST/);
+  assert.doesNotMatch(route, /export function GET/);
+});
+
+test("workspace usa form POST para logout, não Link (impede prefetch)", async () => {
+  const workspace = await readFile(new URL("../../components/growth/DgnGrowthWorkspace.tsx", import.meta.url), "utf8");
+  assert.match(workspace, /action="\/admin\/growth\/logout"\s+method="post"/);
+  assert.doesNotMatch(workspace, /<Link[^>]+href="\/admin\/growth\/logout"/);
+});
+
+test("proxy bypass inclui logout — para não exigir sessão válida ao sair", async () => {
+  const proxy = await readFile(new URL("../../proxy.ts", import.meta.url), "utf8");
+  assert.match(proxy, /\/admin\/growth\/logout/);
+});

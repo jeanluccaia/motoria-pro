@@ -4,7 +4,11 @@ import { DGN_ADMIN_COOKIE, validateAdminSessionToken } from "@/lib/growth/admin-
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname === "/admin/growth/login" || pathname === "/admin/growth/session") {
+  if (
+    pathname === "/admin/growth/login" ||
+    pathname === "/admin/growth/session" ||
+    pathname === "/admin/growth/logout"
+  ) {
     return NextResponse.next();
   }
 

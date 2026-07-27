@@ -508,12 +508,14 @@ function GrowthHeader({ current, dataOrigin }: { current: GrowthView; dataOrigin
               {link.label}
             </Link>
           ))}
-          <Link
-            href="/admin/growth/logout"
-            className="inline-flex min-h-9 items-center gap-2 rounded-xl border border-white/[0.06] bg-transparent px-3 text-sm font-semibold text-[#6B6B6B] transition hover:border-red-500/30 hover:text-red-400"
-          >
-            Sair
-          </Link>
+          <form action="/admin/growth/logout" method="post" className="inline-flex">
+            <button
+              type="submit"
+              className="inline-flex min-h-9 items-center gap-2 rounded-xl border border-white/[0.06] bg-transparent px-3 text-sm font-semibold text-[#6B6B6B] transition hover:border-red-500/30 hover:text-red-400"
+            >
+              Sair
+            </button>
+          </form>
         </nav>
       </div>
     </header>
