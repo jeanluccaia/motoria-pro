@@ -145,7 +145,7 @@ const fallbackUnits: Unit[] = [
     ano_abertura: 2025,
     alunos_ativos: null,
     nota_google: null,
-    status: 'em_breve',
+    status: 'ativa',
     destaque: true,
     ordem: 2,
     checkoutUrl: 'https://evo-totem.w12app.com.br/loudfit/6/site/0GaE9Ux52vXSBHXLH2E5hg%5BEQUAL%5D%5BEQUAL%5D',
@@ -300,7 +300,7 @@ const fallbackUnits: Unit[] = [
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
 
-const officialUnitData: Record<string, Pick<Unit, 'horarios' | 'checkoutUrl'> & { whatsapp_url: string | null; email: string | null }> = {
+const officialUnitData: Record<string, Pick<Unit, 'horarios' | 'checkoutUrl'> & { whatsapp_url: string | null; email: string | null; status?: Unit['status'] }> = {
   'carrefour-valinhos': {
     whatsapp_url: 'https://wa.me/5519994410440',
     horarios: [
@@ -356,6 +356,7 @@ const officialUnitData: Record<string, Pick<Unit, 'horarios' | 'checkoutUrl'> & 
     email: 'mogimirim@loudfit.com.br',
   },
   ipiranga: {
+    status: 'ativa',
     whatsapp_url: 'https://wa.me/5511937334895',
     horarios: [
       { label: 'Segunda a quinta', value: '05h às 23h' },
