@@ -169,7 +169,7 @@ export function DgnGrowthWorkspace({
   readOnly: boolean;
 }) {
   const [drafts, setDrafts] = useState(() => createDrafts(initialCustomers));
-  const [selectedCustomerId, setSelectedCustomerId] = useState(customerId ?? initialCustomers[0]?.id);
+  const [selectedCustomerId, setSelectedCustomerId] = useState(customerId ?? "");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
   const [planFilter, setPlanFilter] = useState("Todos");
