@@ -66,10 +66,134 @@ const ipirangaMedia: UnitMedia = {
 }
 
 const carrefourValinhosMedia = facadeOnlyMedia('carrefour-valinhos', 'Carrefour Valinhos')
-const amoreirasMedia = facadeOnlyMedia('amoreiras', 'Amoreiras')
 const anchietaMedia = facadeOnlyMedia('anchieta-sp', 'Anchieta SP')
 const mogiMirimMedia = facadeOnlyMedia('mogi-mirim', 'Mogi Mirim')
-const vilaIndustrialMedia = facadeOnlyMedia('vila-industrial', 'Vila Industrial')
+
+const AMOREIRAS_ROOT = '/media/unidades/amoreiras/fotos'
+const amoreirasMedia: UnitMedia = {
+  cover: `${AMOREIRAS_ROOT}/fachada-01.webp`,
+  featured: `${AMOREIRAS_ROOT}/musculacao-visao-geral-01.webp`,
+  gallery: [
+    {
+      src: `${AMOREIRAS_ROOT}/fachada-01.webp`,
+      alt: 'Fachada da unidade Loud Fit Amoreiras em Campinas',
+      category: 'fachada',
+    },
+    {
+      src: `${AMOREIRAS_ROOT}/musculacao-visao-geral-01.webp`,
+      alt: 'Visão geral da área de musculação da Loud Fit Amoreiras',
+      category: 'musculacao',
+    },
+    {
+      src: `${AMOREIRAS_ROOT}/musculacao-01.webp`,
+      alt: 'Máquinas de musculação alinhadas na Loud Fit Amoreiras',
+      category: 'musculacao',
+    },
+    {
+      src: `${AMOREIRAS_ROOT}/musculacao-02.webp`,
+      alt: 'Alunos treinando na área de musculação da Loud Fit Amoreiras',
+      category: 'musculacao',
+    },
+    {
+      src: `${AMOREIRAS_ROOT}/musculacao-03.webp`,
+      alt: 'Área de musculação com aparelhos Movement na Loud Fit Amoreiras',
+      category: 'musculacao',
+    },
+    {
+      src: `${AMOREIRAS_ROOT}/peso-livre-01.webp`,
+      alt: 'Área de peso livre com racks Loud Fit na unidade Amoreiras',
+      category: 'peso-livre',
+    },
+    {
+      src: `${AMOREIRAS_ROOT}/peso-livre-02.webp`,
+      alt: 'Rack de halteres e bancos livres na Loud Fit Amoreiras',
+      category: 'peso-livre',
+    },
+    {
+      src: `${AMOREIRAS_ROOT}/cardio-esteiras-01.webp`,
+      alt: 'Sala de cardio com esteiras e elípticos na Loud Fit Amoreiras',
+      category: 'cardio',
+    },
+    {
+      src: `${AMOREIRAS_ROOT}/cardio-spinning-01.webp`,
+      alt: 'Sala de spinning com bikes indoor na Loud Fit Amoreiras',
+      category: 'cardio',
+    },
+    {
+      src: `${AMOREIRAS_ROOT}/sala-coletiva-01.webp`,
+      alt: 'Sala de aulas coletivas com piso de madeira na Loud Fit Amoreiras',
+      category: 'aula-coletiva',
+    },
+    {
+      src: `${AMOREIRAS_ROOT}/estrutura-kids-01.webp`,
+      alt: 'Área kids com tapete colorido na Loud Fit Amoreiras',
+      category: 'estrutura',
+    },
+  ],
+}
+
+const VILA_INDUSTRIAL_ROOT = '/media/unidades/vila-industrial/fotos'
+const vilaIndustrialMedia: UnitMedia = {
+  cover: `${VILA_INDUSTRIAL_ROOT}/fachada-01.webp`,
+  featured: `${VILA_INDUSTRIAL_ROOT}/musculacao-visao-geral-01.webp`,
+  gallery: [
+    {
+      src: `${VILA_INDUSTRIAL_ROOT}/fachada-01.webp`,
+      alt: 'Fachada da unidade Loud Fit Vila Industrial em Campinas',
+      category: 'fachada',
+    },
+    {
+      src: `${VILA_INDUSTRIAL_ROOT}/musculacao-visao-geral-01.webp`,
+      alt: 'Visão panorâmica da área de musculação da Loud Fit Vila Industrial',
+      category: 'musculacao',
+    },
+    {
+      src: `${VILA_INDUSTRIAL_ROOT}/musculacao-01.webp`,
+      alt: 'Bancos e aparelhos de musculação alinhados na Loud Fit Vila Industrial',
+      category: 'musculacao',
+    },
+    {
+      src: `${VILA_INDUSTRIAL_ROOT}/musculacao-02.webp`,
+      alt: 'Máquinas de polia e cabos na Loud Fit Vila Industrial',
+      category: 'musculacao',
+    },
+    {
+      src: `${VILA_INDUSTRIAL_ROOT}/musculacao-03.webp`,
+      alt: 'Fileira de aparelhos de musculação na Loud Fit Vila Industrial',
+      category: 'musculacao',
+    },
+    {
+      src: `${VILA_INDUSTRIAL_ROOT}/peso-livre-01.webp`,
+      alt: 'Área de peso livre com halteres e bancos na Loud Fit Vila Industrial',
+      category: 'peso-livre',
+    },
+    {
+      src: `${VILA_INDUSTRIAL_ROOT}/cardio-esteiras-01.webp`,
+      alt: 'Sala de cardio com esteiras na Loud Fit Vila Industrial',
+      category: 'cardio',
+    },
+    {
+      src: `${VILA_INDUSTRIAL_ROOT}/cardio-spinning-01.webp`,
+      alt: 'Sala de spinning com bikes indoor na Loud Fit Vila Industrial',
+      category: 'cardio',
+    },
+    {
+      src: `${VILA_INDUSTRIAL_ROOT}/cardio-bikes-01.webp`,
+      alt: 'Bikes de cardio e estações de musculação na Loud Fit Vila Industrial',
+      category: 'cardio',
+    },
+    {
+      src: `${VILA_INDUSTRIAL_ROOT}/sala-coletiva-01.webp`,
+      alt: 'Sala de aulas coletivas com piso de madeira na Loud Fit Vila Industrial',
+      category: 'aula-coletiva',
+    },
+    {
+      src: `${VILA_INDUSTRIAL_ROOT}/estrutura-lounge-01.webp`,
+      alt: 'Lounge de espera com identidade Loud Fit na unidade Vila Industrial',
+      category: 'estrutura',
+    },
+  ],
+}
 
 const fallbackUnits: Unit[] = [
   {
