@@ -514,14 +514,26 @@ function normalizeHours(horarios: Unit['horarios'] | Record<string, string> | nu
   }))
 }
 
+const mediaOverrides: Record<string, UnitMedia> = {
+  ipiranga: ipirangaMedia,
+  amoreiras: amoreirasMedia,
+  'vila-industrial': vilaIndustrialMedia,
+}
+
 function normalizeUnit(unit: Unit): Unit {
   const official = officialUnitData[unit.slug]
+  const mediaOverride = mediaOverrides[unit.slug]
   return {
     ...unit,
     ...official,
     horarios: official?.horarios ?? normalizeHours(unit.horarios),
     checkoutUrl: normalizeEvoCheckoutUrl(official?.checkoutUrl ?? unit.checkoutUrl),
     email: official ? official.email : unit.email ?? null,
+    ...(mediaOverride && {
+      media: mediaOverride,
+      foto_capa: mediaOverride.cover,
+      galeria: mediaOverride.gallery.map((item) => item.src),
+    }),
   }
 }
 
