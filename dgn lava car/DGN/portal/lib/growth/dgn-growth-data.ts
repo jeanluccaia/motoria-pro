@@ -1,4 +1,5 @@
 import rawCustomers from "./dgn-customers.json" with { type: "json" };
+import type { FounderCuration } from "./db/founder-curation";
 
 export const DGN_OPERATIONAL_CUTOFF = "2025-01-01";
 
@@ -156,6 +157,7 @@ export interface DgnCustomer {
       confirmClickedAt: string; confirmClickCount: number;
       vipClickedAt: string; vipClickCount: number;
     };
+    curation?: FounderCuration;
     updatedAt?: string;
   };
 }

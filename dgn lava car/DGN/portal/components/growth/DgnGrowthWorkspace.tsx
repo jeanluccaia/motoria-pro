@@ -45,6 +45,8 @@ import {
   type FoundersPipelineStatus,
   type RecommendedPlan,
 } from "@/lib/growth/dgn-growth-data";
+import { founderOfferCatalog } from "@/lib/founder-offer-catalog";
+import { curationDisplayState, type FounderCurationAction } from "@/lib/growth/db/founder-curation";
 
 type GrowthView = "intelligence" | "curadoria" | "founders" | "profile";
 type ProfileTab = "overview" | "commercial" | "campaign" | "timeline";
@@ -821,6 +823,14 @@ const curationFilterOptions = [
   { key: "Founder", label: "Founder selecionado" },
   { key: "SemTelefone", label: "Sem telefone" },
   { key: "Revisao", label: "Revisão manual" },
+  { key: "Rascunho", label: "Recomendação em rascunho" },
+  { key: "SemPagina", label: "Sem página" },
+  { key: "Pagina", label: "Página criada" },
+  { key: "NaoEnviado", label: "Convite não enviado" },
+  { key: "Enviado", label: "Convite enviado" },
+  { key: "Visualizou", label: "Visualizou" },
+  { key: "Clicou", label: "Clicou no WhatsApp" },
+  { key: "Descartado", label: "Descartados" },
 ] as const;
 
 function CurationView({
@@ -851,6 +861,14 @@ function CurationView({
       if (curationFilter === "Founder") return customer.campaign.founderSelected;
       if (curationFilter === "SemTelefone") return customer.hasValidPhone === false;
       if (curationFilter === "Revisao") return customer.dataQualityNotes?.includes("revisao_manual") === true;
+      if (curationFilter === "Rascunho") return Boolean(customer.campaign.curation?.recommendedPlanCode) && !customer.campaign.curation?.approvedAt;
+      if (curationFilter === "SemPagina") return customer.campaign.founderStatus === "selecionado" && !customer.campaign.personalizedPagePath;
+      if (curationFilter === "Pagina") return Boolean(customer.campaign.personalizedPagePath);
+      if (curationFilter === "NaoEnviado") return Boolean(customer.campaign.personalizedPagePath) && !customer.campaign.curation?.inviteSentAt;
+      if (curationFilter === "Enviado") return Boolean(customer.campaign.curation?.inviteSentAt);
+      if (curationFilter === "Visualizou") return Boolean(customer.campaign.engagement?.viewedAt);
+      if (curationFilter === "Clicou") return (customer.campaign.engagement?.confirmClickCount ?? 0) > 0;
+      if (curationFilter === "Descartado") return customer.campaign.founderStatus === "descartado" || customer.campaign.commercialStage === "descartado";
       return true;
     })
     .sort((a, b) => b.scoreDgn - a.scoreDgn);
@@ -915,6 +933,8 @@ function CurationView({
       <div className="rounded-2xl border border-white/[0.06] bg-[#101010] p-5">
         <CustomerSnapshot customer={selectedCustomer} />
 
+        <FounderCurationEditor customer={selectedCustomer} enabled={Boolean(selectedCustomer.campaign.updatedAt)} />
+
         <Fieldset label="Perfil">
           <div className="grid gap-4 lg:grid-cols-2">
             <SelectBlock
@@ -971,7 +991,8 @@ function CurationView({
           />
         </Fieldset>
 
-        <Fieldset label="Decisão Founder">
+        <div className="hidden" aria-hidden="true">
+        <Fieldset label="Decisão Founder legada">
           <div className="grid gap-4 lg:grid-cols-2">
             <SelectBlock
               label="Decisão"
@@ -1040,6 +1061,7 @@ function CurationView({
             />
           </label>
         </Fieldset>
+        </div>
       </div>
     </section>
   );
@@ -1662,6 +1684,7 @@ function CustomerProfileInline({
 
       {tab === "campaign" ? (
         <div className="mt-4 space-y-3">
+          <FounderCurationEditor customer={customer} enabled={canPersistCommercial} />
           <CampaignPipelineEditor customer={customer} enabled={canPersistCommercial} />
           <div className="grid gap-3 sm:grid-cols-2">
             <ProfileFact label="Primeira visualização" value={customer.campaign.engagement?.viewedAt || "—"} />
@@ -1776,6 +1799,71 @@ function CustomerProfileInline({
     </div>
   );
 }
+
+function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; enabled: boolean }) {
+  const current = customer.campaign.curation;
+  const protectedFounder = ["benedito-constantino", "jose-moreira", "rikardo-oliveira"].includes(customer.id);
+  const [planCode, setPlanCode] = useState(current?.recommendedPlanCode ?? "");
+  const [reason, setReason] = useState(current?.recommendationReasonInternal ?? "");
+  const [message, setMessage] = useState(current?.recommendationMessagePublic ?? "");
+  const [notice, setNotice] = useState("");
+  const [saving, setSaving] = useState(false);
+  const offer = founderOfferCatalog.find((candidate) => candidate.code === planCode);
+  const state = curationDisplayState({ founderStatus: customer.campaign.founderStatus, commercialStage: customer.campaign.commercialStage,
+    recommendedPlanCode: current?.recommendedPlanCode, publicLink: current?.publicLink, inviteSentAt: current?.inviteSentAt,
+    viewedAt: customer.campaign.engagement?.viewedAt });
+
+  async function act(action: FounderCurationAction) {
+    if (!enabled || !customer.campaign.updatedAt || protectedFounder) return;
+    if (action === "mark_sent" && !window.confirm("Confirmar que o convite foi realmente enviado?")) return;
+    if (["revoke", "replace"].includes(action) && !window.confirm(action === "revoke" ? "Revogar o link ativo?" : "Revogar o link atual e gerar um novo convite?")) return;
+    setSaving(true); setNotice("");
+    try {
+      const response = await fetch(`/api/admin/growth/customers/${encodeURIComponent(customer.id)}/founder-curation`, {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action, campaignId: "founders-2026", recommendedPlanCode: planCode,
+          recommendationReasonInternal: reason, recommendationMessagePublic: message,
+          expectedUpdatedAt: customer.campaign.updatedAt }),
+      });
+      const result = await response.json() as { changed?: boolean; error?: string };
+      if (!response.ok) throw new Error(result.error || "Falha na curadoria.");
+      setNotice(result.changed ? "Alteração salva. Recarregando…" : "Nenhuma alteração; auditoria não gerada.");
+      if (result.changed) window.setTimeout(() => window.location.reload(), 500);
+    } catch (error) { setNotice(error instanceof Error ? error.message : "Falha na curadoria."); }
+    finally { setSaving(false); }
+  }
+
+  async function copyPublicLink() {
+    if (!customer.campaign.personalizedPagePath) return;
+    await navigator.clipboard.writeText(`${getOrigin()}${customer.campaign.personalizedPagePath}`);
+    setNotice("Link copiado. O convite não foi marcado como enviado.");
+  }
+
+  return <div className="mt-5 rounded-2xl border border-[#C9A84C]/20 bg-[#0D0D0D] p-4">
+    <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">Curadoria individual</p><p className="mt-1 text-xs text-[#8A8A8A]">Estado: {state}. Seleção exclusivamente humana.</p></div>{current?.recommendedPlanVersion ? <span className="text-[10px] text-[#777]">{current.recommendedPlanVersion}</span> : null}</div>
+    {protectedFounder ? <p className="mt-3 rounded-lg border border-white/[0.08] px-3 py-2 text-xs text-[#A7A7A7]">Founder confirmado protegido. Oferta e link permanecem inalterados.</p> : null}
+    {notice ? <p className="mt-3 rounded-lg border border-white/[0.08] px-3 py-2 text-xs text-[#E7C96A]">{notice}</p> : null}
+    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <label><span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Plano escolhido manualmente</span><select value={planCode} disabled={protectedFounder || saving} onChange={(event) => setPlanCode(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-white/[0.06] bg-[#151515] px-3 text-sm text-white"><option value="">Selecione…</option>{founderOfferCatalog.map((item) => <option key={item.code} value={item.code}>{item.name} · {item.displayedValue}</option>)}</select></label>
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-xs text-[#A7A7A7]">{offer ? <><p className="font-semibold text-white">{offer.frequency} · {offer.displayedValue}</p><p className="mt-2">{offer.benefits.join(" · ")}</p></> : "Escolha uma oferta oficial para revisar os detalhes."}</div>
+      <label className="sm:col-span-2"><span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Motivo interno *</span><textarea rows={3} value={reason} disabled={protectedFounder || saving} onChange={(event) => setReason(event.target.value)} className="mt-2 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-3 text-sm text-white" /></label>
+      <label className="sm:col-span-2"><span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Mensagem pública opcional</span><textarea rows={2} value={message} disabled={protectedFounder || saving} onChange={(event) => setMessage(event.target.value)} className="mt-2 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-3 text-sm text-white" /></label>
+    </div>
+    <div className="mt-4 flex flex-wrap gap-2">
+      <ActionButton disabled={!enabled || protectedFounder || saving} onClick={() => act("save")}>Salvar rascunho</ActionButton>
+      <ActionButton disabled={!enabled || protectedFounder || saving || !offer || reason.trim().length < 3} onClick={() => act("approve")}>Aprovar seleção</ActionButton>
+      <ActionButton disabled={!enabled || protectedFounder || saving || customer.campaign.founderStatus !== "selecionado" || Boolean(current?.publicLink)} onClick={() => act("create_page")}>Criar página Founder</ActionButton>
+      <ActionButton disabled={!current?.publicLink} onClick={copyPublicLink}>Copiar link</ActionButton>
+      {customer.campaign.personalizedPagePath ? <Link href={`${customer.campaign.personalizedPagePath}?preview=1`} target="_blank" className="rounded-lg border border-white/[0.08] px-3 py-2 text-xs font-semibold">Abrir preview</Link> : null}
+      <ActionButton disabled={!current?.publicLink || Boolean(current?.inviteSentAt)} onClick={() => act("mark_sent")}>Marcar convite como enviado</ActionButton>
+      <ActionButton disabled={!current?.publicLink || protectedFounder} onClick={() => act("revoke")}>Revogar link</ActionButton>
+      <ActionButton disabled={!current?.publicLink || protectedFounder} onClick={() => act("replace")}>Revogar e gerar novo convite</ActionButton>
+    </div>
+    <div className="mt-4 grid gap-2 sm:grid-cols-2"><ProfileFact label="Responsável" value={current?.curatedBy || "—"} compact /><ProfileFact label="Data da curadoria" value={current?.curatedAt || "—"} compact /><ProfileFact label="Aprovação" value={current?.approvedAt || "Pendente"} compact /><ProfileFact label="Convite enviado" value={current?.inviteSentAt || "Não"} compact /></div>
+  </div>;
+}
+
+function ActionButton({ children, disabled, onClick }: { children: ReactNode; disabled?: boolean; onClick: () => void }) { return <button disabled={disabled} onClick={onClick} className="rounded-lg border border-[#C9A84C]/25 bg-[#C9A84C]/10 px-3 py-2 text-xs font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-35">{children}</button>; }
 
 function CampaignPipelineEditor({ customer, enabled }: { customer: DgnCustomer; enabled: boolean }) {
   const campaign = customer.campaign;
