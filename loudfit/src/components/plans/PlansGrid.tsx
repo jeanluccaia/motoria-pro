@@ -28,9 +28,9 @@ export function PlansGrid({ plans, variant, ctaBase, ctaLabel, homePricing = fal
   }
 
   return (
-    <div className="mx-auto grid max-w-3xl grid-cols-1 items-start gap-5 sm:grid-cols-2">
+    <div className="mx-auto grid max-w-3xl grid-cols-1 gap-5 sm:grid-cols-2">
       {plans.map((plan, i) => (
-        <Reveal key={plan.slug} delay={i * 0.06} className="flex w-full min-w-0 flex-col self-start">
+        <Reveal key={plan.slug} delay={i * 0.06} className="flex h-full w-full min-w-0 flex-col">
           <ExpandablePlanCard
             plan={plan}
             isOpen={openSlug === plan.slug}

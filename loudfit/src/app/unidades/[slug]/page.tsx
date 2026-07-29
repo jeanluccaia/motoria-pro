@@ -229,7 +229,7 @@ export default async function UnitPage({ params }: Props) {
                 Primeira mensalidade por R$ 9,90
               </h2>
               <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-gray-400">
-                No Power Plus · Fidelidade de 12 meses
+                No Power Plus · 12 meses de fidelidade
               </p>
               <p className="mt-3 text-sm leading-relaxed text-gray-500">
                 {isIpiranga && unit.status === 'em_breve' && hasCheckout

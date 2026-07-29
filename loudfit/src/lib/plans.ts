@@ -12,6 +12,9 @@ export interface Plan {
   checkoutUrl?: string | null
 }
 
+/** Menor mensalidade da rede — usada na Home para "a partir de R$ ...". */
+export const NETWORK_MIN_MONTHLY_PRICE = 'R$ 119,90'
+
 const standardPlans: Plan[] = [
   {
     slug: 'power-plus',
@@ -19,10 +22,10 @@ const standardPlans: Plan[] = [
     badge: 'MAIS ESCOLHIDO',
     price: 'R$ 119,90',
     period: '/mês',
-    description: 'Cobrança mensal recorrente com a menor mensalidade da rede.',
+    description: 'A menor mensalidade da rede',
     featured: true,
-    commitment: 'Fidelidade de 12 meses',
-    firstPayment: { label: 'Primeira mensalidade por', value: 'R$ 9,90' },
+    commitment: '12 meses de fidelidade',
+    firstPayment: { label: '1º mês por', value: 'R$ 9,90' },
     checkoutUrl: null,
   },
   {
@@ -31,7 +34,7 @@ const standardPlans: Plan[] = [
     badge: 'FLEXÍVEL',
     price: 'R$ 149,90',
     period: '/mês',
-    description: 'Mensalidade recorrente para quem prefere liberdade contratual.',
+    description: 'Liberdade para treinar sem compromisso de longo prazo',
     featured: false,
     commitment: 'Sem fidelidade',
     checkoutUrl: null,
@@ -45,10 +48,10 @@ const ipirangaPlans: Plan[] = [
     badge: 'MAIS ESCOLHIDO',
     price: 'R$ 179,90',
     period: '/mês',
-    description: 'Cobrança mensal recorrente com a menor mensalidade da unidade.',
+    description: 'A menor mensalidade desta unidade',
     featured: true,
-    commitment: 'Fidelidade de 12 meses',
-    firstPayment: { label: 'Primeira mensalidade por', value: 'R$ 9,90' },
+    commitment: '12 meses de fidelidade',
+    firstPayment: { label: '1º mês por', value: 'R$ 9,90' },
     checkoutUrl: null,
   },
   {
@@ -57,7 +60,7 @@ const ipirangaPlans: Plan[] = [
     badge: 'FLEXÍVEL',
     price: 'R$ 199,90',
     period: '/mês',
-    description: 'Mensalidade recorrente para quem prefere liberdade contratual.',
+    description: 'Liberdade para treinar sem compromisso de longo prazo',
     featured: false,
     commitment: 'Sem fidelidade',
     checkoutUrl: null,
@@ -90,8 +93,8 @@ export const planBenefits = networkBenefits
 
 /** Descrição curta do plano exibida no card. Reutilizada por Home e unidades. */
 export const planShortDescriptions: Record<string, string> = {
-  'power-plus': 'Menor mensalidade da rede',
-  'power': 'Liberdade sem compromisso de longo prazo',
+  'power-plus': 'A menor mensalidade da rede',
+  'power': 'Liberdade para treinar sem compromisso de longo prazo',
 }
 
 /** Texto de condições exibido dentro do painel expansível de cada plano. */
