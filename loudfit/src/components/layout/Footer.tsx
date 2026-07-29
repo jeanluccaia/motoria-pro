@@ -86,7 +86,7 @@ export function Footer() {
               className="font-black uppercase leading-none tracking-[-0.005em] text-lf-text"
               style={{ fontSize: 'clamp(14px, 1.3vw, 17px)' }}
             >
-              O melhor ainda está por vir
+              O melhor está aqui
             </p>
 
             <div>

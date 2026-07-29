@@ -29,8 +29,8 @@ export function StickyCta() {
     >
       <p className="text-sm font-medium text-lf-muted">
         Primeira mensalidade por{' '}
-        <strong className="text-lf-volt">R$9,90</strong>
-        {' '}no Power Anual Recorrente
+        <strong className="text-lf-volt">R$ 9,90</strong>
+        {' '}no Power Plus
       </p>
       <Button href="/unidades" variant="volt" size="md">
         Começar matrícula

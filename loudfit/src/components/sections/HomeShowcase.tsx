@@ -79,7 +79,7 @@ export function HomeShowcase() {
             <div className="mb-4 flex items-center gap-3">
               <span aria-hidden="true" className="h-[2px] w-8 shrink-0 bg-lf-volt" />
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-lf-volt">
-                O melhor ainda está por vir
+                O melhor está aqui
               </p>
             </div>
             <h2

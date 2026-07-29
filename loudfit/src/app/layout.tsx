@@ -20,7 +20,7 @@ const displayFont = Big_Shoulders({
 
 const siteTitle = 'Loud Fit | Academia com musculação e aulas inclusas'
 const siteDescription =
-  'Aqui, o treino fala mais alto. Musculação, cardio e aulas coletivas em um só plano. Escolha sua unidade. O melhor ainda está por vir'
+  'Aqui, o treino fala mais alto. Musculação, cardio e aulas coletivas em um só plano. Escolha sua unidade. O melhor está aqui'
 
 export const metadata: Metadata = {
   title: {

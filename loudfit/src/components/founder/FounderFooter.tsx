@@ -24,7 +24,7 @@ export function FounderFooter() {
             lineHeight: 1.2,
           }}
         >
-          O MELHOR AINDA ESTÁ POR VIR
+          O MELHOR ESTÁ AQUI
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3 text-[12px] text-white/45">
           <Link

@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!unit) return {}
   const name = unitDisplayName(unit)
   const title = `${name} — Academia em ${unit.cidade}`
-  const description = `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Planos com primeira mensalidade por R$9,90 no Power Anual Recorrente.`
+  const description = `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Planos com primeira mensalidade por R$ 9,90 no Power Plus.`
   return {
     title: { absolute: title },
     description,
@@ -143,7 +143,7 @@ export default async function UnitPage({ params }: Props) {
                 {unit.bairro} / {unit.cidade}, {unit.estado}.{' '}
                 {unit.status === 'em_breve'
                   ? 'Unidade em inauguração.'
-                  : 'Estrutura completa. Primeira mensalidade por R$9,90 no Power Anual Recorrente.'}
+                  : 'Estrutura completa. Primeira mensalidade por R$ 9,90 no Power Plus.'}
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 {unit.status !== 'em_breve' && (
@@ -229,7 +229,7 @@ export default async function UnitPage({ params }: Props) {
                 Primeira mensalidade por R$ 9,90
               </h2>
               <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-gray-400">
-                No Power Anual Recorrente
+                No Power Plus · Fidelidade de 12 meses
               </p>
               <p className="mt-3 text-sm leading-relaxed text-gray-500">
                 {isIpiranga && unit.status === 'em_breve' && hasCheckout
@@ -358,9 +358,8 @@ export default async function UnitPage({ params }: Props) {
           />
 
           <p className="mt-6 text-xs text-lf-muted/50">
-            Após a primeira mensalidade promocional,
-            aplica-se o valor mensal do Power Anual Recorrente desta unidade. Os demais planos
-            seguem o valor cheio desde a primeira cobrança.
+            Após a primeira mensalidade promocional, aplica-se o valor mensal do Power Plus desta
+            unidade. O Power segue o valor cheio desde a primeira cobrança.
           </p>
         </Section>
 

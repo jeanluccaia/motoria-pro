@@ -198,6 +198,9 @@ export function ExpandablePlanCard({
               <p className="mt-2 text-[12px] leading-snug text-white/45">
                 Depois, mensalidade conforme a unidade escolhida.
               </p>
+              <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55">
+                {plan.commitment}
+              </p>
             </div>
           ) : variant === 'unit' && plan.firstPayment ? (
             <div className="mt-5 border-t border-white/10 pt-5">
@@ -215,12 +218,18 @@ export function ExpandablePlanCard({
               <p className="mt-1 text-[11px] leading-snug text-white/45">
                 Cobrança mensal recorrente
               </p>
+              <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55">
+                {plan.commitment}
+              </p>
             </div>
           ) : (
             <div className="mt-5 border-t border-white/10 pt-5">
               <p className={cn('flex items-baseline text-lf-text', BODY)}>
                 <strong className="text-[44px] font-black leading-none">{plan.price}</strong>
                 <span className="ml-1 text-[14px] text-white/50">{plan.period}</span>
+              </p>
+              <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55">
+                {plan.commitment}
               </p>
             </div>
           )}
@@ -337,6 +346,14 @@ export function ExpandablePlanCard({
             >
               {plan.period}
             </span>
+          </p>
+          <p
+            className={cn(
+              'mt-2 text-[11px] font-semibold uppercase tracking-[0.12em]',
+              dark ? 'text-lf-muted' : 'text-[#7A7267]',
+            )}
+          >
+            {plan.commitment}
           </p>
         </div>
 

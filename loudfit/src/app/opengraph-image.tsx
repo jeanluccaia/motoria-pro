@@ -51,7 +51,7 @@ export default async function Image() {
 
         {/* Tagline */}
         <div style={{ color: '#B8B8B8', fontSize: '30px', fontWeight: 500, lineHeight: 1.4, maxWidth: '760px', display: 'flex' }}>
-          O melhor ainda está por vir
+          O melhor está aqui
         </div>
 
         {/* Acento diagonal inferior esquerdo */}

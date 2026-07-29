@@ -53,7 +53,7 @@ export function PlansSection() {
 
       <Reveal delay={0.32}>
         <div className="mt-5 flex flex-col gap-1 border-t border-[#D8D0C0] pt-5 text-[11px] text-[#6E675C] sm:flex-row sm:justify-between">
-          <p>*R$ 9,90 na primeira mensalidade apenas no Power Anual Recorrente.</p>
+          <p>*R$ 9,90 na primeira mensalidade apenas no Power Plus.</p>
           <p>Valores e condições podem variar conforme a unidade. Ipiranga possui tabela própria.</p>
         </div>
       </Reveal>

@@ -6,96 +6,60 @@ export interface Plan {
   period: string
   description: string
   featured: boolean
+  /** Texto contratual exibido antes do CTA (ex.: "Fidelidade de 12 meses" ou "Sem fidelidade"). */
+  commitment: string
   firstPayment?: { label: string; value: string }
   checkoutUrl?: string | null
 }
 
 const standardPlans: Plan[] = [
   {
-    slug: 'power-mensal',
-    name: 'Power Mensal',
-    badge: 'FLEXÍVEL',
-    price: 'R$149,90',
+    slug: 'power-plus',
+    name: 'Power Plus',
+    badge: 'MAIS ESCOLHIDO',
+    price: 'R$ 119,90',
     period: '/mês',
-    description: 'Mês a mês, sem cobrança automática e sem compromisso de longo prazo.',
-    featured: false,
-    checkoutUrl: null,
-  },
-  {
-    slug: 'power-mensal-recorrente',
-    name: 'Power Mensal Recorrente',
-    badge: 'PRÁTICO',
-    price: 'R$139,90',
-    period: '/mês',
-    description: 'Cobrança automática todo mês. Você treina, a renovação é automática.',
-    featured: false,
-    checkoutUrl: null,
-  },
-  {
-    slug: 'power-semestral-recorrente',
-    name: 'Power Semestral Recorrente',
-    badge: 'ECONOMIA',
-    price: 'R$129,90',
-    period: '/mês',
-    description: 'Seis meses de treino com mensalidade mais baixa que o plano mensal.',
-    featured: false,
-    checkoutUrl: null,
-  },
-  {
-    slug: 'power-anual-recorrente',
-    name: 'Power Anual Recorrente',
-    badge: 'MELHOR VALOR',
-    price: 'R$119,90',
-    period: '/mês',
-    description:
-      'Plano de 12 meses com cobrança mensal no cartão — sem travar o limite total do cartão.',
+    description: 'Cobrança mensal recorrente com a menor mensalidade da rede.',
     featured: true,
-    firstPayment: { label: 'Primeira mensalidade por', value: 'R$9,90' },
+    commitment: 'Fidelidade de 12 meses',
+    firstPayment: { label: 'Primeira mensalidade por', value: 'R$ 9,90' },
+    checkoutUrl: null,
+  },
+  {
+    slug: 'power',
+    name: 'Power',
+    badge: 'FLEXÍVEL',
+    price: 'R$ 149,90',
+    period: '/mês',
+    description: 'Mensalidade recorrente para quem prefere liberdade contratual.',
+    featured: false,
+    commitment: 'Sem fidelidade',
     checkoutUrl: null,
   },
 ]
 
 const ipirangaPlans: Plan[] = [
   {
-    slug: 'power-mensal',
-    name: 'Power Mensal',
-    badge: 'FLEXÍVEL',
-    price: 'R$199,90',
+    slug: 'power-plus',
+    name: 'Power Plus',
+    badge: 'MAIS ESCOLHIDO',
+    price: 'R$ 179,90',
     period: '/mês',
-    description: 'Mês a mês, sem cobrança automática e sem compromisso de longo prazo.',
-    featured: false,
-    checkoutUrl: null,
-  },
-  {
-    slug: 'power-mensal-recorrente',
-    name: 'Power Mensal Recorrente',
-    badge: 'PRÁTICO',
-    price: 'R$189,00',
-    period: '/mês',
-    description: 'Cobrança automática todo mês. Você treina, a renovação é automática.',
-    featured: false,
-    checkoutUrl: null,
-  },
-  {
-    slug: 'power-semestral-recorrente',
-    name: 'Power Semestral Recorrente',
-    badge: 'ECONOMIA',
-    price: 'R$179,90',
-    period: '/mês',
-    description: 'Seis meses de treino com mensalidade mais baixa que o plano mensal.',
-    featured: false,
-    checkoutUrl: null,
-  },
-  {
-    slug: 'power-anual-recorrente',
-    name: 'Power Anual Recorrente',
-    badge: 'MELHOR VALOR',
-    price: 'R$179,90',
-    period: '/mês',
-    description:
-      'Plano de 12 meses com cobrança mensal no cartão — sem travar o limite total do cartão.',
+    description: 'Cobrança mensal recorrente com a menor mensalidade da unidade.',
     featured: true,
-    firstPayment: { label: 'Primeira mensalidade por', value: 'R$9,90' },
+    commitment: 'Fidelidade de 12 meses',
+    firstPayment: { label: 'Primeira mensalidade por', value: 'R$ 9,90' },
+    checkoutUrl: null,
+  },
+  {
+    slug: 'power',
+    name: 'Power',
+    badge: 'FLEXÍVEL',
+    price: 'R$ 199,90',
+    period: '/mês',
+    description: 'Mensalidade recorrente para quem prefere liberdade contratual.',
+    featured: false,
+    commitment: 'Sem fidelidade',
     checkoutUrl: null,
   },
 ]
@@ -126,28 +90,20 @@ export const planBenefits = networkBenefits
 
 /** Descrição curta do plano exibida no card. Reutilizada por Home e unidades. */
 export const planShortDescriptions: Record<string, string> = {
-  'power-mensal': 'Mês a mês, sem compromisso',
-  'power-mensal-recorrente': 'Cobrança automática mensal',
-  'power-semestral-recorrente': '6 meses com mensalidade reduzida',
-  'power-anual-recorrente': '12 meses com a menor mensalidade',
+  'power-plus': 'Menor mensalidade da rede',
+  'power': 'Liberdade sem compromisso de longo prazo',
 }
 
 /** Texto de condições exibido dentro do painel expansível de cada plano. */
 export const planConditions: Record<string, string> = {
-  'power-mensal':
-    'Mês a mês, sem cobrança automática. Ideal para quem quer experimentar sem compromisso de longo prazo.',
-  'power-mensal-recorrente':
-    'Cobrança automática todo mês. Você treina, a renovação acontece sozinha.',
-  'power-semestral-recorrente':
-    'Seis meses de treino com mensalidade mais baixa que o plano mensal. Cobrança mensal automática.',
-  'power-anual-recorrente':
-    'Plano de 12 meses com a menor mensalidade. Cobrança mensal recorrente, sem comprometer de uma só vez o valor total do contrato no limite do cartão. Primeira mensalidade por R$ 9,90.',
+  'power-plus':
+    'Plano com fidelidade de 12 meses e cobrança mensal recorrente no cartão — sem comprometer de uma só vez o valor total do contrato no limite do cartão. Primeira mensalidade por R$ 9,90.',
+  'power':
+    'Mensalidade recorrente sem fidelidade contratual. Você mantém liberdade para encerrar quando quiser.',
 }
 
 /** Mapa slug → nome legível, importável em Client Components */
 export const PLAN_NAMES: Record<string, string> = {
-  'power-mensal': 'Power Mensal',
-  'power-mensal-recorrente': 'Power Mensal Recorrente',
-  'power-semestral-recorrente': 'Power Semestral Recorrente',
-  'power-anual-recorrente': 'Power Anual Recorrente',
+  'power-plus': 'Power Plus',
+  'power': 'Power',
 }
