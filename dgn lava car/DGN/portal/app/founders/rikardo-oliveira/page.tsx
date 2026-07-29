@@ -1,10 +1,7 @@
-"use client";
+import { renderFounderPublicPage } from "@/lib/founder-public-page";
 
-import { FounderPageClient } from "@/components/FounderPageClient";
-import { getFounderBySlug } from "@/lib/founders-data";
-
-const founder = getFounderBySlug("rikardo-oliveira")!;
+export const dynamic = "force-dynamic";
 
 export default function RikardoOliveiraFounderPage() {
-  return <FounderPageClient founder={founder} />;
+  return renderFounderPublicPage("rikardo-oliveira");
 }
