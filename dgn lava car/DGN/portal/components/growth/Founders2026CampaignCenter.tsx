@@ -351,7 +351,7 @@ export function Founders2026CampaignCenter() {
                         <div className="flex items-center gap-1.5">
                           {personalizedPath ? (
                             <LinkIconButton
-                              href={personalizedPath}
+                              href={`${personalizedPath}?preview=1`}
                               label="Ver página"
                               icon={ExternalLink}
                             />
@@ -623,7 +623,7 @@ function GuestPanel({
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {personalizedPath ? (
               <Link
-                href={personalizedPath}
+                href={`${personalizedPath}?preview=1`}
                 target="_blank"
                 className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#C9A84C]/22 bg-[#C9A84C]/10 px-3 text-sm font-semibold text-[#E7C96A]"
               >

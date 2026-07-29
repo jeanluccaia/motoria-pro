@@ -151,6 +151,11 @@ export interface DgnCustomer {
     cardStatusRaw?: "nao_aplicavel" | "pendente" | "solicitado" | "produzido" | "entregue";
     dates?: Record<string, string>;
     history?: { type: string; description: string; occurredAt: string; actor: string }[];
+    engagement?: {
+      viewedAt: string; lastViewedAt: string; viewCount: number;
+      confirmClickedAt: string; confirmClickCount: number;
+      vipClickedAt: string; vipClickCount: number;
+    };
     updatedAt?: string;
   };
 }

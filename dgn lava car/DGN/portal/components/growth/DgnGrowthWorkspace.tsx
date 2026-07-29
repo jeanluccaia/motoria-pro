@@ -258,7 +258,7 @@ export function DgnGrowthWorkspace({
         customer.campaign.campaignStatus
       )
     );
-    const viewed = founders.filter((customer) => customer.campaign.campaignStatus === "Visualizou");
+    const viewed = founders.filter((customer) => Boolean(customer.campaign.engagement?.viewedAt));
     const conversations = founders.filter(
       (customer) => customer.campaign.campaignStatus === "Conversando"
     );
@@ -1072,11 +1072,10 @@ function Fieldset({ label, children }: { label: string; children: ReactNode }) {
 // ============================================================================
 const founderFilterOptions = [
   { key: "Todos", label: "Todos" },
-  { key: "Ativo", label: "Ativos" },
-  { key: "SemConvite", label: "Sem convite" },
-  { key: "Visualizou", label: "Visualizaram" },
-  { key: "AguardandoKit", label: "Aguardando kit" },
-  { key: "Perdido", label: "Perdidos" },
+  { key: "Visualizou", label: "Visualizou" },
+  { key: "NaoVisualizou", label: "Não visualizou" },
+  { key: "ClicouConfirmar", label: "Clicou em confirmar" },
+  { key: "NuncaClicou", label: "Nunca clicou" },
 ] as const;
 
 function FoundersView({
@@ -1148,11 +1147,10 @@ function FoundersView({
 
   const founderRows = allFounderRows.filter((row) => {
     const customer = row as DgnCustomer & { isSlot?: boolean };
-    if (founderFilter === "Ativo") return customer.campaign.campaignStatus === "Assinante ativo";
-    if (founderFilter === "SemConvite") return !customer.campaign.personalizedPagePath && !customer.isSlot;
-    if (founderFilter === "Visualizou") return customer.campaign.campaignStatus === "Visualizou";
-    if (founderFilter === "AguardandoKit") return customer.campaign.campaignStatus === "Aguardando Kit Founder";
-    if (founderFilter === "Perdido") return customer.campaign.campaignStatus === "Perdido";
+    if (founderFilter === "Visualizou") return Boolean(customer.campaign.engagement?.viewedAt);
+    if (founderFilter === "NaoVisualizou") return !customer.campaign.engagement?.viewedAt;
+    if (founderFilter === "ClicouConfirmar") return (customer.campaign.engagement?.confirmClickCount ?? 0) > 0;
+    if (founderFilter === "NuncaClicou") return (customer.campaign.engagement?.confirmClickCount ?? 0) === 0;
     return true;
   });
 
@@ -1294,6 +1292,7 @@ function FoundersView({
                   { key: "name", label: "Nome", sticky: true },
                   { key: "vehicle", label: "Veículo" },
                   { key: "status", label: "Status" },
+                  { key: "engagement", label: "Engajamento" },
                   { key: "actions_flow", label: "Última / próxima ação" },
                   { key: "actions", label: "Ações" },
                 ].map((column) => (
@@ -1326,6 +1325,10 @@ function FoundersView({
                         <Crown size={12} />
                         {customer.campaign.founderNumber || "000"}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-[#A7A7A7]">
+                      <p>{customer.campaign.engagement?.viewedAt ? `Visualizou · ${customer.campaign.engagement.viewCount}x` : "Não visualizou"}</p>
+                      <p className="mt-1">Confirmar · {customer.campaign.engagement?.confirmClickCount ?? 0}x</p>
                     </td>
                     <td className="sticky left-0 z-10 bg-inherit px-4 py-3">
                       <button
@@ -1621,7 +1624,7 @@ function CustomerProfileInline({
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {customer.campaign.personalizedPagePath ? (
                 <Link
-                  href={customer.campaign.personalizedPagePath}
+                  href={`${customer.campaign.personalizedPagePath}?preview=1`}
                   target="_blank"
                   className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-[#C9A84C]/25 bg-[#C9A84C]/10 px-3 text-sm font-semibold text-[#E7C96A]"
                 >
@@ -1660,6 +1663,24 @@ function CustomerProfileInline({
       {tab === "campaign" ? (
         <div className="mt-4 space-y-3">
           <CampaignPipelineEditor customer={customer} enabled={canPersistCommercial} />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <ProfileFact label="Primeira visualização" value={customer.campaign.engagement?.viewedAt || "—"} />
+            <ProfileFact label="Última visualização" value={customer.campaign.engagement?.lastViewedAt || "—"} />
+            <ProfileFact label="Total de visualizações" value={String(customer.campaign.engagement?.viewCount ?? 0)} />
+            <ProfileFact label="Primeiro clique em confirmar" value={customer.campaign.engagement?.confirmClickedAt || "—"} />
+            <ProfileFact label="Cliques em confirmar" value={String(customer.campaign.engagement?.confirmClickCount ?? 0)} />
+            <ProfileFact label="Primeiro clique VIP" value={customer.campaign.engagement?.vipClickedAt || "—"} />
+            <ProfileFact label="Cliques VIP" value={String(customer.campaign.engagement?.vipClickCount ?? 0)} />
+          </div>
+          <div className="rounded-2xl border border-white/[0.06] bg-[#101010] p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">Eventos públicos</p>
+            <div className="mt-3 space-y-2">
+              {(customer.campaign.history ?? []).filter((event) => event.actor === "system:founder_tracking").map((event) => (
+                <p key={`${event.occurredAt}-${event.type}`} className="text-xs text-[#A7A7A7]">{event.occurredAt} · {event.type}</p>
+              ))}
+              {!(customer.campaign.history ?? []).some((event) => event.actor === "system:founder_tracking") ? <p className="text-xs text-[#777]">Nenhum evento público.</p> : null}
+            </div>
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <ProfileFact
               label="Campanha atual"

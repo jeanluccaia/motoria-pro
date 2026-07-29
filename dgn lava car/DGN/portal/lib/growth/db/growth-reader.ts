@@ -125,7 +125,7 @@ export function mapGrowthSnapshot(snapshot: GrowthDbSnapshot): DgnCustomer[] {
         internalNotes: text(member?.commercial_notes) },
       campaign: { currentCampaign: member ? "Founders 2026" : "", founderSelected,
         founderNumber: text(member?.founder_number), founderCondition: text(member?.recommendation_reason),
-        campaignStatus, personalizedPagePath: "", paymentLink: "", lastAction: text(interactions[0]?.description),
+        campaignStatus, personalizedPagePath: ["benedito-constantino","jose-moreira","rikardo-oliveira"].includes(text(customer.legacy_id)) ? `/founders/${text(customer.legacy_id)}` : "", paymentLink: "", lastAction: text(interactions[0]?.description),
         nextAction: text(member?.next_action), lastContact: date(interactions[0]?.occurred_at),
         conversationStatus: campaignStatus || "Sem contato recente", notes: text(member?.commercial_notes),
         kitStatus: text(member?.kit_status) === "entregue" ? "Entregue" : text(member?.kit_status) === "pronto" ? "Separado" : founderSelected ? "Pendente" : "",
@@ -137,6 +137,9 @@ export function mapGrowthSnapshot(snapshot: GrowthDbSnapshot): DgnCustomer[] {
         cardStatusRaw: text(member?.card_status).replace("não_aplicável", "nao_aplicavel") || "nao_aplicavel",
         dates: { inviteCreatedAt: text(member?.invite_created_at), inviteSentAt: text(member?.invite_sent_at), viewedAt: text(member?.viewed_at), respondedAt: text(member?.responded_at), conversationStartedAt: text(member?.conversation_started_at), paymentSentAt: text(member?.payment_sent_at), convertedAt: text(member?.converted_at), lostAt: text(member?.lost_at), kitUpdatedAt: text(member?.kit_updated_at), cardUpdatedAt: text(member?.card_updated_at) },
         history: interactions.filter((row) => row.campaign_id === member?.campaign_id).map((row) => ({ type: text(row.interaction_type), description: text(row.description), occurredAt: text(row.occurred_at), actor: text(row.actor) })),
+        engagement: { viewedAt: text(member?.viewed_at), lastViewedAt: text(member?.last_viewed_at), viewCount: number(member?.view_count),
+          confirmClickedAt: text(member?.confirm_whatsapp_clicked_at), confirmClickCount: number(member?.confirm_whatsapp_click_count),
+          vipClickedAt: text(member?.vip_whatsapp_clicked_at), vipClickCount: number(member?.vip_whatsapp_click_count) },
         updatedAt: text(member?.updated_at) },
     } as DgnCustomer;
   });

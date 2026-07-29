@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import type { Founder, FounderTimelineItem } from "@/lib/founders-data";
 import { WHATSAPP_DGN } from "@/lib/config";
+import { FounderPublicTracking, trackFounderEvent } from "@/components/FounderPublicTracking";
 
 const easeOut: Easing = "easeOut";
 
@@ -77,15 +78,18 @@ export function FounderPageClient({ founder }: FounderPageClientProps) {
   };
 
   const openAccept = () => {
+    trackFounderEvent(founder.slug, "confirm_whatsapp_click");
     window.open(acceptWhatsappUrl, "_blank", "noopener,noreferrer");
   };
 
   const openVip = () => {
+    trackFounderEvent(founder.slug, "vip_whatsapp_click");
     window.open(links.whatsappVip, "_blank", "noopener,noreferrer");
   };
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#070707] text-white">
+      <FounderPublicTracking slug={founder.slug} />
       {/* Hero */}
       <section className="relative flex min-h-screen items-center overflow-hidden px-5 py-12">
         <PremiumBackground />
@@ -599,4 +603,3 @@ function FinalInvite({
     </section>
   );
 }
-
