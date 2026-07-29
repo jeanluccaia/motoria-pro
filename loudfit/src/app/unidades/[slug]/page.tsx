@@ -326,8 +326,9 @@ export default async function UnitPage({ params }: Props) {
         )}
 
         {/* Planos */}
-        <Section id="planos" bg="graphite">
+        <Section id="planos" bg="cream">
           <SectionHeader
+            dark
             label="Planos da unidade"
             title="Escolha como começar"
             subtitle={
@@ -338,12 +339,12 @@ export default async function UnitPage({ params }: Props) {
           />
 
           {/* Benefícios comuns */}
-          <div className="mb-10 flex flex-wrap items-center gap-x-5 gap-y-2 border border-lf-line px-5 py-3">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-lf-muted/50">
+          <div className="mb-10 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-[#E4DFD4] bg-white px-5 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7A7267]">
               Todos os planos incluem:
             </p>
             {['Musculação', 'Aulas coletivas', 'Estrutura completa', 'Reconhecimento facial', 'Máquina de gelo'].map((b) => (
-              <span key={b} className="flex items-center gap-2 text-xs text-lf-muted">
+              <span key={b} className="flex items-center gap-2 text-xs text-[#4A4A4A]">
                 <span className="h-1 w-1 shrink-0 bg-lf-volt" />
                 {b}
               </span>
@@ -357,7 +358,7 @@ export default async function UnitPage({ params }: Props) {
             ctaLabel={planCtaLabel ?? 'Começar matrícula'}
           />
 
-          <p className="mt-6 text-xs text-lf-muted/50">
+          <p className="mt-6 text-xs text-[#7A7267]">
             Após a primeira mensalidade promocional, aplica-se o valor mensal do Power Plus desta
             unidade. O Power segue o valor cheio desde a primeira cobrança.
           </p>

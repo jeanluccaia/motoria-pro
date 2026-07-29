@@ -169,7 +169,7 @@ export function ExpandablePlanCard({
     return (
       <article
         className={cn(
-          'group relative flex h-full w-full min-w-0 flex-col overflow-hidden rounded-3xl transition-all duration-200 motion-reduce:transition-none',
+          'group relative flex w-full min-w-0 flex-col overflow-hidden rounded-3xl transition-all duration-200 motion-reduce:transition-none',
           shellBg,
           'order-first md:order-none',
           'ring-1 ring-lf-volt/25',
@@ -269,89 +269,46 @@ export function ExpandablePlanCard({
     )
   }
 
-  /* Não destacado — Power. Home tema claro; Unidade tema escuro grafite. */
-  const dark = variant === 'unit'
-  const shellClasses = dark
-    ? cn(
-        'border border-lf-line bg-lf-surface',
-        isOpen
-          ? 'border-lf-volt/60 ring-2 ring-lf-volt/40 shadow-[0_10px_30px_rgba(255,224,0,0.10)]'
-          : 'hover:-translate-y-0.5 hover:border-lf-text/25',
-      )
-    : cn(
-        'border bg-white shadow-[0_1px_6px_rgba(0,0,0,0.04),0_6px_20px_rgba(0,0,0,0.05)]',
-        isOpen
-          ? 'border-lf-volt/60 ring-2 ring-lf-volt/40 shadow-[0_10px_30px_rgba(255,224,0,0.15)]'
-          : 'border-[#E4DFD4] hover:-translate-y-0.5 hover:shadow-[0_4px_28px_rgba(0,0,0,0.10)]',
-      )
+  /* Não destacado — Power. Sempre tema claro para casar com fundo cream/branco. */
+  const shellClasses = cn(
+    'border bg-white shadow-[0_1px_6px_rgba(0,0,0,0.04),0_6px_20px_rgba(0,0,0,0.05)]',
+    isOpen
+      ? 'border-lf-volt/60 ring-2 ring-lf-volt/40 shadow-[0_10px_30px_rgba(255,224,0,0.15)]'
+      : 'border-[#E4DFD4] hover:-translate-y-0.5 hover:shadow-[0_4px_28px_rgba(0,0,0,0.10)]',
+  )
 
   return (
     <article
       className={cn(
-        'group relative flex h-full w-full min-w-0 flex-col overflow-hidden rounded-3xl transition-all duration-200 motion-reduce:transition-none',
+        'group relative flex w-full min-w-0 flex-col overflow-hidden rounded-3xl transition-all duration-200 motion-reduce:transition-none',
         shellClasses,
       )}
     >
       <div className={cn('flex flex-1 flex-col p-7 md:p-8', BODY)}>
-        <span
-          className={cn(
-            'mb-5 inline-block self-start rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em]',
-            dark ? 'bg-lf-graphite text-lf-muted' : 'bg-[#F0EDE6] text-[#7A7267]',
-          )}
-        >
+        <span className="mb-5 inline-block self-start rounded-full bg-[#F0EDE6] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7A7267]">
           {plan.badge}
         </span>
 
-        <h3
-          className={cn(
-            'text-[22px] font-black leading-tight',
-            BODY,
-            dark ? 'text-lf-text' : 'text-[#111111]',
-          )}
-        >
+        <h3 className={cn('text-[22px] font-black leading-tight text-[#111111]', BODY)}>
           {plan.name}
         </h3>
-        <p
-          className={cn(
-            'mt-1.5 text-[13px] leading-snug',
-            dark ? 'text-lf-muted' : 'text-[#5E5B54]',
-          )}
-        >
-          {description}
-        </p>
+        <p className="mt-1.5 text-[13px] leading-snug text-[#5E5B54]">{description}</p>
 
-        <div className={cn('mt-6 border-t pt-6', dark ? 'border-lf-line' : 'border-[#EDEBE5]')}>
-          <p
-            className={cn(
-              'flex items-baseline',
-              BODY,
-              dark ? 'text-lf-text' : 'text-[#111111]',
-            )}
-          >
+        <div className="mt-6 border-t border-[#EDEBE5] pt-6">
+          <p className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-[#7A7267]">
+            Mensalidade
+          </p>
+          <p className={cn('mt-2 flex items-baseline text-[#111111]', BODY)}>
             <strong className="text-[36px] font-black leading-none tracking-tight md:text-[38px]">
               {plan.price}
             </strong>
-            <span
-              className={cn(
-                'ml-1 text-[14px]',
-                dark ? 'text-lf-muted' : 'text-[#5E5B54]',
-              )}
-            >
-              {plan.period}
-            </span>
+            <span className="ml-1 text-[14px] text-[#5E5B54]">{plan.period}</span>
           </p>
-          <p
-            className={cn(
-              'mt-3 text-[12px] leading-snug',
-              dark ? 'text-lf-muted/70' : 'text-[#7A7267]',
-            )}
-          >
-            {plan.commitment}
-          </p>
+          <p className="mt-3 text-[12px] leading-snug text-[#7A7267]">{plan.commitment}</p>
+          <p className="mt-1 text-[11.5px] leading-snug text-[#9A938A]">Cancele quando quiser</p>
         </div>
 
-        {/* CTA + accordion no fundo do card para alinhar com o card Power Plus */}
-        <div className="mt-auto pt-7">
+        <div className="mt-8 pt-2">
           <Link
             href={ctaHref}
             onClick={() => firePlanCtaClick(plan, ctaHref)}
@@ -369,13 +326,9 @@ export function ExpandablePlanCard({
               aria-controls={panelId}
               className={cn(
                 'flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left text-[12px] font-semibold transition motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lf-volt/60',
-                dark
-                  ? isOpen
-                    ? 'border-lf-volt/60 bg-lf-volt/10 text-lf-volt'
-                    : 'border-lf-line bg-lf-black/40 text-lf-muted hover:border-lf-volt/40 hover:text-lf-volt'
-                  : isOpen
-                    ? 'border-[#7A6900] bg-[#FFF6C2] text-[#141414]'
-                    : 'border-[#E4DFD4] bg-[#FAF9F5] text-[#5E5B54] hover:border-[#7A6900] hover:text-[#141414]',
+                isOpen
+                  ? 'border-[#7A6900] bg-[#FFF6C2] text-[#141414]'
+                  : 'border-[#E4DFD4] bg-[#FAF9F5] text-[#5E5B54] hover:border-[#7A6900] hover:text-[#141414]',
               )}
             >
               <span>{isOpen ? 'Ocultar benefícios e condições' : 'Ver benefícios e condições'}</span>
@@ -387,13 +340,10 @@ export function ExpandablePlanCard({
               role="region"
               aria-labelledby={buttonId}
               hidden={!isOpen}
-              className={cn(
-                'mt-3 border-t pt-3',
-                dark ? 'border-lf-line' : 'border-[#EDEBE5]',
-              )}
+              className="mt-3 border-t border-[#EDEBE5] pt-3"
             >
-              <BenefitsInline dark={dark} />
-              <ConditionsInline plan={plan} dark={dark} />
+              <BenefitsInline />
+              <ConditionsInline plan={plan} />
             </div>
           </div>
         </div>
