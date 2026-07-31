@@ -1,7 +1,7 @@
-import Image from 'next/image'
 import Link from 'next/link'
 
-const HERO_IMAGE = '/media/hero/hero-power-plus.png'
+const HERO_DESKTOP = '/media/hero/hero-power-plus.png'
+const HERO_MOBILE = '/media/hero/hero-power-plus-mobile.png'
 
 export function Hero() {
   return (
@@ -9,26 +9,27 @@ export function Hero() {
       aria-label="Oferta promocional Power Plus — 1º mês por R$ 9,90"
       className="relative isolate overflow-hidden bg-lf-black pt-16 min-h-[720px] md:min-h-[75vh] lg:min-h-[86vh]"
     >
-      {/* Imagem de campanha — atleta à direita, área escura à esquerda.
-          Mobile: object-position 55%_25% mantém o rosto no lado direito
-          do viewport e libera a área esquerda para o texto. Desktop:
-          72%_28% aprovado — não alterar. */}
-      <Image
-        src={HERO_IMAGE}
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        quality={85}
-        aria-hidden="true"
-        className="absolute inset-0 -z-10 h-full w-full object-cover object-[55%_25%] md:object-[72%_28%]"
-      />
+      {/* Hero image: `<picture>` swaps a portrait mobile composition (atleta
+          pré-posicionada à direita + área escura à esquerda) por breakpoint,
+          para o desktop 2400×1000 aprovado. object-position 72%_28% preservado
+          no desktop; mobile já vem enquadrado pela imagem, então cover center. */}
+      <picture>
+        <source media="(min-width: 768px)" srcSet={HERO_DESKTOP} />
+        <img
+          src={HERO_MOBILE}
+          alt=""
+          aria-hidden="true"
+          fetchPriority="high"
+          decoding="async"
+          className="absolute inset-0 -z-10 h-full w-full object-cover object-center md:object-[72%_28%]"
+        />
+      </picture>
 
-      {/* Overlay mobile — gradiente horizontal forte à esquerda (área do texto)
-          e mais leve à direita (preserva a atleta). Combinado com fade inferior. */}
+      {/* Overlay mobile — gradiente vertical suave (a imagem mobile já traz
+          a composição escura à esquerda; só reforçamos o pé para o CTA). */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 md:hidden bg-[linear-gradient(90deg,rgba(0,0,0,0.90)_0%,rgba(0,0,0,0.76)_42%,rgba(0,0,0,0.30)_72%,rgba(0,0,0,0.10)_100%),linear-gradient(180deg,rgba(0,0,0,0)_55%,rgba(0,0,0,0.60)_100%)]"
+        className="absolute inset-0 -z-10 md:hidden bg-[linear-gradient(180deg,rgba(0,0,0,0.15)_0%,rgba(0,0,0,0)_35%,rgba(0,0,0,0)_65%,rgba(0,0,0,0.55)_100%)]"
       />
 
       {/* Overlay desktop — inalterado (aprovado) */}
