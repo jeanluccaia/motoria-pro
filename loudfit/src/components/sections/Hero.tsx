@@ -36,11 +36,7 @@ export function Hero() {
       {/* Conteúdo — alinhado à esquerda, dentro da área escura da imagem */}
       <div className="relative z-10 mx-auto flex min-h-[620px] w-full max-w-[1360px] items-center px-5 py-16 sm:px-8 md:min-h-[75vh] md:py-20 lg:min-h-[86vh] lg:px-12">
         <div className="w-full max-w-[560px]">
-          <p className="text-[11px] font-black uppercase tracking-[0.28em] text-lf-volt">
-            Comece agora
-          </p>
-
-          <p className="mt-6 text-[13px] font-bold uppercase tracking-[0.22em] text-lf-text/85 md:text-[14px]">
+          <p className="text-[13px] font-bold uppercase tracking-[0.22em] text-lf-text/85 md:text-[14px]">
             1º mês por
           </p>
 
@@ -64,10 +60,19 @@ export function Hero() {
             </Link>
           </div>
 
-          <p className="mt-5 text-[11.5px] uppercase tracking-[0.18em] text-lf-text/70">
-            Oferta válida até 09/08/2026
-          </p>
-          <p className="mt-1 text-[11.5px] leading-snug text-lf-text/55">
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-lf-volt/60 bg-lf-volt/15 px-3.5 py-1.5 backdrop-blur-sm">
+            <span className="relative flex h-2 w-2">
+              <span
+                aria-hidden="true"
+                className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lf-volt opacity-70 motion-reduce:hidden"
+              />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-lf-volt" />
+            </span>
+            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-lf-volt">
+              Oferta termina em 09/08/2026
+            </span>
+          </div>
+          <p className="mt-3 text-[11.5px] leading-snug text-lf-text/55">
             Plano Power Plus · Consulte condições
           </p>
         </div>
