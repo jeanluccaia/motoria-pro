@@ -7,29 +7,36 @@ export function Hero() {
   return (
     <section
       aria-label="Oferta promocional Power Plus — 1º mês por R$ 9,90"
-      className="relative isolate overflow-hidden bg-lf-black pt-16 min-h-[720px] md:min-h-[75vh] lg:min-h-[86vh]"
+      className="relative isolate overflow-hidden bg-lf-black pt-16 min-h-[600px] md:min-h-[75vh] lg:min-h-[86vh]"
     >
       {/* Hero image: `<picture>` swaps a portrait mobile composition (atleta
           pré-posicionada à direita + área escura à esquerda) por breakpoint,
           para o desktop 2400×1000 aprovado. object-position 72%_28% preservado
           no desktop; mobile já vem enquadrado pela imagem, então cover center. */}
-      <picture>
-        <source media="(min-width: 768px)" srcSet={HERO_DESKTOP} />
-        <img
-          src={HERO_MOBILE}
-          alt=""
-          aria-hidden="true"
-          fetchPriority="high"
-          decoding="async"
-          className="absolute inset-0 -z-10 h-full w-full object-cover object-center md:object-[72%_28%]"
-        />
-      </picture>
+      {/* Mobile: imagem como bloco superior em aspect natural (sem crop), texto
+          escorre no fundo preto abaixo. Desktop: imagem full-cover como antes. */}
+      <img
+        src={HERO_MOBILE}
+        alt=""
+        aria-hidden="true"
+        fetchPriority="high"
+        decoding="async"
+        className="absolute inset-x-0 top-16 -z-10 w-full h-auto object-cover md:hidden"
+      />
+      <img
+        src={HERO_DESKTOP}
+        alt=""
+        aria-hidden="true"
+        fetchPriority="high"
+        decoding="async"
+        className="absolute inset-0 -z-10 hidden h-full w-full object-cover object-[72%_28%] md:block"
+      />
 
-      {/* Overlay mobile — gradiente vertical suave (a imagem mobile já traz
-          a composição escura à esquerda; só reforçamos o pé para o CTA). */}
+      {/* Overlay mobile — fade suave na base da imagem para transição limpa
+          para o fundo preto onde vive o texto. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 md:hidden bg-[linear-gradient(180deg,rgba(0,0,0,0.15)_0%,rgba(0,0,0,0)_35%,rgba(0,0,0,0)_65%,rgba(0,0,0,0.55)_100%)]"
+        className="pointer-events-none absolute inset-x-0 top-16 -z-10 h-[36vw] max-h-[220px] md:hidden bg-[linear-gradient(180deg,rgba(0,0,0,0)_60%,rgba(0,0,0,0.95)_100%)]"
       />
 
       {/* Overlay desktop — inalterado (aprovado) */}
@@ -44,7 +51,7 @@ export function Hero() {
 
       {/* Conteúdo — mobile: alinhado ao topo, compacto, começa logo abaixo do header.
           Desktop (md+): mantém centralização vertical aprovada. */}
-      <div className="relative z-10 mx-auto flex min-h-[720px] w-full max-w-[1360px] items-start px-5 pt-14 pb-10 sm:px-8 md:min-h-[75vh] md:items-center md:py-20 lg:min-h-[86vh] lg:px-12">
+      <div className="relative z-10 mx-auto flex min-h-[600px] w-full max-w-[1360px] items-start px-5 pt-[40vw] pb-10 sm:px-8 md:min-h-[75vh] md:items-center md:pt-14 md:py-20 lg:min-h-[86vh] lg:px-12">
         <div className="w-full max-w-[560px]">
           <p className="text-[13px] font-bold uppercase tracking-[0.22em] text-lf-text/85 md:text-[14px]">
             1º mês por
