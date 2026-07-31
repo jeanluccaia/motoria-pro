@@ -28,8 +28,8 @@ function firePlanCtaClick(plan: Plan, ctaHref: string) {
     currency: 'BRL',
     promotion: plan.firstPayment ? 'first_month' : undefined,
   })
-  // CTA de plano na unidade Ipiranga também é um clique autoritativo que
-  // leva ao checkout EVO. Helper é deduplicado por sessão.
+  // Clique autoritativo para o InitiateCheckout do Meta Pixel na unidade
+  // Ipiranga. Helper é deduplicado por sessão e valida consentimento.
   if (ctaHref.startsWith('/matricula/ipiranga')) {
     dispatchIpirangaInitiateCheckout()
   }
@@ -51,7 +51,7 @@ interface ExpandablePlanCardProps {
 
 const BODY = '[font-family:var(--font-body)]'
 
-function CheckIcon() {
+function CheckIcon({ dark }: { dark?: boolean }) {
   return (
     <svg
       width="12"
@@ -59,7 +59,7 @@ function CheckIcon() {
       viewBox="0 0 12 12"
       fill="none"
       aria-hidden="true"
-      className="mt-0.5 shrink-0 text-lf-volt"
+      className={cn('mt-0.5 shrink-0', dark ? 'text-lf-volt' : 'text-[#7A6900]')}
     >
       <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
@@ -106,7 +106,7 @@ function BenefitsInline({ dark }: { dark?: boolean }) {
               dark ? 'text-lf-text/85' : 'text-[#3B3832]',
             )}
           >
-            <CheckIcon />
+            <CheckIcon dark={dark} />
             {b}
           </li>
         ))}
@@ -116,8 +116,8 @@ function BenefitsInline({ dark }: { dark?: boolean }) {
 }
 
 function ConditionsInline({ plan, dark }: { plan: Plan; dark?: boolean }) {
-  const text = planConditions[plan.slug]
-  if (!text) return null
+  const items = planConditions[plan.slug]
+  if (!items || items.length === 0) return null
   return (
     <div className="mt-5">
       <p
@@ -126,16 +126,22 @@ function ConditionsInline({ plan, dark }: { plan: Plan; dark?: boolean }) {
           dark ? 'text-lf-volt' : 'text-[#7A6900]',
         )}
       >
-        Condições
+        Condições do plano
       </p>
-      <p
-        className={cn(
-          'mt-2 text-[12.5px] leading-[1.55]',
-          dark ? 'text-lf-text/75' : 'text-[#4A4A4A]',
-        )}
-      >
-        {text}
-      </p>
+      <ul className="mt-3 flex flex-col gap-2">
+        {items.map((item) => (
+          <li
+            key={item}
+            className={cn(
+              'flex items-start gap-2 text-[12.5px] leading-snug',
+              dark ? 'text-lf-text/75' : 'text-[#4A4A4A]',
+            )}
+          >
+            <CheckIcon dark={dark} />
+            {item}
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
@@ -152,10 +158,10 @@ export function ExpandablePlanCard({
 }: ExpandablePlanCardProps) {
   const description = planShortDescriptions[plan.slug] ?? plan.description
   const buttonId = `plan-toggle-${plan.slug}-${variant}`
-  const isFeatured = plan.featured
+  const tier = plan.tier
 
-  /* Featured — Power Plus. Fundo escuro; faixa amarela fina com selo único. */
-  if (isFeatured) {
+  /* Featured — Power Plus. Fundo preto premium, borda amarela, selo único. */
+  if (tier === 'featured') {
     const shellBg =
       variant === 'home'
         ? 'bg-[#0F0F0F] shadow-[0_10px_40px_rgba(0,0,0,0.35)]'
@@ -163,8 +169,8 @@ export function ExpandablePlanCard({
 
     const afterFirstMonth =
       homePricing
-        ? `Depois, a partir de ${NETWORK_MIN_MONTHLY_PRICE}/mês`
-        : `Depois, ${plan.price}/mês`
+        ? `Depois, ${NETWORK_MIN_MONTHLY_PRICE}${plan.period}`
+        : `Depois, ${plan.price}${plan.period}`
 
     return (
       <article
@@ -172,11 +178,10 @@ export function ExpandablePlanCard({
           'group relative flex w-full min-w-0 flex-col overflow-hidden rounded-3xl transition-all duration-200 motion-reduce:transition-none',
           shellBg,
           'order-first md:order-none',
-          'ring-1 ring-lf-volt/25',
-          isOpen && 'ring-2 ring-lf-volt/50',
+          'ring-1 ring-lf-volt/40',
+          isOpen && 'ring-2 ring-lf-volt/60',
         )}
       >
-        {/* Faixa amarela fina com o único selo */}
         <div
           className={cn(
             'flex items-center justify-center bg-lf-volt px-5 py-1.5',
@@ -200,16 +205,13 @@ export function ExpandablePlanCard({
                 {plan.firstPayment.label}
               </p>
               <p className={cn('mt-2 flex items-baseline text-lf-text', BODY)}>
-                <strong className="text-[40px] font-black leading-none tracking-tight md:text-[44px]">
+                <strong className="text-[44px] font-black leading-none tracking-tight md:text-[48px]">
                   {plan.firstPayment.value}
                 </strong>
                 <span className="ml-1 text-[16px] font-bold text-lf-volt">*</span>
               </p>
               <p className="mt-3 text-[13.5px] leading-snug text-white/75">
                 {afterFirstMonth}
-              </p>
-              <p className="mt-2 text-[12px] leading-snug text-white/45">
-                {plan.commitment}
               </p>
             </div>
           ) : (
@@ -218,13 +220,9 @@ export function ExpandablePlanCard({
                 <strong className="text-[38px] font-black leading-none">{plan.price}</strong>
                 <span className="ml-1 text-[14px] text-white/50">{plan.period}</span>
               </p>
-              <p className="mt-2 text-[12px] leading-snug text-white/45">
-                {plan.commitment}
-              </p>
             </div>
           )}
 
-          {/* CTA + accordion sempre no fundo do card para alinhar com o card Power */}
           <div className="mt-auto pt-7">
             <Link
               href={ctaHref}
@@ -269,7 +267,90 @@ export function ExpandablePlanCard({
     )
   }
 
-  /* Não destacado — Power. Sempre tema claro para casar com fundo cream/branco. */
+  /* Accent — Power Recorrente. Tratamento intermediário: fundo branco com borda mais forte + selo escuro. */
+  if (tier === 'accent') {
+    const shellClasses = cn(
+      'border bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05),0_10px_30px_rgba(0,0,0,0.07)]',
+      isOpen
+        ? 'border-[#141414] ring-2 ring-[#141414]/25'
+        : 'border-[#141414]/40 hover:-translate-y-0.5 hover:shadow-[0_6px_32px_rgba(0,0,0,0.12)]',
+    )
+
+    return (
+      <article
+        className={cn(
+          'group relative flex w-full min-w-0 flex-col overflow-hidden rounded-3xl transition-all duration-200 motion-reduce:transition-none',
+          shellClasses,
+        )}
+      >
+        <div className={cn('flex flex-1 flex-col p-7 md:p-8', BODY)}>
+          <span className="mb-5 inline-block self-start rounded-full bg-[#141414] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-lf-volt">
+            {plan.badge}
+          </span>
+
+          <h3 className={cn('text-[22px] font-black leading-tight text-[#111111]', BODY)}>
+            {plan.name}
+          </h3>
+          <p className="mt-1.5 text-[13px] leading-snug text-[#5E5B54]">{description}</p>
+
+          <div className="mt-6 border-t border-[#EDEBE5] pt-6">
+            <p className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-[#7A7267]">
+              Mensalidade
+            </p>
+            <p className={cn('mt-2 flex items-baseline text-[#111111]', BODY)}>
+              <strong className="text-[36px] font-black leading-none tracking-tight md:text-[38px]">
+                {plan.price}
+              </strong>
+              <span className="ml-1 text-[14px] text-[#5E5B54]">{plan.period}</span>
+            </p>
+            <p className="mt-3 text-[12px] leading-snug text-[#7A7267]">{plan.commitment}</p>
+          </div>
+
+          <div className="mt-auto pt-7">
+            <Link
+              href={ctaHref}
+              onClick={() => firePlanCtaClick(plan, ctaHref)}
+              className="inline-flex w-full min-h-[48px] items-center justify-center rounded-full bg-[#141414] px-5 py-3 text-[13px] font-bold tracking-normal text-lf-volt transition hover:bg-[#000] hover:shadow-[0_0_22px_rgba(255,224,0,0.18)]"
+            >
+              {ctaLabel}
+            </Link>
+
+            <div className="mt-4">
+              <button
+                type="button"
+                id={buttonId}
+                onClick={() => onToggle(plan.slug)}
+                aria-expanded={isOpen}
+                aria-controls={panelId}
+                className={cn(
+                  'flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left text-[12px] font-semibold transition motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#141414]/40',
+                  isOpen
+                    ? 'border-[#141414] bg-[#F5F3EE] text-[#141414]'
+                    : 'border-[#141414]/30 bg-[#FAF9F5] text-[#3B3832] hover:border-[#141414] hover:text-[#141414]',
+                )}
+              >
+                <span>{isOpen ? 'Ocultar benefícios e condições' : 'Ver benefícios e condições'}</span>
+                <ChevronIcon open={isOpen} />
+              </button>
+
+              <div
+                id={panelId}
+                role="region"
+                aria-labelledby={buttonId}
+                hidden={!isOpen}
+                className="mt-3 border-t border-[#EDEBE5] pt-3"
+              >
+                <BenefitsInline />
+                <ConditionsInline plan={plan} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    )
+  }
+
+  /* Neutral — Power. Tema claro, tratamento mais suave. */
   const shellClasses = cn(
     'border bg-white shadow-[0_1px_6px_rgba(0,0,0,0.04),0_6px_20px_rgba(0,0,0,0.05)]',
     isOpen
@@ -308,7 +389,7 @@ export function ExpandablePlanCard({
           <p className="mt-1 text-[11.5px] leading-snug text-[#9A938A]">Cancele quando quiser</p>
         </div>
 
-        <div className="mt-8 pt-2">
+        <div className="mt-auto pt-7">
           <Link
             href={ctaHref}
             onClick={() => firePlanCtaClick(plan, ctaHref)}

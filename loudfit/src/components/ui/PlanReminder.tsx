@@ -7,15 +7,27 @@ interface PlanReminderProps {
   isIpiranga?: boolean
 }
 
+const STANDARD_PRICES: Record<string, string> = {
+  'power-plus': 'R$ 119,00',
+  'power-recorrente': 'R$ 139,00',
+  'power': 'R$ 149,00',
+}
+
+const IPIRANGA_PRICES: Record<string, string> = {
+  'power-plus': 'R$ 179,90',
+  'power-recorrente': 'R$ 189,00',
+  'power': 'R$ 199,90',
+}
+
 function PlanReminderInner({ isIpiranga }: PlanReminderProps) {
   const params = useSearchParams()
   const plano = params.get('plano')
   const planName = plano ? PLAN_NAMES[plano] : null
 
-  if (!planName) return null
+  if (!plano || !planName) return null
 
-  const isPowerPlus = plano === 'power-plus'
-  const monthlyPrice = isIpiranga ? 'R$ 179,90' : 'R$ 119,90'
+  const prices = isIpiranga ? IPIRANGA_PRICES : STANDARD_PRICES
+  const monthlyPrice = prices[plano]
 
   return (
     <div className="mb-6 border-l-4 border-lf-volt bg-lf-volt/5 px-5 py-4">
@@ -23,13 +35,19 @@ function PlanReminderInner({ isIpiranga }: PlanReminderProps) {
         Plano selecionado
       </p>
       <p className="mt-1 text-lg font-black text-gray-900">{planName}</p>
-      {isPowerPlus ? (
+      {plano === 'power-plus' && monthlyPrice && (
         <p className="mt-1 text-sm text-gray-500">
           Primeira mensalidade por R$ 9,90 — depois {monthlyPrice}/mês no cartão. Fidelidade de 12 meses.
         </p>
-      ) : (
+      )}
+      {plano === 'power-recorrente' && monthlyPrice && (
         <p className="mt-1 text-sm text-gray-500">
-          Selecione este plano no checkout abaixo para confirmar.
+          Mensalidade recorrente de {monthlyPrice}. Sem fidelidade — cancelamento com aviso prévio de 30 dias.
+        </p>
+      )}
+      {plano === 'power' && monthlyPrice && (
+        <p className="mt-1 text-sm text-gray-500">
+          Mensalidade de {monthlyPrice}. Sem compromisso — pagamento mensal na unidade.
         </p>
       )}
     </div>
