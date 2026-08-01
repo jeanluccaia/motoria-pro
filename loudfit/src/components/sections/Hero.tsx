@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 const HERO_DESKTOP = '/media/hero/hero-power-plus.png'
-const HERO_MOBILE = '/media/hero/hero-power-plus-mobile.webp'
+const HERO_MOBILE = '/media/hero/capa-hero-mobile.jpeg'
 
 export function Hero() {
   return (
