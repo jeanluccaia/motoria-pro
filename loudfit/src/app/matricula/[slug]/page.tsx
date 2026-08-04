@@ -22,13 +22,15 @@ const trustItems = [
 
 export async function generateStaticParams() {
   const units = await getUnits().catch(() => [])
-  return units.filter((u) => u.checkoutUrl).map((u) => ({ slug: u.slug }))
+  return units
+    .filter((u) => u.checkoutUrl && u.slug !== 'anchieta-sp')
+    .map((u) => ({ slug: u.slug }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const unit = await getUnitBySlug(slug)
-  if (!unit || !unit.checkoutUrl) return {}
+  if (!unit || !unit.checkoutUrl || slug === 'anchieta-sp') return {}
   const name = unitDisplayName(unit)
   const title = `Matrícula online — ${name}`
   const description = `Faça sua matrícula online na ${name}. Checkout oficial EVO, rápido e seguro.`
@@ -56,6 +58,7 @@ export default async function MatriculaPage({ params }: Props) {
   const unit = await getUnitBySlug(slug)
 
   if (!unit) notFound()
+  if (slug === 'anchieta-sp') redirect(`/unidades/${slug}#planos`)
   if (!unit.checkoutUrl) redirect(`/unidades/${slug}`)
 
   const displayName = unitDisplayName(unit)

@@ -35,7 +35,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!unit) return {}
   const name = unitDisplayName(unit)
   const title = `${name} — Academia em ${unit.cidade}`
-  const description = `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Planos com primeira mensalidade por R$ 9,90 no Power Plus.`
+  const description = slug === 'anchieta-sp'
+    ? `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Fale direto com a equipe da unidade no WhatsApp para consultar planos e condições.`
+    : `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Planos com primeira mensalidade por R$ 9,90 no Power Plus.`
   return {
     title: { absolute: title },
     description,
@@ -86,8 +88,15 @@ export default async function UnitPage({ params }: Props) {
   }
 
   const isIpiranga = unit.slug === 'ipiranga'
-  const hasCheckout = !!unit.checkoutUrl
+  const isAnchieta = unit.slug === 'anchieta-sp'
+  const hasCheckout = !!unit.checkoutUrl && !isAnchieta
   const checkoutHref = hasCheckout ? `/matricula/${unit.slug}` : '#planos'
+  const anchietaWhatsappHref = isAnchieta && whatsapp
+    ? formatWhatsApp(
+        whatsapp,
+        'Olá! Quero conhecer os planos e condições da unidade Anchieta da Loud Fit.',
+      )
+    : null
 
   const aulasUnit = unit.modalidades.filter((m) => AULAS_COLETIVAS.has(m))
   const hasAulas = aulasUnit.length > 0
@@ -141,12 +150,24 @@ export default async function UnitPage({ params }: Props) {
               <h1 className="text-5xl font-black text-lf-text md:text-7xl">{displayName}</h1>
               <p className="mt-4 max-w-[21rem] text-base leading-relaxed text-lf-muted md:max-w-2xl md:text-lg">
                 {unit.bairro} / {unit.cidade}, {unit.estado}.{' '}
-                {unit.status === 'em_breve'
+                {isAnchieta
+                  ? 'Estrutura completa. Condições e planos direto com a equipe da unidade.'
+                  : unit.status === 'em_breve'
                   ? 'Unidade em inauguração.'
                   : 'Estrutura completa. Primeira mensalidade por R$ 9,90 no Power Plus.'}
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                {unit.status !== 'em_breve' && (
+                {isAnchieta && anchietaWhatsappHref && (
+                  <a
+                    href={anchietaWhatsappHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={buttonClasses('volt', 'lg', 'w-full sm:w-auto')}
+                  >
+                    Falar no WhatsApp
+                  </a>
+                )}
+                {!isAnchieta && unit.status !== 'em_breve' && (
                   isIpiranga && hasCheckout ? (
                     <IpirangaMatriculaCta
                       href={checkoutHref}
@@ -160,7 +181,7 @@ export default async function UnitPage({ params }: Props) {
                     </Button>
                   )
                 )}
-                {unit.status === 'em_breve' && hasCheckout && (
+                {!isAnchieta && unit.status === 'em_breve' && hasCheckout && (
                   isIpiranga ? (
                     <IpirangaMatriculaCta
                       href={checkoutHref}
@@ -174,7 +195,7 @@ export default async function UnitPage({ params }: Props) {
                     </Button>
                   )
                 )}
-                {unit.status === 'em_breve' && !hasCheckout && (
+                {!isAnchieta && unit.status === 'em_breve' && !hasCheckout && (
                   <Button href="#planos" variant="volt" size="lg" className="w-full sm:w-auto">
                     Ver planos
                   </Button>
@@ -224,39 +245,67 @@ export default async function UnitPage({ params }: Props) {
             </div>
 
             <div className="bg-white border-t-4 border-t-lf-volt border border-gray-200 p-6">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lf-volt">Matrícula online</p>
-              <h2 className="mt-3 text-3xl font-black text-gray-900 leading-tight">
-                Primeira mensalidade por R$ 9,90
-              </h2>
-              <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-gray-400">
-                No Power Plus · 12 meses de fidelidade
-              </p>
-              <p className="mt-3 text-sm leading-relaxed text-gray-500">
-                {isIpiranga && unit.status === 'em_breve' && hasCheckout
-                  ? 'Unidade em inauguração. Garanta sua matrícula online antes da abertura.'
-                  : hasCheckout
-                  ? 'Escolha seu plano abaixo e finalize a matrícula online.'
-                  : 'Escolha um plano e finalize sua matrícula.'}
-              </p>
-              {isIpiranga && hasCheckout ? (
-                <IpirangaMatriculaCta
-                  href={checkoutHref}
-                  className={buttonClasses('volt', 'md', 'mt-5 w-full justify-center')}
-                >
-                  Garantir matrícula online
-                </IpirangaMatriculaCta>
+              {isAnchieta ? (
+                <>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lf-volt">Fale com a Anchieta</p>
+                  <h2 className="mt-3 text-3xl font-black text-gray-900 leading-tight">
+                    Consulte planos no WhatsApp
+                  </h2>
+                  <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-gray-400">
+                    Atendimento direto com a equipe
+                  </p>
+                  <p className="mt-3 text-sm leading-relaxed text-gray-500">
+                    As condições desta unidade são tratadas diretamente com a equipe. Chame no
+                    WhatsApp para consultar planos, horários e disponibilidade.
+                  </p>
+                  {anchietaWhatsappHref && (
+                    <a
+                      href={anchietaWhatsappHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={buttonClasses('volt', 'md', 'mt-5 w-full justify-center')}
+                    >
+                      Falar com a Anchieta
+                    </a>
+                  )}
+                </>
               ) : (
-                <Button
-                  href={unit.status === 'em_breve' && !hasCheckout ? '#planos' : checkoutHref}
-                  variant="volt"
-                  className="mt-5 w-full justify-center"
-                >
-                  {unit.status === 'em_breve' && !hasCheckout
-                    ? 'Ver planos'
-                    : hasCheckout
-                    ? 'Matricular online'
-                    : 'Ver planos'}
-                </Button>
+                <>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lf-volt">Matrícula online</p>
+                  <h2 className="mt-3 text-3xl font-black text-gray-900 leading-tight">
+                    Primeira mensalidade por R$ 9,90
+                  </h2>
+                  <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-gray-400">
+                    No Power Plus · 12 meses de fidelidade
+                  </p>
+                  <p className="mt-3 text-sm leading-relaxed text-gray-500">
+                    {isIpiranga && unit.status === 'em_breve' && hasCheckout
+                      ? 'Unidade em inauguração. Garanta sua matrícula online antes da abertura.'
+                      : hasCheckout
+                      ? 'Escolha seu plano abaixo e finalize a matrícula online.'
+                      : 'Escolha um plano e finalize sua matrícula.'}
+                  </p>
+                  {isIpiranga && hasCheckout ? (
+                    <IpirangaMatriculaCta
+                      href={checkoutHref}
+                      className={buttonClasses('volt', 'md', 'mt-5 w-full justify-center')}
+                    >
+                      Garantir matrícula online
+                    </IpirangaMatriculaCta>
+                  ) : (
+                    <Button
+                      href={unit.status === 'em_breve' && !hasCheckout ? '#planos' : checkoutHref}
+                      variant="volt"
+                      className="mt-5 w-full justify-center"
+                    >
+                      {unit.status === 'em_breve' && !hasCheckout
+                        ? 'Ver planos'
+                        : hasCheckout
+                        ? 'Matricular online'
+                        : 'Ver planos'}
+                    </Button>
+                  )}
+                </>
               )}
               {whatsapp && (
                 <a
@@ -326,43 +375,89 @@ export default async function UnitPage({ params }: Props) {
         )}
 
         {/* Planos */}
-        <Section id="planos" bg="cream">
-          <SectionHeader
-            dark
-            label="Planos da unidade"
-            title="Escolha como começar"
-            subtitle={
-              isIpiranga
-                ? 'Tabela própria da unidade Ipiranga.'
-                : 'Tabela padrão Loud Fit para esta unidade.'
-            }
-          />
+        {isAnchieta ? (
+          <Section id="planos" bg="black">
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="mb-4 text-xs font-bold uppercase tracking-[0.28em] text-lf-volt">
+                Planos da unidade Anchieta
+              </p>
+              <h2 className="text-4xl font-black leading-tight text-lf-text md:text-5xl">
+                Condições tratadas direto com a equipe
+              </h2>
+              <p className="mt-5 text-base leading-relaxed text-lf-muted md:text-lg">
+                As condições comerciais da unidade Anchieta são tratadas diretamente com o
+                atendimento da loja. Chame no WhatsApp para consultar planos, horários e
+                disponibilidade.
+              </p>
+              {anchietaWhatsappHref && (
+                <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+                  <a
+                    href={anchietaWhatsappHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={buttonClasses('volt', 'lg', 'w-full sm:w-auto')}
+                  >
+                    Falar com a Anchieta
+                  </a>
+                  <Button href="#informacoes" variant="ghost" size="lg" className="w-full sm:w-auto">
+                    Ver informações da unidade
+                  </Button>
+                </div>
+              )}
+              <div className="mx-auto mt-10 grid max-w-2xl gap-3 border border-lf-line bg-lf-black/60 p-6 text-left sm:grid-cols-2">
+                <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-lf-volt">
+                  O que a unidade oferece
+                </div>
+                <ul className="space-y-2 text-sm text-lf-muted">
+                  {['Musculação', 'Aulas coletivas', 'Estrutura completa', 'Reconhecimento facial'].map((b) => (
+                    <li key={b} className="flex items-center gap-2">
+                      <span className="h-1 w-1 shrink-0 bg-lf-volt" />
+                      {b}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </Section>
+        ) : (
+          <Section id="planos" bg="cream">
+            <SectionHeader
+              dark
+              label="Planos da unidade"
+              title="Escolha como começar"
+              subtitle={
+                isIpiranga
+                  ? 'Tabela própria da unidade Ipiranga.'
+                  : 'Tabela padrão Loud Fit para esta unidade.'
+              }
+            />
 
-          {/* Benefícios comuns */}
-          <div className="mb-10 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-[#E4DFD4] bg-white px-5 py-3">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7A7267]">
-              Todos os planos incluem:
+            {/* Benefícios comuns */}
+            <div className="mb-10 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-[#E4DFD4] bg-white px-5 py-3">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7A7267]">
+                Todos os planos incluem:
+              </p>
+              {['Musculação', 'Aulas coletivas', 'Estrutura completa', 'Reconhecimento facial', 'Máquina de gelo'].map((b) => (
+                <span key={b} className="flex items-center gap-2 text-xs text-[#4A4A4A]">
+                  <span className="h-1 w-1 shrink-0 bg-lf-volt" />
+                  {b}
+                </span>
+              ))}
+            </div>
+
+            <PlansGrid
+              plans={plans}
+              variant="unit"
+              ctaBase={planCtaBase}
+              ctaLabel={planCtaLabel ?? 'Começar matrícula'}
+            />
+
+            <p className="mt-6 text-xs text-[#7A7267]">
+              Após a primeira mensalidade promocional, aplica-se o valor mensal do Power Plus desta
+              unidade. O Power segue o valor cheio desde a primeira cobrança.
             </p>
-            {['Musculação', 'Aulas coletivas', 'Estrutura completa', 'Reconhecimento facial', 'Máquina de gelo'].map((b) => (
-              <span key={b} className="flex items-center gap-2 text-xs text-[#4A4A4A]">
-                <span className="h-1 w-1 shrink-0 bg-lf-volt" />
-                {b}
-              </span>
-            ))}
-          </div>
-
-          <PlansGrid
-            plans={plans}
-            variant="unit"
-            ctaBase={planCtaBase}
-            ctaLabel={planCtaLabel ?? 'Começar matrícula'}
-          />
-
-          <p className="mt-6 text-xs text-[#7A7267]">
-            Após a primeira mensalidade promocional, aplica-se o valor mensal do Power Plus desta
-            unidade. O Power segue o valor cheio desde a primeira cobrança.
-          </p>
-        </Section>
+          </Section>
+        )}
 
         {/* Aulas coletivas da unidade */}
         {hasAulas && (
