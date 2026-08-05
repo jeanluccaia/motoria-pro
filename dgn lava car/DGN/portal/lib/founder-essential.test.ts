@@ -1,5 +1,5 @@
 // Testes dedicados ao DGN Essential — checklist do adendo.
-// Cobrem presença no catálogo, benefícios oficiais, combinações plano×modalidade,
+// Cobrem presença no catálogo, benefícios oficiais, combinações plano×modalidade×categoria,
 // bloqueios de publicação, rejeição de nomenclatura proibida, preservação de
 // Founders 001-003 e da vaga Nº004 (Iara).
 
@@ -9,14 +9,15 @@ import { readFile } from "node:fs/promises";
 import {
   contractingModeLabels,
   createFounderPlanSnapshot,
-  founderContractingModes,
   founderOfferCatalog,
   founderPlanDefinitions,
+  founderVehicleCategories,
   getFounderOffer,
   getFounderPlan,
   isCombinationValidatedForPublication,
   isFounderContractingMode,
   isFounderPlanCode,
+  monthlyPriceMatrix,
 } from "./founder-offer-catalog.ts";
 import { FounderCurationWriteError, validateFounderCurationPayload } from "./growth/db/founder-curation-write.ts";
 import { normalizePlanCodeForFilter } from "./founder-plan-filter.ts";
@@ -26,8 +27,9 @@ const baseWrite = {
   action: "save",
   recommendedPlanCode: "essential",
   recommendedContractingMode: "monthly",
+  recommendedVehicleCategory: "sedan",
   recommendationReasonInternal: "Escolha humana após análise.",
-  expectedUpdatedAt: "2026-08-04T12:00:00.000Z",
+  expectedUpdatedAt: "2026-08-05T12:00:00.000Z",
 };
 
 test("Essential ocupa a primeira posição do catálogo com nome oficial DGN Essential", () => {
@@ -52,15 +54,26 @@ test("Essential é mensal com 1 lavagem e cinco benefícios oficiais da LP", () 
   ]);
 });
 
-test("Essential combina com as três modalidades e todas nascem inativas sem preço", () => {
-  for (const mode of founderContractingModes) {
-    const offer = getFounderOffer("essential", mode);
-    assert.ok(offer, `combinação essential+${mode} deve existir`);
-    assert.equal(offer.contractingMode, mode);
-    assert.equal(offer.contractingModeLabel, contractingModeLabels[mode]);
-    assert.equal(offer.monthlyPrice, null);
-    assert.equal(offer.active, false);
-    assert.equal(isCombinationValidatedForPublication(offer), false);
+test("Essential mensal ativa nas quatro categorias com preços oficiais", () => {
+  for (const category of founderVehicleCategories) {
+    const offer = getFounderOffer("essential", "monthly", category);
+    assert.ok(offer, `combinação essential+monthly+${category} deve existir`);
+    assert.equal(offer.active, true);
+    assert.equal(offer.monthlyPrice, monthlyPriceMatrix.essential[category]);
+    assert.equal(isCombinationValidatedForPublication(offer), true);
+  }
+});
+
+test("Essential nas duas modalidades de fidelidade permanece inativo e sem preço", () => {
+  for (const mode of ["loyalty_6", "loyalty_12"] as const) {
+    for (const category of founderVehicleCategories) {
+      const offer = getFounderOffer("essential", mode, category);
+      assert.ok(offer);
+      assert.equal(offer.active, false);
+      assert.equal(offer.monthlyPrice, null);
+      assert.equal(isCombinationValidatedForPublication(offer), false);
+      assert.equal(offer.contractingModeLabel, contractingModeLabels[mode]);
+    }
   }
 });
 
@@ -96,24 +109,45 @@ test("writer rejeita 'Essential Semestral', 'Essential Anual' e 'essential_month
   }
 });
 
-test("writer bloqueia aprovação de combinação Essential ainda inativa", () => {
-  for (const mode of ["monthly", "loyalty_6", "loyalty_12"] as const) {
-    assert.throws(() => validateFounderCurationPayload({ ...baseWrite, action: "approve", recommendedContractingMode: mode }),
-      (error) => error instanceof FounderCurationWriteError && /condição comercial validada/i.test(error.message));
-    assert.throws(() => validateFounderCurationPayload({ ...baseWrite, action: "create_page", recommendedContractingMode: mode }),
-      (error) => error instanceof FounderCurationWriteError && /condição comercial validada/i.test(error.message));
-    assert.throws(() => validateFounderCurationPayload({ ...baseWrite, action: "replace", recommendedContractingMode: mode }),
-      (error) => error instanceof FounderCurationWriteError && /condição comercial validada/i.test(error.message));
+test("writer bloqueia aprovação de Essential em modalidades de fidelidade", () => {
+  for (const mode of ["loyalty_6", "loyalty_12"] as const) {
+    for (const action of ["approve", "create_page", "replace"] as const) {
+      assert.throws(() => validateFounderCurationPayload({ ...baseWrite, action, recommendedContractingMode: mode }),
+        (error) => error instanceof FounderCurationWriteError && /condição comercial validada/i.test(error.message));
+    }
   }
 });
 
-test("writer aceita save do Essential sem preço, gerando snapshot server-side", () => {
-  for (const mode of ["monthly", "loyalty_6", "loyalty_12"] as const) {
-    const parsed = validateFounderCurationPayload({ ...baseWrite, recommendedContractingMode: mode });
+test("writer aceita approve/create_page do Essential monthly com categoria válida", () => {
+  for (const category of founderVehicleCategories) {
+    const parsed = validateFounderCurationPayload({
+      ...baseWrite,
+      action: "approve",
+      recommendedContractingMode: "monthly",
+      recommendedVehicleCategory: category,
+    });
     assert.equal(parsed.snapshot?.planCode, "essential");
-    assert.equal(parsed.snapshot?.contractingMode, mode);
-    assert.equal(parsed.snapshot?.monthlyPrice, null);
+    assert.equal(parsed.snapshot?.contractingMode, "monthly");
+    assert.equal(parsed.snapshot?.vehicleCategory, category);
+    assert.equal(parsed.snapshot?.monthlyPrice, monthlyPriceMatrix.essential[category]);
   }
+});
+
+test("writer exige categoria de veículo em approve/create_page/replace monthly", () => {
+  for (const action of ["approve", "create_page", "replace"] as const) {
+    assert.throws(() => validateFounderCurationPayload({
+      ...baseWrite, action, recommendedContractingMode: "monthly", recommendedVehicleCategory: "",
+    }), (error) => error instanceof FounderCurationWriteError && /categoria do veículo/i.test(error.message));
+  }
+});
+
+test("writer aceita save do Essential sem categoria (rascunho)", () => {
+  const parsed = validateFounderCurationPayload({
+    ...baseWrite, action: "save", recommendedVehicleCategory: "",
+  });
+  assert.equal(parsed.snapshot?.planCode, "essential");
+  assert.equal(parsed.snapshot?.monthlyPrice, null);
+  assert.equal(parsed.category, "");
 });
 
 test("writer rejeita preço enviado pelo navegador", () => {

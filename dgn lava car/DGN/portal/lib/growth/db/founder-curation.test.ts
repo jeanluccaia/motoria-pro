@@ -24,7 +24,7 @@ test("migration separa criação, envio e versionamento sem regredir funil", asy
   assert.match(sql, /v_old is distinct from v_new/i);
 });
 
-test("migration complementar separa plano de modalidade e valida preço", async () => {
+test("migration complementar separa plano, modalidade e categoria e valida preço", async () => {
   const sql = await readFile(modalityMigrationPath, "utf8");
   assert.match(sql, /recommended_contracting_mode text/i);
   assert.match(sql, /recommended_commitment_months integer/i);
@@ -32,6 +32,8 @@ test("migration complementar separa plano de modalidade e valida preço", async 
   assert.match(sql, /in \('essential','smart','priority'\)/);
   assert.match(sql, /in \('monthly','loyalty_6','loyalty_12'\)/);
   assert.match(sql, /in \(0,6,12\)/);
+  assert.match(sql, /in \('hatch','sedan','suv','picape'\)/);
+  assert.match(sql, /categoria de veículo inválida/i);
   assert.match(sql, /crm_manage_founder_curation_v2/);
   assert.match(sql, /esta modalidade ainda não possui condição comercial validada/i);
   assert.match(sql, /benedito-constantino.*jose-moreira.*rikardo-oliveira/);

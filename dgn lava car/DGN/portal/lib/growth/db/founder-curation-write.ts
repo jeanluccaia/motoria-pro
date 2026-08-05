@@ -7,9 +7,11 @@ import {
   isCombinationValidatedForPublication,
   isFounderContractingMode,
   isFounderPlanCode,
+  isFounderVehicleCategory,
   type FounderContractingMode,
   type FounderPlanCode,
   type FounderPlanSnapshot,
+  type FounderVehicleCategory,
 } from "../../founder-offer-catalog.ts";
 import { getSupabaseAdminClient } from "./admin-client.ts";
 import type { FounderCurationAction } from "./founder-curation.ts";
@@ -55,7 +57,7 @@ export interface FounderCurationInput {
   expectedUpdatedAt: string;
   planCode: FounderPlanCode | "";
   contractingMode: FounderContractingMode | "";
-  category: string;
+  category: FounderVehicleCategory | "";
   reason: string;
   message: string;
   snapshot: FounderPlanSnapshot | null;
@@ -78,7 +80,9 @@ export function validateFounderCurationPayload(payload: unknown): FounderCuratio
 
   const planCodeRaw = optionalText(raw.recommendedPlanCode, "recommendedPlanCode", 40);
   if (planCodeRaw) rejectDurationInPlanCode(planCodeRaw);
-  const planCode: FounderPlanCode | "" = planCodeRaw ? (isFounderPlanCode(planCodeRaw) ? planCodeRaw : "__invalid__" as never) : "";
+  const planCode: FounderPlanCode | "" = planCodeRaw
+    ? (isFounderPlanCode(planCodeRaw) ? planCodeRaw : "__invalid__" as never)
+    : "";
   if (planCodeRaw && planCode === ("__invalid__" as never)) {
     throw new FounderCurationWriteError("Plano fora do catálogo oficial.", 400);
   }
@@ -91,24 +95,35 @@ export function validateFounderCurationPayload(payload: unknown): FounderCuratio
     throw new FounderCurationWriteError("Modalidade de contratação inválida.", 400);
   }
 
-  const offer = planCode && contractingMode ? getFounderOffer(planCode, contractingMode) : null;
+  const categoryRaw = optionalText(raw.recommendedVehicleCategory, "recommendedVehicleCategory", 20).toLowerCase();
+  const category: FounderVehicleCategory | "" = categoryRaw
+    ? (isFounderVehicleCategory(categoryRaw) ? categoryRaw : "__invalid__" as never)
+    : "";
+  if (categoryRaw && category === ("__invalid__" as never)) {
+    throw new FounderCurationWriteError("Categoria de veículo inválida.", 400);
+  }
+
+  const offer = planCode && contractingMode
+    ? getFounderOffer(planCode, contractingMode, category || null)
+    : null;
   const reason = optionalText(raw.recommendationReasonInternal, "recommendationReasonInternal", 2000);
   const message = optionalText(raw.recommendationMessagePublic, "recommendationMessagePublic", 1000);
-  const category = optionalText(raw.recommendedVehicleCategory, "recommendedVehicleCategory", 80);
   const action = raw.action as FounderCurationAction;
 
   if (["approve", "create_page", "replace"].includes(action)) {
     if (!offer) throw new FounderCurationWriteError("Plano oficial e modalidade são obrigatórios.", 400);
     if (reason.length < 3) throw new FounderCurationWriteError("Motivo interno obrigatório.", 400);
+    if (contractingMode === "monthly" && !category) {
+      throw new FounderCurationWriteError("Categoria do veículo obrigatória para modalidade Mensal.", 400);
+    }
     if (!isCombinationValidatedForPublication(offer)) {
       throw new FounderCurationWriteError("Esta modalidade ainda não possui condição comercial validada.", 400);
     }
-    if (offer.vehicleCategory && !category) {
-      throw new FounderCurationWriteError("Categoria do veículo obrigatória.", 400);
-    }
   }
 
-  const snapshot = offer ? createFounderPlanSnapshot(planCode as FounderPlanCode, contractingMode as FounderContractingMode) : null;
+  const snapshot = offer
+    ? createFounderPlanSnapshot(planCode as FounderPlanCode, contractingMode as FounderContractingMode, category || null)
+    : null;
 
   return {
     action,

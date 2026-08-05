@@ -1,23 +1,42 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { FounderCurationWriteError, validateFounderCurationPayload } from "./founder-curation-write.ts";
+import { monthlyPriceMatrix, founderVehicleCategories } from "../../founder-offer-catalog.ts";
 
 const base = {
   campaignId: "founders-2026",
   action: "save",
   recommendedPlanCode: "essential",
   recommendedContractingMode: "monthly",
+  recommendedVehicleCategory: "sedan",
   recommendationReasonInternal: "Escolha humana após análise.",
-  expectedUpdatedAt: "2026-08-04T12:00:00.000Z",
+  expectedUpdatedAt: "2026-08-05T12:00:00.000Z",
 };
 
-test("save aceita Essential + Mensal e cria snapshot server-side sem preço inventado", () => {
+test("save aceita Essential + Mensal + Sedan e cria snapshot server-side com preço oficial", () => {
   const parsed = validateFounderCurationPayload(base);
   assert.equal(parsed.snapshot?.planCode, "essential");
   assert.equal(parsed.snapshot?.contractingMode, "monthly");
-  assert.equal(parsed.snapshot?.contractingModeLabel, "Mensal");
-  assert.equal(parsed.snapshot?.monthlyPrice, null);
+  assert.equal(parsed.snapshot?.vehicleCategory, "sedan");
+  assert.equal(parsed.snapshot?.monthlyPrice, 80);
   assert.equal(parsed.snapshot?.serviceQuantity, 1);
+});
+
+test("todas as 12 combinações monthly resolvem o preço oficial no servidor", () => {
+  for (const plan of ["essential", "smart", "priority"] as const) {
+    for (const category of founderVehicleCategories) {
+      const parsed = validateFounderCurationPayload({
+        ...base,
+        action: "approve",
+        recommendedPlanCode: plan,
+        recommendedVehicleCategory: category,
+      });
+      assert.equal(parsed.snapshot?.monthlyPrice, monthlyPriceMatrix[plan][category],
+        `preço server-side para ${plan}/${category} deve bater com a matriz oficial`);
+      assert.equal(parsed.snapshot?.vehicleCategory, category);
+      assert.equal(parsed.snapshot?.planCode, plan);
+    }
+  }
 });
 
 test("payload fechado rejeita preço, name ou campos adicionais", () => {
@@ -41,13 +60,27 @@ test("modalidades proibidas (semestral/anual/trimestral) são rejeitadas", () =>
   }
 });
 
-test("aprovação exige motivo e combinação com preço validado", () => {
+test("categoria de veículo inválida é rejeitada", () => {
+  for (const invalidCat of ["moto", "van", "sedanX"]) {
+    assert.throws(() => validateFounderCurationPayload({ ...base, recommendedVehicleCategory: invalidCat }),
+      (error) => error instanceof FounderCurationWriteError && /categoria/i.test(error.message));
+  }
+});
+
+test("aprovação Mensal exige categoria e combinação válida", () => {
+  assert.throws(() => validateFounderCurationPayload({ ...base, action: "approve", recommendedVehicleCategory: "" }),
+    (error) => error instanceof FounderCurationWriteError && /categoria do veículo/i.test(error.message));
   assert.throws(() => validateFounderCurationPayload({ ...base, action: "approve", recommendationReasonInternal: "" }),
-    (error) => error instanceof FounderCurationWriteError && error.status === 400);
-  assert.throws(() => validateFounderCurationPayload({ ...base, action: "approve" }),
-    (error) => error instanceof FounderCurationWriteError && /condição comercial validada/i.test(error.message));
-  assert.throws(() => validateFounderCurationPayload({ ...base, action: "create_page" }),
-    (error) => error instanceof FounderCurationWriteError && /condição comercial validada/i.test(error.message));
+    (error) => error instanceof FounderCurationWriteError && /motivo/i.test(error.message));
+});
+
+test("aprovação Fidelidade permanece bloqueada por preço não validado", () => {
+  for (const mode of ["loyalty_6", "loyalty_12"] as const) {
+    assert.throws(() => validateFounderCurationPayload({ ...base, action: "approve", recommendedContractingMode: mode, recommendedVehicleCategory: "sedan" }),
+      (error) => error instanceof FounderCurationWriteError && /condição comercial validada/i.test(error.message));
+    assert.throws(() => validateFounderCurationPayload({ ...base, action: "create_page", recommendedContractingMode: mode }),
+      (error) => error instanceof FounderCurationWriteError && /condição comercial validada|categoria do veículo/i.test(error.message));
+  }
 });
 
 test("save preserva os três planos oficiais no snapshot", () => {

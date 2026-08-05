@@ -49,11 +49,15 @@ import {
   contractingModeLabels,
   founderContractingModes,
   founderPlanDefinitions,
+  founderVehicleCategories,
   getFounderOffer,
   INCOMPLETE_OFFER_ADMIN_MESSAGE,
   isCombinationValidatedForPublication,
+  isFounderVehicleCategory,
+  vehicleCategoryLabels,
   type FounderContractingMode,
   type FounderPlanCode,
+  type FounderVehicleCategory,
 } from "@/lib/founder-offer-catalog";
 import { normalizePlanCodeForFilter } from "@/lib/founder-plan-filter";
 import { curationDisplayState, type FounderCurationAction } from "@/lib/growth/db/founder-curation";
@@ -1918,24 +1922,32 @@ function normalizeContractingMode(value: string | undefined): FounderContracting
   return "";
 }
 
+function normalizeVehicleCategory(value: string | undefined): FounderVehicleCategory | "" {
+  const lower = typeof value === "string" ? value.toLowerCase() : "";
+  return isFounderVehicleCategory(lower) ? lower : "";
+}
+
 function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; enabled: boolean }) {
   const current = customer.campaign.curation;
   const protectedFounder = ["benedito-constantino", "jose-moreira", "rikardo-oliveira"].includes(customer.id);
   const [planCode, setPlanCode] = useState<FounderPlanCode | "">(normalizePlanCodeForFilter(current?.recommendedPlanCode));
   const [contractingMode, setContractingMode] = useState<FounderContractingMode | "">(normalizeContractingMode(current?.recommendedContractingMode));
+  const [vehicleCategory, setVehicleCategory] = useState<FounderVehicleCategory | "">(normalizeVehicleCategory(current?.recommendedVehicleCategory));
   const [reason, setReason] = useState(current?.recommendationReasonInternal ?? "");
   const [message, setMessage] = useState(current?.recommendationMessagePublic ?? "");
   const [notice, setNotice] = useState("");
   const [saving, setSaving] = useState(false);
   const plan = planCode ? founderPlanDefinitions.find((item) => item.planCode === planCode) : null;
-  const offer = planCode && contractingMode ? getFounderOffer(planCode, contractingMode) : null;
+  const offer = planCode && contractingMode ? getFounderOffer(planCode, contractingMode, vehicleCategory || null) : null;
   const offerValidated = offer ? isCombinationValidatedForPublication(offer) : false;
   const state = curationDisplayState({ founderStatus: customer.campaign.founderStatus, commercialStage: customer.campaign.commercialStage,
     recommendedPlanCode: current?.recommendedPlanCode, publicLink: current?.publicLink, inviteSentAt: current?.inviteSentAt,
     viewedAt: customer.campaign.engagement?.viewedAt });
   const priceLabel = offer && typeof offer.monthlyPrice === "number" && offer.monthlyPrice > 0
     ? offer.monthlyPrice.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
-    : "Aguardando validação comercial";
+    : contractingMode === "monthly" && !vehicleCategory
+      ? "Selecione a categoria para carregar o valor"
+      : "Aguardando validação comercial";
   const frequencyLabel = plan
     ? `${plan.serviceQuantity} ${plan.serviceQuantity === 1 ? "cuidado" : "cuidados"} por mês (${plan.serviceFrequency})`
     : "—";
@@ -1950,6 +1962,7 @@ function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; e
         method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({ action, campaignId: "founders-2026", recommendedPlanCode: planCode,
           recommendedContractingMode: contractingMode,
+          recommendedVehicleCategory: vehicleCategory,
           recommendationReasonInternal: reason, recommendationMessagePublic: message,
           expectedUpdatedAt: customer.campaign.updatedAt }),
       });
@@ -1987,7 +2000,14 @@ function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; e
         <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Modalidade de contratação</span>
         <select value={contractingMode} disabled={protectedFounder || saving || !planCode} onChange={(event) => setContractingMode(event.target.value as FounderContractingMode | "")} className="mt-2 h-11 w-full rounded-xl border border-white/[0.06] bg-[#151515] px-3 text-sm text-white">
           <option value="">Selecione…</option>
-          {founderContractingModes.map((mode) => <option key={mode} value={mode}>{contractingModeLabels[mode]}</option>)}
+          {founderContractingModes.map((mode) => <option key={mode} value={mode}>{contractingModeLabels[mode]}{mode === "monthly" ? "" : " (aguardando validação comercial)"}</option>)}
+        </select>
+      </label>
+      <label>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Categoria do veículo</span>
+        <select value={vehicleCategory} disabled={protectedFounder || saving || !planCode} onChange={(event) => setVehicleCategory(event.target.value as FounderVehicleCategory | "")} className="mt-2 h-11 w-full rounded-xl border border-white/[0.06] bg-[#151515] px-3 text-sm text-white">
+          <option value="">Selecione…</option>
+          {founderVehicleCategories.map((cat) => <option key={cat} value={cat}>{vehicleCategoryLabels[cat]}</option>)}
         </select>
       </label>
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-xs text-[#A7A7A7] sm:col-span-2">

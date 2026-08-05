@@ -3,20 +3,24 @@
 // Separação obrigatória:
 //   plan_code        → essential | smart | priority
 //   contracting_mode → monthly | loyalty_6 | loyalty_12
+//   vehicle_category → hatch | sedan | suv | picape
 //
 // A duração NUNCA faz parte do nome do plano. Não usar "semestral", "anual" ou
-// "trimestral" em código, snapshot, filtro ou label público. O valor mensal só
-// pode vir deste catálogo — nunca digitado pelo navegador.
+// "trimestral" em código, snapshot, filtro ou label público. O valor mensal
+// vem exclusivamente da matriz oficial abaixo (server-side) — nunca é digitado
+// pelo navegador.
 
 export type FounderPlanCode = "essential" | "smart" | "priority";
 export type FounderContractingMode = "monthly" | "loyalty_6" | "loyalty_12";
 export type FounderServiceFrequency = "mensal" | "quinzenal" | "semanal";
+export type FounderVehicleCategory = "hatch" | "sedan" | "suv" | "picape";
 
 export const FOUNDER_CATALOG_VERSION = "founders-2026-v2" as const;
 export type FounderCatalogVersion = typeof FOUNDER_CATALOG_VERSION;
 
 export const founderPlanCodes: readonly FounderPlanCode[] = ["essential", "smart", "priority"] as const;
 export const founderContractingModes: readonly FounderContractingMode[] = ["monthly", "loyalty_6", "loyalty_12"] as const;
+export const founderVehicleCategories: readonly FounderVehicleCategory[] = ["hatch", "sedan", "suv", "picape"] as const;
 
 export const contractingModeLabels: Readonly<Record<FounderContractingMode, string>> = {
   monthly: "Mensal",
@@ -34,6 +38,21 @@ export const billingRuleByMode: Readonly<Record<FounderContractingMode, string>>
   monthly: "cobrança mensal sem período de fidelidade",
   loyalty_6: "cobrança mensal durante o período de fidelidade de 6 meses",
   loyalty_12: "cobrança mensal durante o período de fidelidade de 12 meses",
+};
+
+export const vehicleCategoryLabels: Readonly<Record<FounderVehicleCategory, string>> = {
+  hatch: "Hatch",
+  sedan: "Sedan",
+  suv: "SUV",
+  picape: "Picape",
+};
+
+// Matriz oficial extraída de https://dgnclub.com/ (data-prices dos cards
+// "MENSAL"). Fonte única de verdade — não editar sem revalidação comercial.
+export const monthlyPriceMatrix: Readonly<Record<FounderPlanCode, Readonly<Record<FounderVehicleCategory, number>>>> = {
+  essential: { hatch: 70, sedan: 80, suv: 90, picape: 100 },
+  smart: { hatch: 130, sedan: 150, suv: 170, picape: 190 },
+  priority: { hatch: 210, sedan: 240, suv: 270, picape: 300 },
 };
 
 interface FounderPlanDefinition {
@@ -95,38 +114,11 @@ export interface FounderCatalogOffer {
   commitmentMonths: number;
   monthlyPrice: number | null;
   billingRule: string;
-  vehicleCategory: string | null;
+  vehicleCategory: FounderVehicleCategory | null;
+  vehicleCategoryLabel: string | null;
   active: boolean;
   catalogVersion: FounderCatalogVersion;
 }
-
-function buildOffer(plan: FounderPlanDefinition, mode: FounderContractingMode): FounderCatalogOffer {
-  return {
-    planCode: plan.planCode,
-    planName: plan.planName,
-    description: plan.description,
-    serviceFrequency: plan.serviceFrequency,
-    serviceQuantity: plan.serviceQuantity,
-    benefits: plan.benefits,
-    publicRules: plan.publicRules,
-    contractingMode: mode,
-    contractingModeLabel: contractingModeLabels[mode],
-    commitmentMonths: commitmentMonthsByMode[mode],
-    monthlyPrice: null,
-    billingRule: billingRuleByMode[mode],
-    vehicleCategory: null,
-    active: false,
-    catalogVersion: FOUNDER_CATALOG_VERSION,
-  };
-}
-
-// Nenhuma combinação está comercialmente validada ainda: monthlyPrice=null e
-// active=false em todas. A aprovação e a criação de página são bloqueadas
-// enquanto uma combinação estiver incompleta. Não hardcodar preços aqui sem
-// validação oficial da tabela comercial.
-export const founderOfferCatalog: readonly FounderCatalogOffer[] = founderPlanDefinitions.flatMap((plan) =>
-  founderContractingModes.map((mode) => buildOffer(plan, mode)),
-);
 
 export function isFounderPlanCode(value: unknown): value is FounderPlanCode {
   return typeof value === "string" && (founderPlanCodes as readonly string[]).includes(value);
@@ -136,15 +128,74 @@ export function isFounderContractingMode(value: unknown): value is FounderContra
   return typeof value === "string" && (founderContractingModes as readonly string[]).includes(value);
 }
 
+export function isFounderVehicleCategory(value: unknown): value is FounderVehicleCategory {
+  return typeof value === "string" && (founderVehicleCategories as readonly string[]).includes(value);
+}
+
 export function getFounderPlan(planCode: unknown) {
   if (!isFounderPlanCode(planCode)) return null;
   return founderPlanDefinitions.find((plan) => plan.planCode === planCode) ?? null;
 }
 
-export function getFounderOffer(planCode: unknown, contractingMode: unknown): FounderCatalogOffer | null {
-  if (!isFounderPlanCode(planCode) || !isFounderContractingMode(contractingMode)) return null;
-  return founderOfferCatalog.find((offer) => offer.planCode === planCode && offer.contractingMode === contractingMode) ?? null;
+export function resolveMonthlyPrice(planCode: FounderPlanCode, category: FounderVehicleCategory): number {
+  return monthlyPriceMatrix[planCode][category];
 }
+
+// Constrói a oferta com preço/atividade resolvidos server-side.
+// - monthly + categoria válida → active=true, monthlyPrice = matriz[plan][cat]
+// - loyalty_6 / loyalty_12 (qualquer categoria) → active=false, monthlyPrice=null
+// - monthly sem categoria → active=false, monthlyPrice=null (aguarda escolha)
+export function getFounderOffer(
+  planCode: unknown,
+  contractingMode: unknown,
+  vehicleCategory: unknown = null,
+): FounderCatalogOffer | null {
+  const plan = getFounderPlan(planCode);
+  if (!plan || !isFounderContractingMode(contractingMode)) return null;
+  const category = isFounderVehicleCategory(vehicleCategory) ? vehicleCategory : null;
+  const isMonthly = contractingMode === "monthly";
+  const active = isMonthly && category !== null;
+  const monthlyPrice = active && category ? monthlyPriceMatrix[plan.planCode][category] : null;
+  return {
+    planCode: plan.planCode,
+    planName: plan.planName,
+    description: plan.description,
+    serviceFrequency: plan.serviceFrequency,
+    serviceQuantity: plan.serviceQuantity,
+    benefits: plan.benefits,
+    publicRules: plan.publicRules,
+    contractingMode,
+    contractingModeLabel: contractingModeLabels[contractingMode],
+    commitmentMonths: commitmentMonthsByMode[contractingMode],
+    monthlyPrice,
+    billingRule: billingRuleByMode[contractingMode],
+    vehicleCategory: category,
+    vehicleCategoryLabel: category ? vehicleCategoryLabels[category] : null,
+    active,
+    catalogVersion: FOUNDER_CATALOG_VERSION,
+  };
+}
+
+// Enumera todas as combinações possíveis do catálogo (3 planos × 3 modalidades
+// × 4 categorias + 3 planos × 2 modalidades loyalty). Uma combinação está
+// "ativa" apenas quando o preço mensal foi validado — hoje: 12 monthly.
+export const founderOfferCatalog: readonly FounderCatalogOffer[] = (() => {
+  const result: FounderCatalogOffer[] = [];
+  for (const plan of founderPlanDefinitions) {
+    for (const mode of founderContractingModes) {
+      if (mode === "monthly") {
+        for (const category of founderVehicleCategories) {
+          const offer = getFounderOffer(plan.planCode, mode, category);
+          if (offer) result.push(offer);
+        }
+      } else {
+        const offer = getFounderOffer(plan.planCode, mode, null);
+        if (offer) result.push(offer);
+      }
+    }
+  }
+  return result;
+})();
 
 export interface FounderPlanSnapshot {
   planCode: FounderPlanCode;
@@ -159,12 +210,17 @@ export interface FounderPlanSnapshot {
   commitmentMonths: number;
   monthlyPrice: number | null;
   billingRule: string;
-  vehicleCategory: string | null;
+  vehicleCategory: FounderVehicleCategory | null;
+  vehicleCategoryLabel: string | null;
   catalogVersion: FounderCatalogVersion;
 }
 
-export function createFounderPlanSnapshot(planCode: unknown, contractingMode: unknown): FounderPlanSnapshot | null {
-  const offer = getFounderOffer(planCode, contractingMode);
+export function createFounderPlanSnapshot(
+  planCode: unknown,
+  contractingMode: unknown,
+  vehicleCategory: unknown = null,
+): FounderPlanSnapshot | null {
+  const offer = getFounderOffer(planCode, contractingMode, vehicleCategory);
   if (!offer) return null;
   return {
     planCode: offer.planCode,
@@ -180,6 +236,7 @@ export function createFounderPlanSnapshot(planCode: unknown, contractingMode: un
     monthlyPrice: offer.monthlyPrice,
     billingRule: offer.billingRule,
     vehicleCategory: offer.vehicleCategory,
+    vehicleCategoryLabel: offer.vehicleCategoryLabel,
     catalogVersion: offer.catalogVersion,
   };
 }
@@ -191,6 +248,7 @@ export function normalizeLegacyFounderSnapshot(input: unknown): FounderPlanSnaps
   if (!input || typeof input !== "object") return null;
   const raw = input as Record<string, unknown>;
   if (isFounderPlanCode(raw.planCode) && isFounderContractingMode(raw.contractingMode)) {
+    const category = isFounderVehicleCategory(raw.vehicleCategory) ? raw.vehicleCategory : null;
     return {
       planCode: raw.planCode,
       planName: typeof raw.planName === "string" ? raw.planName : "",
@@ -204,7 +262,8 @@ export function normalizeLegacyFounderSnapshot(input: unknown): FounderPlanSnaps
       commitmentMonths: typeof raw.commitmentMonths === "number" ? raw.commitmentMonths : commitmentMonthsByMode[raw.contractingMode],
       monthlyPrice: typeof raw.monthlyPrice === "number" ? raw.monthlyPrice : null,
       billingRule: typeof raw.billingRule === "string" ? raw.billingRule : billingRuleByMode[raw.contractingMode],
-      vehicleCategory: typeof raw.vehicleCategory === "string" ? raw.vehicleCategory : null,
+      vehicleCategory: category,
+      vehicleCategoryLabel: category ? vehicleCategoryLabels[category] : null,
       catalogVersion: FOUNDER_CATALOG_VERSION,
     };
   }
@@ -227,6 +286,7 @@ export function normalizeLegacyFounderSnapshot(input: unknown): FounderPlanSnaps
       monthlyPrice: null,
       billingRule: billingRuleByMode.loyalty_6,
       vehicleCategory: null,
+      vehicleCategoryLabel: null,
       catalogVersion: "founders-2026-v1" as unknown as FounderCatalogVersion,
     };
   }

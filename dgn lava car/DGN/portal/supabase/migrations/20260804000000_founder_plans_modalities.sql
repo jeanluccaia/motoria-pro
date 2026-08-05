@@ -59,6 +59,17 @@ begin
         or recommended_monthly_price > 0
       );
   end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'crm_campaign_members_recommended_vehicle_category_ck'
+  ) then
+    alter table public.crm_campaign_members
+      add constraint crm_campaign_members_recommended_vehicle_category_ck
+      check (
+        recommended_vehicle_category is null
+        or recommended_vehicle_category in ('hatch','sedan','suv','picape')
+      );
+  end if;
 end$$;
 
 create or replace function public.crm_manage_founder_curation_v2(
@@ -84,6 +95,9 @@ begin
   end if;
   if p_contracting_mode is not null and p_contracting_mode not in ('monthly','loyalty_6','loyalty_12') then
     raise exception using errcode='22023',message='modalidade de contratação inválida';
+  end if;
+  if p_vehicle_category is not null and lower(p_vehicle_category) not in ('hatch','sedan','suv','picape') then
+    raise exception using errcode='22023',message='categoria de veículo inválida';
   end if;
 
   select id into v_customer from public.crm_customers where legacy_id=btrim(p_customer_legacy_id);
