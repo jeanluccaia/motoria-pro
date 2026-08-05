@@ -55,6 +55,7 @@ import {
   type FounderContractingMode,
   type FounderPlanCode,
 } from "@/lib/founder-offer-catalog";
+import { normalizePlanCodeForFilter } from "@/lib/founder-plan-filter";
 import { curationDisplayState, type FounderCurationAction } from "@/lib/growth/db/founder-curation";
 
 type GrowthView = "intelligence" | "curadoria" | "founders" | "profile";
@@ -882,13 +883,6 @@ const curationSortOptions: readonly { key: CurationSort; label: string }[] = [
 
 const curationPlanOrder: Record<FounderPlanCode, number> = { essential: 1, smart: 2, priority: 3 };
 const curationModalityOrder: Record<FounderContractingMode, number> = { monthly: 1, loyalty_6: 2, loyalty_12: 3 };
-
-function normalizePlanCodeForFilter(value: string | undefined): FounderPlanCode | "" {
-  if (value === "essential" || value === "smart" || value === "priority") return value;
-  if (value === "smart-founder-semestral") return "smart";
-  if (value === "priority-founder-semestral") return "priority";
-  return "";
-}
 
 function CurationView({
   customers,
@@ -1919,13 +1913,6 @@ function CustomerProfileInline({
   );
 }
 
-function normalizePlanCode(value: string | undefined): FounderPlanCode | "" {
-  if (value === "essential" || value === "smart" || value === "priority") return value;
-  if (value === "smart-founder-semestral") return "smart";
-  if (value === "priority-founder-semestral") return "priority";
-  return "";
-}
-
 function normalizeContractingMode(value: string | undefined): FounderContractingMode | "" {
   if (value === "monthly" || value === "loyalty_6" || value === "loyalty_12") return value;
   return "";
@@ -1934,7 +1921,7 @@ function normalizeContractingMode(value: string | undefined): FounderContracting
 function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; enabled: boolean }) {
   const current = customer.campaign.curation;
   const protectedFounder = ["benedito-constantino", "jose-moreira", "rikardo-oliveira"].includes(customer.id);
-  const [planCode, setPlanCode] = useState<FounderPlanCode | "">(normalizePlanCode(current?.recommendedPlanCode));
+  const [planCode, setPlanCode] = useState<FounderPlanCode | "">(normalizePlanCodeForFilter(current?.recommendedPlanCode));
   const [contractingMode, setContractingMode] = useState<FounderContractingMode | "">(normalizeContractingMode(current?.recommendedContractingMode));
   const [reason, setReason] = useState(current?.recommendationReasonInternal ?? "");
   const [message, setMessage] = useState(current?.recommendationMessagePublic ?? "");
