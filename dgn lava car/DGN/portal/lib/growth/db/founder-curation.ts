@@ -4,6 +4,11 @@ export interface FounderCuration {
   recommendedPlanCode: string;
   recommendedPlanName: string;
   recommendedPlanVersion: string;
+  recommendedContractingMode: string;
+  recommendedContractingModeLabel: string;
+  recommendedCommitmentMonths: number | null;
+  recommendedMonthlyPrice: number | null;
+  recommendedBillingRule: string;
   recommendedVehicleCategory: string;
   recommendationReasonInternal: string;
   recommendationMessagePublic: string;

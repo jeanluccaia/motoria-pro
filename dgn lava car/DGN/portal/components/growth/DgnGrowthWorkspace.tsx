@@ -45,7 +45,16 @@ import {
   type FoundersPipelineStatus,
   type RecommendedPlan,
 } from "@/lib/growth/dgn-growth-data";
-import { founderOfferCatalog } from "@/lib/founder-offer-catalog";
+import {
+  contractingModeLabels,
+  founderContractingModes,
+  founderPlanDefinitions,
+  getFounderOffer,
+  INCOMPLETE_OFFER_ADMIN_MESSAGE,
+  isCombinationValidatedForPublication,
+  type FounderContractingMode,
+  type FounderPlanCode,
+} from "@/lib/founder-offer-catalog";
 import { curationDisplayState, type FounderCurationAction } from "@/lib/growth/db/founder-curation";
 
 type GrowthView = "intelligence" | "curadoria" | "founders" | "profile";
@@ -179,6 +188,9 @@ export function DgnGrowthWorkspace({
   const [sortBy, setSortBy] = useState<"score" | "atendimentos" | "valor" | "ultimo">("score");
   const [founderFilter, setFounderFilter] = useState("Todos");
   const [curationFilter, setCurationFilter] = useState("Todos");
+  const [curationPlanFilter, setCurationPlanFilter] = useState<"Todos" | "essential" | "smart" | "priority">("Todos");
+  const [curationModalityFilter, setCurationModalityFilter] = useState<"Todos" | "monthly" | "loyalty_6" | "loyalty_12" | "incompleta">("Todos");
+  const [curationSort, setCurationSort] = useState<"score" | "ultimo" | "valor" | "proxima" | "curadoria" | "plano" | "modalidade">("score");
   const [notice, setNotice] = useState("");
   const [copiedKey, setCopiedKey] = useState("");
   const [copiedLinkKey, setCopiedLinkKey] = useState("");
@@ -402,9 +414,15 @@ export function DgnGrowthWorkspace({
             customers={customers}
             selectedCustomer={selectedCustomer}
             curationFilter={curationFilter}
+            curationPlanFilter={curationPlanFilter}
+            curationModalityFilter={curationModalityFilter}
+            curationSort={curationSort}
             onSelect={setSelectedCustomerId}
             onPatch={patchCustomer}
             onCurationFilter={(value) => { setCurationFilter(value); setCurationPage(1); }}
+            onCurationPlanFilter={(value) => { setCurationPlanFilter(value); setCurationPage(1); }}
+            onCurationModalityFilter={(value) => { setCurationModalityFilter(value); setCurationPage(1); }}
+            onCurationSort={(value) => { setCurationSort(value); setCurationPage(1); }}
             page={curationPage}
             pageSize={pageSize}
             onPage={setCurationPage}
@@ -833,13 +851,58 @@ const curationFilterOptions = [
   { key: "Descartado", label: "Descartados" },
 ] as const;
 
+type CurationPlanFilter = "Todos" | FounderPlanCode;
+type CurationModalityFilter = "Todos" | FounderContractingMode | "incompleta";
+type CurationSort = "score" | "ultimo" | "valor" | "proxima" | "curadoria" | "plano" | "modalidade";
+
+const curationPlanFilterOptions: readonly { key: CurationPlanFilter; label: string }[] = [
+  { key: "Todos", label: "Todos os planos" },
+  { key: "essential", label: "DGN Essential" },
+  { key: "smart", label: "DGN Smart" },
+  { key: "priority", label: "DGN Priority" },
+];
+
+const curationModalityFilterOptions: readonly { key: CurationModalityFilter; label: string }[] = [
+  { key: "Todos", label: "Todas as modalidades" },
+  { key: "monthly", label: "Mensal" },
+  { key: "loyalty_6", label: "Fidelidade de 6 meses" },
+  { key: "loyalty_12", label: "Fidelidade de 12 meses" },
+  { key: "incompleta", label: "Oferta incompleta" },
+];
+
+const curationSortOptions: readonly { key: CurationSort; label: string }[] = [
+  { key: "score", label: "Score DGN" },
+  { key: "ultimo", label: "Última visita" },
+  { key: "valor", label: "Valor histórico" },
+  { key: "proxima", label: "Próxima ação" },
+  { key: "curadoria", label: "Data da curadoria" },
+  { key: "plano", label: "Plano recomendado" },
+  { key: "modalidade", label: "Modalidade" },
+];
+
+const curationPlanOrder: Record<FounderPlanCode, number> = { essential: 1, smart: 2, priority: 3 };
+const curationModalityOrder: Record<FounderContractingMode, number> = { monthly: 1, loyalty_6: 2, loyalty_12: 3 };
+
+function normalizePlanCodeForFilter(value: string | undefined): FounderPlanCode | "" {
+  if (value === "essential" || value === "smart" || value === "priority") return value;
+  if (value === "smart-founder-semestral") return "smart";
+  if (value === "priority-founder-semestral") return "priority";
+  return "";
+}
+
 function CurationView({
   customers,
   selectedCustomer,
   curationFilter,
+  curationPlanFilter,
+  curationModalityFilter,
+  curationSort,
   onSelect,
   onPatch,
   onCurationFilter,
+  onCurationPlanFilter,
+  onCurationModalityFilter,
+  onCurationSort,
   page,
   pageSize,
   onPage,
@@ -847,9 +910,15 @@ function CurationView({
   customers: DgnCustomer[];
   selectedCustomer: DgnCustomer;
   curationFilter: string;
+  curationPlanFilter: CurationPlanFilter;
+  curationModalityFilter: CurationModalityFilter;
+  curationSort: CurationSort;
   onSelect: (id: string) => void;
   onPatch: (id: string, patch: Partial<CustomerDraft>) => void;
   onCurationFilter: (value: string) => void;
+  onCurationPlanFilter: (value: CurationPlanFilter) => void;
+  onCurationModalityFilter: (value: CurationModalityFilter) => void;
+  onCurationSort: (value: CurationSort) => void;
   page: number;
   pageSize: number;
   onPage: (page: number) => void;
@@ -871,7 +940,37 @@ function CurationView({
       if (curationFilter === "Descartado") return customer.campaign.founderStatus === "descartado" || customer.campaign.commercialStage === "descartado";
       return true;
     })
-    .sort((a, b) => b.scoreDgn - a.scoreDgn);
+    .filter((customer) => {
+      if (curationPlanFilter === "Todos") return true;
+      return normalizePlanCodeForFilter(customer.campaign.curation?.recommendedPlanCode) === curationPlanFilter;
+    })
+    .filter((customer) => {
+      if (curationModalityFilter === "Todos") return true;
+      const mode = customer.campaign.curation?.recommendedContractingMode;
+      const price = customer.campaign.curation?.recommendedMonthlyPrice;
+      if (curationModalityFilter === "incompleta") {
+        const hasRecommendation = Boolean(customer.campaign.curation?.recommendedPlanCode);
+        return hasRecommendation && (!mode || !price || price <= 0);
+      }
+      return mode === curationModalityFilter;
+    })
+    .sort((a, b) => {
+      if (curationSort === "ultimo") return b.lastAttendance.localeCompare(a.lastAttendance);
+      if (curationSort === "valor") return b.historicalValue - a.historicalValue;
+      if (curationSort === "proxima") return (a.commercial?.nextActionAt || "9999").localeCompare(b.commercial?.nextActionAt || "9999");
+      if (curationSort === "curadoria") return (b.campaign.curation?.curatedAt || "").localeCompare(a.campaign.curation?.curatedAt || "");
+      if (curationSort === "plano") {
+        const pa = normalizePlanCodeForFilter(a.campaign.curation?.recommendedPlanCode);
+        const pb = normalizePlanCodeForFilter(b.campaign.curation?.recommendedPlanCode);
+        return (curationPlanOrder[pa as FounderPlanCode] ?? 9) - (curationPlanOrder[pb as FounderPlanCode] ?? 9) || b.scoreDgn - a.scoreDgn;
+      }
+      if (curationSort === "modalidade") {
+        const ma = a.campaign.curation?.recommendedContractingMode as FounderContractingMode | undefined;
+        const mb = b.campaign.curation?.recommendedContractingMode as FounderContractingMode | undefined;
+        return (curationModalityOrder[ma as FounderContractingMode] ?? 9) - (curationModalityOrder[mb as FounderContractingMode] ?? 9) || b.scoreDgn - a.scoreDgn;
+      }
+      return b.scoreDgn - a.scoreDgn;
+    });
   const pageCount = Math.max(1, Math.ceil(filteredCustomers.length / pageSize));
   const pagedCustomers = filteredCustomers.slice((page - 1) * pageSize, page * pageSize);
 
@@ -882,7 +981,7 @@ function CurationView({
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
             Curadoria DGN
           </p>
-          <h2 className="mt-1 text-lg font-semibold text-white">Ordenado por Score DGN</h2>
+          <h2 className="mt-1 text-lg font-semibold text-white">Filtragem e ordenação</h2>
           <div className="mt-3 flex flex-wrap gap-1.5">
             {curationFilterOptions.map((option) => (
               <button
@@ -897,6 +996,26 @@ function CurationView({
                 {option.label}
               </button>
             ))}
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            <label>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Plano</span>
+              <select value={curationPlanFilter} onChange={(event) => onCurationPlanFilter(event.target.value as CurationPlanFilter)} className="mt-1 h-9 w-full rounded-lg border border-white/[0.06] bg-[#151515] px-2 text-xs text-white">
+                {curationPlanFilterOptions.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
+              </select>
+            </label>
+            <label>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Modalidade</span>
+              <select value={curationModalityFilter} onChange={(event) => onCurationModalityFilter(event.target.value as CurationModalityFilter)} className="mt-1 h-9 w-full rounded-lg border border-white/[0.06] bg-[#151515] px-2 text-xs text-white">
+                {curationModalityFilterOptions.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
+              </select>
+            </label>
+            <label>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Ordenar por</span>
+              <select value={curationSort} onChange={(event) => onCurationSort(event.target.value as CurationSort)} className="mt-1 h-9 w-full rounded-lg border border-white/[0.06] bg-[#151515] px-2 text-xs text-white">
+                {curationSortOptions.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
+              </select>
+            </label>
           </div>
         </div>
         <div className="max-h-[calc(100vh-18rem)] overflow-y-auto p-2">
@@ -1217,7 +1336,7 @@ function FoundersView({
               </p>
               <p className="text-2xl font-semibold text-white/60">/ 30</p>
             </div>
-            <p className="mt-2 text-sm text-[#B8B8B8]">assinaturas semestrais confirmadas</p>
+            <p className="mt-2 text-sm text-[#B8B8B8]">Founders confirmados</p>
           </div>
 
           <div className="lg:w-96">
@@ -1800,18 +1919,39 @@ function CustomerProfileInline({
   );
 }
 
+function normalizePlanCode(value: string | undefined): FounderPlanCode | "" {
+  if (value === "essential" || value === "smart" || value === "priority") return value;
+  if (value === "smart-founder-semestral") return "smart";
+  if (value === "priority-founder-semestral") return "priority";
+  return "";
+}
+
+function normalizeContractingMode(value: string | undefined): FounderContractingMode | "" {
+  if (value === "monthly" || value === "loyalty_6" || value === "loyalty_12") return value;
+  return "";
+}
+
 function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; enabled: boolean }) {
   const current = customer.campaign.curation;
   const protectedFounder = ["benedito-constantino", "jose-moreira", "rikardo-oliveira"].includes(customer.id);
-  const [planCode, setPlanCode] = useState(current?.recommendedPlanCode ?? "");
+  const [planCode, setPlanCode] = useState<FounderPlanCode | "">(normalizePlanCode(current?.recommendedPlanCode));
+  const [contractingMode, setContractingMode] = useState<FounderContractingMode | "">(normalizeContractingMode(current?.recommendedContractingMode));
   const [reason, setReason] = useState(current?.recommendationReasonInternal ?? "");
   const [message, setMessage] = useState(current?.recommendationMessagePublic ?? "");
   const [notice, setNotice] = useState("");
   const [saving, setSaving] = useState(false);
-  const offer = founderOfferCatalog.find((candidate) => candidate.code === planCode);
+  const plan = planCode ? founderPlanDefinitions.find((item) => item.planCode === planCode) : null;
+  const offer = planCode && contractingMode ? getFounderOffer(planCode, contractingMode) : null;
+  const offerValidated = offer ? isCombinationValidatedForPublication(offer) : false;
   const state = curationDisplayState({ founderStatus: customer.campaign.founderStatus, commercialStage: customer.campaign.commercialStage,
     recommendedPlanCode: current?.recommendedPlanCode, publicLink: current?.publicLink, inviteSentAt: current?.inviteSentAt,
     viewedAt: customer.campaign.engagement?.viewedAt });
+  const priceLabel = offer && typeof offer.monthlyPrice === "number" && offer.monthlyPrice > 0
+    ? offer.monthlyPrice.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+    : "Aguardando validação comercial";
+  const frequencyLabel = plan
+    ? `${plan.serviceQuantity} ${plan.serviceQuantity === 1 ? "cuidado" : "cuidados"} por mês (${plan.serviceFrequency})`
+    : "—";
 
   async function act(action: FounderCurationAction) {
     if (!enabled || !customer.campaign.updatedAt || protectedFounder) return;
@@ -1822,6 +1962,7 @@ function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; e
       const response = await fetch(`/api/admin/growth/customers/${encodeURIComponent(customer.id)}/founder-curation`, {
         method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({ action, campaignId: "founders-2026", recommendedPlanCode: planCode,
+          recommendedContractingMode: contractingMode,
           recommendationReasonInternal: reason, recommendationMessagePublic: message,
           expectedUpdatedAt: customer.campaign.updatedAt }),
       });
@@ -1839,20 +1980,46 @@ function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; e
     setNotice("Link copiado. O convite não foi marcado como enviado.");
   }
 
+  const approveDisabled = !enabled || protectedFounder || saving || !offer || !offerValidated || reason.trim().length < 3;
+  const createPageDisabled = !enabled || protectedFounder || saving || customer.campaign.founderStatus !== "selecionado" || Boolean(current?.publicLink) || !offerValidated;
+
   return <div className="mt-5 rounded-2xl border border-[#C9A84C]/20 bg-[#0D0D0D] p-4">
     <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">Curadoria individual</p><p className="mt-1 text-xs text-[#8A8A8A]">Estado: {state}. Seleção exclusivamente humana.</p></div>{current?.recommendedPlanVersion ? <span className="text-[10px] text-[#777]">{current.recommendedPlanVersion}</span> : null}</div>
     {protectedFounder ? <p className="mt-3 rounded-lg border border-white/[0.08] px-3 py-2 text-xs text-[#A7A7A7]">Founder confirmado protegido. Oferta e link permanecem inalterados.</p> : null}
     {notice ? <p className="mt-3 rounded-lg border border-white/[0.08] px-3 py-2 text-xs text-[#E7C96A]">{notice}</p> : null}
+    {offer && !offerValidated ? <p className="mt-3 rounded-lg border border-amber-400/30 bg-amber-400/[0.08] px-3 py-2 text-xs text-amber-200">{INCOMPLETE_OFFER_ADMIN_MESSAGE}</p> : null}
     <div className="mt-4 grid gap-3 sm:grid-cols-2">
-      <label><span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Plano escolhido manualmente</span><select value={planCode} disabled={protectedFounder || saving} onChange={(event) => setPlanCode(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-white/[0.06] bg-[#151515] px-3 text-sm text-white"><option value="">Selecione…</option>{founderOfferCatalog.map((item) => <option key={item.code} value={item.code}>{item.name} · {item.displayedValue}</option>)}</select></label>
-      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-xs text-[#A7A7A7]">{offer ? <><p className="font-semibold text-white">{offer.frequency} · {offer.displayedValue}</p><p className="mt-2">{offer.benefits.join(" · ")}</p></> : "Escolha uma oferta oficial para revisar os detalhes."}</div>
+      <label>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Plano recomendado</span>
+        <select value={planCode} disabled={protectedFounder || saving} onChange={(event) => setPlanCode(event.target.value as FounderPlanCode | "")} className="mt-2 h-11 w-full rounded-xl border border-white/[0.06] bg-[#151515] px-3 text-sm text-white">
+          <option value="">Selecione…</option>
+          {founderPlanDefinitions.map((item) => <option key={item.planCode} value={item.planCode}>{item.planName}</option>)}
+        </select>
+      </label>
+      <label>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Modalidade de contratação</span>
+        <select value={contractingMode} disabled={protectedFounder || saving || !planCode} onChange={(event) => setContractingMode(event.target.value as FounderContractingMode | "")} className="mt-2 h-11 w-full rounded-xl border border-white/[0.06] bg-[#151515] px-3 text-sm text-white">
+          <option value="">Selecione…</option>
+          {founderContractingModes.map((mode) => <option key={mode} value={mode}>{contractingModeLabels[mode]}</option>)}
+        </select>
+      </label>
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-xs text-[#A7A7A7] sm:col-span-2">
+        {plan ? (
+          <div className="grid gap-2 sm:grid-cols-2">
+            <ProfileFact label="Plano recomendado" value={plan.planName} compact />
+            <ProfileFact label="Frequência" value={frequencyLabel} compact />
+            <ProfileFact label="Modalidade" value={contractingMode ? contractingModeLabels[contractingMode] : "Selecionar modalidade"} compact />
+            <ProfileFact label="Valor mensal" value={priceLabel} compact />
+          </div>
+        ) : "Escolha um plano oficial para revisar os detalhes."}
+      </div>
       <label className="sm:col-span-2"><span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Motivo interno *</span><textarea rows={3} value={reason} disabled={protectedFounder || saving} onChange={(event) => setReason(event.target.value)} className="mt-2 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-3 text-sm text-white" /></label>
       <label className="sm:col-span-2"><span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Mensagem pública opcional</span><textarea rows={2} value={message} disabled={protectedFounder || saving} onChange={(event) => setMessage(event.target.value)} className="mt-2 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-3 text-sm text-white" /></label>
     </div>
     <div className="mt-4 flex flex-wrap gap-2">
       <ActionButton disabled={!enabled || protectedFounder || saving} onClick={() => act("save")}>Salvar rascunho</ActionButton>
-      <ActionButton disabled={!enabled || protectedFounder || saving || !offer || reason.trim().length < 3} onClick={() => act("approve")}>Aprovar seleção</ActionButton>
-      <ActionButton disabled={!enabled || protectedFounder || saving || customer.campaign.founderStatus !== "selecionado" || Boolean(current?.publicLink)} onClick={() => act("create_page")}>Criar página Founder</ActionButton>
+      <ActionButton disabled={approveDisabled} onClick={() => act("approve")}>Aprovar seleção</ActionButton>
+      <ActionButton disabled={createPageDisabled} onClick={() => act("create_page")}>Criar página Founder</ActionButton>
       <ActionButton disabled={!current?.publicLink} onClick={copyPublicLink}>Copiar link</ActionButton>
       {customer.campaign.personalizedPagePath ? <Link href={`${customer.campaign.personalizedPagePath}?preview=1`} target="_blank" className="rounded-lg border border-white/[0.08] px-3 py-2 text-xs font-semibold">Abrir preview</Link> : null}
       <ActionButton disabled={!current?.publicLink || Boolean(current?.inviteSentAt)} onClick={() => act("mark_sent")}>Marcar convite como enviado</ActionButton>

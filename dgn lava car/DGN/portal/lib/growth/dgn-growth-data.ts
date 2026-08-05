@@ -185,8 +185,8 @@ const planRevenue: Record<RecommendedPlan, number> = {
 };
 
 export const planMonthlyLabel: Record<RecommendedPlan, string> = {
-  Smart: "Smart semestral - 6x de R$ 110",
-  Priority: "Priority semestral - 6x de R$ 200",
+  Smart: "DGN Smart",
+  Priority: "DGN Priority",
   "Corporate Care": "Corporate Care - proposta assistida",
 };
 

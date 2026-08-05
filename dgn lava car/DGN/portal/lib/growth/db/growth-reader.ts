@@ -149,7 +149,15 @@ export function mapGrowthSnapshot(snapshot: GrowthDbSnapshot): DgnCustomer[] {
           confirmClickedAt: text(member?.confirm_whatsapp_clicked_at), confirmClickCount: number(member?.confirm_whatsapp_click_count),
           vipClickedAt: text(member?.vip_whatsapp_clicked_at), vipClickCount: number(member?.vip_whatsapp_click_count) },
         curation: { recommendedPlanCode: text(member?.recommended_plan_code), recommendedPlanName: text(member?.recommended_plan_name),
-          recommendedPlanVersion: text(member?.recommended_plan_version), recommendedVehicleCategory: text(member?.recommended_vehicle_category),
+          recommendedPlanVersion: text(member?.recommended_plan_version),
+          recommendedContractingMode: text(member?.recommended_contracting_mode),
+          recommendedContractingModeLabel: text(member?.recommended_contracting_mode) === "monthly" ? "Mensal"
+            : text(member?.recommended_contracting_mode) === "loyalty_6" ? "Fidelidade de 6 meses"
+            : text(member?.recommended_contracting_mode) === "loyalty_12" ? "Fidelidade de 12 meses" : "",
+          recommendedCommitmentMonths: member?.recommended_commitment_months == null ? null : number(member?.recommended_commitment_months),
+          recommendedMonthlyPrice: member?.recommended_monthly_price == null ? null : number(member?.recommended_monthly_price),
+          recommendedBillingRule: text(member?.recommended_billing_rule),
+          recommendedVehicleCategory: text(member?.recommended_vehicle_category),
           recommendationReasonInternal: text(member?.recommendation_reason_internal), recommendationMessagePublic: text(member?.recommendation_message_public),
           curatedBy: text(member?.curated_by), curatedAt: text(member?.curated_at), approvedAt: text(member?.approved_at),
           planSnapshot: member?.plan_snapshot && typeof member.plan_snapshot === "object" ? member.plan_snapshot as Record<string, unknown> : null,
