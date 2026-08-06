@@ -22,3 +22,13 @@ Migrations e seed **prontas**. O projeto Supabase real ainda não foi provisiona
 - `user_organizations`: membros da org leem; admin escreve.
 - `user_units`: leitura própria; admin gerencia.
 - `audit_log`: só admin lê. Escrita **exclusivamente** via service_role (nunca cliente).
+
+## Testes negativos
+
+Três cenários automatizados em [`../tests/rls.spec.ts`](../tests/rls.spec.ts) rodam contra o Supabase apontado por `.env.local`:
+
+1. `unit_manager` só vê unidades do próprio `user_units`.
+2. Não-admin não lê `audit_log`.
+3. Não-admin não escreve em `user_organizations`.
+
+Rode com `npm run test:rls` no diretório `loudflow/`. Os testes criam usuários e organização efêmeros via `service_role` e removem tudo no `afterAll`.
