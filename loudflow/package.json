@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:rls": "playwright test",
-    "seed:admin": "node supabase/seed/seed_admin.mjs"
+    "seed:admin": "node --env-file=.env.local supabase/seed/seed_admin.mjs"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.2.6",

@@ -2,6 +2,8 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Role } from "@/lib/supabase/types";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/supabase/types";
 
 export type Session = {
   userId: string;
@@ -14,22 +16,21 @@ export type Session = {
   unitIds: string[];
 };
 
-export async function getSession(): Promise<Session | null> {
-  const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-
+async function loadSessionForUser(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+): Promise<Session | null> {
   const { data: profile } = await supabase
     .from("users")
     .select("id, email, name, avatar_url")
-    .eq("id", user.id)
+    .eq("id", userId)
     .maybeSingle();
   if (!profile) return null;
 
   const { data: membership } = await supabase
     .from("user_organizations")
     .select("organization_id, role")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .limit(1)
     .maybeSingle();
   if (!membership) return null;
@@ -44,7 +45,7 @@ export async function getSession(): Promise<Session | null> {
   const { data: units } = await supabase
     .from("user_units")
     .select("unit_id")
-    .eq("user_id", user.id);
+    .eq("user_id", userId);
 
   return {
     userId: profile.id,
@@ -58,9 +59,20 @@ export async function getSession(): Promise<Session | null> {
   };
 }
 
+export async function getSession(): Promise<Session | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  return loadSessionForUser(supabase, user.id);
+}
+
 export async function requireSession(): Promise<Session> {
-  const s = await getSession();
-  if (!s) redirect("/login");
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const s = await loadSessionForUser(supabase, user.id);
+  // Usuário autenticado mas sem organização: /pending trata (evita loop com /login).
+  if (!s) redirect("/pending");
   return s;
 }
 

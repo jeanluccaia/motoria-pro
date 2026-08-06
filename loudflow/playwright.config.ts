@@ -8,7 +8,16 @@ loadEnv({ path: ".env.test.local", override: true });
 
 export default defineConfig({
   testDir: "./tests",
-  timeout: 30_000,
+  timeout: 60_000,
   fullyParallel: false,
   reporter: [["list"]],
+  use: {
+    baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  },
+  webServer: {
+    command: "npm run dev",
+    url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+    reuseExistingServer: true,
+    timeout: 120_000,
+  },
 });
