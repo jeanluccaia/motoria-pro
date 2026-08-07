@@ -1,4 +1,5 @@
-import { ListChecks, LineChart, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, ListChecks, LineChart, Sparkles } from "lucide-react";
 import { requireSession } from "@/lib/auth/session";
 import { PageHeader } from "@/components/shell/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -25,12 +26,16 @@ export default async function HomePage() {
                 <ListChecks className="size-4 text-lf-muted" />
                 Tarefas
               </CardTitle>
-              <CardDescription>Kanban simples com prazo e responsável.</CardDescription>
+              <CardDescription>O que precisa ser feito, hoje e nos próximos dias.</CardDescription>
             </div>
-            <Badge variant="muted">Em breve</Badge>
           </CardHeader>
           <CardContent className="text-sm text-lf-muted">
-            Chega na Fase 2. Você poderá criar tarefas por unidade, comentar e acompanhar tudo em um só lugar.
+            <Link
+              href="/tarefas"
+              className="inline-flex items-center gap-2 text-foreground underline-offset-4 hover:underline lf-focus"
+            >
+              Abrir minhas tarefas <ArrowRight className="size-4" aria-hidden />
+            </Link>
           </CardContent>
         </Card>
 

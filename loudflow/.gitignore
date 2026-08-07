@@ -38,6 +38,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# tooling local (nunca commitar)
+.mcp.json
+.nextdev*.log
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

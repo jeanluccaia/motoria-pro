@@ -50,6 +50,26 @@ export type AuditLog = {
   created_at: string;
 };
 
+export type TaskStatus = "pending" | "completed";
+export type TaskPriority = "low" | "normal" | "high";
+
+export type Task = {
+  id: string;
+  organization_id: string;
+  unit_id: string | null;
+  title: string;
+  description: string | null;
+  assigned_to: string;
+  created_by: string;
+  priority: TaskPriority;
+  due_at: string | null;
+  status: TaskStatus;
+  completed_at: string | null;
+  completed_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 type TableDef<Row extends Record<string, unknown>, InsertKeys extends keyof Row = keyof Row> = {
   Row: Row;
   Insert: Partial<Row> & Pick<Row, InsertKeys>;
@@ -66,11 +86,14 @@ export type Database = {
       user_organizations: TableDef<UserOrganization, "user_id" | "organization_id" | "role">;
       user_units: TableDef<UserUnit, "user_id" | "unit_id">;
       audit_log: TableDef<AuditLog, "organization_id" | "action" | "target_type">;
+      tasks: TableDef<Task, "organization_id" | "title" | "assigned_to" | "created_by">;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
     Enums: {
       app_role: Role;
+      task_status: TaskStatus;
+      task_priority: TaskPriority;
     };
     CompositeTypes: Record<string, never>;
   };
