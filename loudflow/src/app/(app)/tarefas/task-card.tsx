@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { AlertCircle, Building2, CalendarClock, CheckCircle2, Pencil, RotateCcw, Trash2, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,6 @@ import type { Task } from "@/lib/supabase/types";
 type Member = { id: string; email: string; name: string | null };
 type UnitLite = { id: string; name: string };
 
-const UNDO_MS = 5_000;
-
 export function TaskCard({
   task,
   unit,
@@ -23,6 +21,7 @@ export function TaskCard({
   canManage,
   canComplete,
   onEdit,
+  onCompleted,
 }: {
   task: Task;
   unit: UnitLite | null;
@@ -31,75 +30,36 @@ export function TaskCard({
   canManage: boolean;
   canComplete: boolean;
   onEdit: () => void;
+  onCompleted?: (task: Task) => void;
 }) {
   const [pending, startTransition] = useTransition();
-  const [toast, setToast] = useState<{ kind: "ok" | "error"; message: string } | null>(null);
-  const [undoLeft, setUndoLeft] = useState(0);
-  const undoTimer = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  function clearUndo() {
-    if (undoTimer.current) {
-      clearInterval(undoTimer.current);
-      undoTimer.current = null;
-    }
-    setUndoLeft(0);
-  }
-
-  function startUndoCountdown() {
-    clearUndo();
-    setUndoLeft(UNDO_MS);
-    undoTimer.current = setInterval(() => {
-      setUndoLeft((prev) => {
-        const next = prev - 250;
-        if (next <= 0) {
-          clearUndo();
-          return 0;
-        }
-        return next;
-      });
-    }, 250);
-  }
+  const [error, setError] = useState<string | null>(null);
 
   function onComplete() {
     if (pending) return;
+    setError(null);
     const fd = new FormData();
     fd.set("id", task.id);
     startTransition(async () => {
       const r = await completeTask(fd);
       if (r.ok) {
-        setToast({ kind: "ok", message: "Tarefa concluída." });
-        startUndoCountdown();
+        // Notifica o pai — o toast/Desfazer vive fora do card, porque a
+        // tarefa some da view "Hoje/Atrasadas/Próximas" imediatamente.
+        onCompleted?.(task);
       } else {
-        setToast({ kind: "error", message: r.message });
+        setError(r.message);
       }
-    });
-  }
-
-  function onUndo() {
-    clearUndo();
-    const fd = new FormData();
-    fd.set("id", task.id);
-    startTransition(async () => {
-      const r = await reopenTask(fd);
-      setToast(
-        r.ok
-          ? { kind: "ok", message: "Tarefa reaberta." }
-          : { kind: "error", message: r.message },
-      );
     });
   }
 
   function onReopen() {
     if (pending) return;
+    setError(null);
     const fd = new FormData();
     fd.set("id", task.id);
     startTransition(async () => {
       const r = await reopenTask(fd);
-      setToast(
-        r.ok
-          ? { kind: "ok", message: "Tarefa reaberta." }
-          : { kind: "error", message: r.message },
-      );
+      if (!r.ok) setError(r.message);
     });
   }
 
@@ -109,7 +69,7 @@ export function TaskCard({
     fd.set("id", task.id);
     startTransition(async () => {
       const r = await deleteTask(fd);
-      if (!r.ok) setToast({ kind: "error", message: r.message });
+      if (!r.ok) setError(r.message);
     });
   }
 
@@ -198,7 +158,7 @@ export function TaskCard({
             <Button
               type="button"
               onClick={onComplete}
-              disabled={pending || undoLeft > 0}
+              disabled={pending}
               size="lg"
               className="gap-2"
               aria-label={`Concluir tarefa ${task.title}`}
@@ -236,29 +196,9 @@ export function TaskCard({
         </div>
       </div>
 
-      {undoLeft > 0 ? (
-        <div
-          role="status"
-          className="mt-4 flex items-center justify-between gap-3 rounded-md border border-border bg-lf-surface px-3 py-2 text-sm"
-        >
-          <span>Tarefa concluída.</span>
-          <button
-            type="button"
-            onClick={onUndo}
-            className="font-medium text-lf-volt underline-offset-4 hover:underline lf-focus"
-          >
-            Desfazer ({Math.ceil(undoLeft / 1000)}s)
-          </button>
-        </div>
-      ) : toast ? (
-        <p
-          role="status"
-          className={cn(
-            "mt-3 text-sm",
-            toast.kind === "error" ? "text-destructive" : "text-lf-muted",
-          )}
-        >
-          {toast.message}
+      {error ? (
+        <p role="status" className="mt-3 text-sm text-destructive">
+          {error}
         </p>
       ) : null}
     </li>

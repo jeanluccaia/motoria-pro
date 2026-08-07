@@ -8,6 +8,7 @@ import { bucketFor } from "@/lib/tasks/dates";
 import { FILTERS, filterLabel, type FilterKey } from "@/lib/tasks/labels";
 import { TaskCard } from "./task-card";
 import { TaskDialog } from "./task-dialog";
+import { UndoToast } from "./undo-toast";
 import type { Task } from "@/lib/supabase/types";
 
 type Member = { id: string; email: string; name: string | null };
@@ -36,6 +37,7 @@ export function TasksView({
   const [unitFilter, setUnitFilter] = useState<string>("");
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
+  const [undoTask, setUndoTask] = useState<Task | null>(null);
 
   const memberMap = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);
   const unitMap = useMemo(() => new Map(units.map((u) => [u.id, u])), [units]);
@@ -93,7 +95,7 @@ export function TasksView({
   return (
     <div className="space-y-6">
       {isAdmin ? (
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3">
           <div
             role="tablist"
             aria-label="Escopo das tarefas"
@@ -124,9 +126,10 @@ export function TasksView({
             onClick={() => setCreating(true)}
             className="gap-2"
             size="lg"
+            aria-label="Nova tarefa"
           >
             <Plus className="size-4" />
-            Nova tarefa
+            <span className="hidden sm:inline">Nova tarefa</span>
           </Button>
         </div>
       ) : null}
@@ -224,6 +227,7 @@ export function TasksView({
                   t.assigned_to === currentUserId || isAdmin
                 }
                 onEdit={() => setEditing(t)}
+                onCompleted={(justDone) => setUndoTask(justDone)}
               />
             ))}
           </ul>
@@ -250,6 +254,14 @@ export function TasksView({
           members={members}
           units={units}
           task={editing}
+        />
+      ) : null}
+
+      {undoTask ? (
+        <UndoToast
+          key={undoTask.id}
+          task={undoTask}
+          onDismiss={() => setUndoTask(null)}
         />
       ) : null}
     </div>
