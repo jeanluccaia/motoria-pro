@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LoginForm } from "./login-form";
+import { safeNext } from "@/lib/auth/redirect";
 
 export const metadata: Metadata = { title: "Entrar" };
 
@@ -38,6 +39,9 @@ async function LoginFormWrapper({
   searchParams: PageProps<"/login">["searchParams"];
 }) {
   const params = await searchParams;
-  const next = typeof params.next === "string" ? params.next : "/";
+  // Sanitiza `next` já no server para não vazar valor externo no HTML e
+  // não dar tempo ao browser de agir num redirect malformado antes do
+  // callback conferir de novo.
+  const next = safeNext(typeof params.next === "string" ? params.next : null);
   return <LoginForm next={next} />;
 }

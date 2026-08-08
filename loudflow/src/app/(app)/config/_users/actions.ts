@@ -9,14 +9,20 @@ import type { Role } from "@/lib/supabase/types";
 
 const ROLES: Role[] = ["admin", "marketing", "partner", "unit_manager"];
 
-// Deriva a origem correta em qualquer ambiente. Prioriza NEXT_PUBLIC_APP_URL
-// (produção quando setada), depois VERCEL_URL (auto em preview/prod), e por
-// último o Host do request atual. Nunca fica em string vazia.
+// Deriva a origem correta em qualquer ambiente a partir do request atual —
+// mesma origem que o admin usou para acessar /config e disparar o convite.
+// Deliberadamente NÃO consultamos NEXT_PUBLIC_APP_URL: uma env local
+// desalinhada (ex: localhost) faria os convites saírem apontando para o
+// host errado no Preview. `Host` + `x-forwarded-proto` são sempre corretos
+// atrás do proxy da Vercel e em `next dev` local.
 async function currentOrigin(): Promise<string> {
-  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   const h = await headers();
-  const host = h.get("host") ?? "localhost:3000";
+  const host = h.get("host");
+  if (!host) {
+    throw new Error(
+      "Não foi possível determinar o Host do request ao gerar redirectTo do convite.",
+    );
+  }
   const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   return `${proto}://${host}`;
 }

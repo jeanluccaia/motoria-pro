@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { buildEmailRedirectTo } from "@/lib/auth/redirect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,11 +23,13 @@ export function LoginForm({ next }: { next: string }) {
     setState({ kind: "loading" });
 
     const supabase = createSupabaseBrowserClient();
-    // Origin é sempre calculada da URL onde o browser está. Nunca dependemos
-    // de NEXT_PUBLIC_APP_URL — se o dev tiver um valor local no .env e
-    // acessar o app pelo Preview, o email chegaria com o host errado.
-    const origin = window.location.origin;
-    const redirectTo = `${origin}/api/auth/callback?next=${encodeURIComponent(next)}`;
+    // Origem sempre vem de `window.location.origin` — o mesmo deployment
+    // que o usuário abriu no navegador (Preview, produção ou local).
+    // Nunca dependemos de NEXT_PUBLIC_APP_URL: uma env local com localhost
+    // faria o Magic Link chegar apontando para localhost mesmo em Preview.
+    // `next` é sanitizado por `buildEmailRedirectTo` para evitar que a query
+    // string vire uma URL externa quando o Supabase reencaminhar para nós.
+    const redirectTo = buildEmailRedirectTo(window.location.origin, next);
 
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
