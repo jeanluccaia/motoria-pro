@@ -30,6 +30,7 @@ type Fixture = {
   unitAId: string;
   orgBId: string;
   admin: Actor;
+  adminB: Actor; // segundo admin da orgA — para provar colaboração multiusuário
   member: Actor;
   outsider: Actor;
   createdUserIds: string[];
@@ -83,21 +84,25 @@ async function setupFixture(): Promise<Fixture> {
   if (unitErr || !unit) throw new Error(`unit: ${unitErr?.message}`);
 
   const adminEmail = `admin-${suffix}@tasks.test`;
+  const adminBEmail = `admin-b-${suffix}@tasks.test`;
   const memberEmail = `member-${suffix}@tasks.test`;
   const outsiderEmail = `outsider-${suffix}@tasks.test`;
 
   const adminUser = await makeUser(adminClient, adminEmail);
+  const adminBUser = await makeUser(adminClient, adminBEmail);
   const memberUser = await makeUser(adminClient, memberEmail);
   const outsiderUser = await makeUser(adminClient, outsiderEmail);
 
   const { error: linkErr } = await adminClient.from("user_organizations").insert([
     { user_id: adminUser.userId, organization_id: orgA.id, role: "admin" },
+    { user_id: adminBUser.userId, organization_id: orgA.id, role: "admin" },
     { user_id: memberUser.userId, organization_id: orgA.id, role: "marketing" },
     { user_id: outsiderUser.userId, organization_id: orgB.id, role: "admin" },
   ]);
   if (linkErr) throw new Error(`link: ${linkErr.message}`);
 
   const adminAuth = await impersonate(adminEmail, adminUser.password);
+  const adminBAuth = await impersonate(adminBEmail, adminBUser.password);
   const memberAuth = await impersonate(memberEmail, memberUser.password);
   const outsiderAuth = await impersonate(outsiderEmail, outsiderUser.password);
 
@@ -107,6 +112,7 @@ async function setupFixture(): Promise<Fixture> {
     unitAId: unit.id,
     orgBId: orgB.id,
     admin: { userId: adminUser.userId, email: adminEmail, password: adminUser.password, client: adminAuth },
+    adminB: { userId: adminBUser.userId, email: adminBEmail, password: adminBUser.password, client: adminBAuth },
     member: { userId: memberUser.userId, email: memberEmail, password: memberUser.password, client: memberAuth },
     outsider: {
       userId: outsiderUser.userId,
@@ -114,7 +120,7 @@ async function setupFixture(): Promise<Fixture> {
       password: outsiderUser.password,
       client: outsiderAuth,
     },
-    createdUserIds: [adminUser.userId, memberUser.userId, outsiderUser.userId],
+    createdUserIds: [adminUser.userId, adminBUser.userId, memberUser.userId, outsiderUser.userId],
     createdOrgIds: [orgA.id, orgB.id],
   };
 }
@@ -410,5 +416,135 @@ test.describe("Tasks — RLS + regras de negócio", () => {
     expect(findBucket(today.id)).toEqual({ status: "pending", bucket: "today" });
     expect(findBucket(upcoming.id)).toEqual({ status: "pending", bucket: "upcoming" });
     expect(findBucket(done.id)?.status).toBe("completed");
+  });
+
+  // ============================================================================
+  // Cenário multiusuário — reflete o real da Loud Fit: 6 admins compartilham
+  // a mesma organização e precisam ver/editar as mesmas tarefas. Prova que
+  // a listagem NÃO depende do ID do criador: quando admin B abre a página
+  // de tarefas, ele vê a tarefa criada por admin A dentro da mesma org.
+  // ============================================================================
+
+  test("multiusuário: admin A cria, admin B lê + edita + conclui, admin A vê", async () => {
+    // (1) Admin A cria a tarefa via seu próprio client (RLS "tasks: admin all")
+    const { data: created, error: createErr } = await fixture.admin.client
+      .from("tasks")
+      .insert({
+        organization_id: fixture.orgAId,
+        unit_id: fixture.unitAId,
+        title: "Multiuser — visível para todos os admins",
+        assigned_to: fixture.member.userId,
+        created_by: fixture.admin.userId,
+        priority: "normal",
+      })
+      .select("id, title, priority, status, created_by")
+      .single();
+    expect(createErr).toBeNull();
+    expect(created?.id).toBeTruthy();
+    expect(created?.created_by).toBe(fixture.admin.userId);
+
+    // (2) Admin B da MESMA org enxerga a tarefa criada por admin A —
+    //     RLS libera para todos os admins da org, não só o criador.
+    const { data: bSees } = await fixture.adminB.client
+      .from("tasks")
+      .select("id, title, priority, status, created_by")
+      .eq("id", created!.id)
+      .maybeSingle();
+    expect(bSees?.id).toBe(created!.id);
+    expect(bSees?.created_by).toBe(fixture.admin.userId); // criador continua sendo A
+    expect(bSees?.priority).toBe("normal");
+
+    // (3) Admin B EDITA a tarefa — muda prioridade e reatribui.
+    //     Isso só passa a policy "tasks: admin all" que aceita qualquer
+    //     admin da org, independente de quem criou.
+    const { error: updateErr, data: updated } = await fixture.adminB.client
+      .from("tasks")
+      .update({ priority: "high", assigned_to: fixture.adminB.userId })
+      .eq("id", created!.id)
+      .select("id, priority, assigned_to")
+      .single();
+    expect(updateErr).toBeNull();
+    expect(updated?.priority).toBe("high");
+    expect(updated?.assigned_to).toBe(fixture.adminB.userId);
+
+    // (4) Admin A confirma que enxerga a atualização feita por B.
+    const { data: aSeesUpdated } = await fixture.admin.client
+      .from("tasks")
+      .select("id, priority, assigned_to")
+      .eq("id", created!.id)
+      .single();
+    expect(aSeesUpdated?.priority).toBe("high");
+    expect(aSeesUpdated?.assigned_to).toBe(fixture.adminB.userId);
+
+    // (5) Admin B conclui a tarefa (agora assigned_to == adminB.userId).
+    const { error: completeErr } = await fixture.adminB.client
+      .from("tasks")
+      .update({
+        status: "completed",
+        completed_at: new Date().toISOString(),
+        completed_by: fixture.adminB.userId,
+      })
+      .eq("id", created!.id);
+    expect(completeErr).toBeNull();
+
+    const { data: final } = await fixture.admin.client
+      .from("tasks")
+      .select("status, completed_by")
+      .eq("id", created!.id)
+      .single();
+    expect(final?.status).toBe("completed");
+    expect(final?.completed_by).toBe(fixture.adminB.userId);
+  });
+
+  test("multiusuário: outsider (outra org) não lê nem edita tarefas da orgA", async () => {
+    const t = await insertTaskAsAdmin(fixture, {
+      title: "Task privada da orgA",
+      assigned_to: fixture.member.userId,
+    });
+
+    // Outsider (admin, mas de orgB) não deve ver esta linha em SELECT
+    const { data: seen } = await fixture.outsider.client
+      .from("tasks")
+      .select("id")
+      .eq("id", t.id);
+    expect((seen ?? []).length).toBe(0);
+
+    // Outsider não deve alterar nem escrever via mesma policy
+    const { data: updated, error: uErr } = await fixture.outsider.client
+      .from("tasks")
+      .update({ title: "hackeada" })
+      .eq("id", t.id)
+      .select("id");
+    const blocked = !!uErr || !Array.isArray(updated) || updated.length === 0;
+    expect(blocked).toBe(true);
+
+    // Confirma via service_role que o title permanece intacto
+    const { data: check } = await fixture.adminClient
+      .from("tasks")
+      .select("title")
+      .eq("id", t.id)
+      .single();
+    expect(check?.title).toBe("Task privada da orgA");
+  });
+
+  test("multiusuário: listagem de admin B contém tarefas criadas por admin A na mesma org", async () => {
+    // Prova extra que a listagem NÃO filtra por created_by: 3 tarefas
+    // criadas por admin A devem aparecer para admin B.
+    const t1 = await insertTaskAsAdmin(fixture, { title: "M1" });
+    const t2 = await insertTaskAsAdmin(fixture, { title: "M2" });
+    const t3 = await insertTaskAsAdmin(fixture, { title: "M3" });
+
+    const { data: bList } = await fixture.adminB.client
+      .from("tasks")
+      .select("id, organization_id, title")
+      .in("id", [t1.id, t2.id, t3.id]);
+    const bIds = new Set((bList ?? []).map((t) => t.id));
+    expect(bIds.has(t1.id)).toBe(true);
+    expect(bIds.has(t2.id)).toBe(true);
+    expect(bIds.has(t3.id)).toBe(true);
+    // Todas pertencem à orgA
+    for (const row of bList ?? []) {
+      expect(row.organization_id).toBe(fixture.orgAId);
+    }
   });
 });
