@@ -127,9 +127,38 @@ async function setupFixture(): Promise<Fixture> {
   };
 }
 
+// Teardown ordenado: (1) orgs primeiro para cascadear vínculos, (2) linha
+// em public.users é apagada explicitamente — não há FK/cascade a partir
+// de auth.users, portanto deleteUser sozinho deixa órfãos; (3) auth.users.
+// Erros são registrados mas não interrompem os próximos itens.
 async function teardownFixture(f: Fixture) {
-  for (const uid of f.createdUserIds) await f.adminClient.auth.admin.deleteUser(uid);
-  for (const oid of f.createdOrgIds) await f.adminClient.from("organizations").delete().eq("id", oid);
+  for (const oid of f.createdOrgIds) {
+    const { error } = await f.adminClient.from("organizations").delete().eq("id", oid);
+    if (error) console.warn(`[teardown] org ${oid}: ${error.message}`);
+  }
+  const { error: pubErr } = await f.adminClient
+    .from("users")
+    .delete()
+    .in("id", f.createdUserIds);
+  if (pubErr) console.warn(`[teardown] public.users: ${pubErr.message}`);
+  for (const uid of f.createdUserIds) {
+    const { error } = await f.adminClient.auth.admin.deleteUser(uid);
+    if (error) console.warn(`[teardown] auth.deleteUser ${uid}: ${error.message}`);
+  }
+  await purgeTestArtifacts(f.adminClient, "@tests.dev");
+}
+
+async function purgeTestArtifacts(admin: SupabaseClient, emailSuffix: string) {
+  const { data: leaked } = await admin
+    .from("users")
+    .select("id")
+    .ilike("email", `%${emailSuffix}`);
+  const ids = (leaked ?? []).map((r) => r.id as string);
+  if (ids.length === 0) return;
+  await admin.from("users").delete().in("id", ids);
+  for (const uid of ids) {
+    await admin.auth.admin.deleteUser(uid);
+  }
 }
 
 function row(name: string, spendCents = 100, extra: Partial<AdCampaignRow> = {}): AdCampaignRow {
@@ -164,6 +193,12 @@ test.describe("Sync UTMify — idempotência e mapeamento", () => {
   let fixture: Fixture;
 
   test.beforeAll(async () => {
+    // Começa limpo: remove órfãos de runs anteriores identificados pelo
+    // padrão de email desta suíte.
+    const admin = createClient(url!, service!, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    await purgeTestArtifacts(admin, "@tests.dev");
     fixture = await setupFixture();
   });
   test.afterAll(async () => {

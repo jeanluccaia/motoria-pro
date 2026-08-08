@@ -119,12 +119,46 @@ async function setupFixture(): Promise<Fixture> {
   };
 }
 
+// Teardown ordenado: (1) apagar orgs para cascadear vínculos, (2) apagar
+// linhas em public.users explicitamente — não existe FK/cascade a partir
+// de auth.users, então deleteUser sozinho deixa órfãos; (3) apagar em
+// auth.users. Erros são registrados mas não interrompem o cleanup dos
+// próximos itens — garantimos que o próximo run comece limpo.
 async function teardownFixture(fixture: Fixture) {
-  for (const uid of fixture.createdUserIds) {
-    await fixture.adminClient.auth.admin.deleteUser(uid);
-  }
   for (const oid of fixture.createdOrgIds) {
-    await fixture.adminClient.from("organizations").delete().eq("id", oid);
+    const { error } = await fixture.adminClient
+      .from("organizations")
+      .delete()
+      .eq("id", oid);
+    if (error) console.warn(`[teardown] org ${oid}: ${error.message}`);
+  }
+  const { error: pubErr } = await fixture.adminClient
+    .from("users")
+    .delete()
+    .in("id", fixture.createdUserIds);
+  if (pubErr) console.warn(`[teardown] public.users: ${pubErr.message}`);
+  for (const uid of fixture.createdUserIds) {
+    const { error } = await fixture.adminClient.auth.admin.deleteUser(uid);
+    if (error) console.warn(`[teardown] auth.deleteUser ${uid}: ${error.message}`);
+  }
+  // Safety-net: independente do que passou acima, remove qualquer resíduo
+  // com o padrão de email de teste desta suíte. Idempotente.
+  await purgeTestArtifacts(fixture.adminClient, "@tasks.test");
+}
+
+// Remove qualquer usuário órfão criado por execuções anteriores do teste
+// (identificado por padrão de email). Deve ser chamado no beforeAll para
+// começar a suíte com estado limpo e no fim como safety-net.
+async function purgeTestArtifacts(admin: SupabaseClient, emailSuffix: string) {
+  const { data: leaked } = await admin
+    .from("users")
+    .select("id")
+    .ilike("email", `%${emailSuffix}`);
+  const ids = (leaked ?? []).map((r) => r.id as string);
+  if (ids.length === 0) return;
+  await admin.from("users").delete().in("id", ids);
+  for (const uid of ids) {
+    await admin.auth.admin.deleteUser(uid);
   }
 }
 
@@ -160,6 +194,12 @@ test.describe("Tasks — RLS + regras de negócio", () => {
   let fixture: Fixture;
 
   test.beforeAll(async () => {
+    // Começa limpo: se runs anteriores deixaram lixo com nosso padrão de
+    // email, remove antes de criar novos.
+    const admin = createClient(url!, service!, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    await purgeTestArtifacts(admin, "@tasks.test");
     fixture = await setupFixture();
   });
 
