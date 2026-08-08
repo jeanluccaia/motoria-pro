@@ -17,7 +17,7 @@ type NavItem = {
 const nav: NavItem[] = [
   { href: "/", label: "Início", icon: Home },
   { href: "/tarefas", label: "Tarefas", icon: ListChecks },
-  { href: "/resultados", label: "Resultados", icon: LineChart, disabled: true },
+  { href: "/resultados", label: "Resultados", icon: LineChart },
   { href: "/config", label: "Configurações", icon: Settings, roles: ["admin"] },
 ];
 

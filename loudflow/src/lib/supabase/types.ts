@@ -70,6 +70,69 @@ export type Task = {
   updated_at: string;
 };
 
+export type AdProvider = "meta" | "google";
+export type CampaignUnitSource = "auto" | "manual" | "unresolved";
+export type SyncStatus = "running" | "success" | "partial" | "error";
+
+export type SyncRun = {
+  id: string;
+  organization_id: string;
+  provider: AdProvider;
+  status: SyncStatus;
+  triggered_by: string;
+  period_from: string;
+  period_to: string;
+  rows_upserted: number;
+  campaigns_seen: number;
+  started_at: string;
+  finished_at: string | null;
+  error_code: string | null;
+  error_message: string | null;
+  created_at: string;
+};
+
+export type Campaign = {
+  id: string;
+  organization_id: string;
+  provider: AdProvider;
+  external_account_id: string;
+  external_account_name: string | null;
+  external_id: string;
+  name: string;
+  status: string | null;
+  unit_id: string | null;
+  unit_source: CampaignUnitSource;
+  first_seen_at: string;
+  last_seen_at: string;
+  archived_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CampaignSnapshot = {
+  id: string;
+  organization_id: string;
+  campaign_id: string;
+  provider: AdProvider;
+  snapshot_date: string;
+  spend_cents: number;
+  impressions: number;
+  clicks: number;
+  landing_page_views: number | null;
+  initiate_checkouts: number | null;
+  leads: number | null;
+  frequency: number | null;
+  synced_at: string;
+};
+
+export type CampaignUnitAlias = {
+  id: string;
+  organization_id: string;
+  alias: string;
+  unit_id: string;
+  created_at: string;
+};
+
 type TableDef<Row extends Record<string, unknown>, InsertKeys extends keyof Row = keyof Row> = {
   Row: Row;
   Insert: Partial<Row> & Pick<Row, InsertKeys>;
@@ -87,6 +150,19 @@ export type Database = {
       user_units: TableDef<UserUnit, "user_id" | "unit_id">;
       audit_log: TableDef<AuditLog, "organization_id" | "action" | "target_type">;
       tasks: TableDef<Task, "organization_id" | "title" | "assigned_to" | "created_by">;
+      sync_runs: TableDef<
+        SyncRun,
+        "organization_id" | "provider" | "status" | "triggered_by" | "period_from" | "period_to"
+      >;
+      campaigns: TableDef<
+        Campaign,
+        "organization_id" | "provider" | "external_account_id" | "external_id" | "name"
+      >;
+      campaign_snapshots: TableDef<
+        CampaignSnapshot,
+        "organization_id" | "campaign_id" | "provider" | "snapshot_date"
+      >;
+      campaign_unit_aliases: TableDef<CampaignUnitAlias, "organization_id" | "alias" | "unit_id">;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -94,6 +170,9 @@ export type Database = {
       app_role: Role;
       task_status: TaskStatus;
       task_priority: TaskPriority;
+      ad_provider: AdProvider;
+      campaign_unit_source: CampaignUnitSource;
+      sync_status: SyncStatus;
     };
     CompositeTypes: Record<string, never>;
   };

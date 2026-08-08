@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 const tabs = [
   { href: "/config", label: "Usuários" },
   { href: "/config/unidades", label: "Unidades" },
+  { href: "/config/campanhas", label: "Campanhas" },
 ];
 
 export function ConfigTabs() {
