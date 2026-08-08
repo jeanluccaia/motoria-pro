@@ -8,6 +8,7 @@ const tabs = [
   { href: "/config", label: "Usuários" },
   { href: "/config/unidades", label: "Unidades" },
   { href: "/config/campanhas", label: "Campanhas" },
+  { href: "/config/integracoes", label: "Integrações" },
 ];
 
 export function ConfigTabs() {

@@ -11,7 +11,7 @@ import {
   formatPercent,
   NOT_AVAILABLE_LABEL,
 } from "@/lib/metrics/format";
-import { aggregateMetrics, ctrPercent, cpcCents, costPerLpvCents } from "@/lib/metrics/derived";
+import { aggregateMetrics, ctrPercent, cpcCents, cpmCents, costPerLpvCents, roas, roi } from "@/lib/metrics/derived";
 import { computeCoverage } from "@/lib/metrics/coverage";
 import type { Campaign, CampaignSnapshot } from "@/lib/supabase/types";
 import { KpiCard } from "./kpi-card";
@@ -60,7 +60,7 @@ export default async function ResultadosPage(props: PageProps<"/resultados">) {
     supabase
       .from("campaign_snapshots")
       .select(
-        "id, campaign_id, provider, snapshot_date, spend_cents, impressions, clicks, landing_page_views, initiate_checkouts, leads, frequency",
+        "id, campaign_id, provider, snapshot_date, spend_cents, impressions, clicks, landing_page_views, initiate_checkouts, leads, frequency, reach_estimated, conversations, approved_orders_count, pending_orders_count, refunded_orders_count, revenue_cents, gross_revenue_cents",
       )
       .eq("organization_id", session.organizationId)
       .gte("snapshot_date", range.fromYmd)
@@ -108,6 +108,13 @@ export default async function ResultadosPage(props: PageProps<"/resultados">) {
       | "initiate_checkouts"
       | "leads"
       | "frequency"
+      | "reach_estimated"
+      | "conversations"
+      | "approved_orders_count"
+      | "pending_orders_count"
+      | "refunded_orders_count"
+      | "revenue_cents"
+      | "gross_revenue_cents"
     >
   >;
   const units = (unitsRes.data ?? [])
@@ -134,7 +141,12 @@ export default async function ResultadosPage(props: PageProps<"/resultados">) {
   const agg = aggregateMetrics(filteredSnapshots);
   const ctr = ctrPercent(agg.clicks, agg.impressions);
   const cpc = cpcCents(agg.spendCents, agg.clicks);
+  const cpm = cpmCents(agg.spendCents, agg.impressions);
   const cpLpv = costPerLpvCents(agg.spendCents, agg.landingPageViews);
+  const roasValue = roas(agg.revenueCents, agg.spendCents);
+  const roiValue = roi(agg.revenueCents, agg.spendCents);
+  const hasRevenue = agg.revenueCents > 0 || agg.grossRevenueCents > 0;
+  const hasApprovedOrders = agg.approvedOrdersCount > 0;
 
   const hasData = filteredSnapshots.length > 0;
   const totalCampaigns = campaigns.length;
@@ -346,36 +358,80 @@ export default async function ResultadosPage(props: PageProps<"/resultados">) {
         <section aria-label="Indicadores principais" className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <KpiCard label="Investimento" value={formatCurrencyCents(agg.spendCents)} />
           <KpiCard label="Impressões" value={formatInteger(agg.impressions)} />
+          <KpiCard
+            label="Alcance estimado"
+            value={formatInteger(agg.reachEstimated)}
+            hint="Estimado (impressões ÷ frequência)"
+          />
           <KpiCard label="Cliques" value={formatInteger(agg.clicks)} />
           <KpiCard label="CTR" value={formatPercent(ctr)} hint="Cliques ÷ impressões" />
           <KpiCard label="CPC" value={formatCurrencyCents(cpc)} hint="Custo por clique" />
-          <KpiCard
-            label="Visualizações da página"
-            value={formatInteger(agg.landingPageViews)}
-          />
+          <KpiCard label="CPM" value={formatCurrencyCents(cpm)} hint="Custo por mil impressões" />
+          <KpiCard label="Visualizações da página" value={formatInteger(agg.landingPageViews)} />
           {agg.landingPageViews != null ? (
             <KpiCard label="Custo por visualização" value={formatCurrencyCents(cpLpv)} />
           ) : null}
+          <KpiCard label="Leads" value={formatInteger(agg.leads)} />
+          <KpiCard label="Conversas" value={formatInteger(agg.conversations)} />
+          <KpiCard
+            label="Início de checkout"
+            value={formatInteger(agg.initiateCheckouts)}
+            hint="Não conta como venda"
+          />
         </section>
       ) : null}
 
-      {/* Vendas e retorno — todos "Não disponível" nesta fase */}
-      <section aria-label="Vendas e retorno" className="mb-8 space-y-3">
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 className="text-sm font-medium uppercase tracking-widest text-lf-muted">
-            Vendas e retorno
-          </h2>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <KpiCard label="Matrículas" value={NOT_AVAILABLE_LABEL} emphasis="muted" />
-          <KpiCard label="Faturamento" value={NOT_AVAILABLE_LABEL} emphasis="muted" />
-          <KpiCard label="ROAS" value={NOT_AVAILABLE_LABEL} emphasis="muted" />
-          <KpiCard label="ROI" value={NOT_AVAILABLE_LABEL} emphasis="muted" />
-        </div>
-        <p className="text-xs text-lf-muted">
-          Esses dados dependem da futura integração com o sistema de matrículas.
-        </p>
-      </section>
+      {/* Vendas e retorno — dados reais da UTMify. Não confundir com matrículas EVO. */}
+      {hasData ? (
+        <section aria-label="Vendas e retorno" className="mb-8 space-y-3">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="text-sm font-medium uppercase tracking-widest text-lf-muted">
+              Vendas e retorno (UTMify)
+            </h2>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <KpiCard
+              label="Vendas aprovadas"
+              value={formatInteger(agg.approvedOrdersCount)}
+              hint="approvedOrdersCount da UTMify"
+              emphasis={hasApprovedOrders ? "normal" : "muted"}
+            />
+            <KpiCard
+              label="Vendas pendentes"
+              value={formatInteger(agg.pendingOrdersCount)}
+              emphasis={agg.pendingOrdersCount > 0 ? "normal" : "muted"}
+            />
+            <KpiCard
+              label="Faturamento líquido"
+              value={hasRevenue ? formatCurrencyCents(agg.revenueCents) : NOT_AVAILABLE_LABEL}
+              hint="revenue da UTMify"
+              emphasis={hasRevenue ? "normal" : "muted"}
+            />
+            <KpiCard
+              label="Faturamento bruto"
+              value={hasRevenue ? formatCurrencyCents(agg.grossRevenueCents) : NOT_AVAILABLE_LABEL}
+              hint="grossRevenue da UTMify"
+              emphasis={hasRevenue ? "normal" : "muted"}
+            />
+            <KpiCard
+              label="ROAS"
+              value={hasRevenue && roasValue != null ? roasValue.toFixed(2) : NOT_AVAILABLE_LABEL}
+              hint="Receita ÷ investimento"
+              emphasis={hasRevenue ? "normal" : "muted"}
+            />
+            <KpiCard
+              label="ROI"
+              value={hasRevenue && roiValue != null ? formatPercent(roiValue * 100) : NOT_AVAILABLE_LABEL}
+              hint="(Receita − investimento) ÷ investimento"
+              emphasis={hasRevenue ? "normal" : "muted"}
+            />
+          </div>
+          <p className="text-xs text-lf-muted">
+            Vendas e receita vêm direto da UTMify. Leads, conversas e checkouts não são
+            matrículas — matrícula real virá da futura integração com o sistema EVO.
+          </p>
+        </section>
+      ) : null}
 
       {/* Por unidade */}
       {hasData ? (

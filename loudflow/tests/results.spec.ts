@@ -133,6 +133,8 @@ async function teardownFixture(f: Fixture) {
 }
 
 function row(name: string, spendCents = 100, extra: Partial<AdCampaignRow> = {}): AdCampaignRow {
+  const impressions = extra.impressions ?? 1000;
+  const frequency = extra.frequency ?? 1.2;
   return {
     provider: "meta",
     externalAccountId: extra.externalAccountId ?? "acc-1",
@@ -141,12 +143,20 @@ function row(name: string, spendCents = 100, extra: Partial<AdCampaignRow> = {})
     name,
     status: extra.status ?? "ACTIVE",
     spendCents,
-    impressions: extra.impressions ?? 1000,
+    impressions,
     clicks: extra.clicks ?? 10,
     landingPageViews: extra.landingPageViews ?? 5,
     initiateCheckouts: extra.initiateCheckouts ?? null,
     leads: extra.leads ?? null,
-    frequency: extra.frequency ?? 1.2,
+    frequency,
+    reachEstimated:
+      extra.reachEstimated ?? (frequency > 0 ? Math.round(impressions / frequency) : null),
+    conversations: extra.conversations ?? null,
+    approvedOrdersCount: extra.approvedOrdersCount ?? 0,
+    pendingOrdersCount: extra.pendingOrdersCount ?? 0,
+    refundedOrdersCount: extra.refundedOrdersCount ?? 0,
+    revenueCents: extra.revenueCents ?? 0,
+    grossRevenueCents: extra.grossRevenueCents ?? 0,
   };
 }
 

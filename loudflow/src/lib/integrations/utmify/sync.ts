@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "../../supabase/types";
+import type { Database, SyncSource } from "../../supabase/types";
 import type {
   UtmifyClient,
   AdCampaignRow,
@@ -15,6 +15,10 @@ export type SyncOptions = {
   fromYmd: string;
   toYmd: string;
   triggeredBy: "manual" | "cron" | "bootstrap";
+  // 'utmify_http' (default) para o cliente HTTP oficial (a confirmar),
+  // 'utmify_mcp' para o script de import controlado que consome o payload
+  // exportado pelo MCP do Claude Code.
+  source?: SyncSource;
 };
 
 export type SyncOutcome = {
@@ -42,6 +46,7 @@ export async function runUtmifySync(
       provider: "meta",
       status: "running",
       triggered_by: options.triggeredBy,
+      source: options.source ?? "utmify_http",
       period_from: options.fromYmd,
       period_to: options.toYmd,
     })
@@ -185,6 +190,13 @@ async function persistDay(
         initiate_checkouts: row.initiateCheckouts,
         leads: row.leads,
         frequency: row.frequency,
+        reach_estimated: row.reachEstimated,
+        conversations: row.conversations,
+        approved_orders_count: row.approvedOrdersCount,
+        pending_orders_count: row.pendingOrdersCount,
+        refunded_orders_count: row.refundedOrdersCount,
+        revenue_cents: row.revenueCents,
+        gross_revenue_cents: row.grossRevenueCents,
         synced_at: now,
       };
     })

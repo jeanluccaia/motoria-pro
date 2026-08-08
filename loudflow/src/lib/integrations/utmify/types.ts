@@ -2,6 +2,11 @@
 // no MCP oficial (nível "campaign", Meta Ads) — as métricas são exatamente
 // as que a fonte fornece. Colunas anuláveis abaixo representam
 // "métrica não fornecida pela fonte" — diferente de zero.
+//
+// Contagens sempre preenchidas pela UTMify (approvedOrdersCount,
+// pendingOrdersCount, refundedOrdersCount) ficam como number com default
+// 0 na normalização. Reach é sempre derivado (nunca vem direto do MCP):
+// vira number quando frequency > 0, senão null.
 
 export type AdCampaignRow = {
   provider: "meta" | "google";
@@ -17,6 +22,13 @@ export type AdCampaignRow = {
   initiateCheckouts: number | null;
   leads: number | null;
   frequency: number | null;
+  reachEstimated: number | null;
+  conversations: number | null;
+  approvedOrdersCount: number;
+  pendingOrdersCount: number;
+  refundedOrdersCount: number;
+  revenueCents: number;
+  grossRevenueCents: number;
 };
 
 export type UtmifyDailyResult = {

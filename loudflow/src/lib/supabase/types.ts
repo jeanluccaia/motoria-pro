@@ -73,6 +73,7 @@ export type Task = {
 export type AdProvider = "meta" | "google";
 export type CampaignUnitSource = "auto" | "manual" | "unresolved";
 export type SyncStatus = "running" | "success" | "partial" | "error";
+export type SyncSource = "utmify_http" | "utmify_mcp";
 
 export type SyncRun = {
   id: string;
@@ -80,6 +81,7 @@ export type SyncRun = {
   provider: AdProvider;
   status: SyncStatus;
   triggered_by: string;
+  source: SyncSource;
   period_from: string;
   period_to: string;
   rows_upserted: number;
@@ -122,6 +124,13 @@ export type CampaignSnapshot = {
   initiate_checkouts: number | null;
   leads: number | null;
   frequency: number | null;
+  reach_estimated: number | null;
+  conversations: number | null;
+  approved_orders_count: number;
+  pending_orders_count: number;
+  refunded_orders_count: number;
+  revenue_cents: number;
+  gross_revenue_cents: number;
   synced_at: string;
 };
 
