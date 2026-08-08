@@ -1,12 +1,25 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { requireAdmin } from "@/lib/auth/session";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Role } from "@/lib/supabase/types";
 
 const ROLES: Role[] = ["admin", "marketing", "partner", "unit_manager"];
+
+// Deriva a origem correta em qualquer ambiente. Prioriza NEXT_PUBLIC_APP_URL
+// (produção quando setada), depois VERCEL_URL (auto em preview/prod), e por
+// último o Host do request atual. Nunca fica em string vazia.
+async function currentOrigin(): Promise<string> {
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  const h = await headers();
+  const host = h.get("host") ?? "localhost:3000";
+  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  return `${proto}://${host}`;
+}
 
 function parseRole(v: FormDataEntryValue | null): Role {
   const s = String(v ?? "");
@@ -37,7 +50,7 @@ export async function inviteUser(formData: FormData) {
   }
 
   const admin = getSupabaseAdmin();
-  const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/auth/callback`;
+  const redirectTo = `${await currentOrigin()}/api/auth/callback`;
 
   const { data: invited, error: inviteErr } = await admin.auth.admin.inviteUserByEmail(email, {
     redirectTo,

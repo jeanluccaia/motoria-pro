@@ -22,9 +22,10 @@ export function LoginForm({ next }: { next: string }) {
     setState({ kind: "loading" });
 
     const supabase = createSupabaseBrowserClient();
-    const origin =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      (typeof window !== "undefined" ? window.location.origin : "");
+    // Origin é sempre calculada da URL onde o browser está. Nunca dependemos
+    // de NEXT_PUBLIC_APP_URL — se o dev tiver um valor local no .env e
+    // acessar o app pelo Preview, o email chegaria com o host errado.
+    const origin = window.location.origin;
     const redirectTo = `${origin}/api/auth/callback?next=${encodeURIComponent(next)}`;
 
     const { error } = await supabase.auth.signInWithOtp({
