@@ -12,7 +12,7 @@ import {
   NOT_AVAILABLE_LABEL,
 } from "@/lib/metrics/format";
 import { aggregateMetrics, ctrPercent, cpcCents, costPerLpvCents } from "@/lib/metrics/derived";
-import { isUtmifyConfigured } from "@/lib/integrations/utmify/env";
+import { computeCoverage } from "@/lib/metrics/coverage";
 import type { Campaign, CampaignSnapshot } from "@/lib/supabase/types";
 import { KpiCard } from "./kpi-card";
 import { SyncButton } from "./sync-button";
@@ -46,12 +46,12 @@ export default async function ResultadosPage(props: PageProps<"/resultados">) {
   const supabase = await createSupabaseServerClient();
   const admin = getSupabaseAdmin();
   const isAdmin = session.role === "admin";
-  const configured = isUtmifyConfigured();
 
-  // Carregamentos em paralelo. `lastSync` usa admin client para permitir que
-  // sócio/marketing/unit_manager vejam a data — a leitura é restrita a admin
-  // via RLS, mas a informação "quando foi atualizado" é útil para todos.
-  const [campaignsRes, snapshotsRes, unitsRes, lastSyncRes] = await Promise.all([
+  // Carregamentos em paralelo. `lastSync` e `firstSnapshot` usam admin client
+  // para permitir que sócio/marketing/unit_manager vejam a cobertura real —
+  // dados agregados/técnicos sem PII, sem quebrar RLS por unidade nas outras
+  // consultas.
+  const [campaignsRes, snapshotsRes, unitsRes, lastSyncRes, firstSnapshotRes] = await Promise.all([
     supabase
       .from("campaigns")
       .select("id, provider, external_id, name, status, unit_id, unit_source")
@@ -76,6 +76,13 @@ export default async function ResultadosPage(props: PageProps<"/resultados">) {
       .eq("organization_id", session.organizationId)
       .in("status", ["success", "partial"])
       .order("finished_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    admin
+      .from("campaign_snapshots")
+      .select("snapshot_date")
+      .eq("organization_id", session.organizationId)
+      .order("snapshot_date", { ascending: true })
       .limit(1)
       .maybeSingle(),
   ]);
@@ -135,6 +142,16 @@ export default async function ResultadosPage(props: PageProps<"/resultados">) {
 
   const lastSyncLabel = formatDateTimeBr(lastSyncRes.data?.finished_at);
   const lastSyncStatus = lastSyncRes.data?.status ?? null;
+  const firstAvailableYmd = firstSnapshotRes.data?.snapshot_date ?? null;
+
+  // Cobertura do período selecionado. Diferencia "dia sem sync" de
+  // "dia sincronizado com métrica zero".
+  const coverage = computeCoverage({
+    fromYmd: range.fromYmd,
+    toYmd: range.toYmd,
+    snapshotDatesInPeriod: filteredSnapshots.map((s) => s.snapshot_date),
+    firstAvailableYmd,
+  });
 
   // Ranking simples (top 5 por spend). Só faz sentido quando há dados.
   const perCampaign = new Map<
@@ -199,8 +216,26 @@ export default async function ResultadosPage(props: PageProps<"/resultados">) {
             ? `${periodLabel} · Atualizado em ${lastSyncLabel}${lastSyncStatus === "partial" ? " (sincronização parcial)" : ""}`
             : `${periodLabel} · Aguardando primeira sincronização`
         }
-        actions={isAdmin ? <SyncButton configured={configured} /> : undefined}
+        actions={isAdmin ? <SyncButton /> : undefined}
       />
+
+      {firstAvailableYmd ? (
+        <p className="mb-4 text-xs text-lf-muted">
+          Dados disponíveis desde {formatDateBr(firstAvailableYmd)}.
+        </p>
+      ) : null}
+
+      {coverage.partial ? (
+        <div
+          role="status"
+          className="mb-6 rounded-md border border-border/60 bg-lf-graphite/50 p-3 text-xs text-lf-muted"
+        >
+          Este período possui dados parciais.{" "}
+          {coverage.missingDays.length}{" "}
+          {coverage.missingDays.length === 1 ? "dia sem sincronização" : "dias sem sincronização"}
+          {" "}dentro do intervalo selecionado.
+        </div>
+      ) : null}
 
       {/* Barra de filtros de período */}
       <section className="mb-6 flex flex-wrap gap-2">
@@ -300,9 +335,7 @@ export default async function ResultadosPage(props: PageProps<"/resultados">) {
           }
           description={
             totalCampaigns === 0
-              ? configured
-                ? "Peça ao administrador para clicar em Sincronizar agora."
-                : "A integração com a UTMify ainda não foi configurada. Contate o administrador."
+              ? "A sincronização automática com a UTMify ainda não está disponível. Enquanto isso, os dados existentes são preservados."
               : "Nenhuma campanha teve atividade no intervalo escolhido com os filtros atuais."
           }
         />

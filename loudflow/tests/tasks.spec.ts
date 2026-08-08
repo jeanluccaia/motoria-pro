@@ -334,10 +334,14 @@ test.describe("Tasks — RLS + regras de negócio", () => {
   });
 
   test("filtros derivados: hoje, atrasada, próxima, concluída", async () => {
-    const now = Date.now();
-    const past = new Date(now - 2 * 24 * 60 * 60 * 1000).toISOString();
-    const soon = new Date(now + 4 * 60 * 60 * 1000).toISOString();
-    const future = new Date(now + 7 * 24 * 60 * 60 * 1000).toISOString();
+    // Datas ancoradas em meio-dia de São Paulo para não depender do horário
+    // em que a suíte é executada — "agora + 4h" cruzava a meia-noite quando
+    // rodava depois de 20h BRT.
+    const { todayYmd, addDaysYmd } = await import("../src/lib/dates/period");
+    const todayYmdSp = todayYmd();
+    const past = `${addDaysYmd(todayYmdSp, -2)}T12:00:00-03:00`;
+    const soon = `${todayYmdSp}T12:00:00-03:00`;
+    const future = `${addDaysYmd(todayYmdSp, 7)}T12:00:00-03:00`;
 
     const overdue = await insertTaskAsAdmin(fixture, { title: "O-Overdue", due_at: past });
     const today = await insertTaskAsAdmin(fixture, { title: "O-Today", due_at: soon });

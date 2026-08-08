@@ -1,53 +1,30 @@
-"use client";
-
-import { useState, useTransition } from "react";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { syncUtmifyNow } from "./actions";
+import { INTEGRATION_UNAVAILABLE_REASON } from "@/lib/integrations/utmify/env";
 
-// Botão "Sincronizar agora" — só rendrizado para admin (o pai decide).
-// Bloqueia cliques duplicados via `useTransition` + estado local `pending`.
-export function SyncButton({ configured }: { configured: boolean }) {
-  const [pending, startTransition] = useTransition();
-  const [message, setMessage] = useState<string | null>(null);
-  const [ok, setOk] = useState<boolean>(true);
-
-  const disabled = pending || !configured;
-  const title = !configured
-    ? "UTMify não configurada — peça ao administrador para preencher UTMIFY_*."
-    : "Sincroniza o dia anterior fechado.";
-
+// Botão "Sincronizar agora" — renderizado apenas para admin.
+//
+// Nesta versão a sincronização automática está indisponível (contrato HTTP
+// oficial da UTMify para leitura de métricas ainda não confirmado). O botão
+// aparece desabilitado com a explicação por baixo — deixa o admin ciente
+// da limitação sem prometer uma ação que ainda não funciona.
+export function SyncButton() {
   return (
     <div className="flex flex-col items-end gap-1">
       <Button
         type="button"
         variant="outline"
         size="sm"
-        disabled={disabled}
-        title={title}
-        onClick={() => {
-          setMessage(null);
-          startTransition(async () => {
-            const result = await syncUtmifyNow();
-            setOk(result.ok);
-            setMessage(result.message);
-          });
-        }}
+        disabled
+        title={INTEGRATION_UNAVAILABLE_REASON}
         className="gap-2"
       >
-        <RefreshCw className={"size-4 " + (pending ? "animate-spin" : "")} />
-        {pending ? "Sincronizando…" : "Sincronizar agora"}
+        <RefreshCw className="size-4" />
+        Sincronizar agora
       </Button>
-      {message ? (
-        <p
-          role="status"
-          className={
-            "text-xs " + (ok ? "text-lf-muted" : "text-destructive")
-          }
-        >
-          {message}
-        </p>
-      ) : null}
+      <p role="status" className="max-w-xs text-right text-xs text-lf-muted">
+        {INTEGRATION_UNAVAILABLE_REASON}
+      </p>
     </div>
   );
 }
