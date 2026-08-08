@@ -114,4 +114,78 @@ test.describe("Coverage do período", () => {
     expect(cov.empty).toBe(true);
     expect(cov.firstAvailableYmd).toBe("2026-08-05");
   });
+
+  test("mesmo dia repetido não infla presentDays (dedupe por Set)", () => {
+    // Regressão da Fase 3.2A: o mesmo snapshot_date aparecendo N vezes
+    // no input NÃO pode contar como N dias sincronizados. A cobertura
+    // é sobre datas distintas, não sobre linhas.
+    const cov = computeCoverage({
+      fromYmd: "2026-08-05",
+      toYmd: "2026-08-05",
+      snapshotDatesInPeriod: ["2026-08-05", "2026-08-05", "2026-08-05"],
+      firstAvailableYmd: "2026-08-05",
+    });
+    expect(cov.presentDays).toEqual(["2026-08-05"]);
+    expect(cov.presentDays.length).toBe(1);
+    expect(cov.totalDays).toBe(1);
+    expect(cov.fullyCovered).toBe(true);
+  });
+
+  test("múltiplas campanhas no mesmo dia contam como 1 data sincronizada", () => {
+    // Cenário real: 15+ campanhas com snapshot no mesmo dia. A cobertura
+    // deve refletir 1 dia (não 15), pois "dia sincronizado" é sobre a
+    // existência de qualquer snapshot naquela data.
+    const dailyDupes = Array.from({ length: 17 }, () => "2026-08-05");
+    const cov = computeCoverage({
+      fromYmd: "2026-08-01",
+      toYmd: "2026-08-07",
+      snapshotDatesInPeriod: dailyDupes,
+      firstAvailableYmd: "2026-08-05",
+    });
+    expect(cov.presentDays).toEqual(["2026-08-05"]);
+    expect(cov.missingDays.length).toBe(6);
+    expect(cov.totalDays).toBe(7);
+    expect(cov.partial).toBe(true);
+  });
+
+  test("Fase 3.2A: 30 dias com 10 datas sincronizadas via múltiplas campanhas → 10/20", () => {
+    // Reprodução exata do cenário: 10 dias contínuos (2026-07-29 a
+    // 2026-08-07) foram importados via MCP. Cada dia tem entre 3 e 17
+    // campanhas com snapshot. O preset "30 dias" (2026-07-09 a 2026-08-07)
+    // deve reportar 10 dias sincronizados e 20 ausentes — não 104 nem 12
+    // nem qualquer outro valor.
+    const days = [
+      "2026-07-29", "2026-07-30", "2026-07-31",
+      "2026-08-01", "2026-08-02", "2026-08-03",
+      "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07",
+    ];
+    // Simular a distribuição real observada em produção: várias campanhas
+    // por dia (repetição intencional).
+    const perDay: Record<string, number> = {
+      "2026-07-29": 16, "2026-07-30": 13, "2026-07-31": 8,
+      "2026-08-01": 3, "2026-08-02": 3, "2026-08-03": 9,
+      "2026-08-04": 10, "2026-08-05": 17, "2026-08-06": 13,
+      "2026-08-07": 12,
+    };
+    const inflatedDates: string[] = [];
+    for (const d of days) {
+      for (let i = 0; i < perDay[d]; i++) inflatedDates.push(d);
+    }
+    expect(inflatedDates.length).toBe(104); // sanity check: soma das rows
+
+    const cov = computeCoverage({
+      fromYmd: "2026-07-09",
+      toYmd: "2026-08-07",
+      snapshotDatesInPeriod: inflatedDates,
+      firstAvailableYmd: "2026-07-29",
+    });
+
+    expect(cov.totalDays).toBe(30);
+    expect(cov.presentDays.length).toBe(10);
+    expect(cov.missingDays.length).toBe(20);
+    expect(cov.partial).toBe(true);
+    expect(cov.fullyCovered).toBe(false);
+    expect(cov.empty).toBe(false);
+    expect(cov.presentDays).toEqual(days);
+  });
 });

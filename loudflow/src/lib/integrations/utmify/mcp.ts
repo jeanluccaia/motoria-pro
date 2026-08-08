@@ -19,6 +19,21 @@
 //   * Campos ausentes/undefined nas contagens NOT NULL viram 0 na
 //     normalização, e nos nullables (LPV, IC, leads, conversations)
 //     permanecem null.
+//
+// Divergência conhecida entre agregação diária e agregação por range
+// (comportamento do Meta reporting, não bug do adapter):
+//   Somar N chamadas de 1 dia via este adapter NÃO é aritmeticamente igual
+//   a pedir o mesmo range ao Meta em uma única chamada. Meta aplica
+//   deduplicação de unique events (clicks, LPV, IC) em janelas maiores
+//   que 1 dia e reconciliações de spend (invalid traffic refunds) ao
+//   agregar. Exemplo observado na Fase 3.2A (2026-07-29..08-07):
+//     * soma 10 dailies : 167.894c spend · 1.118 clk · 235 LPV · 113 IC
+//     * range 10d único : 167.693c spend · 1.114 clk · 231 LPV · 111 IC
+//     * dashboard_summary: idêntico ao range único
+//   Ou seja: os dois endpoints agregados coincidem entre si; a diferença
+//   nasce da agregação diária. O adapter NÃO reconcilia — o painel
+//   precisa da granularidade diária para os presets Ontem/7d/30d. Divergência
+//   típica: 0,1–0,2% em spend, 1–2% em métricas de unique events.
 
 import type { AdCampaignRow, UtmifyDailyResult } from "./types";
 
