@@ -155,7 +155,7 @@ function askMasked(tty, prompt) {
 // Discovery / apply
 // ============================================================
 
-async function loadTargetEmails() {
+async function loadTargetEmails({ allRoles = false } = {}) {
   const envList = process.env.LF_ADMIN_EMAILS;
   if (envList) {
     return envList
@@ -163,11 +163,14 @@ async function loadTargetEmails() {
       .map((s) => s.trim().toLowerCase())
       .filter(Boolean);
   }
-  const { data, error } = await admin
+  // `allRoles=true` no modo --single: alinhamos a senha de multiplas
+  // contas da mesma organizacao (nao so admins). O filtro por papel
+  // fica na skip list — controle explicito, sem surpresa.
+  const query = admin
     .from("user_organizations")
-    .select("user_id, users!inner(email)")
-    .eq("role", "admin");
-  if (error) fail(`Falha ao listar admins: ${error.message}`);
+    .select("user_id, users!inner(email)");
+  const { data, error } = await (allRoles ? query : query.eq("role", "admin"));
+  if (error) fail(`Falha ao listar usuarios: ${error.message}`);
   return (data ?? [])
     .map((r) => (r.users?.email ?? "").toLowerCase())
     .filter(Boolean)
@@ -300,8 +303,10 @@ async function runSingle() {
     );
   }
 
-  const allEmails = await loadTargetEmails();
-  if (allEmails.length === 0) fail("Nenhum admin encontrado.");
+  // --single: alinhar senha de N contas da org (qualquer papel), pulando
+  // apenas as listadas em LF_SKIP_EMAILS (default: jean.lucca@icloud.com).
+  const allEmails = await loadTargetEmails({ allRoles: true });
+  if (allEmails.length === 0) fail("Nenhum membro da organizacao encontrado.");
 
   const skip = parseSkipEmails();
   const targets = allEmails.filter((e) => !skip.has(e));

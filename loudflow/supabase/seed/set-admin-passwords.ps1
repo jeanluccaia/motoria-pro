@@ -92,12 +92,19 @@ function ConvertFrom-SecureStringToPlain {
 
 # ---- descobre admins ----------------------------------------------
 
-Write-Host "Consultando admins da rede..."
-# Delega a listagem para list_admins.mjs (arquivo separado, sem escape
-# hell). Cada linha do stdout eh um e-mail em minusculas.
-$listOutput = node --env-file=.env.local supabase/seed/list_admins.mjs
+if ($Single) {
+    # -Single: alinhar a senha de N contas da mesma org, qualquer papel.
+    # Discovery via list_org_members (nao filtra por role='admin').
+    Write-Host "Consultando membros da organizacao..."
+    $listScript = "supabase/seed/list_org_members.mjs"
+} else {
+    # modo individual: mesma abordagem historica, so admins.
+    Write-Host "Consultando admins da rede..."
+    $listScript = "supabase/seed/list_admins.mjs"
+}
+$listOutput = node --env-file=.env.local $listScript
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "Falha ao listar admins."
+    Write-Error "Falha ao listar usuarios."
     exit 1
 }
 $emails = @()
