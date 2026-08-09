@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { LogOut } from "lucide-react";
+import Link from "next/link";
+import { KeyRound, LogOut } from "lucide-react";
 import type { Session } from "@/lib/auth/session";
 import { roleLabel } from "@/lib/auth/labels";
 import loudfitLockup from "@/../public/brand/loudfit-lockup.png";
@@ -39,6 +40,14 @@ export function Topbar({ session }: { session: Session }) {
         >
           {(session.name ?? session.email).slice(0, 1).toUpperCase()}
         </div>
+        <Link
+          href="/conta"
+          aria-label="Minha conta e trocar senha"
+          title="Minha conta"
+          className="grid size-9 place-items-center rounded border border-transparent text-lf-muted transition-colors hover:border-border hover:text-foreground lf-focus"
+        >
+          <KeyRound className="size-4" />
+        </Link>
         <form action="/api/auth/signout" method="post">
           <button
             type="submit"
