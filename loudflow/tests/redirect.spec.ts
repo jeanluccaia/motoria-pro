@@ -1,10 +1,25 @@
 import { test, expect } from "@playwright/test";
-import { safeNext, buildEmailRedirectTo, DEFAULT_NEXT } from "../src/lib/auth/redirect";
+import {
+  safeNext,
+  buildEmailRedirectTo,
+  DEFAULT_NEXT,
+  NEXT_COOKIE,
+} from "../src/lib/auth/redirect";
 
-// Fase 3.2A / higiene de login — proteções contra open-redirect no fluxo
-// do Magic Link. Se qualquer um desses casos quebrar, a página de login
-// pode ser abusada para redirecionar o usuário autenticado para um host
-// externo. Nunca vale confiar em `next` cru.
+// Higiene de login — proteções contra open-redirect no fluxo do Magic
+// Link. Se qualquer um desses casos quebrar, a página de login pode ser
+// abusada para redirecionar o usuário autenticado para um host externo.
+// Nunca vale confiar em `next` cru.
+//
+// Contrato desde a migração para o fluxo SSR (verifyOtp + token_hash):
+//   * `buildEmailRedirectTo(origin)` devolve SÓ a origem, sem path e
+//     sem query. Quem monta `/auth/confirm?token_hash=...` é o template
+//     do Supabase via `{{ .RedirectTo }}` — duplicar aqui geraria path
+//     quebrado (`.../resultados/auth/confirm?token_hash=...`).
+//   * `next` viaja via cookie NEXT_COOKIE, gravado no navegador que
+//     pediu o link. Cross-device (Mail WebView no celular, link
+//     clicado no desktop) o cookie não existe — o /auth/confirm cai no
+//     DEFAULT_NEXT. Sessão continua sendo criada.
 
 test.describe("safeNext", () => {
   test("aceita path interno absoluto simples", () => {
@@ -55,44 +70,47 @@ test.describe("safeNext", () => {
   });
 });
 
-test.describe("buildEmailRedirectTo", () => {
-  test("usa origin passado literalmente (browser fornece window.location.origin)", () => {
-    const url = buildEmailRedirectTo("https://loudflow-abc.vercel.app", "/resultados");
-    expect(url).toBe("https://loudflow-abc.vercel.app/api/auth/callback?next=%2Fresultados");
-  });
-
-  test("funciona igual para produção, Preview e localhost", () => {
-    expect(buildEmailRedirectTo("https://loudflow.com.br", "/tarefas")).toBe(
-      "https://loudflow.com.br/api/auth/callback?next=%2Ftarefas",
+test.describe("buildEmailRedirectTo (fluxo SSR — bare origin)", () => {
+  test("devolve a origem crua, sem path e sem query", () => {
+    expect(buildEmailRedirectTo("https://loudflow-abc.vercel.app")).toBe(
+      "https://loudflow-abc.vercel.app",
     );
-    expect(buildEmailRedirectTo("https://loudflow-git-xyz-team.vercel.app", "/config")).toBe(
-      "https://loudflow-git-xyz-team.vercel.app/api/auth/callback?next=%2Fconfig",
+    expect(buildEmailRedirectTo("https://loudflow.com.br")).toBe(
+      "https://loudflow.com.br",
     );
-    expect(buildEmailRedirectTo("http://localhost:3000", "/resultados")).toBe(
-      "http://localhost:3000/api/auth/callback?next=%2Fresultados",
+    expect(buildEmailRedirectTo("http://localhost:3000")).toBe(
+      "http://localhost:3000",
     );
   });
 
-  test("`next` malicioso é neutralizado antes de entrar na querystring", () => {
-    const url = buildEmailRedirectTo("https://loudflow.com.br", "//evil.com/x");
-    // Passa por safeNext → cai no fallback /resultados, nunca "//evil.com/x".
-    expect(url).toBe("https://loudflow.com.br/api/auth/callback?next=%2Fresultados");
-
-    const url2 = buildEmailRedirectTo("https://loudflow.com.br", "https://evil.com");
-    expect(url2).toBe("https://loudflow.com.br/api/auth/callback?next=%2Fresultados");
+  test("não injeta /auth/confirm nem /api/auth/callback", () => {
+    // Se voltarmos a duplicar o path aqui, o template do Supabase gera
+    // `<origin>/auth/confirm/auth/confirm?token_hash=...` — link quebrado.
+    const url = buildEmailRedirectTo("https://loudflow-preview.vercel.app");
+    expect(url).not.toContain("/auth/confirm");
+    expect(url).not.toContain("/api/auth");
+    expect(url).not.toContain("?");
+    expect(url).not.toContain("next=");
   });
 
   test("nenhum localhost é embutido implicitamente pela lógica", () => {
-    // O helper NUNCA injeta origem por conta própria: se o chamador der
-    // uma URL de Preview, o resultado tem a URL de Preview.
-    const url = buildEmailRedirectTo("https://loudflow-preview.vercel.app", "/");
+    const url = buildEmailRedirectTo("https://loudflow-preview.vercel.app");
     expect(url).not.toContain("localhost");
-    expect(url.startsWith("https://loudflow-preview.vercel.app/")).toBe(true);
+    expect(url).toBe("https://loudflow-preview.vercel.app");
   });
 });
 
-test.describe("Integração com `new URL(next, origin)` do callback", () => {
-  test("path interno resolve dentro da origem do callback", () => {
+test.describe("NEXT_COOKIE — contrato de nome", () => {
+  test("NEXT_COOKIE tem nome estável — mudar quebra /auth/confirm", () => {
+    // /auth/confirm lê `lf_next` do jar de cookies. Se este nome muda
+    // sem atualizar o route handler, o destino do Magic Link é perdido
+    // silenciosamente em cross-device.
+    expect(NEXT_COOKIE).toBe("lf_next");
+  });
+});
+
+test.describe("Integração com `new URL(next, origin)` do /auth/confirm", () => {
+  test("path interno resolve dentro da origem que atendeu o confirm", () => {
     const origin = "https://loudflow-preview.vercel.app";
     const dest = new URL(safeNext("/resultados"), origin);
     expect(dest.toString()).toBe(`${origin}/resultados`);
@@ -110,9 +128,10 @@ test.describe("Integração com `new URL(next, origin)` do callback", () => {
   });
 
   test("localhost do dev não é usado no Preview", () => {
-    // Confirma expectativa arquitetural: o callback constrói destino
-    // sempre a partir de `url.origin` (a origem em que a request chegou),
-    // não de uma env fixa. Simulamos as 3 origens típicas.
+    // Confirma expectativa arquitetural: o /auth/confirm constrói
+    // destino sempre a partir de `url.origin` (a origem em que a
+    // request chegou), não de uma env fixa. Simulamos as 3 origens
+    // típicas.
     for (const origin of [
       "http://localhost:3000",
       "https://loudflow-abc.vercel.app",

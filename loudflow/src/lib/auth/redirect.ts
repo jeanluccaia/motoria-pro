@@ -1,13 +1,19 @@
-// Helpers de redirect para o fluxo de login. O único objetivo aqui é
-// impedir open-redirect: a query string `next` do login/callback nunca
-// pode virar uma URL externa. Só aceitamos paths internos absolutos
-// (começam com "/") e explicitamente rejeitamos padrões que o navegador
-// interpretaria como URL externa mesmo depois de encaixar em uma base.
+// Helpers de redirect para o fluxo de login. Objetivo:
+//   1. Impedir open-redirect — `next` nunca pode virar URL externa.
+//   2. Manter a origem do e-mail alinhada ao deployment de onde o pedido
+//      partiu (Preview volta para Preview, produção para produção, local
+//      para local). Nada de env fixa em código de produção.
 
 // Rota autenticada default pós-login. Escolhida por ser a página inicial
 // útil do app (painel de resultados). Se um dia mudar, é o único ponto
 // de troca.
 export const DEFAULT_NEXT = "/resultados";
+
+// Nome do cookie usado para preservar o destino do Magic Link entre o
+// pedido no navegador A e a validação em /auth/confirm no navegador B.
+// Se o link abre em outro device o cookie não existe — cai no DEFAULT_NEXT
+// (sessão continua sendo criada, só o destino é o padrão).
+export const NEXT_COOKIE = "lf_next";
 
 // Sanitiza o candidato a `next`. Retorna o fallback quando o valor é
 // vazio, ausente, ou pode ser interpretado como URL externa.
@@ -32,12 +38,15 @@ export function safeNext(
   return s;
 }
 
-// Monta o `emailRedirectTo` do Magic Link a partir da origem do
-// navegador atual. Chamador é sempre client-side — a origem vem de
-// `window.location.origin`, garantindo que o link no email volta para o
-// mesmo deployment (Preview, produção ou localhost) de onde o pedido foi
-// disparado. Nada de env fixa em código de produção.
-export function buildEmailRedirectTo(origin: string, next: string): string {
-  const safe = safeNext(next);
-  return `${origin}/api/auth/callback?next=${encodeURIComponent(safe)}`;
+// Origem que vai em `emailRedirectTo` do Magic Link. Retorna somente a
+// origem bare (sem path), porque o template do Supabase é responsável
+// por concatenar `/auth/confirm?token_hash={{ .TokenHash }}&type=email`
+// via `{{ .RedirectTo }}`. Duplicar `/auth/confirm` aqui geraria um path
+// quebrado (`.../resultados/auth/confirm?token_hash=...`).
+//
+// O `next` NÃO viaja mais na querystring: um cookie `lf_next` é gravado
+// no navegador que pede o link. Se o e-mail for aberto no mesmo device,
+// o cookie está lá; se abrir em outro, o destino cai no DEFAULT_NEXT.
+export function buildEmailRedirectTo(origin: string): string {
+  return origin;
 }
