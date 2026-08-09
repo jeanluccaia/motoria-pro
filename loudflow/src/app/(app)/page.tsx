@@ -3,7 +3,6 @@ import { ArrowRight, ListChecks, LineChart, Sparkles } from "lucide-react";
 import { requireSession, type Session } from "@/lib/auth/session";
 import { PageHeader } from "@/components/shell/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { roleLabel } from "@/lib/auth/labels";
 
 // Primeiro nome do usuário. Preferência: session.name (primeira
@@ -69,21 +68,40 @@ export default async function HomePage() {
           </div>
         </Link>
 
-        <Card>
-          <CardHeader className="flex-row items-center justify-between">
-            <div className="flex flex-col gap-1">
-              <CardTitle className="flex items-center gap-2">
-                <LineChart className="size-4 text-lf-muted" />
-                Resultados
-              </CardTitle>
-              <CardDescription>Painel diário puxado da UTMify.</CardDescription>
+        {/* Resultados — módulo disponível. Mesmo tratamento visual do
+            card Tarefas: card inteiro clicável, ícone/badge amarelo
+            Loud Fit, hover premium e discreto. */}
+        <Link
+          href="/resultados"
+          aria-label="Abrir resultados"
+          className="group block rounded-lg border border-border bg-card transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-lf-volt/70 hover:shadow-[0_10px_30px_-15px_rgba(255,224,0,0.35)] lf-focus"
+        >
+          <div className="flex flex-col gap-1.5 p-6">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-1">
+                <h3 className="flex items-center gap-2 text-lg font-semibold leading-none">
+                  <LineChart className="size-4 text-lf-volt" aria-hidden />
+                  Resultados
+                </h3>
+                <p className="text-sm text-lf-muted">Painel diário puxado da UTMify.</p>
+              </div>
+              <span
+                className="inline-flex items-center rounded-md border border-lf-volt/40 bg-lf-volt/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-lf-volt"
+                aria-label="módulo disponível"
+              >
+                Disponível
+              </span>
             </div>
-            <Badge variant="muted">Em breve</Badge>
-          </CardHeader>
-          <CardContent className="text-sm text-lf-muted">
-            Investimento, cliques, leads e checkouts por unidade e por campanha. Chega na Fase 3.
-          </CardContent>
-        </Card>
+            <p className="text-sm text-lf-muted">
+              Acompanhe investimento, cliques, leads e checkouts por unidade e campanha.
+            </p>
+          </div>
+          <div className="p-6 pt-0 text-sm">
+            <span className="inline-flex items-center gap-2 text-foreground transition-transform duration-200 ease-out group-hover:translate-x-0.5">
+              Ver resultados <ArrowRight className="size-4" aria-hidden />
+            </span>
+          </div>
+        </Link>
 
         <Card className="md:col-span-2">
           <CardHeader>
