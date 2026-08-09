@@ -1,40 +1,32 @@
 #!/usr/bin/env node
 // Define/atualiza senhas individuais para admins do Loud Flow.
 //
+// Modos:
+//   * Padrão (interativo): keypress events + mascaramento com "*",
+//     com fallback para CONIN$/CONOUT$ (Windows) e /dev/tty (POSIX)
+//     quando process.stdin não é TTY.
+//   * --stdin: lê JSON { "email": "senha", ... } do stdin, aplica.
+//     Usado pelo wrapper PowerShell set-admin-passwords.ps1.
+//
 // Segurança:
-//   * NENHUMA senha é lida de arquivo commitado nem de env variable.
-//   * Modo padrão: prompt interativo com echo desligado — a senha
-//     digitada NÃO aparece na tela e NÃO fica no histórico do shell.
-//   * Modo lote (--stdin): aceita JSON em stdin, útil para colar
-//     senhas de um cofre local e apagar em seguida. Nada é ecoado.
-//   * Nunca imprime a senha nem no console nem no log — só o e-mail e
-//     o resultado ("atualizada" / "senha curta" / "usuário não
-//     encontrado").
-//
-// Uso:
-//   node --env-file=.env.local supabase/seed/set_admin_passwords.mjs
-//     → busca todos os admins da org "loud-fit" e pergunta uma senha
-//       para cada. Enter em branco pula.
-//
-//   LF_ADMIN_EMAILS="a@b.com,c@d.com" \
-//     node --env-file=.env.local supabase/seed/set_admin_passwords.mjs
-//     → só pergunta pelos e-mails da lista.
-//
-//   type pw.json | node --env-file=.env.local ...set_admin_passwords.mjs --stdin
-//     → lê { "email": "senha", ... } via stdin, aplica, sai.
-//       Depois: `del pw.json` (ou `rm pw.json`).
-//
-// Requisitos:
-//   * SUPABASE_SERVICE_ROLE_KEY e NEXT_PUBLIC_SUPABASE_URL no ambiente.
-//   * Usuários já devem existir em auth.users. Não criamos ninguém
-//     novo por aqui — cadastro público continua desligado.
+//   * Nunca imprime a senha nem no console nem no log — só e-mail +
+//     resultado ("atualizada" / "senha curta" / erro específico).
+//   * Não persiste senha em arquivo — o buffer da promise é descartado
+//     assim que o Supabase confirma.
+//   * `for await (stdin)` NÃO é usado: causava
+//     `Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)` no
+//     Windows quando combinado com setRawMode. Usamos keypress via
+//     readline.emitKeypressEvents em cima do TTY, padrão consagrado
+//     (mesmo que inquirer / prompts / read-password usam).
 
 import { createClient } from "@supabase/supabase-js";
+import { emitKeypressEvents } from "node:readline";
+import { openSync } from "node:fs";
+import { ReadStream, WriteStream } from "node:tty";
+import { platform } from "node:process";
 
 const MIN_PASSWORD_LENGTH = 10;
-const CTRL_C = "";
-const DEL = "";
-const BS = "\b";
+const MAX_MISMATCH_ATTEMPTS = 3;
 
 function fail(msg) {
   console.error(msg);
@@ -50,59 +42,109 @@ const admin = createClient(url, key, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
-// ----- input helpers ------------------------------------------------
+// ============================================================
+// TTY / prompt
+// ============================================================
 
-async function readAllStdin() {
-  return new Promise((resolve) => {
-    let acc = "";
-    process.stdin.setEncoding("utf8");
-    process.stdin.on("data", (d) => (acc += d));
-    process.stdin.on("end", () => resolve(acc));
-  });
-}
-
-// Prompt sem exibir a senha na tela. Funciona em TTY (Windows Terminal,
-// PowerShell, bash/mingw). Fora de TTY (stdin redirecionado) devolve
-// null — caller decide.
-async function askHiddenLine(prompt) {
-  const stdin = process.stdin;
-  if (!stdin.isTTY) return null;
-  process.stdout.write(prompt);
-  stdin.setEncoding("utf8");
-  stdin.setRawMode(true);
-  let buf = "";
+// Devolve { input, output, close } — process.stdin/stdout quando são
+// TTY; caso contrário abre o console do OS diretamente. Isso é o que
+// resolve o cenário `npm run admin:passwords` no Windows, onde o npm
+// às vezes pipeia stdio e faz `process.stdin.isTTY === false` mesmo
+// rodando num terminal real.
+function openTTY() {
+  if (process.stdin.isTTY && process.stdout.isTTY) {
+    return { input: process.stdin, output: process.stdout, close: () => {} };
+  }
   try {
-    for await (const chunk of stdin) {
-      for (const ch of chunk) {
-        // Enter finaliza a linha.
-        if (ch === "\r" || ch === "\n") {
-          process.stdout.write("\n");
-          return buf;
+    const inPath = platform === "win32" ? "CONIN$" : "/dev/tty";
+    const outPath = platform === "win32" ? "CONOUT$" : "/dev/tty";
+    const inFd = openSync(inPath, "r+");
+    const outFd = openSync(outPath, "r+");
+    const input = new ReadStream(inFd);
+    const output = new WriteStream(outFd);
+    return {
+      input,
+      output,
+      close: () => {
+        try {
+          input.destroy();
+        } catch {
+          /* noop */
         }
-        // Ctrl+C (U+0003) aborta o script todo.
-        if (ch === CTRL_C) {
-          process.stdout.write("\n");
-          process.exit(130);
+        try {
+          output.destroy();
+        } catch {
+          /* noop */
         }
-        // Backspace (POSIX U+007F, outros terminais U+0008) apaga —
-        // sem eco.
-        if (ch === DEL || ch === BS) {
-          if (buf.length > 0) buf = buf.slice(0, -1);
-          continue;
-        }
-        // Ignora outros caracteres de controle (< U+0020), exceto tab.
-        if (ch < " " && ch !== "\t") continue;
-        buf += ch;
-      }
-    }
-    return buf;
-  } finally {
-    stdin.setRawMode(false);
-    stdin.pause();
+      },
+    };
+  } catch {
+    return null;
   }
 }
 
-// ----- admin discovery ---------------------------------------------
+// Prompt de senha mascarada. Cada tecla imprimível vira `*` na tela.
+// Backspace apaga (com feedback visual `\b \b`). Ctrl+C aborta o
+// script inteiro. Enter finaliza a linha e resolve a promise.
+function askMasked(tty, prompt) {
+  return new Promise((resolve) => {
+    const { input, output } = tty;
+    output.write(prompt);
+    emitKeypressEvents(input);
+    input.setRawMode(true);
+    input.resume();
+
+    let buf = "";
+    const cleanup = () => {
+      input.removeListener("keypress", onKeypress);
+      try {
+        input.setRawMode(false);
+      } catch {
+        /* noop */
+      }
+      input.pause();
+    };
+
+    const onKeypress = (str, keyMeta) => {
+      const key = keyMeta ?? {};
+      // Ctrl+C — aborta todo o script.
+      if (key.ctrl && key.name === "c") {
+        output.write("\n");
+        cleanup();
+        process.exit(130);
+      }
+      // Enter / Return — fim da linha.
+      if (key.name === "return" || key.name === "enter") {
+        output.write("\n");
+        cleanup();
+        resolve(buf);
+        return;
+      }
+      // Backspace / Delete — apaga um caractere e um `*`.
+      if (key.name === "backspace" || key.name === "delete") {
+        if (buf.length > 0) {
+          buf = buf.slice(0, -1);
+          output.write("\b \b");
+        }
+        return;
+      }
+      // Ignora setas, F-keys, page-up/down, etc. Nomes de teclas
+      // especiais têm mais de 1 char (ex.: "up", "left", "escape").
+      if (key.name && key.name.length > 1) return;
+      // Aceita apenas caracteres imprimíveis únicos.
+      if (str && str.length === 1 && str >= " ") {
+        buf += str;
+        output.write("*");
+      }
+    };
+
+    input.on("keypress", onKeypress);
+  });
+}
+
+// ============================================================
+// Discovery / apply
+// ============================================================
 
 async function loadTargetEmails() {
   const envList = process.env.LF_ADMIN_EMAILS;
@@ -123,45 +165,7 @@ async function loadTargetEmails() {
     .sort();
 }
 
-async function collectPairsInteractive(emails) {
-  if (!process.stdin.isTTY) {
-    fail(
-      "Sem TTY para prompt interativo. Use `--stdin` com JSON ou LF_ADMIN_EMAILS + terminal.",
-    );
-  }
-  console.log(`Vou pedir a senha de ${emails.length} admin(s). Enter em branco pula.`);
-  console.log(`(mínimo ${MIN_PASSWORD_LENGTH} caracteres; nada é ecoado)`);
-  const pairs = new Map();
-  for (const email of emails) {
-const pw = await askHiddenLine(`  ${email}: `);
-    if (pw && pw.length > 0) pairs.set(email, pw);
-  }
-  return pairs;
-}
-
-async function collectPairsFromStdinJson() {
-  const raw = await readAllStdin();
-  let obj;
-  try {
-    obj = JSON.parse(raw);
-  } catch (e) {
-    fail(`JSON inválido no stdin: ${e.message}`);
-  }
-  if (!obj || typeof obj !== "object") fail("Esperado objeto JSON { email: senha, ... }.");
-  const pairs = new Map();
-  for (const [e, p] of Object.entries(obj)) {
-    if (typeof e !== "string" || typeof p !== "string") continue;
-    pairs.set(e.toLowerCase(), p);
-  }
-  return pairs;
-}
-
-// ----- apply --------------------------------------------------------
-
-async function applyPair(email, password) {
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    return { ok: false, reason: `senha curta (mínimo ${MIN_PASSWORD_LENGTH})` };
-  }
+async function applyPassword(email, password) {
   const { data: userRow, error: findErr } = await admin
     .from("users")
     .select("id")
@@ -177,45 +181,149 @@ async function applyPair(email, password) {
   return { ok: true };
 }
 
-// ----- main ---------------------------------------------------------
+// ============================================================
+// Interactive flow
+// ============================================================
 
-async function main() {
-  const useStdin = process.argv.includes("--stdin");
-  let pairs;
-  if (useStdin) {
-    pairs = await collectPairsFromStdinJson();
-  } else {
-    const emails = await loadTargetEmails();
-    if (emails.length === 0) fail("Nenhum admin encontrado.");
-    pairs = await collectPairsInteractive(emails);
-  }
-
-  if (pairs.size === 0) {
-    console.log("Nada a fazer — nenhuma senha fornecida.");
-    return;
-  }
-
-  let ok = 0;
-  let fails = 0;
-  for (const [email, password] of pairs) {
-const res = await applyPair(email, password);
-    if (res.ok) {
-      console.log(`  ${email}: atualizada.`);
-      ok += 1;
-    } else {
-      console.error(`  ${email}: ${res.reason}`);
-      fails += 1;
-    }
-  }
-  console.log(`\nFeito. Sucesso: ${ok}. Falhas: ${fails}.`);
-  if (useStdin) {
-    console.log(
-      "Lembrete: apague o arquivo local usado como stdin " +
-        "(ex.: `del pw.json` ou `rm pw.json`) e limpe o histórico do shell se " +
-        "colou a senha à mão.",
+async function runInteractive() {
+  const tty = openTTY();
+  if (!tty) {
+    fail(
+      "Sem TTY disponível para prompt interativo.\n" +
+        "Rode diretamente no seu terminal (sem npm run):\n" +
+        "  node --env-file=.env.local supabase/seed/set_admin_passwords.mjs\n" +
+        "Ou use o wrapper PowerShell no Windows:\n" +
+        "  powershell -ExecutionPolicy Bypass -File supabase/seed/set-admin-passwords.ps1",
     );
   }
-  if (fails > 0) process.exitCode = 1;
+
+  const emails = await loadTargetEmails();
+  if (emails.length === 0) fail("Nenhum admin encontrado.");
+
+  tty.output.write(`\nVou pedir a senha de ${emails.length} admin(s).\n`);
+  tty.output.write(`Cada tecla aparece como * na tela.\n`);
+  tty.output.write(`Mínimo ${MIN_PASSWORD_LENGTH} caracteres. Confirmação obrigatória.\n`);
+  tty.output.write(`Enter em branco pula o admin. Ctrl+C aborta o script.\n\n`);
+
+  const updated = [];
+  const failed = [];
+
+  for (const email of emails) {
+    tty.output.write(`${email}\n`);
+
+    let attempt = 0;
+    let handled = false;
+    while (attempt < MAX_MISMATCH_ATTEMPTS && !handled) {
+      attempt += 1;
+      const pw1 = await askMasked(tty, `  senha:    `);
+      if (pw1.length === 0) {
+        tty.output.write(`  pulado (senha em branco).\n\n`);
+        failed.push({ email, reason: "pulado pelo operador" });
+        handled = true;
+        break;
+      }
+      if (pw1.length < MIN_PASSWORD_LENGTH) {
+        tty.output.write(
+          `  senha muito curta (mínimo ${MIN_PASSWORD_LENGTH}). Tente de novo.\n`,
+        );
+        continue;
+      }
+      const pw2 = await askMasked(tty, `  confirme: `);
+      if (pw1 !== pw2) {
+        tty.output.write(`  as senhas não conferem. Tente de novo.\n`);
+        continue;
+      }
+      const res = await applyPassword(email, pw1);
+      if (res.ok) {
+        tty.output.write(`  atualizada.\n\n`);
+        updated.push(email);
+      } else {
+        tty.output.write(`  erro: ${res.reason}\n\n`);
+        failed.push({ email, reason: res.reason });
+      }
+      handled = true;
+    }
+    if (!handled) {
+      tty.output.write(
+        `  desisti depois de ${MAX_MISMATCH_ATTEMPTS} tentativas. Pulado.\n\n`,
+      );
+      failed.push({
+        email,
+        reason: `sem confirmação após ${MAX_MISMATCH_ATTEMPTS} tentativas`,
+      });
+    }
+  }
+
+  tty.output.write(`\nAtualizados (${updated.length}):\n`);
+  if (updated.length === 0) tty.output.write(`  (nenhum)\n`);
+  for (const e of updated) tty.output.write(`  ${e}\n`);
+  if (failed.length > 0) {
+    tty.output.write(`\nNão atualizados (${failed.length}):\n`);
+    for (const f of failed) tty.output.write(`  ${f.email}: ${f.reason}\n`);
+    process.exitCode = 1;
+  }
+  tty.close();
+}
+
+// ============================================================
+// JSON stdin flow (batch, usado pelo wrapper PowerShell)
+// ============================================================
+
+async function runStdinJson() {
+  const raw = await new Promise((resolve) => {
+    let acc = "";
+    process.stdin.setEncoding("utf8");
+    process.stdin.on("data", (d) => (acc += d));
+    process.stdin.on("end", () => resolve(acc));
+  });
+  let obj;
+  try {
+    obj = JSON.parse(raw);
+  } catch (e) {
+    fail(`JSON inválido no stdin: ${e.message}`);
+  }
+  if (!obj || typeof obj !== "object") {
+    fail("Esperado objeto JSON { email: senha, ... }.");
+  }
+  const pairs = new Map();
+  for (const [e, p] of Object.entries(obj)) {
+    if (typeof e === "string" && typeof p === "string") {
+      pairs.set(e.toLowerCase(), p);
+    }
+  }
+  if (pairs.size === 0) fail("Nenhum par email/senha válido no JSON.");
+
+  const updated = [];
+  const failed = [];
+  for (const [email, password] of pairs) {
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      failed.push({ email, reason: `senha curta (mínimo ${MIN_PASSWORD_LENGTH})` });
+      continue;
+    }
+    const res = await applyPassword(email, password);
+    if (res.ok) updated.push(email);
+    else failed.push({ email, reason: res.reason });
+  }
+  console.log(`Atualizados (${updated.length}):`);
+  if (updated.length === 0) console.log(`  (nenhum)`);
+  for (const e of updated) console.log(`  ${e}`);
+  if (failed.length > 0) {
+    console.log(`\nNão atualizados (${failed.length}):`);
+    for (const f of failed) console.log(`  ${f.email}: ${f.reason}`);
+    process.exitCode = 1;
+  }
+}
+
+// ============================================================
+// Main
+// ============================================================
+
+async function main() {
+  if (process.argv.includes("--stdin")) {
+    await runStdinJson();
+  } else {
+    await runInteractive();
+  }
 }
 
 await main().catch((e) => {

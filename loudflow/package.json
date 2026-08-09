@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test:rls": "playwright test",
     "seed:admin": "node --env-file=.env.local supabase/seed/seed_admin.mjs",
-    "admin:passwords": "node --env-file=.env.local supabase/seed/set_admin_passwords.mjs"
+    "admin:passwords": "node --env-file=.env.local supabase/seed/set_admin_passwords.mjs",
+    "admin:passwords:pwsh": "powershell -NoProfile -ExecutionPolicy Bypass -File supabase/seed/set-admin-passwords.ps1"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.2.6",
