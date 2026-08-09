@@ -1,13 +1,21 @@
+import Image from "next/image";
 import { LogOut } from "lucide-react";
 import type { Session } from "@/lib/auth/session";
 import { roleLabel } from "@/lib/auth/labels";
+import loudfitLockup from "@/../public/brand/loudfit-lockup.png";
 
 export function Topbar({ session }: { session: Session }) {
   return (
     <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-4 border-b border-border bg-lf-black/80 px-4 backdrop-blur md:px-6">
-      <div className="flex items-center gap-3 md:hidden">
-        <div className="size-2 bg-lf-volt" aria-hidden />
-        <span className="text-xs font-semibold uppercase tracking-widest">
+      <div className="flex items-center gap-2 md:hidden">
+        <Image
+          src={loudfitLockup}
+          alt="Loud Fit"
+          className="h-5 w-auto"
+          sizes="80px"
+          priority
+        />
+        <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-lf-muted">
           Loud Flow
         </span>
       </div>

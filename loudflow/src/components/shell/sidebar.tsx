@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Home, ListChecks, LineChart, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/lib/supabase/types";
+import loudfitLockup from "@/../public/brand/loudfit-lockup.png";
 
 type NavItem = {
   href: string;
@@ -28,9 +30,15 @@ export function Sidebar({ role }: { role: Role }) {
 
   return (
     <aside className="sticky top-0 hidden h-svh w-56 shrink-0 border-r border-border bg-lf-graphite md:flex md:flex-col">
-      <div className="flex items-center gap-2 px-6 py-6">
-        <div className="size-2 bg-lf-volt" aria-hidden />
-        <span className="text-xs font-semibold uppercase tracking-widest text-foreground">
+      <div className="flex flex-col gap-1.5 px-6 py-6">
+        <Image
+          src={loudfitLockup}
+          alt="Loud Fit"
+          className="h-7 w-auto"
+          sizes="128px"
+          priority
+        />
+        <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-lf-muted">
           Loud Flow
         </span>
       </div>

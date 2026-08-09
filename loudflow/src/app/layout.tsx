@@ -14,13 +14,39 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+// Vercel injecta VERCEL_PROJECT_PRODUCTION_URL em prod e VERCEL_URL em preview.
+// Localmente cai no http://localhost:3000 — só afeta o build local, sem impacto
+// no compartilhamento real. Não usamos NEXT_PUBLIC_APP_URL porque o loudflow
+// hoje deriva a origem em runtime (mesma URL que o browser abriu).
+const metadataBaseUrl = new URL(
+  process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000",
+);
+
 export const metadata: Metadata = {
+  metadataBase: metadataBaseUrl,
   title: {
-    default: "Loud Flow",
-    template: "%s · Loud Flow",
+    default: "Loud Flow | Loud Fit",
+    template: "%s · Loud Flow | Loud Fit",
   },
-  description: "Sistema operacional interno da rede Loud Fit.",
+  description: "Gestão de resultados e tarefas da Loud Fit",
+  applicationName: "Loud Flow",
   robots: { index: false, follow: false },
+  openGraph: {
+    type: "website",
+    siteName: "Loud Flow · Loud Fit",
+    title: "Loud Flow | Loud Fit",
+    description: "Gestão de resultados e tarefas da Loud Fit",
+    locale: "pt_BR",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Loud Flow | Loud Fit",
+    description: "Gestão de resultados e tarefas da Loud Fit",
+  },
 };
 
 export const viewport: Viewport = {

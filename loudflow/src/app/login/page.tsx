@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { LoginForm } from "./login-form";
 import { safeNext } from "@/lib/auth/redirect";
+import loudfitLockup from "@/../public/brand/loudfit-lockup.png";
 
 export const metadata: Metadata = { title: "Entrar" };
 
@@ -10,13 +12,17 @@ export default function LoginPage({
   return (
     <main className="flex min-h-svh items-center justify-center px-6 py-12">
       <div className="w-full max-w-sm">
-        <div className="mb-10 flex flex-col items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="size-2 bg-lf-volt" aria-hidden />
-            <span className="text-xs font-medium uppercase tracking-widest text-lf-muted">
-              Loud Flow
-            </span>
-          </div>
+        <div className="mb-10 flex flex-col items-center gap-4">
+          <Image
+            src={loudfitLockup}
+            alt="Loud Fit"
+            priority
+            className="h-12 w-auto"
+            sizes="180px"
+          />
+          <span className="text-xs font-medium uppercase tracking-[0.28em] text-lf-muted">
+            Loud Flow
+          </span>
           <h1 className="text-2xl font-semibold tracking-tight">Entrar</h1>
           <p className="text-center text-sm text-lf-muted">
             Enviamos um link de acesso para o seu email.
