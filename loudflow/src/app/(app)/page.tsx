@@ -1,43 +1,73 @@
 import Link from "next/link";
 import { ArrowRight, ListChecks, LineChart, Sparkles } from "lucide-react";
-import { requireSession } from "@/lib/auth/session";
+import { requireSession, type Session } from "@/lib/auth/session";
 import { PageHeader } from "@/components/shell/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { roleLabel } from "@/lib/auth/labels";
 
+// Primeiro nome do usuário. Preferência: session.name (primeira
+// palavra, capitalizada). Fallback: parte local do e-mail antes do @,
+// dividida por `.`/`_`/`-`, capitalizada. Evita a saudação feia
+// "Olá, jean.lucca." quando o nome ainda não foi preenchido.
+function firstNameFrom(session: Session): string {
+  const name = session.name?.trim();
+  if (name && name.length > 0) {
+    return capitalize(name.split(/\s+/)[0]);
+  }
+  const local = session.email.split("@")[0] ?? "";
+  const head = local.split(/[._\-]/)[0] || local;
+  return capitalize(head);
+}
+
+function capitalize(word: string): string {
+  if (word.length === 0) return word;
+  return word[0].toLocaleUpperCase("pt-BR") + word.slice(1).toLocaleLowerCase("pt-BR");
+}
+
 export default async function HomePage() {
   const session = await requireSession();
-  const firstName = (session.name ?? session.email).split(" ")[0].split("@")[0];
+  const firstName = firstNameFrom(session);
 
   return (
     <>
       <PageHeader
         eyebrow="Início"
         title={`Olá, ${firstName}.`}
-        description="O Loud Flow ainda está sendo montado. Nesta versão você já tem acesso, seu perfil e a estrutura para as próximas fases."
+        description="Centralize as tarefas da operação e acompanhe as prioridades da Loud Fit em um só lugar."
       />
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader className="flex-row items-center justify-between">
-            <div className="flex flex-col gap-1">
-              <CardTitle className="flex items-center gap-2">
-                <ListChecks className="size-4 text-lf-muted" />
-                Tarefas
-              </CardTitle>
-              <CardDescription>O que precisa ser feito, hoje e nos próximos dias.</CardDescription>
+        {/* Tarefas — módulo disponível. Card inteiro clicável, com
+            acento amarelo sutil da Loud Fit e hover premium. */}
+        <Link
+          href="/tarefas"
+          aria-label="Abrir tarefas"
+          className="group block rounded-lg border border-border bg-card transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-lf-volt/70 hover:shadow-[0_10px_30px_-15px_rgba(255,224,0,0.35)] lf-focus"
+        >
+          <div className="flex flex-col gap-1.5 p-6">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <ListChecks className="size-4 text-lf-volt" aria-hidden />
+                <h3 className="text-lg font-semibold leading-none">Tarefas</h3>
+              </div>
+              <span
+                className="inline-flex items-center rounded-md border border-lf-volt/40 bg-lf-volt/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-lf-volt"
+                aria-label="módulo disponível"
+              >
+                Disponível
+              </span>
             </div>
-          </CardHeader>
-          <CardContent className="text-sm text-lf-muted">
-            <Link
-              href="/tarefas"
-              className="inline-flex items-center gap-2 text-foreground underline-offset-4 hover:underline lf-focus"
-            >
-              Abrir minhas tarefas <ArrowRight className="size-4" aria-hidden />
-            </Link>
-          </CardContent>
-        </Card>
+            <p className="text-sm text-lf-muted">
+              Organize, acompanhe e conclua as prioridades da operação.
+            </p>
+          </div>
+          <div className="p-6 pt-0 text-sm">
+            <span className="inline-flex items-center gap-2 text-foreground transition-transform duration-200 ease-out group-hover:translate-x-0.5">
+              Ver tarefas <ArrowRight className="size-4" aria-hidden />
+            </span>
+          </div>
+        </Link>
 
         <Card>
           <CardHeader className="flex-row items-center justify-between">
