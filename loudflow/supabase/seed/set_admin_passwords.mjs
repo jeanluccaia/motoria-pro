@@ -2,9 +2,14 @@
 // Define/atualiza senhas individuais para admins do Loud Flow.
 //
 // Modos:
-//   * Padrão (interativo): keypress events + mascaramento com "*",
-//     com fallback para CONIN$/CONOUT$ (Windows) e /dev/tty (POSIX)
-//     quando process.stdin não é TTY.
+//   * Padrão (interativo, senha individual por admin): keypress
+//     events + mascaramento com "*", com fallback para CONIN$/CONOUT$
+//     (Windows) e /dev/tty (POSIX) quando process.stdin não é TTY.
+//   * --single (interativo, uma senha para vários): pede uma única
+//     senha + confirmação e aplica a todos os admins exceto os
+//     listados em LF_SKIP_EMAILS (default: jean.lucca@icloud.com).
+//     Uso típico: alinhar as senhas dos demais admins com a senha
+//     de uma conta de referência já cadastrada, sem tocar nela.
 //   * --stdin: lê JSON { "email": "senha", ... } do stdin, aplica.
 //     Usado pelo wrapper PowerShell set-admin-passwords.ps1.
 //
@@ -27,6 +32,10 @@ import { platform } from "node:process";
 
 const MIN_PASSWORD_LENGTH = 10;
 const MAX_MISMATCH_ATTEMPTS = 3;
+// Admins que NUNCA devem ter a senha reescrita pelo modo --single.
+// Padrão pensado para o MVP atual: Jean é a conta de referência.
+// Sobrescrevível com LF_SKIP_EMAILS="a@b.com,c@d.com".
+const DEFAULT_SKIP_EMAILS = "jean.lucca@icloud.com";
 
 function fail(msg) {
   console.error(msg);
@@ -266,6 +275,120 @@ async function runInteractive() {
 }
 
 // ============================================================
+// Single-password flow (uma senha aplicada a vários admins)
+// ============================================================
+
+function parseSkipEmails() {
+  const raw = process.env.LF_SKIP_EMAILS ?? DEFAULT_SKIP_EMAILS;
+  return new Set(
+    raw
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean),
+  );
+}
+
+async function runSingle() {
+  const tty = openTTY();
+  if (!tty) {
+    fail(
+      "Sem TTY disponível para prompt interativo.\n" +
+        "Rode diretamente no seu terminal (sem npm run):\n" +
+        "  node --env-file=.env.local supabase/seed/set_admin_passwords.mjs --single\n" +
+        "Ou use o wrapper PowerShell no Windows:\n" +
+        "  powershell -NoProfile -ExecutionPolicy Bypass -File supabase/seed/set-admin-passwords.ps1 -Single",
+    );
+  }
+
+  const allEmails = await loadTargetEmails();
+  if (allEmails.length === 0) fail("Nenhum admin encontrado.");
+
+  const skip = parseSkipEmails();
+  const targets = allEmails.filter((e) => !skip.has(e));
+  const skipped = allEmails.filter((e) => skip.has(e));
+
+  if (targets.length === 0) {
+    fail(
+      `Nenhum admin restante depois de aplicar LF_SKIP_EMAILS.\n` +
+        `Skip atual: ${[...skip].join(", ") || "(vazio)"}.`,
+    );
+  }
+
+  tty.output.write(`\nModo --single: uma senha para ${targets.length} admin(s).\n`);
+  tty.output.write(`Cada tecla aparece como * na tela.\n`);
+  tty.output.write(
+    `Mínimo ${MIN_PASSWORD_LENGTH} caracteres. Confirmação obrigatória.\n`,
+  );
+  tty.output.write(`Ctrl+C aborta o script sem aplicar nada.\n\n`);
+
+  tty.output.write(`Serão atualizados:\n`);
+  for (const e of targets) tty.output.write(`  ${e}\n`);
+  if (skipped.length > 0) {
+    tty.output.write(`\nPreservados (LF_SKIP_EMAILS):\n`);
+    for (const e of skipped) tty.output.write(`  ${e}\n`);
+  }
+  tty.output.write(`\n`);
+
+  let password = null;
+  let attempts = 0;
+  while (password === null && attempts < MAX_MISMATCH_ATTEMPTS) {
+    attempts += 1;
+    const pw1 = await askMasked(tty, `senha:    `);
+    if (pw1.length === 0) {
+      tty.output.write(`senha em branco — abortando sem aplicar nada.\n`);
+      tty.close();
+      process.exit(0);
+    }
+    if (pw1.length < MIN_PASSWORD_LENGTH) {
+      tty.output.write(
+        `senha muito curta (mínimo ${MIN_PASSWORD_LENGTH}). Tente de novo.\n`,
+      );
+      continue;
+    }
+    const pw2 = await askMasked(tty, `confirme: `);
+    if (pw1 !== pw2) {
+      tty.output.write(`as senhas não conferem. Tente de novo.\n`);
+      continue;
+    }
+    password = pw1;
+  }
+  if (password === null) {
+    tty.output.write(
+      `desisti depois de ${MAX_MISMATCH_ATTEMPTS} tentativas. Nada foi aplicado.\n`,
+    );
+    tty.close();
+    process.exit(1);
+  }
+
+  tty.output.write(`\nAplicando via Supabase...\n\n`);
+  const updated = [];
+  const failed = [];
+  for (const email of targets) {
+    const res = await applyPassword(email, password);
+    if (res.ok) {
+      tty.output.write(`  ${email}: atualizada.\n`);
+      updated.push(email);
+    } else {
+      tty.output.write(`  ${email}: erro — ${res.reason}\n`);
+      failed.push({ email, reason: res.reason });
+    }
+  }
+  // Descarta a senha da memória do interpretador o quanto antes.
+  password = null;
+
+  tty.output.write(`\nResumo:\n`);
+  tty.output.write(`  atualizados: ${updated.length}\n`);
+  tty.output.write(`  preservados: ${skipped.length} (${[...skip].join(", ") || "-"})\n`);
+  tty.output.write(`  falhas:      ${failed.length}\n`);
+  if (failed.length > 0) {
+    tty.output.write(`\nFalhas por admin:\n`);
+    for (const f of failed) tty.output.write(`  ${f.email}: ${f.reason}\n`);
+    process.exitCode = 1;
+  }
+  tty.close();
+}
+
+// ============================================================
 // JSON stdin flow (batch, usado pelo wrapper PowerShell)
 // ============================================================
 
@@ -321,6 +444,8 @@ async function runStdinJson() {
 async function main() {
   if (process.argv.includes("--stdin")) {
     await runStdinJson();
+  } else if (process.argv.includes("--single")) {
+    await runSingle();
   } else {
     await runInteractive();
   }

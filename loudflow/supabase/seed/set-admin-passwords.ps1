@@ -2,27 +2,40 @@
 # Wrapper PowerShell nativo para definir/alterar senhas dos admins do
 # Loud Flow no Windows. Usa Read-Host -AsSecureString (mascaramento
 # nativo do Windows, comprovadamente com * e sem depender do stdin de
-# npm/Node). Depois pipeia JSON para o script Node em modo --stdin.
+# npm/Node).
 #
 # Arquivo escrito em ASCII puro de proposito -- Windows PowerShell 5.1
 # le .ps1 sem BOM como Windows-1252, e caracteres UTF-8 quebram o
 # parser (aspas fantasmas dentro de comentarios acentuados).
 #
+# Modos:
+#   * padrao (individual): pede uma senha por admin e aplica.
+#   * -Single: pede UMA senha e aplica a todos os admins exceto os do
+#     LF_SKIP_EMAILS (default: jean.lucca@icloud.com). Use quando
+#     quiser alinhar as senhas de N admins com a de uma conta de
+#     referencia ja cadastrada, sem tocar nela.
+#
 # Uso:
 #   cd loudflow
 #   powershell -NoProfile -ExecutionPolicy Bypass -File supabase\seed\set-admin-passwords.ps1
-# (ou: npm run admin:passwords:pwsh)
+#   powershell -NoProfile -ExecutionPolicy Bypass -File supabase\seed\set-admin-passwords.ps1 -Single
+# (ou npm run admin:passwords:pwsh / admin:passwords:pwsh:single)
 #
-# O que faz:
+# Em ambos os casos:
 #   1. Carrega variaveis de .env.local (SUPABASE_URL, SERVICE_ROLE_KEY)
-#   2. Descobre a lista de admins via Node/service_role
-#   3. Pede a senha (com *) e a confirmacao de cada admin
-#   4. Aplica em lote via node ... --stdin
+#   2. Descobre a lista de admins via list_admins.mjs
+#   3. Pede a(s) senha(s) com * nativo
+#   4. Pipeia JSON para o script Node em modo --stdin
 #   5. Apaga o arquivo temporario e limpa as variaveis sensiveis
+
+param(
+    [switch] $Single
+)
 
 $ErrorActionPreference = "Stop"
 
 $MinPasswordLength = 10
+$DefaultSkipEmails = @("jean.lucca@icloud.com")
 
 # ---- resolve dirs -------------------------------------------------
 
@@ -99,47 +112,111 @@ if ($emails.Count -eq 0 -or ($emails.Count -eq 1 -and $emails[0].Length -eq 0)) 
 # ---- prompt individual --------------------------------------------
 
 Write-Host ""
-Write-Host "Vou pedir a senha de $($emails.Count) admin(s)."
-Write-Host "Cada tecla aparece como * (mascaramento nativo do PowerShell)."
-Write-Host "Minimo $MinPasswordLength caracteres. Confirmacao obrigatoria."
-Write-Host "Enter em branco pula o admin. Ctrl+C aborta o script."
-Write-Host ""
-
 $pairs = @{}
 $skipped = @()
 
-foreach ($email in $emails) {
-    Write-Host $email
-    $accepted = $false
-    $attempts = 0
-    while (-not $accepted -and $attempts -lt 3) {
-        $attempts += 1
-        $sec1 = Read-Host -Prompt "  senha   " -AsSecureString
-        $plain1 = ConvertFrom-SecureStringToPlain -Secure $sec1
-        if ([string]::IsNullOrEmpty($plain1)) {
-            Write-Host "  pulado (senha em branco)."
-            $skipped += $email
-            break
-        }
-        if ($plain1.Length -lt $MinPasswordLength) {
-            Write-Host "  senha muito curta (minimo $MinPasswordLength). Tente de novo."
-            continue
-        }
-        $sec2 = Read-Host -Prompt "  confirme" -AsSecureString
-        $plain2 = ConvertFrom-SecureStringToPlain -Secure $sec2
-        if ($plain1 -ne $plain2) {
-            Write-Host "  as senhas nao conferem. Tente de novo."
-            continue
-        }
-        $pairs[$email] = $plain1
-        $accepted = $true
-        Write-Host "  aceita."
+if ($Single) {
+    # ---- modo -Single: uma senha para varios admins -------------
+
+    # Skip list: env LF_SKIP_EMAILS ou default (jean.lucca@icloud.com)
+    $skipSource = if ($env:LF_SKIP_EMAILS) { $env:LF_SKIP_EMAILS } else { ($DefaultSkipEmails -join ",") }
+    $skipList = @($skipSource.ToLower() -split "," | ForEach-Object { $_.Trim() } | Where-Object { $_.Length -gt 0 })
+
+    $targets = @($emails | Where-Object { $skipList -notcontains $_.ToLower() })
+    $skipped = @($emails | Where-Object { $skipList -contains $_.ToLower() })
+
+    if ($targets.Count -eq 0) {
+        Write-Error "Nenhum admin restante depois de aplicar LF_SKIP_EMAILS. Skip: $($skipList -join ', ')"
+        exit 1
     }
-    if (-not $accepted -and $attempts -ge 3 -and -not ($skipped -contains $email)) {
-        Write-Host "  desisti depois de 3 tentativas. Pulado."
-        $skipped += $email
+
+    Write-Host ""
+    Write-Host "Modo -Single: UMA senha para $($targets.Count) admin(s)."
+    Write-Host "Cada tecla aparece como * (mascaramento nativo do PowerShell)."
+    Write-Host "Minimo $MinPasswordLength caracteres. Confirmacao obrigatoria."
+    Write-Host "Ctrl+C aborta o script sem aplicar nada."
+    Write-Host ""
+    Write-Host "Serao atualizados:"
+    foreach ($e in $targets) { Write-Host "  $e" }
+    if ($skipped.Count -gt 0) {
+        Write-Host ""
+        Write-Host "Preservados (LF_SKIP_EMAILS):"
+        foreach ($e in $skipped) { Write-Host "  $e" }
     }
     Write-Host ""
+
+    $accepted = $false
+    $attempts = 0
+    $singlePlain = ""
+    while (-not $accepted -and $attempts -lt 3) {
+        $attempts += 1
+        $sec1 = Read-Host -Prompt "senha   " -AsSecureString
+        $plain1 = ConvertFrom-SecureStringToPlain -Secure $sec1
+        if ([string]::IsNullOrEmpty($plain1)) {
+            Write-Host "senha em branco -- abortando sem aplicar nada."
+            exit 0
+        }
+        if ($plain1.Length -lt $MinPasswordLength) {
+            Write-Host "senha muito curta (minimo $MinPasswordLength). Tente de novo."
+            continue
+        }
+        $sec2 = Read-Host -Prompt "confirme" -AsSecureString
+        $plain2 = ConvertFrom-SecureStringToPlain -Secure $sec2
+        if ($plain1 -ne $plain2) {
+            Write-Host "as senhas nao conferem. Tente de novo."
+            continue
+        }
+        $singlePlain = $plain1
+        $accepted = $true
+    }
+    if (-not $accepted) {
+        Write-Error "Desisti depois de 3 tentativas. Nada foi aplicado."
+        exit 1
+    }
+
+    foreach ($email in $targets) { $pairs[$email] = $singlePlain }
+
+} else {
+    # ---- modo individual: uma senha por admin -------------------
+    Write-Host "Vou pedir a senha de $($emails.Count) admin(s)."
+    Write-Host "Cada tecla aparece como * (mascaramento nativo do PowerShell)."
+    Write-Host "Minimo $MinPasswordLength caracteres. Confirmacao obrigatoria."
+    Write-Host "Enter em branco pula o admin. Ctrl+C aborta o script."
+    Write-Host ""
+
+    foreach ($email in $emails) {
+        Write-Host $email
+        $accepted = $false
+        $attempts = 0
+        while (-not $accepted -and $attempts -lt 3) {
+            $attempts += 1
+            $sec1 = Read-Host -Prompt "  senha   " -AsSecureString
+            $plain1 = ConvertFrom-SecureStringToPlain -Secure $sec1
+            if ([string]::IsNullOrEmpty($plain1)) {
+                Write-Host "  pulado (senha em branco)."
+                $skipped += $email
+                break
+            }
+            if ($plain1.Length -lt $MinPasswordLength) {
+                Write-Host "  senha muito curta (minimo $MinPasswordLength). Tente de novo."
+                continue
+            }
+            $sec2 = Read-Host -Prompt "  confirme" -AsSecureString
+            $plain2 = ConvertFrom-SecureStringToPlain -Secure $sec2
+            if ($plain1 -ne $plain2) {
+                Write-Host "  as senhas nao conferem. Tente de novo."
+                continue
+            }
+            $pairs[$email] = $plain1
+            $accepted = $true
+            Write-Host "  aceita."
+        }
+        if (-not $accepted -and $attempts -ge 3 -and -not ($skipped -contains $email)) {
+            Write-Host "  desisti depois de 3 tentativas. Pulado."
+            $skipped += $email
+        }
+        Write-Host ""
+    }
 }
 
 if ($pairs.Count -eq 0) {
@@ -186,7 +263,7 @@ finally {
     } catch {
         Write-Warning "Falha ao apagar arquivo temporario $tmp -- apague manualmente."
     }
-    Remove-Variable -Name pairs, json, plain1, plain2, sec1, sec2 -ErrorAction SilentlyContinue
+    Remove-Variable -Name pairs, json, plain1, plain2, sec1, sec2, singlePlain -ErrorAction SilentlyContinue
     [System.GC]::Collect()
     [System.GC]::WaitForPendingFinalizers()
 }
