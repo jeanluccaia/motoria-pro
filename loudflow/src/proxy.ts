@@ -35,6 +35,7 @@ export async function proxy(request: NextRequest) {
   const isPublic =
     pathname === "/login" ||
     pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/auth/") ||
     pathname.startsWith("/_next") ||
     pathname === "/favicon.ico";
 
@@ -44,6 +45,9 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(to);
   }
 
+  // /login: usuário autenticado só é redirecionado se a URL não veio
+  // do fluxo de recovery/invite (que grava sessão momentânea e depois
+  // manda para /auth/reset-password, não para /login).
   if (user && pathname === "/login") {
     return NextResponse.redirect(new URL("/", request.url));
   }

@@ -20,7 +20,9 @@ type BodyIn = {
   next?: unknown;
 };
 
-function normalizeError(raw: string): "invalid_credentials" | "unknown" {
+type ErrorCode = "invalid_credentials" | "rate_limited" | "unknown";
+
+function normalizeError(raw: string): ErrorCode {
   const msg = raw.toLowerCase();
   if (
     msg.includes("invalid login credentials") ||
@@ -29,6 +31,9 @@ function normalizeError(raw: string): "invalid_credentials" | "unknown" {
     msg.includes("email not confirmed")
   ) {
     return "invalid_credentials";
+  }
+  if (msg.includes("rate limit") || msg.includes("too many")) {
+    return "rate_limited";
   }
   return "unknown";
 }
@@ -78,10 +83,9 @@ export async function POST(request: NextRequest) {
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
-    return NextResponse.json(
-      { ok: false, error: normalizeError(error.message ?? "") },
-      { status: 401 },
-    );
+    const code = normalizeError(error.message ?? "");
+    const status = code === "rate_limited" ? 429 : 401;
+    return NextResponse.json({ ok: false, error: code }, { status });
   }
 
   return response;

@@ -1,14 +1,21 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { LoginForm } from "./login-form";
-import { safeNext } from "@/lib/auth/redirect";
+import { redirect } from "next/navigation";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import loudfitLockup from "@/../public/brand/loudfit-lockup.png";
+import { ResetPasswordForm } from "./form";
 
-export const metadata: Metadata = { title: "Entrar" };
+export const metadata: Metadata = { title: "Definir senha" };
 
-export default function LoginPage({
-  searchParams,
-}: PageProps<"/login">) {
+export default async function ResetPasswordPage() {
+  // Só quem tem sessão de recovery/invite chega aqui — o /api/auth/callback
+  // gravou os cookies antes de redirecionar. Sem sessão, manda para /login.
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login?err=link_invalid");
+
   return (
     <main className="flex min-h-svh items-center justify-center px-6 py-12">
       <div className="w-full max-w-sm">
@@ -23,14 +30,16 @@ export default function LoginPage({
           <span className="text-xs font-medium uppercase tracking-[0.28em] text-lf-muted">
             Loud Flow
           </span>
-          <h1 className="text-2xl font-semibold tracking-tight">Entrar</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Definir senha
+          </h1>
           <p className="text-center text-sm text-lf-muted">
-            Use o e-mail cadastrado pela administração e a sua senha
-            individual.
+            Escolha uma senha para <span className="text-foreground">{user.email}</span>.
+            Mínimo 10 caracteres.
           </p>
         </div>
 
-        <LoginFormWrapper searchParams={searchParams} />
+        <ResetPasswordForm />
 
         <p className="mt-8 text-center text-xs text-lf-muted">
           Sistema privado da rede Loud Fit.
@@ -38,15 +47,4 @@ export default function LoginPage({
       </div>
     </main>
   );
-}
-
-async function LoginFormWrapper({
-  searchParams,
-}: {
-  searchParams: PageProps<"/login">["searchParams"];
-}) {
-  const params = await searchParams;
-  const next = safeNext(typeof params.next === "string" ? params.next : null);
-  const err = typeof params.err === "string" ? params.err : null;
-  return <LoginForm next={next} initialError={err} />;
 }
