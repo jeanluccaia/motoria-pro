@@ -142,6 +142,37 @@ export type CampaignUnitAlias = {
   created_at: string;
 };
 
+export type EvoSaleProcessingStatus = "pending" | "paid" | "cancelled" | "error";
+
+export type EvoBranch = {
+  id_branch: string;
+  organization_id: string;
+  unit_id: string | null;
+  label: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type EvoSale = {
+  id: string;
+  organization_id: string;
+  unit_id: string | null;
+  id_w12: string | null;
+  id_branch: string;
+  id_sale: string;
+  id_member: string | null;
+  event_type: string;
+  amount_paid_cents: number | null;
+  sale_date: string | null;
+  receiving_date: string | null;
+  payment_type: string | null;
+  receivable_status: string | null;
+  processing_status: EvoSaleProcessingStatus;
+  last_reason: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 type TableDef<Row extends Record<string, unknown>, InsertKeys extends keyof Row = keyof Row> = {
   Row: Row;
   Insert: Partial<Row> & Pick<Row, InsertKeys>;
@@ -172,6 +203,11 @@ export type Database = {
         "organization_id" | "campaign_id" | "provider" | "snapshot_date"
       >;
       campaign_unit_aliases: TableDef<CampaignUnitAlias, "organization_id" | "alias" | "unit_id">;
+      evo_branches: TableDef<EvoBranch, "id_branch" | "organization_id">;
+      evo_sales: TableDef<
+        EvoSale,
+        "organization_id" | "id_branch" | "id_sale" | "event_type"
+      >;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -182,6 +218,7 @@ export type Database = {
       ad_provider: AdProvider;
       campaign_unit_source: CampaignUnitSource;
       sync_status: SyncStatus;
+      evo_sale_processing_status: EvoSaleProcessingStatus;
     };
     CompositeTypes: Record<string, never>;
   };
