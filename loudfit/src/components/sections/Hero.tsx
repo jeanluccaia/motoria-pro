@@ -85,7 +85,7 @@ export function Hero() {
               <span className="relative inline-flex h-2 w-2 rounded-full bg-lf-volt" />
             </span>
             <span className="text-[11px] font-black uppercase tracking-[0.2em] text-lf-volt">
-              Oferta termina em 09/08/2026
+              Oferta termina em 23/08/2026
             </span>
           </div>
           <p className="mt-2 text-[11.5px] leading-snug text-lf-text/55 md:mt-3">
