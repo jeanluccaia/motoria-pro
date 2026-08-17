@@ -9,3 +9,5 @@ api/.env
 .nvmrc
 .vercel
 .claude/
+# DGN Club — backups locais do Supabase (PII de clientes reais). Nunca versionar.
+_dgn_backups/
