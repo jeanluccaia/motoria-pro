@@ -2031,18 +2031,26 @@ function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; e
     : "—";
 
   async function act(action: FounderCurationAction) {
-    if (!enabled || !customer.campaign.updatedAt || protectedFounder) return;
+    // Founder confirmado protegido: guarda dura para qualquer ação.
+    if (protectedFounder) return;
+    // Ações legadas (save/approve/create_page/replace/mark_sent/revoke) só
+    // fazem sentido se já existir campaign_member (updated_at populado).
+    // create_invite é a exceção: a RPC faz bootstrap silencioso.
+    if (action !== "create_invite" && (!enabled || !customer.campaign.updatedAt)) return;
     if (action === "mark_sent" && !window.confirm("Confirmar que o convite foi realmente enviado?")) return;
     if (["revoke", "replace"].includes(action) && !window.confirm(action === "revoke" ? "Revogar o link ativo?" : "Revogar o link atual e gerar um novo convite?")) return;
     setSaving(true); setNotice("");
     try {
+      // Para create_invite bootstrap, envia expectedUpdatedAt como string vazia
+      // (validator do servidor aceita quando action=create_invite → null → RPC).
+      const isBootstrap = action === "create_invite" && !customer.campaign.updatedAt;
       const response = await fetch(`/api/admin/growth/customers/${encodeURIComponent(customer.id)}/founder-curation`, {
         method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({ action, campaignId: "founders-2026", recommendedPlanCode: planCode,
           recommendedContractingMode: contractingMode,
           recommendedVehicleCategory: vehicleCategory,
           recommendationReasonInternal: reason, recommendationMessagePublic: message,
-          expectedUpdatedAt: customer.campaign.updatedAt }),
+          expectedUpdatedAt: isBootstrap ? null : customer.campaign.updatedAt }),
       });
       const result = await response.json() as { changed?: boolean; error?: string };
       if (!response.ok) throw new Error(result.error || "Falha na curadoria.");
