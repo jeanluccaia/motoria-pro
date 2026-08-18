@@ -21,7 +21,15 @@ export class FounderCurationWriteError extends Error {
   constructor(message: string, status: number) { super(message); this.status = status; }
 }
 
-const actions = new Set<FounderCurationAction>(["save", "approve", "create_page", "revoke", "replace", "mark_sent"]);
+const actions = new Set<FounderCurationAction>([
+  "save",
+  "approve",
+  "create_page",
+  "revoke",
+  "replace",
+  "mark_sent",
+  "create_invite",
+]);
 const allowed = new Set([
   "action",
   "campaignId",
@@ -110,7 +118,7 @@ export function validateFounderCurationPayload(payload: unknown): FounderCuratio
   const message = optionalText(raw.recommendationMessagePublic, "recommendationMessagePublic", 1000);
   const action = raw.action as FounderCurationAction;
 
-  if (["approve", "create_page", "replace"].includes(action)) {
+  if (["approve", "create_page", "replace", "create_invite"].includes(action)) {
     if (!offer) throw new FounderCurationWriteError("Plano oficial e modalidade são obrigatórios.", 400);
     if (reason.length < 3) throw new FounderCurationWriteError("Motivo interno obrigatório.", 400);
     if (contractingMode === "monthly" && !category) {

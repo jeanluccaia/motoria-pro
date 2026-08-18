@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   contractingModeLabels,
   createFounderPlanSnapshot,
+  detectFounderVehicleCategory,
   founderOfferCatalog,
   founderPlanCodes,
   founderPlanDefinitions,
@@ -180,4 +181,39 @@ test("catalog version é founders-2026-v2 em toda oferta", () => {
 
 test("mensagem administrativa para oferta incompleta segue redação oficial", () => {
   assert.equal(INCOMPLETE_OFFER_ADMIN_MESSAGE, "Esta modalidade ainda não possui condição comercial validada.");
+});
+
+// -----------------------------------------------------------------------------
+// detectFounderVehicleCategory — heurística client-side para reduzir cliques
+// -----------------------------------------------------------------------------
+
+test("detectFounderVehicleCategory identifica picapes populares", () => {
+  for (const model of ["Hilux SW4", "Ranger XLT", "Toro", "S10", "Saveiro", "Amarok"]) {
+    assert.equal(detectFounderVehicleCategory(model), "picape", `${model} → picape`);
+  }
+});
+
+test("detectFounderVehicleCategory identifica SUVs comuns", () => {
+  for (const model of ["Compass", "Renegade", "Creta", "Tucson", "HR-V", "Song Plus", "Corolla Cross", "ZR-V"]) {
+    assert.equal(detectFounderVehicleCategory(model), "suv", `${model} → suv`);
+  }
+});
+
+test("detectFounderVehicleCategory identifica sedans", () => {
+  for (const model of ["Civic", "Corolla", "Jetta", "City", "Virtus", "Onix Plus"]) {
+    assert.equal(detectFounderVehicleCategory(model), "sedan", `${model} → sedan`);
+  }
+});
+
+test("detectFounderVehicleCategory identifica hatches", () => {
+  for (const model of ["Onix", "Fit", "Gol", "Polo", "HB20", "Kwid", "Renault Kwid"]) {
+    assert.equal(detectFounderVehicleCategory(model), "hatch", `${model} → hatch`);
+  }
+});
+
+test("detectFounderVehicleCategory retorna null quando o modelo é desconhecido ou vazio", () => {
+  assert.equal(detectFounderVehicleCategory(null), null);
+  assert.equal(detectFounderVehicleCategory(""), null);
+  assert.equal(detectFounderVehicleCategory("A definir"), null);
+  assert.equal(detectFounderVehicleCategory("Fofmobil"), null);
 });

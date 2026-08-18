@@ -141,6 +141,28 @@ export function resolveMonthlyPrice(planCode: FounderPlanCode, category: Founder
   return monthlyPriceMatrix[planCode][category];
 }
 
+// Heurística client-side para pré-selecionar a categoria a partir do modelo
+// operacional (4uCar). Fallback: retorna null e o operador escolhe manualmente.
+// NUNCA usar como fonte de verdade: só serve para reduzir cliques.
+export function detectFounderVehicleCategory(model: string | null | undefined): FounderVehicleCategory | null {
+  if (!model) return null;
+  const m = model.toLowerCase().replace(/[-_]/g, " ").replace(/\s+/g, " ").trim();
+  if (!m) return null;
+  if (/\b(hilux|ranger|amarok|s10|frontier|saveiro|strada|toro|montana|maverick|f 150|colorado|commander|dakota|l200)\b/.test(m)) {
+    return "picape";
+  }
+  if (/\b(x1|x3|x5|q3|q5|q7|q8|renegade|compass|tiggo|creta|kicks|hr v|zr v|cr v|nivus|taos|tucson|santa fe|tracker|equinox|sw4|pajero|outlander|corolla cross|rav4|forester|xv|3008|2008|c4 cactus|duster|ecosport|territory|bronco|song plus|atto|fastback|fofox|dolphin|yuan plus|ora 03)\b/.test(m)) {
+    return "suv";
+  }
+  if (/\b(civic|corolla(?! cross)|jetta|city|virtus|onix plus|prisma|logan|voyage|versa|sentra|cerato|elantra|passat|a4|a6|3 series|c class|e class)\b/.test(m)) {
+    return "sedan";
+  }
+  if (/\b(onix|fit|palio|gol|polo|golf|up|ka|hb20|argo|mobi|kwid|celta|corsa|clio|sandero|c3|c4 hatch|astra|siena|fox|renault kwid)\b/.test(m)) {
+    return "hatch";
+  }
+  return null;
+}
+
 // Constrói a oferta com preço/atividade resolvidos server-side.
 // - monthly + categoria válida → active=true, monthlyPrice = matriz[plan][cat]
 // - loyalty_6 / loyalty_12 (qualquer categoria) → active=false, monthlyPrice=null

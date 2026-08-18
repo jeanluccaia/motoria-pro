@@ -47,6 +47,7 @@ import {
 } from "@/lib/growth/dgn-growth-data";
 import {
   contractingModeLabels,
+  detectFounderVehicleCategory,
   founderContractingModes,
   founderPlanDefinitions,
   founderVehicleCategories,
@@ -54,6 +55,7 @@ import {
   INCOMPLETE_OFFER_ADMIN_MESSAGE,
   isCombinationValidatedForPublication,
   isFounderVehicleCategory,
+  monthlyPriceMatrix,
   vehicleCategoryLabels,
   type FounderContractingMode,
   type FounderPlanCode,
@@ -1927,12 +1929,27 @@ function normalizeVehicleCategory(value: string | undefined): FounderVehicleCate
   return isFounderVehicleCategory(lower) ? lower : "";
 }
 
+const FAST_REASON_CHIPS = [
+  "Frequência atual de uso",
+  "Potencial de recorrência",
+  "Perfil compatível com o plano",
+  "Cliente de alto relacionamento",
+  "Curadoria manual",
+] as const;
+
 function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; enabled: boolean }) {
   const current = customer.campaign.curation;
   const protectedFounder = ["benedito-constantino", "jose-moreira", "rikardo-oliveira"].includes(customer.id);
+  // Pré-configura o fast-path direto no estado inicial (sem useEffect):
+  // Mensal automático + categoria detectada quando não houver escolha prévia.
+  const savedMode = normalizeContractingMode(current?.recommendedContractingMode);
+  const savedCategory = normalizeVehicleCategory(current?.recommendedVehicleCategory);
+  const initialMode: FounderContractingMode | "" = savedMode || (protectedFounder ? "" : "monthly");
+  const initialCategory: FounderVehicleCategory | "" =
+    savedCategory || (protectedFounder ? "" : detectFounderVehicleCategory(customer.vehicle) ?? "");
   const [planCode, setPlanCode] = useState<FounderPlanCode | "">(normalizePlanCodeForFilter(current?.recommendedPlanCode));
-  const [contractingMode, setContractingMode] = useState<FounderContractingMode | "">(normalizeContractingMode(current?.recommendedContractingMode));
-  const [vehicleCategory, setVehicleCategory] = useState<FounderVehicleCategory | "">(normalizeVehicleCategory(current?.recommendedVehicleCategory));
+  const [contractingMode, setContractingMode] = useState<FounderContractingMode | "">(initialMode);
+  const [vehicleCategory, setVehicleCategory] = useState<FounderVehicleCategory | "">(initialCategory);
   const [reason, setReason] = useState(current?.recommendationReasonInternal ?? "");
   const [message, setMessage] = useState(current?.recommendationMessagePublic ?? "");
   const [notice, setNotice] = useState("");
@@ -1983,8 +2000,136 @@ function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; e
   const approveDisabled = !enabled || protectedFounder || saving || !offer || !offerValidated || reason.trim().length < 3;
   const createPageDisabled = !enabled || protectedFounder || saving || customer.campaign.founderStatus !== "selecionado" || Boolean(current?.publicLink) || !offerValidated;
 
-  return <div className="mt-5 rounded-2xl border border-[#C9A84C]/20 bg-[#0D0D0D] p-4">
-    <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">Curadoria individual</p><p className="mt-1 text-xs text-[#8A8A8A]">Estado: {state}. Seleção exclusivamente humana.</p></div>{current?.recommendedPlanVersion ? <span className="text-[10px] text-[#777]">{current.recommendedPlanVersion}</span> : null}</div>
+  const fastPathDetectedCategory = !current?.recommendedVehicleCategory ? detectFounderVehicleCategory(customer.vehicle) : null;
+  const fastPathCtaDisabled = saving || protectedFounder || !enabled || !planCode || contractingMode !== "monthly" || !vehicleCategory || reason.trim().length < 3;
+  const invitePreviewPath = customer.campaign.personalizedPagePath
+    ? `${customer.campaign.personalizedPagePath}?preview=1`
+    : null;
+  const inviteCleanUrl = customer.campaign.personalizedPagePath
+    ? `${getOrigin()}${customer.campaign.personalizedPagePath}`
+    : null;
+  const openInviteWhatsapp = () => {
+    const text = buildFounderWhatsappMessage(customer, getOrigin());
+    const url = buildWhatsappUrl(customer, text);
+    if (!url) {
+      setNotice("Telefone não cadastrado.");
+      return;
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  return <div className="mt-5 space-y-4 rounded-2xl border border-[#C9A84C]/20 bg-[#0D0D0D] p-4">
+    {/* Fast-path: gerar convite em uma ação */}
+    <section className="rounded-2xl border border-[#C9A84C]/40 bg-[#C9A84C]/[0.04] p-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">Gerar convite Founder</p>
+          <p className="mt-1 text-[11px] text-[#A7A7A7]">Escolha o plano, confirme a categoria e clique. Aprovação + página em uma ação.</p>
+        </div>
+        {current?.publicLink ? <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-200">Convite ativo</span> : null}
+      </div>
+
+      {protectedFounder ? <p className="mt-3 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[11px] text-[#A7A7A7]">Founder confirmado protegido. O convite atual não pode ser regerado.</p> : current?.publicLink && invitePreviewPath && inviteCleanUrl ? (
+        <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.05] p-3">
+          <p className="text-xs font-semibold text-emerald-200">Convite pronto</p>
+          <p className="mt-1 text-[11px] text-emerald-100/70">Versão {current.publicLink.version}. {current.inviteSentAt ? "Já marcado como enviado." : "Ainda não marcado como enviado."}</p>
+          <div className="mt-2 rounded-lg border border-white/[0.06] bg-white/[0.02] p-2 text-[11px] text-white/80 break-all font-mono">{inviteCleanUrl}</div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link href={invitePreviewPath} target="_blank" className="rounded-lg border border-white/15 px-3 py-2 text-[11px] font-semibold text-white/80 hover:text-white">Abrir preview</Link>
+            <button type="button" onClick={copyPublicLink} className="rounded-lg border border-white/15 px-3 py-2 text-[11px] font-semibold text-white/80 hover:text-white">Copiar link</button>
+            <button type="button" onClick={openInviteWhatsapp} disabled={!customer.phone} className="rounded-lg bg-emerald-500/90 px-3 py-2 text-[11px] font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40">Abrir WhatsApp</button>
+            <button type="button" disabled={saving || Boolean(current.inviteSentAt)} onClick={() => act("mark_sent")} className="rounded-lg border border-white/15 px-3 py-2 text-[11px] font-semibold text-white/80 hover:text-white disabled:opacity-40">{current.inviteSentAt ? "Convite enviado" : "Marcar como enviado"}</button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            {founderPlanDefinitions.map((p) => {
+              const price = vehicleCategory ? monthlyPriceMatrix[p.planCode][vehicleCategory] : null;
+              const active = planCode === p.planCode;
+              return (
+                <button
+                  key={p.planCode}
+                  type="button"
+                  disabled={saving}
+                  onClick={() => { setPlanCode(p.planCode); setContractingMode("monthly"); }}
+                  className={`rounded-xl border p-3 text-left transition ${active ? "border-[#C9A84C] bg-[#C9A84C]/10" : "border-white/10 hover:border-[#C9A84C]/40"}`}
+                >
+                  <div className="text-sm font-semibold text-white">{p.planName}</div>
+                  <div className="text-[11px] text-[#8A8A8A]">{p.serviceQuantity} {p.serviceQuantity === 1 ? "lavagem" : "lavagens"}/mês</div>
+                  <div className="mt-1.5 text-sm text-[#E7C96A]">
+                    {price !== null ? `${price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}/mês` : "selecione categoria"}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-3">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#7D7D7D]">
+              Categoria do veículo{customer.vehicle && customer.vehicle !== "A definir" ? ` — veículo: ${customer.vehicle}` : ""}
+              {fastPathDetectedCategory && vehicleCategory === fastPathDetectedCategory ? " (detectada)" : ""}
+            </p>
+            <div className="mt-1 flex flex-wrap gap-1.5">
+              {founderVehicleCategories.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  disabled={saving}
+                  onClick={() => setVehicleCategory(cat)}
+                  className={`rounded-full border px-3 py-1 text-xs transition ${vehicleCategory === cat ? "border-[#C9A84C] bg-[#C9A84C]/10 text-[#E7C96A]" : "border-white/15 text-[#A7A7A7] hover:text-white"}`}
+                >
+                  {vehicleCategoryLabels[cat]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <p className="mt-3 text-[11px] text-[#7D7D7D]">
+            Modalidade: <span className="text-white font-medium">Mensal</span> · Fidelidade 6 meses <span className="text-[#5A5A5A]">em breve</span> · Fidelidade 12 meses <span className="text-[#5A5A5A]">em breve</span>
+          </p>
+
+          <div className="mt-3">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#7D7D7D]">Motivo interno</p>
+            <div className="mt-1 flex flex-wrap gap-1.5">
+              {FAST_REASON_CHIPS.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  disabled={saving}
+                  onClick={() => setReason(r)}
+                  className={`rounded-full border px-3 py-1 text-xs transition ${reason === r ? "border-[#C9A84C] bg-[#C9A84C]/10 text-[#E7C96A]" : "border-white/15 text-[#A7A7A7] hover:text-white"}`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+            <input
+              type="text"
+              placeholder="Observação opcional (aparece só internamente)"
+              disabled={saving}
+              className="mt-2 h-9 w-full rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 text-xs text-white outline-none focus:border-[#C9A84C]/50"
+              onChange={(event) => setReason(event.target.value)}
+              value={reason}
+            />
+          </div>
+
+          <button
+            type="button"
+            disabled={fastPathCtaDisabled}
+            onClick={() => act("create_invite")}
+            className="mt-4 w-full rounded-xl bg-[#C9A84C] px-4 py-3 text-sm font-bold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {saving ? "Gerando…" : "Gerar convite Founder"}
+          </button>
+          {!planCode && <p className="mt-2 text-center text-[10px] text-[#7D7D7D]">Escolha um plano acima.</p>}
+          {planCode && !vehicleCategory && <p className="mt-2 text-center text-[10px] text-[#7D7D7D]">Escolha a categoria do veículo.</p>}
+          {planCode && vehicleCategory && reason.trim().length < 3 && <p className="mt-2 text-center text-[10px] text-[#7D7D7D]">Escolha ou digite um motivo interno (mínimo 3 caracteres).</p>}
+        </>
+      )}
+    </section>
+
+    <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">Curadoria individual — ações avançadas</p><p className="mt-1 text-xs text-[#8A8A8A]">Estado: {state}. Use estas opções para editar rascunho, revogar link ou enviar mensagem manual.</p></div>{current?.recommendedPlanVersion ? <span className="text-[10px] text-[#777]">{current.recommendedPlanVersion}</span> : null}</div>
     {protectedFounder ? <p className="mt-3 rounded-lg border border-white/[0.08] px-3 py-2 text-xs text-[#A7A7A7]">Founder confirmado protegido. Oferta e link permanecem inalterados.</p> : null}
     {notice ? <p className="mt-3 rounded-lg border border-white/[0.08] px-3 py-2 text-xs text-[#E7C96A]">{notice}</p> : null}
     {offer && !offerValidated ? <p className="mt-3 rounded-lg border border-amber-400/30 bg-amber-400/[0.08] px-3 py-2 text-xs text-amber-200">{INCOMPLETE_OFFER_ADMIN_MESSAGE}</p> : null}

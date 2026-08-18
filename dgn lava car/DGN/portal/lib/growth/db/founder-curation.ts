@@ -1,4 +1,11 @@
-export type FounderCurationAction = "save" | "approve" | "create_page" | "revoke" | "replace" | "mark_sent";
+export type FounderCurationAction =
+  | "save"
+  | "approve"
+  | "create_page"
+  | "revoke"
+  | "replace"
+  | "mark_sent"
+  | "create_invite"; // fast-path: aprova + gera página em uma chamada
 
 export interface FounderCuration {
   recommendedPlanCode: string;

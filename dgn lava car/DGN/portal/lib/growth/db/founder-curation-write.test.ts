@@ -91,3 +91,66 @@ test("save preserva os três planos oficiais no snapshot", () => {
     assert.doesNotMatch(parsed.snapshot?.planName ?? "", /semestral|anual|trimestral/i);
   }
 });
+
+// -----------------------------------------------------------------------------
+// Fast-path create_invite — aprova + cria página em uma ação
+// -----------------------------------------------------------------------------
+
+test("create_invite aceita Mensal + categoria + motivo válidos", () => {
+  const parsed = validateFounderCurationPayload({ ...base, action: "create_invite" });
+  assert.equal(parsed.action, "create_invite");
+  assert.equal(parsed.snapshot?.contractingMode, "monthly");
+  assert.equal(parsed.snapshot?.planCode, "essential");
+  assert.equal(parsed.snapshot?.monthlyPrice, 80);
+});
+
+test("create_invite exige categoria quando modalidade é Mensal", () => {
+  assert.throws(
+    () => validateFounderCurationPayload({ ...base, action: "create_invite", recommendedVehicleCategory: "" }),
+    (error) => error instanceof FounderCurationWriteError && /categoria do veículo/i.test(error.message),
+  );
+});
+
+test("create_invite exige motivo interno com pelo menos 3 caracteres", () => {
+  assert.throws(
+    () => validateFounderCurationPayload({ ...base, action: "create_invite", recommendationReasonInternal: "" }),
+    (error) => error instanceof FounderCurationWriteError && /motivo/i.test(error.message),
+  );
+});
+
+test("create_invite bloqueia modalidade Fidelidade (não validada comercialmente)", () => {
+  for (const mode of ["loyalty_6", "loyalty_12"] as const) {
+    assert.throws(
+      () => validateFounderCurationPayload({
+        ...base,
+        action: "create_invite",
+        recommendedContractingMode: mode,
+        recommendedVehicleCategory: "sedan",
+      }),
+      (error) => error instanceof FounderCurationWriteError && /condição comercial validada/i.test(error.message),
+    );
+  }
+});
+
+test("create_invite bloqueia plano fora do catálogo", () => {
+  for (const invalidCode of ["elite", "premium", "daily", "Essential"]) {
+    assert.throws(
+      () => validateFounderCurationPayload({ ...base, action: "create_invite", recommendedPlanCode: invalidCode }),
+      (error) => error instanceof FounderCurationWriteError,
+    );
+  }
+});
+
+test("create_invite resolve o preço server-side (12 combinações Mensal)", () => {
+  for (const plan of ["essential", "smart", "priority"] as const) {
+    for (const category of founderVehicleCategories) {
+      const parsed = validateFounderCurationPayload({
+        ...base,
+        action: "create_invite",
+        recommendedPlanCode: plan,
+        recommendedVehicleCategory: category,
+      });
+      assert.equal(parsed.snapshot?.monthlyPrice, monthlyPriceMatrix[plan][category]);
+    }
+  }
+});
