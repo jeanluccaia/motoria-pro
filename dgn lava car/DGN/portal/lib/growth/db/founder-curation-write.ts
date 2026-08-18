@@ -62,7 +62,9 @@ function rejectDurationInPlanCode(planCode: string) {
 export interface FounderCurationInput {
   action: FounderCurationAction;
   campaignId: "founders-2026";
-  expectedUpdatedAt: string;
+  // Null é aceito APENAS para `create_invite` quando o cliente ainda não
+  // tem crm_campaign_members (bootstrap silencioso feito pela RPC).
+  expectedUpdatedAt: string | null;
   planCode: FounderPlanCode | "";
   contractingMode: FounderContractingMode | "";
   category: FounderVehicleCategory | "";
@@ -82,7 +84,14 @@ export function validateFounderCurationPayload(payload: unknown): FounderCuratio
   if (typeof raw.action !== "string" || !actions.has(raw.action as FounderCurationAction)) {
     throw new FounderCurationWriteError("Ação inválida.", 400);
   }
-  if (typeof raw.expectedUpdatedAt !== "string" || Number.isNaN(Date.parse(raw.expectedUpdatedAt))) {
+  const isBootstrapAction = raw.action === "create_invite";
+  const rawExpected = raw.expectedUpdatedAt;
+  let parsedExpected: string | null;
+  if (typeof rawExpected === "string" && rawExpected !== "" && !Number.isNaN(Date.parse(rawExpected))) {
+    parsedExpected = new Date(rawExpected).toISOString();
+  } else if (isBootstrapAction && (rawExpected === null || rawExpected === undefined || rawExpected === "")) {
+    parsedExpected = null; // RPC vai bootstrap se o cliente ainda não tem campaign_member
+  } else {
     throw new FounderCurationWriteError("expectedUpdatedAt inválido.", 400);
   }
 
@@ -136,7 +145,7 @@ export function validateFounderCurationPayload(payload: unknown): FounderCuratio
   return {
     action,
     campaignId: "founders-2026",
-    expectedUpdatedAt: new Date(raw.expectedUpdatedAt as string).toISOString(),
+    expectedUpdatedAt: parsedExpected,
     planCode,
     contractingMode,
     category,

@@ -154,3 +154,26 @@ test("create_invite resolve o preço server-side (12 combinações Mensal)", () 
     }
   }
 });
+
+test("create_invite aceita expectedUpdatedAt vazio/null (bootstrap silencioso da RPC)", () => {
+  for (const empty of [null, undefined, ""] as const) {
+    const parsed = validateFounderCurationPayload({
+      ...base,
+      action: "create_invite",
+      expectedUpdatedAt: empty,
+    });
+    assert.equal(parsed.expectedUpdatedAt, null, `esperava null para ${JSON.stringify(empty)}`);
+  }
+});
+
+test("ações que NÃO são create_invite continuam exigindo expectedUpdatedAt válido", () => {
+  for (const action of ["save", "approve", "create_page", "replace", "mark_sent", "revoke"] as const) {
+    for (const empty of [null, undefined, ""] as const) {
+      assert.throws(
+        () => validateFounderCurationPayload({ ...base, action, expectedUpdatedAt: empty }),
+        (error) => error instanceof FounderCurationWriteError && /expectedUpdatedAt/i.test(error.message),
+        `${action} com ${JSON.stringify(empty)} deveria falhar`,
+      );
+    }
+  }
+});

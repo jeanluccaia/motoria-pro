@@ -989,9 +989,12 @@ function CurationView({
   const pagedCustomers = filteredCustomers.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <section className="grid gap-5 lg:grid-cols-[22rem_1fr]">
-      <div className="rounded-2xl border border-white/[0.06] bg-[#101010]">
-        <div className="border-b border-white/[0.06] p-4">
+    <section
+      className="grid gap-5 lg:grid-cols-[22rem_1fr]"
+      style={{ minHeight: "calc(100dvh - 10rem)" }}
+    >
+      <div className="flex flex-col overflow-hidden rounded-2xl border border-white/[0.06] bg-[#101010]">
+        <div className="shrink-0 border-b border-white/[0.06] p-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
             Curadoria DGN
           </p>
@@ -1058,7 +1061,7 @@ function CurationView({
             </div>
           </details>
         </div>
-        <div className="max-h-[calc(100vh-18rem)] overflow-y-auto p-2">
+        <div className="min-h-0 flex-1 overflow-y-auto p-2">
           {pagedCustomers.map((customer) => (
             <button
               key={customer.id}
@@ -1089,7 +1092,7 @@ function CurationView({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/[0.06] bg-[#101010] p-5">
+      <div className="overflow-y-auto rounded-2xl border border-white/[0.06] bg-[#101010] p-5" style={{ maxHeight: "calc(100dvh - 10rem)" }}>
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <CustomerSnapshot customer={selectedCustomer} />
@@ -2057,7 +2060,23 @@ function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; e
   const createPageDisabled = !enabled || protectedFounder || saving || customer.campaign.founderStatus !== "selecionado" || Boolean(current?.publicLink) || !offerValidated;
 
   const fastPathDetectedCategory = !current?.recommendedVehicleCategory ? detectFounderVehicleCategory(customer.vehicle) : null;
-  const fastPathCtaDisabled = saving || protectedFounder || !enabled || !planCode || contractingMode !== "monthly" || !vehicleCategory || reason.trim().length < 3;
+  // Fast-path NÃO depende de `enabled` (updated_at) — a RPC faz bootstrap de
+  // crm_campaign_members quando o cliente ainda não tem registro.
+  const fastPathIsDescartado =
+    customer.campaign.founderStatus === "descartado" ||
+    customer.campaign.commercialStage === "descartado";
+  const fastPathBlockReason = protectedFounder
+    ? "Founder confirmado protegido. Oferta e link permanecem inalterados."
+    : fastPathIsDescartado
+    ? "Este cliente está marcado como descartado. Reative pela curadoria avançada antes."
+    : !planCode
+    ? "Escolha um plano acima."
+    : !vehicleCategory
+    ? "Escolha a categoria do veículo."
+    : reason.trim().length < 3
+    ? "Escolha ou digite um motivo interno (mínimo 3 caracteres)."
+    : "";
+  const fastPathCtaDisabled = saving || Boolean(fastPathBlockReason);
   const invitePreviewPath = customer.campaign.personalizedPagePath
     ? `${customer.campaign.personalizedPagePath}?preview=1`
     : null;
@@ -2178,9 +2197,9 @@ function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; e
           >
             {saving ? "Gerando…" : "Gerar convite Founder"}
           </button>
-          {!planCode && <p className="mt-2 text-center text-[10px] text-[#7D7D7D]">Escolha um plano acima.</p>}
-          {planCode && !vehicleCategory && <p className="mt-2 text-center text-[10px] text-[#7D7D7D]">Escolha a categoria do veículo.</p>}
-          {planCode && vehicleCategory && reason.trim().length < 3 && <p className="mt-2 text-center text-[10px] text-[#7D7D7D]">Escolha ou digite um motivo interno (mínimo 3 caracteres).</p>}
+          {fastPathBlockReason ? (
+            <p className="mt-2 text-center text-[11px] text-[#E7C96A]">{fastPathBlockReason}</p>
+          ) : null}
         </>
       )}
     </section>
