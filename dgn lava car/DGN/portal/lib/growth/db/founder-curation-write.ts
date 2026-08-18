@@ -177,7 +177,20 @@ export async function writeFounderCuration(
     if (result.error.code === "P0002") throw new FounderCurationWriteError("Cliente ou campanha inexistente.", 404);
     if (["40001", "23505"].includes(result.error.code ?? "")) throw new FounderCurationWriteError(result.error.message, 409);
     if (result.error.code === "22023") throw new FounderCurationWriteError(result.error.message, 400);
-    throw new FounderCurationWriteError("Não foi possível atualizar a curadoria.", 502);
+    // Loga o erro real server-side (fica no log do Vercel) e surface uma
+    // mensagem com o código SQL para o operador, para não travar cego.
+    console.error("[founder-curation.write] rpc failed", {
+      code: result.error.code,
+      message: result.error.message,
+      details: result.error.details,
+      hint: result.error.hint,
+      action: input.action,
+    });
+    const surfaced = [result.error.code, result.error.message].filter(Boolean).join(": ");
+    throw new FounderCurationWriteError(
+      surfaced ? `RPC falhou (${surfaced}).` : "Não foi possível atualizar a curadoria.",
+      502,
+    );
   }
   return result.data as Record<string, unknown>;
 }

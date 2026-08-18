@@ -427,6 +427,8 @@ export function DgnGrowthWorkspace({
           <CurationView
             customers={customers}
             selectedCustomer={selectedCustomer}
+            query={query}
+            onQuery={(value) => { setQuery(value); setCurationPage(1); }}
             curationFilter={curationFilter}
             curationPlanFilter={curationPlanFilter}
             curationModalityFilter={curationModalityFilter}
@@ -905,6 +907,8 @@ const curationModalityOrder: Record<FounderContractingMode, number> = { monthly:
 function CurationView({
   customers,
   selectedCustomer,
+  query,
+  onQuery,
   curationFilter,
   curationPlanFilter,
   curationModalityFilter,
@@ -922,6 +926,8 @@ function CurationView({
 }: {
   customers: DgnCustomer[];
   selectedCustomer: DgnCustomer;
+  query: string;
+  onQuery: (value: string) => void;
   curationFilter: string;
   curationPlanFilter: CurationPlanFilter;
   curationModalityFilter: CurationModalityFilter;
@@ -938,6 +944,7 @@ function CurationView({
   onPage: (page: number) => void;
 }) {
   const filteredCustomers = [...customers]
+    .filter((customer) => matchesDgnCustomerSearch(customer, query))
     .filter((customer) => {
       if (curationFilter === "Aguardando") return customer.commercialStatus === "Aguardando Curadoria DGN";
       if (curationFilter === "Curado") return customer.commercialStatus === "Curado";
@@ -989,16 +996,25 @@ function CurationView({
   const pagedCustomers = filteredCustomers.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <section
-      className="grid gap-5 lg:grid-cols-[22rem_1fr]"
-      style={{ minHeight: "calc(100dvh - 10rem)" }}
-    >
-      <div className="flex flex-col overflow-hidden rounded-2xl border border-white/[0.06] bg-[#101010]">
+    <section className="grid gap-4 lg:grid-cols-[22rem_1fr] lg:items-stretch lg:h-[calc(100dvh-10rem)]">
+      <div className="flex flex-col rounded-2xl border border-white/[0.06] bg-[#101010] lg:overflow-hidden">
         <div className="shrink-0 border-b border-white/[0.06] p-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
             Curadoria DGN
           </p>
           <h2 className="mt-1 text-lg font-semibold text-white">Filtragem e ordenação</h2>
+          <label className="mt-3 block">
+            <span className="sr-only">Buscar cliente</span>
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => onQuery(event.target.value)}
+              placeholder="Buscar por nome, iniciais (ex.: GL), placa ou telefone"
+              className="h-10 w-full rounded-lg border border-white/[0.06] bg-[#151515] px-3 text-xs text-white outline-none focus:border-[#C9A84C]/50"
+              autoComplete="off"
+              spellCheck={false}
+            />
+          </label>
           {/* Filtros essenciais visíveis por padrão */}
           <div className="mt-3 flex flex-wrap gap-1.5">
             {curationFilterOptions
@@ -1061,7 +1077,7 @@ function CurationView({
             </div>
           </details>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto p-2">
+        <div className="p-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
           {pagedCustomers.map((customer) => (
             <button
               key={customer.id}
@@ -1092,7 +1108,7 @@ function CurationView({
         </div>
       </div>
 
-      <div className="overflow-y-auto rounded-2xl border border-white/[0.06] bg-[#101010] p-5" style={{ maxHeight: "calc(100dvh - 10rem)" }}>
+      <div className="rounded-2xl border border-white/[0.06] bg-[#101010] p-5 lg:overflow-y-auto lg:max-h-[calc(100dvh-10rem)]">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <CustomerSnapshot customer={selectedCustomer} />

@@ -11,7 +11,7 @@ create or replace function public.crm_manage_founder_curation_v2(
   p_plan_code text, p_contracting_mode text, p_vehicle_category text,
   p_reason_internal text, p_message_public text, p_plan_snapshot jsonb,
   p_expected_updated_at timestamptz, p_actor text
-) returns jsonb language plpgsql security invoker set search_path=public as $$
+) returns jsonb language plpgsql security invoker set search_path=public, extensions as $$
 declare
   v_customer uuid; v_member public.crm_campaign_members%rowtype;
   v_link public.crm_founder_public_links%rowtype; v_now timestamptz:=clock_timestamp();

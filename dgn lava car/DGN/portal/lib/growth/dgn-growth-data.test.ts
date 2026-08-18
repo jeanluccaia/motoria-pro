@@ -105,6 +105,20 @@ test("busca aceita acentos e placa, e telefone exibido fica mascarado", () => {
   assert.equal(maskPhone(customer.phone), "(19) *****-1234");
 });
 
+test("busca por iniciais dos nomes (GL → Guilherme Lopes, gsl → Guilherme Silva Lopes)", () => {
+  const guilherme = { ...dgnCustomers[0], name: "Guilherme Lopes", plate: "", phone: "", vehicle: "" };
+  assert.equal(matchesDgnCustomerSearch(guilherme, "gl"), true);
+  assert.equal(matchesDgnCustomerSearch(guilherme, "GL"), true);
+  const trio = { ...dgnCustomers[0], name: "Guilherme Silva Lopes", plate: "", phone: "", vehicle: "" };
+  assert.equal(matchesDgnCustomerSearch(trio, "gsl"), true);
+  assert.equal(matchesDgnCustomerSearch(trio, "gl"), true); // inclui, não só startsWith
+  // Iniciais só rodam para queries curtas de letras — não interfere em busca por substring
+  const jose = { ...dgnCustomers[0], name: "Jose Moreira", plate: "", phone: "", vehicle: "" };
+  assert.equal(matchesDgnCustomerSearch(jose, "jose"), true);   // substring path
+  assert.equal(matchesDgnCustomerSearch(jose, "jm"), true);     // initials path
+  assert.equal(matchesDgnCustomerSearch(jose, "zz"), false);    // nem substring nem inicial
+});
+
 test("Curadoria recebe a fonte operacional, nao os 2354 historicos", () => {
   assert.notEqual(dgnCustomers.length, allDgnCustomers.length);
   assert.equal(dgnCustomers.length, 1152);

@@ -315,14 +315,33 @@ export function matchesDgnCustomerSearch(customer: DgnCustomer, query: string) {
   const normalizedQuery = normalizeSearch(query.trim());
   if (!normalizedQuery) return true;
 
-  return normalizeSearch([
+  const haystack = normalizeSearch([
     customer.name,
     customer.vehicle,
     customer.companyLink,
     customer.origin,
     customer.phone,
     customer.plate,
-  ].join(" ")).includes(normalizedQuery);
+  ].join(" "));
+  if (haystack.includes(normalizedQuery)) return true;
+
+  // Busca por iniciais do nome: "gl" casa "Guilherme Lopes" e tamb\u00e9m
+  // "Guilherme Silva Lopes" (subsequ\u00eancia das iniciais "gsl"). S\u00f3 entra em
+  // a\u00e7\u00e3o para queries curtas de letras (2\u20135 chars), sem espa\u00e7o/n\u00famero.
+  if (/^[a-z]{2,5}$/.test(normalizedQuery)) {
+    const initials = normalizeSearch(customer.name)
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((word) => word[0])
+      .join("");
+    // Subsequ\u00eancia: caracteres de q aparecem em initials na mesma ordem.
+    let j = 0;
+    for (let i = 0; i < initials.length && j < normalizedQuery.length; i++) {
+      if (initials[i] === normalizedQuery[j]) j++;
+    }
+    if (j === normalizedQuery.length) return true;
+  }
+  return false;
 }
 
 export function searchDgnCustomers(query: string, customers: DgnCustomer[] = dgnCustomers) {
