@@ -564,6 +564,7 @@ const mediaOverrides: Record<string, UnitMedia> = {
   ipiranga: ipirangaMedia,
   amoreiras: amoreirasMedia,
   'vila-industrial': vilaIndustrialMedia,
+  'mogi-mirim': mogiMirimMedia,
 }
 
 function normalizeUnit(unit: Unit): Unit {
