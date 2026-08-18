@@ -188,6 +188,9 @@ export function DgnGrowthWorkspace({
 }) {
   const [drafts, setDrafts] = useState(() => createDrafts(initialCustomers));
   const [selectedCustomerId, setSelectedCustomerId] = useState(customerId ?? "");
+  // drawerCustomerId é INDEPENDENTE de selectedCustomerId. Fechar o drawer
+  // NUNCA deve alterar o cliente selecionado da Curadoria.
+  const [drawerCustomerId, setDrawerCustomerId] = useState(customerId ?? "");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
   const [planFilter, setPlanFilter] = useState("Todos");
@@ -221,6 +224,9 @@ export function DgnGrowthWorkspace({
 
   const selectedCustomer =
     customers.find((customer) => customer.id === selectedCustomerId) ?? customers[0];
+  const drawerCustomer = drawerCustomerId
+    ? customers.find((customer) => customer.id === drawerCustomerId) ?? null
+    : null;
 
   const visibleCustomers = useMemo(() => {
     return customers
@@ -411,6 +417,7 @@ export function DgnGrowthWorkspace({
             onSortBy={(value) => { setSortBy(value); setIntelligencePage(1); }}
             onOpenProfile={(id) => {
               setSelectedCustomerId(id);
+              setDrawerCustomerId(id);
               setProfileTab("overview");
             }}
           />
@@ -425,6 +432,10 @@ export function DgnGrowthWorkspace({
             curationModalityFilter={curationModalityFilter}
             curationSort={curationSort}
             onSelect={setSelectedCustomerId}
+            onOpenDrawer={(id) => {
+              setDrawerCustomerId(id);
+              setProfileTab("overview");
+            }}
             onPatch={patchCustomer}
             onCurationFilter={(value) => { setCurationFilter(value); setCurationPage(1); }}
             onCurationPlanFilter={(value) => { setCurationPlanFilter(value); setCurationPage(1); }}
@@ -445,6 +456,7 @@ export function DgnGrowthWorkspace({
             onFounderFilter={setFounderFilter}
             onOpenProfile={(id) => {
               setSelectedCustomerId(id);
+              setDrawerCustomerId(id);
               setProfileTab("overview");
             }}
             onOpenWhatsapp={openWhatsapp}
@@ -475,21 +487,21 @@ export function DgnGrowthWorkspace({
         ) : null}
       </main>
 
-      {view !== "profile" && selectedCustomerId ? (
+      {view !== "profile" && drawerCustomer ? (
         <CustomerDrawer
-          customer={selectedCustomer}
+          customer={drawerCustomer}
           tab={profileTab}
           onTabChange={setProfileTab}
-          onClose={() => setSelectedCustomerId("")}
+          onClose={() => setDrawerCustomerId("")}
           onPatch={patchCustomer}
           onOpenWhatsapp={openWhatsapp}
           onCopy={() =>
             copyText(
-              `message-${selectedCustomer.id}`,
-              buildFounderWhatsappMessage(selectedCustomer, getOrigin())
+              `message-${drawerCustomer.id}`,
+              buildFounderWhatsappMessage(drawerCustomer, getOrigin())
             )
           }
-          copied={copiedKey === `message-${selectedCustomer.id}`}
+          copied={copiedKey === `message-${drawerCustomer.id}`}
           canPersistCommercial={dataOrigin === "db"}
           onCommercialSaved={applyCommercialSaved}
         />
@@ -898,6 +910,7 @@ function CurationView({
   curationModalityFilter,
   curationSort,
   onSelect,
+  onOpenDrawer,
   onPatch,
   onCurationFilter,
   onCurationPlanFilter,
@@ -914,6 +927,7 @@ function CurationView({
   curationModalityFilter: CurationModalityFilter;
   curationSort: CurationSort;
   onSelect: (id: string) => void;
+  onOpenDrawer: (id: string) => void;
   onPatch: (id: string, patch: Partial<CustomerDraft>) => void;
   onCurationFilter: (value: string) => void;
   onCurationPlanFilter: (value: CurationPlanFilter) => void;
@@ -982,41 +996,67 @@ function CurationView({
             Curadoria DGN
           </p>
           <h2 className="mt-1 text-lg font-semibold text-white">Filtragem e ordenação</h2>
+          {/* Filtros essenciais visíveis por padrão */}
           <div className="mt-3 flex flex-wrap gap-1.5">
-            {curationFilterOptions.map((option) => (
-              <button
-                key={option.key}
-                onClick={() => onCurationFilter(option.key)}
-                className={`inline-flex h-7 items-center rounded-full border px-2.5 text-[11px] font-semibold transition ${
-                  curationFilter === option.key
-                    ? "border-[#C9A84C]/35 bg-[#C9A84C]/10 text-[#E7C96A]"
-                    : "border-white/[0.06] bg-white/[0.025] text-[#9CA3AF] hover:border-[#C9A84C]/20"
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
+            {curationFilterOptions
+              .filter((option) => ["Todos", "Aguardando", "Curado", "Founder"].includes(option.key))
+              .map((option) => (
+                <button
+                  key={option.key}
+                  onClick={() => onCurationFilter(option.key)}
+                  className={`inline-flex h-7 items-center rounded-full border px-2.5 text-[11px] font-semibold transition ${
+                    curationFilter === option.key
+                      ? "border-[#C9A84C]/35 bg-[#C9A84C]/10 text-[#E7C96A]"
+                      : "border-white/[0.06] bg-white/[0.025] text-[#9CA3AF] hover:border-[#C9A84C]/20"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
           </div>
-          <div className="mt-3 grid gap-2 sm:grid-cols-3">
-            <label>
-              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Plano</span>
-              <select value={curationPlanFilter} onChange={(event) => onCurationPlanFilter(event.target.value as CurationPlanFilter)} className="mt-1 h-9 w-full rounded-lg border border-white/[0.06] bg-[#151515] px-2 text-xs text-white">
-                {curationPlanFilterOptions.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
-              </select>
-            </label>
-            <label>
-              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Modalidade</span>
-              <select value={curationModalityFilter} onChange={(event) => onCurationModalityFilter(event.target.value as CurationModalityFilter)} className="mt-1 h-9 w-full rounded-lg border border-white/[0.06] bg-[#151515] px-2 text-xs text-white">
-                {curationModalityFilterOptions.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
-              </select>
-            </label>
-            <label>
-              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Ordenar por</span>
-              <select value={curationSort} onChange={(event) => onCurationSort(event.target.value as CurationSort)} className="mt-1 h-9 w-full rounded-lg border border-white/[0.06] bg-[#151515] px-2 text-xs text-white">
-                {curationSortOptions.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
-              </select>
-            </label>
-          </div>
+          {/* Filtros avançados atrás de um details/summary */}
+          <details className="mt-3 group">
+            <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-[0.14em] text-[#9CA3AF] hover:text-white select-none">
+              Mais filtros
+            </summary>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {curationFilterOptions
+                .filter((option) => !["Todos", "Aguardando", "Curado", "Founder"].includes(option.key))
+                .map((option) => (
+                  <button
+                    key={option.key}
+                    onClick={() => onCurationFilter(option.key)}
+                    className={`inline-flex h-7 items-center rounded-full border px-2.5 text-[11px] font-semibold transition ${
+                      curationFilter === option.key
+                        ? "border-[#C9A84C]/35 bg-[#C9A84C]/10 text-[#E7C96A]"
+                        : "border-white/[0.06] bg-white/[0.025] text-[#9CA3AF] hover:border-[#C9A84C]/20"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+            </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              <label>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Plano</span>
+                <select value={curationPlanFilter} onChange={(event) => onCurationPlanFilter(event.target.value as CurationPlanFilter)} className="mt-1 h-9 w-full rounded-lg border border-white/[0.06] bg-[#151515] px-2 text-xs text-white">
+                  {curationPlanFilterOptions.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
+                </select>
+              </label>
+              <label>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Modalidade</span>
+                <select value={curationModalityFilter} onChange={(event) => onCurationModalityFilter(event.target.value as CurationModalityFilter)} className="mt-1 h-9 w-full rounded-lg border border-white/[0.06] bg-[#151515] px-2 text-xs text-white">
+                  {curationModalityFilterOptions.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
+                </select>
+              </label>
+              <label>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Ordenar por</span>
+                <select value={curationSort} onChange={(event) => onCurationSort(event.target.value as CurationSort)} className="mt-1 h-9 w-full rounded-lg border border-white/[0.06] bg-[#151515] px-2 text-xs text-white">
+                  {curationSortOptions.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
+                </select>
+              </label>
+            </div>
+          </details>
         </div>
         <div className="max-h-[calc(100vh-18rem)] overflow-y-auto p-2">
           {pagedCustomers.map((customer) => (
@@ -1050,65 +1090,81 @@ function CurationView({
       </div>
 
       <div className="rounded-2xl border border-white/[0.06] bg-[#101010] p-5">
-        <CustomerSnapshot customer={selectedCustomer} />
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <CustomerSnapshot customer={selectedCustomer} />
+          </div>
+          <button
+            type="button"
+            onClick={() => onOpenDrawer(selectedCustomer.id)}
+            className="shrink-0 rounded-lg border border-white/15 px-3 py-1.5 text-[11px] font-semibold text-white/80 transition hover:border-white/30 hover:text-white"
+          >
+            Ver perfil completo
+          </button>
+        </div>
 
         <FounderCurationEditor customer={selectedCustomer} enabled={Boolean(selectedCustomer.campaign.updatedAt)} />
 
-        <Fieldset label="Perfil">
-          <div className="grid gap-4 lg:grid-cols-2">
-            <SelectBlock
-              label="Perfil"
-              value={selectedCustomer.curation.profile}
-              options={curationProfiles}
-              onChange={(value) =>
-                onPatch(selectedCustomer.id, {
-                  curation: { profile: value } as CustomerDraft["curation"],
-                })
-              }
-            />
-            <SelectBlock
-              label="Origem / Grupo"
-              value={selectedCustomer.curation.originGroup}
-              options={originGroups}
-              onChange={(value) =>
-                onPatch(selectedCustomer.id, {
-                  curation: { originGroup: value } as CustomerDraft["curation"],
-                })
-              }
-            />
-            <SelectBlock
-              label="Perfil comercial"
-              value={selectedCustomer.curation.commercialProfile}
-              options={commercialProfiles}
-              onChange={(value) =>
-                onPatch(selectedCustomer.id, {
-                  curation: { commercialProfile: value } as CustomerDraft["curation"],
-                })
-              }
-            />
-            <SelectBlock
-              label="Plano recomendado"
-              value={selectedCustomer.recommendedPlan}
-              options={recommendedPlans}
-              onChange={(value) =>
-                onPatch(selectedCustomer.id, { recommendedPlan: value as RecommendedPlan })
-              }
-            />
-          </div>
-        </Fieldset>
+        <details className="mt-6 group">
+          <summary className="cursor-pointer border-t border-white/[0.06] pt-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80 hover:text-[#E7C96A] select-none">
+            Opções avançadas de curadoria
+          </summary>
+          <Fieldset label="Perfil">
+            <div className="grid gap-4 lg:grid-cols-2">
+              <SelectBlock
+                label="Perfil"
+                value={selectedCustomer.curation.profile}
+                options={curationProfiles}
+                onChange={(value) =>
+                  onPatch(selectedCustomer.id, {
+                    curation: { profile: value } as CustomerDraft["curation"],
+                  })
+                }
+              />
+              <SelectBlock
+                label="Origem / Grupo"
+                value={selectedCustomer.curation.originGroup}
+                options={originGroups}
+                onChange={(value) =>
+                  onPatch(selectedCustomer.id, {
+                    curation: { originGroup: value } as CustomerDraft["curation"],
+                  })
+                }
+              />
+              <SelectBlock
+                label="Perfil comercial"
+                value={selectedCustomer.curation.commercialProfile}
+                options={commercialProfiles}
+                onChange={(value) =>
+                  onPatch(selectedCustomer.id, {
+                    curation: { commercialProfile: value } as CustomerDraft["curation"],
+                  })
+                }
+              />
+              <SelectBlock
+                label="Plano recomendado"
+                value={selectedCustomer.recommendedPlan}
+                options={recommendedPlans}
+                onChange={(value) =>
+                  onPatch(selectedCustomer.id, { recommendedPlan: value as RecommendedPlan })
+                }
+              />
+            </div>
+          </Fieldset>
 
-        <Fieldset label="Preferência de atendimento">
-          <SelectBlock
-            label="Agenda ideal"
-            value={selectedCustomer.curation.idealSchedule}
-            options={idealSchedules}
-            onChange={(value) =>
-              onPatch(selectedCustomer.id, {
-                curation: { idealSchedule: value } as CustomerDraft["curation"],
-              })
-            }
-          />
-        </Fieldset>
+          <Fieldset label="Preferência de atendimento">
+            <SelectBlock
+              label="Agenda ideal"
+              value={selectedCustomer.curation.idealSchedule}
+              options={idealSchedules}
+              onChange={(value) =>
+                onPatch(selectedCustomer.id, {
+                  curation: { idealSchedule: value } as CustomerDraft["curation"],
+                })
+              }
+            />
+          </Fieldset>
+        </details>
 
         <div className="hidden" aria-hidden="true">
         <Fieldset label="Decisão Founder legada">
@@ -2129,56 +2185,63 @@ function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; e
       )}
     </section>
 
-    <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">Curadoria individual — ações avançadas</p><p className="mt-1 text-xs text-[#8A8A8A]">Estado: {state}. Use estas opções para editar rascunho, revogar link ou enviar mensagem manual.</p></div>{current?.recommendedPlanVersion ? <span className="text-[10px] text-[#777]">{current.recommendedPlanVersion}</span> : null}</div>
-    {protectedFounder ? <p className="mt-3 rounded-lg border border-white/[0.08] px-3 py-2 text-xs text-[#A7A7A7]">Founder confirmado protegido. Oferta e link permanecem inalterados.</p> : null}
-    {notice ? <p className="mt-3 rounded-lg border border-white/[0.08] px-3 py-2 text-xs text-[#E7C96A]">{notice}</p> : null}
-    {offer && !offerValidated ? <p className="mt-3 rounded-lg border border-amber-400/30 bg-amber-400/[0.08] px-3 py-2 text-xs text-amber-200">{INCOMPLETE_OFFER_ADMIN_MESSAGE}</p> : null}
-    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-      <label>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Plano recomendado</span>
-        <select value={planCode} disabled={protectedFounder || saving} onChange={(event) => setPlanCode(event.target.value as FounderPlanCode | "")} className="mt-2 h-11 w-full rounded-xl border border-white/[0.06] bg-[#151515] px-3 text-sm text-white">
-          <option value="">Selecione…</option>
-          {founderPlanDefinitions.map((item) => <option key={item.planCode} value={item.planCode}>{item.planName}</option>)}
-        </select>
-      </label>
-      <label>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Modalidade de contratação</span>
-        <select value={contractingMode} disabled={protectedFounder || saving || !planCode} onChange={(event) => setContractingMode(event.target.value as FounderContractingMode | "")} className="mt-2 h-11 w-full rounded-xl border border-white/[0.06] bg-[#151515] px-3 text-sm text-white">
-          <option value="">Selecione…</option>
-          {founderContractingModes.map((mode) => <option key={mode} value={mode}>{contractingModeLabels[mode]}{mode === "monthly" ? "" : " (aguardando validação comercial)"}</option>)}
-        </select>
-      </label>
-      <label>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Categoria do veículo</span>
-        <select value={vehicleCategory} disabled={protectedFounder || saving || !planCode} onChange={(event) => setVehicleCategory(event.target.value as FounderVehicleCategory | "")} className="mt-2 h-11 w-full rounded-xl border border-white/[0.06] bg-[#151515] px-3 text-sm text-white">
-          <option value="">Selecione…</option>
-          {founderVehicleCategories.map((cat) => <option key={cat} value={cat}>{vehicleCategoryLabels[cat]}</option>)}
-        </select>
-      </label>
-      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-xs text-[#A7A7A7] sm:col-span-2">
-        {plan ? (
-          <div className="grid gap-2 sm:grid-cols-2">
-            <ProfileFact label="Plano recomendado" value={plan.planName} compact />
-            <ProfileFact label="Frequência" value={frequencyLabel} compact />
-            <ProfileFact label="Modalidade" value={contractingMode ? contractingModeLabels[contractingMode] : "Selecionar modalidade"} compact />
-            <ProfileFact label="Valor mensal" value={priceLabel} compact />
-          </div>
-        ) : "Escolha um plano oficial para revisar os detalhes."}
+    {notice ? <p className="rounded-lg border border-white/[0.08] px-3 py-2 text-xs text-[#E7C96A]">{notice}</p> : null}
+
+    <details className="group">
+      <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80 hover:text-[#E7C96A] select-none">
+        Opções avançadas de curadoria
+      </summary>
+      <p className="mt-2 text-xs text-[#8A8A8A]">Estado: {state}. Use estas opções para editar rascunho, revogar link ou enviar mensagem manual.</p>
+      {current?.recommendedPlanVersion ? <span className="mt-1 block text-[10px] text-[#777]">{current.recommendedPlanVersion}</span> : null}
+      {protectedFounder ? <p className="mt-3 rounded-lg border border-white/[0.08] px-3 py-2 text-xs text-[#A7A7A7]">Founder confirmado protegido. Oferta e link permanecem inalterados.</p> : null}
+      {offer && !offerValidated ? <p className="mt-3 rounded-lg border border-amber-400/30 bg-amber-400/[0.08] px-3 py-2 text-xs text-amber-200">{INCOMPLETE_OFFER_ADMIN_MESSAGE}</p> : null}
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <label>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Plano recomendado</span>
+          <select value={planCode} disabled={protectedFounder || saving} onChange={(event) => setPlanCode(event.target.value as FounderPlanCode | "")} className="mt-2 h-11 w-full rounded-xl border border-white/[0.06] bg-[#151515] px-3 text-sm text-white">
+            <option value="">Selecione…</option>
+            {founderPlanDefinitions.map((item) => <option key={item.planCode} value={item.planCode}>{item.planName}</option>)}
+          </select>
+        </label>
+        <label>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Modalidade de contratação</span>
+          <select value={contractingMode} disabled={protectedFounder || saving || !planCode} onChange={(event) => setContractingMode(event.target.value as FounderContractingMode | "")} className="mt-2 h-11 w-full rounded-xl border border-white/[0.06] bg-[#151515] px-3 text-sm text-white">
+            <option value="">Selecione…</option>
+            {founderContractingModes.map((mode) => <option key={mode} value={mode}>{contractingModeLabels[mode]}{mode === "monthly" ? "" : " (aguardando validação comercial)"}</option>)}
+          </select>
+        </label>
+        <label>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Categoria do veículo</span>
+          <select value={vehicleCategory} disabled={protectedFounder || saving || !planCode} onChange={(event) => setVehicleCategory(event.target.value as FounderVehicleCategory | "")} className="mt-2 h-11 w-full rounded-xl border border-white/[0.06] bg-[#151515] px-3 text-sm text-white">
+            <option value="">Selecione…</option>
+            {founderVehicleCategories.map((cat) => <option key={cat} value={cat}>{vehicleCategoryLabels[cat]}</option>)}
+          </select>
+        </label>
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-xs text-[#A7A7A7] sm:col-span-2">
+          {plan ? (
+            <div className="grid gap-2 sm:grid-cols-2">
+              <ProfileFact label="Plano recomendado" value={plan.planName} compact />
+              <ProfileFact label="Frequência" value={frequencyLabel} compact />
+              <ProfileFact label="Modalidade" value={contractingMode ? contractingModeLabels[contractingMode] : "Selecionar modalidade"} compact />
+              <ProfileFact label="Valor mensal" value={priceLabel} compact />
+            </div>
+          ) : "Escolha um plano oficial para revisar os detalhes."}
+        </div>
+        <label className="sm:col-span-2"><span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Motivo interno *</span><textarea rows={3} value={reason} disabled={protectedFounder || saving} onChange={(event) => setReason(event.target.value)} className="mt-2 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-3 text-sm text-white" /></label>
+        <label className="sm:col-span-2"><span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Mensagem pública opcional</span><textarea rows={2} value={message} disabled={protectedFounder || saving} onChange={(event) => setMessage(event.target.value)} className="mt-2 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-3 text-sm text-white" /></label>
       </div>
-      <label className="sm:col-span-2"><span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Motivo interno *</span><textarea rows={3} value={reason} disabled={protectedFounder || saving} onChange={(event) => setReason(event.target.value)} className="mt-2 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-3 text-sm text-white" /></label>
-      <label className="sm:col-span-2"><span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Mensagem pública opcional</span><textarea rows={2} value={message} disabled={protectedFounder || saving} onChange={(event) => setMessage(event.target.value)} className="mt-2 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-3 text-sm text-white" /></label>
-    </div>
-    <div className="mt-4 flex flex-wrap gap-2">
-      <ActionButton disabled={!enabled || protectedFounder || saving} onClick={() => act("save")}>Salvar rascunho</ActionButton>
-      <ActionButton disabled={approveDisabled} onClick={() => act("approve")}>Aprovar seleção</ActionButton>
-      <ActionButton disabled={createPageDisabled} onClick={() => act("create_page")}>Criar página Founder</ActionButton>
-      <ActionButton disabled={!current?.publicLink} onClick={copyPublicLink}>Copiar link</ActionButton>
-      {customer.campaign.personalizedPagePath ? <Link href={`${customer.campaign.personalizedPagePath}?preview=1`} target="_blank" className="rounded-lg border border-white/[0.08] px-3 py-2 text-xs font-semibold">Abrir preview</Link> : null}
-      <ActionButton disabled={!current?.publicLink || Boolean(current?.inviteSentAt)} onClick={() => act("mark_sent")}>Marcar convite como enviado</ActionButton>
-      <ActionButton disabled={!current?.publicLink || protectedFounder} onClick={() => act("revoke")}>Revogar link</ActionButton>
-      <ActionButton disabled={!current?.publicLink || protectedFounder} onClick={() => act("replace")}>Revogar e gerar novo convite</ActionButton>
-    </div>
-    <div className="mt-4 grid gap-2 sm:grid-cols-2"><ProfileFact label="Responsável" value={current?.curatedBy || "—"} compact /><ProfileFact label="Data da curadoria" value={current?.curatedAt || "—"} compact /><ProfileFact label="Aprovação" value={current?.approvedAt || "Pendente"} compact /><ProfileFact label="Convite enviado" value={current?.inviteSentAt || "Não"} compact /></div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <ActionButton disabled={!enabled || protectedFounder || saving} onClick={() => act("save")}>Salvar rascunho</ActionButton>
+        <ActionButton disabled={approveDisabled} onClick={() => act("approve")}>Aprovar seleção</ActionButton>
+        <ActionButton disabled={createPageDisabled} onClick={() => act("create_page")}>Criar página Founder</ActionButton>
+        <ActionButton disabled={!current?.publicLink} onClick={copyPublicLink}>Copiar link</ActionButton>
+        {customer.campaign.personalizedPagePath ? <Link href={`${customer.campaign.personalizedPagePath}?preview=1`} target="_blank" className="rounded-lg border border-white/[0.08] px-3 py-2 text-xs font-semibold">Abrir preview</Link> : null}
+        <ActionButton disabled={!current?.publicLink || Boolean(current?.inviteSentAt)} onClick={() => act("mark_sent")}>Marcar convite como enviado</ActionButton>
+        <ActionButton disabled={!current?.publicLink || protectedFounder} onClick={() => act("revoke")}>Revogar link</ActionButton>
+        <ActionButton disabled={!current?.publicLink || protectedFounder} onClick={() => act("replace")}>Revogar e gerar novo convite</ActionButton>
+      </div>
+      <div className="mt-4 grid gap-2 sm:grid-cols-2"><ProfileFact label="Responsável" value={current?.curatedBy || "—"} compact /><ProfileFact label="Data da curadoria" value={current?.curatedAt || "—"} compact /><ProfileFact label="Aprovação" value={current?.approvedAt || "Pendente"} compact /><ProfileFact label="Convite enviado" value={current?.inviteSentAt || "Não"} compact /></div>
+    </details>
   </div>;
 }
 
