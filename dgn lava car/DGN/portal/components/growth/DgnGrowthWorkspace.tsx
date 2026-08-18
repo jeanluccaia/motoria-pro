@@ -1106,7 +1106,9 @@ function CurationView({
           </button>
         </div>
 
-        <FounderCurationEditor customer={selectedCustomer} enabled={Boolean(selectedCustomer.campaign.updatedAt)} />
+        {/* key força reset limpo do estado do fast-path (planCode/categoria/motivo)
+            sempre que o operador trocar de cliente na lista. */}
+        <FounderCurationEditor key={selectedCustomer.id} customer={selectedCustomer} enabled={Boolean(selectedCustomer.campaign.updatedAt)} />
 
         <details className="mt-6 group">
           <summary className="cursor-pointer border-t border-white/[0.06] pt-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80 hover:text-[#E7C96A] select-none">
@@ -2065,18 +2067,36 @@ function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; e
   const fastPathIsDescartado =
     customer.campaign.founderStatus === "descartado" ||
     customer.campaign.commercialStage === "descartado";
+  // "Hard disabled" = estados que o operador NÃO consegue resolver clicando.
+  // Só estes desativam de fato o botão (cursor not-allowed).
+  const fastPathHardDisabled =
+    saving ||
+    protectedFounder ||
+    fastPathIsDescartado ||
+    Boolean(current?.publicLink);
+  // "Missing" = campos que o operador RESOLVE selecionando. O botão continua
+  // clicável — se faltar algo, o clique mostra a mensagem exata no lugar de
+  // silenciosamente não fazer nada.
+  const fastPathMissing = !planCode
+    ? "Escolha um plano"
+    : !vehicleCategory
+    ? "Escolha a categoria do veículo"
+    : reason.trim().length < 3
+    ? "Escolha ou digite um motivo interno (mínimo 3 caracteres)"
+    : "";
   const fastPathBlockReason = protectedFounder
     ? "Founder confirmado protegido. Oferta e link permanecem inalterados."
     : fastPathIsDescartado
     ? "Este cliente está marcado como descartado. Reative pela curadoria avançada antes."
-    : !planCode
-    ? "Escolha um plano acima."
-    : !vehicleCategory
-    ? "Escolha a categoria do veículo."
-    : reason.trim().length < 3
-    ? "Escolha ou digite um motivo interno (mínimo 3 caracteres)."
-    : "";
-  const fastPathCtaDisabled = saving || Boolean(fastPathBlockReason);
+    : fastPathMissing;
+  function handleGenerateInvite() {
+    if (fastPathHardDisabled) return;
+    if (fastPathMissing) {
+      setNotice(fastPathMissing);
+      return;
+    }
+    act("create_invite");
+  }
   const invitePreviewPath = customer.campaign.personalizedPagePath
     ? `${customer.campaign.personalizedPagePath}?preview=1`
     : null;
@@ -2191,8 +2211,8 @@ function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; e
 
           <button
             type="button"
-            disabled={fastPathCtaDisabled}
-            onClick={() => act("create_invite")}
+            disabled={fastPathHardDisabled}
+            onClick={handleGenerateInvite}
             className="mt-4 w-full rounded-xl bg-[#C9A84C] px-4 py-3 text-sm font-bold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {saving ? "Gerando…" : "Gerar convite Founder"}
