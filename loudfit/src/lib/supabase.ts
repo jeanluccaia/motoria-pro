@@ -67,7 +67,53 @@ const ipirangaMedia: UnitMedia = {
 
 const carrefourValinhosMedia = facadeOnlyMedia('carrefour-valinhos', 'Carrefour Valinhos')
 const anchietaMedia = facadeOnlyMedia('anchieta-sp', 'Anchieta SP')
-const mogiMirimMedia = facadeOnlyMedia('mogi-mirim', 'Mogi Mirim')
+const MOGI_MIRIM_ROOT = '/media/unidades/mogi-mirim/fotos'
+const mogiMirimMedia: UnitMedia = {
+  cover: `${MOGI_MIRIM_ROOT}/fachada-01.webp`,
+  featured: `${MOGI_MIRIM_ROOT}/musculacao-visao-geral-01.webp`,
+  gallery: [
+    {
+      src: `${MOGI_MIRIM_ROOT}/fachada-01.webp`,
+      alt: 'Fachada da unidade Loud Fit Mogi Mirim ao entardecer',
+      category: 'fachada',
+    },
+    {
+      src: `${MOGI_MIRIM_ROOT}/musculacao-visao-geral-01.webp`,
+      alt: 'Visão geral da área de musculação da Loud Fit Mogi Mirim',
+      category: 'musculacao',
+    },
+    {
+      src: `${MOGI_MIRIM_ROOT}/musculacao-01.webp`,
+      alt: 'Fileira de racks e aparelhos de musculação na Loud Fit Mogi Mirim',
+      category: 'musculacao',
+    },
+    {
+      src: `${MOGI_MIRIM_ROOT}/peso-livre-01.webp`,
+      alt: 'Área de peso livre e treino funcional com sled na Loud Fit Mogi Mirim',
+      category: 'peso-livre',
+    },
+    {
+      src: `${MOGI_MIRIM_ROOT}/cardio-esteiras-01.webp`,
+      alt: 'Sala de cardio com esteiras, bikes e elípticos na Loud Fit Mogi Mirim',
+      category: 'cardio',
+    },
+    {
+      src: `${MOGI_MIRIM_ROOT}/cardio-spinning-01.webp`,
+      alt: 'Sala de spinning com bikes indoor e iluminação neon na Loud Fit Mogi Mirim',
+      category: 'cardio',
+    },
+    {
+      src: `${MOGI_MIRIM_ROOT}/sala-coletiva-01.webp`,
+      alt: 'Sala de aulas coletivas com piso de madeira e iluminação LED na Loud Fit Mogi Mirim',
+      category: 'aula-coletiva',
+    },
+    {
+      src: `${MOGI_MIRIM_ROOT}/estrutura-vestiarios-01.webp`,
+      alt: 'Corredor com acesso aos vestiários e máquina de gelo na Loud Fit Mogi Mirim',
+      category: 'estrutura',
+    },
+  ],
+}
 
 const AMOREIRAS_ROOT = '/media/unidades/amoreiras/fotos'
 const amoreirasMedia: UnitMedia = {
