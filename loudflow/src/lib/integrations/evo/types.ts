@@ -34,6 +34,22 @@ export type EvoSaleDetails = {
   receivables?: EvoReceivable[] | null;
 };
 
+// Detalhe do aluno retornado por GET /api/v2/members/{idMember}.
+// Shape defensivo — todos os campos opcionais. O uso é EXCLUSIVAMENTE
+// para enriquecer a conversão paga (envio server-to-server para UTMify);
+// nada aqui é persistido em banco.
+export type EvoMemberDetails = {
+  idMember?: number | string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  name?: string | null;         // fallback quando EVO devolve nome único
+  email?: string | null;
+  cellphone?: string | null;    // formato mais comum devolvido pela EVO
+  phone?: string | null;        // fallback
+  document?: string | null;     // CPF (opcional)
+  documentId?: string | null;   // fallback observado
+};
+
 export type EvoFetchError = {
   code:
     | "not-configured"
@@ -50,7 +66,12 @@ export type EvoFetchResult =
   | { ok: true; sale: EvoSaleDetails }
   | { ok: false; error: EvoFetchError };
 
+export type EvoMemberFetchResult =
+  | { ok: true; member: EvoMemberDetails }
+  | { ok: false; error: EvoFetchError };
+
 export type EvoClient = {
   isConfigured(): boolean;
   fetchSale(idBranch: string, idSale: string): Promise<EvoFetchResult>;
+  fetchMember(idMember: string): Promise<EvoMemberFetchResult>;
 };

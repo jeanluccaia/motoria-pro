@@ -173,6 +173,25 @@ export type EvoSale = {
   updated_at: string;
 };
 
+export type AdConversionPlatform = "utmify" | "meta" | "google";
+export type AdConversionDeliveryStatus = "pending" | "sent" | "failed" | "skipped";
+
+export type AdConversionDelivery = {
+  id: string;
+  organization_id: string;
+  evo_sale_id: string;
+  platform: AdConversionPlatform;
+  delivery_key: string;
+  status: AdConversionDeliveryStatus;
+  attempts: number;
+  last_error: string | null;
+  response_summary: string | null;
+  last_attempt_at: string | null;
+  sent_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 type TableDef<Row extends Record<string, unknown>, InsertKeys extends keyof Row = keyof Row> = {
   Row: Row;
   Insert: Partial<Row> & Pick<Row, InsertKeys>;
@@ -208,6 +227,10 @@ export type Database = {
         EvoSale,
         "organization_id" | "id_branch" | "id_sale" | "event_type"
       >;
+      ad_conversion_deliveries: TableDef<
+        AdConversionDelivery,
+        "organization_id" | "evo_sale_id" | "platform" | "delivery_key"
+      >;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -219,6 +242,8 @@ export type Database = {
       campaign_unit_source: CampaignUnitSource;
       sync_status: SyncStatus;
       evo_sale_processing_status: EvoSaleProcessingStatus;
+      ad_conversion_platform: AdConversionPlatform;
+      ad_conversion_delivery_status: AdConversionDeliveryStatus;
     };
     CompositeTypes: Record<string, never>;
   };

@@ -9,6 +9,8 @@ import {
   getMissingEvoEnvs,
   requestHasValidWebhookSecret,
 } from "./env";
+import { deliverPaidConversion } from "../../conversions/deliver";
+import type { UtmifyOrdersClient } from "../utmify/orders";
 
 // Lógica do webhook NewSale da EVO isolada da rota Next.js para permitir
 // testes unitários. A rota apenas repassa `Request` e devolve `Response`.
@@ -18,6 +20,7 @@ type Admin = SupabaseClient<Database>;
 export type WebhookDeps = {
   admin: Admin;
   evoClient?: EvoClient;
+  utmifyOrdersClient?: UtmifyOrdersClient;  // testes injetam; produção usa default
 };
 
 export async function handleEvoWebhook(
@@ -141,20 +144,24 @@ export async function handleEvoWebhook(
         ? "cancelled"
         : "pending";
 
+  const idMember = coerceId(fetchResult.sale.idMember);
+  const amountPaidCents =
+    evaluation.status === "paid" ? evaluation.amountPaidCents : null;
+  const saleDate =
+    typeof fetchResult.sale.saleDate === "string" && fetchResult.sale.saleDate.length > 0
+      ? fetchResult.sale.saleDate
+      : null;
+
   const upsert = await upsertEvoSale(admin, {
     organizationId,
     unitId,
     idW12,
     idBranch,
     idSale,
-    idMember: coerceId(fetchResult.sale.idMember),
+    idMember,
     eventType,
-    amountPaidCents:
-      evaluation.status === "paid" ? evaluation.amountPaidCents : null,
-    saleDate:
-      typeof fetchResult.sale.saleDate === "string" && fetchResult.sale.saleDate.length > 0
-        ? fetchResult.sale.saleDate
-        : null,
+    amountPaidCents,
+    saleDate,
     receivingDate: evaluation.receivingDate,
     paymentType: evaluation.paymentType,
     receivableStatus: evaluation.receivableStatus,
@@ -169,6 +176,48 @@ export async function handleEvoWebhook(
     );
   }
 
+  // --- 6. Envio de conversão paga (best-effort) ----------------------
+  // Só dispara quando a venda é REAL e PAGA. Nunca em pending/cancelled/
+  // error. Nunca quebra a resposta 200 para a EVO — se o envio falhar,
+  // `ad_conversion_deliveries` fica com status 'failed' e permite retry
+  // manual/cron. A UTMify faz o fan-out para Meta CAPI + Google Ads.
+  //
+  // Não condicionamos por `duplicate`: se uma venda estava pending no
+  // primeiro webhook e virou paid no segundo, o segundo webhook precisa
+  // disparar o delivery. A idempotência do envio é garantida pela
+  // UNIQUE (evo_sale_id, platform) em ad_conversion_deliveries — dentro
+  // de deliverPaidConversion, um delivery já 'sent' vira skipped.
+  let deliveryStatus: "sent" | "failed" | "skipped" | "not-attempted" = "not-attempted";
+  let deliveryReason: string | null = null;
+  if (processingStatus === "paid" && upsert.evoSaleId) {
+    const outcome = await deliverPaidConversion({
+      admin,
+      evoClient: evo,
+      utmifyOrdersClient: deps.utmifyOrdersClient,
+      organizationId,
+      evoSale: {
+        id: upsert.evoSaleId,
+        id_branch: idBranch,
+        id_sale: idSale,
+        id_member: idMember,
+        amount_paid_cents: amountPaidCents,
+        sale_date: saleDate,
+        receiving_date: evaluation.receivingDate,
+        payment_type: evaluation.paymentType,
+        processing_status: "paid",
+      },
+    });
+    if ("sent" in outcome) {
+      deliveryStatus = "sent";
+    } else if ("failed" in outcome) {
+      deliveryStatus = "failed";
+      deliveryReason = outcome.error;
+    } else {
+      deliveryStatus = "skipped";
+      deliveryReason = outcome.reason;
+    }
+  }
+
   return NextResponse.json(
     {
       ok: true,
@@ -178,6 +227,7 @@ export async function handleEvoWebhook(
       amountPaidCents:
         evaluation.status === "paid" ? evaluation.amountPaidCents : 0,
       duplicate: upsert.duplicate,
+      delivery: { status: deliveryStatus, reason: deliveryReason },
     },
     { status: 200 },
   );
@@ -213,7 +263,7 @@ type UpsertInput = {
 };
 
 type UpsertOutcome =
-  | { ok: true; duplicate: boolean }
+  | { ok: true; duplicate: boolean; evoSaleId: string | null }
   | { ok: false; message: string };
 
 async function upsertEvoSale(admin: Admin, input: UpsertInput): Promise<UpsertOutcome> {
@@ -247,10 +297,16 @@ async function upsertEvoSale(admin: Admin, input: UpsertInput): Promise<UpsertOu
 
   const write = await admin
     .from("evo_sales")
-    .upsert(record, { onConflict: "id_branch,id_sale" });
+    .upsert(record, { onConflict: "id_branch,id_sale" })
+    .select("id")
+    .maybeSingle();
 
   if (write.error) {
     return { ok: false, message: write.error.message };
   }
-  return { ok: true, duplicate: Boolean(existing.data) };
+  const evoSaleId =
+    (write.data?.id as string | undefined) ??
+    (existing.data?.id as string | undefined) ??
+    null;
+  return { ok: true, duplicate: Boolean(existing.data), evoSaleId };
 }

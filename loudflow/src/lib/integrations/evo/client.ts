@@ -2,6 +2,8 @@ import type {
   EvoClient,
   EvoFetchError,
   EvoFetchResult,
+  EvoMemberDetails,
+  EvoMemberFetchResult,
   EvoSaleDetails,
 } from "./types";
 import {
@@ -35,6 +37,31 @@ export function createEvoClient(options: ClientOptions = {}): EvoClient {
   const missing = getMissingEvoEnvs();
   const configured = missing.length === 0;
 
+  function buildAuthHeader(): string {
+    const username = process.env.EVO_API_USERNAME!;
+    const password = process.env.EVO_API_PASSWORD!;
+    return "Basic " + Buffer.from(`${username}:${password}`, "utf8").toString("base64");
+  }
+
+  async function fetchWithTimeout(url: string): Promise<Response | EvoFetchError> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await doFetch(url, {
+        method: "GET",
+        signal: controller.signal,
+        headers: {
+          accept: "application/json",
+          authorization: buildAuthHeader(),
+        },
+      });
+    } catch (err) {
+      return classifyThrown(err);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   return {
     isConfigured: () => configured,
     async fetchSale(idBranch: string, idSale: string): Promise<EvoFetchResult> {
@@ -46,10 +73,6 @@ export function createEvoClient(options: ClientOptions = {}): EvoClient {
       }
 
       const base = options.baseUrl ?? getEvoApiBaseUrl();
-      const username = process.env.EVO_API_USERNAME!;
-      const password = process.env.EVO_API_PASSWORD!;
-      const auth = Buffer.from(`${username}:${password}`, "utf8").toString("base64");
-
       const safeSaleId = encodeURIComponent(idSale);
       // IdBranch entra apenas como filtro auxiliar quando a instalação EVO
       // for multi-branch; o endpoint aceita idBranch como query, ignora se
@@ -57,32 +80,40 @@ export function createEvoClient(options: ClientOptions = {}): EvoClient {
       const safeBranch = encodeURIComponent(idBranch);
       const url = `${base}/api/v2/sales/${safeSaleId}?showReceivables=true&idBranch=${safeBranch}`;
 
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
-      try {
-        const res = await doFetch(url, {
-          method: "GET",
-          signal: controller.signal,
-          headers: {
-            accept: "application/json",
-            authorization: `Basic ${auth}`,
-          },
-        });
+      const result = await fetchWithTimeout(url);
+      if (!(result instanceof Response)) return { ok: false, error: result };
+      if (!result.ok) return { ok: false, error: classifyStatus(result.status) };
 
-        if (!res.ok) {
-          return { ok: false, error: classifyStatus(res.status) };
-        }
-
-        const payload = (await res.json()) as EvoSaleDetails | EvoSaleDetails[];
-        // A EVO ocasionalmente devolve array com um único elemento quando
-        // a rota é usada em modo listagem — normalizamos aqui.
-        const sale = Array.isArray(payload) ? payload[0] ?? {} : payload;
-        return { ok: true, sale };
-      } catch (err) {
-        return { ok: false, error: classifyThrown(err) };
-      } finally {
-        clearTimeout(timer);
+      const payload = (await result.json()) as EvoSaleDetails | EvoSaleDetails[];
+      // A EVO ocasionalmente devolve array com um único elemento quando
+      // a rota é usada em modo listagem — normalizamos aqui.
+      const sale = Array.isArray(payload) ? payload[0] ?? {} : payload;
+      return { ok: true, sale };
+    },
+    async fetchMember(idMember: string): Promise<EvoMemberFetchResult> {
+      if (!configured) {
+        return {
+          ok: false,
+          error: { code: "not-configured", message: evoUnavailableReason() },
+        };
       }
+
+      const base = options.baseUrl ?? getEvoApiBaseUrl();
+      const safeMember = encodeURIComponent(idMember);
+      // Rota /api/v1/members/{id} é o padrão observado (v1) da API W12 para
+      // dados do aluno. Se a instalação usar outra versão (v2/v3) ou não
+      // permitir esse endpoint com as credenciais atuais, o retorno será
+      // 404/401 e o delivery a jusante marca `skipped` — o webhook e o
+      // registro em evo_sales seguem normais.
+      const url = `${base}/api/v1/members/${safeMember}`;
+
+      const result = await fetchWithTimeout(url);
+      if (!(result instanceof Response)) return { ok: false, error: result };
+      if (!result.ok) return { ok: false, error: classifyStatus(result.status) };
+
+      const payload = (await result.json()) as EvoMemberDetails | EvoMemberDetails[];
+      const member = Array.isArray(payload) ? payload[0] ?? {} : payload;
+      return { ok: true, member };
     },
   };
 }
