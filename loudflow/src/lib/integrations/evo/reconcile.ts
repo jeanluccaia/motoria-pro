@@ -125,6 +125,22 @@ export async function handleEvoReconcile(
       idBranch,
     });
     if (!listed.ok) {
+      // Rate limit da EVO: abortar imediatamente com 429. Continuar para
+      // a próxima página ou tentar outra branch só piora — TODAS as
+      // chamadas restantes bateriam no mesmo limite diário até o reset.
+      // Contadores parciais ficam preservados para diagnóstico.
+      if (listed.error.code === "rate-limited") {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "evo-rate-limited",
+            code: listed.error.code,
+            message: listed.error.message,
+            counters,
+          },
+          { status: 429 },
+        );
+      }
       return NextResponse.json(
         {
           ok: false,

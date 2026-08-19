@@ -84,7 +84,7 @@ export function createEvoClient(options: ClientOptions = {}): EvoClient {
 
       const result = await fetchWithTimeout(url);
       if (!(result instanceof Response)) return { ok: false, error: result };
-      if (!result.ok) return { ok: false, error: classifyStatus(result.status) };
+      if (!result.ok) return { ok: false, error: await classifyErrorResponse(result) };
 
       const payload = (await result.json()) as EvoSaleDetails | EvoSaleDetails[];
       // A EVO ocasionalmente devolve array com um único elemento quando
@@ -111,7 +111,7 @@ export function createEvoClient(options: ClientOptions = {}): EvoClient {
 
       const result = await fetchWithTimeout(url);
       if (!(result instanceof Response)) return { ok: false, error: result };
-      if (!result.ok) return { ok: false, error: classifyStatus(result.status) };
+      if (!result.ok) return { ok: false, error: await classifyErrorResponse(result) };
 
       const payload = (await result.json()) as EvoMemberDetails | EvoMemberDetails[];
       const member = Array.isArray(payload) ? payload[0] ?? {} : payload;
@@ -137,7 +137,7 @@ export function createEvoClient(options: ClientOptions = {}): EvoClient {
 
       const result = await fetchWithTimeout(url);
       if (!(result instanceof Response)) return { ok: false, error: result };
-      if (!result.ok) return { ok: false, error: classifyStatus(result.status) };
+      if (!result.ok) return { ok: false, error: await classifyErrorResponse(result) };
 
       const payload = (await result.json()) as EvoSaleDetails[] | { data?: EvoSaleDetails[]; result?: EvoSaleDetails[] };
       // Endpoint devolve Array<Sale> direto (2026-08-18). Aceita envelope
@@ -149,6 +149,40 @@ export function createEvoClient(options: ClientOptions = {}): EvoClient {
       return { ok: true, sales };
     },
   };
+}
+
+// Classifica a resposta de erro da EVO. Precisa ser async porque a EVO
+// devolve HTTP 401 em DOIS cenários semanticamente diferentes:
+//   (a) credencial ruim → { code: "unauthorized" }
+//   (b) rate limit diário estourado → { code: "rate-limited" }
+// A distinção só é possível lendo o body:
+//   {"status":401,"error":"Daily request limit reached. Upgrade to API Pro to get unlimited requests."}
+// Ambos são 401, mas o handler a jusante trata rate-limited abortando
+// TODO o processamento (não faz sentido continuar; próximas chamadas
+// também falharão até o reset diário). Ver reconcile.ts.
+async function classifyErrorResponse(res: Response): Promise<EvoFetchError> {
+  const status = res.status;
+  let body = "";
+  try {
+    body = await res.text();
+  } catch {
+    /* ignora — sem body a classificação cai no caminho por status */
+  }
+  if (status === 401 || status === 403) {
+    if (isRateLimitBody(body)) {
+      return {
+        code: "rate-limited",
+        message: "EVO rate limit diário estourado (HTTP 401 'Daily request limit reached').",
+      };
+    }
+    return { code: "unauthorized", message: `EVO recusou o Basic Auth (HTTP ${status}).` };
+  }
+  return classifyStatus(status);
+}
+
+function isRateLimitBody(body: string): boolean {
+  if (!body) return false;
+  return /daily\s+request\s+limit\s+reached/i.test(body);
 }
 
 function classifyStatus(status: number): EvoFetchError {

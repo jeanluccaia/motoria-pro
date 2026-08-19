@@ -165,6 +165,32 @@ function makeEvoError(): EvoClient {
   };
 }
 
+// Rate-limited na 1ª chamada; se o handler continuar (bug), a 2ª devolveria
+// uma página válida. Se aborta corretamente, o counter de fetched fica 0
+// e a 2ª implementação nunca roda.
+function makeEvoRateLimitedThenOk(page2: EvoSaleDetails[]): { client: EvoClient; calls: () => number } {
+  let calls = 0;
+  const client: EvoClient = {
+    isConfigured: () => true,
+    fetchSale: async () => ({ ok: false, error: { code: "not-found", message: "" } }),
+    fetchMember: async () => ({ ok: false, error: { code: "not-found", message: "" } }),
+    listSales: async (): Promise<EvoListSalesResult> => {
+      calls++;
+      if (calls === 1) {
+        return {
+          ok: false,
+          error: {
+            code: "rate-limited",
+            message: "EVO rate limit diário estourado (HTTP 401 'Daily request limit reached').",
+          },
+        };
+      }
+      return { ok: true, sales: page2 };
+    },
+  };
+  return { client, calls: () => calls };
+}
+
 // ---------- helpers env / request ----------
 
 function withEnv<T>(vars: Record<string, string | undefined>, fn: () => Promise<T> | T): Promise<T> {
@@ -371,6 +397,22 @@ test.describe("handleEvoReconcile", () => {
       const body = (await res.json()) as { error: string; counters: any };
       expect(body.error).toBe("evo-list-failed");
       expect(body.counters.fetched).toBe(0);
+    });
+  });
+
+  test("EVO rate-limited na 1a página → HTTP 429 + aborta (não pagina)", async () => {
+    await withEvoAndCronEnv(async () => {
+      const admin = makeAdmin(newState());
+      const { client, calls } = makeEvoRateLimitedThenOk([paidSale()]);
+      const res = await handleEvoReconcile(makeReq(), { admin, evoClient: client });
+      expect(res.status).toBe(429);
+      const body = (await res.json()) as { error: string; code: string; counters: any };
+      expect(body.error).toBe("evo-rate-limited");
+      expect(body.code).toBe("rate-limited");
+      expect(body.counters.fetched).toBe(0);
+      expect(body.counters.pages).toBe(0);
+      // GARANTIA de que NÃO tentou a próxima página nem outra branch.
+      expect(calls()).toBe(1);
     });
   });
 
