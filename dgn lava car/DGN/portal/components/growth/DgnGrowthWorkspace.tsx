@@ -63,6 +63,7 @@ import {
 } from "@/lib/founder-offer-catalog";
 import { normalizePlanCodeForFilter } from "@/lib/founder-plan-filter";
 import { curationDisplayState, type FounderCurationAction } from "@/lib/growth/db/founder-curation";
+import { isFounderAcquisitionEligible, type FounderEligibility } from "@/lib/growth/founder-eligibility";
 
 type GrowthView = "intelligence" | "curadoria" | "founders" | "profile";
 type ProfileTab = "overview" | "commercial" | "campaign" | "timeline";
@@ -208,6 +209,9 @@ export function DgnGrowthWorkspace({
   const [intelligencePage, setIntelligencePage] = useState(1);
   const [curationPage, setCurationPage] = useState(1);
   const pageSize = 50;
+  // Curadoria é operação com scroll horizontal na tela; brief operacional pede
+  // 8 cards por página para caber sem rolagem vertical infinita.
+  const curationPageSize = 8;
 
   const customers = useMemo(
     () =>
@@ -427,6 +431,7 @@ export function DgnGrowthWorkspace({
           <CurationView
             customers={customers}
             selectedCustomer={selectedCustomer}
+            dataOrigin={dataOrigin}
             query={query}
             onQuery={(value) => { setQuery(value); setCurationPage(1); }}
             curationFilter={curationFilter}
@@ -444,7 +449,7 @@ export function DgnGrowthWorkspace({
             onCurationModalityFilter={(value) => { setCurationModalityFilter(value); setCurationPage(1); }}
             onCurationSort={(value) => { setCurationSort(value); setCurationPage(1); }}
             page={curationPage}
-            pageSize={pageSize}
+            pageSize={curationPageSize}
             onPage={setCurationPage}
           />
         ) : null}
@@ -907,6 +912,7 @@ const curationModalityOrder: Record<FounderContractingMode, number> = { monthly:
 function CurationView({
   customers,
   selectedCustomer,
+  dataOrigin,
   query,
   onQuery,
   curationFilter,
@@ -926,6 +932,7 @@ function CurationView({
 }: {
   customers: DgnCustomer[];
   selectedCustomer: DgnCustomer;
+  dataOrigin: "json" | "db" | "json-fallback";
   query: string;
   onQuery: (value: string) => void;
   curationFilter: string;
@@ -943,7 +950,36 @@ function CurationView({
   pageSize: number;
   onPage: (page: number) => void;
 }) {
-  const filteredCustomers = [...customers]
+  // 1) Regra canônica primeiro: quem não é elegível para aquisição Founder
+  // não aparece na Curadoria — assinantes ativos, renovação pendente,
+  // Founder confirmado e descartados ficam fora antes de qualquer chip.
+  // Contadores e chips operam sobre a base já filtrada.
+  const acquisitionEligibleCustomers = useMemo(() => {
+    const rows: Array<{ customer: DgnCustomer; eligibility: FounderEligibility }> = [];
+    let removedSubscribers = 0;
+    let removedFounders = 0;
+    let removedOther = 0;
+    for (const customer of customers) {
+      const eligibility = isFounderAcquisitionEligible(customer);
+      if (eligibility.eligible) {
+        rows.push({ customer, eligibility });
+      } else if (
+        eligibility.reason === "assinante_ativo" ||
+        eligibility.reason === "renovacao_pendente" ||
+        eligibility.reason === "assinatura_detectada"
+      ) {
+        removedSubscribers += 1;
+      } else if (eligibility.reason === "founder_confirmado") {
+        removedFounders += 1;
+      } else {
+        removedOther += 1;
+      }
+    }
+    return { rows, removedSubscribers, removedFounders, removedOther };
+  }, [customers]);
+
+  const eligibleCustomers = acquisitionEligibleCustomers.rows.map((row) => row.customer);
+  const filteredCustomers = [...eligibleCustomers]
     .filter((customer) => matchesDgnCustomerSearch(customer, query))
     .filter((customer) => {
       if (curationFilter === "Aguardando") return customer.commercialStatus === "Aguardando Curadoria DGN";
@@ -1077,38 +1113,63 @@ function CurationView({
             </div>
           </details>
         </div>
+        <div className="shrink-0 border-b border-white/[0.06] px-4 py-2 text-[11px] text-[#7D7D7D]">
+          <div className="flex items-center justify-between gap-2">
+            <span>
+              <span className="font-semibold text-white">{filteredCustomers.length}</span>{" "}
+              {filteredCustomers.length === 1 ? "candidato" : "candidatos"}
+            </span>
+            <span className="text-[10px] uppercase tracking-wider text-[#5F5F5F]">
+              {acquisitionEligibleCustomers.removedSubscribers} assinante(s) oculto(s)
+            </span>
+          </div>
+        </div>
         <div className="p-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
-          {pagedCustomers.map((customer) => (
-            <button
-              key={customer.id}
-              onClick={() => onSelect(customer.id)}
-              className={`mb-2 w-full rounded-2xl border p-3 text-left transition ${
-                selectedCustomer.id === customer.id
-                  ? "border-[#C9A84C]/35 bg-[#C9A84C]/10"
-                  : "border-white/[0.05] bg-white/[0.02] hover:border-white/[0.12]"
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <Avatar name={customer.name} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-white">{customer.name}</p>
-                      <p className="mt-0.5 truncate text-xs text-[#9CA3AF]">{customer.vehicle}</p>
-                      {customer.dataQualityNotes?.includes("revisao_manual") ? <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-amber-400">Revisão manual</p> : null}
+          {pagedCustomers.length === 0 ? (
+            <div className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-6 text-center text-xs text-[#7D7D7D]">
+              Nenhum candidato elegível com estes filtros.
+            </div>
+          ) : (
+            pagedCustomers.map((customer) => (
+              <button
+                key={customer.id}
+                onClick={() => onSelect(customer.id)}
+                className={`mb-2 w-full rounded-2xl border p-3 text-left transition ${
+                  selectedCustomer.id === customer.id
+                    ? "border-[#C9A84C]/35 bg-[#C9A84C]/10"
+                    : "border-white/[0.05] bg-white/[0.02] hover:border-white/[0.12]"
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <Avatar name={customer.name} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-white">{customer.name}</p>
+                        <p className="mt-0.5 truncate text-xs text-[#9CA3AF]">{customer.vehicle}</p>
+                        {customer.dataQualityNotes?.includes("revisao_manual") ? <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-amber-400">Revisão manual</p> : null}
+                      </div>
+                      <ScorePill score={customer.scoreDgn} />
                     </div>
-                    <ScorePill score={customer.scoreDgn} />
+                    <p className="mt-2 text-xs text-[#7D7D7D]">{customer.commercialStatus}</p>
                   </div>
-                  <p className="mt-2 text-xs text-[#7D7D7D]">{customer.commercialStatus}</p>
                 </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            ))
+          )}
+        </div>
+        <div className="shrink-0">
           <Pagination page={page} pageCount={pageCount} onPage={onPage} />
         </div>
       </div>
 
       <div className="rounded-2xl border border-white/[0.06] bg-[#101010] p-5 lg:overflow-y-auto lg:max-h-[calc(100dvh-10rem)]">
+        {dataOrigin !== "db" ? (
+          <div className="mb-4 rounded-xl border border-amber-400/30 bg-amber-400/[0.06] px-3 py-2 text-[11px] text-amber-200">
+            Curadoria em modo somente-leitura ({dataOrigin === "json-fallback" ? "fallback local" : "JSON local"}).
+            Para gerar convite Founder de verdade, o ambiente precisa estar com <span className="font-mono">DGN_GROWTH_DATA_SOURCE=db</span>.
+          </div>
+        ) : null}
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <CustomerSnapshot customer={selectedCustomer} />
@@ -1124,7 +1185,12 @@ function CurationView({
 
         {/* key força reset limpo do estado do fast-path (planCode/categoria/motivo)
             sempre que o operador trocar de cliente na lista. */}
-        <FounderCurationEditor key={selectedCustomer.id} customer={selectedCustomer} enabled={Boolean(selectedCustomer.campaign.updatedAt)} />
+        <FounderCurationEditor
+          key={selectedCustomer.id}
+          customer={selectedCustomer}
+          enabled={Boolean(selectedCustomer.campaign.updatedAt)}
+          dataOrigin={dataOrigin}
+        />
 
         <details className="mt-6 group">
           <summary className="cursor-pointer border-t border-white/[0.06] pt-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80 hover:text-[#E7C96A] select-none">
@@ -1265,11 +1331,26 @@ function CurationView({
 
 function Pagination({ page, pageCount, onPage }: { page: number; pageCount: number; onPage: (page: number) => void }) {
   if (pageCount <= 1) return null;
+  const safePage = Math.min(Math.max(1, page), pageCount);
   return (
     <div className="flex items-center justify-between border-t border-white/[0.06] px-4 py-3 text-xs text-[#A7A7A7]">
-      <button disabled={page <= 1} onClick={() => onPage(page - 1)} className="rounded-lg border border-white/[0.08] px-3 py-2 disabled:opacity-30">Anterior</button>
-      <span>Página {page} de {pageCount}</span>
-      <button disabled={page >= pageCount} onClick={() => onPage(page + 1)} className="rounded-lg border border-white/[0.08] px-3 py-2 disabled:opacity-30">Próxima</button>
+      <button
+        type="button"
+        disabled={safePage <= 1}
+        onClick={() => onPage(safePage - 1)}
+        className="rounded-lg border border-white/[0.08] px-3 py-2 disabled:cursor-not-allowed disabled:opacity-30"
+      >
+        ← Anterior
+      </button>
+      <span>Página {safePage} de {pageCount}</span>
+      <button
+        type="button"
+        disabled={safePage >= pageCount}
+        onClick={() => onPage(safePage + 1)}
+        className="rounded-lg border border-white/[0.08] px-3 py-2 disabled:cursor-not-allowed disabled:opacity-30"
+      >
+        Próxima →
+      </button>
     </div>
   );
 }
@@ -1880,7 +1961,7 @@ function CustomerProfileInline({
 
       {tab === "campaign" ? (
         <div className="mt-4 space-y-3">
-          <FounderCurationEditor customer={customer} enabled={canPersistCommercial} />
+          <FounderCurationEditor customer={customer} enabled={canPersistCommercial} dataOrigin={canPersistCommercial ? "db" : "json"} />
           <CampaignPipelineEditor customer={customer} enabled={canPersistCommercial} />
           <div className="grid gap-3 sm:grid-cols-2">
             <ProfileFact label="Primeira visualização" value={customer.campaign.engagement?.viewedAt || "—"} />
@@ -2014,9 +2095,24 @@ const FAST_REASON_CHIPS = [
   "Curadoria manual",
 ] as const;
 
-function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; enabled: boolean }) {
+function FounderCurationEditor({
+  customer,
+  enabled,
+  dataOrigin,
+}: {
+  customer: DgnCustomer;
+  enabled: boolean;
+  dataOrigin: "json" | "db" | "json-fallback";
+}) {
   const current = customer.campaign.curation;
-  const protectedFounder = ["benedito-constantino", "jose-moreira", "rikardo-oliveira"].includes(customer.id);
+  const eligibility = isFounderAcquisitionEligible(customer);
+  const protectedFounder = eligibility.reason === "founder_confirmado";
+  const isKnownSubscriber =
+    eligibility.reason === "assinante_ativo" ||
+    eligibility.reason === "renovacao_pendente" ||
+    eligibility.reason === "assinatura_detectada";
+  const inviteBlockedByEligibility = !eligibility.eligible;
+  const dbUnavailable = dataOrigin !== "db";
   // Pré-configura o fast-path direto no estado inicial (sem useEffect):
   // Mensal automático + categoria detectada quando não houver escolha prévia.
   const savedMode = normalizeContractingMode(current?.recommendedContractingMode);
@@ -2047,8 +2143,15 @@ function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; e
     : "—";
 
   async function act(action: FounderCurationAction) {
-    // Founder confirmado protegido: guarda dura para qualquer ação.
-    if (protectedFounder) return;
+    // Guardas duras — não dependem do servidor.
+    if (inviteBlockedByEligibility && action !== "mark_sent" && action !== "revoke") {
+      setNotice(eligibility.operatorMessage ?? "Cliente não elegível para aquisição Founder.");
+      return;
+    }
+    if (dbUnavailable && action !== "mark_sent") {
+      setNotice("Ambiente está lendo do JSON local. Nenhuma alteração seria persistida.");
+      return;
+    }
     // Ações legadas (save/approve/create_page/replace/mark_sent/revoke) só
     // fazem sentido se já existir campaign_member (updated_at populado).
     // create_invite é a exceção: a RPC faz bootstrap silencioso.
@@ -2082,39 +2185,39 @@ function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; e
     setNotice("Link copiado. O convite não foi marcado como enviado.");
   }
 
-  const approveDisabled = !enabled || protectedFounder || saving || !offer || !offerValidated || reason.trim().length < 3;
-  const createPageDisabled = !enabled || protectedFounder || saving || customer.campaign.founderStatus !== "selecionado" || Boolean(current?.publicLink) || !offerValidated;
+  const approveDisabled = !enabled || inviteBlockedByEligibility || dbUnavailable || saving || !offer || !offerValidated || reason.trim().length < 3;
+  const createPageDisabled = !enabled || inviteBlockedByEligibility || dbUnavailable || saving || customer.campaign.founderStatus !== "selecionado" || Boolean(current?.publicLink) || !offerValidated;
 
   const fastPathDetectedCategory = !current?.recommendedVehicleCategory ? detectFounderVehicleCategory(customer.vehicle) : null;
   // Fast-path NÃO depende de `enabled` (updated_at) — a RPC faz bootstrap de
   // crm_campaign_members quando o cliente ainda não tem registro.
-  const fastPathIsDescartado =
-    customer.campaign.founderStatus === "descartado" ||
-    customer.campaign.commercialStage === "descartado";
   // "Hard disabled" = estados que o operador NÃO consegue resolver clicando.
   // Só estes desativam de fato o botão (cursor not-allowed).
   const fastPathHardDisabled =
     saving ||
-    protectedFounder ||
-    fastPathIsDescartado ||
+    inviteBlockedByEligibility ||
+    dbUnavailable ||
     Boolean(current?.publicLink);
   // "Missing" = campos que o operador RESOLVE selecionando. O botão continua
   // clicável — se faltar algo, o clique mostra a mensagem exata no lugar de
   // silenciosamente não fazer nada.
   const fastPathMissing = !planCode
-    ? "Escolha um plano"
+    ? "Selecione o plano."
     : !vehicleCategory
-    ? "Escolha a categoria do veículo"
+    ? "Confirme a categoria do veículo."
     : reason.trim().length < 3
-    ? "Escolha ou digite um motivo interno (mínimo 3 caracteres)"
+    ? "Clique em um motivo (ou digite um com pelo menos 3 caracteres)."
     : "";
-  const fastPathBlockReason = protectedFounder
-    ? "Founder confirmado protegido. Oferta e link permanecem inalterados."
-    : fastPathIsDescartado
-    ? "Este cliente está marcado como descartado. Reative pela curadoria avançada antes."
+  const fastPathBlockReason = dbUnavailable
+    ? "Ambiente está lendo do JSON local. Ajuste DGN_GROWTH_DATA_SOURCE=db para gerar convite."
+    : inviteBlockedByEligibility
+    ? eligibility.operatorMessage ?? "Cliente não elegível para aquisição Founder."
     : fastPathMissing;
   function handleGenerateInvite() {
-    if (fastPathHardDisabled) return;
+    if (fastPathHardDisabled) {
+      if (fastPathBlockReason) setNotice(fastPathBlockReason);
+      return;
+    }
     if (fastPathMissing) {
       setNotice(fastPathMissing);
       return;
@@ -2148,17 +2251,35 @@ function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; e
         {current?.publicLink ? <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-200">Convite ativo</span> : null}
       </div>
 
-      {protectedFounder ? <p className="mt-3 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[11px] text-[#A7A7A7]">Founder confirmado protegido. O convite atual não pode ser regerado.</p> : current?.publicLink && invitePreviewPath && inviteCleanUrl ? (
+      {protectedFounder ? (
+        <p className="mt-3 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[11px] text-[#A7A7A7]">
+          {eligibility.operatorMessage ?? "Founder confirmado protegido. O convite atual não pode ser regerado."}
+        </p>
+      ) : isKnownSubscriber ? (
+        <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/[0.06] p-3 text-[11px] text-amber-100">
+          <p className="text-xs font-semibold text-amber-200">Cliente fora da fila de aquisição</p>
+          <p className="mt-1">{eligibility.operatorMessage ?? "Este cliente já é assinante e não participa da fila de aquisição Founder."}</p>
+          {eligibility.subscriberMatch?.note ? <p className="mt-1 text-amber-100/70">{eligibility.subscriberMatch.note}</p> : null}
+        </div>
+      ) : current?.publicLink && invitePreviewPath && inviteCleanUrl ? (
         <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.05] p-3">
-          <p className="text-xs font-semibold text-emerald-200">Convite pronto</p>
-          <p className="mt-1 text-[11px] text-emerald-100/70">Versão {current.publicLink.version}. {current.inviteSentAt ? "Já marcado como enviado." : "Ainda não marcado como enviado."}</p>
+          <p className="text-sm font-bold text-emerald-200">CONVITE PRONTO ✓</p>
+          <p className="mt-1 text-[11px] text-emerald-100/70">
+            Versão {current.publicLink.version}.{" "}
+            {current.inviteSentAt ? "Já marcado como enviado." : "Ainda não marcado como enviado — o operador decide o momento."}
+          </p>
           <div className="mt-2 rounded-lg border border-white/[0.06] bg-white/[0.02] p-2 text-[11px] text-white/80 break-all font-mono">{inviteCleanUrl}</div>
           <div className="mt-3 flex flex-wrap gap-2">
             <Link href={invitePreviewPath} target="_blank" className="rounded-lg border border-white/15 px-3 py-2 text-[11px] font-semibold text-white/80 hover:text-white">Abrir preview</Link>
             <button type="button" onClick={copyPublicLink} className="rounded-lg border border-white/15 px-3 py-2 text-[11px] font-semibold text-white/80 hover:text-white">Copiar link</button>
-            <button type="button" onClick={openInviteWhatsapp} disabled={!customer.phone} className="rounded-lg bg-emerald-500/90 px-3 py-2 text-[11px] font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40">Abrir WhatsApp</button>
-            <button type="button" disabled={saving || Boolean(current.inviteSentAt)} onClick={() => act("mark_sent")} className="rounded-lg border border-white/15 px-3 py-2 text-[11px] font-semibold text-white/80 hover:text-white disabled:opacity-40">{current.inviteSentAt ? "Convite enviado" : "Marcar como enviado"}</button>
+            <button type="button" onClick={openInviteWhatsapp} disabled={!customer.phone} className="rounded-lg bg-emerald-500/90 px-3 py-2 text-[11px] font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40" title="Abre o WhatsApp — não marca envio automaticamente">
+              Abrir WhatsApp
+            </button>
+            <button type="button" disabled={saving || Boolean(current.inviteSentAt)} onClick={() => act("mark_sent")} className="rounded-lg border border-emerald-400/40 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-40">
+              {current.inviteSentAt ? "Convite marcado como enviado" : "Marcar enviado"}
+            </button>
           </div>
+          <p className="mt-2 text-[10px] text-emerald-100/50">Copiar link e Abrir WhatsApp não alteram o estágio. Só &quot;Marcar enviado&quot; muda o pipeline.</p>
         </div>
       ) : (
         <>
@@ -2243,6 +2364,11 @@ function FounderCurationEditor({ customer, enabled }: { customer: DgnCustomer; e
           </button>
           {fastPathBlockReason ? (
             <p className="mt-2 text-center text-[11px] text-[#E7C96A]">{fastPathBlockReason}</p>
+          ) : null}
+          {!fastPathBlockReason && dbUnavailable ? (
+            <p className="mt-2 text-center text-[11px] text-amber-200">
+              Somente-leitura: convite não será persistido.
+            </p>
           ) : null}
         </>
       )}
