@@ -153,6 +153,44 @@ Segurança:
 - O cliente UTMify (`src/lib/integrations/utmify/orders.ts`) tem
   timeout curto (15s) para não estourar o `maxDuration=30s` da rota.
 
+## Fase 4.1 — Reconciliação `/api/cron/reconcile-evo-pending`
+
+Observação empírica (2026-08-18): o webhook `NewSale` da EVO só dispara
+**na criação da venda** — nunca é reenviado quando o pagamento é
+confirmado (Pix/boleto sai de pending e vira paid). Sem reconciliação
+periódica, todas essas vendas ficariam invisíveis para o funil de
+anúncios.
+
+Endpoint `GET /api/cron/reconcile-evo-pending` (auth
+`Authorization: Bearer $CRON_SECRET`):
+
+1. Query `GET /api/v2/sales?showReceivables=true&updatedReceivableStartDate=<T-24h>&updatedReceivableEndDate=<T>&take=100&skip=0`.
+2. Para cada venda devolvida, `evaluatePayment(sale)` → paid | cancelled | pending.
+3. UPSERT em `evo_sales` (chave `id_branch+id_sale` — retry seguro).
+4. Se paid: `deliverPaidConversion(...)` usando `sale.member` inline (evita 1 request extra ao `/api/v1/members/{id}`).
+5. Idempotência 100% garantida por `ad_conversion_deliveries UNIQUE(evo_sale_id, platform)`.
+6. Paginação: até 10 páginas × 100 = 1000 vendas por execução (proteção `maxDuration=60`).
+
+**Vercel Cron só executa em Produção** ([docs](https://vercel.com/docs/cron-jobs)).
+Portanto:
+
+- Preview: chamada manual via curl com o Bearer para validar.
+- Produção: agendamento automático em `vercel.ts` (a definir cadência
+  quando promover — sugestão: 15 minutos).
+
+Bug pré-existente também corrigido nesta fase:
+
+- `rules.ts` agora aceita `status` e `paymentType` como string OU objeto
+  `{id, name}` — a EVO v2 devolve objetos, e a regra antiga forçava
+  string vazia → todas as vendas ficavam pending.
+- `deliver.ts` agora usa `receivingDate` como `createdAt` (respeita
+  limite de 7 dias da UTMify que a `saleDate` de renovações
+  recorrentes ultrapassa).
+- `deliver.ts` mapeia `TransferenciaDeposito`/`Deposit`/`Debit` →
+  `boleto` (débito automático recorrente da rede).
+- `deliver.ts` prefere `sale.member` inline (do `/api/v2/sales`) e cai
+  em `fetchMember` só se incompleto.
+
 Lacuna conhecida (Fase 5 — depende de mudanças em `loudfit/`):
 
 - A UTMify aceita `trackingParameters` (`utm_source`, `utm_medium`,

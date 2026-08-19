@@ -247,10 +247,16 @@ function sanitizeError(err: unknown): string {
   return sanitizeText(raw).slice(0, 500);
 }
 
-// Utilitário exportado para os testes montarem payload mínimo.
+// Converte ISO para "YYYY-MM-DD HH:MM:SS" em UTC (formato exigido pela
+// UTMify). Se a string não trouxer offset (como a EVO devolve — só
+// "2026-08-17T09:55:49" com `timeZone: '-03:00:00'` a parte), assume
+// America/Sao_Paulo (BRT/-03). Sem essa suposição, `new Date(iso)`
+// interpreta como local time OU UTC dependendo do ambiente Node — daria
+// resultados diferentes em Windows local vs Vercel UTC.
 export function formatUtcDateTime(iso: string | null | undefined): string | null {
   if (!iso) return null;
-  const d = new Date(iso);
+  const withOffset = /(Z|[+-]\d{2}:?\d{2})$/i.test(iso) ? iso : `${iso}-03:00`;
+  const d = new Date(withOffset);
   if (Number.isNaN(d.getTime())) return null;
   const pad = (n: number) => n.toString().padStart(2, "0");
   return (

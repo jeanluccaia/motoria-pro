@@ -257,6 +257,7 @@ function makeFakeEvoClient(
       memberHandler
         ? memberHandler(idMember)
         : { ok: false, error: { code: "not-found", message: "not stubbed" } },
+    listSales: async () => ({ ok: true, sales: [] }),
   };
 }
 

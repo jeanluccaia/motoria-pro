@@ -198,6 +198,16 @@ test.describe("formatUtcDateTime", () => {
   test("ISO com offset → converte para UTC 'YYYY-MM-DD HH:MM:SS'", () => {
     expect(formatUtcDateTime("2026-08-14T10:05:00-03:00")).toBe("2026-08-14 13:05:00");
   });
+  test("ISO sem offset (formato EVO) → assume BRT/-03 → +3h em UTC", () => {
+    // Formato observado no payload real da EVO em 2026-08-18:
+    //   receivable.receivingDate = "2026-08-17T09:55:49"
+    //   sale.timeZone = "-03:00:00"
+    // Sem essa assunção, o resultado varia entre Windows local e Vercel UTC.
+    expect(formatUtcDateTime("2026-08-17T09:55:49")).toBe("2026-08-17 12:55:49");
+  });
+  test("ISO com Z (UTC explícito) → preservado", () => {
+    expect(formatUtcDateTime("2026-08-14T10:00:00Z")).toBe("2026-08-14 10:00:00");
+  });
   test("null / vazio / inválido → null", () => {
     expect(formatUtcDateTime(null)).toBeNull();
     expect(formatUtcDateTime(undefined)).toBeNull();

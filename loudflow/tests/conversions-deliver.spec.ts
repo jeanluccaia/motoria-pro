@@ -87,6 +87,7 @@ function makeEvo(memberResult: EvoMemberFetchResult): EvoClient {
     isConfigured: () => true,
     fetchSale: async () => ({ ok: false, error: { code: "not-found", message: "" } }) as EvoFetchResult,
     fetchMember: async () => memberResult,
+    listSales: async () => ({ ok: true, sales: [] }),
   };
 }
 

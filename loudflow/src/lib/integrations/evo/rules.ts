@@ -1,4 +1,31 @@
-import type { EvoReceivable, EvoSaleDetails } from "./types";
+import type { EvoEnumLike, EvoReceivable, EvoSaleDetails } from "./types";
+
+// A EVO moderna (v2) devolve `status` e `paymentType` como objeto
+// `{ id, name }`; versões antigas devolviam string. Aceitamos ambos.
+// SEM esses extractors, `evaluatePayment` sempre retornava pending
+// para vendas reais (bug pré-existente, corrigido em 2026-08-18).
+export function extractStatusName(r: EvoReceivable): string {
+  if (typeof r.status === "string") return r.status;
+  if (typeof r.status === "number") return String(r.status);
+  if (r.status && typeof r.status === "object") {
+    const enumLike = r.status as EvoEnumLike;
+    if (typeof enumLike.name === "string") return enumLike.name;
+  }
+  return r.statusDescription ?? "";
+}
+
+export function extractPaymentTypeName(r: EvoReceivable): string | null {
+  if (typeof r.paymentType === "string" && r.paymentType.length > 0) {
+    return r.paymentType;
+  }
+  if (r.paymentType && typeof r.paymentType === "object") {
+    const enumLike = r.paymentType as EvoEnumLike;
+    if (typeof enumLike.name === "string" && enumLike.name.length > 0) {
+      return enumLike.name;
+    }
+  }
+  return null;
+}
 
 // Regra única de "venda paga" — usada tanto pelo webhook quanto por
 // scripts de reprocesso. Alterar aqui muda a definição de conversão
@@ -55,10 +82,11 @@ export type PaymentEvaluation =
 // preenchida) mantém a venda como pending — evita contar boleto que
 // gerou receivingDate futura mas nunca foi liquidado.
 const RECEIVED_KEYWORDS = [
-  "receb",   // "Recebido", "Recebida", "Received"
-  "pago",    // "Pago", "Paid"
+  "receb",     // "Recebido", "Recebida"
+  "receiv",    // "Received", "Receiving" — inglês (observado na EVO v2: status.name="received")
+  "pago",      // "Pago"
   "paid",
-  "liquidad", // "Liquidado", "Liquidada"
+  "liquidad",  // "Liquidado", "Liquidada"
   "conciliad", // "Conciliado"
   "settled",
 ] as const;
@@ -112,11 +140,7 @@ function isReceivablePaid(r: EvoReceivable): boolean {
   if (amount <= 0) return false;
   if (!r.receivingDate || String(r.receivingDate).trim().length === 0) return false;
 
-  const statusText = normalize(
-    (typeof r.status === "string" ? r.status : "") +
-      " " +
-      (r.statusDescription ?? ""),
-  );
+  const statusText = normalize(extractStatusName(r));
 
   // Status numérico só (ex.: 1, 2, 3) — sem descrição textual: só considera
   // paga se houver receivingDate + amount > 0. Regra conservadora para não
@@ -168,11 +192,8 @@ export function evaluatePayment(sale: EvoSaleDetails): PaymentEvaluation {
       status: "pending",
       amountPaidCents: toCents(pickSaleAmount(sale)),
       receivingDate: null,
-      paymentType: first?.paymentType ?? null,
-      receivableStatus:
-        typeof first?.status === "string"
-          ? first.status
-          : first?.statusDescription ?? null,
+      paymentType: first ? extractPaymentTypeName(first) : null,
+      receivableStatus: first ? extractStatusName(first) || null : null,
       reason: "no-paid-receivable",
     };
   }
@@ -187,11 +208,8 @@ export function evaluatePayment(sale: EvoSaleDetails): PaymentEvaluation {
       status: "pending",
       amountPaidCents: 0,
       receivingDate: null,
-      paymentType: paidReceivables[0]?.paymentType ?? null,
-      receivableStatus:
-        typeof paidReceivables[0]?.status === "string"
-          ? paidReceivables[0]!.status
-          : paidReceivables[0]?.statusDescription ?? null,
+      paymentType: paidReceivables[0] ? extractPaymentTypeName(paidReceivables[0]) : null,
+      receivableStatus: paidReceivables[0] ? extractStatusName(paidReceivables[0]) || null : null,
       reason: "amount-zero",
     };
   }
@@ -201,11 +219,8 @@ export function evaluatePayment(sale: EvoSaleDetails): PaymentEvaluation {
     status: "paid",
     amountPaidCents: totalPaidCents,
     receivingDate: primary.receivingDate!,
-    paymentType: primary.paymentType ?? null,
-    receivableStatus:
-      typeof primary.status === "string"
-        ? primary.status
-        : primary.statusDescription ?? null,
+    paymentType: extractPaymentTypeName(primary),
+    receivableStatus: extractStatusName(primary) || null,
     reason: null,
   };
 }

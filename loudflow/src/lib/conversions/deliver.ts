@@ -6,7 +6,11 @@ import type {
   Database,
   EvoSale,
 } from "../supabase/types";
-import type { EvoClient, EvoMemberDetails } from "../integrations/evo/types";
+import type {
+  EvoClient,
+  EvoMemberContact,
+  EvoMemberDetails,
+} from "../integrations/evo/types";
 import {
   createUtmifyOrdersClient,
   formatUtcDateTime,
@@ -60,6 +64,10 @@ export type DeliverInput = {
     | "payment_type"
     | "processing_status"
   >;
+  // Se disponível (endpoint GET /api/v2/sales devolve `member` inline no
+  // payload da venda), passar aqui evita 1 chamada extra à EVO. Se null
+  // ou undefined, cai no fallback `evoClient.fetchMember(id_member)`.
+  memberOverride?: EvoMemberDetails | null;
 };
 
 export type DeliverOutcome =
@@ -98,8 +106,10 @@ export async function deliverPaidConversion(input: DeliverInput): Promise<Delive
   }
 
   // ---- 2. Enriquecimento com dados do aluno (best-effort) ----------
-  let member: EvoMemberDetails | null = null;
-  if (evoSale.id_member) {
+  // Prefere `memberOverride` (vem inline do GET /api/v2/sales — economia
+  // de 1 request por venda na reconciliação). Fallback: fetchMember.
+  let member: EvoMemberDetails | null = input.memberOverride ?? null;
+  if (!isMemberComplete(member) && evoSale.id_member) {
     const fetched = await evoClient.fetchMember(evoSale.id_member);
     if (fetched.ok) member = fetched.member;
     // silêncio proposital em caso de falha: cai no bloco de PII abaixo
@@ -136,8 +146,12 @@ export async function deliverPaidConversion(input: DeliverInput): Promise<Delive
     return { skipped: true, reason: "amount-zero" };
   }
 
-  const createdAt = formatUtcDateTime(evoSale.sale_date) ?? formatUtcDateTime(new Date().toISOString())!;
-  const approvedDate = formatUtcDateTime(evoSale.receiving_date) ?? createdAt;
+  // A UTMify rejeita orders cujo createdAt > 7 dias. Usar sale.sale_date
+  // quebra para renovações recorrentes (saleDate pode ser >30d antes do
+  // receivingDate). receiving_date é a data da confirmação do pagamento
+  // — melhor semântica para "quando esta conversão aconteceu".
+  const approvedDate = formatUtcDateTime(evoSale.receiving_date) ?? formatUtcDateTime(new Date().toISOString())!;
+  const createdAt = approvedDate;
 
   const payload: UtmifyOrderPayload = {
     orderId: `evo-${evoSale.id_branch}-${evoSale.id_sale}`,
@@ -228,18 +242,62 @@ function mapPaymentMethod(evoPaymentType: string | null | undefined): UtmifyOrde
   if (norm.includes("gratis") || norm.includes("free") || norm.includes("cortesia")) {
     return "free_price";
   }
+  // "TransferenciaDeposito" / "Deposit" — débito automático recorrente
+  // observado nas renovações mensais da EVO. Não há mapeamento perfeito
+  // na taxonomia da UTMify (pix|boleto|credit_card|paypal|free_price).
+  // Escolha: 'boleto' — semanticamente mais próximo de transferência/débito
+  // bancário. Se o usuário decidir separar renovação de matrícula nova,
+  // essa branch vira 'skipped:renewal' filtrando por sale.idSaleRecurrency.
+  if (norm.includes("transferencia") || norm.includes("deposit") || norm.includes("debit")) {
+    return "boleto";
+  }
+  return null;
+}
+
+// Verifica se um EvoMemberDetails tem os campos obrigatórios da UTMify
+// (name e email). Usado pra decidir se vale a pena chamar fetchMember.
+function isMemberComplete(m: EvoMemberDetails | null | undefined): boolean {
+  if (!m) return false;
+  const hasName = Boolean(
+    (m.firstName && m.firstName.trim().length > 0) ||
+      (m.name && m.name.trim().length > 0) ||
+      (m.registerName && m.registerName.trim().length > 0),
+  );
+  const hasEmail = Boolean(
+    (m.email && m.email.trim().length > 0) ||
+      (m.contacts && m.contacts.some((c) => normalizeContactType(c) === "email" && c.description)),
+  );
+  return hasName && hasEmail;
+}
+
+function normalizeContactType(c: EvoMemberContact | null | undefined): "email" | "cellphone" | "other" {
+  const raw = (c?.contactType ?? "").toString().toLowerCase();
+  if (raw.includes("mail")) return "email";
+  if (raw.includes("phone") || raw.includes("cell")) return "cellphone";
+  return "other";
+}
+
+function pickContact(member: EvoMemberDetails, kind: "email" | "cellphone"): string | null {
+  if (!Array.isArray(member.contacts)) return null;
+  for (const c of member.contacts) {
+    if (normalizeContactType(c) === kind && c.description) {
+      return c.description;
+    }
+  }
   return null;
 }
 
 function buildCustomer(member: EvoMemberDetails | null) {
   if (!member) return null;
   const name = normalizeName(member);
-  const email = normalizeEmail(member.email);
+  const email = normalizeEmail(member.email ?? pickContact(member, "email"));
   if (!name || !email) return null;
   return {
     name,
     email,
-    phone: normalizePhone(member.cellphone ?? member.phone ?? null),
+    phone: normalizePhone(
+      member.cellphone ?? member.phone ?? pickContact(member, "cellphone"),
+    ),
     document: normalizeDocument(member.document ?? member.documentId ?? null),
     country: "BR",
     ip: null,
@@ -252,7 +310,11 @@ function normalizeName(member: EvoMemberDetails): string | null {
   const joined = `${first} ${last}`.trim();
   if (joined) return joined;
   const single = (member.name ?? "").trim();
-  return single || null;
+  if (single) return single;
+  const regFirst = (member.registerName ?? "").trim();
+  const regLast = (member.registerLastName ?? "").trim();
+  const regJoined = `${regFirst} ${regLast}`.trim();
+  return regJoined || null;
 }
 
 function normalizeEmail(email: string | null | undefined): string | null {

@@ -2,6 +2,8 @@ import type {
   EvoClient,
   EvoFetchError,
   EvoFetchResult,
+  EvoListSalesParams,
+  EvoListSalesResult,
   EvoMemberDetails,
   EvoMemberFetchResult,
   EvoSaleDetails,
@@ -114,6 +116,37 @@ export function createEvoClient(options: ClientOptions = {}): EvoClient {
       const payload = (await result.json()) as EvoMemberDetails | EvoMemberDetails[];
       const member = Array.isArray(payload) ? payload[0] ?? {} : payload;
       return { ok: true, member };
+    },
+    async listSales(params: EvoListSalesParams): Promise<EvoListSalesResult> {
+      if (!configured) {
+        return {
+          ok: false,
+          error: { code: "not-configured", message: evoUnavailableReason() },
+        };
+      }
+      const base = options.baseUrl ?? getEvoApiBaseUrl();
+      const qs = new URLSearchParams({
+        showReceivables: "true",
+        updatedReceivableStartDate: params.updatedReceivableStartDate,
+        updatedReceivableEndDate: params.updatedReceivableEndDate,
+        take: String(params.take ?? 100),
+        skip: String(params.skip ?? 0),
+      });
+      if (params.idBranch) qs.set("idBranch", params.idBranch);
+      const url = `${base}/api/v2/sales?${qs.toString()}`;
+
+      const result = await fetchWithTimeout(url);
+      if (!(result instanceof Response)) return { ok: false, error: result };
+      if (!result.ok) return { ok: false, error: classifyStatus(result.status) };
+
+      const payload = (await result.json()) as EvoSaleDetails[] | { data?: EvoSaleDetails[]; result?: EvoSaleDetails[] };
+      // Endpoint devolve Array<Sale> direto (2026-08-18). Aceita envelope
+      // {data|result: [...]} defensivamente por variação futura.
+      let sales: EvoSaleDetails[] = [];
+      if (Array.isArray(payload)) sales = payload;
+      else if (Array.isArray(payload?.data)) sales = payload.data;
+      else if (Array.isArray(payload?.result)) sales = payload.result;
+      return { ok: true, sales };
     },
   };
 }
