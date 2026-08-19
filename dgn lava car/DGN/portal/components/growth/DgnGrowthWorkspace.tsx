@@ -394,7 +394,7 @@ export function DgnGrowthWorkspace({
       <GrowthHeader current={view} dataOrigin={dataOrigin} />
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {readOnly ? <div className="mb-5 rounded-xl border border-[#C9A84C]/20 bg-[#C9A84C]/[0.06] px-4 py-3 text-xs text-[#E7C96A]">{dataOrigin === "db" ? "Somente responsável, observação, próxima ação, data e prioridade podem ser salvos. Os demais campos continuam bloqueados." : "Fonte local somente leitura · mudanças não são salvas."}</div> : null}
+        {readOnly ? <div className="mb-5 rounded-xl border border-[#C9A84C]/20 bg-[#C9A84C]/[0.06] px-4 py-3 text-xs text-[#E7C96A]">{dataOrigin === "db" ? "Dados comerciais e de curadoria podem ser editados. Dados operacionais e calculados permanecem protegidos." : "Fonte local somente leitura · mudanças não são salvas."}</div> : null}
         {notice ? (
           <div className="fixed right-4 top-4 z-[70] rounded-xl border border-[#C9A84C]/30 bg-[#111111] px-4 py-3 text-sm font-semibold text-[#E7C96A] shadow-2xl">
             {notice}
@@ -451,6 +451,7 @@ export function DgnGrowthWorkspace({
             page={curationPage}
             pageSize={curationPageSize}
             onPage={setCurationPage}
+            onCommercialSaved={applyCommercialSaved}
           />
         ) : null}
 
@@ -929,6 +930,7 @@ function CurationView({
   page,
   pageSize,
   onPage,
+  onCommercialSaved,
 }: {
   customers: DgnCustomer[];
   selectedCustomer: DgnCustomer;
@@ -949,6 +951,7 @@ function CurationView({
   page: number;
   pageSize: number;
   onPage: (page: number) => void;
+  onCommercialSaved: (id: string, commercial: NonNullable<DgnCustomer["commercial"]>) => void;
 }) {
   // 1) Regra canônica primeiro: quem não é elegível para aquisição Founder
   // não aparece na Curadoria — assinantes ativos, renovação pendente,
@@ -1191,6 +1194,16 @@ function CurationView({
           enabled={Boolean(selectedCustomer.campaign.updatedAt)}
           dataOrigin={dataOrigin}
         />
+
+        <div className="mt-4">
+          {/* key idem — CommercialEditor sempre recarrega o form com o cliente atual. */}
+          <CommercialEditor
+            key={`commercial-${selectedCustomer.id}`}
+            customer={selectedCustomer}
+            enabled={dataOrigin === "db"}
+            onSaved={onCommercialSaved}
+          />
+        </div>
 
         <details className="mt-6 group">
           <summary className="cursor-pointer border-t border-white/[0.06] pt-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80 hover:text-[#E7C96A] select-none">
@@ -2152,17 +2165,18 @@ function FounderCurationEditor({
       setNotice("Ambiente está lendo do JSON local. Nenhuma alteração seria persistida.");
       return;
     }
-    // Ações legadas (save/approve/create_page/replace/mark_sent/revoke) só
-    // fazem sentido se já existir campaign_member (updated_at populado).
-    // create_invite é a exceção: a RPC faz bootstrap silencioso.
-    if (action !== "create_invite" && (!enabled || !customer.campaign.updatedAt)) return;
+    // create_invite e save fazem bootstrap silencioso do crm_campaign_members.
+    // As outras ações (approve/create_page/replace/mark_sent/revoke) continuam
+    // exigindo o registro prévio (updated_at populado).
+    const bootstrapsMember = action === "create_invite" || action === "save";
+    if (!bootstrapsMember && (!enabled || !customer.campaign.updatedAt)) return;
     if (action === "mark_sent" && !window.confirm("Confirmar que o convite foi realmente enviado?")) return;
     if (["revoke", "replace"].includes(action) && !window.confirm(action === "revoke" ? "Revogar o link ativo?" : "Revogar o link atual e gerar um novo convite?")) return;
     setSaving(true); setNotice("");
     try {
-      // Para create_invite bootstrap, envia expectedUpdatedAt como string vazia
-      // (validator do servidor aceita quando action=create_invite → null → RPC).
-      const isBootstrap = action === "create_invite" && !customer.campaign.updatedAt;
+      // create_invite e save aceitam expectedUpdatedAt=null quando o prospect
+      // ainda não tem crm_campaign_members (RPC faz bootstrap silencioso).
+      const isBootstrap = (action === "create_invite" || action === "save") && !customer.campaign.updatedAt;
       const response = await fetch(`/api/admin/growth/customers/${encodeURIComponent(customer.id)}/founder-curation`, {
         method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({ action, campaignId: "founders-2026", recommendedPlanCode: planCode,
@@ -2172,10 +2186,13 @@ function FounderCurationEditor({
           expectedUpdatedAt: isBootstrap ? null : customer.campaign.updatedAt }),
       });
       const result = await response.json() as { changed?: boolean; error?: string };
-      if (!response.ok) throw new Error(result.error || "Falha na curadoria.");
-      setNotice(result.changed ? "Alteração salva. Recarregando…" : "Nenhuma alteração; auditoria não gerada.");
+      if (!response.ok) {
+        if (response.status === 409) throw new Error(result.error || "Os dados foram alterados em outra sessão. Recarregue a página.");
+        throw new Error(result.error || "Não foi possível salvar as alterações.");
+      }
+      setNotice(result.changed ? "Alterações salvas. Recarregando…" : "Nenhuma alteração; nada a auditar.");
       if (result.changed) window.setTimeout(() => window.location.reload(), 500);
-    } catch (error) { setNotice(error instanceof Error ? error.message : "Falha na curadoria."); }
+    } catch (error) { setNotice(error instanceof Error ? error.message : "Não foi possível salvar as alterações."); }
     finally { setSaving(false); }
   }
 
@@ -2185,6 +2202,8 @@ function FounderCurationEditor({
     setNotice("Link copiado. O convite não foi marcado como enviado.");
   }
 
+  // Save agora faz bootstrap silencioso — não depende de `enabled`.
+  const saveDisabled = inviteBlockedByEligibility || dbUnavailable || saving || !offer || reason.trim().length < 3;
   const approveDisabled = !enabled || inviteBlockedByEligibility || dbUnavailable || saving || !offer || !offerValidated || reason.trim().length < 3;
   const createPageDisabled = !enabled || inviteBlockedByEligibility || dbUnavailable || saving || customer.campaign.founderStatus !== "selecionado" || Boolean(current?.publicLink) || !offerValidated;
 
@@ -2420,7 +2439,7 @@ function FounderCurationEditor({
         <label className="sm:col-span-2"><span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Mensagem pública opcional</span><textarea rows={2} value={message} disabled={protectedFounder || saving} onChange={(event) => setMessage(event.target.value)} className="mt-2 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-3 text-sm text-white" /></label>
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        <ActionButton disabled={!enabled || protectedFounder || saving} onClick={() => act("save")}>Salvar rascunho</ActionButton>
+        <ActionButton disabled={saveDisabled} onClick={() => act("save")}>Salvar alterações</ActionButton>
         <ActionButton disabled={approveDisabled} onClick={() => act("approve")}>Aprovar seleção</ActionButton>
         <ActionButton disabled={createPageDisabled} onClick={() => act("create_page")}>Criar página Founder</ActionButton>
         <ActionButton disabled={!current?.publicLink} onClick={copyPublicLink}>Copiar link</ActionButton>
@@ -2429,6 +2448,9 @@ function FounderCurationEditor({
         <ActionButton disabled={!current?.publicLink || protectedFounder} onClick={() => act("revoke")}>Revogar link</ActionButton>
         <ActionButton disabled={!current?.publicLink || protectedFounder} onClick={() => act("replace")}>Revogar e gerar novo convite</ActionButton>
       </div>
+      {saveDisabled && !saving && (!planCode || !offer || reason.trim().length < 3) ? (
+        <p className="mt-2 text-[11px] text-[#7D7D7D]">Escolha plano, modalidade e motivo (mínimo 3 caracteres) para salvar.</p>
+      ) : null}
       <div className="mt-4 grid gap-2 sm:grid-cols-2"><ProfileFact label="Responsável" value={current?.curatedBy || "—"} compact /><ProfileFact label="Data da curadoria" value={current?.curatedAt || "—"} compact /><ProfileFact label="Aprovação" value={current?.approvedAt || "Pendente"} compact /><ProfileFact label="Convite enviado" value={current?.inviteSentAt || "Não"} compact /></div>
     </details>
   </div>;
@@ -2526,10 +2548,6 @@ function CommercialEditor({
 
   const save = async () => {
     if (!enabled || saving) return;
-    if (!current.updatedAt) {
-      setResult({ tone: "error", message: "Recarregue a página antes de salvar." });
-      return;
-    }
     setSaving(true);
     setResult(null);
     try {
@@ -2539,18 +2557,23 @@ function CommercialEditor({
         body: JSON.stringify({
           ...form,
           nextActionAt: form.nextActionAt ? new Date(form.nextActionAt).toISOString() : "",
-          expectedUpdatedAt: current.updatedAt,
+          // Vazio quando o prospect ainda não tem crm_campaign_members —
+          // a RPC faz bootstrap silencioso; nenhuma corrida de dados envolvida.
+          expectedUpdatedAt: current.updatedAt || "",
         }),
       });
       const body = await response.json() as { error?: string; changed?: boolean; commercial?: NonNullable<DgnCustomer["commercial"]> };
-      if (!response.ok || !body.commercial) throw new Error(body.error || "Falha ao salvar.");
+      if (!response.ok || !body.commercial) {
+        if (response.status === 409) throw new Error(body.error || "Os dados foram alterados em outra sessão. Recarregue a página.");
+        throw new Error(body.error || "Não foi possível salvar as alterações.");
+      }
       onSaved(customer.id, body.commercial);
       setResult({
         tone: "success",
-        message: body.changed ? "Campos comerciais salvos." : "Nenhuma alteração necessária.",
+        message: body.changed ? "Alterações salvas." : "Nenhuma alteração; nada a auditar.",
       });
     } catch (error) {
-      setResult({ tone: "error", message: error instanceof Error ? error.message : "Falha ao salvar." });
+      setResult({ tone: "error", message: error instanceof Error ? error.message : "Não foi possível salvar as alterações." });
     } finally {
       setSaving(false);
     }
@@ -2564,7 +2587,7 @@ function CommercialEditor({
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">Gestão comercial</p>
-          <p className="mt-1 text-xs text-[#777]">Únicos campos com persistência ativa nesta etapa.</p>
+          <p className="mt-1 text-xs text-[#777]">Responsável, prioridade, observação, próxima ação e data — persistidos e auditados.</p>
         </div>
         <span className="rounded-full border border-white/[0.08] px-2 py-1 text-[10px] text-[#888]">{enabled ? "DB" : "Somente leitura"}</span>
       </div>
@@ -2577,7 +2600,7 @@ function CommercialEditor({
       <label className="mt-3 block"><span className={labelClass}>Observação comercial</span><textarea disabled={!enabled} maxLength={2000} rows={4} value={form.commercialNotes} onChange={(event) => setForm((state) => ({ ...state, commercialNotes: event.target.value }))} className="mt-2 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-3 text-sm text-white outline-none disabled:cursor-not-allowed disabled:opacity-45 focus:border-[#C9A84C]/35" /></label>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <p className={`text-xs ${result?.tone === "error" ? "text-red-300" : "text-emerald-300"}`}>{result?.message}</p>
-        <button type="button" disabled={!enabled || saving} onClick={save} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 text-sm font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-40">{saving ? "Salvando…" : "Salvar campos comerciais"}</button>
+        <button type="button" disabled={!enabled || saving} onClick={save} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 text-sm font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-40">{saving ? "Salvando…" : "Salvar alterações"}</button>
       </div>
     </div>
   );

@@ -84,7 +84,9 @@ export function validateFounderCurationPayload(payload: unknown): FounderCuratio
   if (typeof raw.action !== "string" || !actions.has(raw.action as FounderCurationAction)) {
     throw new FounderCurationWriteError("Ação inválida.", 400);
   }
-  const isBootstrapAction = raw.action === "create_invite";
+  // Bootstrap silencioso: `create_invite` sempre; `save` também, para permitir
+  // Curadoria completa de um prospect que ainda não tem crm_campaign_members.
+  const isBootstrapAction = raw.action === "create_invite" || raw.action === "save";
   const rawExpected = raw.expectedUpdatedAt;
   let parsedExpected: string | null;
   if (typeof rawExpected === "string" && rawExpected !== "" && !Number.isNaN(Date.parse(rawExpected))) {

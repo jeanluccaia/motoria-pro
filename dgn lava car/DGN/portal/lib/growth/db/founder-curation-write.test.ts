@@ -166,8 +166,15 @@ test("create_invite aceita expectedUpdatedAt vazio/null (bootstrap silencioso da
   }
 });
 
-test("ações que NÃO são create_invite continuam exigindo expectedUpdatedAt válido", () => {
-  for (const action of ["save", "approve", "create_page", "replace", "mark_sent", "revoke"] as const) {
+test("save também aceita expectedUpdatedAt null (bootstrap silencioso pela RPC)", () => {
+  for (const empty of [null, undefined, ""] as const) {
+    const parsed = validateFounderCurationPayload({ ...base, action: "save", expectedUpdatedAt: empty });
+    assert.equal(parsed.expectedUpdatedAt, null, `esperava null para ${JSON.stringify(empty)}`);
+  }
+});
+
+test("ações destrutivas continuam exigindo expectedUpdatedAt válido", () => {
+  for (const action of ["approve", "create_page", "replace", "mark_sent", "revoke"] as const) {
     for (const empty of [null, undefined, ""] as const) {
       assert.throws(
         () => validateFounderCurationPayload({ ...base, action, expectedUpdatedAt: empty }),

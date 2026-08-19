@@ -49,7 +49,7 @@ function normalizedNotes(value: unknown) {
 }
 
 function normalizedDate(value: unknown, field: string, allowEmpty: boolean) {
-  if (allowEmpty && (value === "" || value === null)) return "";
+  if (allowEmpty && (value === "" || value === null || value === undefined)) return "";
   if (typeof value !== "string" || !/(Z|[+-]\d{2}:\d{2})$/.test(value)) {
     throw new CommercialWriteError(`${field} deve conter data/hora ISO com fuso`, 400);
   }
@@ -76,7 +76,8 @@ export function validateCommercialPayload(payload: unknown) {
     nextAction: normalizedShort(input.nextAction, "nextAction", 240, true),
     nextActionAt: normalizedDate(input.nextActionAt, "nextActionAt", true),
     priority: input.priority as CommercialPriority,
-    expectedUpdatedAt: normalizedDate(input.expectedUpdatedAt, "expectedUpdatedAt", false),
+    // Vazio = "cliente ainda não tem crm_campaign_members"; a RPC faz bootstrap silencioso.
+    expectedUpdatedAt: normalizedDate(input.expectedUpdatedAt, "expectedUpdatedAt", true),
   };
 }
 
@@ -94,7 +95,7 @@ export async function updateCommercialFields(
     p_next_action: input.nextAction || null,
     p_next_action_at: input.nextActionAt || null,
     p_priority: priorityNumber[input.priority],
-    p_expected_updated_at: input.expectedUpdatedAt,
+    p_expected_updated_at: input.expectedUpdatedAt || null,
     p_actor: "dgn-admin",
     p_origin: "dgn-growth-admin",
   });
