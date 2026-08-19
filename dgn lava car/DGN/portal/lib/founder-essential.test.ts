@@ -39,18 +39,20 @@ test("Essential ocupa a primeira posição do catálogo com nome oficial DGN Ess
   assert.doesNotMatch(founderPlanDefinitions[0].planName, /mensal|semestral|anual|trimestral|fidelidade/i);
 });
 
-test("Essential é mensal com 1 lavagem e cinco benefícios oficiais da LP", () => {
+test("Essential é mensal com 1 lavagem e benefícios oficiais atualizados (LP + desconto 7% Estética)", () => {
   const essential = getFounderPlan("essential");
   assert.ok(essential);
   assert.equal(essential.serviceFrequency, "mensal");
   assert.equal(essential.serviceQuantity, 1);
-  assert.equal(essential.benefits.length, 5);
+  assert.equal(essential.aestheticDiscountPercent, 7);
   assert.deepEqual([...essential.benefits], [
     "1 Lavagem Padrão DGN por mês",
+    "Frequência mensal",
     "Vaga programada",
     "Prioridade sobre atendimentos avulsos",
     "Histórico de cuidados",
     "Leva & Traz programado conforme região, rota e disponibilidade",
+    "7% de desconto em serviços de Estética DGN",
   ]);
 });
 

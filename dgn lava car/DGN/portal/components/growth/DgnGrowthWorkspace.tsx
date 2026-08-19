@@ -2140,6 +2140,10 @@ function FounderCurationEditor({
   const [message, setMessage] = useState(current?.recommendationMessagePublic ?? "");
   const [notice, setNotice] = useState("");
   const [saving, setSaving] = useState(false);
+  // Alterar oferta: expande o painel inline para permitir escolher novo plano/
+  // categoria e chamar `replace`. Fechado por padrão para não competir com o
+  // fluxo de leitura do "CONVITE PRONTO".
+  const [alterMode, setAlterMode] = useState(false);
   const plan = planCode ? founderPlanDefinitions.find((item) => item.planCode === planCode) : null;
   const offer = planCode && contractingMode ? getFounderOffer(planCode, contractingMode, vehicleCategory || null) : null;
   const offerValidated = offer ? isCombinationValidatedForPublication(offer) : false;
@@ -2281,24 +2285,127 @@ function FounderCurationEditor({
           {eligibility.subscriberMatch?.note ? <p className="mt-1 text-amber-100/70">{eligibility.subscriberMatch.note}</p> : null}
         </div>
       ) : current?.publicLink && invitePreviewPath && inviteCleanUrl ? (
-        <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.05] p-3">
-          <p className="text-sm font-bold text-emerald-200">CONVITE PRONTO ✓</p>
-          <p className="mt-1 text-[11px] text-emerald-100/70">
-            Versão {current.publicLink.version}.{" "}
-            {current.inviteSentAt ? "Já marcado como enviado." : "Ainda não marcado como enviado — o operador decide o momento."}
-          </p>
-          <div className="mt-2 rounded-lg border border-white/[0.06] bg-white/[0.02] p-2 text-[11px] text-white/80 break-all font-mono">{inviteCleanUrl}</div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Link href={invitePreviewPath} target="_blank" className="rounded-lg border border-white/15 px-3 py-2 text-[11px] font-semibold text-white/80 hover:text-white">Abrir preview</Link>
-            <button type="button" onClick={copyPublicLink} className="rounded-lg border border-white/15 px-3 py-2 text-[11px] font-semibold text-white/80 hover:text-white">Copiar link</button>
-            <button type="button" onClick={openInviteWhatsapp} disabled={!customer.phone} className="rounded-lg bg-emerald-500/90 px-3 py-2 text-[11px] font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40" title="Abre o WhatsApp — não marca envio automaticamente">
-              Abrir WhatsApp
-            </button>
-            <button type="button" disabled={saving || Boolean(current.inviteSentAt)} onClick={() => act("mark_sent")} className="rounded-lg border border-emerald-400/40 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-40">
-              {current.inviteSentAt ? "Convite marcado como enviado" : "Marcar enviado"}
-            </button>
+        <div className="mt-3 space-y-3">
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/[0.05] p-3">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <p className="text-sm font-bold text-emerald-200">CONVITE ATIVO ✓</p>
+              <p className="text-[10px] uppercase tracking-[0.14em] text-emerald-100/60">
+                {current.recommendedPlanName || current.recommendedPlanCode}
+                {current.recommendedVehicleCategory ? ` · ${current.recommendedVehicleCategory.toUpperCase()}` : ""}
+                {typeof current.recommendedMonthlyPrice === "number" && current.recommendedMonthlyPrice > 0
+                  ? ` · ${current.recommendedMonthlyPrice.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}/mês`
+                  : ""}
+              </p>
+            </div>
+            <p className="mt-1 text-[11px] text-emerald-100/70">
+              Versão {current.publicLink.version}.{" "}
+              {current.inviteSentAt ? "Já marcado como enviado." : "Ainda não marcado como enviado — o operador decide o momento."}
+            </p>
+            <div className="mt-2 rounded-lg border border-white/[0.06] bg-white/[0.02] p-2 text-[11px] text-white/80 break-all font-mono">{inviteCleanUrl}</div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link href={invitePreviewPath} target="_blank" className="rounded-lg border border-white/15 px-3 py-2 text-[11px] font-semibold text-white/80 hover:text-white">Abrir preview</Link>
+              <button type="button" onClick={copyPublicLink} className="rounded-lg border border-white/15 px-3 py-2 text-[11px] font-semibold text-white/80 hover:text-white">Copiar link</button>
+              <button type="button" onClick={openInviteWhatsapp} disabled={!customer.phone} className="rounded-lg bg-emerald-500/90 px-3 py-2 text-[11px] font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40" title="Abre o WhatsApp — não marca envio automaticamente">
+                Abrir WhatsApp
+              </button>
+              <button type="button" disabled={saving || Boolean(current.inviteSentAt)} onClick={() => act("mark_sent")} className="rounded-lg border border-emerald-400/40 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-40">
+                {current.inviteSentAt ? "Convite marcado como enviado" : "Marcar enviado"}
+              </button>
+              <button
+                type="button"
+                disabled={saving || alterMode}
+                onClick={() => setAlterMode(true)}
+                className="rounded-lg border border-[#C9A84C]/40 bg-[#C9A84C]/10 px-3 py-2 text-[11px] font-semibold text-[#E7C96A] hover:bg-[#C9A84C]/20 disabled:opacity-40"
+              >
+                Alterar oferta
+              </button>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => act("revoke")}
+                className="rounded-lg border border-red-400/30 bg-red-500/5 px-3 py-2 text-[11px] font-semibold text-red-200/90 hover:bg-red-500/15"
+              >
+                Revogar convite
+              </button>
+            </div>
+            <p className="mt-2 text-[10px] text-emerald-100/50">Copiar link e Abrir WhatsApp não alteram o estágio. Só &quot;Marcar enviado&quot; muda o pipeline.</p>
           </div>
-          <p className="mt-2 text-[10px] text-emerald-100/50">Copiar link e Abrir WhatsApp não alteram o estágio. Só &quot;Marcar enviado&quot; muda o pipeline.</p>
+
+          {alterMode ? (
+            <div className="rounded-xl border border-[#C9A84C]/35 bg-[#C9A84C]/[0.04] p-3">
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#C9A84C]">Alterar oferta</p>
+                <button
+                  type="button"
+                  onClick={() => setAlterMode(false)}
+                  disabled={saving}
+                  className="text-[10px] uppercase tracking-wider text-[#8A8A8A] hover:text-white disabled:opacity-40"
+                >
+                  Cancelar
+                </button>
+              </div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                {founderPlanDefinitions.map((p) => {
+                  const price = vehicleCategory ? monthlyPriceMatrix[p.planCode][vehicleCategory] : null;
+                  const active = planCode === p.planCode;
+                  return (
+                    <button
+                      key={p.planCode}
+                      type="button"
+                      disabled={saving}
+                      onClick={() => { setPlanCode(p.planCode); setContractingMode("monthly"); }}
+                      className={`rounded-xl border p-3 text-left transition ${active ? "border-[#C9A84C] bg-[#C9A84C]/10" : "border-white/10 hover:border-[#C9A84C]/40"}`}
+                    >
+                      <div className="text-sm font-semibold text-white">{p.planName}</div>
+                      <div className="text-[11px] text-[#8A8A8A]">{p.serviceQuantity} {p.serviceQuantity === 1 ? "lavagem" : "lavagens"}/mês</div>
+                      <div className="mt-1.5 text-sm text-[#E7C96A]">
+                        {price !== null ? `${price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}/mês` : "selecione categoria"}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-3">
+                <p className="text-[10px] uppercase tracking-[0.14em] text-[#7D7D7D]">Categoria do veículo</p>
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {founderVehicleCategories.map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      disabled={saving}
+                      onClick={() => setVehicleCategory(cat)}
+                      className={`rounded-full border px-3 py-1 text-xs transition ${vehicleCategory === cat ? "border-[#C9A84C] bg-[#C9A84C]/10 text-[#E7C96A]" : "border-white/15 text-[#A7A7A7] hover:text-white"}`}
+                    >
+                      {vehicleCategoryLabels[cat]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <p className="mt-3 text-[11px] text-[#7D7D7D]">Modalidade: <span className="text-white font-medium">Mensal</span></p>
+              <div className="mt-3">
+                <p className="text-[10px] uppercase tracking-[0.14em] text-[#7D7D7D]">Motivo da alteração</p>
+                <input
+                  type="text"
+                  value={reason}
+                  disabled={saving}
+                  onChange={(event) => setReason(event.target.value)}
+                  placeholder="Ex.: cliente pediu upgrade para Smart"
+                  className="mt-2 h-9 w-full rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 text-xs text-white outline-none focus:border-[#C9A84C]/50"
+                />
+              </div>
+              <button
+                type="button"
+                disabled={saving || !planCode || !vehicleCategory || reason.trim().length < 3 || !offerValidated}
+                onClick={() => act("replace")}
+                className="mt-3 w-full rounded-xl bg-[#C9A84C] px-4 py-3 text-sm font-bold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {saving ? "Alterando…" : "Confirmar nova oferta"}
+              </button>
+              <p className="mt-2 text-center text-[10px] text-[#7D7D7D]">
+                O link atual será cancelado e um novo convite será criado. Uma única operação — se falhar, nada muda.
+              </p>
+            </div>
+          ) : null}
         </div>
       ) : (
         <>

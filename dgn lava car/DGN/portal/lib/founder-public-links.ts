@@ -52,3 +52,35 @@ export async function resolveFounderPublicLink(slugValue: string, db?: SupabaseC
     return parseFounderPublicLink(result.data as LinkRow | null);
   } catch { return null; }
 }
+
+/**
+ * Retorna o nome do cliente quando o slug existe mas o link está revogado
+ * (`enabled=false`). Usado para mostrar a página neutra "convite atualizado"
+ * em vez de 404 — o operador quer que o antigo destinatário não fique com a
+ * impressão de que o link "sumiu".
+ */
+export async function resolveRevokedFounderPublicLink(slugValue: string, db?: SupabaseClient) {
+  const slug = normalizeFounderSlug(slugValue);
+  if (!slug) return null;
+  try {
+    const client = db ?? getSupabaseAdminClient("founder.public-link.revoked");
+    const result = await client
+      .from("crm_founder_public_links")
+      .select("slug,enabled,is_test,crm_campaign_members!inner(crm_customers!inner(name))")
+      .eq("slug", slug)
+      .eq("enabled", false)
+      .maybeSingle();
+    if (result.error || !result.data) return null;
+    const row = result.data as {
+      slug?: unknown;
+      is_test?: unknown;
+      crm_campaign_members?: { crm_customers?: { name?: unknown } | { name?: unknown }[] } | Array<{ crm_customers?: { name?: unknown } | { name?: unknown }[] }>;
+    };
+    const member = Array.isArray(row.crm_campaign_members) ? row.crm_campaign_members[0] : row.crm_campaign_members;
+    const customer = member && (Array.isArray(member.crm_customers) ? member.crm_customers[0] : member.crm_customers);
+    const name = customer && typeof customer.name === "string" ? customer.name : "Convite Founder";
+    return { slug, publicName: name, isTest: row.is_test === true };
+  } catch {
+    return null;
+  }
+}

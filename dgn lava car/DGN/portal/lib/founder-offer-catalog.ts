@@ -55,16 +55,33 @@ export const monthlyPriceMatrix: Readonly<Record<FounderPlanCode, Readonly<Recor
   priority: { hatch: 210, sedan: 240, suv: 270, picape: 300 },
 };
 
+export type FounderPlanPositioning =
+  | "Entrada para recorrência"
+  | "Plano recomendado / melhor equilíbrio"
+  | "Experiência premium / prioridade máxima";
+
+export type FounderPriorityLabel =
+  | "Prioridade sobre avulsos"
+  | "Prioridade superior ao Essential"
+  | "Prioridade máxima na agenda";
+
 interface FounderPlanDefinition {
   planCode: FounderPlanCode;
   planName: string;
   description: string;
   serviceFrequency: FounderServiceFrequency;
   serviceQuantity: number;
+  /** Percentual de desconto em serviços de Estética DGN — 7 / 15 / 20. */
+  aestheticDiscountPercent: number;
   benefits: readonly string[];
   publicRules: readonly string[];
+  positioning: FounderPlanPositioning;
+  priorityLabel: FounderPriorityLabel;
 }
 
+// Fonte canônica dos benefícios exibidos ao Founder. UI (`FounderSnapshotPage`
+// e o painel do CRM), snapshot e testes leem daqui. Nunca duplicar bullets
+// em componente. Ordem dos bullets = ordem exibida no card.
 export const founderPlanDefinitions: readonly FounderPlanDefinition[] = [
   {
     planCode: "essential",
@@ -72,23 +89,39 @@ export const founderPlanDefinitions: readonly FounderPlanDefinition[] = [
     description: "Plano de entrada para começar uma rotina recorrente de cuidado.",
     serviceFrequency: "mensal",
     serviceQuantity: 1,
+    aestheticDiscountPercent: 7,
     benefits: [
       "1 Lavagem Padrão DGN por mês",
+      "Frequência mensal",
       "Vaga programada",
       "Prioridade sobre atendimentos avulsos",
       "Histórico de cuidados",
       "Leva & Traz programado conforme região, rota e disponibilidade",
+      "7% de desconto em serviços de Estética DGN",
     ],
     publicRules: ["Condição Founder para a primeira geração de clientes convidados."],
+    positioning: "Entrada para recorrência",
+    priorityLabel: "Prioridade sobre avulsos",
   },
   {
     planCode: "smart",
     planName: "DGN Smart",
-    description: "Cuidado essencial com previsibilidade.",
+    description: "Cuidado com previsibilidade e prioridade superior ao Essential.",
     serviceFrequency: "quinzenal",
     serviceQuantity: 2,
-    benefits: ["Cuidado essencial", "Previsibilidade"],
+    aestheticDiscountPercent: 15,
+    benefits: [
+      "2 Lavagens Padrão DGN por mês",
+      "Frequência recomendada a cada 15 dias",
+      "Vaga programada",
+      "Prioridade superior ao Essential e aos avulsos",
+      "Histórico e benefícios de assinante",
+      "Leva & Traz programado conforme região, rota e disponibilidade",
+      "15% de desconto em serviços de Estética DGN",
+    ],
     publicRules: ["Condição Founder para a primeira geração de clientes convidados."],
+    positioning: "Plano recomendado / melhor equilíbrio",
+    priorityLabel: "Prioridade superior ao Essential",
   },
   {
     planCode: "priority",
@@ -96,8 +129,19 @@ export const founderPlanDefinitions: readonly FounderPlanDefinition[] = [
     description: "Maior frequência de cuidados com prioridade máxima.",
     serviceFrequency: "semanal",
     serviceQuantity: 4,
-    benefits: ["Maior frequência de cuidados", "Prioridade máxima"],
+    aestheticDiscountPercent: 20,
+    benefits: [
+      "4 Lavagens Padrão DGN por mês",
+      "Frequência semanal",
+      "Vaga fixa ou programada",
+      "Prioridade máxima na agenda",
+      "Prioridade logística máxima no Leva & Traz",
+      "Histórico e benefícios de assinante",
+      "20% de desconto em serviços de Estética DGN",
+    ],
     publicRules: ["Condição Founder para a primeira geração de clientes convidados."],
+    positioning: "Experiência premium / prioridade máxima",
+    priorityLabel: "Prioridade máxima na agenda",
   },
 ] as const;
 
@@ -107,8 +151,11 @@ export interface FounderCatalogOffer {
   description: string;
   serviceFrequency: FounderServiceFrequency;
   serviceQuantity: number;
+  aestheticDiscountPercent: number;
   benefits: readonly string[];
   publicRules: readonly string[];
+  positioning: FounderPlanPositioning;
+  priorityLabel: FounderPriorityLabel;
   contractingMode: FounderContractingMode;
   contractingModeLabel: string;
   commitmentMonths: number;
@@ -184,8 +231,11 @@ export function getFounderOffer(
     description: plan.description,
     serviceFrequency: plan.serviceFrequency,
     serviceQuantity: plan.serviceQuantity,
+    aestheticDiscountPercent: plan.aestheticDiscountPercent,
     benefits: plan.benefits,
     publicRules: plan.publicRules,
+    positioning: plan.positioning,
+    priorityLabel: plan.priorityLabel,
     contractingMode,
     contractingModeLabel: contractingModeLabels[contractingMode],
     commitmentMonths: commitmentMonthsByMode[contractingMode],
@@ -225,8 +275,11 @@ export interface FounderPlanSnapshot {
   description: string;
   serviceFrequency: FounderServiceFrequency;
   serviceQuantity: number;
+  aestheticDiscountPercent: number;
   benefits: string[];
   publicRules: string[];
+  positioning: FounderPlanPositioning;
+  priorityLabel: FounderPriorityLabel;
   contractingMode: FounderContractingMode;
   contractingModeLabel: string;
   commitmentMonths: number;
@@ -250,8 +303,11 @@ export function createFounderPlanSnapshot(
     description: offer.description,
     serviceFrequency: offer.serviceFrequency,
     serviceQuantity: offer.serviceQuantity,
+    aestheticDiscountPercent: offer.aestheticDiscountPercent,
     benefits: [...offer.benefits],
     publicRules: [...offer.publicRules],
+    positioning: offer.positioning,
+    priorityLabel: offer.priorityLabel,
     contractingMode: offer.contractingMode,
     contractingModeLabel: offer.contractingModeLabel,
     commitmentMonths: offer.commitmentMonths,
@@ -271,14 +327,21 @@ export function normalizeLegacyFounderSnapshot(input: unknown): FounderPlanSnaps
   const raw = input as Record<string, unknown>;
   if (isFounderPlanCode(raw.planCode) && isFounderContractingMode(raw.contractingMode)) {
     const category = isFounderVehicleCategory(raw.vehicleCategory) ? raw.vehicleCategory : null;
+    // Snapshots antigos podem não trazer aestheticDiscountPercent / positioning /
+    // priorityLabel. Preencher a partir do catálogo canônico atual, respeitando
+    // valor explícito quando presente (nunca inferir preço nem benefícios).
+    const plan = getFounderPlan(raw.planCode)!;
     return {
       planCode: raw.planCode,
-      planName: typeof raw.planName === "string" ? raw.planName : "",
-      description: typeof raw.description === "string" ? raw.description : "",
-      serviceFrequency: (typeof raw.serviceFrequency === "string" ? raw.serviceFrequency : "mensal") as FounderServiceFrequency,
-      serviceQuantity: typeof raw.serviceQuantity === "number" ? raw.serviceQuantity : 1,
-      benefits: Array.isArray(raw.benefits) ? raw.benefits.filter((item): item is string => typeof item === "string") : [],
-      publicRules: Array.isArray(raw.publicRules) ? raw.publicRules.filter((item): item is string => typeof item === "string") : [],
+      planName: typeof raw.planName === "string" ? raw.planName : plan.planName,
+      description: typeof raw.description === "string" ? raw.description : plan.description,
+      serviceFrequency: (typeof raw.serviceFrequency === "string" ? raw.serviceFrequency : plan.serviceFrequency) as FounderServiceFrequency,
+      serviceQuantity: typeof raw.serviceQuantity === "number" ? raw.serviceQuantity : plan.serviceQuantity,
+      aestheticDiscountPercent: typeof raw.aestheticDiscountPercent === "number" ? raw.aestheticDiscountPercent : plan.aestheticDiscountPercent,
+      benefits: Array.isArray(raw.benefits) ? raw.benefits.filter((item): item is string => typeof item === "string") : [...plan.benefits],
+      publicRules: Array.isArray(raw.publicRules) ? raw.publicRules.filter((item): item is string => typeof item === "string") : [...plan.publicRules],
+      positioning: typeof raw.positioning === "string" ? (raw.positioning as FounderPlanPositioning) : plan.positioning,
+      priorityLabel: typeof raw.priorityLabel === "string" ? (raw.priorityLabel as FounderPriorityLabel) : plan.priorityLabel,
       contractingMode: raw.contractingMode,
       contractingModeLabel: typeof raw.contractingModeLabel === "string" ? raw.contractingModeLabel : contractingModeLabels[raw.contractingMode],
       commitmentMonths: typeof raw.commitmentMonths === "number" ? raw.commitmentMonths : commitmentMonthsByMode[raw.contractingMode],
@@ -300,8 +363,11 @@ export function normalizeLegacyFounderSnapshot(input: unknown): FounderPlanSnaps
       description: typeof raw.description === "string" ? raw.description : plan.description,
       serviceFrequency: plan.serviceFrequency,
       serviceQuantity: plan.serviceQuantity,
+      aestheticDiscountPercent: plan.aestheticDiscountPercent,
       benefits: Array.isArray(raw.benefits) ? raw.benefits.filter((item): item is string => typeof item === "string") : [...plan.benefits],
       publicRules: Array.isArray(raw.publicRules) ? raw.publicRules.filter((item): item is string => typeof item === "string") : [...plan.publicRules],
+      positioning: plan.positioning,
+      priorityLabel: plan.priorityLabel,
       contractingMode: "loyalty_6",
       contractingModeLabel: contractingModeLabels.loyalty_6,
       commitmentMonths: commitmentMonthsByMode.loyalty_6,

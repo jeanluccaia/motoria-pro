@@ -36,13 +36,64 @@ test("DGN Essential é mensal, com 1 lavagem e benefícios oficiais", () => {
   assert.ok(essential);
   assert.equal(essential.serviceFrequency, "mensal");
   assert.equal(essential.serviceQuantity, 1);
+  assert.equal(essential.aestheticDiscountPercent, 7);
+  assert.equal(essential.positioning, "Entrada para recorrência");
   assert.deepEqual(essential.benefits, [
     "1 Lavagem Padrão DGN por mês",
+    "Frequência mensal",
     "Vaga programada",
     "Prioridade sobre atendimentos avulsos",
     "Histórico de cuidados",
     "Leva & Traz programado conforme região, rota e disponibilidade",
+    "7% de desconto em serviços de Estética DGN",
   ]);
+});
+
+test("DGN Smart tem 2 lavagens, 15% Estética e é claramente superior ao Essential", () => {
+  const smart = getFounderPlan("smart");
+  const essential = getFounderPlan("essential");
+  assert.ok(smart && essential);
+  assert.equal(smart.serviceFrequency, "quinzenal");
+  assert.equal(smart.serviceQuantity, 2);
+  assert.equal(smart.aestheticDiscountPercent, 15);
+  assert.ok(smart.serviceQuantity > essential.serviceQuantity, "Smart > Essential em atendimentos/mês");
+  assert.ok(smart.aestheticDiscountPercent > essential.aestheticDiscountPercent, "Smart > Essential em desconto");
+  assert.ok(smart.benefits.length >= essential.benefits.length, "Smart não pode listar menos benefícios que Essential");
+  assert.ok(smart.benefits.some((b) => /15%/.test(b)));
+});
+
+test("DGN Priority tem 4 lavagens, 20% Estética e é claramente superior ao Smart", () => {
+  const priority = getFounderPlan("priority");
+  const smart = getFounderPlan("smart");
+  assert.ok(priority && smart);
+  assert.equal(priority.serviceFrequency, "semanal");
+  assert.equal(priority.serviceQuantity, 4);
+  assert.equal(priority.aestheticDiscountPercent, 20);
+  assert.ok(priority.serviceQuantity > smart.serviceQuantity);
+  assert.ok(priority.aestheticDiscountPercent > smart.aestheticDiscountPercent);
+  assert.ok(priority.benefits.some((b) => /Prioridade máxima/.test(b)));
+  assert.ok(priority.benefits.some((b) => /Leva & Traz/.test(b)));
+});
+
+test("snapshot propaga aestheticDiscountPercent e positioning", () => {
+  const snapshot = createFounderPlanSnapshot("priority", "monthly", "suv");
+  assert.ok(snapshot);
+  assert.equal(snapshot.aestheticDiscountPercent, 20);
+  assert.equal(snapshot.positioning, "Experiência premium / prioridade máxima");
+  assert.equal(snapshot.priorityLabel, "Prioridade máxima na agenda");
+});
+
+test("normalizeLegacyFounderSnapshot preenche aestheticDiscountPercent quando ausente", () => {
+  const legacy = normalizeLegacyFounderSnapshot({
+    planCode: "smart",
+    contractingMode: "monthly",
+    vehicleCategory: "sedan",
+    monthlyPrice: 150,
+    // benefits + aestheticDiscountPercent ausentes de propósito
+  });
+  assert.ok(legacy);
+  assert.equal(legacy.aestheticDiscountPercent, 15, "Smart deve receber 15% do catálogo canônico");
+  assert.ok(legacy.benefits.length > 0, "benefícios preenchidos a partir do catálogo canônico");
 });
 
 test("matriz oficial de preços mensais coincide com a LP dgnclub.com", () => {
