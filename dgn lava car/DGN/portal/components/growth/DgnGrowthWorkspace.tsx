@@ -391,10 +391,8 @@ export function DgnGrowthWorkspace({
   };
 
   return (
-    <div className="min-h-screen bg-[#080808] text-white">
-      <GrowthHeader current={view} dataOrigin={dataOrigin} />
-
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="min-h-full bg-[#080808] text-white">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         {readOnly ? <div className="mb-5 rounded-xl border border-[#C9A84C]/20 bg-[#C9A84C]/[0.06] px-4 py-3 text-xs text-[#E7C96A]">{dataOrigin === "db" ? "Dados comerciais e de curadoria podem ser editados. Dados operacionais e calculados permanecem protegidos." : "Fonte local somente leitura · mudanças não são salvas."}</div> : null}
         {notice ? (
           <div className="fixed right-4 top-4 z-[70] rounded-xl border border-[#C9A84C]/30 bg-[#111111] px-4 py-3 text-sm font-semibold text-[#E7C96A] shadow-2xl">
@@ -516,57 +514,6 @@ export function DgnGrowthWorkspace({
         />
       ) : null}
     </div>
-  );
-}
-
-// ============================================================================
-// Header
-// ============================================================================
-function GrowthHeader({ current, dataOrigin }: { current: GrowthView; dataOrigin: "json" | "db" | "json-fallback" }) {
-  const links = [
-    { href: "/admin/growth/intelligence", label: "Intelligence", view: "intelligence" },
-    { href: "/admin/growth/curadoria", label: "Curadoria", view: "curadoria" },
-    { href: "/admin/growth/founders-2026", label: "Founders 2026", view: "founders" },
-  ];
-
-  return (
-    <header className="border-b border-white/[0.06] bg-[#0B0B0B]/95 px-4 py-6 backdrop-blur sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
-            DGN Growth
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-            Central de relacionamento
-          </h1>
-          <p className="mt-2 text-[11px] text-[#777]">Fonte: {dataOrigin === "db" ? "Supabase" : dataOrigin === "json-fallback" ? "JSON local temporário" : "JSON local"}</p>
-        </div>
-
-        <nav className="flex flex-wrap items-center gap-2">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`inline-flex min-h-9 items-center gap-2 rounded-xl border px-3 text-sm font-semibold transition ${
-                current === link.view
-                  ? "border-[#C9A84C]/35 bg-[#C9A84C]/10 text-[#E7C96A]"
-                  : "border-white/[0.06] bg-white/[0.03] text-[#D1D5DB] hover:border-[#C9A84C]/25"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-          <form action="/admin/growth/logout" method="post" className="inline-flex">
-            <button
-              type="submit"
-              className="inline-flex min-h-9 items-center gap-2 rounded-xl border border-white/[0.06] bg-transparent px-3 text-sm font-semibold text-[#6B6B6B] transition hover:border-red-500/30 hover:text-red-400"
-            >
-              Sair
-            </button>
-          </form>
-        </nav>
-      </div>
-    </header>
   );
 }
 

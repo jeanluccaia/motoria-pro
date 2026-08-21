@@ -12,6 +12,17 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // BYPASS LOCAL DEV — Next dev define NODE_ENV=development; Vercel Preview
+  // e Production sempre rodam com NODE_ENV=production, então isso NUNCA passa
+  // pra fora do desktop do operador. Guarda dupla: env + presença explícita
+  // da flag DGN_DEV_BYPASS_AUTH em .env.local. Nada é commitado.
+  if (
+    process.env.NODE_ENV !== "production" &&
+    process.env.DGN_DEV_BYPASS_AUTH === "1"
+  ) {
+    return NextResponse.next();
+  }
+
   const password = process.env.DGN_ADMIN_PASSWORD;
 
   if (!password) {

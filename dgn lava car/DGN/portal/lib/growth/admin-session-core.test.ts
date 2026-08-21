@@ -51,10 +51,14 @@ test("logout responde só a POST — GET seria prefetchado pelo Link e mataria a
   assert.doesNotMatch(route, /export function GET/);
 });
 
-test("workspace usa form POST para logout, não Link (impede prefetch)", async () => {
+test("shell usa form POST para logout, não Link (impede prefetch)", async () => {
+  const shell = await readFile(new URL("../../components/admin/DgnAdminShell.tsx", import.meta.url), "utf8");
+  assert.match(shell, /action="\/admin\/growth\/logout"\s+method="post"/);
+  assert.doesNotMatch(shell, /<Link[^>]+href="\/admin\/growth\/logout"/);
+  // Garantia adicional: workspace não pode mais conter link/form de logout
+  // duplicado. A responsabilidade agora é 100% do shell.
   const workspace = await readFile(new URL("../../components/growth/DgnGrowthWorkspace.tsx", import.meta.url), "utf8");
-  assert.match(workspace, /action="\/admin\/growth\/logout"\s+method="post"/);
-  assert.doesNotMatch(workspace, /<Link[^>]+href="\/admin\/growth\/logout"/);
+  assert.doesNotMatch(workspace, /\/admin\/growth\/logout/);
 });
 
 test("proxy bypass inclui logout — para não exigir sessão válida ao sair", async () => {

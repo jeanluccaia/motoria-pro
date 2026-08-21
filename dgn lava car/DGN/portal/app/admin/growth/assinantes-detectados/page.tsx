@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { ArrowLeft, ShieldCheck, AlertTriangle, Circle } from "lucide-react";
+import { ShieldCheck, AlertTriangle, Circle } from "lucide-react";
 import { buildDetectedSubscribersView, type DetectedSubscriberView } from "@/lib/growth/db/subscribers-view";
 import { readSupabaseEnv } from "@/lib/growth/db/client";
 
@@ -48,16 +47,9 @@ export default function AssinantesDetectadosPage() {
   const manualReview = rows.filter((r) => r.requiresManualReview).length;
 
   return (
-    <main className="min-h-screen bg-[#080808] px-4 py-10 text-white sm:px-6 lg:px-8">
+    <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        <Link
-          href="/admin/growth"
-          className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/70 transition hover:text-[#C9A84C]"
-        >
-          <ArrowLeft size={14} /> Growth
-        </Link>
-
-        <header className="mt-6 border-b border-white/[0.06] pb-8">
+        <header className="border-b border-white/[0.06] pb-8">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
             Fila operacional
           </p>
@@ -156,7 +148,7 @@ export default function AssinantesDetectadosPage() {
           </p>
         </footer>
       </div>
-    </main>
+    </div>
   );
 }
 

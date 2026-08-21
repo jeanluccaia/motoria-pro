@@ -2,8 +2,11 @@ import { defineConfig, devices } from "@playwright/test";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-// Lê .env.local para expor DGN_ADMIN_PASSWORD aos specs sem depender do usuário
-// exportar antes de rodar. Sem dotenv como dependência.
+// Lê APENAS .env.test.local para expor envs de teste aos specs. Não carregamos
+// .env.local ou .env.preview aqui porque esses arquivos contêm chaves de
+// produção (ex.: SUPABASE_SERVICE_ROLE_KEY) que dispararariam operações reais
+// no global-setup — o operador precisa opt-in explicitamente em .env.test.local
+// (arquivo local, gitignored).
 function loadEnvFile(path: string) {
   if (!existsSync(path)) return;
   const content = readFileSync(path, "utf8");
@@ -20,14 +23,28 @@ function loadEnvFile(path: string) {
     if (!process.env[key]) process.env[key] = value;
   }
 }
-loadEnvFile(resolve(__dirname, ".env.local"));
-loadEnvFile(resolve(__dirname, ".env.development.local"));
+loadEnvFile(resolve(__dirname, ".env.test.local"));
 
 const PORT = Number.parseInt(process.env.PORT ?? "3000", 10);
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${PORT}`;
 
+// Vercel Deployment Protection bypass. Quando presente, injeta em TODOS os
+// requests do browser (header + cookie-setter) — padrão documentado do Vercel:
+// https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection
+// Se o secret não estiver no env, extraHTTPHeaders fica undefined (sem impacto
+// em runs locais que não passam por Preview protegido).
+const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+const extraHTTPHeaders = bypassSecret
+  ? {
+      "x-vercel-protection-bypass": bypassSecret,
+      "x-vercel-set-bypass-cookie": "samesitenone",
+    }
+  : undefined;
+
 export default defineConfig({
   testDir: "./tests/e2e",
+  globalSetup: "./tests/e2e/global-setup.ts",
+  globalTeardown: "./tests/e2e/global-teardown.ts",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
@@ -38,6 +55,7 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   use: {
     baseURL,
+    extraHTTPHeaders,
     trace: "retain-on-failure",
     video: "retain-on-failure",
     screenshot: "only-on-failure",

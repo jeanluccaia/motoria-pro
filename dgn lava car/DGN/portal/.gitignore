@@ -52,6 +52,7 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+/tests/e2e/.fixture-legacy-id
 
 # artefatos incidentais (perfis temporários de browser, etc)
 /.tmp-production-session-profile/
