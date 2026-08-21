@@ -32,6 +32,27 @@ export type EvoReceivable = {
   statusDescription?: string | null;
 };
 
+// Item da venda (linha do saleItens[]). A EVO diferencia matrícula,
+// produto e serviço via idMembership/idProduct/idService.
+// Uma venda pode ter múltiplos itens; para classificação de conversão
+// usamos apenas os que representam matrícula (idMembership presente).
+//
+// idMembershipRenewed é a assinatura de que a linha é continuação de
+// uma matrícula anterior — sinal forte de renovação, mesmo quando
+// `registrationKind` vier ausente.
+export type EvoSaleItem = {
+  idSaleItem?: number | string | null;
+  idMembership?: number | string | null;
+  idMemberMembership?: number | string | null;
+  idMembershipRenewed?: number | string | null;
+  idProduct?: number | string | null;
+  idService?: number | string | null;
+  description?: string | null;
+  // Alguns endpoints devolvem valor por item (útil futuramente).
+  ammountPaid?: number | null;
+  amountPaid?: number | null;
+};
+
 export type EvoSaleDetails = {
   idSale?: number | string | null;
   idBranch?: number | string | null;
@@ -45,6 +66,16 @@ export type EvoSaleDetails = {
   // GET /api/v2/sales/{id} pode não vir; nesse caso o consumidor cai
   // no fallback `fetchMember(idMember)`.
   member?: EvoMemberDetails | null;
+  // saleItens (sim, com um N a mais — é como a EVO devolve).
+  // Aceitamos também `saleItems` / `items` defensivamente porque
+  // versões antigas / documentação divergem.
+  saleItens?: EvoSaleItem[] | null;
+  saleItems?: EvoSaleItem[] | null;
+  items?: EvoSaleItem[] | null;
+  // 'renewal' | 'new' | ... — nome de enum estático da EVO.
+  // Aceitamos string ou EvoEnumLike.
+  registrationKind?: string | EvoEnumLike | null;
+  registrationType?: string | EvoEnumLike | null;
 };
 
 // Contato do aluno (dentro de EvoMemberDetails.contacts[]).
@@ -103,6 +134,10 @@ export type EvoListSalesParams = {
   take?: number;                       // page size (default 100)
   skip?: number;                       // offset (default 0)
   idBranch?: string;                   // opcional; sem filtro se ausente
+  // Filtra no lado da EVO só vendas de matrícula (não produtos avulsos).
+  // Reduz drasticamente o volume da resposta e casos que precisamos
+  // descartar no classificador. Sem este filtro a EVO devolve TUDO.
+  onlyMembership?: boolean;
 };
 
 export type EvoListSalesResult =

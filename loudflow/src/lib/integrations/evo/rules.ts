@@ -1,4 +1,9 @@
-import type { EvoEnumLike, EvoReceivable, EvoSaleDetails } from "./types";
+import type {
+  EvoEnumLike,
+  EvoReceivable,
+  EvoSaleDetails,
+  EvoSaleItem,
+} from "./types";
 
 // A EVO moderna (v2) devolve `status` e `paymentType` como objeto
 // `{ id, name }`; versões antigas devolviam string. Aceitamos ambos.
@@ -223,4 +228,115 @@ export function evaluatePayment(sale: EvoSaleDetails): PaymentEvaluation {
     receivableStatus: extractStatusName(primary) || null,
     reason: null,
   };
+}
+
+// ============================================================
+// Classificador de elegibilidade de conversão
+// ============================================================
+//
+// A EVO devolve na listagem todo tipo de venda — matrícula nova,
+// renovação, produto avulso (garrafa, camiseta), serviço avulso
+// (dayuse, avaliação). Só matrícula NOVA vale como conversão de
+// mídia (Meta CAPI / Google Ads Enhanced Conversions).
+//
+// Esta função devolve `included` ou `excluded` com uma reason
+// auditável (persistida em evo_sales.last_reason e logada nos
+// contadores do cron). NUNCA lança.
+//
+// Regras de inclusão (todas obrigatórias):
+//   1. venda não está `removed`
+//   2. evaluatePayment(sale).status === 'paid'
+//   3. `registrationKind` não é 'renewal' (quando presente)
+//   4. existe ao menos um item em saleItens com idMembership OU
+//      idMemberMembership presentes
+//   5. nenhum item com idMembershipRenewed (indica renovação
+//      mesmo quando registrationKind vem ausente)
+//
+// Regras de exclusão (retornadas em ordem — a primeira que bater
+// é o motivo persistido):
+//   - 'cancelled'          → sale.removed === true
+//   - 'not-paid'           → evaluatePayment != paid
+//   - 'renewal'            → registrationKind='renewal' OU item com idMembershipRenewed
+//   - 'product-only'       → todo item tem idProduct
+//   - 'service-only'       → todo item tem idService
+//   - 'no-membership'      → nenhum item de matrícula
+export type EvoIncludeReason = null;
+export type EvoExcludeReason =
+  | "cancelled"
+  | "not-paid"
+  | "renewal"
+  | "product-only"
+  | "service-only"
+  | "no-membership";
+
+export type SaleClassification =
+  | { eligible: true; reason: EvoIncludeReason }
+  | { eligible: false; reason: EvoExcludeReason };
+
+function extractItems(sale: EvoSaleDetails): EvoSaleItem[] {
+  if (Array.isArray(sale.saleItens)) return sale.saleItens;
+  if (Array.isArray(sale.saleItems)) return sale.saleItems;
+  if (Array.isArray(sale.items)) return sale.items;
+  return [];
+}
+
+function extractRegistrationKind(sale: EvoSaleDetails): string {
+  const raw = sale.registrationKind ?? sale.registrationType ?? null;
+  if (typeof raw === "string") return raw;
+  if (raw && typeof raw === "object") {
+    const enumLike = raw as EvoEnumLike;
+    if (typeof enumLike.name === "string") return enumLike.name;
+  }
+  return "";
+}
+
+function hasNonEmptyId(v: number | string | null | undefined): boolean {
+  if (v === null || v === undefined) return false;
+  if (typeof v === "number") return Number.isFinite(v) && v > 0;
+  return v.trim().length > 0;
+}
+
+export function classifySale(sale: EvoSaleDetails): SaleClassification {
+  if (sale.removed === true) {
+    return { eligible: false, reason: "cancelled" };
+  }
+
+  const payment = evaluatePayment(sale);
+  if (payment.status !== "paid") {
+    return { eligible: false, reason: "not-paid" };
+  }
+
+  const kind = normalize(extractRegistrationKind(sale));
+  // 'renewal' | 'renovacao' | 'renovation' — normalizações observadas.
+  if (kind.includes("renew") || kind.includes("renov")) {
+    return { eligible: false, reason: "renewal" };
+  }
+
+  const items = extractItems(sale);
+
+  // idMembershipRenewed presente em qualquer item = renovação, mesmo
+  // que registrationKind não venha marcado. É o sinal mais confiável
+  // porque é um FK direto do próprio banco da EVO.
+  const anyRenewedItem = items.some((it) => hasNonEmptyId(it.idMembershipRenewed));
+  if (anyRenewedItem) {
+    return { eligible: false, reason: "renewal" };
+  }
+
+  const membershipItems = items.filter(
+    (it) => hasNonEmptyId(it.idMembership) || hasNonEmptyId(it.idMemberMembership),
+  );
+  if (membershipItems.length > 0) {
+    return { eligible: true, reason: null };
+  }
+
+  // Sem matrícula na venda — decide o motivo mais específico para o log.
+  const anyProduct = items.some((it) => hasNonEmptyId(it.idProduct));
+  const anyService = items.some((it) => hasNonEmptyId(it.idService));
+  if (items.length > 0 && anyProduct && !anyService) {
+    return { eligible: false, reason: "product-only" };
+  }
+  if (items.length > 0 && anyService && !anyProduct) {
+    return { eligible: false, reason: "service-only" };
+  }
+  return { eligible: false, reason: "no-membership" };
 }

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { evaluatePayment } from "../src/lib/integrations/evo/rules";
+import { classifySale, evaluatePayment } from "../src/lib/integrations/evo/rules";
 import type { EvoSaleDetails } from "../src/lib/integrations/evo/types";
 
 // Regra única de "venda paga" — se esta bateria quebrar, algum outro
@@ -283,5 +283,166 @@ test.describe("evaluatePayment", () => {
     const out = evaluatePayment(sale);
     expect(out.status).toBe("paid");
     if (out.status === "paid") expect(out.paymentType).toBe("Boleto");
+  });
+});
+
+// ============================================================
+// Classificador de elegibilidade — Fase 4.2
+// ============================================================
+//
+// Só matrícula nova (com receivable pago) vira conversão.
+// Renovações e vendas de produto/serviço ficam registradas mas
+// NÃO são enviadas à UTMify.
+
+function paidReceivable() {
+  return [
+    {
+      ammountPaid: 149.9,
+      receivingDate: "2026-08-14T10:05:00-03:00",
+      paymentType: { id: 1, name: "Pix" },
+      status: { id: 2, name: "received" },
+    },
+  ];
+}
+
+test.describe("classifySale", () => {
+  test("matrícula nova (idMembership + registrationKind='new') → eligible", () => {
+    const sale: EvoSaleDetails = {
+      idSale: 1,
+      removed: false,
+      ammountPaid: 149.9,
+      receivables: paidReceivable(),
+      saleItens: [{ idSaleItem: 1, idMembership: 42, description: "Matrícula" }],
+      registrationKind: "new",
+    };
+    const c = classifySale(sale);
+    expect(c.eligible).toBe(true);
+  });
+
+  test("matrícula com idMemberMembership (sem idMembership direto) → eligible", () => {
+    const sale: EvoSaleDetails = {
+      idSale: 2,
+      removed: false,
+      receivables: paidReceivable(),
+      saleItens: [{ idSaleItem: 1, idMemberMembership: 99 }],
+    };
+    const c = classifySale(sale);
+    expect(c.eligible).toBe(true);
+  });
+
+  test("registrationKind='renewal' → excluded:renewal", () => {
+    const sale: EvoSaleDetails = {
+      idSale: 3,
+      removed: false,
+      receivables: paidReceivable(),
+      saleItens: [{ idSaleItem: 1, idMembership: 42 }],
+      registrationKind: "renewal",
+    };
+    const c = classifySale(sale);
+    expect(c.eligible).toBe(false);
+    if (!c.eligible) expect(c.reason).toBe("renewal");
+  });
+
+  test("registrationKind objeto enum {name:'Renovacao'} → excluded:renewal (normaliza)", () => {
+    const sale: EvoSaleDetails = {
+      idSale: 4,
+      removed: false,
+      receivables: paidReceivable(),
+      saleItens: [{ idSaleItem: 1, idMembership: 42 }],
+      registrationKind: { id: 2, name: "Renovacao" },
+    };
+    const c = classifySale(sale);
+    expect(c.eligible).toBe(false);
+    if (!c.eligible) expect(c.reason).toBe("renewal");
+  });
+
+  test("idMembershipRenewed presente em item → excluded:renewal (mesmo sem kind)", () => {
+    const sale: EvoSaleDetails = {
+      idSale: 5,
+      removed: false,
+      receivables: paidReceivable(),
+      saleItens: [{ idSaleItem: 1, idMembership: 42, idMembershipRenewed: 999 }],
+    };
+    const c = classifySale(sale);
+    expect(c.eligible).toBe(false);
+    if (!c.eligible) expect(c.reason).toBe("renewal");
+  });
+
+  test("apenas idProduct → excluded:product-only", () => {
+    const sale: EvoSaleDetails = {
+      idSale: 6,
+      removed: false,
+      receivables: paidReceivable(),
+      saleItens: [{ idSaleItem: 1, idProduct: 501, description: "Garrafa" }],
+    };
+    const c = classifySale(sale);
+    expect(c.eligible).toBe(false);
+    if (!c.eligible) expect(c.reason).toBe("product-only");
+  });
+
+  test("apenas idService → excluded:service-only", () => {
+    const sale: EvoSaleDetails = {
+      idSale: 7,
+      removed: false,
+      receivables: paidReceivable(),
+      saleItens: [{ idSaleItem: 1, idService: 301, description: "DayUse" }],
+    };
+    const c = classifySale(sale);
+    expect(c.eligible).toBe(false);
+    if (!c.eligible) expect(c.reason).toBe("service-only");
+  });
+
+  test("saleItens vazio → excluded:no-membership", () => {
+    const sale: EvoSaleDetails = {
+      idSale: 8,
+      removed: false,
+      receivables: paidReceivable(),
+      saleItens: [],
+    };
+    const c = classifySale(sale);
+    expect(c.eligible).toBe(false);
+    if (!c.eligible) expect(c.reason).toBe("no-membership");
+  });
+
+  test("removed=true → excluded:cancelled (antes de qualquer outra checagem)", () => {
+    const sale: EvoSaleDetails = {
+      idSale: 9,
+      removed: true,
+      receivables: paidReceivable(),
+      saleItens: [{ idSaleItem: 1, idMembership: 42 }],
+    };
+    const c = classifySale(sale);
+    expect(c.eligible).toBe(false);
+    if (!c.eligible) expect(c.reason).toBe("cancelled");
+  });
+
+  test("recebível pendente (Pix não confirmado) → excluded:not-paid", () => {
+    const sale: EvoSaleDetails = {
+      idSale: 10,
+      removed: false,
+      receivables: [
+        {
+          ammountPaid: 149.9,
+          receivingDate: null,
+          paymentType: { name: "Pix" },
+          status: { name: "Waiting" },
+        },
+      ],
+      saleItens: [{ idSaleItem: 1, idMembership: 42 }],
+    };
+    const c = classifySale(sale);
+    expect(c.eligible).toBe(false);
+    if (!c.eligible) expect(c.reason).toBe("not-paid");
+  });
+
+  test("saleItems (grafia alternativa) também é reconhecido", () => {
+    const sale: EvoSaleDetails = {
+      idSale: 11,
+      removed: false,
+      receivables: paidReceivable(),
+      saleItems: [{ idSaleItem: 1, idMembership: 42 }],
+    };
+    const c = classifySale(sale);
+    expect(c.eligible).toBe(true);
   });
 });

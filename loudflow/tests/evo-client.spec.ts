@@ -137,3 +137,158 @@ test.describe("EvoClient — classify 401", () => {
     });
   });
 });
+
+// ============================================================
+// fetchMember — Fase 4.2: v1 removido, v2 obrigatório + normalização
+// ============================================================
+
+test.describe("EvoClient — fetchMember v2", () => {
+  test("chama GET /api/v2/members/{id} (não v1)", async () => {
+    await withEvoEnv(async () => {
+      let capturedUrl = "";
+      const client = createEvoClient({
+        fetchImpl: async (url) => {
+          capturedUrl = String(url);
+          return new Response(JSON.stringify({ idMember: 42, firstName: "Ana", email: "ana@example.com" }), { status: 200 });
+        },
+      });
+      const r = await client.fetchMember("42");
+      expect(r.ok).toBe(true);
+      expect(capturedUrl).toContain("/api/v2/members/42");
+      expect(capturedUrl).not.toContain("/api/v1/members/");
+    });
+  });
+
+  test("normaliza email de contacts[] quando root vem sem email", async () => {
+    await withEvoEnv(async () => {
+      const client = createEvoClient({
+        fetchImpl: async () =>
+          new Response(
+            JSON.stringify({
+              idMember: 42,
+              firstName: "Ana",
+              lastName: "Silva",
+              email: null,
+              contacts: [
+                { contactType: "E-mail", description: "ana.contact@example.com" },
+                { contactType: "Cellphone", description: "11999998888" },
+              ],
+            }),
+            { status: 200 },
+          ),
+      });
+      const r = await client.fetchMember("42");
+      expect(r.ok).toBe(true);
+      if (r.ok) {
+        expect(r.member.email).toBe("ana.contact@example.com");
+        expect(r.member.cellphone).toBe("11999998888");
+        expect(r.member.firstName).toBe("Ana");
+        expect(r.member.lastName).toBe("Silva");
+      }
+    });
+  });
+
+  test("normaliza firstName/lastName a partir de registerName quando firstName vazio", async () => {
+    await withEvoEnv(async () => {
+      const client = createEvoClient({
+        fetchImpl: async () =>
+          new Response(
+            JSON.stringify({
+              idMember: 42,
+              firstName: null,
+              lastName: null,
+              registerName: "Ana",
+              registerLastName: "Silva",
+              email: "ana@example.com",
+            }),
+            { status: 200 },
+          ),
+      });
+      const r = await client.fetchMember("42");
+      expect(r.ok).toBe(true);
+      if (r.ok) {
+        expect(r.member.firstName).toBe("Ana");
+        expect(r.member.lastName).toBe("Silva");
+      }
+    });
+  });
+
+  test("normaliza a partir de `name` único quando não há firstName nem register", async () => {
+    await withEvoEnv(async () => {
+      const client = createEvoClient({
+        fetchImpl: async () =>
+          new Response(
+            JSON.stringify({
+              idMember: 42,
+              name: "Ana Silva Souza",
+              email: "ana@example.com",
+            }),
+            { status: 200 },
+          ),
+      });
+      const r = await client.fetchMember("42");
+      expect(r.ok).toBe(true);
+      if (r.ok) {
+        expect(r.member.firstName).toBe("Ana");
+        expect(r.member.lastName).toBe("Silva Souza");
+      }
+    });
+  });
+
+  test("resposta em Array (EVO ocasionalmente devolve) → pega [0]", async () => {
+    await withEvoEnv(async () => {
+      const client = createEvoClient({
+        fetchImpl: async () =>
+          new Response(
+            JSON.stringify([{ idMember: 42, firstName: "Ana", email: "ana@example.com" }]),
+            { status: 200 },
+          ),
+      });
+      const r = await client.fetchMember("42");
+      expect(r.ok).toBe(true);
+      if (r.ok) expect(r.member.firstName).toBe("Ana");
+    });
+  });
+});
+
+// ============================================================
+// listSales — Fase 4.2: onlyMembership=true na query string
+// ============================================================
+
+test.describe("EvoClient — listSales", () => {
+  test("onlyMembership=true propaga para a URL", async () => {
+    await withEvoEnv(async () => {
+      let capturedUrl = "";
+      const client = createEvoClient({
+        fetchImpl: async (url) => {
+          capturedUrl = String(url);
+          return new Response("[]", { status: 200 });
+        },
+      });
+      const r = await client.listSales({
+        updatedReceivableStartDate: "2026-08-18T00:00:00Z",
+        updatedReceivableEndDate: "2026-08-19T00:00:00Z",
+        onlyMembership: true,
+      });
+      expect(r.ok).toBe(true);
+      expect(capturedUrl).toContain("onlyMembership=true");
+    });
+  });
+
+  test("onlyMembership ausente NÃO adiciona parâmetro (compat com callers antigos)", async () => {
+    await withEvoEnv(async () => {
+      let capturedUrl = "";
+      const client = createEvoClient({
+        fetchImpl: async (url) => {
+          capturedUrl = String(url);
+          return new Response("[]", { status: 200 });
+        },
+      });
+      await client.listSales({
+        updatedReceivableStartDate: "2026-08-18T00:00:00Z",
+        updatedReceivableEndDate: "2026-08-19T00:00:00Z",
+      });
+      expect(capturedUrl).not.toContain("onlyMembership");
+    });
+  });
+});

@@ -192,6 +192,20 @@ export type AdConversionDelivery = {
   updated_at: string;
 };
 
+export type EvoReconcileState = {
+  organization_id: string;
+  id_branch: string | null;
+  last_run_at: string;
+  last_window_end: string;
+  last_window_start: string | null;
+  last_fetched: number | null;
+  last_paid: number | null;
+  last_eligible: number | null;
+  last_dry_run: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 type TableDef<Row extends Record<string, unknown>, InsertKeys extends keyof Row = keyof Row> = {
   Row: Row;
   Insert: Partial<Row> & Pick<Row, InsertKeys>;
@@ -230,6 +244,10 @@ export type Database = {
       ad_conversion_deliveries: TableDef<
         AdConversionDelivery,
         "organization_id" | "evo_sale_id" | "platform" | "delivery_key"
+      >;
+      evo_reconcile_state: TableDef<
+        EvoReconcileState,
+        "organization_id" | "last_run_at" | "last_window_end"
       >;
     };
     Views: Record<string, never>;

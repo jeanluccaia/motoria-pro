@@ -23,12 +23,21 @@ import type { Database } from "../src/lib/supabase/types";
 
 type Row = Record<string, unknown>;
 
-function makeAdmin(state: { evo_sales: Row[]; deliveries: Row[]; organizations: Row[]; evo_branches: Row[] }): SupabaseClient<Database> {
+type FakeState = {
+  evo_sales: Row[];
+  deliveries: Row[];
+  organizations: Row[];
+  evo_branches: Row[];
+  reconcile_state: Row[];
+};
+
+function makeAdmin(state: FakeState): SupabaseClient<Database> {
   function getTable(t: string): Row[] {
     if (t === "organizations") return state.organizations;
     if (t === "evo_branches") return state.evo_branches;
     if (t === "evo_sales") return state.evo_sales;
     if (t === "ad_conversion_deliveries") return state.deliveries;
+    if (t === "evo_reconcile_state") return state.reconcile_state;
     return [];
   }
   function from(t: string) {
@@ -87,6 +96,12 @@ function makeAdmin(state: { evo_sales: Row[]; deliveries: Row[]; organizations: 
         return b;
       },
       eq(c: string, v: unknown) {
+        filters.push([c, v]);
+        return b;
+      },
+      is(c: string, v: unknown) {
+        // Fake trata `.is('col', null)` idêntico a `.eq('col', null)`:
+        // filtro por igualdade estrita — suficiente para os testes.
         filters.push([c, v]);
         return b;
       },
@@ -217,22 +232,34 @@ function withEvoAndCronEnv<T>(fn: () => Promise<T>): Promise<T> {
   return withEnv(vars, fn);
 }
 
-function makeReq(opts: { auth?: string | null; hours?: number; take?: number } = {}): Request {
+function makeReq(opts: {
+  auth?: string | null;
+  hours?: number;
+  take?: number;
+  dryRun?: boolean;
+  force?: boolean;
+  idBranch?: string;
+} = {}): Request {
   const headers: Record<string, string> = {};
   const auth = opts.auth === undefined ? "test-cron-secret" : opts.auth;
   if (auth !== null) headers["authorization"] = `Bearer ${auth}`;
   const url = new URL("https://loudflow.test/api/cron/reconcile-evo-pending");
   if (opts.hours !== undefined) url.searchParams.set("hours", String(opts.hours));
   if (opts.take !== undefined) url.searchParams.set("take", String(opts.take));
+  if (opts.dryRun === false) url.searchParams.set("dryRun", "0");
+  if (opts.dryRun === true) url.searchParams.set("dryRun", "1");
+  if (opts.force) url.searchParams.set("force", "1");
+  if (opts.idBranch) url.searchParams.set("idBranch", opts.idBranch);
   return new Request(url.toString(), { method: "GET", headers });
 }
 
-function newState(): { evo_sales: Row[]; deliveries: Row[]; organizations: Row[]; evo_branches: Row[] } {
+function newState(): FakeState {
   return {
     organizations: [{ id: "org-loud-fit", slug: "TEST_EVO_DEFAULT_ORGANIZATION_SLUG" }],
     evo_branches: [],
     evo_sales: [],
     deliveries: [],
+    reconcile_state: [],
   };
 }
 
@@ -253,6 +280,13 @@ function paidSale(overrides: Partial<EvoSaleDetails> = {}): EvoSaleDetails {
         status: { id: 2, name: "received" },
       },
     ],
+    // saleItens com idMembership presente → classifySale = eligible.
+    // Sem este item o classifier retorna 'no-membership' e a conversão
+    // não é sequer tentada (comportamento novo da Fase 4.2).
+    saleItens: [
+      { idSaleItem: 1, idMembership: 42, description: "Matrícula Mensal" },
+    ],
+    registrationKind: "new",
     member: {
       idMember: 777,
       firstName: "Ana",
@@ -323,7 +357,7 @@ test.describe("handleEvoReconcile", () => {
     });
   });
 
-  test("EVO listSales → 1 paid + 1 pending: 1 delivery sent, 0 skipped, evo_sales tem 2 rows", async () => {
+  test("EVO listSales → 1 paid + 1 pending, dryRun=0: 1 delivery sent, evo_sales tem 2 rows", async () => {
     await withEvoAndCronEnv(async () => {
       process.env.UTMIFY_ORDERS_API_TOKEN = "TEST_UTMIFY_ORDERS_API_TOKEN";
       try {
@@ -338,12 +372,16 @@ test.describe("handleEvoReconcile", () => {
             return { ok: true as const, status: 200, responseSummary: "HTTP 200" };
           },
         };
-        const res = await handleEvoReconcile(makeReq(), { admin, evoClient: evo, utmifyOrdersClient: utmify });
+        const res = await handleEvoReconcile(
+          makeReq({ dryRun: false }),
+          { admin, evoClient: evo, utmifyOrdersClient: utmify },
+        );
         expect(res.status).toBe(200);
         const body = (await res.json()) as { counters: any };
         expect(body.counters.fetched).toBe(2);
         expect(body.counters.paid).toBe(1);
         expect(body.counters.pending).toBe(1);
+        expect(body.counters.eligible).toBe(1);
         expect(body.counters.delivery_sent).toBe(1);
         expect(body.counters.delivery_failed).toBe(0);
         expect(body.counters.delivery_skipped).toBe(0);
@@ -357,13 +395,184 @@ test.describe("handleEvoReconcile", () => {
     });
   });
 
-  test("idempotência: mesma venda paga em 2 execuções → só 1 delivery sent", async () => {
+  test("dry-run é o DEFAULT: NÃO envia à UTMify, mas conta would_send", async () => {
     await withEvoAndCronEnv(async () => {
       process.env.UTMIFY_ORDERS_API_TOKEN = "TEST_UTMIFY_ORDERS_API_TOKEN";
       try {
         const state = newState();
         const admin = makeAdmin(state);
-        const evo = makeEvo([[paidSale()], [paidSale()]]);
+        const evo = makeEvo([[paidSale()]]);
+        let sends = 0;
+        const utmify = {
+          isConfigured: () => true,
+          sendOrder: async () => {
+            sends++;
+            return { ok: true as const, status: 200, responseSummary: "" };
+          },
+        };
+        const res = await handleEvoReconcile(
+          makeReq(), // sem dryRun explícito
+          { admin, evoClient: evo, utmifyOrdersClient: utmify },
+        );
+        expect(res.status).toBe(200);
+        const body = (await res.json()) as { counters: any };
+        expect(body.counters.dryRun).toBe(true);
+        expect(body.counters.eligible).toBe(1);
+        expect(body.counters.delivery_would_send).toBe(1);
+        expect(body.counters.delivery_sent).toBe(0);
+        expect(sends).toBe(0);
+        expect(state.deliveries).toHaveLength(0);
+      } finally {
+        delete process.env.UTMIFY_ORDERS_API_TOKEN;
+      }
+    });
+  });
+
+  test("classifySale: renewal NÃO envia (excluded:renewal)", async () => {
+    await withEvoAndCronEnv(async () => {
+      process.env.UTMIFY_ORDERS_API_TOKEN = "TEST_UTMIFY_ORDERS_API_TOKEN";
+      try {
+        const state = newState();
+        const admin = makeAdmin(state);
+        const evo = makeEvo([[paidSale({ registrationKind: "renewal" })]]);
+        let sends = 0;
+        const utmify = {
+          isConfigured: () => true,
+          sendOrder: async () => {
+            sends++;
+            return { ok: true as const, status: 200, responseSummary: "" };
+          },
+        };
+        const res = await handleEvoReconcile(
+          makeReq({ dryRun: false }),
+          { admin, evoClient: evo, utmifyOrdersClient: utmify },
+        );
+        expect(res.status).toBe(200);
+        const body = (await res.json()) as { counters: any };
+        expect(body.counters.eligible).toBe(0);
+        expect(body.counters.excluded_renewal).toBe(1);
+        expect(sends).toBe(0);
+        expect(state.deliveries).toHaveLength(0);
+      } finally {
+        delete process.env.UTMIFY_ORDERS_API_TOKEN;
+      }
+    });
+  });
+
+  test("classifySale: produto avulso (idProduct) NÃO envia", async () => {
+    await withEvoAndCronEnv(async () => {
+      const state = newState();
+      const admin = makeAdmin(state);
+      const evo = makeEvo([[
+        paidSale({ saleItens: [{ idSaleItem: 9, idProduct: 501, description: "Garrafa" }] }),
+      ]]);
+      const res = await handleEvoReconcile(makeReq({ dryRun: false }), { admin, evoClient: evo });
+      const body = (await res.json()) as { counters: any };
+      expect(body.counters.excluded_product).toBe(1);
+      expect(body.counters.eligible).toBe(0);
+    });
+  });
+
+  test("classifySale: serviço avulso (idService) NÃO envia", async () => {
+    await withEvoAndCronEnv(async () => {
+      const state = newState();
+      const admin = makeAdmin(state);
+      const evo = makeEvo([[
+        paidSale({ saleItens: [{ idSaleItem: 9, idService: 301, description: "Avaliação" }] }),
+      ]]);
+      const res = await handleEvoReconcile(makeReq({ dryRun: false }), { admin, evoClient: evo });
+      const body = (await res.json()) as { counters: any };
+      expect(body.counters.excluded_service).toBe(1);
+      expect(body.counters.eligible).toBe(0);
+    });
+  });
+
+  test("listSales é chamado com onlyMembership=true", async () => {
+    await withEvoAndCronEnv(async () => {
+      let capturedParams: any = null;
+      const evo: EvoClient = {
+        isConfigured: () => true,
+        fetchSale: async () => ({ ok: false, error: { code: "not-found", message: "" } }),
+        fetchMember: async () => ({ ok: false, error: { code: "not-found", message: "" } }),
+        listSales: async (params) => {
+          capturedParams = params;
+          return { ok: true, sales: [] };
+        },
+      };
+      const admin = makeAdmin(newState());
+      await handleEvoReconcile(makeReq(), { admin, evoClient: evo });
+      expect(capturedParams.onlyMembership).toBe(true);
+      expect(capturedParams).toHaveProperty("updatedReceivableStartDate");
+      expect(capturedParams).toHaveProperty("updatedReceivableEndDate");
+    });
+  });
+
+  test("cooldown: 2ª chamada em < 1h → skipped:cooldown-active (sem chamar EVO)", async () => {
+    await withEvoAndCronEnv(async () => {
+      const state = newState();
+      const admin = makeAdmin(state);
+      let listCalls = 0;
+      const evo: EvoClient = {
+        isConfigured: () => true,
+        fetchSale: async () => ({ ok: false, error: { code: "not-found", message: "" } }),
+        fetchMember: async () => ({ ok: false, error: { code: "not-found", message: "" } }),
+        listSales: async () => {
+          listCalls++;
+          return { ok: true, sales: [] };
+        },
+      };
+      const firstNow = Date.UTC(2026, 7, 20, 3, 0, 0);
+      await handleEvoReconcile(makeReq(), { admin, evoClient: evo, nowMs: () => firstNow });
+      // +30 min
+      const secondNow = firstNow + 30 * 60_000;
+      const res = await handleEvoReconcile(
+        makeReq(),
+        { admin, evoClient: evo, nowMs: () => secondNow },
+      );
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as { skipped?: string; secondsUntilNextRun?: number };
+      expect(body.skipped).toBe("cooldown-active");
+      expect(body.secondsUntilNextRun).toBeGreaterThan(0);
+      expect(listCalls).toBe(1); // segunda execução não chamou a EVO
+    });
+  });
+
+  test("cooldown: 2ª chamada com force=1 → executa (bypass)", async () => {
+    await withEvoAndCronEnv(async () => {
+      const state = newState();
+      const admin = makeAdmin(state);
+      let listCalls = 0;
+      const evo: EvoClient = {
+        isConfigured: () => true,
+        fetchSale: async () => ({ ok: false, error: { code: "not-found", message: "" } }),
+        fetchMember: async () => ({ ok: false, error: { code: "not-found", message: "" } }),
+        listSales: async () => {
+          listCalls++;
+          return { ok: true, sales: [] };
+        },
+      };
+      const firstNow = Date.UTC(2026, 7, 20, 3, 0, 0);
+      await handleEvoReconcile(makeReq(), { admin, evoClient: evo, nowMs: () => firstNow });
+      const secondNow = firstNow + 10 * 60_000;
+      const res = await handleEvoReconcile(
+        makeReq({ force: true }),
+        { admin, evoClient: evo, nowMs: () => secondNow },
+      );
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as { counters?: any; skipped?: string };
+      expect(body.skipped).toBeUndefined();
+      expect(body.counters).toBeDefined();
+      expect(listCalls).toBe(2);
+    });
+  });
+
+  test("idempotência: mesma venda paga em 2 execuções (com force) → só 1 delivery sent", async () => {
+    await withEvoAndCronEnv(async () => {
+      process.env.UTMIFY_ORDERS_API_TOKEN = "TEST_UTMIFY_ORDERS_API_TOKEN";
+      try {
+        const state = newState();
+        const admin = makeAdmin(state);
+        const evo = makeEvo([[paidSale()]]);
         let sends = 0;
         const utmify = {
           isConfigured: () => true,
@@ -372,10 +581,18 @@ test.describe("handleEvoReconcile", () => {
             return { ok: true as const, status: 200, responseSummary: "HTTP 200" };
           },
         };
-        await handleEvoReconcile(makeReq(), { admin, evoClient: evo, utmifyOrdersClient: utmify });
-        // Segunda execução com fake reset — recria o cliente pra iterar página nova
+        await handleEvoReconcile(
+          makeReq({ dryRun: false }),
+          { admin, evoClient: evo, utmifyOrdersClient: utmify },
+        );
+        // Segunda execução com fake reset — mesmo venda; usa force pra
+        // pular cooldown. O que deve garantir 1 envio único é o UNIQUE
+        // (evo_sale_id, platform), NÃO o cooldown.
         const evo2 = makeEvo([[paidSale()]]);
-        const res2 = await handleEvoReconcile(makeReq(), { admin, evoClient: evo2, utmifyOrdersClient: utmify });
+        const res2 = await handleEvoReconcile(
+          makeReq({ dryRun: false, force: true }),
+          { admin, evoClient: evo2, utmifyOrdersClient: utmify },
+        );
         const body2 = (await res2.json()) as { counters: any };
         expect(body2.counters.delivery_sent).toBe(0);
         expect(body2.counters.delivery_skipped).toBe(1);
@@ -422,7 +639,6 @@ test.describe("handleEvoReconcile", () => {
       try {
         const state = newState();
         const admin = makeAdmin(state);
-        // Página 1: 2 paid (mesmo id repetido é dedupado; usar id diferente)
         const s1 = paidSale({ idSale: 111 });
         const s2 = paidSale({ idSale: 222 });
         const evo = makeEvo([[s1, s2], []]);
@@ -430,11 +646,15 @@ test.describe("handleEvoReconcile", () => {
           isConfigured: () => true,
           sendOrder: async () => ({ ok: true as const, status: 200, responseSummary: "" }),
         };
-        const res = await handleEvoReconcile(makeReq({ take: 2 }), { admin, evoClient: evo, utmifyOrdersClient: utmify });
+        const res = await handleEvoReconcile(
+          makeReq({ take: 2, dryRun: false }),
+          { admin, evoClient: evo, utmifyOrdersClient: utmify },
+        );
         const body = (await res.json()) as { counters: any };
         expect(res.status).toBe(200);
         expect(body.counters.pages).toBeGreaterThanOrEqual(1);
         expect(body.counters.paid).toBe(2);
+        expect(body.counters.eligible).toBe(2);
         expect(state.deliveries).toHaveLength(2);
       } finally {
         delete process.env.UTMIFY_ORDERS_API_TOKEN;
@@ -466,7 +686,10 @@ test.describe("handleEvoReconcile", () => {
             return { ok: true as const, status: 200, responseSummary: "" };
           },
         };
-        const res = await handleEvoReconcile(makeReq(), { admin, evoClient: evo, utmifyOrdersClient: utmify });
+        const res = await handleEvoReconcile(
+          makeReq({ dryRun: false }),
+          { admin, evoClient: evo, utmifyOrdersClient: utmify },
+        );
         expect(res.status).toBe(200);
         expect(memberFetchCalls).toBe(0);
         expect(capturedPayload.customer.email).toBe("ana@example.com");
@@ -475,7 +698,6 @@ test.describe("handleEvoReconcile", () => {
         // offset (BRT/-03), a converte para UTC → +3h → 12:55:49.
         expect(capturedPayload.createdAt).toBe("2026-08-17 12:55:49");
         expect(capturedPayload.approvedDate).toBe("2026-08-17 12:55:49");
-        // paymentMethod: TransferenciaDeposito → boleto (mapeamento novo)
         expect(capturedPayload.paymentMethod).toBe("boleto");
       } finally {
         delete process.env.UTMIFY_ORDERS_API_TOKEN;

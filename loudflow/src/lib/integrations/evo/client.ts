@@ -4,6 +4,7 @@ import type {
   EvoFetchResult,
   EvoListSalesParams,
   EvoListSalesResult,
+  EvoMemberContact,
   EvoMemberDetails,
   EvoMemberFetchResult,
   EvoSaleDetails,
@@ -102,19 +103,18 @@ export function createEvoClient(options: ClientOptions = {}): EvoClient {
 
       const base = options.baseUrl ?? getEvoApiBaseUrl();
       const safeMember = encodeURIComponent(idMember);
-      // Rota /api/v1/members/{id} é o padrão observado (v1) da API W12 para
-      // dados do aluno. Se a instalação usar outra versão (v2/v3) ou não
-      // permitir esse endpoint com as credenciais atuais, o retorno será
-      // 404/401 e o delivery a jusante marca `skipped` — o webhook e o
-      // registro em evo_sales seguem normais.
-      const url = `${base}/api/v1/members/${safeMember}`;
+      // Rota /api/v2/members/{idMember} confirmada pela EVO como a
+      // oficial em 2026-08 (a v1 devolvia 404 nas credenciais atuais e
+      // travava o enriquecimento — bug corrigido nesta migração).
+      const url = `${base}/api/v2/members/${safeMember}`;
 
       const result = await fetchWithTimeout(url);
       if (!(result instanceof Response)) return { ok: false, error: result };
       if (!result.ok) return { ok: false, error: await classifyErrorResponse(result) };
 
       const payload = (await result.json()) as EvoMemberDetails | EvoMemberDetails[];
-      const member = Array.isArray(payload) ? payload[0] ?? {} : payload;
+      const raw = Array.isArray(payload) ? payload[0] ?? {} : payload;
+      const member = normalizeMember(raw);
       return { ok: true, member };
     },
     async listSales(params: EvoListSalesParams): Promise<EvoListSalesResult> {
@@ -133,6 +133,10 @@ export function createEvoClient(options: ClientOptions = {}): EvoClient {
         skip: String(params.skip ?? 0),
       });
       if (params.idBranch) qs.set("idBranch", params.idBranch);
+      // onlyMembership=true filtra vendas de produto/serviço no lado
+      // da EVO — reduz tráfego e concentra em matrículas (o único
+      // universo que queremos enviar como conversão).
+      if (params.onlyMembership) qs.set("onlyMembership", "true");
       const url = `${base}/api/v2/sales?${qs.toString()}`;
 
       const result = await fetchWithTimeout(url);
@@ -207,6 +211,80 @@ function classifyThrown(err: unknown): EvoFetchError {
     return { code: "timeout", message: "Timeout ao consultar a EVO." };
   }
   return { code: "network", message };
+}
+
+// Normaliza o payload cru do endpoint v2/members para o shape que o
+// resto do sistema espera. A EVO devolve o email/telefone dentro de
+// contacts[] (contactType='E-mail'/'Cellphone' com valor em description);
+// alguns tenants antigos ainda devolvem `email`/`cellphone` direto no
+// objeto. Priorizamos os campos diretos e caímos em contacts como
+// fallback — mantém o buildCustomer do deliver simples.
+//
+// Também normaliza name/firstName/lastName usando registerName/registerLastName
+// como último fallback (observado em contas onde firstName vem vazio).
+function normalizeMember(raw: EvoMemberDetails): EvoMemberDetails {
+  const contacts = Array.isArray(raw.contacts) ? raw.contacts : null;
+  const email =
+    firstNonEmpty(raw.email) ??
+    (contacts ? pickContactValue(contacts, "email") : null);
+  const cellphone =
+    firstNonEmpty(raw.cellphone) ??
+    firstNonEmpty(raw.phone) ??
+    (contacts ? pickContactValue(contacts, "cellphone") : null);
+  const firstName =
+    firstNonEmpty(raw.firstName) ??
+    firstNonEmpty(raw.registerName) ??
+    splitFirstFromFullName(raw.name);
+  const lastName =
+    firstNonEmpty(raw.lastName) ??
+    firstNonEmpty(raw.registerLastName) ??
+    splitLastFromFullName(raw.name);
+  return {
+    ...raw,
+    firstName,
+    lastName,
+    email,
+    cellphone,
+    phone: cellphone ?? firstNonEmpty(raw.phone) ?? null,
+    contacts,
+  };
+}
+
+function firstNonEmpty(v: string | null | undefined): string | null {
+  if (typeof v !== "string") return null;
+  const trimmed = v.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function pickContactValue(
+  contacts: EvoMemberContact[],
+  kind: "email" | "cellphone",
+): string | null {
+  for (const c of contacts) {
+    const raw = (c?.contactType ?? "").toString().toLowerCase();
+    const isEmail = raw.includes("mail");
+    const isCell = raw.includes("phone") || raw.includes("cell");
+    if ((kind === "email" && isEmail) || (kind === "cellphone" && isCell)) {
+      const desc = firstNonEmpty(c?.description ?? null);
+      if (desc) return desc;
+    }
+  }
+  return null;
+}
+
+function splitFirstFromFullName(name: string | null | undefined): string | null {
+  const full = firstNonEmpty(name ?? null);
+  if (!full) return null;
+  const [first] = full.split(/\s+/);
+  return first ?? null;
+}
+
+function splitLastFromFullName(name: string | null | undefined): string | null {
+  const full = firstNonEmpty(name ?? null);
+  if (!full) return null;
+  const parts = full.split(/\s+/);
+  if (parts.length < 2) return null;
+  return parts.slice(1).join(" ");
 }
 
 // Remove qualquer resíduo de credencial (Basic/Bearer) das mensagens.
