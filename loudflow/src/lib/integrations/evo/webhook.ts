@@ -2,8 +2,15 @@ import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, EvoSaleProcessingStatus } from "../../supabase/types";
 import { createEvoClient } from "./client";
-import { evaluatePayment } from "./rules";
-import type { EvoClient, EvoWebhookPayload } from "./types";
+import { classifySale, evaluatePayment } from "./rules";
+import type {
+  EvoClient,
+  EvoEnumLike,
+  EvoMemberDetails,
+  EvoSaleDetails,
+  EvoSaleItem,
+  EvoWebhookPayload,
+} from "./types";
 import {
   getEvoDefaultOrgSlug,
   getMissingEvoEnvs,
@@ -124,6 +131,13 @@ export async function handleEvoWebhook(
       receivableStatus: null,
       processingStatus: "error",
       lastReason: `evo-fetch:${fetchResult.error.code}`,
+      registrationKind: null,
+      document: null,
+      idMembership: null,
+      idMembershipRenewed: null,
+      valueNextMonthCents: null,
+      isNewMembership: false,
+      exclusionReason: null,
     });
     return NextResponse.json(
       {
@@ -136,7 +150,8 @@ export async function handleEvoWebhook(
     );
   }
 
-  const evaluation = evaluatePayment(fetchResult.sale);
+  const sale = fetchResult.sale;
+  const evaluation = evaluatePayment(sale);
   const processingStatus: EvoSaleProcessingStatus =
     evaluation.status === "paid"
       ? "paid"
@@ -144,13 +159,63 @@ export async function handleEvoWebhook(
         ? "cancelled"
         : "pending";
 
-  const idMember = coerceId(fetchResult.sale.idMember);
+  const idMember = coerceId(sale.idMember);
   const amountPaidCents =
     evaluation.status === "paid" ? evaluation.amountPaidCents : null;
   const saleDate =
-    typeof fetchResult.sale.saleDate === "string" && fetchResult.sale.saleDate.length > 0
-      ? fetchResult.sale.saleDate
+    typeof sale.saleDate === "string" && sale.saleDate.length > 0
+      ? sale.saleDate
       : null;
+
+  // --- 5b. Extração de campos de classificação ------------------------
+  const registrationKind = extractRegistrationKindRaw(sale);
+  const membershipItem = pickMembershipItem(sale);
+  const idMembership = membershipItem
+    ? coerceId(membershipItem.idMembership) ?? coerceId(membershipItem.idMemberMembership)
+    : null;
+  const idMembershipRenewed = pickRenewedMembershipId(sale);
+  const valueNextMonthCents = pickValueNextMonthCents(sale);
+  const document = normalizeDocumentDigits(pickDocument(sale.member));
+
+  // --- 5c. Classificação de "matrícula nova" -------------------------
+  // Se um webhook anterior JÁ marcou esta mesma (id_branch, id_sale)
+  // como is_new_membership=true, preserva. Sem isso, a query de dedup
+  // encontraria o próprio registro e derrubaria a flag em retries.
+  const priorRow = await admin
+    .from("evo_sales")
+    .select("id, is_new_membership")
+    .eq("id_branch", idBranch)
+    .eq("id_sale", idSale)
+    .maybeSingle();
+  const previouslyMarkedNew = priorRow.data?.is_new_membership === true;
+
+  // classifySale cobre cancelled/not-paid/re-enrollment/renewal/
+  // product-only/service-only/no-membership. A dedup por CPF (regra
+  // Jean 2026-08-24: só CPF nunca visto antes) é aplicada em cima.
+  const classification = classifySale(sale);
+  let isNewMembership = false;
+  let exclusionReason: string | null = null;
+  if (previouslyMarkedNew) {
+    isNewMembership = true;
+    exclusionReason = null;
+  } else if (!classification.eligible) {
+    exclusionReason = classification.reason;
+  } else if (!document) {
+    // Sem CPF não dá pra garantir "primeira vez". Regra conservadora:
+    // não conta como aquisição. Vai ficar rastreado para revisão manual.
+    exclusionReason = "no-document";
+  } else {
+    const seen = await hasPriorNewMembershipForDocument(admin, {
+      organizationId,
+      document,
+    });
+    if (seen) {
+      exclusionReason = "duplicate-cpf";
+    } else {
+      isNewMembership = true;
+      exclusionReason = null;
+    }
+  }
 
   const upsert = await upsertEvoSale(admin, {
     organizationId,
@@ -167,6 +232,13 @@ export async function handleEvoWebhook(
     receivableStatus: evaluation.receivableStatus,
     processingStatus,
     lastReason: evaluation.reason,
+    registrationKind,
+    document,
+    idMembership,
+    idMembershipRenewed,
+    valueNextMonthCents,
+    isNewMembership,
+    exclusionReason,
   });
 
   if (!upsert.ok) {
@@ -177,19 +249,18 @@ export async function handleEvoWebhook(
   }
 
   // --- 6. Envio de conversão paga (best-effort) ----------------------
-  // Só dispara quando a venda é REAL e PAGA. Nunca em pending/cancelled/
-  // error. Nunca quebra a resposta 200 para a EVO — se o envio falhar,
-  // `ad_conversion_deliveries` fica com status 'failed' e permite retry
-  // manual/cron. A UTMify faz o fan-out para Meta CAPI + Google Ads.
+  // Só dispara quando a venda é REAL, PAGA E É MATRÍCULA NOVA (CPF
+  // nunca visto antes). Renovação / re-matrícula / produto avulso /
+  // segunda venda do mesmo CPF ficam persistidos mas NÃO viram
+  // conversão de mídia.
   //
-  // Não condicionamos por `duplicate`: se uma venda estava pending no
-  // primeiro webhook e virou paid no segundo, o segundo webhook precisa
-  // disparar o delivery. A idempotência do envio é garantida pela
-  // UNIQUE (evo_sale_id, platform) em ad_conversion_deliveries — dentro
-  // de deliverPaidConversion, um delivery já 'sent' vira skipped.
+  // Passamos `sale.member` como memberOverride: os endpoints /members/{id}
+  // devolvem 403 nas credenciais atuais (2026-08-24), mas o mesmo dado
+  // vem inline dentro de /api/v2/sales/{id}?showReceivables=true — que
+  // já buscamos aqui. Evita depender do fetchMember quebrado.
   let deliveryStatus: "sent" | "failed" | "skipped" | "not-attempted" = "not-attempted";
   let deliveryReason: string | null = null;
-  if (processingStatus === "paid" && upsert.evoSaleId) {
+  if (isNewMembership && upsert.evoSaleId) {
     const outcome = await deliverPaidConversion({
       admin,
       evoClient: evo,
@@ -206,6 +277,7 @@ export async function handleEvoWebhook(
         payment_type: evaluation.paymentType,
         processing_status: "paid",
       },
+      memberOverride: sale.member ?? null,
     });
     if ("sent" in outcome) {
       deliveryStatus = "sent";
@@ -226,6 +298,8 @@ export async function handleEvoWebhook(
       status: processingStatus,
       amountPaidCents:
         evaluation.status === "paid" ? evaluation.amountPaidCents : 0,
+      isNewMembership,
+      exclusionReason,
       duplicate: upsert.duplicate,
       delivery: { status: deliveryStatus, reason: deliveryReason },
     },
@@ -245,6 +319,92 @@ function coerceId(v: unknown): string | null {
   return null;
 }
 
+// ---- extração de campos de classificação da EvoSaleDetails ---------
+
+function extractRegistrationKindRaw(sale: EvoSaleDetails): string | null {
+  const raw = sale.registrationKind ?? sale.registrationType ?? null;
+  if (typeof raw === "string") return raw.length > 0 ? raw : null;
+  if (raw && typeof raw === "object") {
+    const enumLike = raw as EvoEnumLike;
+    if (typeof enumLike.name === "string" && enumLike.name.length > 0) {
+      return enumLike.name;
+    }
+  }
+  return null;
+}
+
+function extractItems(sale: EvoSaleDetails): EvoSaleItem[] {
+  if (Array.isArray(sale.saleItens)) return sale.saleItens;
+  if (Array.isArray(sale.saleItems)) return sale.saleItems;
+  if (Array.isArray(sale.items)) return sale.items;
+  return [];
+}
+
+function hasNonEmptyId(v: number | string | null | undefined): boolean {
+  if (v === null || v === undefined) return false;
+  if (typeof v === "number") return Number.isFinite(v) && v > 0;
+  return v.trim().length > 0;
+}
+
+function pickMembershipItem(sale: EvoSaleDetails): EvoSaleItem | null {
+  const items = extractItems(sale);
+  for (const it of items) {
+    if (hasNonEmptyId(it.idMembership) || hasNonEmptyId(it.idMemberMembership)) {
+      return it;
+    }
+  }
+  return null;
+}
+
+function pickRenewedMembershipId(sale: EvoSaleDetails): string | null {
+  const items = extractItems(sale);
+  for (const it of items) {
+    if (hasNonEmptyId(it.idMembershipRenewed)) {
+      return coerceId(it.idMembershipRenewed);
+    }
+  }
+  return null;
+}
+
+function pickValueNextMonthCents(sale: EvoSaleDetails): number | null {
+  const items = extractItems(sale);
+  for (const it of items) {
+    const raw = (it as { valueNextMonth?: number | null }).valueNextMonth;
+    if (typeof raw === "number" && Number.isFinite(raw) && raw > 0) {
+      return Math.round(raw * 100);
+    }
+  }
+  return null;
+}
+
+function pickDocument(member: EvoMemberDetails | null | undefined): string | null {
+  if (!member) return null;
+  return member.document ?? member.documentId ?? null;
+}
+
+function normalizeDocumentDigits(doc: string | null | undefined): string | null {
+  if (!doc) return null;
+  const digits = doc.replace(/\D+/g, "");
+  return digits.length >= 8 ? digits : null;
+}
+
+// Consulta de dedup por CPF: existe alguma evo_sales na mesma org que
+// já virou is_new_membership=true para este mesmo document? Se sim, a
+// venda atual é reativação (não deve virar conversão).
+async function hasPriorNewMembershipForDocument(
+  admin: Admin,
+  input: { organizationId: string; document: string },
+): Promise<boolean> {
+  const q = await admin
+    .from("evo_sales")
+    .select("id")
+    .eq("organization_id", input.organizationId)
+    .eq("document", input.document)
+    .eq("is_new_membership", true)
+    .maybeSingle();
+  return Boolean(q.data);
+}
+
 type UpsertInput = {
   organizationId: string;
   unitId: string | null;
@@ -260,6 +420,13 @@ type UpsertInput = {
   receivableStatus: string | null;
   processingStatus: EvoSaleProcessingStatus;
   lastReason: string | null;
+  registrationKind: string | null;
+  document: string | null;
+  idMembership: string | null;
+  idMembershipRenewed: string | null;
+  valueNextMonthCents: number | null;
+  isNewMembership: boolean;
+  exclusionReason: string | null;
 };
 
 type UpsertOutcome =
@@ -293,6 +460,13 @@ async function upsertEvoSale(admin: Admin, input: UpsertInput): Promise<UpsertOu
     receivable_status: input.receivableStatus,
     processing_status: input.processingStatus,
     last_reason: input.lastReason,
+    registration_kind: input.registrationKind,
+    document: input.document,
+    id_membership: input.idMembership,
+    id_membership_renewed: input.idMembershipRenewed,
+    value_next_month_cents: input.valueNextMonthCents,
+    is_new_membership: input.isNewMembership,
+    exclusion_reason: input.exclusionReason,
   };
 
   const write = await admin

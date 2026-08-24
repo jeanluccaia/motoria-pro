@@ -169,6 +169,14 @@ export type EvoSale = {
   receivable_status: string | null;
   processing_status: EvoSaleProcessingStatus;
   last_reason: string | null;
+  // Colunas adicionadas em 0013 (classificação de matrícula nova).
+  registration_kind: string | null;
+  document: string | null;
+  id_membership: string | null;
+  id_membership_renewed: string | null;
+  value_next_month_cents: number | null;
+  is_new_membership: boolean;
+  exclusion_reason: string | null;
   created_at: string;
   updated_at: string;
 };

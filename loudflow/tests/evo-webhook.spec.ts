@@ -45,6 +45,13 @@ type EvoSaleRow = {
   receivable_status: string | null;
   processing_status: string;
   last_reason: string | null;
+  registration_kind: string | null;
+  document: string | null;
+  id_membership: string | null;
+  id_membership_renewed: string | null;
+  value_next_month_cents: number | null;
+  is_new_membership: boolean;
+  exclusion_reason: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -316,6 +323,34 @@ function paidSale(): EvoSaleDetails {
         status: "Recebido",
       },
     ],
+  };
+}
+
+// Sale paga que passa classifySale (matrícula nova válida) e traz member
+// completo inline — o webhook usa esse como memberOverride e a entrega
+// para UTMify roda sem depender do fetchMember (que devolve 403 em prod).
+function paidNewMembershipSale(): EvoSaleDetails {
+  return {
+    ...paidSale(),
+    idMember: 777,
+    registrationKind: "new",
+    saleItens: [
+      {
+        idSaleItem: 1,
+        idMembership: 113,
+        description: "POWER (Sessões Ilimitadas)",
+      },
+    ],
+    member: {
+      idMember: 777,
+      firstName: "Ana",
+      lastName: "Silva",
+      document: "12345678901",
+      contacts: [
+        { contactType: "E-mail", idContactType: 4, description: "ana@example.com" },
+        { contactType: "Cellphone", idContactType: 2, description: "11999998888" },
+      ],
+    },
   };
 }
 
@@ -628,7 +663,7 @@ test.describe("handleEvoWebhook", () => {
     await withEvoEnv(async () => {
       const state = newFixtureState();
       const admin = makeFakeAdmin(state);
-      const evoClient = makeFakeEvoClient(() => ({ ok: true, sale: paidSale() }));
+      const evoClient = makeFakeEvoClient(() => ({ ok: true, sale: paidNewMembershipSale() }));
       // NÃO injeta utmifyOrdersClient; env não tem UTMIFY_ORDERS_API_TOKEN.
       const req = newSaleRequest({
         IdW12: "w1",
@@ -650,23 +685,20 @@ test.describe("handleEvoWebhook", () => {
     });
   });
 
-  test("venda paga + UTMify OK + member OK → envia 1x e persiste delivery 'sent'", async () => {
+  test("venda paga + UTMify OK + member inline (memberOverride) → envia 1x sem tocar fetchMember", async () => {
     await withEvoEnv(async () => {
       process.env.UTMIFY_ORDERS_API_TOKEN = "TEST_UTMIFY_ORDERS_API_TOKEN";
       try {
         const state = newFixtureState();
         const admin = makeFakeAdmin(state);
+        let fetchMemberCalls = 0;
         const evoClient = makeFakeEvoClient(
-          () => ({ ok: true, sale: { ...paidSale(), idMember: 777 } }),
-          () => ({
-            ok: true,
-            member: {
-              firstName: "Ana",
-              lastName: "Silva",
-              email: "ana@example.com",
-              cellphone: "11999998888",
-            },
-          }),
+          () => ({ ok: true, sale: paidNewMembershipSale() }),
+          () => {
+            fetchMemberCalls++;
+            // Simula prod (403): endpoint /members/{id} não autoriza.
+            return { ok: false, error: { code: "unauthorized", message: "403" } };
+          },
         );
         const sentOrders: Array<{ orderId: string; status: string }> = [];
         const utmifyOrdersClient = {
@@ -699,6 +731,7 @@ test.describe("handleEvoWebhook", () => {
         expect(sentOrders).toHaveLength(1);
         expect(sentOrders[0]!.orderId).toBe("evo-10-12345");
         expect(sentOrders[0]!.status).toBe("paid");
+        expect(fetchMemberCalls).toBe(0); // memberOverride evita fetch
         expect(state.ad_conversion_deliveries).toHaveLength(1);
         expect(state.ad_conversion_deliveries[0]!.status).toBe("sent");
         expect(state.ad_conversion_deliveries[0]!.platform).toBe("utmify");
@@ -706,6 +739,12 @@ test.describe("handleEvoWebhook", () => {
           "evo:10:12345:purchase",
         );
         expect(state.ad_conversion_deliveries[0]!.attempts).toBe(1);
+        // Persistência da classificação em evo_sales
+        expect(state.evo_sales[0]!.is_new_membership).toBe(true);
+        expect(state.evo_sales[0]!.registration_kind).toBe("new");
+        expect(state.evo_sales[0]!.document).toBe("12345678901");
+        expect(state.evo_sales[0]!.id_membership).toBe("113");
+        expect(state.evo_sales[0]!.exclusion_reason).toBeNull();
       } finally {
         delete process.env.UTMIFY_ORDERS_API_TOKEN;
       }
@@ -719,10 +758,20 @@ test.describe("handleEvoWebhook", () => {
         const state = newFixtureState();
         const admin = makeFakeAdmin(state);
         const evoClient = makeFakeEvoClient(
-          () => ({ ok: true, sale: { ...paidSale(), idMember: 777 } }),
+          () => {
+            const s = paidNewMembershipSale();
+            // Remove email do contact — sobra só cellphone.
+            s.member = {
+              ...s.member!,
+              contacts: (s.member!.contacts ?? []).filter(
+                (c) => c.contactType !== "E-mail",
+              ),
+            };
+            return { ok: true, sale: s };
+          },
           () => ({
-            ok: true,
-            member: { firstName: "Ana", lastName: "Silva", email: null },
+            ok: false,
+            error: { code: "unauthorized", message: "403" },
           }),
         );
         let calls = 0;
@@ -765,15 +814,7 @@ test.describe("handleEvoWebhook", () => {
         const state = newFixtureState();
         const admin = makeFakeAdmin(state);
         const evoClient = makeFakeEvoClient(
-          () => ({ ok: true, sale: { ...paidSale(), idMember: 777 } }),
-          () => ({
-            ok: true,
-            member: {
-              firstName: "Ana",
-              lastName: "Silva",
-              email: "ana@example.com",
-            },
-          }),
+          () => ({ ok: true, sale: paidNewMembershipSale() }),
         );
         const utmifyOrdersClient = {
           isConfigured: () => true,
@@ -817,15 +858,7 @@ test.describe("handleEvoWebhook", () => {
         const state = newFixtureState();
         const admin = makeFakeAdmin(state);
         const evoClient = makeFakeEvoClient(
-          () => ({ ok: true, sale: { ...paidSale(), idMember: 777 } }),
-          () => ({
-            ok: true,
-            member: {
-              firstName: "Ana",
-              lastName: "Silva",
-              email: "ana@example.com",
-            },
-          }),
+          () => ({ ok: true, sale: paidNewMembershipSale() }),
         );
         let sends = 0;
         const utmifyOrdersClient = {
@@ -857,6 +890,134 @@ test.describe("handleEvoWebhook", () => {
         expect(body2.delivery.status).toBe("skipped");
         expect(body2.delivery.reason).toBe("already-sent");
         expect(state.ad_conversion_deliveries).toHaveLength(1);
+      } finally {
+        delete process.env.UTMIFY_ORDERS_API_TOKEN;
+      }
+    });
+  });
+
+  test("registrationKind='re-enrollment' → is_new_membership=false, delivery not-attempted", async () => {
+    await withEvoEnv(async () => {
+      process.env.UTMIFY_ORDERS_API_TOKEN = "TEST_UTMIFY_ORDERS_API_TOKEN";
+      try {
+        const state = newFixtureState();
+        const admin = makeFakeAdmin(state);
+        const evoClient = makeFakeEvoClient(() => ({
+          ok: true,
+          sale: { ...paidNewMembershipSale(), registrationKind: "re-enrollment" },
+        }));
+        let sends = 0;
+        const utmifyOrdersClient = {
+          isConfigured: () => true,
+          sendOrder: async () => {
+            sends++;
+            return { ok: true as const, status: 200, responseSummary: "unused" };
+          },
+        };
+        const res = await handleEvoWebhook(
+          newSaleRequest({ IdBranch: "10", IdRecord: "12345", EventType: "NewSale" }),
+          { admin, evoClient, utmifyOrdersClient },
+        );
+        const body = (await res.json()) as {
+          isNewMembership: boolean;
+          exclusionReason: string | null;
+          delivery: { status: string; reason: string | null };
+        };
+        expect(body.isNewMembership).toBe(false);
+        expect(body.exclusionReason).toBe("re-enrollment");
+        expect(body.delivery.status).toBe("not-attempted");
+        expect(sends).toBe(0);
+        expect(state.ad_conversion_deliveries).toHaveLength(0);
+        expect(state.evo_sales[0]!.processing_status).toBe("paid"); // ainda é "recebeu dinheiro"
+        expect(state.evo_sales[0]!.is_new_membership).toBe(false);
+      } finally {
+        delete process.env.UTMIFY_ORDERS_API_TOKEN;
+      }
+    });
+  });
+
+  test("segundo webhook com MESMO CPF em sale diferente → duplicate-cpf, delivery not-attempted", async () => {
+    await withEvoEnv(async () => {
+      process.env.UTMIFY_ORDERS_API_TOKEN = "TEST_UTMIFY_ORDERS_API_TOKEN";
+      try {
+        const state = newFixtureState();
+        const admin = makeFakeAdmin(state);
+        const evoClient = makeFakeEvoClient((_branch, idSale) => ({
+          ok: true,
+          sale: {
+            ...paidNewMembershipSale(),
+            idSale: Number(idSale),
+            // Mesmo CPF, sale distinta.
+          },
+        }));
+        let sends = 0;
+        const utmifyOrdersClient = {
+          isConfigured: () => true,
+          sendOrder: async () => {
+            sends++;
+            return { ok: true as const, status: 200, responseSummary: "HTTP 200" };
+          },
+        };
+        // 1º webhook: matrícula nova, delivery envia.
+        await handleEvoWebhook(
+          newSaleRequest({ IdBranch: "10", IdRecord: "100", EventType: "NewSale" }),
+          { admin, evoClient, utmifyOrdersClient },
+        );
+        // 2º webhook: sale nova, mesmo CPF → duplicate-cpf.
+        const res2 = await handleEvoWebhook(
+          newSaleRequest({ IdBranch: "10", IdRecord: "200", EventType: "NewSale" }),
+          { admin, evoClient, utmifyOrdersClient },
+        );
+        const body2 = (await res2.json()) as {
+          isNewMembership: boolean;
+          exclusionReason: string | null;
+          delivery: { status: string };
+        };
+        expect(body2.isNewMembership).toBe(false);
+        expect(body2.exclusionReason).toBe("duplicate-cpf");
+        expect(body2.delivery.status).toBe("not-attempted");
+        expect(sends).toBe(1); // só o primeiro
+        expect(state.ad_conversion_deliveries).toHaveLength(1);
+        expect(state.evo_sales).toHaveLength(2);
+        expect(state.evo_sales.filter((r) => r.is_new_membership)).toHaveLength(1);
+      } finally {
+        delete process.env.UTMIFY_ORDERS_API_TOKEN;
+      }
+    });
+  });
+
+  test("member sem document → no-document, delivery not-attempted", async () => {
+    await withEvoEnv(async () => {
+      process.env.UTMIFY_ORDERS_API_TOKEN = "TEST_UTMIFY_ORDERS_API_TOKEN";
+      try {
+        const state = newFixtureState();
+        const admin = makeFakeAdmin(state);
+        const evoClient = makeFakeEvoClient(() => {
+          const s = paidNewMembershipSale();
+          s.member = { ...s.member!, document: null };
+          return { ok: true, sale: s };
+        });
+        let sends = 0;
+        const utmifyOrdersClient = {
+          isConfigured: () => true,
+          sendOrder: async () => {
+            sends++;
+            return { ok: true as const, status: 200, responseSummary: "unused" };
+          },
+        };
+        const res = await handleEvoWebhook(
+          newSaleRequest({ IdBranch: "10", IdRecord: "12345", EventType: "NewSale" }),
+          { admin, evoClient, utmifyOrdersClient },
+        );
+        const body = (await res.json()) as {
+          isNewMembership: boolean;
+          exclusionReason: string | null;
+          delivery: { status: string };
+        };
+        expect(body.isNewMembership).toBe(false);
+        expect(body.exclusionReason).toBe("no-document");
+        expect(body.delivery.status).toBe("not-attempted");
+        expect(sends).toBe(0);
       } finally {
         delete process.env.UTMIFY_ORDERS_API_TOKEN;
       }

@@ -246,7 +246,8 @@ export function evaluatePayment(sale: EvoSaleDetails): PaymentEvaluation {
 // Regras de inclusão (todas obrigatórias):
 //   1. venda não está `removed`
 //   2. evaluatePayment(sale).status === 'paid'
-//   3. `registrationKind` não é 'renewal' (quando presente)
+//   3. `registrationKind` não é 'renewal' nem 're-enrollment'
+//      (quando presente)
 //   4. existe ao menos um item em saleItens com idMembership OU
 //      idMemberMembership presentes
 //   5. nenhum item com idMembershipRenewed (indica renovação
@@ -256,6 +257,7 @@ export function evaluatePayment(sale: EvoSaleDetails): PaymentEvaluation {
 // é o motivo persistido):
 //   - 'cancelled'          → sale.removed === true
 //   - 'not-paid'           → evaluatePayment != paid
+//   - 're-enrollment'      → registrationKind indica ex-aluno voltando
 //   - 'renewal'            → registrationKind='renewal' OU item com idMembershipRenewed
 //   - 'product-only'       → todo item tem idProduct
 //   - 'service-only'       → todo item tem idService
@@ -264,6 +266,7 @@ export type EvoIncludeReason = null;
 export type EvoExcludeReason =
   | "cancelled"
   | "not-paid"
+  | "re-enrollment"
   | "renewal"
   | "product-only"
   | "service-only"
@@ -307,6 +310,14 @@ export function classifySale(sale: EvoSaleDetails): SaleClassification {
   }
 
   const kind = normalize(extractRegistrationKind(sale));
+  // 're-enrollment' | 'reenrollment' | 're-enrolment' — ex-aluno voltando.
+  // Cobrimos hyphen/no-hyphen e en-US/en-GB. Regra do Jean (2026-08-24):
+  // só CPF nunca visto antes conta; ex-aluno reativado não é aquisição.
+  // Checado ANTES de renewal porque "re-enrollment" contém "enroll" mas
+  // não contém "renew" — precedência explícita para o motivo persistido.
+  if (kind.includes("re-enrol") || kind.includes("reenrol")) {
+    return { eligible: false, reason: "re-enrollment" };
+  }
   // 'renewal' | 'renovacao' | 'renovation' — normalizações observadas.
   if (kind.includes("renew") || kind.includes("renov")) {
     return { eligible: false, reason: "renewal" };

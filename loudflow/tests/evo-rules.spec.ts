@@ -330,6 +330,57 @@ test.describe("classifySale", () => {
     expect(c.eligible).toBe(true);
   });
 
+  test("registrationKind='re-enrollment' → excluded:re-enrollment (ex-aluno voltando)", () => {
+    const sale: EvoSaleDetails = {
+      idSale: 100,
+      removed: false,
+      receivables: paidReceivable(),
+      saleItens: [{ idSaleItem: 1, idMembership: 42 }],
+      registrationKind: "re-enrollment",
+    };
+    const c = classifySale(sale);
+    expect(c.eligible).toBe(false);
+    if (!c.eligible) expect(c.reason).toBe("re-enrollment");
+  });
+
+  test("registrationKind='reenrollment' (sem hífen) → excluded:re-enrollment", () => {
+    const sale: EvoSaleDetails = {
+      idSale: 101,
+      removed: false,
+      receivables: paidReceivable(),
+      saleItens: [{ idSaleItem: 1, idMembership: 42 }],
+      registrationKind: "reenrollment",
+    };
+    const c = classifySale(sale);
+    expect(c.eligible).toBe(false);
+    if (!c.eligible) expect(c.reason).toBe("re-enrollment");
+  });
+
+  test("registrationKind objeto enum {name:'Re-Enrolment'} (en-GB) → excluded:re-enrollment", () => {
+    const sale: EvoSaleDetails = {
+      idSale: 102,
+      removed: false,
+      receivables: paidReceivable(),
+      saleItens: [{ idSaleItem: 1, idMembership: 42 }],
+      registrationKind: { id: 3, name: "Re-Enrolment" },
+    };
+    const c = classifySale(sale);
+    expect(c.eligible).toBe(false);
+    if (!c.eligible) expect(c.reason).toBe("re-enrollment");
+  });
+
+  test("registrationKind='enrollment' (matrícula nova SEM 're-') → eligible", () => {
+    const sale: EvoSaleDetails = {
+      idSale: 103,
+      removed: false,
+      receivables: paidReceivable(),
+      saleItens: [{ idSaleItem: 1, idMembership: 42 }],
+      registrationKind: "enrollment",
+    };
+    const c = classifySale(sale);
+    expect(c.eligible).toBe(true);
+  });
+
   test("registrationKind='renewal' → excluded:renewal", () => {
     const sale: EvoSaleDetails = {
       idSale: 3,
