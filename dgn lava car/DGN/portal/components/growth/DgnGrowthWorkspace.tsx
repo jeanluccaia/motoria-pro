@@ -1130,13 +1130,15 @@ function CurationView({
               Nenhum candidato elegível com estes filtros.
             </div>
           ) : (
-            pagedCustomers.map((customer) => (
+            pagedCustomers.map((customer, index) => (
               <button
-                key={customer.id}
+                // key inclui filtro/ordenação/página/busca pra remount → dispara curation-item-in
+                key={`${curationFilter}|${curationPlanFilter}|${curationModalityFilter}|${curationSort}|${query}|${page}|${customer.id}`}
                 data-testid="curation-list-item"
                 data-customer-id={customer.id}
                 onClick={() => handleSelect(customer.id)}
-                className={`mb-2 w-full rounded-2xl border p-3 text-left transition ${
+                style={{ animationDelay: `${Math.min(index * 22, 260)}ms` }}
+                className={`curation-item-in mb-2 w-full rounded-2xl border p-3 text-left transition ${
                   selectedCustomer.id === customer.id
                     ? "border-[#C9A84C]/35 bg-[#C9A84C]/10"
                     : "border-white/[0.05] bg-white/[0.02] hover:border-white/[0.12]"
