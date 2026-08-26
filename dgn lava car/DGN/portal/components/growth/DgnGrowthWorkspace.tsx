@@ -393,7 +393,7 @@ export function DgnGrowthWorkspace({
   return (
     <div className="min-h-full bg-[#080808] text-white">
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        {readOnly ? <div className="mb-5 rounded-xl border border-[#C9A84C]/20 bg-[#C9A84C]/[0.06] px-4 py-3 text-xs text-[#E7C96A]">{dataOrigin === "db" ? "Dados comerciais e de curadoria podem ser editados. Dados operacionais e calculados permanecem protegidos." : "Fonte local somente leitura · mudanças não são salvas."}</div> : null}
+        {readOnly && (dataOrigin === "db" || process.env.NODE_ENV !== "production") ? <div className="mb-5 rounded-xl border border-[#C9A84C]/20 bg-[#C9A84C]/[0.06] px-4 py-3 text-xs text-[#E7C96A]">{dataOrigin === "db" ? "Dados comerciais e de curadoria podem ser editados. Dados operacionais e calculados permanecem protegidos." : "Fonte local somente leitura · mudanças não são salvas."}</div> : null}
         {notice ? (
           <div className="fixed right-4 top-4 z-[70] rounded-xl border border-[#C9A84C]/30 bg-[#111111] px-4 py-3 text-sm font-semibold text-[#E7C96A] shadow-2xl">
             {notice}
@@ -643,7 +643,15 @@ function IntelligenceView({
         ))}
       </div>
 
-      <CustomersTable customers={customers} total={totalFiltered} page={page} pageCount={pageCount} onPage={onPage} onOpenProfile={onOpenProfile} />
+      <CustomersTable
+        customers={customers}
+        total={totalFiltered}
+        page={page}
+        pageCount={pageCount}
+        onPage={onPage}
+        onOpenProfile={onOpenProfile}
+        filterKey={`${query}|${statusFilter}|${planFilter}|${scoreFilter}|${sortBy}|${page}`}
+      />
     </>
   );
 }
@@ -715,6 +723,7 @@ function CustomersTable({
   pageCount,
   onPage,
   onOpenProfile,
+  filterKey,
 }: {
   customers: DgnCustomer[];
   total: number;
@@ -722,6 +731,7 @@ function CustomersTable({
   pageCount: number;
   onPage: (page: number) => void;
   onOpenProfile: (id: string) => void;
+  filterKey: string;
 }) {
   return (
     <section className="mt-5 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#101010]">
@@ -736,13 +746,14 @@ function CustomersTable({
       </div>
       {/* Mobile: cards verticais tocáveis (< lg) */}
       <div className="block space-y-2 p-3 lg:hidden">
-        {customers.map((customer) => (
+        {customers.map((customer, index) => (
           <button
-            key={customer.id}
+            key={`${filterKey}|${customer.id}`}
             type="button"
             data-testid="intel-customer-card"
             onClick={() => onOpenProfile(customer.id)}
-            className="flex w-full items-start gap-3 rounded-2xl border border-white/[0.05] bg-white/[0.02] p-3 text-left transition hover:border-[#C9A84C]/30 active:bg-white/[0.04]"
+            style={{ animationDelay: `${Math.min(index * 22, 260)}ms` }}
+            className="intelligence-row-in flex w-full items-start gap-3 rounded-2xl border border-white/[0.05] bg-white/[0.02] p-3 text-left transition hover:border-[#C9A84C]/30 active:bg-white/[0.04]"
           >
             <Avatar name={customer.name} />
             <div className="min-w-0 flex-1">
@@ -796,8 +807,9 @@ function CustomersTable({
           <tbody>
             {customers.map((customer, index) => (
               <tr
-                key={customer.id}
-                className={`border-b border-white/[0.04] transition hover:bg-white/[0.02] ${
+                key={`${filterKey}|${customer.id}`}
+                style={{ animationDelay: `${Math.min(index * 18, 220)}ms` }}
+                className={`intelligence-row-in border-b border-white/[0.04] transition hover:bg-white/[0.02] ${
                   index % 2 === 1 ? "bg-white/[0.012]" : ""
                 }`}
               >
@@ -1126,9 +1138,50 @@ function CurationView({
         </div>
         <div className="p-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
           {pagedCustomers.length === 0 ? (
-            <div className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-6 text-center text-xs text-[#7D7D7D]">
-              Nenhum candidato elegível com estes filtros.
-            </div>
+            (() => {
+              const hasActiveFilters =
+                curationFilter !== "Todos" ||
+                curationPlanFilter !== "Todos" ||
+                curationModalityFilter !== "Todos" ||
+                query.trim() !== "";
+              const clearFilters = () => {
+                onCurationFilter("Todos");
+                onCurationPlanFilter("Todos");
+                onCurationModalityFilter("Todos");
+                onQuery("");
+              };
+              return (
+                <div
+                  data-testid="curation-empty-state"
+                  className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-6 text-center"
+                >
+                  <p className="text-xs text-[#9CA3AF]">
+                    {hasActiveFilters
+                      ? "Nenhum candidato elegível com estes filtros."
+                      : "Nenhum candidato elegível no momento."}
+                  </p>
+                  <p className="mt-2 text-[11px] text-[#7D7D7D]">
+                    <span className="font-semibold text-white">{eligibleCustomers.length}</span> elegíve{eligibleCustomers.length === 1 ? "l" : "is"} na base
+                    {acquisitionEligibleCustomers.removedSubscribers > 0 ? (
+                      <>
+                        {" · "}
+                        <span>{acquisitionEligibleCustomers.removedSubscribers} assinante(s) oculto(s)</span>
+                      </>
+                    ) : null}
+                  </p>
+                  {hasActiveFilters ? (
+                    <button
+                      type="button"
+                      data-testid="curation-empty-clear-filters"
+                      onClick={clearFilters}
+                      className="mt-4 inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#C9A84C]/25 bg-[#C9A84C]/10 px-3 text-xs font-semibold text-[#E7C96A] transition hover:border-[#C9A84C]/45"
+                    >
+                      Limpar filtros
+                    </button>
+                  ) : null}
+                </div>
+              );
+            })()
           ) : (
             pagedCustomers.map((customer, index) => (
               <button
