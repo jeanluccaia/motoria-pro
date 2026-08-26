@@ -90,7 +90,11 @@ export function validateFounderCurationPayload(payload: unknown): FounderCuratio
   const rawExpected = raw.expectedUpdatedAt;
   let parsedExpected: string | null;
   if (typeof rawExpected === "string" && rawExpected !== "" && !Number.isNaN(Date.parse(rawExpected))) {
-    parsedExpected = new Date(rawExpected).toISOString();
+    // Preservar precisão original: JavaScript Date só armazena ms, mas
+    // crm_campaign_members.updated_at é timestamptz com microssegundos. Se
+    // round-trip pelo Date, a checagem otimista (`v_member.updated_at is
+    // distinct from p_expected_updated_at`) SEMPRE falha e a RPC lança 40001.
+    parsedExpected = rawExpected;
   } else if (isBootstrapAction && (rawExpected === null || rawExpected === undefined || rawExpected === "")) {
     parsedExpected = null; // RPC vai bootstrap se o cliente ainda não tem campaign_member
   } else {
@@ -162,7 +166,7 @@ export async function writeFounderCuration(
   input: ReturnType<typeof validateFounderCurationPayload>,
   db: SupabaseClient = getSupabaseAdminClient("founder-curation.write"),
 ) {
-  const result = await db.rpc("crm_manage_founder_curation_v2", {
+  const rpcArgs = {
     p_customer_legacy_id: customerId,
     p_campaign_id: input.campaignId,
     p_action: input.action,
@@ -174,7 +178,8 @@ export async function writeFounderCuration(
     p_plan_snapshot: input.snapshot,
     p_expected_updated_at: input.expectedUpdatedAt,
     p_actor: "dgn-admin",
-  });
+  };
+  const result = await db.rpc("crm_manage_founder_curation_v2", rpcArgs);
   if (result.error) {
     if (result.error.code === "P0002") throw new FounderCurationWriteError("Cliente ou campanha inexistente.", 404);
     if (["40001", "23505"].includes(result.error.code ?? "")) throw new FounderCurationWriteError(result.error.message, 409);

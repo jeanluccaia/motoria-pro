@@ -1134,6 +1134,7 @@ function CurationView({
               <button
                 key={customer.id}
                 data-testid="curation-list-item"
+                data-customer-id={customer.id}
                 onClick={() => handleSelect(customer.id)}
                 className={`mb-2 w-full rounded-2xl border p-3 text-left transition ${
                   selectedCustomer.id === customer.id

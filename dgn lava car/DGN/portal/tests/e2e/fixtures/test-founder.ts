@@ -1,10 +1,7 @@
-import { randomBytes } from "node:crypto";
-
 // Cliente sintético controlado — o legacy_id `teste-founder-<hex>` é validado
 // pela função Postgres `crm_purge_test_founder` para permitir purga segura.
-// Nenhum outro cliente pode ser afetado.
-export const TEST_LEGACY_ID = `teste-founder-${randomBytes(8).toString("hex")}`;
-export const TEST_NAME = "Cliente Teste Founder";
+// O legacyId é gerado per-test pelo spec (evita colisão entre viewports em paralelo).
+const TEST_NAME = "Cliente Teste Founder";
 
 interface SupabaseEnv {
   url: string;
@@ -44,34 +41,21 @@ async function post(path: string, body: unknown): Promise<Response> {
   }
 }
 
-async function del(path: string): Promise<Response> {
-  const { url, serviceRoleKey } = readSupabaseEnv();
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30_000);
-  try {
-    return await fetch(`${url}${path}`, {
-      method: "DELETE",
-      headers: {
-        apikey: serviceRoleKey,
-        authorization: `Bearer ${serviceRoleKey}`,
-      },
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
 /**
  * Cria um cliente sintético em crm_customers com legacy_id `teste-founder-<hex>`.
  * O nome é fixo "Cliente Teste Founder" — a validação do slug de teste no
  * `parseFounderPublicLink` exige exatamente isso.
  */
-export async function seedTestCustomer(legacyId: string = TEST_LEGACY_ID): Promise<string> {
+export async function seedTestCustomer(legacyId: string): Promise<string> {
+  // Telefone sintético (todos zeros + 1) — não pode bater com nenhum assinante
+  // real da base 4uCar 2026-08-16. Necessário porque `isFounderAcquisitionEligible`
+  // exige `hasValidPhone` para o cliente aparecer na Curadoria.
   const response = await post("/rest/v1/crm_customers", {
     legacy_id: legacyId,
     name: TEST_NAME,
     normalized_name: TEST_NAME.toLowerCase(),
+    primary_phone: "+55 (11) 90000-0001",
+    normalized_phone: "11900000001",
     origin: "playwright-fixture",
     data_quality_status: "ok",
     service_count: 12,
@@ -91,18 +75,10 @@ export async function seedTestCustomer(legacyId: string = TEST_LEGACY_ID): Promi
 }
 
 /** Chama `crm_purge_test_founder` para remover cliente sintético + tudo relacionado. */
-export async function purgeTestCustomer(legacyId: string = TEST_LEGACY_ID): Promise<void> {
+export async function purgeTestCustomer(legacyId: string): Promise<void> {
   const response = await post("/rest/v1/rpc/crm_purge_test_founder", { p_legacy_id: legacyId });
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
     throw new Error(`Falha ao purgar fixture: ${response.status} ${detail.slice(0, 300)}`);
   }
-}
-
-/**
- * Best-effort: tenta remover cliente teste diretamente (sem RPC) — usado
- * quando o `crm_purge_test_founder` não existe (env de teste divergente).
- */
-export async function bestEffortDelete(legacyId: string): Promise<void> {
-  await del(`/rest/v1/crm_customers?legacy_id=eq.${encodeURIComponent(legacyId)}`).catch(() => undefined);
 }
