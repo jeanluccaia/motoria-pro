@@ -10,7 +10,9 @@ import { sortByPriority } from "./founder-attention.ts";
 
 const HIGH_SCORE_THRESHOLD = 70;
 const MEDIUM_SCORE_THRESHOLD = 50;
-const MAX_CARDS = 8;
+/** Default do briefing/UI. Chamada pelo LLM pode subir até LIMIT_HARD_CAP. */
+const DEFAULT_LIMIT = 8;
+export const LIMIT_HARD_CAP = 20;
 
 function scoreRank(customer: DgnCustomer): number {
   return Number.isFinite(customer.scoreDgn) ? customer.scoreDgn : 0;
@@ -41,7 +43,19 @@ function classify(customer: DgnCustomer): { priority: "alta" | "media" | "oportu
   return null;
 }
 
-export function getCurationOpportunities(ctx: AgentContext): SkillResult<AttentionCard[]> {
+export interface CurationOpportunitiesOptions {
+  /** Máximo de cards a retornar. Default 8 (paginação da tela). LLM pode subir até LIMIT_HARD_CAP=20. */
+  limit?: number;
+}
+
+export function getCurationOpportunities(
+  ctx: AgentContext,
+  options: CurationOpportunitiesOptions = {},
+): SkillResult<AttentionCard[]> {
+  const requested = typeof options.limit === "number" && Number.isFinite(options.limit)
+    ? Math.max(1, Math.min(LIMIT_HARD_CAP, Math.floor(options.limit)))
+    : DEFAULT_LIMIT;
+
   const { eligible } = partitionByEligibility(ctx.customers);
 
   const cards: AttentionCard[] = [];
@@ -61,7 +75,7 @@ export function getCurationOpportunities(ctx: AgentContext): SkillResult<Attenti
       ctaLabel: "Ver cliente",
       customerId: customer.id,
     });
-    if (cards.length >= MAX_CARDS) break;
+    if (cards.length >= requested) break;
   }
 
   cards.sort(sortByPriority);

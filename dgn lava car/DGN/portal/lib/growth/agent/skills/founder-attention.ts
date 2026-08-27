@@ -9,6 +9,7 @@ import type { AttentionCard, Priority, SkillResult } from "../types.ts";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const STALE_INVITE_DAYS = 3;
+export const LIMIT_HARD_CAP = 20;
 
 function parseTimestamp(raw: string | undefined | null): number | null {
   if (!raw) return null;
@@ -80,7 +81,15 @@ function bucketFor(customer: DgnCustomer, now: number): {
   return null;
 }
 
-export function getFounderAttention(ctx: AgentContext): SkillResult<AttentionCard[]> {
+export interface FounderAttentionOptions {
+  /** Cap opcional do LLM. Default: sem cap dentro do hard cap 20. */
+  limit?: number;
+}
+
+export function getFounderAttention(
+  ctx: AgentContext,
+  options: FounderAttentionOptions = {},
+): SkillResult<AttentionCard[]> {
   const now = ctx.loadedAt;
   const cards: AttentionCard[] = [];
   let candidatesWithActiveInvite = 0;
@@ -105,6 +114,11 @@ export function getFounderAttention(ctx: AgentContext): SkillResult<AttentionCar
   }
 
   cards.sort(sortByPriority);
+
+  const requested = typeof options.limit === "number" && Number.isFinite(options.limit)
+    ? Math.max(1, Math.min(LIMIT_HARD_CAP, Math.floor(options.limit)))
+    : LIMIT_HARD_CAP;
+  if (cards.length > requested) cards.length = requested;
 
   if (candidatesWithActiveInvite === 0) {
     return {

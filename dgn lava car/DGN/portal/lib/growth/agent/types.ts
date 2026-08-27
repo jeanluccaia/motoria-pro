@@ -103,9 +103,30 @@ export interface SkillDefinition {
 // Chat / Provider
 // ---------------------------------------------------------------------------
 
+/** Mensagem do histórico curto trocada com o provider. */
+export interface AgentHistoryMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 /** Query enviada ao provider (chat abaixo do briefing). */
 export interface AgentQuery {
   message: string;
+  /** Histórico curto (últimas trocas) — cap aplicado no provider. */
+  history?: AgentHistoryMessage[];
+}
+
+/** Modo do provider ativo — usado no badge do header. */
+export type ProviderMode = "llm" | "deterministic" | "deterministic-fallback";
+
+/** Métricas por resposta — logadas no server, expostas no debug. */
+export interface AgentMetrics {
+  latencyMs: number;
+  toolCalls: number;
+  /** Tokens quando disponíveis; undefined em fallback determinístico. */
+  tokens?: { input: number; output: number; total: number };
+  /** Modelo utilizado (só quando providerMode === "llm"). */
+  model?: string;
 }
 
 /** Bloco tipado que compõe a resposta do agente na UI. */
@@ -125,8 +146,13 @@ export interface AgentResponse {
     | "customer-summary"
     | "next-action"
     | "help"
+    | "llm-synthesis"
     | "unknown";
   blocks: AgentResponseBlock[];
   /** Rótulos usados no UI para diferenciar fato/inferência quando houver. */
   disclosures?: { facts: string[]; inferences: string[] };
+  /** Fonte da resposta — dita o badge no chat ("IA" ou "modo básico"). */
+  providerMode?: ProviderMode;
+  /** Métricas anexadas apenas em desenvolvimento/debug (server-side sempre logado). */
+  metrics?: AgentMetrics;
 }

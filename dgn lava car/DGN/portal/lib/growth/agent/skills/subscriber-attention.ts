@@ -10,7 +10,16 @@ import { sortByPriority } from "./founder-attention.ts";
 // atual, então nunca inventamos vencimento — devolvemos apenas o motivo
 // declarado e enviamos para a fila de Assinantes Detectados.
 
-export function getSubscriberAttention(ctx: AgentContext): SkillResult<AttentionCard[]> {
+export const LIMIT_HARD_CAP = 20;
+
+export interface SubscriberAttentionOptions {
+  limit?: number;
+}
+
+export function getSubscriberAttention(
+  ctx: AgentContext,
+  options: SubscriberAttentionOptions = {},
+): SkillResult<AttentionCard[]> {
   const cards: AttentionCard[] = [];
 
   // 1) Cruzamento com a base real: assinantes com renewal pendente que ainda
@@ -55,6 +64,11 @@ export function getSubscriberAttention(ctx: AgentContext): SkillResult<Attention
   }
 
   cards.sort(sortByPriority);
+
+  const requested = typeof options.limit === "number" && Number.isFinite(options.limit)
+    ? Math.max(1, Math.min(LIMIT_HARD_CAP, Math.floor(options.limit)))
+    : LIMIT_HARD_CAP;
+  if (cards.length > requested) cards.length = requested;
 
   if (cards.length === 0) {
     return {

@@ -16,6 +16,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type {
+  AgentHistoryMessage,
   AgentResponse,
   AgentResponseBlock,
   AttentionCard,
@@ -23,6 +24,7 @@ import type {
   DailyBriefing,
   NextActionSuggestion,
   Priority,
+  ProviderMode,
 } from "@/lib/growth/agent/types";
 
 // -----------------------------------------------------------------------------
@@ -224,10 +226,31 @@ function DisclosurePanel({ disclosures }: { disclosures: Disclosures }) {
 // Chat
 // -----------------------------------------------------------------------------
 
+const HISTORY_UI_CAP = 6;
+
+function buildHistoryFromEntries(entries: ChatEntry[]): AgentHistoryMessage[] {
+  const history: AgentHistoryMessage[] = [];
+  for (const entry of entries) {
+    if (entry.role === "user") {
+      history.push({ role: "user", content: entry.text });
+    } else if (entry.role === "agent") {
+      const text = entry.response.blocks
+        .filter((b): b is Extract<AgentResponseBlock, { kind: "text" }> => b.kind === "text")
+        .map((b) => b.text)
+        .join("\n\n");
+      if (text.trim().length > 0) {
+        history.push({ role: "assistant", content: text.trim() });
+      }
+    }
+  }
+  return history.slice(-HISTORY_UI_CAP);
+}
+
 function ChatSection() {
   const [entries, setEntries] = useState<ChatEntry[]>([]);
   const [pending, setPending] = useState(false);
   const [input, setInput] = useState("");
+  const [lastProviderMode, setLastProviderMode] = useState<ProviderMode | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -238,13 +261,19 @@ function ChatSection() {
     const trimmed = message.trim();
     if (!trimmed || pending) return;
     setInput("");
-    setEntries((prev) => [...prev, { role: "user", text: trimmed }]);
+    // Capturamos o histórico ANTES de anexar a mensagem nova para não incluir
+    // ela mesma no payload.
+    let historyToSend: AgentHistoryMessage[] = [];
+    setEntries((prev) => {
+      historyToSend = buildHistoryFromEntries(prev);
+      return [...prev, { role: "user", text: trimmed }];
+    });
     setPending(true);
     try {
       const res = await fetch("/api/admin/growth/agent/query", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ message: trimmed }),
+        body: JSON.stringify({ message: trimmed, history: historyToSend }),
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { message?: string; error?: string };
@@ -255,6 +284,7 @@ function ChatSection() {
         return;
       }
       const data = (await res.json()) as AgentResponse;
+      setLastProviderMode(data.providerMode ?? null);
       setEntries((prev) => [...prev, { role: "agent", response: data }]);
     } catch (error) {
       setEntries((prev) => [
@@ -268,10 +298,11 @@ function ChatSection() {
 
   return (
     <section aria-labelledby="chat-heading" className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <h2 id="chat-heading" className="text-lg font-semibold text-white sm:text-xl">
           Conversar com o assistente
         </h2>
+        <ProviderBadge mode={lastProviderMode} />
       </div>
 
       <div className="flex flex-wrap gap-2" role="group" aria-label="Sugestões rápidas">
@@ -364,9 +395,34 @@ function PendingBubble() {
         <Bot size={14} />
       </span>
       <span className="inline-flex items-center gap-1.5">
-        <Loader2 size={14} className="animate-spin" /> Consultando skills…
+        <Loader2 size={14} className="animate-spin" /> Analisando a operação…
       </span>
     </div>
+  );
+}
+
+function ProviderBadge({ mode }: { mode: ProviderMode | null }) {
+  if (!mode) return null;
+  const isLlm = mode === "llm";
+  const isFallback = mode === "deterministic-fallback";
+  const label = isLlm
+    ? "Assistente DGN · IA"
+    : isFallback
+      ? "Assistente DGN · modo básico (fallback)"
+      : "Assistente DGN · modo básico";
+  const cls = isLlm
+    ? "border-[#C9A84C]/30 bg-[#C9A84C]/[0.08] text-[#E7C96A]"
+    : isFallback
+      ? "border-amber-300/25 bg-amber-300/[0.03] text-amber-200/90"
+      : "border-white/[0.08] bg-white/[0.03] text-white/70";
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${cls}`}
+      data-testid="agent-provider-badge"
+    >
+      <Sparkles size={10} />
+      {label}
+    </span>
   );
 }
 
