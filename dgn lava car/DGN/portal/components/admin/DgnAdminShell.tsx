@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   ShieldCheck,
+  Sparkles,
   UserCheck,
   X,
   type LucideIcon,
@@ -23,6 +24,7 @@ const primaryNav: NavItem[] = [
   { href: "/admin/growth/curadoria", label: "Curadoria", icon: UserCheck },
   { href: "/admin/growth/founders-2026", label: "Founders", icon: Crown },
   { href: "/admin/growth/assinantes-detectados", label: "Assinantes", icon: ShieldCheck },
+  { href: "/admin/growth/assistente", label: "Assistente DGN", icon: Sparkles },
 ];
 
 // Rotas que não devem ser envolvidas pelo shell (login, callbacks, etc).
