@@ -46,3 +46,13 @@ next-dev.out.log
 next-env.d.ts
 
 .vercel
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/tests/e2e/.fixture-legacy-id
+
+# artefatos incidentais (perfis temporários de browser, etc)
+/.tmp-production-session-profile/

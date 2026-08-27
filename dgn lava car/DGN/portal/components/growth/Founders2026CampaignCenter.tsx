@@ -228,18 +228,20 @@ export function Founders2026CampaignCenter() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <section className="mb-5 rounded-lg border border-[#C9A84C]/18 bg-[#111111] p-4">
-          <div className="flex gap-3">
-            <ShieldAlert size={18} className="mt-0.5 shrink-0 text-[#C9A84C]" />
-            <div>
-              <p className="text-sm font-semibold text-white">Uso interno</p>
-              <p className="mt-1 text-xs leading-relaxed text-[#9CA3AF]">
-                Esta rota deve ser protegida por autenticação/admin antes de uso real em produção.
-                Nesta etapa, não há integração com WhatsApp Business API, 4U ou banco definitivo.
-              </p>
+        {process.env.NODE_ENV !== "production" ? (
+          <section className="mb-5 rounded-lg border border-[#C9A84C]/18 bg-[#111111] p-4">
+            <div className="flex gap-3">
+              <ShieldAlert size={18} className="mt-0.5 shrink-0 text-[#C9A84C]" />
+              <div>
+                <p className="text-sm font-semibold text-white">Uso interno</p>
+                <p className="mt-1 text-xs leading-relaxed text-[#9CA3AF]">
+                  Esta rota deve ser protegida por autenticação/admin antes de uso real em produção.
+                  Nesta etapa, não há integração com WhatsApp Business API, 4U ou banco definitivo.
+                </p>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        ) : null}
 
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <MetricCard label="Total de convidados" value={String(stats.totalGuests)} />

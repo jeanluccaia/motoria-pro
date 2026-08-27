@@ -1,82 +1,138 @@
-import Link from "next/link";
-import { ArrowRight, Brain, Crown, ShieldCheck, UserCheck } from "lucide-react";
+import { loadGrowthData } from "@/lib/growth/db/growth-reader";
+import { KNOWN_SUBSCRIBERS_2026_08_16 } from "@/lib/growth/known-subscribers";
+import type { DgnCustomer } from "@/lib/growth/dgn-growth-data";
+import { AlertTriangle } from "lucide-react";
 
-const modules = [
-  {
-    href: "/admin/growth/intelligence",
-    eyebrow: "Base e score",
-    title: "DGN Intelligence",
-    text: "Visualize, filtre e priorize clientes atendidos desde 2025 pela base DGN Intelligence.",
-    icon: Brain,
-  },
-  {
-    href: "/admin/growth/curadoria",
-    eyebrow: "Conhecimento humano",
-    title: "Curadoria DGN",
-    text: "Transforme a leitura comercial em dados estruturados de relacionamento.",
-    icon: UserCheck,
-  },
-  {
-    href: "/admin/growth/founders-2026",
-    eyebrow: "Campanha ativa",
-    title: "Founders 2026",
-    text: "Acompanhe os 30 convites, mensagens manuais, status e conversões.",
-    icon: Crown,
-  },
-  {
-    href: "/admin/growth/assinantes-detectados",
-    eyebrow: "Fila operacional",
-    title: "Assinantes detectados",
-    text: "Assinantes com evidência 4uCar aguardando validação humana — fora da fila de aquisição.",
-    icon: ShieldCheck,
-  },
-];
+export const dynamic = "force-dynamic";
 
-export default function DgnGrowthPage() {
+type DashboardMetrics = {
+  activeSubscribers: number;
+  pendingRenewal: number;
+  confirmedFounders: number;
+  activeInvites: number;
+  awaitingCuration: number;
+  dataOrigin: "json" | "db" | "json-fallback";
+  loadError: string | null;
+};
+
+async function computeMetrics(): Promise<DashboardMetrics> {
+  const activeSubscribers = KNOWN_SUBSCRIBERS_2026_08_16.filter((s) => s.status === "ativo").length;
+  const pendingRenewal = KNOWN_SUBSCRIBERS_2026_08_16.filter(
+    (s) => s.status === "renovacao_pendente",
+  ).length;
+  const confirmedFounders = KNOWN_SUBSCRIBERS_2026_08_16.filter(
+    (s) => s.preservedFounderNumber || s.isReopenedFounder,
+  ).length;
+
+  try {
+    const data = await loadGrowthData({ logger: console });
+    const activeInvites = data.customers.filter(
+      (c: DgnCustomer) => Boolean(c.campaign.personalizedPagePath),
+    ).length;
+    const awaitingCuration = data.customers.filter(
+      (c: DgnCustomer) => c.commercialStatus === "Aguardando Curadoria DGN",
+    ).length;
+    return {
+      activeSubscribers,
+      pendingRenewal,
+      confirmedFounders,
+      activeInvites,
+      awaitingCuration,
+      dataOrigin: data.origin,
+      loadError: null,
+    };
+  } catch (error) {
+    return {
+      activeSubscribers,
+      pendingRenewal,
+      confirmedFounders,
+      activeInvites: 0,
+      awaitingCuration: 0,
+      dataOrigin: "json",
+      loadError: error instanceof Error ? error.message : "Erro inesperado.",
+    };
+  }
+}
+
+export default async function DgnAdminDashboardPage() {
+  const m = await computeMetrics();
+
   return (
-    <main className="min-h-screen bg-[#080808] px-4 py-10 text-white sm:px-6 lg:px-8">
+    <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        <header className="border-b border-white/[0.06] pb-10">
+        <header className="border-b border-white/[0.06] pb-6">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
-            DGN Growth
+            Visão geral
           </p>
-          <h1 className="mt-3 max-w-3xl text-3xl font-semibold leading-[1.1] tracking-tight sm:text-5xl">
-            Central de relacionamento e curadoria.
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+            Dashboard
           </h1>
-          <p className="mt-5 max-w-2xl text-sm leading-relaxed text-[#A7A7A7]">
-            Intelligence, curadoria e campanhas em uma única mesa de operação para a base ativa desde 2025.
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">
+            Base viva DGN. Números vêm da operação atual — nada é estimado ou projetado.
           </p>
         </header>
 
-        <section className="mt-10 grid gap-4 lg:grid-cols-3">
-          {modules.map((module) => {
-            const Icon = module.icon;
+        {m.loadError ? (
+          <div className="mt-6 flex items-start gap-3 rounded-xl border border-amber-300/20 bg-amber-300/[0.03] p-4 text-sm text-amber-200/90">
+            <AlertTriangle size={18} className="mt-0.5 shrink-0" />
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-300">
+                Fonte de dados indisponível
+              </p>
+              <p className="mt-1 leading-relaxed">
+                Curadoria e convites não carregaram — mostrando apenas números da base
+                consolidada.
+                <span className="ml-1 text-amber-200/60">({m.loadError})</span>
+              </p>
+            </div>
+          </div>
+        ) : null}
 
-            return (
-              <Link
-                key={module.href}
-                href={module.href}
-                className="group rounded-2xl border border-white/[0.06] bg-[#101010] p-6 transition hover:border-[#C9A84C]/40"
-              >
-                <div className="flex items-start justify-between gap-5">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#C9A84C]/10 text-[#C9A84C]">
-                    <Icon size={22} />
-                  </div>
-                  <ArrowRight
-                    size={20}
-                    className="text-[#C9A84C]/70 transition group-hover:translate-x-1 group-hover:text-[#C9A84C]"
-                  />
-                </div>
-                <p className="mt-8 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
-                  {module.eyebrow}
-                </p>
-                <h2 className="mt-2 text-xl font-semibold text-white">{module.title}</h2>
-                <p className="mt-3 text-sm leading-relaxed text-[#A7A7A7]">{module.text}</p>
-              </Link>
-            );
-          })}
+        <section
+          className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+          data-testid="dashboard-metrics"
+        >
+          <MetricCard label="Assinantes ativos" value={m.activeSubscribers} />
+          <MetricCard label="Founders confirmados" value={m.confirmedFounders} tone="gold" />
+          <MetricCard label="Convites ativos" value={m.activeInvites} tone="gold" hidden={m.loadError !== null} />
+          <MetricCard label="Aguardando curadoria" value={m.awaitingCuration} hidden={m.loadError !== null} />
+          <MetricCard label="Renovação pendente" value={m.pendingRenewal} tone="warn" />
         </section>
+
+        <p className="mt-6 text-[11px] text-white/40">
+          Fonte:{" "}
+          {m.dataOrigin === "db"
+            ? "Supabase (operação em tempo real)"
+            : m.dataOrigin === "json-fallback"
+              ? "JSON local (fallback temporário)"
+              : "JSON local"}
+        </p>
       </div>
-    </main>
+    </div>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  tone = "neutral",
+  hidden = false,
+}: {
+  label: string;
+  value: number;
+  tone?: "neutral" | "gold" | "warn";
+  hidden?: boolean;
+}) {
+  if (hidden) return null;
+  const toneClasses = {
+    neutral: "border-white/[0.08] bg-white/[0.02] text-white",
+    gold: "border-[#C9A84C]/25 bg-[#C9A84C]/[0.04] text-[#E7C96A]",
+    warn: "border-amber-300/25 bg-amber-300/[0.03] text-amber-200",
+  }[tone];
+  return (
+    <div className={`rounded-xl border p-4 ${toneClasses}`}>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] opacity-70">{label}</p>
+      <p className="mt-3 text-3xl font-semibold tabular-nums">{value}</p>
+    </div>
   );
 }

@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ArrowLeft,
   ArrowRight,
   BadgeCheck,
   Banknote,
@@ -390,11 +391,9 @@ export function DgnGrowthWorkspace({
   };
 
   return (
-    <div className="min-h-screen bg-[#080808] text-white">
-      <GrowthHeader current={view} dataOrigin={dataOrigin} />
-
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {readOnly ? <div className="mb-5 rounded-xl border border-[#C9A84C]/20 bg-[#C9A84C]/[0.06] px-4 py-3 text-xs text-[#E7C96A]">{dataOrigin === "db" ? "Dados comerciais e de curadoria podem ser editados. Dados operacionais e calculados permanecem protegidos." : "Fonte local somente leitura · mudanças não são salvas."}</div> : null}
+    <div className="min-h-full bg-[#080808] text-white">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        {readOnly && (dataOrigin === "db" || process.env.NODE_ENV !== "production") ? <div className="mb-5 rounded-xl border border-[#C9A84C]/20 bg-[#C9A84C]/[0.06] px-4 py-3 text-xs text-[#E7C96A]">{dataOrigin === "db" ? "Dados comerciais e de curadoria podem ser editados. Dados operacionais e calculados permanecem protegidos." : "Fonte local somente leitura · mudanças não são salvas."}</div> : null}
         {notice ? (
           <div className="fixed right-4 top-4 z-[70] rounded-xl border border-[#C9A84C]/30 bg-[#111111] px-4 py-3 text-sm font-semibold text-[#E7C96A] shadow-2xl">
             {notice}
@@ -515,57 +514,6 @@ export function DgnGrowthWorkspace({
         />
       ) : null}
     </div>
-  );
-}
-
-// ============================================================================
-// Header
-// ============================================================================
-function GrowthHeader({ current, dataOrigin }: { current: GrowthView; dataOrigin: "json" | "db" | "json-fallback" }) {
-  const links = [
-    { href: "/admin/growth/intelligence", label: "Intelligence", view: "intelligence" },
-    { href: "/admin/growth/curadoria", label: "Curadoria", view: "curadoria" },
-    { href: "/admin/growth/founders-2026", label: "Founders 2026", view: "founders" },
-  ];
-
-  return (
-    <header className="border-b border-white/[0.06] bg-[#0B0B0B]/95 px-4 py-6 backdrop-blur sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
-            DGN Growth
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-            Central de relacionamento
-          </h1>
-          <p className="mt-2 text-[11px] text-[#777]">Fonte: {dataOrigin === "db" ? "Supabase" : dataOrigin === "json-fallback" ? "JSON local temporário" : "JSON local"}</p>
-        </div>
-
-        <nav className="flex flex-wrap items-center gap-2">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`inline-flex min-h-9 items-center gap-2 rounded-xl border px-3 text-sm font-semibold transition ${
-                current === link.view
-                  ? "border-[#C9A84C]/35 bg-[#C9A84C]/10 text-[#E7C96A]"
-                  : "border-white/[0.06] bg-white/[0.03] text-[#D1D5DB] hover:border-[#C9A84C]/25"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-          <form action="/admin/growth/logout" method="post" className="inline-flex">
-            <button
-              type="submit"
-              className="inline-flex min-h-9 items-center gap-2 rounded-xl border border-white/[0.06] bg-transparent px-3 text-sm font-semibold text-[#6B6B6B] transition hover:border-red-500/30 hover:text-red-400"
-            >
-              Sair
-            </button>
-          </form>
-        </nav>
-      </div>
-    </header>
   );
 }
 
@@ -695,7 +643,15 @@ function IntelligenceView({
         ))}
       </div>
 
-      <CustomersTable customers={customers} total={totalFiltered} page={page} pageCount={pageCount} onPage={onPage} onOpenProfile={onOpenProfile} />
+      <CustomersTable
+        customers={customers}
+        total={totalFiltered}
+        page={page}
+        pageCount={pageCount}
+        onPage={onPage}
+        onOpenProfile={onOpenProfile}
+        filterKey={`${query}|${statusFilter}|${planFilter}|${scoreFilter}|${sortBy}|${page}`}
+      />
     </>
   );
 }
@@ -767,6 +723,7 @@ function CustomersTable({
   pageCount,
   onPage,
   onOpenProfile,
+  filterKey,
 }: {
   customers: DgnCustomer[];
   total: number;
@@ -774,6 +731,7 @@ function CustomersTable({
   pageCount: number;
   onPage: (page: number) => void;
   onOpenProfile: (id: string) => void;
+  filterKey: string;
 }) {
   return (
     <section className="mt-5 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#101010]">
@@ -786,7 +744,43 @@ function CustomersTable({
         </div>
         <span className="text-xs text-[#7D7D7D]">{total} resultados · até 50 por página</span>
       </div>
-      <div className="overflow-x-auto">
+      {/* Mobile: cards verticais tocáveis (< lg) */}
+      <div className="block space-y-2 p-3 lg:hidden">
+        {customers.map((customer, index) => (
+          <button
+            key={`${filterKey}|${customer.id}`}
+            type="button"
+            data-testid="intel-customer-card"
+            onClick={() => onOpenProfile(customer.id)}
+            style={{ animationDelay: `${Math.min(index * 22, 260)}ms` }}
+            className="intelligence-row-in flex w-full items-start gap-3 rounded-2xl border border-white/[0.05] bg-white/[0.02] p-3 text-left transition hover:border-[#C9A84C]/30 active:bg-white/[0.04]"
+          >
+            <Avatar name={customer.name} />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-white">{customer.name}</p>
+                  <p className="mt-0.5 truncate text-xs text-[#9CA3AF]">{customer.vehicle}</p>
+                </div>
+                <ScorePill score={customer.scoreDgn} />
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <StatusBadge label={customer.commercialStatus} />
+                <span className="text-[11px] text-[#8A8A8A]">{customer.recommendedPlan}</span>
+              </div>
+              <p className="mt-1 text-[10px] uppercase tracking-wider text-[#5F5F5F]">Últ. atend.: {customer.lastAttendance}</p>
+            </div>
+          </button>
+        ))}
+        {customers.length === 0 ? (
+          <div className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-6 text-center text-xs text-[#7D7D7D]">
+            Nenhum cliente com estes filtros.
+          </div>
+        ) : null}
+      </div>
+
+      {/* Desktop: tabela tradicional (>= lg) */}
+      <div className="hidden overflow-x-auto lg:block">
         <table className="w-full min-w-[960px] border-collapse">
           <thead>
             <tr className="border-b border-white/[0.06] text-left">
@@ -813,8 +807,9 @@ function CustomersTable({
           <tbody>
             {customers.map((customer, index) => (
               <tr
-                key={customer.id}
-                className={`border-b border-white/[0.04] transition hover:bg-white/[0.02] ${
+                key={`${filterKey}|${customer.id}`}
+                style={{ animationDelay: `${Math.min(index * 18, 220)}ms` }}
+                className={`intelligence-row-in border-b border-white/[0.04] transition hover:bg-white/[0.02] ${
                   index % 2 === 1 ? "bg-white/[0.012]" : ""
                 }`}
               >
@@ -842,7 +837,7 @@ function CustomersTable({
                 <td className="px-4 py-3">
                   <button
                     onClick={() => onOpenProfile(customer.id)}
-                    className="inline-flex min-h-8 items-center gap-2 rounded-xl border border-[#C9A84C]/25 bg-[#C9A84C]/10 px-3 text-xs font-semibold text-[#E7C96A] transition hover:border-[#C9A84C]/45"
+                    className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[#C9A84C]/25 bg-[#C9A84C]/10 px-3 text-xs font-semibold text-[#E7C96A] transition hover:border-[#C9A84C]/45"
                   >
                     <PanelRight size={13} />
                     Abrir
@@ -1034,9 +1029,23 @@ function CurationView({
   const pageCount = Math.max(1, Math.ceil(filteredCustomers.length / pageSize));
   const pagedCustomers = filteredCustomers.slice((page - 1) * pageSize, page * pageSize);
 
+  // mobileView controla apenas layouts < lg. Em lg+ o grid renderiza ambos.
+  // Padrão "lista" — user chega na Curadoria vendo a lista, não o detalhe
+  // do primeiro cliente empilhado.
+  const [mobileView, setMobileView] = useState<"list" | "detail">("list");
+  const handleSelect = (id: string) => {
+    onSelect(id);
+    setMobileView("detail");
+  };
+
   return (
     <section className="grid gap-4 lg:grid-cols-[22rem_1fr] lg:items-stretch lg:h-[calc(100dvh-10rem)]">
-      <div className="flex flex-col rounded-2xl border border-white/[0.06] bg-[#101010] lg:overflow-hidden">
+      <div
+        data-testid="curation-list"
+        className={`flex flex-col rounded-2xl border border-white/[0.06] bg-[#101010] lg:overflow-hidden lg:block ${
+          mobileView === "list" ? "flex" : "hidden"
+        }`}
+      >
         <div className="shrink-0 border-b border-white/[0.06] p-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
             Curadoria DGN
@@ -1129,15 +1138,60 @@ function CurationView({
         </div>
         <div className="p-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
           {pagedCustomers.length === 0 ? (
-            <div className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-6 text-center text-xs text-[#7D7D7D]">
-              Nenhum candidato elegível com estes filtros.
-            </div>
+            (() => {
+              const hasActiveFilters =
+                curationFilter !== "Todos" ||
+                curationPlanFilter !== "Todos" ||
+                curationModalityFilter !== "Todos" ||
+                query.trim() !== "";
+              const clearFilters = () => {
+                onCurationFilter("Todos");
+                onCurationPlanFilter("Todos");
+                onCurationModalityFilter("Todos");
+                onQuery("");
+              };
+              return (
+                <div
+                  data-testid="curation-empty-state"
+                  className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-6 text-center"
+                >
+                  <p className="text-xs text-[#9CA3AF]">
+                    {hasActiveFilters
+                      ? "Nenhum candidato elegível com estes filtros."
+                      : "Nenhum candidato elegível no momento."}
+                  </p>
+                  <p className="mt-2 text-[11px] text-[#7D7D7D]">
+                    <span className="font-semibold text-white">{eligibleCustomers.length}</span> elegíve{eligibleCustomers.length === 1 ? "l" : "is"} na base
+                    {acquisitionEligibleCustomers.removedSubscribers > 0 ? (
+                      <>
+                        {" · "}
+                        <span>{acquisitionEligibleCustomers.removedSubscribers} assinante(s) oculto(s)</span>
+                      </>
+                    ) : null}
+                  </p>
+                  {hasActiveFilters ? (
+                    <button
+                      type="button"
+                      data-testid="curation-empty-clear-filters"
+                      onClick={clearFilters}
+                      className="mt-4 inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#C9A84C]/25 bg-[#C9A84C]/10 px-3 text-xs font-semibold text-[#E7C96A] transition hover:border-[#C9A84C]/45"
+                    >
+                      Limpar filtros
+                    </button>
+                  ) : null}
+                </div>
+              );
+            })()
           ) : (
-            pagedCustomers.map((customer) => (
+            pagedCustomers.map((customer, index) => (
               <button
-                key={customer.id}
-                onClick={() => onSelect(customer.id)}
-                className={`mb-2 w-full rounded-2xl border p-3 text-left transition ${
+                // key inclui filtro/ordenação/página/busca pra remount → dispara curation-item-in
+                key={`${curationFilter}|${curationPlanFilter}|${curationModalityFilter}|${curationSort}|${query}|${page}|${customer.id}`}
+                data-testid="curation-list-item"
+                data-customer-id={customer.id}
+                onClick={() => handleSelect(customer.id)}
+                style={{ animationDelay: `${Math.min(index * 22, 260)}ms` }}
+                className={`curation-item-in mb-2 w-full rounded-2xl border p-3 text-left transition ${
                   selectedCustomer.id === customer.id
                     ? "border-[#C9A84C]/35 bg-[#C9A84C]/10"
                     : "border-white/[0.05] bg-white/[0.02] hover:border-white/[0.12]"
@@ -1166,7 +1220,22 @@ function CurationView({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/[0.06] bg-[#101010] p-5 lg:overflow-y-auto lg:max-h-[calc(100dvh-10rem)]">
+      <div
+        data-testid="curation-detail"
+        className={`rounded-2xl border border-white/[0.06] bg-[#101010] p-5 lg:overflow-y-auto lg:max-h-[calc(100dvh-10rem)] lg:block ${
+          mobileView === "detail" ? "block" : "hidden"
+        }`}
+      >
+        {/* Botão voltar aparece apenas em mobile (< lg). Doc seção 5. */}
+        <button
+          type="button"
+          data-testid="curation-back-to-list"
+          onClick={() => setMobileView("list")}
+          className="mb-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm font-semibold text-[#E7C96A] transition hover:border-[#C9A84C]/35 lg:hidden"
+        >
+          <ArrowLeft size={16} />
+          Voltar para clientes
+        </button>
         {dataOrigin !== "db" ? (
           <div className="mb-4 rounded-xl border border-amber-400/30 bg-amber-400/[0.06] px-3 py-2 text-[11px] text-amber-200">
             Curadoria em modo somente-leitura ({dataOrigin === "json-fallback" ? "fallback local" : "JSON local"}).
@@ -1595,7 +1664,80 @@ function FoundersView({
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Mobile: cards verticais (< lg) */}
+        <div className="block space-y-2 p-3 lg:hidden">
+          {founderRows.map((row) => {
+            const customer = row as DgnCustomer & { isSlot?: boolean };
+            const isSlot = customer.isSlot;
+            const status = customer.campaign.campaignStatus || "Selecionado";
+            return (
+              <div
+                key={customer.id}
+                data-testid="founder-card-mobile"
+                className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-3"
+              >
+                <div className="flex items-start gap-3">
+                  <button
+                    type="button"
+                    disabled={isSlot}
+                    onClick={() => onOpenProfile(customer.id)}
+                    className="flex flex-1 items-start gap-3 text-left disabled:cursor-not-allowed"
+                  >
+                    {isSlot ? (
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-dashed border-white/[0.12] text-[#4B5563]">
+                        <Crown size={13} />
+                      </div>
+                    ) : (
+                      <Avatar name={customer.name} />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#C9A84C]/22 bg-[#C9A84C]/8 px-2 py-0.5 text-[10px] font-semibold text-[#E7C96A]">
+                          <Crown size={10} />
+                          {customer.campaign.founderNumber || "000"}
+                        </span>
+                        <span className="truncate text-sm font-semibold text-white">{customer.name}</span>
+                      </div>
+                      <p className="mt-1 truncate text-xs text-[#9CA3AF]">{customer.vehicle}</p>
+                      <div className="mt-2">
+                        <StatusBadge label={isSlot ? "Slot disponivel" : `${customer.campaign.founderStatus ?? "nao_avaliado"} · ${status}`} />
+                      </div>
+                    </div>
+                  </button>
+                </div>
+                {!isSlot ? (
+                  <div className="mt-3 grid grid-cols-4 gap-2">
+                    <IconButton
+                      label="Abrir perfil"
+                      icon={PanelRight}
+                      onClick={() => onOpenProfile(customer.id)}
+                    />
+                    <IconButton
+                      label="Abrir WhatsApp"
+                      icon={MessageCircle}
+                      onClick={() => onOpenWhatsapp(customer)}
+                      highlight="green"
+                    />
+                    <IconButton
+                      label="Copiar mensagem"
+                      icon={copiedKey === `message-${customer.id}` ? Check : Copy}
+                      onClick={() => onCopy(customer)}
+                    />
+                    <IconButton
+                      label={copiedLinkKey === customer.id ? "Link copiado" : "Copiar link"}
+                      icon={copiedLinkKey === customer.id ? Check : ExternalLink}
+                      disabled={!customer.campaign.personalizedPagePath}
+                      onClick={() => onCopyLink(customer)}
+                    />
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop: tabela tradicional */}
+        <div className="hidden overflow-x-auto lg:block">
           <table className="w-full min-w-[960px] border-collapse">
             <thead>
               <tr className="border-b border-white/[0.06] text-left">
@@ -1712,11 +1854,11 @@ function FoundersView({
                           <Link
                             href={customer.campaign.paymentLink}
                             target="_blank"
-                            className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] text-[#BDBDBD] transition hover:border-[#C9A84C]/35 hover:text-[#E7C96A]"
+                            className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] text-[#BDBDBD] transition hover:border-[#C9A84C]/35 hover:text-[#E7C96A]"
                             title="Link de pagamento"
                             aria-label="Link de pagamento"
                           >
-                            <Banknote size={13} />
+                            <Banknote size={16} />
                           </Link>
                         ) : (
                           <IconButton label="Pagamento pendente" icon={Banknote} disabled onClick={() => {}} />
@@ -1796,52 +1938,88 @@ function CustomerDrawer({
   canPersistCommercial: boolean;
   onCommercialSaved: (id: string, commercial: NonNullable<DgnCustomer["commercial"]>) => void;
 }) {
-  return (
-    <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-white/[0.06] bg-[#0D0D0D] shadow-2xl sm:w-[36rem]">
-      <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
-        <div className="flex items-center gap-3">
-          <Avatar name={customer.name} />
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">
-              Perfil individual
-            </p>
-            <h2 className="text-base font-semibold text-white">{customer.name}</h2>
-          </div>
-        </div>
-        <button
-          onClick={onClose}
-          aria-label="Fechar perfil"
-          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] text-[#A7A7A7] transition hover:text-white"
-        >
-          <X size={16} />
-        </button>
-      </div>
-      <div className="flex-1 overflow-y-auto px-5 py-5">
-        <CustomerProfileInline
-          customer={customer}
-          tab={tab}
-          onTabChange={onTabChange}
-          copied={copied}
-          onPatch={onPatch}
-          onOpenWhatsapp={onOpenWhatsapp}
-          onCopy={onCopy}
-          canPersistCommercial={canPersistCommercial}
-          onCommercialSaved={onCommercialSaved}
-        />
-      </div>
+  // Body scroll lock enquanto o drawer estiver aberto. Também fecha em Escape.
+  useEffect(() => {
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
 
-      {/* CTA fixo no rodapé */}
-      <div className="border-t border-white/[0.06] bg-[#0B0B0B] px-5 py-4">
-        <button
-          onClick={() => onOpenWhatsapp(customer)}
-          disabled={!customer.phone}
-          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#22C55E]/12 border border-[#22C55E]/25 text-sm font-semibold text-[#4ADE80] transition hover:bg-[#22C55E]/16 disabled:cursor-not-allowed disabled:opacity-40"
+  return (
+    <>
+      {/* Backdrop clicável — em mobile ocupa a tela; em desktop escurece o fundo à esquerda do aside */}
+      <button
+        type="button"
+        aria-label="Fechar perfil"
+        data-testid="drawer-backdrop"
+        onClick={onClose}
+        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+      />
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Perfil de ${customer.name}`}
+        data-testid="customer-drawer"
+        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-white/[0.06] bg-[#0D0D0D] shadow-2xl sm:w-[36rem]"
+      >
+        <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3 sm:px-5 sm:py-4" style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}>
+          <div className="flex items-center gap-3">
+            <Avatar name={customer.name} />
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">
+                Perfil individual
+              </p>
+              <h2 className="text-base font-semibold text-white">{customer.name}</h2>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar perfil"
+            data-testid="drawer-close"
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] text-[#A7A7A7] transition hover:text-white"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-5 sm:py-5">
+          <CustomerProfileInline
+            customer={customer}
+            tab={tab}
+            onTabChange={onTabChange}
+            copied={copied}
+            onPatch={onPatch}
+            onOpenWhatsapp={onOpenWhatsapp}
+            onCopy={onCopy}
+            canPersistCommercial={canPersistCommercial}
+            onCommercialSaved={onCommercialSaved}
+          />
+        </div>
+
+        {/* CTA fixo no rodapé — pb-safe garante que fique acima do home indicator em iPhone */}
+        <div
+          className="border-t border-white/[0.06] bg-[#0B0B0B] px-4 pt-3 sm:px-5 sm:pt-4"
+          style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
         >
-          <MessageCircle size={16} />
-          {customer.phone ? "Abrir WhatsApp" : "Telefone não cadastrado"}
-        </button>
-      </div>
-    </aside>
+          <button
+            type="button"
+            onClick={() => onOpenWhatsapp(customer)}
+            disabled={!customer.phone}
+            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#22C55E]/12 border border-[#22C55E]/25 text-sm font-semibold text-[#4ADE80] transition hover:bg-[#22C55E]/16 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <MessageCircle size={16} />
+            {customer.phone ? "Abrir WhatsApp" : "Telefone não cadastrado"}
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }
 
@@ -2144,6 +2322,16 @@ function FounderCurationEditor({
   // categoria e chamar `replace`. Fechado por padrão para não competir com o
   // fluxo de leitura do "CONVITE PRONTO".
   const [alterMode, setAlterMode] = useState(false);
+  // Refs para trazer o CTA à viewport quando o input de motivo receber foco
+  // (evita que o teclado mobile cubra "Confirmar nova oferta" ou "Gerar convite Founder").
+  const confirmReplaceButtonRef = useRef<HTMLButtonElement | null>(null);
+  const generateInviteButtonRef = useRef<HTMLButtonElement | null>(null);
+  const scrollButtonIntoView = (ref: React.RefObject<HTMLButtonElement | null>) => {
+    // setTimeout desloca a chamada para depois do resize inicial da viewport quando o teclado abre.
+    window.setTimeout(() => {
+      ref.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+    }, 250);
+  };
   const plan = planCode ? founderPlanDefinitions.find((item) => item.planCode === planCode) : null;
   const offer = planCode && contractingMode ? getFounderOffer(planCode, contractingMode, vehicleCategory || null) : null;
   const offerValidated = offer ? isCombinationValidatedForPublication(offer) : false;
@@ -2301,21 +2489,50 @@ function FounderCurationEditor({
               Versão {current.publicLink.version}.{" "}
               {current.inviteSentAt ? "Já marcado como enviado." : "Ainda não marcado como enviado — o operador decide o momento."}
             </p>
-            <div className="mt-2 rounded-lg border border-white/[0.06] bg-white/[0.02] p-2 text-[11px] text-white/80 break-all font-mono">{inviteCleanUrl}</div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Link href={invitePreviewPath} target="_blank" className="rounded-lg border border-white/15 px-3 py-2 text-[11px] font-semibold text-white/80 hover:text-white">Abrir preview</Link>
-              <button type="button" onClick={copyPublicLink} className="rounded-lg border border-white/15 px-3 py-2 text-[11px] font-semibold text-white/80 hover:text-white">Copiar link</button>
-              <button type="button" onClick={openInviteWhatsapp} disabled={!customer.phone} className="rounded-lg bg-emerald-500/90 px-3 py-2 text-[11px] font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40" title="Abre o WhatsApp — não marca envio automaticamente">
+            <div className="mt-2 rounded-lg border border-white/[0.06] bg-white/[0.02] p-2 text-[11px] text-white/80 break-all font-mono leading-relaxed">{inviteCleanUrl}</div>
+            {/* Grid 2 colunas em mobile (>=44px cada) e flex em desktop */}
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+              <Link
+                href={invitePreviewPath}
+                target="_blank"
+                data-testid="convite-abrir-preview"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-white/15 px-3 text-xs font-semibold text-white/80 hover:text-white"
+              >
+                Abrir preview
+              </Link>
+              <button
+                type="button"
+                onClick={copyPublicLink}
+                data-testid="convite-copiar-link"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-white/15 px-3 text-xs font-semibold text-white/80 hover:text-white"
+              >
+                Copiar link
+              </button>
+              <button
+                type="button"
+                onClick={openInviteWhatsapp}
+                disabled={!customer.phone}
+                data-testid="convite-abrir-whatsapp"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-500/90 px-3 text-xs font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40"
+                title="Abre o WhatsApp — não marca envio automaticamente"
+              >
                 Abrir WhatsApp
               </button>
-              <button type="button" disabled={saving || Boolean(current.inviteSentAt)} onClick={() => act("mark_sent")} className="rounded-lg border border-emerald-400/40 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-40">
+              <button
+                type="button"
+                disabled={saving || Boolean(current.inviteSentAt)}
+                onClick={() => act("mark_sent")}
+                data-testid="convite-marcar-enviado"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-emerald-400/40 bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-40"
+              >
                 {current.inviteSentAt ? "Convite marcado como enviado" : "Marcar enviado"}
               </button>
               <button
                 type="button"
                 disabled={saving || alterMode}
                 onClick={() => setAlterMode(true)}
-                className="rounded-lg border border-[#C9A84C]/40 bg-[#C9A84C]/10 px-3 py-2 text-[11px] font-semibold text-[#E7C96A] hover:bg-[#C9A84C]/20 disabled:opacity-40"
+                data-testid="convite-alterar-oferta"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#C9A84C]/40 bg-[#C9A84C]/10 px-3 text-xs font-semibold text-[#E7C96A] hover:bg-[#C9A84C]/20 disabled:opacity-40"
               >
                 Alterar oferta
               </button>
@@ -2323,7 +2540,8 @@ function FounderCurationEditor({
                 type="button"
                 disabled={saving}
                 onClick={() => act("revoke")}
-                className="rounded-lg border border-red-400/30 bg-red-500/5 px-3 py-2 text-[11px] font-semibold text-red-200/90 hover:bg-red-500/15"
+                data-testid="convite-revogar"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-red-400/30 bg-red-500/5 px-3 text-xs font-semibold text-red-200/90 hover:bg-red-500/15"
               >
                 Revogar convite
               </button>
@@ -2374,7 +2592,7 @@ function FounderCurationEditor({
                       type="button"
                       disabled={saving}
                       onClick={() => setVehicleCategory(cat)}
-                      className={`rounded-full border px-3 py-1 text-xs transition ${vehicleCategory === cat ? "border-[#C9A84C] bg-[#C9A84C]/10 text-[#E7C96A]" : "border-white/15 text-[#A7A7A7] hover:text-white"}`}
+                      className={`inline-flex min-h-11 items-center rounded-full border px-3 text-xs transition ${vehicleCategory === cat ? "border-[#C9A84C] bg-[#C9A84C]/10 text-[#E7C96A]" : "border-white/15 text-[#A7A7A7] hover:text-white"}`}
                     >
                       {vehicleCategoryLabels[cat]}
                     </button>
@@ -2389,15 +2607,21 @@ function FounderCurationEditor({
                   value={reason}
                   disabled={saving}
                   onChange={(event) => setReason(event.target.value)}
+                  onFocus={() => scrollButtonIntoView(confirmReplaceButtonRef)}
+                  enterKeyHint="done"
+                  inputMode="text"
                   placeholder="Ex.: cliente pediu upgrade para Smart"
-                  className="mt-2 h-9 w-full rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 text-xs text-white outline-none focus:border-[#C9A84C]/50"
+                  data-testid="alterar-oferta-motivo"
+                  className="mt-2 h-11 w-full rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 text-sm text-white outline-none focus:border-[#C9A84C]/50"
                 />
               </div>
               <button
                 type="button"
+                ref={confirmReplaceButtonRef}
                 disabled={saving || !planCode || !vehicleCategory || reason.trim().length < 3 || !offerValidated}
                 onClick={() => act("replace")}
-                className="mt-3 w-full rounded-xl bg-[#C9A84C] px-4 py-3 text-sm font-bold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+                data-testid="alterar-oferta-confirmar"
+                className="sticky bottom-2 z-10 mt-3 w-full rounded-xl bg-[#C9A84C] px-4 py-3 text-sm font-bold text-black shadow-lg shadow-black/30 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {saving ? "Alterando…" : "Confirmar nova oferta"}
               </button>
@@ -2443,7 +2667,7 @@ function FounderCurationEditor({
                   type="button"
                   disabled={saving}
                   onClick={() => setVehicleCategory(cat)}
-                  className={`rounded-full border px-3 py-1 text-xs transition ${vehicleCategory === cat ? "border-[#C9A84C] bg-[#C9A84C]/10 text-[#E7C96A]" : "border-white/15 text-[#A7A7A7] hover:text-white"}`}
+                  className={`inline-flex min-h-11 items-center rounded-full border px-3 text-xs transition ${vehicleCategory === cat ? "border-[#C9A84C] bg-[#C9A84C]/10 text-[#E7C96A]" : "border-white/15 text-[#A7A7A7] hover:text-white"}`}
                 >
                   {vehicleCategoryLabels[cat]}
                 </button>
@@ -2464,7 +2688,7 @@ function FounderCurationEditor({
                   type="button"
                   disabled={saving}
                   onClick={() => setReason(r)}
-                  className={`rounded-full border px-3 py-1 text-xs transition ${reason === r ? "border-[#C9A84C] bg-[#C9A84C]/10 text-[#E7C96A]" : "border-white/15 text-[#A7A7A7] hover:text-white"}`}
+                  className={`inline-flex min-h-11 items-center rounded-full border px-3 text-xs transition ${reason === r ? "border-[#C9A84C] bg-[#C9A84C]/10 text-[#E7C96A]" : "border-white/15 text-[#A7A7A7] hover:text-white"}`}
                 >
                   {r}
                 </button>
@@ -2474,7 +2698,11 @@ function FounderCurationEditor({
               type="text"
               placeholder="Observação opcional (aparece só internamente)"
               disabled={saving}
-              className="mt-2 h-9 w-full rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 text-xs text-white outline-none focus:border-[#C9A84C]/50"
+              enterKeyHint="done"
+              inputMode="text"
+              data-testid="gerar-convite-motivo"
+              onFocus={() => scrollButtonIntoView(generateInviteButtonRef)}
+              className="mt-2 h-11 w-full rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 text-sm text-white outline-none focus:border-[#C9A84C]/50"
               onChange={(event) => setReason(event.target.value)}
               value={reason}
             />
@@ -2482,9 +2710,11 @@ function FounderCurationEditor({
 
           <button
             type="button"
+            ref={generateInviteButtonRef}
             disabled={fastPathHardDisabled}
             onClick={handleGenerateInvite}
-            className="mt-4 w-full rounded-xl bg-[#C9A84C] px-4 py-3 text-sm font-bold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+            data-testid="gerar-convite-founder"
+            className="sticky bottom-2 z-10 mt-4 w-full rounded-xl bg-[#C9A84C] px-4 py-3 text-sm font-bold text-black shadow-lg shadow-black/30 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {saving ? "Gerando…" : "Gerar convite Founder"}
           </button>
@@ -2931,9 +3161,9 @@ function IconButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className={`flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] text-[#BDBDBD] transition disabled:cursor-not-allowed disabled:opacity-35 ${highlightClass}`}
+      className={`flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] text-[#BDBDBD] transition disabled:cursor-not-allowed disabled:opacity-35 ${highlightClass}`}
     >
-      <Icon size={13} />
+      <Icon size={16} />
     </button>
   );
 }
