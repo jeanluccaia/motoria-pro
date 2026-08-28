@@ -1,7 +1,11 @@
+import Link from "next/link";
 import { loadGrowthData } from "@/lib/growth/db/growth-reader";
 import { KNOWN_SUBSCRIBERS_2026_08_16 } from "@/lib/growth/known-subscribers";
 import type { DgnCustomer } from "@/lib/growth/dgn-growth-data";
-import { AlertTriangle } from "lucide-react";
+import { buildAgentContext } from "@/lib/growth/agent/agent-context";
+import { getDailyBriefing } from "@/lib/growth/agent/skills/daily-briefing";
+import type { DailyBriefing } from "@/lib/growth/agent/types";
+import { AlertTriangle, ArrowRight, Sparkles } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -54,8 +58,18 @@ async function computeMetrics(): Promise<DashboardMetrics> {
   }
 }
 
+async function loadBriefingSummary(): Promise<{ briefing: DailyBriefing | null; error: string | null }> {
+  try {
+    const ctx = await buildAgentContext();
+    const result = getDailyBriefing(ctx);
+    return { briefing: result.data ?? null, error: null };
+  } catch (error) {
+    return { briefing: null, error: error instanceof Error ? error.message : "Erro inesperado." };
+  }
+}
+
 export default async function DgnAdminDashboardPage() {
-  const m = await computeMetrics();
+  const [m, briefingSummary] = await Promise.all([computeMetrics(), loadBriefingSummary()]);
 
   return (
     <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
@@ -99,6 +113,8 @@ export default async function DgnAdminDashboardPage() {
           <MetricCard label="Renovação pendente" value={m.pendingRenewal} tone="warn" />
         </section>
 
+        <IntelligenceCard briefing={briefingSummary.briefing} error={briefingSummary.error} />
+
         <p className="mt-6 text-[11px] text-white/40">
           Fonte:{" "}
           {m.dataOrigin === "db"
@@ -109,6 +125,53 @@ export default async function DgnAdminDashboardPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+function IntelligenceCard({ briefing, error }: { briefing: DailyBriefing | null; error: string | null }) {
+  const totalHits = briefing
+    ? briefing.totals.founder + briefing.totals.curation + briefing.totals.subscriber
+    : 0;
+  const cardCount = briefing?.cards.length ?? 0;
+
+  const label = error
+    ? "Inteligência indisponível agora"
+    : cardCount === 0
+      ? "Nenhuma ação prioritária identificada"
+      : cardCount === 1
+        ? "1 ação merece atenção hoje"
+        : `${cardCount} ações merecem atenção hoje`;
+
+  return (
+    <section
+      aria-labelledby="dashboard-intelligence"
+      className="mt-6 flex flex-col gap-3 rounded-2xl border border-[#C9A84C]/20 bg-[#C9A84C]/[0.03] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
+    >
+      <div className="flex items-start gap-3">
+        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#C9A84C]/12 text-[#C9A84C]">
+          <Sparkles size={18} />
+        </span>
+        <div>
+          <p id="dashboard-intelligence" className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
+            Inteligência DGN
+          </p>
+          <p className="mt-1 text-sm text-white/90">{label}</p>
+          {briefing && !error ? (
+            <p className="mt-1 text-xs text-white/50">
+              {briefing.totals.founder} Founder · {briefing.totals.curation} Curadoria · {briefing.totals.subscriber} Assinantes
+              {totalHits === 0 ? " · sem sinais no momento" : ""}
+            </p>
+          ) : null}
+        </div>
+      </div>
+      <Link
+        href="/admin/growth/assistente"
+        className="inline-flex min-h-11 items-center justify-center gap-1.5 self-start rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/[0.08] px-4 text-sm font-medium text-[#E7C96A] transition hover:bg-[#C9A84C]/[0.14]"
+      >
+        Ver briefing
+        <ArrowRight size={14} />
+      </Link>
+    </section>
   );
 }
 
