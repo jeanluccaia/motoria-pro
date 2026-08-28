@@ -2,6 +2,7 @@ import { isFounderAcquisitionEligible } from "../../founder-eligibility.ts";
 import type { DgnCustomer } from "../../dgn-growth-data.ts";
 import type { AgentContext } from "../agent-context.ts";
 import type { NextActionSuggestion, SkillResult } from "../types.ts";
+import { customerProfileHref } from "../../customer-links.ts";
 
 // Sugere a próxima ação baseando-se somente em fatos presentes no snapshot.
 // Regras determinísticas — nunca "provavelmente vai comprar". Se não houver
@@ -91,9 +92,7 @@ export function suggestNextAction(ctx: AgentContext, customerId: string): SkillR
       customerId: customer.id,
       headline: pick.headline,
       rationale: pick.rationale,
-      href: customer.campaign?.personalizedPagePath
-        ? `/admin/growth/founders-2026?customer=${encodeURIComponent(customer.id)}`
-        : `/admin/growth/curadoria?customer=${encodeURIComponent(customer.id)}`,
+      href: customerProfileHref(customer.id),
     },
     facts: [`Status atual: ${customer.commercialStatus}.`],
     inferences: [pick.rationale],

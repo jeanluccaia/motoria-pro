@@ -2,6 +2,7 @@ import { isFounderAcquisitionEligible, matchKnownSubscriber } from "../../founde
 import type { DgnCustomer } from "../../dgn-growth-data.ts";
 import type { AgentContext } from "../agent-context.ts";
 import type { CustomerSummary, SkillResult } from "../types.ts";
+import { customerProfileHref } from "../../customer-links.ts";
 
 // Visão 360 de um cliente único. Só lê o que já existe no `DgnCustomer` +
 // resultado de elegibilidade + match contra base de assinantes. Nunca junta
@@ -92,9 +93,7 @@ export function getCustomerSummary(ctx: AgentContext, customerId: string): Skill
           status: subscriberMatch.record.status,
         }
       : undefined,
-    primaryHref: hasActiveInvite
-      ? `/admin/growth/founders-2026?customer=${encodeURIComponent(customer.id)}`
-      : `/admin/growth/curadoria?customer=${encodeURIComponent(customer.id)}`,
+    primaryHref: customerProfileHref(customer.id),
   };
 
   const facts = [

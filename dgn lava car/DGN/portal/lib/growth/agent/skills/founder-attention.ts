@@ -1,6 +1,7 @@
 import type { DgnCustomer } from "../../dgn-growth-data.ts";
 import type { AgentContext } from "../agent-context.ts";
 import type { AttentionCard, Priority, SkillResult } from "../types.ts";
+import { customerProfileHref } from "../../customer-links.ts";
 
 // Regras determinísticas para identificar convites Founder que precisam de
 // atenção. Nenhuma inferência inventada: cada bucket é apoiado por campos
@@ -107,8 +108,8 @@ export function getFounderAttention(
       title: customer.name,
       reason: bucket.reason,
       nextAction: bucket.nextAction,
-      href: `/admin/growth/founders-2026?customer=${encodeURIComponent(customer.id)}`,
-      ctaLabel: "Ver Founder",
+      href: customerProfileHref(customer.id),
+      ctaLabel: "Ver cliente",
       customerId: customer.id,
     });
   }

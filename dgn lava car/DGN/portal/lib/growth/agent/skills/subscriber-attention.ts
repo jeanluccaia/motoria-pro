@@ -3,6 +3,12 @@ import { matchKnownSubscriber } from "../../founder-eligibility.ts";
 import type { AgentContext } from "../agent-context.ts";
 import type { AttentionCard, SkillResult } from "../types.ts";
 import { sortByPriority } from "./founder-attention.ts";
+import { customerProfileHref } from "../../customer-links.ts";
+
+// Fallback quando não há cliente local resolvido (registro só na base viva
+// 4uCar, sem correspondência no snapshot do Growth) — nesse caso o operador
+// precisa entrar pela lista.
+const SUBSCRIBERS_LIST_FALLBACK = "/admin/growth/assinantes-detectados";
 
 // Assinantes com sinais de atenção — hoje sabemos com segurança de dois
 // cenários: renovação pendente (status na base 4uCar 2026-08-16) e assinatura
@@ -35,10 +41,8 @@ export function getSubscriberAttention(
       title: subscriber.name,
       reason: `Assinante ${subscriber.plan} com renovação pendente na base 4uCar.`,
       nextAction: "Resolver renovação antes de tratar como aquisição.",
-      href: match
-        ? `/admin/growth/assinantes-detectados`
-        : `/admin/growth/assinantes-detectados`,
-      ctaLabel: "Ver assinante",
+      href: match ? customerProfileHref(match.id) : SUBSCRIBERS_LIST_FALLBACK,
+      ctaLabel: match ? "Ver cliente" : "Abrir lista de assinantes",
       customerId: match?.id,
     });
   }
@@ -57,8 +61,8 @@ export function getSubscriberAttention(
       title: customer.name,
       reason: "Marcado como Assinante Ativo mas sem correspondência na base viva 4uCar.",
       nextAction: "Validar e migrar para a fila de Assinantes Detectados.",
-      href: `/admin/growth/assinantes-detectados`,
-      ctaLabel: "Ver assinante",
+      href: customerProfileHref(customer.id),
+      ctaLabel: "Ver cliente",
       customerId: customer.id,
     });
   }

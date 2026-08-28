@@ -3,6 +3,7 @@ import type { DgnCustomer } from "../../dgn-growth-data.ts";
 import type { AgentContext } from "../agent-context.ts";
 import type { AttentionCard, SkillResult } from "../types.ts";
 import { sortByPriority } from "./founder-attention.ts";
+import { customerProfileHref } from "../../customer-links.ts";
 
 // Curadoria de aquisição: elegíveis (via helper canônico) ordenados por score.
 // Usar `partitionByEligibility` garante que assinantes conhecidos, Founders
@@ -71,7 +72,7 @@ export function getCurationOpportunities(
       title: customer.name,
       reason: classified.reason,
       nextAction: "Iniciar curadoria e resolver plano recomendado.",
-      href: `/admin/growth/curadoria?customer=${encodeURIComponent(customer.id)}`,
+      href: customerProfileHref(customer.id),
       ctaLabel: "Ver cliente",
       customerId: customer.id,
     });
