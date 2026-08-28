@@ -99,23 +99,43 @@ function makeMockModel(script: MockScript): LanguageModel {
 // Resolver: env vazio → deterministic. Com key → llm.
 // ---------------------------------------------------------------------------
 
-test("resolveAgentProvider: sem ANTHROPIC_API_KEY → DeterministicAgentProvider", () => {
+const FULL_ENV = {
+  ANTHROPIC_API_KEY: "sk-test",
+  ANTHROPIC_WORKSPACE_ID: "wrkspc_test",
+} as unknown as NodeJS.ProcessEnv;
+
+test("resolveAgentProvider: sem envs → DeterministicAgentProvider", () => {
   const provider = resolveAgentProvider({} as NodeJS.ProcessEnv);
   assert.ok(provider instanceof DeterministicAgentProvider);
   assert.equal(detectProviderMode({} as NodeJS.ProcessEnv), "deterministic");
 });
 
-test("resolveAgentProvider: com ANTHROPIC_API_KEY → provider LLM (não determinístico)", () => {
-  const provider = resolveAgentProvider({ ANTHROPIC_API_KEY: "sk-test" } as NodeJS.ProcessEnv);
-  assert.ok(!(provider instanceof DeterministicAgentProvider));
-  assert.equal(detectProviderMode({ ANTHROPIC_API_KEY: "sk-test" } as NodeJS.ProcessEnv), "llm");
+test("resolveAgentProvider: só ANTHROPIC_API_KEY (falta workspace) → DeterministicAgentProvider", () => {
+  const partial = { ANTHROPIC_API_KEY: "sk-test" } as unknown as NodeJS.ProcessEnv;
+  const provider = resolveAgentProvider(partial);
+  assert.ok(provider instanceof DeterministicAgentProvider);
+  assert.equal(detectProviderMode(partial), "deterministic");
 });
 
-test("isAnthropicConfigured: reconhece chave presente e recusa string vazia", () => {
+test("resolveAgentProvider: com API_KEY + WORKSPACE_ID → provider LLM (não determinístico)", () => {
+  const provider = resolveAgentProvider(FULL_ENV);
+  assert.ok(!(provider instanceof DeterministicAgentProvider));
+  assert.equal(detectProviderMode(FULL_ENV), "llm");
+});
+
+test("isAnthropicConfigured: exige API_KEY E WORKSPACE_ID não vazios", () => {
   assert.equal(isAnthropicConfigured({} as NodeJS.ProcessEnv), false);
-  assert.equal(isAnthropicConfigured({ ANTHROPIC_API_KEY: "" } as NodeJS.ProcessEnv), false);
-  assert.equal(isAnthropicConfigured({ ANTHROPIC_API_KEY: "  " } as NodeJS.ProcessEnv), false);
-  assert.equal(isAnthropicConfigured({ ANTHROPIC_API_KEY: "sk-x" } as NodeJS.ProcessEnv), true);
+  assert.equal(isAnthropicConfigured({ ANTHROPIC_API_KEY: "" } as unknown as NodeJS.ProcessEnv), false);
+  assert.equal(isAnthropicConfigured({ ANTHROPIC_API_KEY: "sk-x" } as unknown as NodeJS.ProcessEnv), false);
+  assert.equal(
+    isAnthropicConfigured({ ANTHROPIC_API_KEY: "sk-x", ANTHROPIC_WORKSPACE_ID: "" } as unknown as NodeJS.ProcessEnv),
+    false,
+  );
+  assert.equal(
+    isAnthropicConfigured({ ANTHROPIC_API_KEY: "sk-x", ANTHROPIC_WORKSPACE_ID: "  " } as unknown as NodeJS.ProcessEnv),
+    false,
+  );
+  assert.equal(isAnthropicConfigured(FULL_ENV), true);
 });
 
 // ---------------------------------------------------------------------------

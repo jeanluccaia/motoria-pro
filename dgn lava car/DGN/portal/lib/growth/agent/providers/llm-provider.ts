@@ -8,6 +8,7 @@ import type { AgentProvider } from "./types.ts";
 import type { AgentQuery, AgentResponse, AgentResponseBlock } from "../types.ts";
 import { buildAgentTools, createAccumulator } from "../tools.ts";
 import { SYSTEM_PROMPT, SYSTEM_PROMPT_VERSION } from "../system-prompt.ts";
+import { createConfiguredAnthropicProvider, readAnthropicEnv } from "./anthropic-client.ts";
 
 // -----------------------------------------------------------------------------
 // LlmAgentProvider — orquestra tool calling multi-step usando Vercel AI SDK.
@@ -28,9 +29,14 @@ export interface LlmAgentProviderOptions {
   model?: LanguageModel;
 }
 
+/**
+ * Provider considerado configurado apenas quando temos AMBOS:
+ * - ANTHROPIC_API_KEY
+ * - ANTHROPIC_WORKSPACE_ID (obrigatório para chaves identity-linked)
+ * Sem qualquer um dos dois → fallback determinístico.
+ */
 export function isAnthropicConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
-  const key = env.ANTHROPIC_API_KEY?.trim();
-  return typeof key === "string" && key.length > 0;
+  return readAnthropicEnv(env).fullyConfigured;
 }
 
 export class LlmAgentProvider implements AgentProvider {
@@ -39,7 +45,15 @@ export class LlmAgentProvider implements AgentProvider {
 
   constructor(options: LlmAgentProviderOptions = {}) {
     this.modelId = options.modelId ?? DEFAULT_MODEL_ID;
-    this.model = options.model ?? anthropic(this.modelId);
+    if (options.model) {
+      this.model = options.model;
+    } else {
+      const provider = createConfiguredAnthropicProvider();
+      // Se as vars não estão setadas, cai no default `anthropic()` — mas nesse
+      // caso `isAnthropicConfigured` já é false e `resolveAgentProvider` nunca
+      // constrói essa classe. Mantido só para não quebrar testes antigos.
+      this.model = provider ? provider(this.modelId) : anthropic(this.modelId);
+    }
   }
 
   async converse(query: AgentQuery, ctx: AgentContext): Promise<AgentResponse> {

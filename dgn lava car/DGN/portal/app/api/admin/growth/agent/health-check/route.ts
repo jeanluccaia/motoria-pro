@@ -2,9 +2,9 @@ import "server-only";
 
 import type { NextRequest } from "next/server";
 import { generateText } from "ai";
-import { anthropic } from "@ai-sdk/anthropic";
 import { DGN_ADMIN_COOKIE, validateAdminSessionToken } from "@/lib/growth/admin-session";
 import { logLlmError } from "@/lib/growth/agent/agent-provider";
+import { createConfiguredAnthropicProvider } from "@/lib/growth/agent/providers/anthropic-client";
 
 // Health check admin-guarded. Executa uma chamada mínima ao Anthropic com a
 // MESMA configuração do LlmAgentProvider (modelo + temperature), SEM tools
@@ -37,9 +37,26 @@ export async function GET(request: NextRequest) {
 
   const startedAt = performance.now();
 
+  const provider = createConfiguredAnthropicProvider();
+  if (!provider) {
+    const payload: HealthResult = {
+      success: false,
+      model: HEALTH_MODEL_ID,
+      status: "error",
+      latencyMs: Math.round(performance.now() - startedAt),
+      error: {
+        name: "MissingAnthropicConfig",
+        status: null,
+        code: "missing_env",
+        message: "ANTHROPIC_API_KEY ou ANTHROPIC_WORKSPACE_ID ausente no runtime",
+      },
+    };
+    return Response.json(payload);
+  }
+
   try {
     const result = await generateText({
-      model: anthropic(HEALTH_MODEL_ID),
+      model: provider(HEALTH_MODEL_ID),
       messages: [{ role: "user", content: HEALTH_PROMPT }],
       temperature: HEALTH_TEMPERATURE,
     });
