@@ -46,75 +46,13 @@ class SafeLlmProvider implements AgentProvider {
     try {
       return await this.llm.converse(query, ctx);
     } catch (error) {
-      logLlmError("converse", error);
+      // Log server-side sanitizado — sem expor stack/secret ao browser.
+      console.warn(
+        "[DGN Agent] LLM indisponível, degradando para modo básico",
+        error instanceof Error ? error.message.slice(0, 200) : "erro desconhecido",
+      );
       const fallback = await this.deterministic.converse(query, ctx);
       return { ...fallback, providerMode: "deterministic-fallback" };
     }
   }
-}
-
-/**
- * Log server-side sanitizado de erro do LLM. Extrai class/name, HTTP status
- * e provider error code quando disponíveis. NUNCA loga API key, headers,
- * prompt ou dados de cliente. Formato single-line JSON para agregação.
- */
-export function logLlmError(scope: string, error: unknown): void {
-  const info = extractSanitizedErrorInfo(error);
-  console.warn(
-    "[dgn-agent-llm-error]",
-    JSON.stringify({
-      ts: new Date().toISOString(),
-      scope,
-      ...info,
-    }),
-  );
-}
-
-interface SanitizedErrorInfo {
-  name: string;
-  status: number | null;
-  code: string | null;
-  message: string;
-}
-
-function extractSanitizedErrorInfo(error: unknown): SanitizedErrorInfo {
-  const name = (error as { name?: unknown })?.name;
-  const rawMessage = (error as { message?: unknown })?.message;
-  const message = typeof rawMessage === "string" ? rawMessage.slice(0, 300) : "";
-
-  // Vercel AI SDK errors expõem statusCode / responseBody; Anthropic SDK
-  // expõe status/error.type. Cobrimos ambos sem tocar em headers.
-  const status = pickNumber([
-    (error as { status?: unknown })?.status,
-    (error as { statusCode?: unknown })?.statusCode,
-    (error as { response?: { status?: unknown } })?.response?.status,
-  ]);
-
-  const code = pickString([
-    (error as { code?: unknown })?.code,
-    (error as { error?: { type?: unknown } })?.error?.type,
-    (error as { data?: { error?: { type?: unknown } } })?.data?.error?.type,
-    (error as { type?: unknown })?.type,
-  ]);
-
-  return {
-    name: typeof name === "string" ? name : "UnknownError",
-    status,
-    code,
-    message,
-  };
-}
-
-function pickNumber(candidates: unknown[]): number | null {
-  for (const c of candidates) {
-    if (typeof c === "number" && Number.isFinite(c)) return c;
-  }
-  return null;
-}
-
-function pickString(candidates: unknown[]): string | null {
-  for (const c of candidates) {
-    if (typeof c === "string" && c.trim().length > 0) return c.trim().slice(0, 80);
-  }
-  return null;
 }
