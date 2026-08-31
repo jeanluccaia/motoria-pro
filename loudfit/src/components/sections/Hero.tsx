@@ -79,6 +79,19 @@ export function Hero() {
               Comece agora
             </Link>
           </div>
+
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-lf-volt/60 bg-lf-volt/15 px-3.5 py-1.5 backdrop-blur-sm md:mt-6">
+            <span className="relative flex h-2 w-2">
+              <span
+                aria-hidden="true"
+                className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lf-volt opacity-70 motion-reduce:hidden"
+              />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-lf-volt" />
+            </span>
+            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-lf-volt">
+              Oferta válida até 14/09
+            </span>
+          </div>
         </div>
       </div>
     </section>
