@@ -185,7 +185,7 @@ test("history longo é truncado ao cap 6 antes de ir para o LLM", async () => {
   } as unknown as LanguageModel;
 
   const history = Array.from({ length: 10 }, (_, i) => ({
-    role: (i % 2 === 0 ? "user" : "assistant") as const,
+    role: (i % 2 === 0 ? "user" : "assistant") as "user" | "assistant",
     content: `msg ${i}`,
   }));
   const provider = new LlmAgentProvider({ model });

@@ -3,6 +3,8 @@ import type { DgnCustomer } from "../../dgn-growth-data.ts";
 import type { AgentContext } from "../agent-context.ts";
 import type { CustomerSummary, SkillResult } from "../types.ts";
 import { customerProfileHref } from "../../customer-links.ts";
+import { formatDatePtBr } from "../../date-format.ts";
+import { buildDisplayIdentityRows, formatScoreDgn } from "../pii-display.ts";
 
 // Visão 360 de um cliente único. Só lê o que já existe no `DgnCustomer` +
 // resultado de elegibilidade + match contra base de assinantes. Nunca junta
@@ -51,15 +53,9 @@ export function getCustomerSummary(ctx: AgentContext, customerId: string): Skill
   const hasActiveInvite = Boolean(customer.campaign?.personalizedPagePath);
   const score = Number.isFinite(customer.scoreDgn) ? customer.scoreDgn : 0;
 
-  const identity = [
-    { label: "Nome", value: fallback(customer.name) },
-    { label: "Telefone", value: fallback(customer.phone) },
-    { label: "Veículo", value: fallback(customer.vehicle) },
-    { label: "Placa", value: fallback(customer.plate) },
-    { label: "Cliente desde", value: fallback(customer.customerSince) },
-    { label: "Último atendimento", value: fallback(customer.lastAttendance) },
-    { label: "Atendimentos", value: String(customer.washCount ?? 0) },
-  ];
+  // Helper canônico: telefone/placa mascarados (mesma política da UI de admin).
+  // Datas em pt-BR (dd/mm/yyyy). NUNCA envia PII completa ao LLM.
+  const identity = buildDisplayIdentityRows(customer);
 
   const commercial = [
     { label: "Status comercial", value: fallback(customer.commercialStatus) },
@@ -98,11 +94,11 @@ export function getCustomerSummary(ctx: AgentContext, customerId: string): Skill
 
   const facts = [
     `${customer.washCount ?? 0} atendimento(s) registrado(s).`,
-    `Último atendimento: ${fallback(customer.lastAttendance)}.`,
+    `Último atendimento: ${formatDatePtBr(customer.lastAttendance)}.`,
     `Status atual: ${fallback(customer.commercialStatus)}.`,
   ];
   const inferences: string[] = [];
-  if (score > 0) inferences.push(`Score ${score} → tier "${tierFor(score)}".`);
+  if (score > 0) inferences.push(`Score ${formatScoreDgn(score)} → tier "${tierFor(score)}".`);
   if (!eligibility.eligible && eligibility.operatorMessage) {
     inferences.push(eligibility.operatorMessage);
   }

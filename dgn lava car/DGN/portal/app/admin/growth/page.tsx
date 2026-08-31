@@ -5,6 +5,10 @@ import type { DgnCustomer } from "@/lib/growth/dgn-growth-data";
 import { buildAgentContext } from "@/lib/growth/agent/agent-context";
 import { getDailyBriefing } from "@/lib/growth/agent/skills/daily-briefing";
 import type { DailyBriefing } from "@/lib/growth/agent/types";
+import {
+  getActiveInvitesCount,
+  getConfirmedFoundersCount,
+} from "@/lib/growth/founder-metrics";
 import { AlertTriangle, ArrowRight, Sparkles } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -24,15 +28,11 @@ async function computeMetrics(): Promise<DashboardMetrics> {
   const pendingRenewal = KNOWN_SUBSCRIBERS_2026_08_16.filter(
     (s) => s.status === "renovacao_pendente",
   ).length;
-  const confirmedFounders = KNOWN_SUBSCRIBERS_2026_08_16.filter(
-    (s) => s.preservedFounderNumber || s.isReopenedFounder,
-  ).length;
+  const confirmedFounders = getConfirmedFoundersCount();
 
   try {
     const data = await loadGrowthData({ logger: console });
-    const activeInvites = data.customers.filter(
-      (c: DgnCustomer) => Boolean(c.campaign.personalizedPagePath),
-    ).length;
+    const activeInvites = getActiveInvitesCount(data.customers);
     const awaitingCuration = data.customers.filter(
       (c: DgnCustomer) => c.commercialStatus === "Aguardando Curadoria DGN",
     ).length;
@@ -106,11 +106,11 @@ export default async function DgnAdminDashboardPage() {
           className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
           data-testid="dashboard-metrics"
         >
-          <MetricCard label="Assinantes ativos" value={m.activeSubscribers} />
-          <MetricCard label="Founders confirmados" value={m.confirmedFounders} tone="gold" />
-          <MetricCard label="Convites ativos" value={m.activeInvites} tone="gold" hidden={m.loadError !== null} />
-          <MetricCard label="Aguardando curadoria" value={m.awaitingCuration} hidden={m.loadError !== null} />
-          <MetricCard label="Renovação pendente" value={m.pendingRenewal} tone="warn" />
+          <MetricCard label="Assinantes ativos" value={m.activeSubscribers} testid="metric-active-subscribers" />
+          <MetricCard label="Founders confirmados" value={m.confirmedFounders} tone="gold" testid="metric-confirmed-founders" />
+          <MetricCard label="Convites em aberto" value={m.activeInvites} tone="gold" hidden={m.loadError !== null} testid="metric-active-invites" />
+          <MetricCard label="Aguardando curadoria" value={m.awaitingCuration} hidden={m.loadError !== null} testid="metric-awaiting-curation" />
+          <MetricCard label="Renovação pendente" value={m.pendingRenewal} tone="warn" testid="metric-pending-renewal" />
         </section>
 
         <IntelligenceCard briefing={briefingSummary.briefing} error={briefingSummary.error} />
@@ -129,18 +129,18 @@ export default async function DgnAdminDashboardPage() {
 }
 
 function IntelligenceCard({ briefing, error }: { briefing: DailyBriefing | null; error: string | null }) {
-  const totalHits = briefing
-    ? briefing.totals.founder + briefing.totals.curation + briefing.totals.subscriber
-    : 0;
-  const cardCount = briefing?.cards.length ?? 0;
+  const totalOpportunities = briefing?.totalOpportunities ?? 0;
+  const displayed = briefing?.displayedPriorities ?? 0;
 
   const label = error
     ? "Inteligência indisponível agora"
-    : cardCount === 0
+    : totalOpportunities === 0
       ? "Nenhuma ação prioritária identificada"
-      : cardCount === 1
-        ? "1 ação merece atenção hoje"
-        : `${cardCount} ações merecem atenção hoje`;
+      : totalOpportunities === displayed
+        ? totalOpportunities === 1
+          ? "1 ação merece atenção hoje"
+          : `${totalOpportunities} ações merecem atenção hoje`
+        : `${totalOpportunities} sinais encontrados · mostrando as ${displayed} maiores prioridades`;
 
   return (
     <section
@@ -159,7 +159,7 @@ function IntelligenceCard({ briefing, error }: { briefing: DailyBriefing | null;
           {briefing && !error ? (
             <p className="mt-1 text-xs text-white/50">
               {briefing.totals.founder} Founder · {briefing.totals.curation} Curadoria · {briefing.totals.subscriber} Assinantes
-              {totalHits === 0 ? " · sem sinais no momento" : ""}
+              {totalOpportunities === 0 ? " · sem sinais no momento" : ""}
             </p>
           ) : null}
         </div>
@@ -180,11 +180,13 @@ function MetricCard({
   value,
   tone = "neutral",
   hidden = false,
+  testid,
 }: {
   label: string;
   value: number;
   tone?: "neutral" | "gold" | "warn";
   hidden?: boolean;
+  testid?: string;
 }) {
   if (hidden) return null;
   const toneClasses = {
@@ -193,9 +195,9 @@ function MetricCard({
     warn: "border-amber-300/25 bg-amber-300/[0.03] text-amber-200",
   }[tone];
   return (
-    <div className={`rounded-xl border p-4 ${toneClasses}`}>
+    <div className={`rounded-xl border p-4 ${toneClasses}`} data-testid={testid}>
       <p className="text-[10px] font-semibold uppercase tracking-[0.16em] opacity-70">{label}</p>
-      <p className="mt-3 text-3xl font-semibold tabular-nums">{value}</p>
+      <p className="mt-3 text-3xl font-semibold tabular-nums" data-testid={testid ? `${testid}-value` : undefined}>{value}</p>
     </div>
   );
 }

@@ -349,7 +349,7 @@ export function searchDgnCustomers(query: string, customers: DgnCustomer[] = dgn
 }
 
 export function maskPlate(plate: string) {
-  if (!plate) return "Nao cadastrada";
+  if (!plate) return "Não cadastrada";
   const clean = plate.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
   if (clean.length <= 3) return clean;
   return `${clean.slice(0, 3)}***${clean.slice(-1)}`;

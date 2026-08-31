@@ -50,7 +50,9 @@ function bucketFor(customer: DgnCustomer, now: number): {
     };
   }
 
-  // 2. Visualizou e não avançou — prioridade alta se >24h, média se recente.
+  // 2. Visualizou e não avançou — prioridade alta se >24h. Se a única ação
+  //    ainda é "aguardar retorno até completar 24h" o card NÃO entra na fila
+  //    ativa ("quem contatar hoje"): quem só pode aguardar não é contato ativo.
   if (viewedAt && !respondedAt && !conversationStartedAt && !paymentSentAt) {
     const hoursSince = (now - viewedAt) / (60 * 60 * 1000);
     if (hoursSince >= 24) {
@@ -60,11 +62,8 @@ function bucketFor(customer: DgnCustomer, now: number): {
         nextAction: "Follow-up pessoal explicando o benefício Founder.",
       };
     }
-    return {
-      priority: "media",
-      reason: "Visualizou o convite recentemente e ainda não respondeu.",
-      nextAction: "Aguardar retorno até completar 24h; preparar follow-up.",
-    };
+    // <24h da visualização — só resta aguardar. Não gera card (M-13).
+    return null;
   }
 
   // 3. Convite parado — criado há dias e nunca visualizado.

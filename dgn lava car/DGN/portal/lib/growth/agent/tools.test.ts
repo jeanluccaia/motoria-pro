@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import type { DgnCustomer } from "../dgn-growth-data.ts";
 import type { AgentContext } from "./agent-context.ts";
 import { AGENT_SKILL_REGISTRY } from "./registry.ts";
-import { AGENT_TOOL_NAMES, assertToolsAreRegisteredReadOnly, buildAgentTools, createAccumulator } from "./tools.ts";
+import { AGENT_TOOL_NAMES, assertToolsAreRegistered, buildAgentTools, createAccumulator } from "./tools.ts";
 import { LIMIT_HARD_CAP as CURATION_CAP } from "./skills/curation-opportunities.ts";
 import { LIMIT_HARD_CAP as FOUNDER_CAP } from "./skills/founder-attention.ts";
 import { LIMIT_HARD_CAP as SUBSCRIBER_CAP } from "./skills/subscriber-attention.ts";
@@ -42,8 +42,8 @@ function makeCtx(customers: DgnCustomer[], now = Date.parse("2026-08-27T12:00:00
 // Segurança: tool set == read_only registry (nenhuma tool fora do escopo).
 // ---------------------------------------------------------------------------
 
-test("todas as tools expostas ao LLM têm skill correspondente com mode read_only", () => {
-  assertToolsAreRegisteredReadOnly();
+test("todas as tools expostas ao LLM têm skill correspondente (read_only ou prepare_only)", () => {
+  assertToolsAreRegistered();
   const acc = createAccumulator();
   const tools = buildAgentTools(makeCtx([]), acc);
   const exposed = Object.keys(tools).sort();
@@ -52,7 +52,10 @@ test("todas as tools expostas ao LLM têm skill correspondente com mode read_onl
   for (const name of exposed) {
     const registered = AGENT_SKILL_REGISTRY.find((s) => s.name === name);
     assert.ok(registered, `${name} não está no registry`);
-    assert.equal(registered.mode, "read_only");
+    assert.ok(
+      registered.mode === "read_only" || registered.mode === "prepare_only",
+      `${name} tem mode inválido: ${registered.mode}`,
+    );
   }
 });
 

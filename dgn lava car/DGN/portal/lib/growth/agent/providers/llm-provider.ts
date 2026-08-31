@@ -90,6 +90,15 @@ export class LlmAgentProvider implements AgentProvider {
     for (const action of acc.actions) {
       blocks.push({ kind: "next-action", action });
     }
+    for (const plan of acc.attackPlans) {
+      blocks.push({ kind: "attack-plan", plan });
+    }
+    for (const brief of acc.briefs) {
+      blocks.push({ kind: "prepared-brief", brief });
+    }
+    for (const prepared of acc.prepared) {
+      blocks.push({ kind: "prepared-message", prepared });
+    }
     if (blocks.length === 0) {
       // Caso extremo: LLM não produziu texto nem chamou tool. Devolve fallback textual.
       blocks.push({

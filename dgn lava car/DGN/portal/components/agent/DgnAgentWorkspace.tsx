@@ -1,13 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ArrowRight,
   Bot,
   CheckCircle2,
+  ClipboardCheck,
+  ClipboardCopy,
   Crown,
   Loader2,
+  MessageSquare,
   ShieldCheck,
   Sparkles,
   UserCheck,
@@ -23,9 +27,21 @@ import type {
   CustomerSummary,
   DailyBriefing,
   NextActionSuggestion,
+  PreparationObjective,
+  PreparationTone,
+  PreparedAttackPlan,
+  PreparedCurationBrief,
+  PreparedMessage,
   Priority,
   ProviderMode,
 } from "@/lib/growth/agent/types";
+import {
+  assertAskIsSafe,
+  buildIntentPrompt,
+  isAgentIntent,
+  type AgentIntent,
+} from "@/lib/growth/agent/intents";
+import { AgentMarkdown } from "./AgentMarkdown";
 
 // -----------------------------------------------------------------------------
 // DgnAgentWorkspace
@@ -83,6 +99,44 @@ const QUICK_SUGGESTIONS = [
   "Resuma minha carteira",
   "Procure oportunidades",
 ];
+
+/** Score em pt-BR (82,5 em vez de 82.5) — evita valor com precisão excessiva. */
+function formatScorePtBr(score: number): string {
+  if (!Number.isFinite(score) || score <= 0) return "—";
+  return score.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 1 });
+}
+
+const OBJECTIVE_LABELS: Record<PreparationObjective, string> = {
+  followup: "Follow-up",
+  founder_acquisition: "Aquisição Founder",
+  founder_followup: "Relacionamento Founder",
+  renewal: "Renovação",
+  relationship: "Relacionamento",
+  reactivation: "Reativação",
+};
+
+const TONE_LABELS: Record<PreparationTone, string> = {
+  padrao: "Padrão",
+  mais_curta: "Mais curta",
+  mais_direta: "Mais direta",
+  mais_consultiva: "Mais consultiva",
+  mais_pessoal: "Mais pessoal",
+  menos_comercial: "Menos comercial",
+};
+
+/** Tons disponíveis para o operador pedir refação — sem `padrao`. */
+const TONE_QUICK_REPLIES: PreparationTone[] = [
+  "mais_curta",
+  "mais_direta",
+  "mais_consultiva",
+  "mais_pessoal",
+  "menos_comercial",
+];
+
+function toneRefinePrompt(prepared: PreparedMessage, tone: PreparationTone): string {
+  const label = TONE_LABELS[tone].toLowerCase();
+  return `Reescreva a mensagem para ${prepared.customerName} ${label} — mesmo objetivo (${OBJECTIVE_LABELS[prepared.objective].toLowerCase()}).`;
+}
 
 export function DgnAgentWorkspace({ briefing, disclosures }: Props) {
   return (
@@ -156,9 +210,23 @@ function BriefingSection({ briefing, disclosures }: { briefing: DailyBriefing | 
   );
 }
 
+const CARD_PREPARE_INTENT: Record<AttentionCard["kind"], AgentIntent> = {
+  founder: "prepare_followup",
+  curation: "prepare_brief",
+  subscriber: "prepare_renewal",
+  insight: "next_action",
+};
+
+function attentionCardPrepareHref(card: AttentionCard): string | null {
+  if (!card.customerId) return null;
+  const intent = CARD_PREPARE_INTENT[card.kind];
+  return `/admin/growth/assistente?intent=${encodeURIComponent(intent)}&customer=${encodeURIComponent(card.customerId)}`;
+}
+
 function AttentionCardView({ card }: { card: AttentionCard }) {
   const Icon = KIND_ICON[card.kind];
   const priority = PRIORITY_STYLES[card.priority];
+  const prepareHref = attentionCardPrepareHref(card);
   return (
     <article className="flex flex-col gap-3 rounded-2xl border border-white/[0.06] bg-[#101010] p-4 sm:p-5">
       <div className="flex items-start justify-between gap-3">
@@ -181,13 +249,24 @@ function AttentionCardView({ card }: { card: AttentionCard }) {
         <span className="uppercase tracking-[0.14em] text-white/40">Próxima ação · </span>
         {card.nextAction}
       </p>
-      <Link
-        href={card.href}
-        className="inline-flex min-h-11 items-center justify-center gap-1.5 self-start rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/[0.08] px-4 text-sm font-medium text-[#E7C96A] transition hover:bg-[#C9A84C]/[0.14]"
-      >
-        {card.ctaLabel}
-        <ArrowRight size={14} />
-      </Link>
+      <div className="flex flex-wrap items-center gap-2">
+        <Link
+          href={card.href}
+          className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/[0.08] px-4 text-sm font-medium text-[#E7C96A] transition hover:bg-[#C9A84C]/[0.14]"
+        >
+          {card.ctaLabel}
+          <ArrowRight size={14} />
+        </Link>
+        {prepareHref ? (
+          <Link
+            href={prepareHref}
+            data-testid="card-prepare-contact"
+            className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 text-sm font-medium text-white/85 transition hover:border-[#C9A84C]/30 hover:text-white"
+          >
+            <Sparkles size={13} /> Preparar contato
+          </Link>
+        ) : null}
+      </div>
     </article>
   );
 }
@@ -249,13 +328,42 @@ function buildHistoryFromEntries(entries: ChatEntry[]): AgentHistoryMessage[] {
 function ChatSection() {
   const [entries, setEntries] = useState<ChatEntry[]>([]);
   const [pending, setPending] = useState(false);
+  const [pendingElapsed, setPendingElapsed] = useState(0);
   const [input, setInput] = useState("");
   const [lastProviderMode, setLastProviderMode] = useState<ProviderMode | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const lastEntryRef = useRef<HTMLLIElement | null>(null);
+  const searchParams = useSearchParams();
+  const lastAutoKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [entries.length]);
+
+  // Após cada NOVA resposta do agente (chip de tom, intent, prompt manual),
+  // scroll o último bubble para dentro da viewport — não deixa o operador
+  // procurando o cartão que acabou de aparecer.
+  useEffect(() => {
+    const last = entries[entries.length - 1];
+    if (!last || last.role !== "agent") return;
+    lastEntryRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [entries]);
+
+  // Timer de progressão do loading — não afirma tool concluída, apenas mostra
+  // ao operador que o servidor continua trabalhando. Reinicia quando pending
+  // volta a false.
+  useEffect(() => {
+    if (!pending) {
+      setPendingElapsed(0);
+      return;
+    }
+    const startedAt = Date.now();
+    const id = window.setInterval(() => {
+      setPendingElapsed(Date.now() - startedAt);
+    }, 500);
+    return () => window.clearInterval(id);
+  }, [pending]);
 
   const send = useCallback(async (message: string) => {
     const trimmed = message.trim();
@@ -296,8 +404,56 @@ function ChatSection() {
     }
   }, [pending]);
 
+  // Auto-envio REATIVO: dispara em cold load E em navegação client-side dentro
+  // do próprio Assistente. A "chave" única evita re-disparo em re-renders sem
+  // mudança real. Preferência ?intent=<name>&customer=<id> (allowlist);
+  // fallback ?ask= só passa se `assertAskIsSafe` liberar.
+  const intentParam = searchParams?.get("intent") ?? null;
+  const customerParam = searchParams?.get("customer") ?? null;
+  const askParam = searchParams?.get("ask") ?? null;
+  const autoKey = intentParam
+    ? `intent:${intentParam}:${customerParam ?? ""}`
+    : askParam
+      ? `ask:${askParam}`
+      : null;
+
+  useEffect(() => {
+    if (!autoKey) return;
+    if (lastAutoKeyRef.current === autoKey) return;
+    lastAutoKeyRef.current = autoKey;
+
+    let queued: string | null = null;
+    let blockedMessage: string | null = null;
+
+    if (intentParam) {
+      if (!isAgentIntent(intentParam)) {
+        blockedMessage = `Intent "${intentParam}" não é reconhecida.`;
+      } else {
+        queued = buildIntentPrompt(intentParam as AgentIntent, customerParam ?? undefined);
+      }
+    } else if (askParam) {
+      const guard = assertAskIsSafe(askParam);
+      if (guard) blockedMessage = guard;
+      else queued = askParam;
+    }
+
+    if (blockedMessage) {
+      setEntries((prev) => [...prev, { role: "error", text: blockedMessage! }]);
+      return;
+    }
+    if (!queued) return;
+    // Scroll para a área do chat antes de disparar — o operador vê a bolha
+    // aparecendo mesmo que o briefing ocupe a viewport inicial.
+    sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    void send(queued);
+  }, [autoKey, intentParam, customerParam, askParam, send]);
+
   return (
-    <section aria-labelledby="chat-heading" className="flex flex-col gap-3">
+    <section
+      ref={sectionRef}
+      aria-labelledby="chat-heading"
+      className="flex flex-col gap-3"
+    >
       <div className="flex items-center justify-between gap-3">
         <h2 id="chat-heading" className="text-lg font-semibold text-white sm:text-xl">
           Conversar com o assistente
@@ -328,12 +484,15 @@ function ChatSection() {
           <EmptyChatState />
         ) : (
           <ul className="flex flex-col gap-4">
-            {entries.map((entry, i) => (
-              <li key={i}>
-                <ChatEntryView entry={entry} />
-              </li>
-            ))}
-            {pending && <li aria-live="polite"><PendingBubble /></li>}
+            {entries.map((entry, i) => {
+              const isLast = i === entries.length - 1;
+              return (
+                <li key={i} ref={isLast ? lastEntryRef : undefined}>
+                  <ChatEntryView entry={entry} onQuickPrompt={(text) => void send(text)} />
+                </li>
+              );
+            })}
+            {pending && <li aria-live="polite"><PendingBubble elapsedMs={pendingElapsed} /></li>}
           </ul>
         )}
       </div>
@@ -362,7 +521,13 @@ function EmptyChatState() {
   );
 }
 
-function ChatEntryView({ entry }: { entry: ChatEntry }) {
+function ChatEntryView({
+  entry,
+  onQuickPrompt,
+}: {
+  entry: ChatEntry;
+  onQuickPrompt: (text: string) => void;
+}) {
   if (entry.role === "user") {
     return (
       <div className="flex justify-end">
@@ -385,17 +550,25 @@ function ChatEntryView({ entry }: { entry: ChatEntry }) {
       </div>
     );
   }
-  return <AgentBubble response={entry.response} />;
+  return <AgentBubble response={entry.response} onQuickPrompt={onQuickPrompt} />;
 }
 
-function PendingBubble() {
+function pendingLabel(elapsedMs: number): string {
+  // Progressão temporal fixa — não afirma tool concluída, só mostra que o
+  // servidor continua trabalhando. Latência real está em ~18–30s.
+  if (elapsedMs < 3_000) return "Entendendo seu pedido…";
+  if (elapsedMs < 10_000) return "Consultando dados da DGN…";
+  return "Preparando recomendação…";
+}
+
+function PendingBubble({ elapsedMs }: { elapsedMs: number }) {
   return (
-    <div className="flex items-center gap-2 text-sm text-white/60">
+    <div className="flex items-center gap-2 text-sm text-white/60" data-testid="agent-pending-bubble">
       <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#C9A84C]/12 text-[#C9A84C]">
         <Bot size={14} />
       </span>
       <span className="inline-flex items-center gap-1.5">
-        <Loader2 size={14} className="animate-spin" /> Analisando a operação…
+        <Loader2 size={14} className="animate-spin" /> {pendingLabel(elapsedMs)}
       </span>
     </div>
   );
@@ -426,7 +599,13 @@ function ProviderBadge({ mode }: { mode: ProviderMode | null }) {
   );
 }
 
-function AgentBubble({ response }: { response: AgentResponse }) {
+function AgentBubble({
+  response,
+  onQuickPrompt,
+}: {
+  response: AgentResponse;
+  onQuickPrompt: (text: string) => void;
+}) {
   return (
     <div className="flex items-start gap-2">
       <span className="mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#C9A84C]/12 text-[#C9A84C]">
@@ -434,7 +613,7 @@ function AgentBubble({ response }: { response: AgentResponse }) {
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         {response.blocks.map((block, i) => (
-          <BlockView key={i} block={block} />
+          <BlockView key={i} block={block} onQuickPrompt={onQuickPrompt} />
         ))}
         {response.disclosures ? (
           <DisclosurePanel disclosures={response.disclosures} />
@@ -444,11 +623,17 @@ function AgentBubble({ response }: { response: AgentResponse }) {
   );
 }
 
-function BlockView({ block }: { block: AgentResponseBlock }) {
+function BlockView({
+  block,
+  onQuickPrompt,
+}: {
+  block: AgentResponseBlock;
+  onQuickPrompt: (text: string) => void;
+}) {
   if (block.kind === "text") {
     return (
-      <div className="whitespace-pre-line rounded-2xl rounded-tl-md bg-white/[0.04] px-4 py-2.5 text-sm text-white/90">
-        {block.text}
+      <div className="rounded-2xl rounded-tl-md bg-white/[0.04] px-4 py-2.5 text-sm text-white/90">
+        <AgentMarkdown text={block.text} />
       </div>
     );
   }
@@ -476,6 +661,15 @@ function BlockView({ block }: { block: AgentResponseBlock }) {
   if (block.kind === "next-action") {
     return <NextActionBlock action={block.action} />;
   }
+  if (block.kind === "prepared-message") {
+    return <PreparedMessageCard prepared={block.prepared} onQuickPrompt={onQuickPrompt} />;
+  }
+  if (block.kind === "prepared-brief") {
+    return <PreparedBriefCard brief={block.brief} />;
+  }
+  if (block.kind === "attack-plan") {
+    return <AttackPlanCard plan={block.plan} onQuickPrompt={onQuickPrompt} />;
+  }
   return null;
 }
 
@@ -486,7 +680,7 @@ function SummaryBlock({ summary }: { summary: CustomerSummary }) {
         <h3 className="text-sm font-semibold text-white sm:text-base">{summary.name}</h3>
         {summary.score ? (
           <span className="inline-flex items-center rounded-full border border-[#C9A84C]/30 bg-[#C9A84C]/[0.08] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#E7C96A]">
-            Score {summary.score.total} · {summary.score.tier}
+            Score {formatScorePtBr(summary.score.total)} · {summary.score.tier}
           </span>
         ) : null}
       </div>
@@ -533,12 +727,341 @@ function FieldGroup({ label, rows }: { label: string; rows: Array<{ label: strin
       <dl className="mt-2 grid grid-cols-1 gap-1.5 text-sm sm:grid-cols-2">
         {rows.map((r) => (
           <div key={r.label} className="flex items-baseline gap-2">
-            <dt className="min-w-0 shrink-0 text-white/50">{r.label}:</dt>
-            <dd className="min-w-0 truncate text-white/85">{r.value}</dd>
+            <dt className="shrink-0 text-white/50">{r.label}:</dt>
+            {/* H: sem truncate — justificativa importante (ex.: "Não — Já é
+                assinante DGN…") nunca deve esconder o motivo. Wrap normal com
+                title tooltip como fallback. */}
+            <dd className="min-w-0 whitespace-normal break-words text-white/85" title={r.value}>
+              {r.value}
+            </dd>
           </div>
         ))}
       </dl>
     </div>
+  );
+}
+
+function CopyButton({ text, label = "Copiar mensagem" }: { text: string; label?: string }) {
+  const [copied, setCopied] = useState(false);
+  const onCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
+  }, [text]);
+  return (
+    <button
+      type="button"
+      onClick={() => void onCopy()}
+      aria-label={label}
+      data-testid="prepared-copy-button"
+      // B-19: min-w fixa evita layout shift entre "Copiar mensagem" e "Copiado".
+      className="inline-flex min-h-11 min-w-[168px] items-center justify-center gap-1.5 rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/[0.10] px-3 text-sm font-medium text-[#E7C96A] transition hover:bg-[#C9A84C]/[0.18]"
+    >
+      {copied ? (
+        <>
+          <ClipboardCheck size={14} /> Copiado
+        </>
+      ) : (
+        <>
+          <ClipboardCopy size={14} /> {label}
+        </>
+      )}
+    </button>
+  );
+}
+
+function PreparedDisclaimer() {
+  return (
+    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">
+      Preparado pela IA · revisar antes de enviar
+    </p>
+  );
+}
+
+function FactsList({ facts }: { facts: string[] }) {
+  if (facts.length === 0) return null;
+  return (
+    <details className="rounded-lg border border-white/[0.06] bg-[#0C0C0C] px-3 py-2 text-xs text-white/60 open:pb-3">
+      <summary className="cursor-pointer text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+        Fatos usados ({facts.length})
+      </summary>
+      <ul className="mt-2 list-disc space-y-1 pl-5">
+        {facts.map((f, i) => (
+          <li key={`pf-${i}`}>{f}</li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
+function PreparedMessageCard({
+  prepared,
+  onQuickPrompt,
+  compact = false,
+}: {
+  prepared: PreparedMessage;
+  onQuickPrompt: (text: string) => void;
+  compact?: boolean;
+}) {
+  return (
+    <article
+      data-testid="prepared-message-card"
+      className="flex flex-col gap-3 rounded-2xl border border-[#C9A84C]/25 bg-[#0F0D08] p-4 sm:p-5"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
+            Mensagem preparada
+          </p>
+          <h3 className="mt-0.5 truncate text-sm font-semibold text-white sm:text-base">
+            {prepared.customerName}
+          </h3>
+        </div>
+        <span className="inline-flex items-center rounded-full border border-[#C9A84C]/30 bg-[#C9A84C]/[0.08] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#E7C96A]">
+          {OBJECTIVE_LABELS[prepared.objective]}
+        </span>
+      </div>
+
+      {!compact && (
+        <dl className="grid grid-cols-1 gap-1.5 text-xs">
+          <div>
+            <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+              Contexto
+            </dt>
+            <dd className="mt-0.5 text-white/80">{prepared.context}</dd>
+          </div>
+          <div>
+            <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+              Ângulo
+            </dt>
+            <dd className="mt-0.5 text-white/80">{prepared.angle}</dd>
+          </div>
+          {prepared.objection ? (
+            <div>
+              <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+                Objeção provável
+              </dt>
+              <dd className="mt-0.5 text-white/80">{prepared.objection}</dd>
+            </div>
+          ) : null}
+        </dl>
+      )}
+
+      <div className="rounded-xl border border-white/[0.06] bg-[#080807] p-3">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+          Rascunho ({TONE_LABELS[prepared.tone]})
+        </p>
+        <p
+          className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-white/90"
+          data-testid="prepared-draft"
+        >
+          {prepared.draftMessage}
+        </p>
+      </div>
+
+      {!compact && (
+        <p className="text-xs leading-relaxed text-white/60">
+          <span className="uppercase tracking-[0.14em] text-white/40">Próximo passo · </span>
+          {prepared.nextStep}
+        </p>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <CopyButton text={prepared.draftMessage} />
+        <Link
+          href={prepared.href}
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 text-sm text-white/80 transition hover:bg-white/[0.06]"
+        >
+          Abrir cliente <ArrowRight size={14} />
+        </Link>
+      </div>
+
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+          Refazer com outro tom
+        </p>
+        <div className="mt-1.5 flex flex-wrap gap-1.5" role="group" aria-label="Ajustar tom">
+          {TONE_QUICK_REPLIES.map((tone) => (
+            <button
+              key={tone}
+              type="button"
+              onClick={() => onQuickPrompt(toneRefinePrompt(prepared, tone))}
+              data-testid={`prepared-tone-${tone}`}
+              className="inline-flex min-h-9 items-center rounded-full border border-white/[0.08] bg-white/[0.03] px-2.5 text-[11px] text-white/75 transition hover:border-[#C9A84C]/40 hover:text-white"
+            >
+              {TONE_LABELS[tone]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {!compact && <FactsList facts={prepared.facts} />}
+      <PreparedDisclaimer />
+    </article>
+  );
+}
+
+function PreparedBriefCard({ brief }: { brief: PreparedCurationBrief }) {
+  const sections: Array<{ label: string; value: string }> = [
+    { label: "Quem é", value: brief.who },
+    { label: "Por que está aqui", value: brief.whyHere },
+    { label: "Melhor argumento", value: brief.bestArgument },
+    { label: "Evitar", value: brief.avoid },
+    { label: "Abordagem sugerida", value: brief.suggestedApproach },
+    { label: "Próximo passo", value: brief.nextStep },
+  ];
+  return (
+    <article
+      data-testid="prepared-brief-card"
+      className="flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-[#0F0F0F] p-4 sm:p-5"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
+            Brief de curadoria
+          </p>
+          <h3 className="mt-0.5 truncate text-sm font-semibold text-white sm:text-base">
+            {brief.customerName}
+          </h3>
+        </div>
+        <span className="inline-flex items-center rounded-full border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70">
+          <UserCheck size={10} className="mr-1" /> Pré-atendimento
+        </span>
+      </div>
+
+      <dl className="flex flex-col gap-2.5 text-sm">
+        {sections.map((s) => (
+          <div key={s.label}>
+            <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+              {s.label}
+            </dt>
+            <dd className="mt-0.5 text-white/85">{s.value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <Link
+        href={brief.href}
+        className="inline-flex min-h-11 items-center justify-center gap-1.5 self-start rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/[0.08] px-4 text-sm font-medium text-[#E7C96A] transition hover:bg-[#C9A84C]/[0.14]"
+      >
+        Abrir cliente <ArrowRight size={14} />
+      </Link>
+
+      <FactsList facts={brief.facts} />
+      <PreparedDisclaimer />
+    </article>
+  );
+}
+
+function AttackPlanCard({
+  plan,
+  onQuickPrompt,
+}: {
+  plan: PreparedAttackPlan;
+  onQuickPrompt: (text: string) => void;
+}) {
+  return (
+    <article
+      data-testid="attack-plan-card"
+      className="flex flex-col gap-4 rounded-2xl border border-[#C9A84C]/30 bg-[#0F0D08] p-4 sm:p-5"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
+            Plano de ataque · {plan.greeting}
+          </p>
+          <h3 className="mt-0.5 text-sm font-semibold text-white sm:text-base">{plan.headline}</h3>
+        </div>
+      </div>
+
+      {plan.priorities.length > 0 && (
+        <div className="flex flex-col gap-3">
+          {plan.priorities.map((priority) => (
+            <div
+              key={priority.label}
+              className="rounded-xl border border-white/[0.06] bg-[#0B0B0B] p-3"
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#E7C96A]">
+                {priority.label}
+              </p>
+              <p className="mt-0.5 text-xs text-white/60">{priority.description}</p>
+              {priority.cards.length > 0 && (
+                <ul className="mt-2.5 flex flex-col gap-2">
+                  {priority.cards.map((card) => (
+                    <li key={card.id}>
+                      <AttentionCardView card={card} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {plan.executionOrder.length > 0 && (
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+            Ordem de execução sugerida
+          </p>
+          <ol className="mt-2 flex flex-col gap-1.5">
+            {plan.executionOrder.map((item, i) => (
+              <li
+                key={`${item.customerId ?? item.name}-${i}`}
+                className="flex items-start gap-2 rounded-lg border border-white/[0.05] bg-[#0B0B0B] px-3 py-2 text-xs"
+              >
+                <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#C9A84C]/12 text-[10px] font-semibold text-[#E7C96A]">
+                  {i + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-white">{item.name}</p>
+                  <p className="mt-0.5 text-white/60">{item.reason}</p>
+                </div>
+                {item.href ? (
+                  <Link
+                    href={item.href}
+                    className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-md border border-white/[0.08] bg-white/[0.03] px-2 text-[11px] text-white/80 hover:bg-white/[0.06]"
+                  >
+                    Abrir <ArrowRight size={12} />
+                  </Link>
+                ) : null}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {plan.preparedDrafts.length > 0 && (
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+            Rascunhos preparados ({plan.preparedDrafts.length})
+          </p>
+          <div className="mt-2 flex flex-col gap-2.5">
+            {plan.preparedDrafts.map((prepared) => (
+              <PreparedMessageCard
+                key={`${prepared.customerId}-${prepared.objective}`}
+                prepared={prepared}
+                onQuickPrompt={onQuickPrompt}
+                compact
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {plan.preparedNotice ? (
+        <p className="rounded-lg border border-amber-300/25 bg-amber-300/[0.04] px-3 py-2 text-xs text-amber-200/90">
+          <MessageSquare size={12} className="mr-1 inline align-[-2px]" />
+          {plan.preparedNotice}
+        </p>
+      ) : null}
+
+      <PreparedDisclaimer />
+    </article>
   );
 }
 

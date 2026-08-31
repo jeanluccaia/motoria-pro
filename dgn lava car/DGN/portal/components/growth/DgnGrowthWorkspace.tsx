@@ -16,10 +16,22 @@ import {
   MessageCircle,
   PanelRight,
   Search,
+  Sparkles,
   UserRound,
   X,
   type LucideIcon,
 } from "lucide-react";
+import { assistentePromptHref } from "@/lib/growth/customer-links";
+import {
+  FOUNDER_GOAL,
+  computeHistoricalMetrics,
+  computePipelineSnapshot,
+  getConfirmedFoundersCount,
+} from "@/lib/growth/founder-metrics";
+import { matchKnownSubscriber } from "@/lib/growth/founder-eligibility";
+import { formatDatePtBr } from "@/lib/growth/date-format";
+import { founderStatusLabel } from "@/lib/growth/founder-labels";
+import { getFounderReadiness } from "@/lib/growth/founder-readiness";
 import {
   buildFounderWhatsappMessage,
   buildWhatsappUrl,
@@ -284,38 +296,32 @@ export function DgnGrowthWorkspace({
 
   const campaignMetrics = useMemo(() => {
     const founders = customers.filter((customer) => customer.campaign.founderSelected);
-    const withPage = founders.filter((customer) => customer.campaign.personalizedPagePath);
-    const sent = founders.filter((customer) =>
-      ["Mensagem enviada", "Visualizou", "Conversando", "Pagamento enviado", "Assinante ativo"].includes(
-        customer.campaign.campaignStatus
-      )
-    );
-    const viewed = founders.filter((customer) => Boolean(customer.campaign.engagement?.viewedAt));
-    const conversations = founders.filter(
-      (customer) => customer.campaign.campaignStatus === "Conversando"
-    );
-    const payments = founders.filter(
-      (customer) => customer.campaign.campaignStatus === "Pagamento enviado"
-    );
-    const confirmed = founders.filter((customer) => customer.campaign.founderStatus === "confirmado");
-    const selected = founders.filter((customer) => customer.campaign.founderStatus === "selecionado");
-    const converted = founders.filter((customer) => customer.campaign.commercialStage === "convertido");
+    // Canônico: os 3 preservados (001/002/003). Iara Nº004 reaberta NÃO conta.
+    const confirmedCount = getConfirmedFoundersCount();
+    // Pipeline snapshot: 6 buckets MUTUAMENTE EXCLUSIVOS + histórico separado.
+    const pipeline = computePipelineSnapshot(customers);
+    const historical = computeHistoricalMetrics(customers);
 
+    const converted = customers.filter((customer) => customer.campaign.commercialStage === "convertido");
     const awaitingKit = founders.filter(
       (customer) => customer.campaign.campaignStatus === "Aguardando Kit Founder"
     );
     const lost = founders.filter((customer) => customer.campaign.campaignStatus === "Perdido");
 
     return {
-      available: 30 - confirmed.length,
-      confirmed: confirmed.length,
-      selected: selected.length,
-      created: withPage.length,
-      sent: sent.length,
-      viewed: viewed.length,
-      conversations: conversations.length,
-      payments: payments.length,
-      converted: converted.length,
+      available: FOUNDER_GOAL - confirmedCount,
+      confirmed: confirmedCount,
+      // Snapshot canônico — cada campo mapeia 1:1 com um bucket exclusivo.
+      pipeline,
+      historical,
+      // Aliases legados usados por partes da UI que ainda não migraram.
+      selected: pipeline.selected,
+      created: pipeline.invitesOpen + pipeline.viewedOpen,
+      sent: historical.invitesEverIssued,
+      viewed: historical.invitesEverViewed,
+      conversations: pipeline.conversing,
+      payments: pipeline.paymentPending,
+      converted: pipeline.converted,
       awaitingKit: awaitingKit.length,
       lost: lost.length,
       revenue: converted.reduce((sum, customer) => sum + getPotentialRevenue(customer), 0),
@@ -1484,6 +1490,19 @@ function FoundersView({
     lost: number;
     revenue: number;
     founders: DgnCustomer[];
+    pipeline: {
+      selected: number;
+      invitesOpen: number;
+      viewedOpen: number;
+      conversing: number;
+      paymentPending: number;
+      converted: number;
+    };
+    historical: {
+      invitesEverIssued: number;
+      invitesEverViewed: number;
+      conversionsEver: number;
+    };
   };
   founderFilter: string;
   copiedKey: string;
@@ -1494,8 +1513,14 @@ function FoundersView({
   onCopy: (customer: DgnCustomer) => void;
   onCopyLink: (customer: DgnCustomer) => void;
 }) {
+  // Pipeline de AQUISIÇÃO Founder — nunca inclui assinantes conhecidos
+  // (base viva 4uCar / Nº004 reaberta). Assinante ativo é retenção, não
+  // aquisição, mesmo se tiver founderSelected/founderStatus legado.
+  const acquisitionFounders = campaignMetrics.founders.filter(
+    (customer) => matchKnownSubscriber(customer) === null && customer.commercialStatus !== "Assinante Ativo",
+  );
   const allFounderRows = [
-    ...campaignMetrics.founders,
+    ...acquisitionFounders,
     ...(false ? Array.from({ length: Math.max(0, 30 - campaignMetrics.founders.length) }, (_, index) => {
       const number = String(campaignMetrics.founders.length + index + 1).padStart(3, "0");
 
@@ -1544,8 +1569,13 @@ function FoundersView({
     ["Lista de espera", allFounderRows.filter((c) => c.campaign.founderStatus === "lista_espera")],
     ["Bloqueados / perdidos", allFounderRows.filter((c) => c.campaign.founderStatus === "descartado" || c.campaign.commercialStage === "descartado")],
   ] as const;
+  // "Quem contatar hoje" é fila de AQUISIÇÃO Founder — remove assinantes
+  // conhecidos (base viva 4uCar / Iara Nº004 reaberta) mesmo que tenham data
+  // agendada. Assinante ativo é retenção, não aquisição.
   const todayContacts = [...allFounderRows]
     .filter((c) => c.commercial?.nextActionAt && !["convertido", "descartado"].includes(c.campaign.commercialStage ?? ""))
+    .filter((c) => matchKnownSubscriber(c) === null)
+    .filter((c) => c.commercialStatus !== "Assinante Ativo")
     .sort((a, b) => new Date(a.commercial!.nextActionAt).getTime() - new Date(b.commercial!.nextActionAt).getTime() || b.scoreDgn - a.scoreDgn)
     .slice(0, 8);
 
@@ -1618,24 +1648,43 @@ function FoundersView({
           {todayContacts.length ? todayContacts.map((customer) => (
             <button key={customer.id} onClick={() => onOpenProfile(customer.id)} className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-3 text-left">
               <span className="text-sm font-semibold text-white">{customer.name}</span>
-              <span className="ml-2 text-xs text-[#C9A84C]">Score {customer.scoreDgn}</span>
+              <span className="ml-2 text-xs text-[#C9A84C]">Score {customer.scoreDgn.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}</span>
               <p className="mt-1 text-xs text-[#8A8A8A]">{customer.commercial?.nextAction} · {customer.commercial?.owner || "Sem responsável"}</p>
             </button>
           )) : <p className="text-sm text-[#777]">Nenhuma próxima ação agendada.</p>}
         </div>
       </section>
 
-      {/* FUNIL compacto — 5 estágios */}
-      <section className="mt-4">
+      {/* FUNIL — snapshot atual, buckets MUTUAMENTE EXCLUSIVOS */}
+      <section className="mt-4" data-testid="founders-pipeline-snapshot">
+        <div className="mb-2 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">
+          <span>Pipeline atual · onde cada candidato está agora</span>
+          <span className="text-white/40">Cada cliente aparece em apenas 1 estágio</span>
+        </div>
         <Funnel
           stages={[
-            { label: "Convidados", value: campaignMetrics.sent, family: "action" },
-            { label: "Visualizaram", value: campaignMetrics.viewed, family: "action" },
-            { label: "Conversando", value: campaignMetrics.conversations, family: "action" },
-            { label: "Pagamento", value: campaignMetrics.payments, family: "action" },
-            { label: "Convertidos", value: campaignMetrics.converted, family: "active" },
+            { label: "Selecionados", value: campaignMetrics.pipeline.selected, family: "action" },
+            { label: "Convites em aberto", value: campaignMetrics.pipeline.invitesOpen, family: "action" },
+            { label: "Visualizados", value: campaignMetrics.pipeline.viewedOpen, family: "action" },
+            { label: "Conversando", value: campaignMetrics.pipeline.conversing, family: "action" },
+            { label: "Pagamento", value: campaignMetrics.pipeline.paymentPending, family: "action" },
+            { label: "Convertidos", value: campaignMetrics.pipeline.converted, family: "active" },
           ]}
         />
+        <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-white/50" data-testid="founders-historical">
+          <span>
+            <span className="text-white/40">Histórico · </span>
+            {campaignMetrics.historical.invitesEverIssued} convite(s) já emitido(s)
+          </span>
+          <span>
+            <span className="text-white/40">· </span>
+            {campaignMetrics.historical.invitesEverViewed} visualização(ões) total
+          </span>
+          <span>
+            <span className="text-white/40">· </span>
+            {campaignMetrics.historical.conversionsEver} conversão(ões) total
+          </span>
+        </div>
       </section>
 
       {/* Tabela essencial */}
@@ -1692,15 +1741,17 @@ function FoundersView({
                     )}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#C9A84C]/22 bg-[#C9A84C]/8 px-2 py-0.5 text-[10px] font-semibold text-[#E7C96A]">
-                          <Crown size={10} />
-                          {customer.campaign.founderNumber || "000"}
-                        </span>
+                        {customer.campaign.founderNumber ? (
+                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#C9A84C]/22 bg-[#C9A84C]/8 px-2 py-0.5 text-[10px] font-semibold text-[#E7C96A]">
+                            <Crown size={10} />
+                            Nº{customer.campaign.founderNumber}
+                          </span>
+                        ) : null}
                         <span className="truncate text-sm font-semibold text-white">{customer.name}</span>
                       </div>
                       <p className="mt-1 truncate text-xs text-[#9CA3AF]">{customer.vehicle}</p>
                       <div className="mt-2">
-                        <StatusBadge label={isSlot ? "Slot disponivel" : `${customer.campaign.founderStatus ?? "nao_avaliado"} · ${status}`} />
+                        <StatusBadge label={isSlot ? "Slot disponível" : `${founderStatusLabel(customer.campaign.founderStatus)} · ${status}`} />
                       </div>
                     </div>
                   </button>
@@ -1775,10 +1826,14 @@ function FoundersView({
                     }`}
                   >
                     <td className="px-4 py-3">
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#C9A84C]/22 bg-[#C9A84C]/8 px-2.5 py-1 text-xs font-semibold text-[#E7C96A]">
-                        <Crown size={12} />
-                        {customer.campaign.founderNumber || "000"}
-                      </span>
+                      {customer.campaign.founderNumber ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-[#C9A84C]/22 bg-[#C9A84C]/8 px-2.5 py-1 text-xs font-semibold text-[#E7C96A]">
+                          <Crown size={12} />
+                          Nº{customer.campaign.founderNumber}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-white/40">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-xs text-[#A7A7A7]">
                       <p>{customer.campaign.engagement?.viewedAt ? `Visualizou · ${customer.campaign.engagement.viewCount}x` : "Não visualizou"}</p>
@@ -1813,7 +1868,7 @@ function FoundersView({
                         <StatusBadge label="Slot disponivel" />
                       ) : (
                         <button onClick={() => onOpenProfile(customer.id)} title="Alterar no perfil persistente">
-                          <StatusBadge label={`${customer.campaign.founderStatus ?? "nao_avaliado"} · ${status}`} />
+                          <StatusBadge label={`${founderStatusLabel(customer.campaign.founderStatus)} · ${status}`} />
                         </button>
                       )}
                     </td>
@@ -2057,6 +2112,8 @@ function CustomerProfileInline({
     <div>
       <CustomerSnapshot customer={customer} />
 
+      <AssistantSection customer={customer} />
+
       <div className="mt-5 flex flex-wrap items-center gap-1.5 border-b border-white/[0.06] pb-3">
         {profileTabs.map((item) => (
           <button
@@ -2276,6 +2333,128 @@ function normalizeContractingMode(value: string | undefined): FounderContracting
 function normalizeVehicleCategory(value: string | undefined): FounderVehicleCategory | "" {
   const lower = typeof value === "string" ? value.toLowerCase() : "";
   return isFounderVehicleCategory(lower) ? lower : "";
+}
+
+function AssistantSection({ customer }: { customer: DgnCustomer }) {
+  const readiness = getFounderReadiness(customer);
+  const eligibility = isFounderAcquisitionEligible(customer);
+  const isRenewalPending = eligibility.reason === "renovacao_pendente";
+
+  const actions: Array<{
+    key: string;
+    label: string;
+    intentHref: string;
+    primary?: boolean;
+  }> = [
+    {
+      key: "summary",
+      label: "Resumir cliente",
+      intentHref: assistanteIntentHref("customer_summary", customer.id),
+    },
+    {
+      key: "next-action",
+      label: "Sugerir próxima ação",
+      intentHref: assistanteIntentHref("next_action", customer.id),
+    },
+    {
+      key: "followup",
+      label: "Preparar follow-up",
+      intentHref: assistanteIntentHref("prepare_followup", customer.id),
+    },
+    {
+      key: "brief",
+      label: "Brief de curadoria",
+      intentHref: assistanteIntentHref("prepare_brief", customer.id),
+    },
+  ];
+
+  // CTAs Founder são governados pelo readiness — nunca oferecer "Preparar
+  // convite Founder" para cliente que ainda aguarda curadoria.
+  if (readiness.state === "awaiting_curation") {
+    actions.push({
+      key: "open-curation",
+      label: "Abrir Curadoria",
+      // Cliente ainda não foi curado: deep-link vai para a tela de curadoria
+      // (não para o Agent). Compat via `?ask=` deprecado.
+      intentHref: `/admin/growth/curadoria?customer=${encodeURIComponent(customer.id)}`,
+      primary: true,
+    });
+  } else if (readiness.state === "curated" || readiness.state === "selected") {
+    actions.push({
+      key: "founder",
+      label: "Preparar convite Founder",
+      intentHref: assistanteIntentHref("prepare_founder", customer.id),
+      primary: true,
+    });
+  } else if (readiness.state === "invited" || readiness.state === "founder") {
+    actions.push({
+      key: "founder-followup",
+      label:
+        readiness.state === "founder"
+          ? "Preparar relacionamento Founder"
+          : "Preparar follow-up Founder",
+      intentHref: assistanteIntentHref("prepare_followup", customer.id),
+      primary: readiness.state === "invited",
+    });
+  }
+
+  if (isRenewalPending) {
+    actions.push({
+      key: "renewal",
+      label: "Preparar mensagem de renovação",
+      intentHref: assistanteIntentHref("prepare_renewal", customer.id),
+      primary: true,
+    });
+  }
+
+  return (
+    <section
+      data-testid="profile-assistant-section"
+      data-readiness-state={readiness.state}
+      className="mt-4 rounded-2xl border border-[#C9A84C]/25 bg-[#0F0D08] p-4"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-2">
+          <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C9A84C]/12 text-[#C9A84C]">
+            <Sparkles size={14} />
+          </span>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
+              Assistente DGN · {readiness.label}
+            </p>
+            <p className="mt-0.5 text-xs text-white/60">{readiness.description}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {actions.map((action) => (
+          <Link
+            key={action.key}
+            href={action.intentHref}
+            data-testid={`profile-assistant-${action.key}`}
+            className={`inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition ${
+              action.primary
+                ? "border-[#C9A84C]/40 bg-[#C9A84C]/[0.12] text-[#E7C96A] hover:bg-[#C9A84C]/[0.20]"
+                : "border-white/[0.08] bg-white/[0.03] text-white/85 hover:border-[#C9A84C]/30 hover:text-white"
+            }`}
+          >
+            {action.label}
+            <ArrowRight size={14} />
+          </Link>
+        ))}
+      </div>
+
+      <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">
+        Preparado pela IA · revisar antes de enviar
+      </p>
+    </section>
+  );
+}
+
+/** Deep-link estruturado para o Assistente. Ver `lib/growth/agent-intents.ts`. */
+function assistanteIntentHref(intent: string, customerId: string): string {
+  return `/admin/growth/assistente?intent=${encodeURIComponent(intent)}&customer=${encodeURIComponent(customerId)}`;
 }
 
 const FAST_REASON_CHIPS = [
@@ -2971,6 +3150,8 @@ function ProfileInput({
 
 function CustomerSnapshot({ customer }: { customer: DgnCustomer }) {
   const incompleteRegistration = customer.dataQualityStatus !== "ok";
+  const knownSubscriber = matchKnownSubscriber(customer);
+  const founderSelectedLegacy = customer.campaign?.founderSelected && !!knownSubscriber;
 
   return (
     <div className="rounded-2xl border border-[#C9A84C]/18 bg-[#121212] p-4">
@@ -2983,6 +3164,11 @@ function CustomerSnapshot({ customer }: { customer: DgnCustomer }) {
               {incompleteRegistration ? (
                 <span className="inline-flex h-6 items-center rounded-full border border-red-400/25 bg-red-400/10 px-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-red-300">
                   Cadastro incompleto
+                </span>
+              ) : null}
+              {knownSubscriber ? (
+                <span className="inline-flex h-6 items-center rounded-full border border-emerald-400/25 bg-emerald-400/[0.06] px-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-300">
+                  Assinante {knownSubscriber.record.plan}
                 </span>
               ) : null}
             </div>
@@ -2999,15 +3185,20 @@ function CustomerSnapshot({ customer }: { customer: DgnCustomer }) {
           <StatusBadge label={customer.commercialStatus} />
         </div>
       </div>
+      {founderSelectedLegacy ? (
+        <p className="mt-3 rounded-lg border border-amber-300/20 bg-amber-300/[0.03] px-3 py-2 text-xs text-amber-200/85">
+          Sinalização Founder ({customer.campaign?.founderStatus ?? "legado"}) é HISTÓRICO — cliente é assinante reconhecido; tratar como relacionamento/retenção.
+        </p>
+      ) : null}
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <ProfileFact label="Atendimentos" value={String(customer.washCount)} compact />
         <ProfileFact label="Recorrência" value={customer.recurrence} compact />
         <ProfileFact label="Valor investido" value={formatCurrency(customer.historicalValue)} compact />
-        <ProfileFact label="Último atendimento" value={customer.lastAttendance} compact />
+        <ProfileFact label="Último atendimento" value={formatDatePtBr(customer.lastAttendance)} compact />
       </div>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <ProfileFact label="Plano sugerido" value={customer.recommendedPlan} compact />
-        <ProfileFact label="Cliente desde" value={customer.customerSince} compact />
+        <ProfileFact label="Cliente desde" value={formatDatePtBr(customer.customerSince)} compact />
       </div>
     </div>
   );
