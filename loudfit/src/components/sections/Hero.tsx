@@ -1,7 +1,8 @@
 import Link from 'next/link'
 
 const HERO_DESKTOP = '/media/hero/hero-setembro.webp'
-const HERO_MOBILE = '/media/hero/hero-setembro-mobile.webp'
+// -v2 força CDN/browsers a puxarem a versão nova (crop 9x16 clean).
+const HERO_MOBILE = '/media/hero/hero-setembro-mobile-v2.webp'
 
 export function Hero() {
   return (
@@ -30,11 +31,12 @@ export function Hero() {
         className="absolute inset-0 -z-10 hidden h-full w-full object-cover object-center md:block"
       />
 
-      {/* Overlay mobile — reforço sutil de legibilidade: escurece topo (texto)
-          e base (transição para a próxima seção). */}
+      {/* Overlay mobile — a imagem `banner-mobile-9x16-clean` já vem com uma
+          área naturalmente escura no rodapé desenhada pra receber o texto.
+          O gradiente só reforça essa base (sem cobrir a atleta no topo). */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 md:hidden bg-[linear-gradient(180deg,rgba(8,8,8,0.72)_0%,rgba(8,8,8,0.35)_38%,rgba(8,8,8,0.18)_62%,rgba(8,8,8,0.65)_100%)]"
+        className="pointer-events-none absolute inset-0 -z-10 md:hidden bg-[linear-gradient(180deg,rgba(8,8,8,0.30)_0%,rgba(8,8,8,0.08)_32%,rgba(8,8,8,0.25)_58%,rgba(8,8,8,0.88)_100%)]"
       />
 
       {/* Overlay desktop — reforça a coluna esquerda (onde vive o copy). A
@@ -49,10 +51,11 @@ export function Hero() {
       <div aria-hidden="true" className="absolute bottom-0 left-0 right-0 h-px bg-lf-line" />
       <div aria-hidden="true" className="absolute bottom-0 left-0 h-[3px] w-56 -skew-x-12 origin-left bg-lf-volt" />
 
-      {/* Conteúdo — mobile: alinhado ao topo, sobre a área escura da imagem.
+      {/* Conteúdo — mobile: ancorado no rodapé, sobre a área escura naturalmente
+          reservada na imagem `banner-mobile-9x16-clean`.
           Desktop (md+): centralizado verticalmente na coluna escura à esquerda. */}
-      <div className="relative z-10 mx-auto flex min-h-[calc(92svh-4rem)] w-full max-w-[1360px] items-start px-5 pt-8 pb-10 sm:px-8 md:min-h-[75vh] md:items-center md:pt-14 md:py-20 lg:min-h-[86vh] lg:px-12">
-        <div className="w-full max-w-[560px] translate-y-14 md:translate-y-0">
+      <div className="relative z-10 mx-auto flex min-h-[calc(92svh-4rem)] w-full max-w-[1360px] items-end px-5 pb-12 pt-8 sm:px-8 md:min-h-[75vh] md:items-center md:pt-14 md:py-20 lg:min-h-[86vh] lg:px-12">
+        <div className="w-full max-w-[560px]">
           <h1
             className="font-black uppercase leading-[0.94] tracking-[-0.015em] text-lf-text"
             style={{ fontSize: 'clamp(2.75rem, 6.4vw, 5.75rem)' }}

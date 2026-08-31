@@ -42,7 +42,7 @@ const standardPlans: Plan[] = [
   {
     slug: 'power-plus',
     name: 'Power Plus',
-    badge: 'FIDELIDADE 12 MESES',
+    badge: 'MAIS VANTAJOSO',
     price: 'R$ 119,00',
     period: '/mês',
     description: 'A menor mensalidade da rede',
@@ -87,7 +87,7 @@ const ipirangaPlans: Plan[] = [
   {
     slug: 'power-plus',
     name: 'Power Plus',
-    badge: 'FIDELIDADE 12 MESES',
+    badge: 'MAIS VANTAJOSO',
     price: 'R$ 179,90',
     period: '/mês',
     description: 'A menor mensalidade desta unidade',
