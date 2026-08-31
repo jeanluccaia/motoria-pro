@@ -214,7 +214,6 @@ export function ExpandablePlanCard({
                 </strong>
               </p>
               <p className="mt-3 text-[13.5px] leading-snug text-white/75">{afterFirstMonthText}</p>
-              <p className="mt-1 text-[12px] leading-snug text-white/55">{plan.commitment}</p>
             </div>
           ) : (
             <div className="mt-6 border-t border-white/10 pt-6">
@@ -307,7 +306,6 @@ export function ExpandablePlanCard({
                 </strong>
               </p>
               <p className="mt-3 text-[13px] leading-snug text-[#4A4A4A]">{afterFirstMonthText}</p>
-              <p className="mt-1 text-[12px] leading-snug text-[#7A7267]">{plan.commitment}</p>
             </div>
           ) : (
             <div className="mt-6 border-t border-[#EDEBE5] pt-6">
