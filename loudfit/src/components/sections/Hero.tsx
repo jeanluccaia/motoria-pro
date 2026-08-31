@@ -53,12 +53,8 @@ export function Hero() {
           Desktop (md+): centralizado verticalmente na coluna escura à esquerda. */}
       <div className="relative z-10 mx-auto flex min-h-[calc(92svh-4rem)] w-full max-w-[1360px] items-start px-5 pt-8 pb-10 sm:px-8 md:min-h-[75vh] md:items-center md:pt-14 md:py-20 lg:min-h-[86vh] lg:px-12">
         <div className="w-full max-w-[560px] translate-y-14 md:translate-y-0">
-          <p className="text-[12px] font-bold uppercase tracking-[0.24em] text-lf-volt md:text-[13px]">
-            Liberdade para treinar alto
-          </p>
-
           <h1
-            className="mt-5 font-black uppercase leading-[0.94] tracking-[-0.015em] text-lf-text md:mt-6"
+            className="font-black uppercase leading-[0.94] tracking-[-0.015em] text-lf-text"
             style={{ fontSize: 'clamp(2.75rem, 6.4vw, 5.75rem)' }}
           >
             <span className="block">1º mês por</span>
