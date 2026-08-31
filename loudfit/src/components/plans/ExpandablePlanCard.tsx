@@ -213,11 +213,6 @@ export function ExpandablePlanCard({
                   {plan.firstPayment.value}
                 </strong>
               </p>
-              {plan.firstPaymentNote && (
-                <p className="mt-2 text-[12px] font-semibold uppercase tracking-[0.14em] text-lf-volt/85">
-                  {plan.firstPaymentNote}
-                </p>
-              )}
               <p className="mt-3 text-[13.5px] leading-snug text-white/75">{afterFirstMonthText}</p>
               <p className="mt-1 text-[12px] leading-snug text-white/55">{plan.commitment}</p>
             </div>
@@ -311,11 +306,6 @@ export function ExpandablePlanCard({
                   {plan.firstPayment.value}
                 </strong>
               </p>
-              {plan.firstPaymentNote && (
-                <p className="mt-2 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7A6900]">
-                  {plan.firstPaymentNote}
-                </p>
-              )}
               <p className="mt-3 text-[13px] leading-snug text-[#4A4A4A]">{afterFirstMonthText}</p>
               <p className="mt-1 text-[12px] leading-snug text-[#7A7267]">{plan.commitment}</p>
             </div>
