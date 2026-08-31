@@ -28,12 +28,12 @@ export function StickyCta() {
       ].join(' ')}
     >
       <p className="text-sm font-medium text-lf-muted">
-        Primeira mensalidade por{' '}
-        <strong className="text-lf-volt">R$ 9,90</strong>
-        {' '}no Power Plus
+        1º mês por{' '}
+        <strong className="text-lf-volt">R$ 69</strong>
+        {' '}no Mensal Recorrente · sem fidelidade
       </p>
       <Button href="/unidades" variant="volt" size="md">
-        Começar matrícula
+        Comece agora
       </Button>
     </div>
   )

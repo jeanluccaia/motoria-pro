@@ -10,37 +10,47 @@ export interface Plan {
   tier: 'featured' | 'accent' | 'neutral'
   /** Texto contratual exibido antes do CTA (ex.: "Fidelidade de 12 meses" ou "Sem fidelidade"). */
   commitment: string
+  /** Primeira mensalidade promocional. Quando presente, o card mostra "1º MÊS" + valor. */
   firstPayment?: { label: string; value: string }
+  /** Linha auxiliar exibida junto do primeiro mês (ex.: "Taxa de inscrição: R$ 9,90"). */
+  firstPaymentNote?: string
   checkoutUrl?: string | null
 }
 
-/** Menor mensalidade da rede — usada na Home para "a partir de R$ ...". */
+/** Menor mensalidade de rede exibida na Home ("depois R$ …/mês"). */
 export const NETWORK_MIN_MONTHLY_PRICE = 'R$ 119,00'
 
+// Campanha de setembro/2026:
+//  • Mensal Recorrente vira o card recomendado — 1º mês R$ 69, sem fidelidade.
+//  • Power Plus continua como alternativa com fidelidade de 12 meses:
+//    1º mês R$ 0,00 + taxa de inscrição R$ 9,90.
+//  • Power segue sem promoção (avulso, pagamento na unidade).
 const standardPlans: Plan[] = [
   {
-    slug: 'power-plus',
-    name: 'Power Plus',
-    badge: 'MAIS VANTAJOSO',
-    price: 'R$ 119,00',
+    slug: 'power-recorrente',
+    name: 'Mensal Recorrente',
+    badge: 'RECOMENDADO',
+    price: 'R$ 139,00',
     period: '/mês',
-    description: 'A menor mensalidade da rede',
+    description: 'Sem fidelidade de 12 meses · cobrança recorrente no cartão',
     featured: true,
     tier: 'featured',
-    commitment: 'Fidelidade de 12 meses · Taxa de adesão R$ 19,90',
-    firstPayment: { label: '1º mês por', value: 'R$ 9,90' },
+    commitment: 'Sem fidelidade de 12 meses',
+    firstPayment: { label: '1º mês por', value: 'R$ 69,00' },
     checkoutUrl: null,
   },
   {
-    slug: 'power-recorrente',
-    name: 'Power Recorrente',
-    badge: 'RECORRENTE',
-    price: 'R$ 139,00',
+    slug: 'power-plus',
+    name: 'Power Plus',
+    badge: 'FIDELIDADE 12 MESES',
+    price: 'R$ 119,00',
     period: '/mês',
-    description: 'Sem fidelidade, cobrança mensal no cartão',
+    description: 'A menor mensalidade da rede',
     featured: false,
     tier: 'accent',
-    commitment: 'Sem fidelidade',
+    commitment: 'Fidelidade de 12 meses',
+    firstPayment: { label: '1º mês por', value: 'R$ 0,00' },
+    firstPaymentNote: 'Taxa de inscrição: R$ 9,90',
     checkoutUrl: null,
   },
   {
@@ -62,28 +72,30 @@ const standardPlans: Plan[] = [
 // (Mensal Recorrente R$ 189,00 documentado em `campaigns.ts`).
 const ipirangaPlans: Plan[] = [
   {
-    slug: 'power-plus',
-    name: 'Power Plus',
-    badge: 'MAIS VANTAJOSO',
-    price: 'R$ 179,90',
+    slug: 'power-recorrente',
+    name: 'Mensal Recorrente',
+    badge: 'RECOMENDADO',
+    price: 'R$ 189,00',
     period: '/mês',
-    description: 'A menor mensalidade desta unidade',
+    description: 'Sem fidelidade de 12 meses · cobrança recorrente no cartão',
     featured: true,
     tier: 'featured',
-    commitment: 'Fidelidade de 12 meses · Taxa de adesão R$ 19,90',
-    firstPayment: { label: '1º mês por', value: 'R$ 9,90' },
+    commitment: 'Sem fidelidade de 12 meses',
+    firstPayment: { label: '1º mês por', value: 'R$ 69,00' },
     checkoutUrl: null,
   },
   {
-    slug: 'power-recorrente',
-    name: 'Power Recorrente',
-    badge: 'RECORRENTE',
-    price: 'R$ 189,00',
+    slug: 'power-plus',
+    name: 'Power Plus',
+    badge: 'FIDELIDADE 12 MESES',
+    price: 'R$ 179,90',
     period: '/mês',
-    description: 'Sem fidelidade, cobrança mensal no cartão',
+    description: 'A menor mensalidade desta unidade',
     featured: false,
     tier: 'accent',
-    commitment: 'Sem fidelidade',
+    commitment: 'Fidelidade de 12 meses',
+    firstPayment: { label: '1º mês por', value: 'R$ 0,00' },
+    firstPaymentNote: 'Taxa de inscrição: R$ 9,90',
     checkoutUrl: null,
   },
   {
@@ -126,23 +138,25 @@ export const planBenefits = networkBenefits
 
 /** Descrição curta do plano exibida no card. Reutilizada por Home e unidades. */
 export const planShortDescriptions: Record<string, string> = {
+  'power-recorrente': 'Sem fidelidade de 12 meses · cobrança recorrente no cartão',
   'power-plus': 'A menor mensalidade da rede',
-  'power-recorrente': 'Sem fidelidade, cobrança mensal no cartão',
   'power': 'Sem compromisso',
 }
 
 /** Texto de condições exibido dentro do painel expansível de cada plano. */
 export const planConditions: Record<string, string[]> = {
+  'power-recorrente': [
+    'Sem fidelidade de 12 meses',
+    'Primeira mensalidade por R$ 69,00',
+    'A partir do segundo mês, valor mensal cheio desta unidade',
+    'Cobrança recorrente no cartão cadastrado',
+  ],
   'power-plus': [
     'Fidelidade contratual de 12 meses',
-    'Taxa de adesão de R$ 19,90',
-    'Primeira mensalidade por R$ 9,90',
+    'Primeiro mês por R$ 0,00',
+    'Taxa de inscrição de R$ 9,90',
+    'A partir do segundo mês, valor mensal cheio desta unidade',
     'Cobrança mensal recorrente no cartão',
-  ],
-  'power-recorrente': [
-    'Sem fidelidade',
-    'Cancelamento mediante aviso prévio de 30 dias',
-    'Cobrança recorrente no cartão cadastrado',
   ],
   'power': [
     'Sem fidelidade',
@@ -153,7 +167,7 @@ export const planConditions: Record<string, string[]> = {
 
 /** Mapa slug → nome legível, importável em Client Components */
 export const PLAN_NAMES: Record<string, string> = {
+  'power-recorrente': 'Mensal Recorrente',
   'power-plus': 'Power Plus',
-  'power-recorrente': 'Power Recorrente',
   'power': 'Power',
 }

@@ -28,7 +28,8 @@ export function PlansGrid({ plans, variant, ctaBase, ctaLabel, homePricing = fal
   }
 
   // 3 colunas em ≥lg (cabe os três cards lado a lado); 1 coluna no mobile
-  // com Power Plus obrigatoriamente primeiro por `order-first` no card.
+  // com o card `tier=featured` (Mensal Recorrente) obrigatoriamente primeiro
+  // por `order-first` no próprio card.
   return (
     <div className="mx-auto grid max-w-5xl grid-cols-1 items-start gap-5 lg:grid-cols-3">
       {plans.map((plan, i) => (

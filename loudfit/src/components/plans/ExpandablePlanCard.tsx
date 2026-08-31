@@ -45,7 +45,7 @@ interface ExpandablePlanCardProps {
   variant: PlansVariant
   ctaHref: string
   ctaLabel: string
-  /** Home mostra "1º mês por R$ 9,90 · depois a partir de …"; unidade mostra o valor exato da unidade. */
+  /** Home mostra "depois a partir de …/mês"; unidade mostra o valor exato da unidade. */
   homePricing?: boolean
 }
 
@@ -160,17 +160,21 @@ export function ExpandablePlanCard({
   const buttonId = `plan-toggle-${plan.slug}-${variant}`
   const tier = plan.tier
 
-  /* Featured — Power Plus. Fundo preto premium, borda amarela, selo único. */
+  // "Depois R$ …/mês". Na Home usamos o menor mensal da rede quando o valor
+  // exato depende da unidade; na página de unidade usamos o valor cheio já
+  // cadastrado para aquela unidade.
+  const afterFirstMonthText =
+    homePricing
+      ? `Depois, a partir de ${NETWORK_MIN_MONTHLY_PRICE}${plan.period}`
+      : `Depois, ${plan.price}${plan.period}`
+
+  /* Featured — card recomendado (Mensal Recorrente).
+     Fundo preto premium, borda amarela, selo único. */
   if (tier === 'featured') {
     const shellBg =
       variant === 'home'
         ? 'bg-[#0F0F0F] shadow-[0_10px_40px_rgba(0,0,0,0.35)]'
         : 'bg-[#181818] shadow-[0_8px_40px_rgba(0,0,0,0.30)]'
-
-    const afterFirstMonth =
-      homePricing
-        ? `Depois, ${NETWORK_MIN_MONTHLY_PRICE}${plan.period}`
-        : `Depois, ${plan.price}${plan.period}`
 
     return (
       <article
@@ -208,11 +212,14 @@ export function ExpandablePlanCard({
                 <strong className="text-[44px] font-black leading-none tracking-tight md:text-[48px]">
                   {plan.firstPayment.value}
                 </strong>
-                <span className="ml-1 text-[16px] font-bold text-lf-volt">*</span>
               </p>
-              <p className="mt-3 text-[13.5px] leading-snug text-white/75">
-                {afterFirstMonth}
-              </p>
+              {plan.firstPaymentNote && (
+                <p className="mt-2 text-[12px] font-semibold uppercase tracking-[0.14em] text-lf-volt/85">
+                  {plan.firstPaymentNote}
+                </p>
+              )}
+              <p className="mt-3 text-[13.5px] leading-snug text-white/75">{afterFirstMonthText}</p>
+              <p className="mt-1 text-[12px] leading-snug text-white/55">{plan.commitment}</p>
             </div>
           ) : (
             <div className="mt-6 border-t border-white/10 pt-6">
@@ -220,6 +227,7 @@ export function ExpandablePlanCard({
                 <strong className="text-[38px] font-black leading-none">{plan.price}</strong>
                 <span className="ml-1 text-[14px] text-white/50">{plan.period}</span>
               </p>
+              <p className="mt-3 text-[12px] leading-snug text-white/55">{plan.commitment}</p>
             </div>
           )}
 
@@ -267,7 +275,7 @@ export function ExpandablePlanCard({
     )
   }
 
-  /* Accent — Power Recorrente. Tratamento intermediário: fundo branco com borda mais forte + selo escuro. */
+  /* Accent — alternativa com fidelidade (Power Plus). Fundo claro, selo escuro. */
   if (tier === 'accent') {
     const shellClasses = cn(
       'border bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05),0_10px_30px_rgba(0,0,0,0.07)]',
@@ -293,18 +301,38 @@ export function ExpandablePlanCard({
           </h3>
           <p className="mt-1.5 text-[13px] leading-snug text-[#5E5B54]">{description}</p>
 
-          <div className="mt-6 border-t border-[#EDEBE5] pt-6">
-            <p className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-[#7A7267]">
-              Mensalidade
-            </p>
-            <p className={cn('mt-2 flex items-baseline text-[#111111]', BODY)}>
-              <strong className="text-[36px] font-black leading-none tracking-tight md:text-[38px]">
-                {plan.price}
-              </strong>
-              <span className="ml-1 text-[14px] text-[#5E5B54]">{plan.period}</span>
-            </p>
-            <p className="mt-3 text-[12px] leading-snug text-[#7A7267]">{plan.commitment}</p>
-          </div>
+          {plan.firstPayment ? (
+            <div className="mt-6 border-t border-[#EDEBE5] pt-6">
+              <p className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-[#7A7267]">
+                {plan.firstPayment.label}
+              </p>
+              <p className={cn('mt-2 flex items-baseline text-[#111111]', BODY)}>
+                <strong className="text-[42px] font-black leading-none tracking-tight md:text-[44px]">
+                  {plan.firstPayment.value}
+                </strong>
+              </p>
+              {plan.firstPaymentNote && (
+                <p className="mt-2 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7A6900]">
+                  {plan.firstPaymentNote}
+                </p>
+              )}
+              <p className="mt-3 text-[13px] leading-snug text-[#4A4A4A]">{afterFirstMonthText}</p>
+              <p className="mt-1 text-[12px] leading-snug text-[#7A7267]">{plan.commitment}</p>
+            </div>
+          ) : (
+            <div className="mt-6 border-t border-[#EDEBE5] pt-6">
+              <p className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-[#7A7267]">
+                Mensalidade
+              </p>
+              <p className={cn('mt-2 flex items-baseline text-[#111111]', BODY)}>
+                <strong className="text-[36px] font-black leading-none tracking-tight md:text-[38px]">
+                  {plan.price}
+                </strong>
+                <span className="ml-1 text-[14px] text-[#5E5B54]">{plan.period}</span>
+              </p>
+              <p className="mt-3 text-[12px] leading-snug text-[#7A7267]">{plan.commitment}</p>
+            </div>
+          )}
 
           <div className="mt-auto pt-7">
             <Link

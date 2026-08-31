@@ -20,8 +20,11 @@ import { readStoredConsent } from '@/lib/consent'
 
 const DEDUP_KEY = 'lf_ipiranga_initiate_checkout_v1'
 
+// Campanha de setembro/2026: o Mensal Recorrente passa a ter 1º mês por
+// R$ 69,00 (antes R$ 69,90 no override do convite). O InitiateCheckout usa
+// o valor do primeiro compromisso da matrícula em BRL.
 const IPIRANGA_INITIATE_CHECKOUT_PARAMS = {
-  value: 69.9,
+  value: 69.0,
   currency: 'BRL',
   content_ids: ['ipiranga-mensal-recorrente'],
   content_type: 'product',
@@ -52,9 +55,8 @@ function markFired() {
 
 /**
  * Dispara `InitiateCheckout` no Meta Pixel para o plano Mensal Recorrente
- * da Loud Fit Ipiranga (1ª mensalidade R$ 69,90 — ver `campaigns.ts`
- * `conviteConfig.firstMonthPriceValueOverride`). Também empurra
- * `initiate_checkout` no dataLayer para GTM.
+ * da Loud Fit Ipiranga (1ª mensalidade R$ 69,00 na campanha de setembro/2026).
+ * Também empurra `initiate_checkout` no dataLayer para GTM.
  *
  * Idempotente por sessão SOMENTE quando o pixel foi de fato disparado —
  * cliques sem consentimento ou com fbq ainda ausente não consomem o
@@ -89,7 +91,7 @@ export function dispatchIpirangaInitiateCheckout() {
       event: 'initiate_checkout',
       unit: 'ipiranga',
       plan: 'mensal_recorrente',
-      value: 69.9,
+      value: 69.0,
       currency: 'BRL',
     })
   }

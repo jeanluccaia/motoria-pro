@@ -14,7 +14,7 @@ type WindowWithMeta = Window & {
 }
 
 const INITIATE_CHECKOUT_PARAMS = {
-  value: 69.9,
+  value: 69.0,
   currency: 'BRL',
   content_ids: ['ipiranga-mensal-recorrente'],
   content_type: 'product',
@@ -53,7 +53,7 @@ export function IpirangaEvoCheckoutLink({ checkoutUrl, className, children }: Pr
             event: 'initiate_checkout',
             unit: 'ipiranga',
             plan: 'mensal_recorrente',
-            value: 69.9,
+            value: 69.0,
             currency: 'BRL',
           })
         }
