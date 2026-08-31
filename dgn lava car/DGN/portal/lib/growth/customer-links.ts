@@ -10,3 +10,8 @@ export const CUSTOMER_PROFILE_ROUTE_PREFIX = "/admin/growth/customers";
 export function customerProfileHref(customerId: string): string {
   return `${CUSTOMER_PROFILE_ROUTE_PREFIX}/${encodeURIComponent(customerId)}`;
 }
+
+/** Deep-link para o Assistente com prompt pré-carregado (auto-envio no mount). */
+export function assistentePromptHref(prompt: string): string {
+  return `/admin/growth/assistente?ask=${encodeURIComponent(prompt)}`;
+}
