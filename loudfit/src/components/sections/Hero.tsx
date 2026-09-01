@@ -66,8 +66,14 @@ export function Hero() {
             </span>
           </h1>
 
-          <p className="mt-5 max-w-[38ch] text-[15px] leading-[1.55] text-lf-text/90 md:mt-6 md:text-[17px]">
-            Mensal recorrente <span aria-hidden="true">•</span> Sem fidelidade <span aria-hidden="true">•</span> Cancele sem multa
+          <p className="mt-5 max-w-[38ch] text-lf-text/90 md:mt-6 md:max-w-none md:whitespace-nowrap md:text-[17px] md:leading-[1.55]">
+            <span className="block text-[12.5px] font-medium leading-[1.3] text-lf-text/60 md:inline md:text-[17px] md:font-normal md:leading-[1.55] md:text-lf-text/90">
+              Mensal recorrente
+            </span>
+            <span aria-hidden="true" className="hidden md:inline"> • </span>
+            <span className="mt-[5px] block whitespace-nowrap text-[14px] font-semibold leading-[1.35] text-lf-text sm:text-[15px] md:mt-0 md:inline md:text-[17px] md:font-normal md:leading-[1.55] md:text-lf-text/90">
+              Sem fidelidade <span aria-hidden="true">•</span> Cancele sem multa
+            </span>
           </p>
 
           <div className="mt-7 md:mt-9">
