@@ -17,11 +17,8 @@ export interface Plan {
   checkoutUrl?: string | null
 }
 
-/** Menor mensalidade de rede exibida na Home ("depois R$ …/mês"). */
-export const NETWORK_MIN_MONTHLY_PRICE = 'R$ 119,00'
-
 // Campanha de setembro/2026:
-//  • Mensal Recorrente vira o card recomendado — 1º mês R$ 69, sem fidelidade.
+//  • Mensal Recorrente vira o card recomendado — 1º mês R$ 69,90, sem fidelidade.
 //  • Power Plus continua como alternativa com fidelidade de 12 meses:
 //    1º mês R$ 0,00 + taxa de inscrição R$ 9,90.
 //  • Power segue sem promoção (avulso, pagamento na unidade).
@@ -30,13 +27,13 @@ const standardPlans: Plan[] = [
     slug: 'power-recorrente',
     name: 'Mensal Recorrente',
     badge: 'RECOMENDADO',
-    price: 'R$ 139,00',
+    price: 'R$ 139,90',
     period: '/mês',
-    description: 'Sem fidelidade de 12 meses · cobrança recorrente no cartão',
+    description: 'Sem fidelidade • Cancele sem multa\nCobrança recorrente no cartão',
     featured: true,
     tier: 'featured',
-    commitment: 'Sem fidelidade de 12 meses',
-    firstPayment: { label: '1º mês por', value: 'R$ 69,00' },
+    commitment: 'Sem fidelidade • Cancele sem multa',
+    firstPayment: { label: '1º mês por', value: 'R$ 69,90' },
     checkoutUrl: null,
   },
   {
@@ -77,11 +74,11 @@ const ipirangaPlans: Plan[] = [
     badge: 'RECOMENDADO',
     price: 'R$ 189,00',
     period: '/mês',
-    description: 'Sem fidelidade de 12 meses · cobrança recorrente no cartão',
+    description: 'Sem fidelidade • Cancele sem multa\nCobrança recorrente no cartão',
     featured: true,
     tier: 'featured',
-    commitment: 'Sem fidelidade de 12 meses',
-    firstPayment: { label: '1º mês por', value: 'R$ 69,00' },
+    commitment: 'Sem fidelidade • Cancele sem multa',
+    firstPayment: { label: '1º mês por', value: 'R$ 69,90' },
     checkoutUrl: null,
   },
   {
@@ -138,7 +135,7 @@ export const planBenefits = networkBenefits
 
 /** Descrição curta do plano exibida no card. Reutilizada por Home e unidades. */
 export const planShortDescriptions: Record<string, string> = {
-  'power-recorrente': 'Sem fidelidade de 12 meses · cobrança recorrente no cartão',
+  'power-recorrente': 'Sem fidelidade • Cancele sem multa\nCobrança recorrente no cartão',
   'power-plus': 'A menor mensalidade da rede',
   'power': 'Sem compromisso',
 }
@@ -146,8 +143,9 @@ export const planShortDescriptions: Record<string, string> = {
 /** Texto de condições exibido dentro do painel expansível de cada plano. */
 export const planConditions: Record<string, string[]> = {
   'power-recorrente': [
-    'Sem fidelidade de 12 meses',
-    'Primeira mensalidade por R$ 69,00',
+    'Sem fidelidade',
+    'Cancelamento sem multa',
+    'R$ 69,90 somente no primeiro mês',
     'A partir do segundo mês, valor mensal cheio desta unidade',
     'Cobrança recorrente no cartão cadastrado',
   ],

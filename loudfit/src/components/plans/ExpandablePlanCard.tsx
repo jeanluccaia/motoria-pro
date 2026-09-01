@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils'
 import { trackEvent } from '@/lib/analytics'
 import { dispatchIpirangaInitiateCheckout } from '@/lib/meta-checkout'
 import {
-  NETWORK_MIN_MONTHLY_PRICE,
   networkBenefits,
   planConditions,
   planShortDescriptions,
@@ -160,13 +159,12 @@ export function ExpandablePlanCard({
   const buttonId = `plan-toggle-${plan.slug}-${variant}`
   const tier = plan.tier
 
-  // "Depois R$ …/mês". Na Home usamos o menor mensal da rede quando o valor
-  // exato depende da unidade; na página de unidade usamos o valor cheio já
-  // cadastrado para aquela unidade.
-  const afterFirstMonthText =
-    homePricing
-      ? `Depois, a partir de ${NETWORK_MIN_MONTHLY_PRICE}${plan.period}`
-      : `Depois, ${plan.price}${plan.period}`
+  // "Depois R$ …/mês". Na Home prefixamos com "a partir de" porque o valor
+  // exato varia por unidade (Ipiranga tem tabela própria); na página de
+  // unidade mostramos o valor cheio já cadastrado para aquela unidade.
+  const afterFirstMonthText = homePricing
+    ? `Depois, a partir de ${plan.price}${plan.period}`
+    : `Depois, ${plan.price}${plan.period}`
 
   /* Featured — card recomendado (Mensal Recorrente).
      Fundo preto premium, borda amarela, selo único. */
@@ -201,7 +199,7 @@ export function ExpandablePlanCard({
           <h3 className={cn('text-[22px] font-black leading-tight text-lf-text', BODY)}>
             {plan.name}
           </h3>
-          <p className="mt-1.5 text-[13px] leading-snug text-white/55">{description}</p>
+          <p className="mt-1.5 whitespace-pre-line text-[13px] leading-snug text-white/55">{description}</p>
 
           {plan.firstPayment ? (
             <div className="mt-6 border-t border-white/10 pt-6">
@@ -293,7 +291,7 @@ export function ExpandablePlanCard({
           <h3 className={cn('text-[22px] font-black leading-tight text-[#111111]', BODY)}>
             {plan.name}
           </h3>
-          <p className="mt-1.5 text-[13px] leading-snug text-[#5E5B54]">{description}</p>
+          <p className="mt-1.5 whitespace-pre-line text-[13px] leading-snug text-[#5E5B54]">{description}</p>
 
           {plan.firstPayment ? (
             <div className="mt-6 border-t border-[#EDEBE5] pt-6">

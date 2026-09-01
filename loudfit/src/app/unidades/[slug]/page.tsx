@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = `${name} — Academia em ${unit.cidade}`
   const description = slug === 'anchieta-sp'
     ? `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Fale direto com a equipe da unidade no WhatsApp para consultar planos e condições.`
-    : `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Mensal Recorrente com 1º mês por R$ 69 e sem fidelidade de 12 meses.`
+    : `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Mensal Recorrente com 1º mês por R$ 69,90, sem fidelidade e cancelamento sem multa.`
   return {
     title: { absolute: title },
     description,
@@ -154,7 +154,7 @@ export default async function UnitPage({ params }: Props) {
                   ? 'Estrutura completa. Condições e planos direto com a equipe da unidade.'
                   : unit.status === 'em_breve'
                   ? 'Unidade em inauguração.'
-                  : 'Estrutura completa. Mensal Recorrente: 1º mês por R$ 69, sem fidelidade de 12 meses.'}
+                  : 'Estrutura completa. Mensal Recorrente: 1º mês por R$ 69,90, sem fidelidade e cancelamento sem multa.'}
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 {isAnchieta && anchietaWhatsappHref && (
@@ -273,10 +273,10 @@ export default async function UnitPage({ params }: Props) {
                 <>
                   <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lf-volt">Matrícula online</p>
                   <h2 className="mt-3 text-3xl font-black text-gray-900 leading-tight">
-                    1º mês por R$ 69
+                    1º mês por R$ 69,90
                   </h2>
                   <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-gray-400">
-                    Mensal Recorrente · sem fidelidade de 12 meses
+                    Mensal Recorrente · Sem fidelidade · Cancele sem multa
                   </p>
                   <p className="mt-3 text-sm leading-relaxed text-gray-500">
                     {isIpiranga && unit.status === 'em_breve' && hasCheckout
@@ -455,8 +455,8 @@ export default async function UnitPage({ params }: Props) {
             <p className="mt-6 text-xs text-[#7A7267]">
               A partir do segundo mês, aplica-se o valor mensal cheio de cada plano nesta unidade.
               Power Plus tem taxa de inscrição de R$ 9,90 e fidelidade de 12 meses; o Mensal
-              Recorrente segue mês a mês, sem fidelidade. O Power segue o valor cheio desde a
-              primeira cobrança.
+              Recorrente segue mês a mês, sem fidelidade e sem multa de cancelamento. O Power
+              segue o valor cheio desde a primeira cobrança.
             </p>
           </Section>
         )}

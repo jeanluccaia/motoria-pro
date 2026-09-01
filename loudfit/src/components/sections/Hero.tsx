@@ -7,7 +7,7 @@ const HERO_MOBILE = '/media/hero/hero-setembro-mobile-v2.webp'
 export function Hero() {
   return (
     <section
-      aria-label="Oferta de setembro — Mensal Recorrente, 1º mês por R$ 69"
+      aria-label="Oferta de setembro — Mensal Recorrente, 1º mês por R$ 69,90"
       className="relative isolate overflow-hidden bg-lf-black pt-16 min-h-[92svh] md:min-h-[75vh] lg:min-h-[86vh]"
     >
       {/* Hero image: `<picture>`-style swap por breakpoint.
@@ -61,13 +61,13 @@ export function Hero() {
             style={{ fontSize: 'clamp(2.75rem, 6.4vw, 5.75rem)' }}
           >
             <span className="block">1º mês por</span>
-            <span className="mt-1 block whitespace-nowrap text-lf-volt" style={{ fontSize: 'clamp(4.25rem, 12vw, 8.5rem)' }}>
-              R$ 69
+            <span className="mt-1 block whitespace-nowrap text-lf-volt" style={{ fontSize: 'clamp(3.25rem, 10vw, 7.25rem)' }}>
+              R$ 69,90
             </span>
           </h1>
 
           <p className="mt-5 max-w-[38ch] text-[15px] leading-[1.55] text-lf-text/90 md:mt-6 md:text-[17px]">
-            Mensal recorrente <span aria-hidden="true">•</span> sem fidelidade de 12 meses
+            Mensal recorrente <span aria-hidden="true">•</span> Sem fidelidade <span aria-hidden="true">•</span> Cancele sem multa
           </p>
 
           <div className="mt-7 md:mt-9">

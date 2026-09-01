@@ -29,7 +29,7 @@ export function StickyCta() {
     >
       <p className="text-sm font-medium text-lf-muted">
         1º mês por{' '}
-        <strong className="text-lf-volt">R$ 69</strong>
+        <strong className="text-lf-volt">R$ 69,90</strong>
         {' '}no Mensal Recorrente · válido até 14/09
       </p>
       <Button href="/unidades" variant="volt" size="md">

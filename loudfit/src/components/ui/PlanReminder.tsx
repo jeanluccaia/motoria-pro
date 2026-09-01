@@ -8,7 +8,7 @@ interface PlanReminderProps {
 }
 
 const STANDARD_PRICES: Record<string, string> = {
-  'power-recorrente': 'R$ 139,00',
+  'power-recorrente': 'R$ 139,90',
   'power-plus': 'R$ 119,00',
   'power': 'R$ 149,00',
 }
@@ -37,7 +37,7 @@ function PlanReminderInner({ isIpiranga }: PlanReminderProps) {
       <p className="mt-1 text-lg font-black text-gray-900">{planName}</p>
       {plano === 'power-recorrente' && monthlyPrice && (
         <p className="mt-1 text-sm text-gray-500">
-          1º mês por R$ 69,00 — depois {monthlyPrice}/mês no cartão. Sem fidelidade de 12 meses.
+          1º mês por R$ 69,90 — depois {monthlyPrice}/mês no cartão. Sem fidelidade — cancele sem multa.
         </p>
       )}
       {plano === 'power-plus' && monthlyPrice && (
