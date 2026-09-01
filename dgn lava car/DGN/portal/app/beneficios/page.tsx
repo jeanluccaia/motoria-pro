@@ -1,172 +1,109 @@
-"use client";
+import { redirect } from "next/navigation";
+import { PortalShell } from "../_components/portal-shell";
+import { loadCurrentSubscriber, primarySubscription } from "@/lib/portal/loader";
+import { planFor } from "@/lib/portal/plan-catalog";
 
-import { motion, type Variants, type Easing } from "framer-motion";
-import {
-  ArrowLeft,
-  Star,
-  CalendarCheck,
-  Sparkles,
-  Shield,
-  MessageCircle,
-  Tag,
-  Bell,
-} from "lucide-react";
-import Link from "next/link";
-import { BottomNav } from "@/components/BottomNav";
-import { GoldBadge } from "@/components/GoldBadge";
+export const dynamic = "force-dynamic";
+export const metadata = { title: "Benefícios — DGN Club" };
 
-const easeOut: Easing = "easeOut";
-const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.07, duration: 0.4, ease: easeOut },
-  }),
-};
+// Catálogo canônico dos benefícios por plano. Sem "Elite", sem "Premium".
+const BENEFITS = {
+  Essential: {
+    washes: "1 lavagem/mês",
+    esteticaDiscount: "7% OFF na Estética DGN",
+    priority: "Atendimento padrão",
+  },
+  Smart: {
+    washes: "2 lavagens/mês",
+    esteticaDiscount: "15% OFF na Estética DGN",
+    priority: "Atendimento com prioridade média",
+  },
+  Priority: {
+    washes: "4 lavagens/mês",
+    esteticaDiscount: "20% OFF na Estética DGN",
+    priority: "Máxima prioridade logística",
+  },
+} as const;
 
-const benefits = [
-  {
-    icon: CalendarCheck,
-    title: "Agendamento Prioritário",
-    desc: "Seus horários têm prioridade sobre clientes avulsos em toda a rede DGN.",
-    color: "#C9A84C",
-    bg: "rgba(201,168,76,0.08)",
-  },
-  {
-    icon: Sparkles,
-    title: "Produtos Premium Certificados",
-    desc: "Utilizamos apenas produtos premium certificados nos veículos do clube.",
-    color: "#818CF8",
-    bg: "rgba(129,140,248,0.08)",
-  },
-  {
-    icon: Shield,
-    title: "Garantia de Satisfação",
-    desc: "Se o resultado não atender, refazemos o serviço sem custo adicional.",
-    color: "#34D399",
-    bg: "rgba(52,211,153,0.08)",
-  },
-  {
-    icon: MessageCircle,
-    title: "Canal VIP WhatsApp",
-    desc: "Atendimento direto com respostas em até 30 minutos no horário comercial.",
-    color: "#22C55E",
-    bg: "rgba(34,197,94,0.08)",
-  },
-  {
-    icon: Tag,
-    title: "Descontos em Parceiros",
-    desc: "Descontos exclusivos em autopeças, seguros e serviços parceiros da DGN.",
-    color: "#F59E0B",
-    bg: "rgba(245,158,11,0.08)",
-  },
-  {
-    icon: Bell,
-    title: "Alertas de Manutenção",
-    desc: "Notificações personalizadas sobre quando seu veículo precisa de cuidados.",
-    color: "#60A5FA",
-    bg: "rgba(96,165,250,0.08)",
-  },
-];
+export default async function BeneficiosPage() {
+  const subscriber = await loadCurrentSubscriber();
+  if (subscriber.status === "not_signed_in") redirect("/entrar?next=/beneficios");
+  if (subscriber.status === "beta_gate_closed") redirect("/entrar?next=/beneficios&beta=closed");
 
-export default function BeneficiosPage() {
+  const firstName = subscriber.customer?.first_name ?? "assinante";
+  const primary = primarySubscription(subscriber.subscriptions);
+  const plan = planFor(primary?.plan ?? null);
+  const benefits = plan ? BENEFITS[plan.code] : null;
+
   return (
-    <div className="min-h-screen bg-[#0A0A0A] pb-24">
-      <motion.header
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="sticky top-0 z-40 bg-[#0A0A0A]/90 backdrop-blur-xl border-b border-[#1A1A1A] px-5 py-4"
-      >
-        <div className="flex items-center gap-3 max-w-lg mx-auto">
-          <Link
-            href="/dashboard"
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] text-[#9CA3AF] hover:text-white transition-colors"
-          >
-            <ArrowLeft size={16} />
-          </Link>
-          <div>
-            <h1 className="text-lg font-bold text-white">Benefícios</h1>
-            <p className="text-xs text-[#9CA3AF]">Clube DGN Elite</p>
-          </div>
-        </div>
-      </motion.header>
+    <PortalShell firstName={firstName} founderBadge={subscriber.founder?.number ?? null} active="beneficios">
+      <h1 className="text-2xl font-semibold">Benefícios</h1>
+      <p className="mt-1 text-sm text-white/60">
+        Vantagens exclusivas dos assinantes DGN Club.
+      </p>
 
-      <div className="px-5 max-w-lg mx-auto pt-5 space-y-4">
-        {/* Summary header */}
-        <motion.div
-          custom={0}
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          className="flex items-center justify-between glass-card rounded-2xl p-4"
-        >
-          <div>
-            <p className="text-[10px] text-[#9CA3AF] uppercase tracking-wider font-medium">
-              Seus benefícios exclusivos
-            </p>
-            <p className="text-lg font-bold text-white mt-0.5">
-              {benefits.length} benefícios ativos
-            </p>
-          </div>
-          <GoldBadge size="md">
-            <Star size={11} />
-            Elite
-          </GoldBadge>
-        </motion.div>
-
-        {/* Benefits list */}
-        {benefits.map((benefit, i) => {
-          const Icon = benefit.icon;
-          return (
-            <motion.div
-              key={benefit.title}
-              custom={i + 1}
-              initial="hidden"
-              animate="visible"
-              variants={fadeUp}
-              className="flex items-start gap-4 rounded-2xl p-4 transition-all duration-200 hover:scale-[1.005] active:scale-[0.995]"
-              style={{
-                background: "linear-gradient(135deg, #111111 0%, #1A1A1A 100%)",
-                border: `1px solid ${benefit.color}15`,
-              }}
-            >
-              <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                style={{ background: benefit.bg }}
-              >
-                <Icon size={20} style={{ color: benefit.color }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white">{benefit.title}</p>
-                <p className="text-xs text-[#9CA3AF] mt-1 leading-relaxed">{benefit.desc}</p>
-              </div>
-            </motion.div>
-          );
-        })}
-
-        {/* Coming soon teaser */}
-        <motion.div
-          custom={benefits.length + 1}
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          className="rounded-2xl p-5 text-center mb-2"
-          style={{
-            background:
-              "linear-gradient(135deg, rgba(201,168,76,0.05) 0%, rgba(201,168,76,0.02) 100%)",
-            border: "1px solid rgba(201,168,76,0.12)",
-          }}
-        >
-          <p className="text-sm font-semibold text-white mb-1">Parceiros em breve</p>
-          <p className="text-xs text-[#9CA3AF] leading-relaxed">
-            Novos descontos e benefícios em parceiros selecionados chegando em breve.
+      {plan && benefits ? (
+        <section className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">
+            Seu plano
           </p>
-        </motion.div>
-      </div>
+          <h2 className={`mt-1 text-xl font-semibold ${plan.colorClass}`}>
+            {plan.fullLabel}
+          </h2>
+          <ul className="mt-4 space-y-2 text-sm text-white/85">
+            <li>· {benefits.washes}</li>
+            <li>· {benefits.esteticaDiscount}</li>
+            <li>· {benefits.priority}</li>
+            <li>
+              · Leva &amp; Traz: disponível conforme rota, região e
+              disponibilidade{plan.code === "Priority" ? " (prioridade máxima)" : ""}.
+            </li>
+          </ul>
+        </section>
+      ) : (
+        <section className="mt-4 rounded-2xl border border-amber-400/25 bg-amber-400/[0.05] p-5 text-sm text-amber-100">
+          <p className="font-medium">Assinatura em validação.</p>
+          <p className="mt-1 text-amber-100/80">
+            Assim que a curadoria confirmar seu plano, os benefícios aparecem aqui.
+          </p>
+        </section>
+      )}
 
-      <BottomNav active="beneficios" />
-    </div>
+      <section className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+        <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">
+          Todos os planos DGN Club
+        </p>
+        <table className="mt-3 w-full text-sm">
+          <thead>
+            <tr className="text-left text-[11px] uppercase tracking-wider text-white/50">
+              <th className="pb-2">Plano</th>
+              <th className="pb-2">Lavagens/mês</th>
+              <th className="pb-2">Estética</th>
+            </tr>
+          </thead>
+          <tbody className="text-white/85">
+            <tr>
+              <td className="py-1.5 text-emerald-300">Essential</td>
+              <td className="py-1.5">1</td>
+              <td className="py-1.5">7% OFF</td>
+            </tr>
+            <tr>
+              <td className="py-1.5 text-cyan-300">Smart</td>
+              <td className="py-1.5">2</td>
+              <td className="py-1.5">15% OFF</td>
+            </tr>
+            <tr>
+              <td className="py-1.5 text-amber-300">Priority</td>
+              <td className="py-1.5">4</td>
+              <td className="py-1.5">20% OFF</td>
+            </tr>
+          </tbody>
+        </table>
+        <p className="mt-3 text-[11px] text-white/40">
+          Atendimentos operacionais e Leva &amp; Traz seguem a disponibilidade
+          logística da unidade DGN.
+        </p>
+      </section>
+    </PortalShell>
   );
 }

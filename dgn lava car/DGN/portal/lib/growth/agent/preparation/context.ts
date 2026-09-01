@@ -41,6 +41,18 @@ export function relationshipFacts(customer: DgnCustomer): string[] {
   return facts;
 }
 
+/**
+ * Consentimento de comunicação — respeitado por TODAS as skills prepare_*.
+ * Se o Supabase tem `communication_consent = 'blocked'`, nenhuma mensagem
+ * comercial é preparada. Como o snapshot atual do Growth admin ainda usa
+ * JSON legado sem esse campo, tratamos ausência como `unknown` (permissivo).
+ */
+export function communicationConsentBlocked(customer: DgnCustomer): boolean {
+  const consent = (customer as unknown as { communication_consent?: string })
+    .communication_consent;
+  return consent === "blocked";
+}
+
 /** Assinatura ativa reconhecida — para prepare_renewal e para bloquear founder. */
 export function subscriberFacts(customer: DgnCustomer) {
   const match = matchKnownSubscriber(customer);
