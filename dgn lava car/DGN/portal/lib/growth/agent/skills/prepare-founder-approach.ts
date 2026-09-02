@@ -3,6 +3,7 @@ import type { AgentContext } from "../agent-context.ts";
 import type { PreparationTone, PreparedMessage, SkillResult } from "../types.ts";
 import {
   buildPreparedMessage,
+  communicationConsentBlocked,
   firstName,
   resolveCustomer,
 } from "../preparation/context.ts";
@@ -29,6 +30,15 @@ export function prepareFounderApproach(
       status: "unavailable",
       message: `Cliente ${customerId} não encontrado.`,
       facts: [],
+      inferences: [],
+    };
+  }
+
+  if (communicationConsentBlocked(customer)) {
+    return {
+      status: "unavailable",
+      message: "Contato comercial bloqueado pela preferência atual do cliente.",
+      facts: ["communication_consent = blocked"],
       inferences: [],
     };
   }

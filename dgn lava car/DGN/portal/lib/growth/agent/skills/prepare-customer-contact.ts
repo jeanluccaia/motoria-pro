@@ -8,6 +8,7 @@ import type {
 } from "../types.ts";
 import {
   buildPreparedMessage,
+  communicationConsentBlocked,
   firstName,
   resolveCustomer,
   subscriberFacts,
@@ -52,6 +53,17 @@ export function prepareCustomerContact(
       status: "unavailable",
       message: `Cliente ${customerId} não encontrado.`,
       facts: [],
+      inferences: [],
+    };
+  }
+
+  // P0: consent bloqueado sempre bate primeiro. Agent pode analisar mas
+  // NÃO prepara mensagem comercial se cliente pediu para não ser contatado.
+  if (communicationConsentBlocked(customer)) {
+    return {
+      status: "unavailable",
+      message: "Contato comercial bloqueado pela preferência atual do cliente.",
+      facts: ["communication_consent = blocked"],
       inferences: [],
     };
   }

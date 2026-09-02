@@ -56,3 +56,6 @@ next-env.d.ts
 
 # artefatos incidentais (perfis temporários de browser, etc)
 /.tmp-production-session-profile/
+
+# dados reais NUNCA versionados (PagBank export, snapshots operacionais etc.)
+/.data/
