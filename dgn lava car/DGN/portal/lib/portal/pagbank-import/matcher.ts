@@ -2,14 +2,25 @@ import type {
   CustomerCandidate,
   MatchResult,
   MatchStrategy,
+  MultiContractDecision,
   PagBankSubscriptionInput,
+  ReconciliationDecisionSource,
+  ReconciliationSubscriptionOverride,
 } from "./types.ts";
+
+export interface PlannedNewCustomer {
+  /** Nome canônico (Title Case) para criar o customer. */
+  name: string;
+  decisionSource: ReconciliationDecisionSource;
+  multiContractDecision?: MultiContractDecision | null;
+}
 
 // -----------------------------------------------------------------------------
 // Matching PagBank → CRM.
 //
 // Prioridade (P0, ordem estrita):
-//   1. provider_customer_id já vinculado (via subscriptions.provider_customer_id)
+//   0. reconciliation approvada (mapping humano auditado) — sempre vence
+//   1. provider_customer_id já vinculado no CRM
 //   2. CPF quando autorizado
 //   3. telefone normalizado
 //   4. legacy_id (identificador interno do CRM)
@@ -25,7 +36,6 @@ const NAME_ONLY_MAX_CONFIDENCE = 0.4;
 export function normalizePhone(raw: string | null | undefined): string {
   if (!raw) return "";
   const digits = String(raw).replace(/\D/g, "");
-  // Se vier com DDI 55, remove. Preserva DDD+número.
   if (digits.length === 13 && digits.startsWith("55")) return digits.slice(2);
   if (digits.length === 12 && digits.startsWith("55")) return digits.slice(2);
   return digits;
@@ -57,6 +67,23 @@ export interface MatchInputs {
   byLegacyId: Map<string, CustomerCandidate>;
   /** Índice: normalized_name → CustomerCandidate[]. Pode ter colisão. */
   byName: Map<string, CustomerCandidate[]>;
+  /**
+   * Mapping humano auditado: provider_customer_id → CustomerCandidate.
+   * Só entra aqui quando `decision=APPROVED` no reconciliation JSON.
+   * Sempre vence outras estratégias.
+   */
+  reconciled: Map<string, CustomerCandidate>;
+  /**
+   * Provider_customer_ids que a curadoria humana marcou como NEW_CUSTOMER.
+   * O importer curto-circuita antes do matcher e emite `create_customer`.
+   */
+  plannedNewCustomers: Map<string, PlannedNewCustomer>;
+  /**
+   * Overrides por contrato (chave: provider_subscription_id). Aplicados
+   * ANTES do importer processar o batch — populam vehicle_plate/brand/model
+   * a partir de evidência operacional externa (ex.: 4uCar).
+   */
+  subscriptionOverrides: Map<string, ReconciliationSubscriptionOverride>;
 }
 
 export function buildEmptyMatchInputs(): MatchInputs {
@@ -66,6 +93,9 @@ export function buildEmptyMatchInputs(): MatchInputs {
     byPhone: new Map(),
     byLegacyId: new Map(),
     byName: new Map(),
+    reconciled: new Map(),
+    plannedNewCustomers: new Map(),
+    subscriptionOverrides: new Map(),
   };
 }
 
@@ -73,7 +103,20 @@ export function matchCustomer(
   input: PagBankSubscriptionInput,
   indexes: MatchInputs,
 ): MatchResult {
-  // 1. provider_customer_id — só quando já temos o vínculo.
+  // 0. Reconciliação humana aprovada — sempre vence.
+  if (input.provider_customer_id) {
+    const approved = indexes.reconciled.get(input.provider_customer_id);
+    if (approved) {
+      return {
+        strategy: "reconciliation",
+        candidate: approved,
+        confidence: 1,
+        reason: `reconciliation aprovada: provider_customer_id ${input.provider_customer_id} → customer ${approved.id}`,
+      };
+    }
+  }
+
+  // 1. provider_customer_id já vinculado no CRM.
   if (input.provider_customer_id) {
     const hit = indexes.byProviderCustomerId.get(input.provider_customer_id);
     if (hit) {
@@ -118,10 +161,7 @@ export function matchCustomer(
     }
   }
 
-  // 4. Legacy_id (raro, mas se input trouxer explícito).
-  //    Aqui usamos o `provider_customer_id` como fallback para legacy_id se
-  //    houver colisão intencional (import pré-existente).
-  //    Nenhum campo direto de legacy_id no input hoje — pulamos.
+  // 4. Legacy_id — sem campo direto no input; pulamos.
 
   // 5. Nome (auxiliar). Só devolve com confidence baixa, sem auto-merge.
   const nameKey = normalizeName(input.customer_name);
@@ -149,7 +189,7 @@ export function matchCustomer(
     strategy: "unmatched",
     candidate: null,
     confidence: 0,
-    reason: `Sem match em nenhuma estratégia. Cliente novo.`,
+    reason: `Sem match em nenhuma estratégia. Requer reconciliação humana.`,
   };
 }
 
@@ -162,7 +202,13 @@ export function matchCustomer(
  * fila humana. Nome sozinho NUNCA é auto-merge (confidence 0.4).
  */
 export function shouldAutoAccept(strategy: MatchStrategy, confidence: number): boolean {
-  if (strategy === "provider_id" || strategy === "cpf" || strategy === "phone" || strategy === "internal_id") {
+  if (
+    strategy === "reconciliation" ||
+    strategy === "provider_id" ||
+    strategy === "cpf" ||
+    strategy === "phone" ||
+    strategy === "internal_id"
+  ) {
     return confidence >= 0.9;
   }
   return false;

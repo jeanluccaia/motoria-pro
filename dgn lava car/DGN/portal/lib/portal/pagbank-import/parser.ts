@@ -6,9 +6,7 @@ import type { PagBankImportFile, PagBankSubscriptionInput } from "./types.ts";
 // Parser do arquivo local do PagBank.
 //
 // Aceita JSON (formato canônico) ou CSV simples com cabeçalho. O parser é
-// tolerante a colunas extras — só falha se faltar campo obrigatório
-// (provider_subscription_id, customer_name, plan, cycle, amount_monthly,
-// status, payment_method).
+// tolerante a colunas extras — só falha se faltar campo obrigatório.
 //
 // NUNCA loga o conteúdo bruto do arquivo — só metadados (nome, N linhas).
 // -----------------------------------------------------------------------------
@@ -21,12 +19,29 @@ const REQUIRED_COLUMNS = [
   "amount_monthly",
   "status",
   "payment_method",
+  "payment_status",
+  "payment_evidence_source",
+  "migration_status",
 ] as const;
 
 const VALID_PLANS = new Set(["Essential", "Smart", "Priority"]);
 const VALID_CYCLES = new Set(["mensal", "semestral", "anual", "outro"]);
 const VALID_STATUS = new Set(["ACTIVE", "PENDING", "CANCELLED", "ENDED"]);
-const VALID_PAYMENT_METHOD = new Set(["card_recurring", "manual", "unknown"]);
+const VALID_PAYMENT_METHOD = new Set(["CARD_RECURRING", "MANUAL", "UNKNOWN"]);
+const VALID_PAYMENT_STATUS = new Set([
+  "CONFIRMED",
+  "PENDING",
+  "FAILED",
+  "REFUNDED",
+  "UNKNOWN",
+]);
+const VALID_PAYMENT_EVIDENCE_SOURCE = new Set([
+  "PROVIDER",
+  "MANUAL",
+  "LEGACY",
+  "UNKNOWN",
+]);
+const VALID_MIGRATION_STATUS = new Set(["NOT_NEEDED", "PENDING", "COMPLETE"]);
 
 export function loadPagBankFile(path: string): PagBankImportFile {
   const ext = extname(path).toLowerCase();
@@ -63,7 +78,6 @@ function parseCsv(raw: string, path: string): PagBankImportFile {
     for (const [ci, name] of header.entries()) {
       row[name] = cells[ci] ?? null;
     }
-    // Coerção mínima.
     row.amount_monthly = Number(row.amount_monthly);
     validateRow(row as unknown as PagBankSubscriptionInput, li + 1, path);
     subscriptions.push(row as unknown as PagBankSubscriptionInput);
@@ -121,6 +135,17 @@ function validateRow(row: PagBankSubscriptionInput, lineNo: number, path: string
   }
   if (!VALID_PAYMENT_METHOD.has(row.payment_method)) {
     throw new Error(`${path}:linha ${lineNo}: payment_method "${row.payment_method}" inválido.`);
+  }
+  if (!VALID_PAYMENT_STATUS.has(row.payment_status)) {
+    throw new Error(`${path}:linha ${lineNo}: payment_status "${row.payment_status}" inválido.`);
+  }
+  if (!VALID_PAYMENT_EVIDENCE_SOURCE.has(row.payment_evidence_source)) {
+    throw new Error(
+      `${path}:linha ${lineNo}: payment_evidence_source "${row.payment_evidence_source}" inválido.`,
+    );
+  }
+  if (!VALID_MIGRATION_STATUS.has(row.migration_status)) {
+    throw new Error(`${path}:linha ${lineNo}: migration_status "${row.migration_status}" inválido.`);
   }
   if (!Number.isFinite(row.amount_monthly) || row.amount_monthly <= 0) {
     throw new Error(`${path}:linha ${lineNo}: amount_monthly "${row.amount_monthly}" inválido.`);

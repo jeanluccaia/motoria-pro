@@ -1,14 +1,39 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { loadPagBankFile } from "./parser.ts";
-import { runPagBankImport, buildMatchIndexes, type ExistingSubscription } from "./importer.ts";
+import {
+  runPagBankImport,
+  buildMatchIndexes,
+  applyReconciledMappings,
+  type ExistingSubscription,
+} from "./importer.ts";
 import { matchCustomer, normalizePhone, normalizeName, shouldAutoAccept } from "./matcher.ts";
-import type { CustomerCandidate } from "./types.ts";
+import type { CustomerCandidate, PagBankSubscriptionInput } from "./types.ts";
 
 const FIXTURE_PATH = resolve(import.meta.dirname, "fixtures/synthetic-batch.json");
+
+const BASE_INPUT: Omit<PagBankSubscriptionInput, "provider_subscription_id" | "provider_customer_id" | "customer_name"> = {
+  plan: "Smart",
+  cycle: "mensal",
+  amount_monthly: 130,
+  status: "ACTIVE",
+  payment_method: "CARD_RECURRING",
+  payment_status: "CONFIRMED",
+  payment_evidence_source: "PROVIDER",
+  migration_status: "NOT_NEEDED",
+};
+
+function makeInput(
+  overrides: Partial<PagBankSubscriptionInput> & Pick<PagBankSubscriptionInput, "provider_subscription_id" | "customer_name">,
+): PagBankSubscriptionInput {
+  return { ...BASE_INPUT, ...overrides } as PagBankSubscriptionInput;
+}
+
+// -----------------------------------------------------------------------------
+// Parser + matcher
+// -----------------------------------------------------------------------------
 
 test("parser: fixture sintética carrega 13 contratos válidos", () => {
   const file = loadPagBankFile(FIXTURE_PATH);
@@ -17,16 +42,53 @@ test("parser: fixture sintética carrega 13 contratos válidos", () => {
   assert.equal(file.meta.expected_contracts, 13);
 });
 
-test("matcher: provider_customer_id tem prioridade máxima", () => {
-  const cand: CustomerCandidate = { id: "c1", name: "X" };
-  const idx = buildMatchIndexes([cand]);
-  idx.byProviderCustomerId.set("PROV_1", cand);
+test("parser: rejeita payment_status em minúsculo", () => {
+  assert.throws(() =>
+    (loadPagBankFile as unknown as (p: string) => unknown)(FIXTURE_PATH.replace(/\.json$/, "-nope.json")),
+  );
+});
+
+test("matcher: reconciliation aprovada tem prioridade sobre provider_id", () => {
+  const cand: CustomerCandidate = {
+    id: "c-approved",
+    name: "Cliente Aprovado",
+    provider_customer_id: "PROV_1",
+  };
+  const other: CustomerCandidate = {
+    id: "c-outro",
+    name: "Outro",
+    provider_customer_id: "PROV_1",
+  };
+  const idx = buildMatchIndexes([other]);
+  applyReconciledMappings(idx, [
+    { provider_customer_id: "PROV_1", crm_customer_id: cand.id, crm_customer_name: cand.name },
+  ]);
   const r = matchCustomer(
-    {
-      provider_subscription_id: "S1", provider_customer_id: "PROV_1",
-      customer_name: "outro nome", plan: "Smart", cycle: "mensal",
-      amount_monthly: 130, status: "ACTIVE", payment_method: "card_recurring",
-    },
+    makeInput({
+      provider_subscription_id: "S1",
+      provider_customer_id: "PROV_1",
+      customer_name: "outro nome",
+    }),
+    idx,
+  );
+  assert.equal(r.strategy, "reconciliation");
+  assert.equal(r.candidate?.id, "c-approved");
+  assert.equal(r.confidence, 1);
+});
+
+test("matcher: provider_customer_id no CRM tem prioridade sobre nome", () => {
+  const cand: CustomerCandidate = {
+    id: "c1",
+    name: "X",
+    provider_customer_id: "PROV_1",
+  };
+  const idx = buildMatchIndexes([cand]);
+  const r = matchCustomer(
+    makeInput({
+      provider_subscription_id: "S1",
+      provider_customer_id: "PROV_1",
+      customer_name: "outro nome",
+    }),
     idx,
   );
   assert.equal(r.strategy, "provider_id");
@@ -38,10 +100,11 @@ test("matcher: telefone match tem confidence >= 0.9 e é auto-accept", () => {
   const cand: CustomerCandidate = { id: "c2", name: "Foo", normalized_phone: "19999990002" };
   const idx = buildMatchIndexes([cand]);
   const r = matchCustomer(
-    {
-      provider_subscription_id: "S", customer_name: "outro", customer_phone: "+5519999990002",
-      plan: "Smart", cycle: "mensal", amount_monthly: 130, status: "ACTIVE", payment_method: "card_recurring",
-    },
+    makeInput({
+      provider_subscription_id: "S",
+      customer_name: "outro",
+      customer_phone: "+5519999990002",
+    }),
     idx,
   );
   assert.equal(r.strategy, "phone");
@@ -53,10 +116,10 @@ test("matcher: nome sozinho NUNCA é auto-accept (mesmo com match único)", () =
   const cand: CustomerCandidate = { id: "c3", name: "José Sergio Teste" };
   const idx = buildMatchIndexes([cand]);
   const r = matchCustomer(
-    {
-      provider_subscription_id: "S", customer_name: "José Sergio Teste",
-      plan: "Smart", cycle: "mensal", amount_monthly: 130, status: "ACTIVE", payment_method: "card_recurring",
-    },
+    makeInput({
+      provider_subscription_id: "S",
+      customer_name: "José Sergio Teste",
+    }),
     idx,
   );
   assert.equal(r.strategy, "name");
@@ -69,10 +132,10 @@ test("matcher: nome ambíguo (2+ candidatos) devolve candidate=null", () => {
   const b: CustomerCandidate = { id: "cB", name: "João Silva" };
   const idx = buildMatchIndexes([a, b]);
   const r = matchCustomer(
-    {
-      provider_subscription_id: "S", customer_name: "João Silva",
-      plan: "Smart", cycle: "mensal", amount_monthly: 130, status: "ACTIVE", payment_method: "card_recurring",
-    },
+    makeInput({
+      provider_subscription_id: "S",
+      customer_name: "João Silva",
+    }),
     idx,
   );
   assert.equal(r.strategy, "name");
@@ -90,73 +153,119 @@ test("normalizeName é insensitive a acento e maiúsculas", () => {
   assert.equal(normalizeName("José Sérgio TESTE"), "jose sergio teste");
 });
 
-// ---------------------------------------------------------------------------
-// Runner: comportamento sobre a fixture inteira
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Runner
+// -----------------------------------------------------------------------------
 
-test("dry_run vazio (CRM vazio): 13 contratos → 11 unmatched + José-like matched como novos", () => {
+test("dry_run (CRM vazio): 13 rows → 13 pending_reconciliation, 0 create_customer", () => {
   const file = loadPagBankFile(FIXTURE_PATH);
   const summary = runPagBankImport({ file, sourceLabel: "fixture" });
+
   assert.equal(summary.mode, "dry_run");
   assert.equal(summary.totals.input_rows, 13);
-  // CRM vazio → todos unmatched.
-  assert.equal(summary.totals.unmatched, 13);
+  assert.equal(summary.totals.pending_reconciliation_rows, 13);
+  assert.equal(summary.totals.pending_reconciliation_customers, 11);
   assert.equal(summary.totals.matched, 0);
   assert.equal(summary.totals.duplicates, 0);
-  // 11 customers "create" — 13 rows menos os 2 duplicados de identity de José e David.
-  // Como CRM está vazio, o importador MARCA cada linha para "create_customer";
-  // a agregação de identidade é apenas para detecção de duplicidade financeira,
-  // não para deduplication automática (isso é responsabilidade do apply).
-  assert.equal(summary.totals.customers_would_create, 13);
   assert.equal(summary.totals.subscriptions_would_create, 13);
   assert.equal(summary.totals.total_amount_monthly, 1730);
+  assert.equal(summary.totals.unique_provider_customers, 11);
+
+  // NUNCA emitir create_customer no P0.
+  for (const r of summary.rows) {
+    for (const a of r.actions) {
+      assert.notEqual((a as { kind: string }).kind, "create_customer");
+    }
+  }
 });
 
-test("José Sergio (2 subs) NÃO ativa financial_review quando cada contrato tem vehicle_plate distinto", () => {
+test("batch dedupe: 2 rows com mesmo provider_customer_id contam como 1 customer PagBank", () => {
+  const file = loadPagBankFile(FIXTURE_PATH);
+  const summary = runPagBankImport({ file });
+  // 11 provider_customer_ids únicos entre 13 rows (José×2 + David×2 + 9 singles).
+  assert.equal(summary.totals.unique_provider_customers, 11);
+});
+
+test("financial_review batch-aware: David (2 subs, sem placa, sem estado CRM) dispara flag", () => {
+  const file = loadPagBankFile(FIXTURE_PATH);
+  const summary = runPagBankImport({ file });
+  const davidRows = summary.rows.filter((r) => r.input.customer_name === "David Teste");
+  assert.equal(davidRows.length, 2);
+  for (const r of davidRows) {
+    const flag = r.actions.find((a) => a.kind === "flag_financial_review");
+    assert.ok(flag, "esperado flag_financial_review em cada row do David");
+  }
+  assert.equal(summary.totals.financial_reviews_flagged, 1); // 1 customer PagBank flagged
+});
+
+test("José (2 subs, com placas distintas) NÃO dispara financial_review", () => {
   const file = loadPagBankFile(FIXTURE_PATH);
   const summary = runPagBankImport({ file });
   const joseRows = summary.rows.filter((r) => r.input.customer_name === "José Sergio Teste");
   assert.equal(joseRows.length, 2);
   for (const r of joseRows) {
-    assert.notEqual(r.outcome, "review_required", "José-like não deveria ir para review");
     for (const a of r.actions) {
-      assert.notEqual(a.kind, "flag_financial_review");
+      assert.notEqual(
+        a.kind,
+        "flag_financial_review",
+        "José-like com placas distintas não deve flag",
+      );
     }
   }
 });
 
-test("David (2 subs, sem vehicle_plate no CRM já existente) ativa financial_review", () => {
-  const file = loadPagBankFile(FIXTURE_PATH);
-  // Cenário: David já é customer conhecido no CRM com 1 subscription ativa.
-  const davidCandidate: CustomerCandidate = {
-    id: "cust-david",
-    name: "David Teste",
-    normalized_phone: "19990001012",
+test("Snapshot real-like (sem placas): 2 subs mesmo provider_customer_id disparam review batch-aware", () => {
+  const file = {
+    meta: { generated_at: "2026-09-01", source: "test" },
+    subscriptions: [
+      makeInput({
+        provider_subscription_id: "S_A",
+        provider_customer_id: "CUST_X",
+        customer_name: "Cliente X",
+      }),
+      makeInput({
+        provider_subscription_id: "S_B",
+        provider_customer_id: "CUST_X",
+        customer_name: "Cliente X",
+      }),
+    ],
   };
-  const idx = buildMatchIndexes([davidCandidate]);
-  const existingByProviderId = new Map<string, ExistingSubscription>();
-  const existingByCustomer = new Map<string, ExistingSubscription[]>();
-  existingByCustomer.set("cust-david", [
-    { id: "sub-existente-david", customer_id: "cust-david", provider_subscription_id: null, plan: "Smart", is_active_subscriber: true },
-  ]);
-
-  const summary = runPagBankImport({
-    file,
-    indexes: idx,
-    existingSubscriptionsByCustomerId: existingByCustomer,
-    existingSubscriptionsByProviderId: existingByProviderId,
-  });
-
-  const davidRows = summary.rows.filter((r) => r.input.customer_name === "David Teste");
-  // David match pelo telefone; e como já tem contrato ativo E o novo contrato
-  // não traz vehicle_plate distinto, deve virar review.
-  const reviewRows = davidRows.filter((r) => r.outcome === "review_required");
-  assert.ok(reviewRows.length >= 1, "esperado pelo menos 1 linha David em review");
-  for (const r of reviewRows) {
+  const summary = runPagBankImport({ file });
+  assert.equal(summary.totals.financial_reviews_flagged, 1);
+  for (const r of summary.rows) {
     const flag = r.actions.find((a) => a.kind === "flag_financial_review");
-    assert.ok(flag, "esperado flag_financial_review nas rows do David");
+    assert.ok(flag);
   }
-  assert.ok(summary.totals.financial_reviews_flagged >= 1);
+});
+
+test("reconciliation aprovada: pending_reconciliation vira matched com confidence 1", () => {
+  const file = {
+    meta: { generated_at: "2026-09-01", source: "test" },
+    subscriptions: [
+      makeInput({
+        provider_subscription_id: "S_A",
+        provider_customer_id: "CUST_X",
+        customer_name: "Cliente X",
+      }),
+    ],
+  };
+  const crmCandidate: CustomerCandidate = { id: "crm-x", name: "Cliente X Diferente" };
+  const idx = buildMatchIndexes([]);
+  applyReconciledMappings(idx, [
+    {
+      provider_customer_id: "CUST_X",
+      crm_customer_id: crmCandidate.id,
+      crm_customer_name: crmCandidate.name,
+    },
+  ]);
+  const summary = runPagBankImport({ file, indexes: idx });
+  assert.equal(summary.totals.matched, 1);
+  assert.equal(summary.totals.pending_reconciliation_rows, 0);
+  const row = summary.rows[0]!;
+  assert.equal(row.outcome, "matched");
+  assert.equal(row.match.strategy, "reconciliation");
+  const link = row.actions.find((a) => a.kind === "link_existing_customer");
+  assert.ok(link);
 });
 
 test("Idempotência: mesma subscription (provider_subscription_id) é DUPLICATE, não recria", () => {
