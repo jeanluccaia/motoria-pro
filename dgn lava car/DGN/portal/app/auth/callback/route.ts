@@ -1,14 +1,23 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { verifyPortalAuthLink } from "@/lib/portal/auth-link";
 
 export const dynamic = "force-dynamic";
 
 /**
  * Callback do fluxo magic link.
- * Supabase envia GET com `code` (PKCE) que trocamos por uma sessão de
- * usuário. Também aceita fallback com `token_hash` + `type=magiclink`.
- * Após o login, valida se o auth.users.id tem vínculo em
- * crm_customer_auth. Se não tiver, faz signOut e redireciona com erro.
+ *
+ * Aceita `?code=` (PKCE, gerado pelo `signInWithOtp` do browser em /entrar)
+ * ou `?token_hash=` + `?type=magiclink` (fluxo REST usado pelo provisionamento
+ * server-side, sem PKCE verifier disponível no browser). Ambos derivam da
+ * mesma sessão no Supabase e criam o mesmo cookie.
+ *
+ * Após criar a sessão, verifica que `auth.users.id` tem vínculo em
+ * `crm_customer_auth`. Essa leitura precisa acontecer via service_role: a
+ * tabela roda com RLS forçada e sem policies (auditoria), então o cliente
+ * autenticado do usuário retornaria sempre `null` e negaria o acesso mesmo
+ * com vínculo válido — regressão do login real do primeiro assinante em
+ * 2026-09-07.
  */
 export async function GET(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -54,7 +63,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/entrar?error=invalid_link", request.url));
   }
 
-  // Verifica vínculo obrigatório com assinante antes de liberar o Portal.
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -62,14 +70,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/entrar?error=invalid_link", request.url));
   }
 
-  const { data: link } = await supabase
-    .from("crm_customer_auth")
-    .select("id")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
-
-  if (!link) {
+  const verification = await verifyPortalAuthLink(user.id);
+  if (!verification.ok) {
     await supabase.auth.signOut();
+    if (verification.reason === "db_error") {
+      console.error(
+        "[auth-callback] falha ao verificar vínculo Auth:",
+        verification.message,
+      );
+      return NextResponse.redirect(new URL("/entrar?error=callback_failed", request.url));
+    }
     return NextResponse.redirect(new URL("/entrar?error=not_linked", request.url));
   }
 
