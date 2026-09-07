@@ -131,13 +131,20 @@ async function customerHasSubscription(db: SupabaseClient, customerId: string): 
 }
 
 async function findAuthUserIdByEmail(db: SupabaseClient, email: string): Promise<string | null> {
-  // service_role bypassa RLS e tem SELECT em auth.* — leitura direta é mais
-  // barata e determinística que auth.admin.listUsers (que pagina e não filtra).
-  const { data, error } = await db.schema("auth" as never).from("users").select("id").eq("email", email).maybeSingle();
-  if (error && error.code !== "PGRST116") {
-    throw new PortalAccessError(`Falha ao consultar Auth: ${error.message}`, 502);
+  // PostgREST não expõe o schema `auth` por padrão, então usamos Admin API.
+  // Paginamos até 10 páginas × 1000 users = 10k contas (mais que suficiente
+  // para o cenário DGN; se a base crescer, migrar para RPC dedicada em auth).
+  const admin = (db as unknown as { auth: { admin: { listUsers(o: { page: number; perPage: number }): Promise<{ data: { users?: Array<{ id: string; email?: string }> } | null; error: { message: string } | null }> } } }).auth.admin;
+  const target = email.toLowerCase();
+  for (let page = 1; page <= 10; page++) {
+    const { data, error } = await admin.listUsers({ page, perPage: 1000 });
+    if (error) throw new PortalAccessError(`Falha ao consultar Auth: ${error.message}`, 502);
+    const users = data?.users ?? [];
+    const found = users.find((u) => (u.email ?? "").toLowerCase() === target);
+    if (found) return found.id;
+    if (users.length < 1000) return null;
   }
-  return (data as { id: string } | null)?.id ?? null;
+  return null;
 }
 
 async function findLinkByAuthUser(db: SupabaseClient, authUserId: string): Promise<{ customer_id: string } | null> {
