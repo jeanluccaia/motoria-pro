@@ -1,5 +1,5 @@
 /** @deprecated Importe `admin-client.ts` apenas em código server-side. */
-export { getSupabaseAdminClient as getSupabaseServerClient } from "./admin-client";
+export { getSupabaseAdminClient as getSupabaseServerClient } from "./admin-client.ts";
 export type { SupabaseClient as SupabaseServerClient } from "@supabase/supabase-js";
 
 export function readSupabaseEnv() {

@@ -5,7 +5,7 @@
  */
 
 /** SERVER-ONLY — importar deste módulo em qualquer bundle client vaza a service_role key. */
-import { getSupabaseServerClient } from "./client";
+import { getSupabaseServerClient } from "./client.ts";
 
 export type AuditableEntity =
   | "customer"

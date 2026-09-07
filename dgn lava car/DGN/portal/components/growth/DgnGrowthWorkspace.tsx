@@ -1280,6 +1280,14 @@ function CurationView({
           />
         </div>
 
+        <div className="mt-4">
+          <PortalAccessEditor
+            key={`portal-${selectedCustomer.id}`}
+            customerId={selectedCustomer.id}
+            enabled={dataOrigin === "db"}
+          />
+        </div>
+
         <details className="mt-6 group">
           <summary className="cursor-pointer border-t border-white/[0.06] pt-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80 hover:text-[#E7C96A] select-none">
             Opções avançadas de curadoria
@@ -2163,6 +2171,11 @@ function CustomerProfileInline({
             customer={customer}
             enabled={canPersistCommercial}
             onSaved={onCommercialSaved}
+          />
+          <PortalAccessEditor
+            key={`portal-${customer.id}`}
+            customerId={customer.id}
+            enabled={canPersistCommercial}
           />
           <div className="rounded-2xl border border-white/[0.06] bg-[#101010] p-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">
@@ -3118,6 +3131,209 @@ function CommercialEditor({
         <p className={`text-xs ${result?.tone === "error" ? "text-red-300" : "text-emerald-300"}`}>{result?.message}</p>
         <button type="button" disabled={!enabled || saving} onClick={save} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 text-sm font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-40">{saving ? "Salvando…" : "Salvar alterações"}</button>
       </div>
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// PortalAccessEditor
+// Bloco na ficha do assinante para liberar/reenviar/desabilitar o Portal.
+// Toda mutação passa por /api/admin/growth/customers/[id]/portal-access — o
+// service_role vive só no server. UI mostra 2 modos: "não liberado" (form
+// e-mail) e "ativo" (e-mail mascarado + reenviar + desabilitar).
+// -----------------------------------------------------------------------------
+
+interface PortalAccessState {
+  enabled: boolean;
+  emailMasked: string | null;
+  hasAuth: boolean;
+  hasSubscription: boolean;
+  betaEnabledAt: string | null;
+}
+
+function PortalAccessEditor({ customerId, enabled }: { customerId: string; enabled: boolean }) {
+  const [state, setState] = useState<PortalAccessState | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState<null | "provision" | "resend" | "disable">(null);
+  const [email, setEmail] = useState("");
+  const [result, setResult] = useState<{ tone: "success" | "error" | "info"; message: string } | null>(null);
+  const [confirmingDisable, setConfirmingDisable] = useState(false);
+
+  const endpoint = `/api/admin/growth/customers/${encodeURIComponent(customerId)}/portal-access`;
+
+  useEffect(() => {
+    if (!enabled) { setLoading(false); return; }
+    let cancelled = false;
+    setLoading(true);
+    fetch(endpoint, { method: "GET" })
+      .then(async (response) => {
+        const body = await response.json().catch(() => ({}));
+        if (cancelled) return;
+        if (!response.ok) {
+          setState(null);
+          setResult({ tone: "error", message: body.error || "Não foi possível ler o status do Portal." });
+        } else {
+          setState(body as PortalAccessState);
+        }
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        setResult({ tone: "error", message: error instanceof Error ? error.message : "Falha ao carregar." });
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [endpoint, enabled]);
+
+  const provision = async () => {
+    const cleaned = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(cleaned)) {
+      setResult({ tone: "error", message: "Formato de e-mail inválido." });
+      return;
+    }
+    setBusy("provision");
+    setResult(null);
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleaned }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Não foi possível liberar o acesso.");
+      setResult({
+        tone: body.magicLinkSent ? "success" : "info",
+        message: body.magicLinkSent
+          ? `Portal liberado. Magic link enviado para ${body.emailMasked}.`
+          : `Portal liberado, mas o envio do magic link falhou. Use "Reenviar acesso".`,
+      });
+      const refresh = await fetch(endpoint, { method: "GET" });
+      if (refresh.ok) setState(await refresh.json());
+      setEmail("");
+    } catch (error) {
+      setResult({ tone: "error", message: error instanceof Error ? error.message : "Falha ao liberar." });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const resend = async () => {
+    setBusy("resend");
+    setResult(null);
+    try {
+      const response = await fetch(endpoint, { method: "PATCH" });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Não foi possível reenviar.");
+      setResult({
+        tone: body.magicLinkSent ? "success" : "error",
+        message: body.magicLinkSent
+          ? `Novo magic link enviado para ${body.emailMasked}.`
+          : "O provedor não confirmou o envio. Tente novamente em instantes.",
+      });
+    } catch (error) {
+      setResult({ tone: "error", message: error instanceof Error ? error.message : "Falha ao reenviar." });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const disable = async () => {
+    setBusy("disable");
+    setResult(null);
+    try {
+      const response = await fetch(endpoint, { method: "DELETE" });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Não foi possível desabilitar.");
+      setResult({ tone: "success", message: "Portal desabilitado. O cliente perde o acesso imediatamente." });
+      setConfirmingDisable(false);
+      const refresh = await fetch(endpoint, { method: "GET" });
+      if (refresh.ok) setState(await refresh.json());
+    } catch (error) {
+      setResult({ tone: "error", message: error instanceof Error ? error.message : "Falha ao desabilitar." });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const inputClass = "mt-2 h-10 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-sm text-white outline-none disabled:cursor-not-allowed disabled:opacity-45 focus:border-[#C9A84C]/35";
+  const labelClass = "text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]";
+  const primaryBtn = "inline-flex min-h-10 items-center justify-center rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 text-sm font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-40";
+  const ghostBtn = "inline-flex min-h-10 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 text-sm font-semibold text-[#CFCFCF] disabled:cursor-not-allowed disabled:opacity-40";
+  const dangerBtn = "inline-flex min-h-10 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 px-4 text-sm font-semibold text-red-200 disabled:cursor-not-allowed disabled:opacity-40";
+
+  const toneClass = result?.tone === "error" ? "text-red-300" : result?.tone === "info" ? "text-amber-200" : "text-emerald-300";
+
+  return (
+    <div className="rounded-2xl border border-[#C9A84C]/20 bg-[#101010] p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">Acesso ao Portal</p>
+          <p className="mt-1 text-xs text-[#777]">Provisiona Auth, cria vínculo, habilita o gate e dispara o magic link oficial para o e-mail do cliente.</p>
+        </div>
+        <span className="rounded-full border border-white/[0.08] px-2 py-1 text-[10px] text-[#888]">{enabled ? "DB" : "Somente leitura"}</span>
+      </div>
+
+      {loading ? (
+        <p className="mt-4 text-xs text-[#666]">Carregando estado…</p>
+      ) : !state ? (
+        <p className="mt-4 text-xs text-red-300">{result?.message ?? "Estado indisponível."}</p>
+      ) : !state.hasSubscription ? (
+        <p className="mt-4 text-xs text-[#B5A063]">Cliente sem assinatura registrada. Ative o Portal apenas após confirmar a assinatura.</p>
+      ) : state.enabled ? (
+        <div className="mt-4 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-200">
+              <BadgeCheck size={13} /> Portal ativo
+            </span>
+            <span className="text-xs text-[#AAA]">E-mail: <span className="font-mono text-[#DDD]">{state.emailMasked ?? "(pendente)"}</span></span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" disabled={!enabled || busy !== null} onClick={resend} className={primaryBtn}>
+              {busy === "resend" ? "Enviando…" : "Reenviar acesso"}
+            </button>
+            {!confirmingDisable ? (
+              <button type="button" disabled={!enabled || busy !== null} onClick={() => { setConfirmingDisable(true); setResult(null); }} className={ghostBtn}>
+                Desabilitar Portal
+              </button>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/5 p-2">
+                <p className="text-[11px] text-red-200">Cliente perderá acesso ao Portal. Assinatura e dados permanecem.</p>
+                <button type="button" disabled={busy !== null} onClick={disable} className={dangerBtn}>
+                  {busy === "disable" ? "Desabilitando…" : "Confirmar"}
+                </button>
+                <button type="button" disabled={busy !== null} onClick={() => setConfirmingDisable(false)} className={ghostBtn}>
+                  Cancelar
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="mt-4 space-y-3">
+          <label>
+            <span className={labelClass}>E-mail do cliente</span>
+            <input
+              type="email"
+              inputMode="email"
+              autoComplete="off"
+              disabled={!enabled || busy !== null}
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="cliente@email.com"
+              className={inputClass}
+            />
+          </label>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[11px] text-[#888]">Use o e-mail real do cliente. Um link único será enviado — sem senha.</p>
+            <button type="button" disabled={!enabled || busy !== null || email.trim().length === 0} onClick={provision} className={primaryBtn}>
+              {busy === "provision" ? "Enviando…" : "Enviar acesso"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {result && (
+        <p className={`mt-3 text-xs ${toneClass}`}>{result.message}</p>
+      )}
     </div>
   );
 }
