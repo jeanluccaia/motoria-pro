@@ -26,9 +26,12 @@ import {
   FOUNDER_GOAL,
   computeHistoricalMetrics,
   computePipelineSnapshot,
-  getConfirmedFoundersCount,
 } from "@/lib/growth/founder-metrics";
-import { matchKnownSubscriber } from "@/lib/growth/founder-eligibility";
+// Substituído por leitura de customer.knownSubscriberPlan — enriquecido server-side
+// para evitar carregar KNOWN_SUBSCRIBERS_2026_08_16 (telefones/placas) no bundle client.
+type KnownSubscriberBadge = { record: { plan: string } } | null;
+const matchKnownSubscriber = (customer: DgnCustomer): KnownSubscriberBadge =>
+  customer.knownSubscriberPlan ? { record: { plan: customer.knownSubscriberPlan } } : null;
 import { formatDatePtBr } from "@/lib/growth/date-format";
 import { founderStatusLabel } from "@/lib/growth/founder-labels";
 import { getFounderReadiness } from "@/lib/growth/founder-readiness";
@@ -57,7 +60,7 @@ import {
   type FounderKitStatus,
   type FoundersPipelineStatus,
   type RecommendedPlan,
-} from "@/lib/growth/dgn-growth-data";
+} from "@/lib/growth/dgn-growth-utils";
 import {
   contractingModeLabels,
   detectFounderVehicleCategory,
@@ -77,6 +80,7 @@ import {
 import { normalizePlanCodeForFilter } from "@/lib/founder-plan-filter";
 import { curationDisplayState, type FounderCurationAction } from "@/lib/growth/db/founder-curation";
 import { isFounderAcquisitionEligible, type FounderEligibility } from "@/lib/growth/founder-eligibility";
+import { canonicalPlanLabel } from "@/lib/growth/canonical-plan";
 
 type GrowthView = "intelligence" | "curadoria" | "founders" | "profile";
 type ProfileTab = "overview" | "commercial" | "campaign" | "timeline";
@@ -193,12 +197,15 @@ export function DgnGrowthWorkspace({
   initialCustomers,
   dataOrigin,
   readOnly,
+  confirmedFoundersCount,
 }: {
   view: GrowthView;
   customerId?: string;
   initialCustomers: DgnCustomer[];
   dataOrigin: "json" | "db" | "json-fallback";
   readOnly: boolean;
+  /** Pré-computado server-side (evita importar KNOWN_SUBSCRIBERS no client). */
+  confirmedFoundersCount: number;
 }) {
   const [drafts, setDrafts] = useState(() => createDrafts(initialCustomers));
   const [selectedCustomerId, setSelectedCustomerId] = useState(customerId ?? "");
@@ -297,7 +304,8 @@ export function DgnGrowthWorkspace({
   const campaignMetrics = useMemo(() => {
     const founders = customers.filter((customer) => customer.campaign.founderSelected);
     // Canônico: os 3 preservados (001/002/003). Iara Nº004 reaberta NÃO conta.
-    const confirmedCount = getConfirmedFoundersCount();
+    // Vem via prop server-side para evitar importar KNOWN_SUBSCRIBERS no bundle client.
+    const confirmedCount = confirmedFoundersCount;
     // Pipeline snapshot: 6 buckets MUTUAMENTE EXCLUSIVOS + histórico separado.
     const pipeline = computePipelineSnapshot(customers);
     const historical = computeHistoricalMetrics(customers);
@@ -772,7 +780,7 @@ function CustomersTable({
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <StatusBadge label={customer.commercialStatus} />
-                <span className="text-[11px] text-[#8A8A8A]">{customer.recommendedPlan}</span>
+                <span className="text-[11px] text-[#8A8A8A]">{canonicalPlanLabel(customer)}</span>
               </div>
               <p className="mt-1 text-[10px] uppercase tracking-wider text-[#5F5F5F]">Últ. atend.: {customer.lastAttendance}</p>
             </div>
@@ -835,7 +843,7 @@ function CustomersTable({
                 <td className="px-4 py-3">
                   <ScorePill score={customer.scoreDgn} />
                 </td>
-                <td className="px-4 py-3 text-sm text-[#D1D5DB]">{customer.recommendedPlan}</td>
+                <td className="px-4 py-3 text-sm text-[#D1D5DB]">{canonicalPlanLabel(customer)}</td>
                 <td className="px-4 py-3">
                   <StatusBadge label={customer.commercialStatus} />
                 </td>
@@ -2662,7 +2670,8 @@ function FounderCurationEditor({
         <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/[0.06] p-3 text-[11px] text-amber-100">
           <p className="text-xs font-semibold text-amber-200">Cliente fora da fila de aquisição</p>
           <p className="mt-1">{eligibility.operatorMessage ?? "Este cliente já é assinante e não participa da fila de aquisição Founder."}</p>
-          {eligibility.subscriberMatch?.note ? <p className="mt-1 text-amber-100/70">{eligibility.subscriberMatch.note}</p> : null}
+          {/* subscriberMatch removido do client (era KnownSubscriberRecord completo com PII).
+              Client só exibe subscriberPlan agora — nota interna do record fica no server. */}
         </div>
       ) : current?.publicLink && invitePreviewPath && inviteCleanUrl ? (
         <div className="mt-3 space-y-3">
@@ -3278,13 +3287,42 @@ function PortalAccessEditor({ customerId, enabled }: { customerId: string; enabl
         <p className="mt-4 text-xs text-red-300">{result?.message ?? "Estado indisponível."}</p>
       ) : !state.hasSubscription ? (
         <p className="mt-4 text-xs text-[#B5A063]">Cliente sem assinatura registrada. Ative o Portal apenas após confirmar a assinatura.</p>
+      ) : state.enabled && !state.emailMasked ? (
+        // Portal habilitado mas sem e-mail (ex.: QA prov. via SQL, ou desabilitar+reabilitar).
+        // Fluxo idempotente: mesmo endpoint POST — provisionPortalAccess reaproveita gate + vínculo se existirem.
+        <div className="mt-4 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[11px] font-semibold text-amber-200">
+              Portal ativo · e-mail pendente
+            </span>
+          </div>
+          <label>
+            <span className={labelClass}>Cadastrar e-mail de acesso</span>
+            <input
+              type="email"
+              inputMode="email"
+              autoComplete="off"
+              disabled={!enabled || busy !== null}
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="cliente@email.com"
+              className={inputClass}
+            />
+          </label>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[11px] text-[#888]">O Portal já está liberado. Informe o e-mail real do cliente para gerar o magic link.</p>
+            <button type="button" disabled={!enabled || busy !== null || email.trim().length === 0} onClick={provision} className={primaryBtn}>
+              {busy === "provision" ? "Enviando…" : "Cadastrar e-mail de acesso"}
+            </button>
+          </div>
+        </div>
       ) : state.enabled ? (
         <div className="mt-4 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-200">
               <BadgeCheck size={13} /> Portal ativo
             </span>
-            <span className="text-xs text-[#AAA]">E-mail: <span className="font-mono text-[#DDD]">{state.emailMasked ?? "(pendente)"}</span></span>
+            <span className="text-xs text-[#AAA]">E-mail: <span className="font-mono text-[#DDD]">{state.emailMasked}</span></span>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button type="button" disabled={!enabled || busy !== null} onClick={resend} className={primaryBtn}>
@@ -3325,7 +3363,7 @@ function PortalAccessEditor({ customerId, enabled }: { customerId: string; enabl
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-[11px] text-[#888]">Use o e-mail real do cliente. Um link único será enviado — sem senha.</p>
             <button type="button" disabled={!enabled || busy !== null || email.trim().length === 0} onClick={provision} className={primaryBtn}>
-              {busy === "provision" ? "Enviando…" : "Enviar acesso"}
+              {busy === "provision" ? "Enviando…" : "Liberar acesso ao Portal"}
             </button>
           </div>
         </div>
@@ -3413,7 +3451,7 @@ function CustomerSnapshot({ customer }: { customer: DgnCustomer }) {
         <ProfileFact label="Último atendimento" value={formatDatePtBr(customer.lastAttendance)} compact />
       </div>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <ProfileFact label="Plano sugerido" value={customer.recommendedPlan} compact />
+        <ProfileFact label={customer.activePlan ? "Plano contratado" : "Plano sugerido"} value={canonicalPlanLabel(customer)} compact />
         <ProfileFact label="Cliente desde" value={formatDatePtBr(customer.customerSince)} compact />
       </div>
     </div>

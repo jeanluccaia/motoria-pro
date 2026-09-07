@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { isFounderAcquisitionEligible, matchKnownSubscriber, partitionByEligibility } from "./founder-eligibility.ts";
-import type { DgnCustomer } from "./dgn-growth-data.ts";
+import { isFounderAcquisitionEligible, partitionByEligibility } from "./founder-eligibility.ts";
+import { matchKnownSubscriber } from "./founder-eligibility-server.ts";
+import type { DgnCustomer } from "./dgn-growth-utils.ts";
 
 // Fixture mínima: só os campos consultados pelo helper.
 function makeCustomer(overrides: Partial<DgnCustomer> & { id: string; name: string }): DgnCustomer {

@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import type { DgnCustomer } from "../../dgn-growth-data.ts";
+import type { DgnCustomer } from "../../dgn-growth-utils.ts";
 import type { AgentContext } from "../agent-context.ts";
+import { enrichKnownSubscribers } from "../../db/enrich-known-subscriber.ts";
 import { BATCH_PREPARATION_CAP } from "../types.ts";
 import { prepareFollowupMessage } from "./prepare-followup-message.ts";
 import { prepareFounderApproach } from "./prepare-founder-approach.ts";
@@ -58,7 +59,11 @@ function baseCustomer(overrides: Partial<DgnCustomer> & { id: string; name: stri
 }
 
 function ctxOf(customers: DgnCustomer[]): AgentContext {
-  return { customers, origin: "json", loadedAt: Date.parse("2026-08-31T12:00:00Z") };
+  // Igual ao buildAgentContext em prod: enriquece com knownSubscriberPlan/Status
+  // ANTES das skills lerem o customer. Sem isso, isFounderAcquisitionEligible
+  // (que agora só lê o campo, nunca faz matching) trataria assinante conhecido
+  // como lead.
+  return { customers: enrichKnownSubscribers(customers), origin: "json", loadedAt: Date.parse("2026-08-31T12:00:00Z") };
 }
 
 // ---------------------------------------------------------------------------

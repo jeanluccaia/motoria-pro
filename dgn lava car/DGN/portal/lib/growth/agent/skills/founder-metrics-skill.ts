@@ -2,9 +2,13 @@ import type { AgentContext } from "../agent-context.ts";
 import type { SkillResult } from "../types.ts";
 import {
   computeFounderMetrics,
-  getLegacyFounderCandidates,
   type FounderMetricsSnapshot,
 } from "../../founder-metrics.ts";
+import {
+  getConfirmedFoundersCount,
+  getNextAvailableFounderNumber,
+  getLegacyFounderCandidates,
+} from "../../founder-metrics-server.ts";
 
 // Skill READ-ONLY que devolve o snapshot canônico de métricas Founder para
 // o Agent. Fonte única: `lib/growth/founder-metrics.ts`. Nunca recalcula no
@@ -36,8 +40,12 @@ export interface FounderMetricsPayload {
 }
 
 export function getFounderMetrics(ctx: AgentContext): SkillResult<FounderMetricsPayload> {
-  const snapshot = computeFounderMetrics(ctx.customers);
   const legacyRecords = getLegacyFounderCandidates();
+  const snapshot = computeFounderMetrics(ctx.customers, {
+    confirmedFounders: getConfirmedFoundersCount(),
+    nextAvailableFounderNumber: getNextAvailableFounderNumber(),
+    legacyFounderCandidatesCount: legacyRecords.length,
+  });
   const legacyFounderNotes = legacyRecords.map(
     (r) =>
       `${r.name}: assinante ${r.plan} — histórico de seleção Founder é legado, NÃO ocupa vaga.`,

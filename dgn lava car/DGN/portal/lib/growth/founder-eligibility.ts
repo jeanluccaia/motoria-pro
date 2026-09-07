@@ -5,14 +5,16 @@
  * renovação pendente, Founder confirmado ou descartado NÃO deve aparecer
  * como candidato — mesmo que tenha score alto ou plano sugerido válido.
  *
- * Um único helper server-safe centraliza a decisão. UI e route reutilizam.
- * Nunca use score, plano sugerido ou `commercialStatus === "Selecionado"`
- * como prova de assinatura — só a base real de assinantes ativos vale.
+ * Client-safe: este módulo NÃO importa mais `KNOWN_SUBSCRIBERS_2026_08_16`.
+ * O matching por telefone/placa/nome contra a base sensível é feito uma vez
+ * server-side (`enrich-known-subscriber.ts` chama
+ * `founder-eligibility-server.matchKnownSubscriber`) e o resultado é
+ * persistido no customer como `knownSubscriberPlan` + `knownSubscriberStatus`.
+ * Aqui apenas lemos esses dois campos — nenhuma PII de terceiros sobra no
+ * bundle público.
  */
 
-import { isConfirmedFounder, type DgnCustomer } from "./dgn-growth-data.ts";
-import { KNOWN_SUBSCRIBERS_2026_08_16, KNOWN_SUBSCRIBER_LEGACY_IDS, type KnownSubscriberRecord } from "./known-subscribers.ts";
-import { normalizeName, normalizePhone, normalizePlate } from "./db/normalizers.ts";
+import { isConfirmedFounder, type DgnCustomer } from "./dgn-growth-utils.ts";
 
 export type FounderIneligibleReason =
   | "founder_confirmado"
@@ -22,110 +24,31 @@ export type FounderIneligibleReason =
   | "assinatura_detectada"
   | "sem_dados_minimos";
 
+// Preserva shape público. `subscriberMatch`/`subscriberMatchReason` foram
+// removidos (traziam a KnownSubscriberRecord completa — telefone, placa, nome
+// legal). O cliente hoje só precisa do plano/status já sanitizados.
 export interface FounderEligibility {
   eligible: boolean;
   reason?: FounderIneligibleReason;
-  /**
-   * Mensagem curta e operável, pronta para exibir ao operador. Sem SQL, sem IDs internos.
-   * Ex.: "Este cliente já é assinante Priority e não participa da fila de aquisição."
-   */
   operatorMessage?: string;
-  /** Match resolvido contra `KNOWN_SUBSCRIBERS_2026_08_16` — quando aplicável. */
-  subscriberMatch?: KnownSubscriberRecord;
-  /** Motivo do match (ajuda debug). */
+  /** Rótulo do plano detectado (Essential/Smart/Priority) quando aplicável. */
+  subscriberPlan?: string;
+  /** Deprecated: mantido no shape para compat de import de outros server-modules. */
   subscriberMatchReason?: "phone" | "plate" | "name" | "alias" | "legacy_id" | "preserved_founder";
 }
-
-// ---------------------------------------------------------------------------
-// Índices normalizados (montados uma vez em memória)
-// ---------------------------------------------------------------------------
-
-interface SubscriberIndex {
-  byPhone: Map<string, KnownSubscriberRecord>;
-  byPlate: Map<string, KnownSubscriberRecord>;
-  byName: Map<string, KnownSubscriberRecord>;
-}
-
-let cachedIndex: SubscriberIndex | null = null;
-
-function ensureIndex(): SubscriberIndex {
-  if (cachedIndex) return cachedIndex;
-  const byPhone = new Map<string, KnownSubscriberRecord>();
-  const byPlate = new Map<string, KnownSubscriberRecord>();
-  const byName = new Map<string, KnownSubscriberRecord>();
-
-  for (const record of KNOWN_SUBSCRIBERS_2026_08_16) {
-    for (const raw of record.phones) {
-      const norm = normalizePhone(raw);
-      if (norm.classification === "valido") byPhone.set(norm.digits, record);
-    }
-    for (const raw of record.plates) {
-      const norm = normalizePlate(raw);
-      if (norm.classification.startsWith("valida")) byPlate.set(norm.compact, record);
-    }
-    for (const rawName of [record.name, ...(record.aliases ?? [])]) {
-      const norm = normalizeName(rawName);
-      if (norm.normalized) byName.set(norm.normalized, record);
-    }
-  }
-
-  cachedIndex = { byPhone, byPlate, byName };
-  return cachedIndex;
-}
-
-// ---------------------------------------------------------------------------
-// Reconciliação por customer → KnownSubscriberRecord
-// ---------------------------------------------------------------------------
-
-export function matchKnownSubscriber(
-  customer: Pick<DgnCustomer, "id" | "name" | "phone" | "plate">,
-): { record: KnownSubscriberRecord; reason: FounderEligibility["subscriberMatchReason"] } | null {
-  const index = ensureIndex();
-
-  if (KNOWN_SUBSCRIBER_LEGACY_IDS.has(customer.id)) {
-    const byName = index.byName.get(normalizeName(customer.name).normalized);
-    if (byName) return { record: byName, reason: "legacy_id" };
-  }
-
-  const phone = normalizePhone(customer.phone);
-  if (phone.classification === "valido") {
-    const hit = index.byPhone.get(phone.digits);
-    if (hit) return { record: hit, reason: "phone" };
-  }
-
-  const plate = normalizePlate(customer.plate);
-  if (plate.classification.startsWith("valida")) {
-    const hit = index.byPlate.get(plate.compact);
-    if (hit) return { record: hit, reason: "plate" };
-  }
-
-  const nameKey = normalizeName(customer.name).normalized;
-  if (nameKey) {
-    const hit = index.byName.get(nameKey);
-    if (hit) return { record: hit, reason: nameKey === normalizeName(hit.name).normalized ? "name" : "alias" };
-  }
-
-  return null;
-}
-
-// ---------------------------------------------------------------------------
-// Regra canônica de elegibilidade
-// ---------------------------------------------------------------------------
 
 /**
  * Retorna se um cliente pode entrar na fila de Curadoria Founder.
  *
  * Blocking (por ordem de prioridade):
  *  1. Founder confirmado (001/002/003 ou founder_status = 'confirmado').
- *  2. Assinante ativo já reconhecido (base 4uCar 2026-08-16 ou
- *     commercialStatus = "Assinante Ativo").
- *  3. Renovação pendente na base 4uCar.
+ *  2. Assinante ativo já reconhecido (via customer.knownSubscriberPlan/Status
+ *     enriquecido server-side, ou commercialStatus = "Assinante Ativo").
+ *  3. Renovação pendente na base reconhecida.
  *  4. Descartado / bloqueado no pipeline.
- *  5. Assinatura detectada aguardando validação (seed / customer flag).
- *  6. Sem dados mínimos (sem nome, sem telefone válido).
+ *  5. Sem dados mínimos (sem nome, sem telefone válido).
  */
 export function isFounderAcquisitionEligible(customer: DgnCustomer): FounderEligibility {
-  // 1. Founder confirmado — proteção dura
   if (isConfirmedFounder(customer) || customer.campaign?.founderStatus === "confirmado") {
     return {
       eligible: false,
@@ -135,29 +58,25 @@ export function isFounderAcquisitionEligible(customer: DgnCustomer): FounderElig
     };
   }
 
-  // 2/3/5. Match contra base real de assinantes
-  const match = matchKnownSubscriber(customer);
-  if (match) {
-    const { record, reason } = match;
-    if (record.status === "renovacao_pendente") {
+  const plan = customer.knownSubscriberPlan;
+  const status = customer.knownSubscriberStatus;
+  if (plan) {
+    if (status === "renovacao_pendente") {
       return {
         eligible: false,
         reason: "renovacao_pendente",
-        operatorMessage: `Assinante ${record.plan} com renovação pendente. Fora da fila de aquisição até a renovação ser resolvida.`,
-        subscriberMatch: record,
-        subscriberMatchReason: reason,
+        operatorMessage: `Assinante ${plan} com renovação pendente. Fora da fila de aquisição até a renovação ser resolvida.`,
+        subscriberPlan: plan,
       };
     }
     return {
       eligible: false,
       reason: "assinante_ativo",
-      operatorMessage: `Já é assinante DGN ${record.plan}. Fora da fila de aquisição — trate como retenção.`,
-      subscriberMatch: record,
-      subscriberMatchReason: reason,
+      operatorMessage: `Já é assinante DGN ${plan}. Fora da fila de aquisição — trate como retenção.`,
+      subscriberPlan: plan,
     };
   }
 
-  // 2b. Assinante ativo pelo próprio status do customer
   if (customer.commercialStatus === "Assinante Ativo") {
     return {
       eligible: false,
@@ -166,7 +85,6 @@ export function isFounderAcquisitionEligible(customer: DgnCustomer): FounderElig
     };
   }
 
-  // 4. Descartado / bloqueado no pipeline
   if (
     customer.campaign?.founderStatus === "descartado" ||
     customer.campaign?.commercialStage === "descartado" ||
@@ -179,7 +97,6 @@ export function isFounderAcquisitionEligible(customer: DgnCustomer): FounderElig
     };
   }
 
-  // 6. Sem dados mínimos
   if (customer.hasValidPhone === false) {
     return {
       eligible: false,

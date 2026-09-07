@@ -1,6 +1,10 @@
-import { KNOWN_SUBSCRIBERS_2026_08_16 } from "./known-subscribers.ts";
-import type { DgnCustomer } from "./dgn-growth-data.ts";
-import { matchKnownSubscriber } from "./founder-eligibility.ts";
+import type { DgnCustomer } from "./dgn-growth-utils.ts";
+// Fim do vazamento P0: este módulo NÃO importa mais KNOWN_SUBSCRIBERS diretamente.
+// - `isKnownSubscriberCustomer` lê `customer.knownSubscriberPlan` (populado
+//   server-side por enrichKnownSubscribers).
+// - Funções que ainda precisam da base sensível (getConfirmedFounderRecords,
+//   getConfirmedFoundersCount, getLegacyFounderCandidates, getNextAvailableFounderNumber)
+//   moveram para `founder-metrics-server.ts` — server-only, jamais no bundle client.
 
 // -----------------------------------------------------------------------------
 // Fonte canônica das métricas Founder. Dashboard, tela /founders-2026 e Agent
@@ -21,42 +25,10 @@ import { matchKnownSubscriber } from "./founder-eligibility.ts";
 
 export const FOUNDER_GOAL = 30 as const;
 
-/** Vagas Founder confirmadas na base viva 4uCar 2026-08-16. Sempre 001/002/003. */
-export function getConfirmedFounderRecords() {
-  return KNOWN_SUBSCRIBERS_2026_08_16.filter((s) => Boolean(s.preservedFounderNumber));
-}
-
-/** Count canônico usado no Dashboard, na tela Founders e no Agent. */
-export function getConfirmedFoundersCount(): number {
-  return getConfirmedFounderRecords().length;
-}
-
-/**
- * Próximo número Founder disponível para nova confirmação.
- * Hoje: confirmed=3 (001/002/003) → 4. A Iara Menezes NÃO ocupa Nº004
- * (é assinante Priority, sinalização Founder é histórico legado).
- */
-export function getNextAvailableFounderNumber(): number {
-  return getConfirmedFoundersCount() + 1;
-}
-
 /** Formata como string zero-padded: 4 → "004". */
 export function formatFounderNumber(n: number): string {
   return String(n).padStart(3, "0");
 }
-
-/**
- * Registros que têm `isReopenedFounder=true` na base viva. NÃO significa que
- * ocupam vaga Founder — significa que já foram sinalizados no processo em
- * algum momento e hoje são assinantes conhecidos (retenção). Nº004 continua
- * DISPONÍVEL enquanto nenhum cliente novo for confirmado.
- */
-export function getLegacyFounderCandidates() {
-  return KNOWN_SUBSCRIBERS_2026_08_16.filter((s) => s.isReopenedFounder === true);
-}
-
-/** @deprecated use `getLegacyFounderCandidates()`. Mantido para compat. */
-export const getReopenedFounderRecords = getLegacyFounderCandidates;
 
 /** Cliente é Founder confirmado (tem número 001/002/003 preservado). */
 export function isConfirmedFounderCustomer(customer: Pick<DgnCustomer, "campaign">): boolean {
@@ -140,7 +112,10 @@ const EMPTY_SNAPSHOT: FounderPipelineSnapshot = {
 };
 
 function isKnownSubscriberCustomer(customer: DgnCustomer): boolean {
-  return matchKnownSubscriber(customer) !== null;
+  // Lê campo enriquecido server-side. Nunca importa KNOWN_SUBSCRIBERS aqui —
+  // se `knownSubscriberPlan` chegar undefined, assumimos "não conhecido"
+  // (pior caso: cliente aparece em pipeline; melhor que expor telefone/placa).
+  return Boolean(customer.knownSubscriberPlan);
 }
 
 /** Classifica o cliente em UM estágio do snapshot, ou retorna null se está fora. */
@@ -238,19 +213,29 @@ export interface FounderMetricsSnapshot {
   historical: FounderHistoricalMetrics;
 }
 
-export function computeFounderMetrics(customers: DgnCustomer[]): FounderMetricsSnapshot {
-  const confirmedFounders = getConfirmedFoundersCount();
+// Server-only. Recebe as contagens dependentes da base sensível como parâmetro
+// (o chamador — sempre um Server Component ou API route — importa
+// founder-metrics-server e passa os totais). Evita que este módulo puxe
+// KNOWN_SUBSCRIBERS para o bundle client.
+export function computeFounderMetrics(
+  customers: DgnCustomer[],
+  serverCounts: {
+    confirmedFounders: number;
+    nextAvailableFounderNumber: number;
+    legacyFounderCandidatesCount: number;
+  },
+): FounderMetricsSnapshot {
+  const { confirmedFounders, nextAvailableFounderNumber, legacyFounderCandidatesCount } = serverCounts;
   const pipeline = computePipelineSnapshot(customers);
   const historical = computeHistoricalMetrics(customers);
   const openInvites = pipeline.invitesOpen + pipeline.viewedOpen;
-  const nextAvailableFounderNumber = getNextAvailableFounderNumber();
   return {
     confirmedFounders,
     activeInvites: openInvites,
     openInvites,
     nextAvailableFounderNumber,
     nextAvailableFounderLabel: formatFounderNumber(nextAvailableFounderNumber),
-    legacyFounderCandidatesCount: getLegacyFounderCandidates().length,
+    legacyFounderCandidatesCount,
     goal: FOUNDER_GOAL,
     available: FOUNDER_GOAL - confirmedFounders,
     pipeline,

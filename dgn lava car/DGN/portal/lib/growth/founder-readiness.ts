@@ -1,4 +1,4 @@
-import type { DgnCustomer } from "./dgn-growth-data.ts";
+import type { DgnCustomer } from "./dgn-growth-utils.ts";
 import { isFounderAcquisitionEligible } from "./founder-eligibility.ts";
 import { isConfirmedFounderCustomer } from "./founder-metrics.ts";
 

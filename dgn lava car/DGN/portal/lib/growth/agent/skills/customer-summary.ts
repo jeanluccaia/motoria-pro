@@ -1,4 +1,5 @@
-import { isFounderAcquisitionEligible, matchKnownSubscriber } from "../../founder-eligibility.ts";
+import { isFounderAcquisitionEligible } from "../../founder-eligibility.ts";
+import { matchKnownSubscriber } from "../../founder-eligibility-server.ts";
 import type { DgnCustomer } from "../../dgn-growth-data.ts";
 import type { AgentContext } from "../agent-context.ts";
 import type { CustomerSummary, SkillResult } from "../types.ts";

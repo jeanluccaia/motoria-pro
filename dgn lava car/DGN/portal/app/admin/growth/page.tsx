@@ -5,10 +5,8 @@ import type { DgnCustomer } from "@/lib/growth/dgn-growth-data";
 import { buildAgentContext } from "@/lib/growth/agent/agent-context";
 import { getDailyBriefing } from "@/lib/growth/agent/skills/daily-briefing";
 import type { DailyBriefing } from "@/lib/growth/agent/types";
-import {
-  getActiveInvitesCount,
-  getConfirmedFoundersCount,
-} from "@/lib/growth/founder-metrics";
+import { getActiveInvitesCount } from "@/lib/growth/founder-metrics";
+import { getConfirmedFoundersCount } from "@/lib/growth/founder-metrics-server";
 import { AlertTriangle, ArrowRight, Sparkles } from "lucide-react";
 
 export const dynamic = "force-dynamic";

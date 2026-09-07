@@ -110,6 +110,12 @@ export function mapGrowthSnapshot(snapshot: GrowthDbSnapshot): DgnCustomer[] {
     const active = subscription?.is_active_subscriber === true || text(subscription?.subscription_status) === "ativo";
     const recommendedPlan = plan(subscription?.subscription_plan);
 
+    const rawSubscriptionPlan = text(subscription?.subscription_plan);
+    // Canônico: só popula quando há assinatura ativa. `recommendedPlan` NUNCA
+    // substitui o plano contratado — se o cliente tem contrato, é este que a UI
+    // exibe como "plano do assinante".
+    const activePlan = active && rawSubscriptionPlan ? rawSubscriptionPlan : null;
+
     return {
       id: text(customer.legacy_id) || customerId,
       name: text(customer.name), phone: text(customer.primary_phone),
@@ -118,7 +124,7 @@ export function mapGrowthSnapshot(snapshot: GrowthDbSnapshot): DgnCustomer[] {
       attendanceHistory: interactions.map((row) => text(row.description) || text(row.interaction_type)).filter(Boolean),
       washCount: number(customer.service_count), historicalValue: number(customer.historical_value),
       customerSince: date(customer.first_service_at), lastAttendance: date(customer.last_service_at),
-      scoreDgn: number(score?.total_score), recommendedPlan,
+      scoreDgn: number(score?.total_score), recommendedPlan, activePlan,
       commercialStatus: active ? "Assinante Ativo" : (commercialStatus[campaignStatus] ?? "Aguardando Curadoria DGN"),
       recurrence: text(subscription?.subscription_cycle) || "A validar na curadoria",
       averageVisitIntervalDays: number(customer.average_interval_days),
