@@ -140,6 +140,10 @@ function buildFake(state: State): SupabaseClient {
           state.authUsers.push({ id, email: payload.email });
           return { data: { user: { id } }, error: null };
         },
+        // Fake da Admin API: devolve todos os users no formato page/perPage.
+        listUsers: async ({ page: _page, perPage: _perPage }: { page: number; perPage: number }) => {
+          return { data: { users: state.authUsers.slice() }, error: null };
+        },
       },
     },
   } as unknown as SupabaseClient;
