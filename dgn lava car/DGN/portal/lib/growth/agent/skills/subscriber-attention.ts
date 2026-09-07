@@ -1,5 +1,5 @@
 import { KNOWN_SUBSCRIBERS_2026_08_16 } from "../../known-subscribers.ts";
-import { matchKnownSubscriber } from "../../founder-eligibility.ts";
+import { matchKnownSubscriber } from "../../founder-eligibility-server.ts";
 import type { AgentContext } from "../agent-context.ts";
 import type { AttentionCard, SkillResult } from "../types.ts";
 import { sortByPriority } from "./founder-attention.ts";

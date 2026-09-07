@@ -30,6 +30,8 @@ function baseCustomer(overrides: Partial<DgnCustomer> & { id: string; name: stri
       nextAction: "", lastContact: "", conversationStatus: "", notes: "",
       kitStatus: "", cardStatus: "",
     },
+    knownSubscriberPlan: overrides.knownSubscriberPlan,
+    knownSubscriberStatus: overrides.knownSubscriberStatus,
   } as DgnCustomer;
 }
 
@@ -106,6 +108,8 @@ test("founder: confirmado sobrescreve eligibility ineligible", () => {
 test("ineligible: assinante ativo (William Farias, renovacao_pendente) nunca vira awaiting_curation", () => {
   const william = baseCustomer({
     id: "william-farias", name: "William Farias", phone: "19993658346",
+    // Enriquecimento server-side: William é Smart em renovação pendente.
+    knownSubscriberPlan: "Smart", knownSubscriberStatus: "renovacao_pendente",
   });
   const r = getFounderReadiness(william);
   assert.equal(r.state, "ineligible");

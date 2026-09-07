@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { KNOWN_SUBSCRIBERS_2026_08_16 } from "./known-subscribers.ts";
-import type { DgnCustomer } from "./dgn-growth-data.ts";
+import type { DgnCustomer } from "./dgn-growth-utils.ts";
 import {
   FOUNDER_GOAL,
   classifyPipelineStage,
@@ -10,17 +10,19 @@ import {
   computePipelineSnapshot,
   formatFounderNumber,
   getActiveInvitesCount,
-  getConfirmedFounderRecords,
-  getConfirmedFoundersCount,
-  getLegacyFounderCandidates,
-  getNextAvailableFounderNumber,
   getOpenInvitesCount,
-  getReopenedFounderRecords,
   isActiveInviteCustomer,
   isConfirmedFounderCustomer,
   pipelineTotal,
   type FounderPipelineSnapshot,
 } from "./founder-metrics.ts";
+import {
+  getConfirmedFounderRecords,
+  getConfirmedFoundersCount,
+  getLegacyFounderCandidates,
+  getNextAvailableFounderNumber,
+  getReopenedFounderRecords,
+} from "./founder-metrics-server.ts";
 
 // -----------------------------------------------------------------------------
 // Prova o "single source of truth" das métricas Founder:
@@ -59,6 +61,7 @@ function baseCustomer(overrides: Partial<DgnCustomer> & { id: string; name: stri
       nextAction: "", lastContact: "", conversationStatus: "", notes: "",
       kitStatus: "", cardStatus: "",
     },
+    knownSubscriberPlan: overrides.knownSubscriberPlan,
   } as DgnCustomer;
 }
 
@@ -86,7 +89,7 @@ test("getNextAvailableFounderNumber = 4 (confirmed=3 → próximo=4)", () => {
 });
 
 test("computeFounderMetrics: nextAvailableFounderLabel = '004' e Nº004 é disponível", () => {
-  const snap = computeFounderMetrics([]);
+  const snap = computeFounderMetrics([], { confirmedFounders: getConfirmedFoundersCount(), nextAvailableFounderNumber: getNextAvailableFounderNumber(), legacyFounderCandidatesCount: getLegacyFounderCandidates().length });
   assert.equal(snap.confirmedFounders, 3);
   assert.equal(snap.nextAvailableFounderNumber, 4);
   assert.equal(snap.nextAvailableFounderLabel, "004");
@@ -211,6 +214,8 @@ test("classifyPipelineStage: assinante conhecido (Iara Nº004 reaberta) NÃO ent
     name: "Iara Menezes",
     phone: "19991931501",
     plate: "FUR8369",
+    // Enriquecido server-side por enrichKnownSubscribers antes de chegar em pipeline.
+    knownSubscriberPlan: "Priority",
     campaign: {
       currentCampaign: "Founders 2026", founderSelected: true, founderNumber: "", founderCondition: "",
       campaignStatus: "Selecionado", personalizedPagePath: "", paymentLink: "",
@@ -219,7 +224,7 @@ test("classifyPipelineStage: assinante conhecido (Iara Nº004 reaberta) NÃO ent
       founderStatus: "selecionado",
     } as DgnCustomer["campaign"],
   });
-  // Iara é matchKnownSubscriber por phone/plate → fora do pipeline.
+  // Iara tem knownSubscriberPlan populado → isKnownSubscriberCustomer true → fora do pipeline.
   assert.equal(classifyPipelineStage(iara), null);
 });
 
@@ -316,7 +321,11 @@ test("computeFounderMetrics: cross-module snapshot canônico", () => {
     }),
   ];
 
-  const snapshot = computeFounderMetrics(customers);
+  const snapshot = computeFounderMetrics(customers, {
+    confirmedFounders: getConfirmedFoundersCount(),
+    nextAvailableFounderNumber: getNextAvailableFounderNumber(),
+    legacyFounderCandidatesCount: getLegacyFounderCandidates().length,
+  });
   assert.equal(snapshot.confirmedFounders, 3, "confirmed sempre = 3 (canônico da base viva)");
   assert.equal(snapshot.activeInvites, 2, "convite ativo exclui founder confirmado");
   assert.equal(snapshot.goal, FOUNDER_GOAL);

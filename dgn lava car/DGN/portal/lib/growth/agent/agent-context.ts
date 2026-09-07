@@ -1,6 +1,7 @@
 import "server-only";
 
 import { loadGrowthData, type GrowthDataResult } from "../db/growth-reader.ts";
+import { enrichKnownSubscribers } from "../db/enrich-known-subscriber.ts";
 import type { DgnCustomer } from "../dgn-growth-data.ts";
 
 // AgentContext é o único ponto de entrada dos dados para as skills. Ele carrega
@@ -17,8 +18,11 @@ export interface AgentContext {
 
 export async function buildAgentContext(): Promise<AgentContext> {
   const data = await loadGrowthData({ logger: console });
+  // Enriquecemos aqui também para que skills/tools do agent leiam
+  // knownSubscriberPlan/Status sem precisar chamar matchKnownSubscriber
+  // (que agora vive só server e é para o pipeline de payload público).
   return {
-    customers: data.customers,
+    customers: enrichKnownSubscribers(data.customers),
     origin: data.origin,
     loadedAt: Date.now(),
   };

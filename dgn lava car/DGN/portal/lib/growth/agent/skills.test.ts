@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import type { DgnCustomer } from "../dgn-growth-data.ts";
+import type { DgnCustomer } from "../dgn-growth-utils.ts";
 import type { AgentContext } from "./agent-context.ts";
+import { enrichKnownSubscribers } from "../db/enrich-known-subscriber.ts";
 import { getDailyBriefing } from "./skills/daily-briefing.ts";
 import { getFounderAttention } from "./skills/founder-attention.ts";
 import { getCurationOpportunities } from "./skills/curation-opportunities.ts";
@@ -62,7 +63,7 @@ function makeCustomer(overrides: Partial<DgnCustomer> & { id: string; name: stri
 }
 
 function makeCtx(customers: DgnCustomer[], now = Date.parse("2026-08-27T12:00:00Z")): AgentContext {
-  return { customers, origin: "json", loadedAt: now };
+  return { customers: enrichKnownSubscribers(customers), origin: "json", loadedAt: now };
 }
 
 // ---------------------------------------------------------------------------
