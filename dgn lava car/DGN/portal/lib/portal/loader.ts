@@ -43,6 +43,24 @@ export interface SubscriberVehicle {
   brand: string | null;
   model: string | null;
   is_primary: boolean | null;
+  /**
+   * Signed URL cacheada pelo servidor. Pode estar expirada — Admin re-assina
+   * ao servir. Null quando o veículo ainda não tem foto cadastrada.
+   */
+  photo_url: string | null;
+}
+
+export type AppointmentStatus = "scheduled" | "confirmed" | "done" | "cancelled" | "no_show";
+
+export interface SubscriberAppointment {
+  id: string;
+  /** ISO timestamptz — cliente exibe em America/Sao_Paulo. */
+  scheduled_at: string;
+  service_type: string | null;
+  status: AppointmentStatus;
+  vehicle_id: string | null;
+  subscription_id: string | null;
+  notes: string | null;
 }
 
 export interface SubscriberSubscription {
@@ -90,6 +108,13 @@ export interface CurrentSubscriber {
   customer: SubscriberCustomer | null;
   subscriptions: SubscriberSubscription[];
   vehicles: SubscriberVehicle[];
+  /**
+   * Próximos atendimentos ordenados asc por scheduled_at. Apenas
+   * status IN ('scheduled', 'confirmed') AND scheduled_at >= now().
+   * Fonte: crm_appointments (Batch 2). Diferente do
+   * subscription.next_scheduled_service_at (date-only, legado 4uCar).
+   */
+  upcoming_appointments: SubscriberAppointment[];
   founder: SubscriberFounder | null;
   /** Motivo humano quando status != "linked" (para exibir na UI). */
   reason?: string | null;
@@ -100,6 +125,7 @@ const EMPTY: CurrentSubscriber = {
   customer: null,
   subscriptions: [],
   vehicles: [],
+  upcoming_appointments: [],
   founder: null,
   reason: null,
 };
@@ -132,12 +158,15 @@ export async function loadCurrentSubscriber(): Promise<CurrentSubscriber> {
   const subscriptions =
     ((payload.subscriptions ?? []) as SubscriberSubscription[]) ?? [];
   const vehicles = ((payload.vehicles ?? []) as SubscriberVehicle[]) ?? [];
+  const upcoming_appointments =
+    ((payload.upcoming_appointments ?? []) as SubscriberAppointment[]) ?? [];
   const customer = (payload.customer ?? null) as SubscriberCustomer | null;
   return {
     status: subscriptions.length > 0 ? "linked" : "linked_no_subscription",
     customer,
     subscriptions,
     vehicles,
+    upcoming_appointments,
     founder: (payload.founder ?? null) as SubscriberFounder | null,
     reason: null,
   };
@@ -182,7 +211,9 @@ export function hasFinancialReview(subs: SubscriberSubscription[]): boolean {
 // Re-exporta os derivadores puros para conveniência dos Server Components
 export {
   balanceDisplay,
+  formatAppointmentDateTime,
   formatDueDate,
+  nextAppointmentDisplay,
   nextServiceDisplay,
   paymentDisplayLabel,
 } from "./display";
