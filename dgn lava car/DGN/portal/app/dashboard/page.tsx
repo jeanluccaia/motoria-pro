@@ -56,7 +56,7 @@ export default async function DashboardPage() {
           Status: <span className="text-white/90">{paymentDisplayLabel(primary)}</span>
         </p>
         <p className="mt-1 text-sm text-white/70">
-          Próximo vencimento: <span className="text-white/90">{formatDueDate(primary)}</span>
+          Próxima cobrança: <span className="text-white/90">{formatDueDate(primary)}</span>
         </p>
       </section>
 

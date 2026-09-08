@@ -99,9 +99,9 @@ test("nextServiceDisplay usa next_scheduled_service_at quando presente", () => {
 // ---------------------------------------------------------------------------
 // formatDueDate
 // ---------------------------------------------------------------------------
-test("formatDueDate retorna 'Sem vencimento cadastrado' quando ausente", () => {
-  assert.equal(formatDueDate(null), "Sem vencimento cadastrado");
-  assert.equal(formatDueDate(sub({ billing_due_at: null })), "Sem vencimento cadastrado");
+test("formatDueDate retorna 'Data em atualização' quando ausente", () => {
+  assert.equal(formatDueDate(null), "Data em atualização");
+  assert.equal(formatDueDate(sub({ billing_due_at: null })), "Data em atualização");
 });
 
 test("formatDueDate formata pt-BR quando presente", () => {
