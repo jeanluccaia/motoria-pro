@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -1296,6 +1296,25 @@ function CurationView({
           />
         </div>
 
+        <div className="mt-4 space-y-3">
+          <ContactPhoneEditor
+            key={`contact-${selectedCustomer.id}`}
+            customerId={selectedCustomer.id}
+            currentPhone={selectedCustomer.phone ?? ""}
+            enabled={dataOrigin === "db"}
+          />
+          <VehiclesPhotoAndFieldsEditor
+            key={`vehicles-${selectedCustomer.id}`}
+            customerId={selectedCustomer.id}
+            enabled={dataOrigin === "db"}
+          />
+          <AppointmentsEditor
+            key={`appointments-${selectedCustomer.id}`}
+            customerId={selectedCustomer.id}
+            enabled={dataOrigin === "db"}
+          />
+        </div>
+
         <details className="mt-6 group">
           <summary className="cursor-pointer border-t border-white/[0.06] pt-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80 hover:text-[#E7C96A] select-none">
             Opções avançadas de curadoria
@@ -2182,6 +2201,22 @@ function CustomerProfileInline({
           />
           <PortalAccessEditor
             key={`portal-${customer.id}`}
+            customerId={customer.id}
+            enabled={canPersistCommercial}
+          />
+          <ContactPhoneEditor
+            key={`contact-${customer.id}`}
+            customerId={customer.id}
+            currentPhone={customer.phone ?? ""}
+            enabled={canPersistCommercial}
+          />
+          <VehiclesPhotoAndFieldsEditor
+            key={`vehicles-${customer.id}`}
+            customerId={customer.id}
+            enabled={canPersistCommercial}
+          />
+          <AppointmentsEditor
+            key={`appointments-${customer.id}`}
             customerId={customer.id}
             enabled={canPersistCommercial}
           />
@@ -3579,6 +3614,485 @@ function SelectBlock<T extends string>({
         ))}
       </SelectField>
     </label>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Batch 2 — Portal do Assinante (bloco consolidado no Profile 360)
+// Contato · Veículos+Foto · Próximos atendimentos. Cada editor grava via
+// service_role no server e audita. UI mostra "somente leitura" quando
+// enabled=false (modo JSON ou sem admin session).
+// -----------------------------------------------------------------------------
+
+function ContactPhoneEditor({
+  customerId,
+  currentPhone,
+  enabled,
+}: {
+  customerId: string;
+  currentPhone: string;
+  enabled: boolean;
+}) {
+  const [phone, setPhone] = useState(currentPhone);
+  const [saving, setSaving] = useState(false);
+  const [result, setResult] = useState<{ tone: "success" | "error"; message: string } | null>(null);
+
+  const save = async () => {
+    if (!enabled || saving) return;
+    setSaving(true);
+    setResult(null);
+    try {
+      const response = await fetch(`/api/admin/growth/customers/${encodeURIComponent(customerId)}/profile-editor`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "phone", phone }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Falha ao salvar telefone.");
+      setResult({ tone: "success", message: "Telefone atualizado." });
+    } catch (error) {
+      setResult({ tone: "error", message: error instanceof Error ? error.message : "Falha ao salvar." });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="rounded-2xl border border-white/[0.06] bg-[#101010] p-4">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">Contato</p>
+      <div className="mt-3 flex flex-wrap items-end gap-3">
+        <label className="flex-1 min-w-[220px]">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]">Telefone (com DDD)</span>
+          <input
+            disabled={!enabled}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            maxLength={20}
+            className="mt-2 h-10 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-sm text-white outline-none disabled:cursor-not-allowed disabled:opacity-45 focus:border-[#C9A84C]/35"
+          />
+        </label>
+        <button
+          type="button"
+          disabled={!enabled || saving || phone.trim() === currentPhone.trim()}
+          onClick={save}
+          className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 text-sm font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {saving ? "Salvando…" : "Salvar"}
+        </button>
+      </div>
+      {result && (
+        <p className={`mt-2 text-xs ${result.tone === "error" ? "text-red-300" : "text-emerald-300"}`}>
+          {result.message}
+        </p>
+      )}
+    </div>
+  );
+}
+
+interface VehiclePhotoAndFields {
+  id: string;
+  brand: string | null;
+  model: string | null;
+  plate: string | null;
+  masked_plate: string | null;
+  is_primary: boolean | null;
+  photo_url: string | null;
+  photo_updated_at: string | null;
+}
+
+function VehiclesPhotoAndFieldsEditor({
+  customerId,
+  enabled,
+}: {
+  customerId: string;
+  enabled: boolean;
+}) {
+  const [vehicles, setVehicles] = useState<VehiclePhotoAndFields[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const endpoint = `/api/admin/growth/customers/${encodeURIComponent(customerId)}`;
+
+  const reload = useCallback(async () => {
+    if (!enabled) { setLoading(false); return; }
+    setLoading(true);
+    try {
+      const response = await fetch(`${endpoint}/vehicles`);
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Falha ao listar veículos.");
+      setVehicles(body.vehicles as VehiclePhotoAndFields[]);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Falha ao listar veículos.");
+    } finally {
+      setLoading(false);
+    }
+  }, [endpoint, enabled]);
+
+  useEffect(() => { void reload(); }, [reload]);
+
+  return (
+    <div className="rounded-2xl border border-white/[0.06] bg-[#101010] p-4">
+      <div className="flex items-baseline justify-between">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">Veículos e fotos</p>
+        {loading && <span className="text-[10px] text-[#777]">carregando…</span>}
+      </div>
+      {error && <p className="mt-2 text-xs text-red-300">{error}</p>}
+      {!loading && vehicles.length === 0 && (
+        <p className="mt-3 text-xs text-[#777]">Nenhum veículo cadastrado.</p>
+      )}
+      <div className="mt-3 space-y-3">
+        {vehicles.map((v) => (
+          <VehicleRow key={v.id} vehicle={v} customerId={customerId} enabled={enabled} onChanged={reload} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function VehicleRow({
+  vehicle,
+  customerId,
+  enabled,
+  onChanged,
+}: {
+  vehicle: VehiclePhotoAndFields;
+  customerId: string;
+  enabled: boolean;
+  onChanged: () => void;
+}) {
+  const [brand, setBrand] = useState(vehicle.brand ?? "");
+  const [model, setModel] = useState(vehicle.model ?? "");
+  const [plate, setPlate] = useState(vehicle.plate ?? "");
+  const [savingFields, setSavingFields] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [removingPhoto, setRemovingPhoto] = useState(false);
+  const [notice, setNotice] = useState<{ tone: "success" | "error"; message: string } | null>(null);
+
+  const endpoint = `/api/admin/growth/customers/${encodeURIComponent(customerId)}`;
+
+  const saveFields = async () => {
+    if (!enabled || savingFields) return;
+    setSavingFields(true);
+    setNotice(null);
+    try {
+      const response = await fetch(`${endpoint}/profile-editor`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: "vehicle",
+          vehicleId: vehicle.id,
+          brand: brand.trim() || null,
+          model: model.trim() || null,
+          plate: plate.trim() || null,
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Falha ao salvar.");
+      setNotice({ tone: "success", message: "Dados atualizados." });
+      onChanged();
+    } catch (e) {
+      setNotice({ tone: "error", message: e instanceof Error ? e.message : "Falha ao salvar." });
+    } finally {
+      setSavingFields(false);
+    }
+  };
+
+  const uploadPhoto = async (file: File) => {
+    if (!enabled) return;
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
+      setNotice({ tone: "error", message: "Formato inválido. Aceitos: JPEG, PNG, WEBP." });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setNotice({ tone: "error", message: "Arquivo maior que 10 MB." });
+      return;
+    }
+    setUploadingPhoto(true);
+    setNotice(null);
+    try {
+      const form = new FormData();
+      form.set("vehicleId", vehicle.id);
+      form.set("file", file);
+      const response = await fetch(`${endpoint}/vehicle-photo`, { method: "POST", body: form });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Falha no upload.");
+      setNotice({ tone: "success", message: "Foto atualizada." });
+      onChanged();
+    } catch (e) {
+      setNotice({ tone: "error", message: e instanceof Error ? e.message : "Falha no upload." });
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const removePhoto = async () => {
+    if (!enabled || !vehicle.photo_url) return;
+    setRemovingPhoto(true);
+    setNotice(null);
+    try {
+      const response = await fetch(`${endpoint}/vehicle-photo`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vehicleId: vehicle.id }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Falha ao remover.");
+      setNotice({ tone: "success", message: "Foto removida." });
+      onChanged();
+    } catch (e) {
+      setNotice({ tone: "error", message: e instanceof Error ? e.message : "Falha ao remover." });
+    } finally {
+      setRemovingPhoto(false);
+    }
+  };
+
+  const inputClass = "mt-2 h-10 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-sm text-white outline-none disabled:cursor-not-allowed disabled:opacity-45 focus:border-[#C9A84C]/35";
+  const labelClass = "text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]";
+
+  const dirty =
+    brand.trim() !== (vehicle.brand ?? "").trim() ||
+    model.trim() !== (vehicle.model ?? "").trim() ||
+    plate.trim() !== (vehicle.plate ?? "").trim();
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02]">
+      <div className="grid gap-3 p-3 sm:grid-cols-[120px_1fr]">
+        <div className="flex flex-col items-center gap-2">
+          {vehicle.photo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={vehicle.photo_url} alt="Foto do veículo" className="h-24 w-full rounded-lg object-cover" />
+          ) : (
+            <div className="flex h-24 w-full items-center justify-center rounded-lg border border-white/[0.05] text-[10px] uppercase tracking-[0.16em] text-[#666]">
+              Sem foto
+            </div>
+          )}
+          <label className={`inline-flex w-full min-h-8 cursor-pointer items-center justify-center rounded-lg border border-white/[0.1] bg-white/[0.03] px-2 text-[11px] font-semibold text-white/80 ${(!enabled || uploadingPhoto) ? "cursor-not-allowed opacity-40" : ""}`}>
+            {uploadingPhoto ? "Enviando…" : vehicle.photo_url ? "Trocar foto" : "Enviar foto"}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              disabled={!enabled || uploadingPhoto}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void uploadPhoto(f);
+                e.target.value = "";
+              }}
+              className="hidden"
+            />
+          </label>
+          {vehicle.photo_url && (
+            <button
+              type="button"
+              disabled={!enabled || removingPhoto}
+              onClick={removePhoto}
+              className="w-full text-[10px] uppercase tracking-[0.14em] text-red-300/80 disabled:opacity-40"
+            >
+              {removingPhoto ? "Removendo…" : "Remover"}
+            </button>
+          )}
+        </div>
+        <div>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <label><span className={labelClass}>Marca</span><input disabled={!enabled} value={brand} onChange={(e) => setBrand(e.target.value)} maxLength={60} className={inputClass} /></label>
+            <label><span className={labelClass}>Modelo</span><input disabled={!enabled} value={model} onChange={(e) => setModel(e.target.value)} maxLength={80} className={inputClass} /></label>
+            <label><span className={labelClass}>Placa</span><input disabled={!enabled} value={plate} onChange={(e) => setPlate(e.target.value.toUpperCase())} maxLength={8} className={inputClass} /></label>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[10px] text-[#777]">
+              {vehicle.is_primary ? "Veículo principal · " : ""}
+              {vehicle.photo_updated_at ? `Foto atualizada em ${new Date(vehicle.photo_updated_at).toLocaleDateString("pt-BR")}` : "Foto nunca enviada"}
+            </p>
+            <button
+              type="button"
+              disabled={!enabled || savingFields || !dirty}
+              onClick={saveFields}
+              className="inline-flex min-h-8 items-center justify-center rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-3 text-[11px] font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {savingFields ? "Salvando…" : "Salvar dados"}
+            </button>
+          </div>
+          {notice && (
+            <p className={`mt-2 text-[11px] ${notice.tone === "error" ? "text-red-300" : "text-emerald-300"}`}>
+              {notice.message}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface AppointmentRowForAdmin {
+  id: string;
+  scheduled_at: string;
+  service_type: string | null;
+  status: "scheduled" | "confirmed" | "done" | "cancelled" | "no_show";
+  notes: string | null;
+  vehicle_id: string | null;
+  subscription_id: string | null;
+  source: string;
+  cancelled_at: string | null;
+  cancelled_reason: string | null;
+}
+
+function AppointmentsEditor({
+  customerId,
+  enabled,
+}: {
+  customerId: string;
+  enabled: boolean;
+}) {
+  const [appointments, setAppointments] = useState<AppointmentRowForAdmin[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState({ scheduledAt: "", serviceType: "", notes: "" });
+  const [notice, setNotice] = useState<{ tone: "success" | "error"; message: string } | null>(null);
+
+  const endpoint = `/api/admin/growth/customers/${encodeURIComponent(customerId)}/appointments`;
+
+  const reload = useCallback(async () => {
+    if (!enabled) { setLoading(false); return; }
+    setLoading(true);
+    try {
+      const response = await fetch(endpoint);
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Falha ao listar.");
+      setAppointments(body.appointments as AppointmentRowForAdmin[]);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Falha ao listar.");
+    } finally {
+      setLoading(false);
+    }
+  }, [endpoint, enabled]);
+
+  useEffect(() => { void reload(); }, [reload]);
+
+  const create = async () => {
+    if (!enabled || creating) return;
+    if (!form.scheduledAt) {
+      setNotice({ tone: "error", message: "Escolha data e hora." });
+      return;
+    }
+    setCreating(true);
+    setNotice(null);
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scheduledAt: new Date(form.scheduledAt).toISOString(),
+          serviceType: form.serviceType.trim() || null,
+          notes: form.notes.trim() || null,
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Falha ao criar.");
+      setNotice({ tone: "success", message: "Agendamento criado." });
+      setForm({ scheduledAt: "", serviceType: "", notes: "" });
+      void reload();
+    } catch (e) {
+      setNotice({ tone: "error", message: e instanceof Error ? e.message : "Falha ao criar." });
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const cancel = async (appointmentId: string) => {
+    if (!enabled) return;
+    const reason = window.prompt("Motivo do cancelamento (opcional):", "") ?? "";
+    try {
+      const response = await fetch(endpoint, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ appointmentId, reason }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Falha ao cancelar.");
+      setNotice({ tone: "success", message: "Agendamento cancelado." });
+      void reload();
+    } catch (e) {
+      setNotice({ tone: "error", message: e instanceof Error ? e.message : "Falha ao cancelar." });
+    }
+  };
+
+  const inputClass = "mt-2 h-10 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-sm text-white outline-none disabled:cursor-not-allowed disabled:opacity-45 focus:border-[#C9A84C]/35";
+  const labelClass = "text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]";
+
+  return (
+    <div className="rounded-2xl border border-white/[0.06] bg-[#101010] p-4">
+      <div className="flex items-baseline justify-between">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">Próximos atendimentos</p>
+        {loading && <span className="text-[10px] text-[#777]">carregando…</span>}
+      </div>
+      {error && <p className="mt-2 text-xs text-red-300">{error}</p>}
+
+      <div className="mt-3 rounded-xl border border-white/[0.05] bg-white/[0.015] p-3">
+        <p className="text-[10px] uppercase tracking-[0.16em] text-[#888]">Novo agendamento</p>
+        <div className="mt-2 grid gap-2 sm:grid-cols-3">
+          <label><span className={labelClass}>Data / hora</span><input disabled={!enabled} type="datetime-local" value={form.scheduledAt} onChange={(e) => setForm((s) => ({ ...s, scheduledAt: e.target.value }))} className={inputClass} /></label>
+          <label><span className={labelClass}>Serviço</span><input disabled={!enabled} value={form.serviceType} onChange={(e) => setForm((s) => ({ ...s, serviceType: e.target.value }))} maxLength={80} className={inputClass} placeholder="Ex.: Lavagem completa" /></label>
+          <label><span className={labelClass}>Observação</span><input disabled={!enabled} value={form.notes} onChange={(e) => setForm((s) => ({ ...s, notes: e.target.value }))} maxLength={240} className={inputClass} /></label>
+        </div>
+        <div className="mt-2 flex justify-end">
+          <button
+            type="button"
+            disabled={!enabled || creating}
+            onClick={create}
+            className="inline-flex min-h-8 items-center justify-center rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-3 text-[11px] font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {creating ? "Criando…" : "Criar agendamento"}
+          </button>
+        </div>
+        {notice && (
+          <p className={`mt-2 text-[11px] ${notice.tone === "error" ? "text-red-300" : "text-emerald-300"}`}>{notice.message}</p>
+        )}
+      </div>
+
+      <div className="mt-4 space-y-2">
+        {appointments.length === 0 && !loading ? (
+          <p className="text-xs text-[#777]">Nenhum agendamento registrado.</p>
+        ) : (
+          appointments.map((a) => {
+            const when = new Date(a.scheduled_at);
+            const isPast = when.getTime() < Date.now();
+            const canCancel = a.status === "scheduled" || a.status === "confirmed";
+            return (
+              <div
+                key={a.id}
+                className={`flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/[0.05] p-2 text-xs ${
+                  a.status === "cancelled" ? "opacity-50" : ""
+                }`}
+              >
+                <div className="min-w-[220px] flex-1">
+                  <p className="text-sm font-medium text-white/90">
+                    {when.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" })}
+                    {isPast && a.status !== "cancelled" && <span className="ml-2 text-[10px] uppercase text-amber-300/80">passado</span>}
+                  </p>
+                  <p className="text-[11px] text-[#999]">
+                    {a.service_type || "Sem serviço definido"} · {a.status}
+                  </p>
+                  {a.notes && <p className="mt-1 text-[11px] text-[#888]">{a.notes}</p>}
+                  {a.cancelled_reason && <p className="mt-1 text-[11px] text-red-300/80">Motivo: {a.cancelled_reason}</p>}
+                </div>
+                {canCancel && (
+                  <button
+                    type="button"
+                    disabled={!enabled}
+                    onClick={() => void cancel(a.id)}
+                    className="min-h-8 rounded-lg border border-red-400/25 bg-red-400/10 px-3 text-[11px] text-red-200 disabled:opacity-40"
+                  >
+                    Cancelar
+                  </button>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
   );
 }
 

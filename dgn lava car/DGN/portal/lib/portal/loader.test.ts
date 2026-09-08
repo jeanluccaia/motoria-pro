@@ -2,9 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   balanceDisplay,
+  formatAppointmentDateTime,
   formatDueDate,
+  nextAppointmentDisplay,
   nextServiceDisplay,
   paymentDisplayLabel,
+  type AppointmentShape,
   type SubscriberSubscriptionShape,
 } from "./display.ts";
 import { PLANS, planFor } from "./plan-catalog.ts";
@@ -107,4 +110,41 @@ test("formatDueDate retorna 'Data em atualização' quando ausente", () => {
 test("formatDueDate formata pt-BR quando presente", () => {
   const label = formatDueDate(sub({ billing_due_at: "2026-12-31T03:00:00+00:00" }));
   assert.match(label, /^\d{2}\/\d{2}\/2026$/);
+});
+
+// ---------------------------------------------------------------------------
+// Batch 2: appointments (crm_appointments)
+// ---------------------------------------------------------------------------
+
+function appt(over: Partial<AppointmentShape> = {}): AppointmentShape {
+  return {
+    scheduled_at: "2026-09-15T14:30:00-03:00",
+    service_type: null,
+    status: "scheduled",
+    ...over,
+  };
+}
+
+test("formatAppointmentDateTime respeita America/Sao_Paulo (14h30 BRT)", () => {
+  const label = formatAppointmentDateTime("2026-09-15T14:30:00-03:00");
+  // "15/09/2026 às 14h30"
+  assert.match(label, /^15\/09\/2026 às 14h30$/);
+});
+
+test("formatAppointmentDateTime devolve string cru quando data inválida", () => {
+  assert.equal(formatAppointmentDateTime("not-a-date"), "not-a-date");
+});
+
+test("nextAppointmentDisplay vazio quando lista vazia", () => {
+  assert.equal(nextAppointmentDisplay([]), "");
+});
+
+test("nextAppointmentDisplay usa primeiro item + service_type quando presente", () => {
+  const label = nextAppointmentDisplay([appt({ service_type: "Lavagem completa" })]);
+  assert.equal(label, "15/09/2026 às 14h30 — Lavagem completa");
+});
+
+test("nextAppointmentDisplay omite service_type quando null/vazio", () => {
+  assert.equal(nextAppointmentDisplay([appt({ service_type: null })]), "15/09/2026 às 14h30");
+  assert.equal(nextAppointmentDisplay([appt({ service_type: "  " })]), "15/09/2026 às 14h30");
 });

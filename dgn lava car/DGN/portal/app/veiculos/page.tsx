@@ -29,9 +29,20 @@ export default async function VeiculosPage() {
           {subscriber.vehicles.map((v) => (
             <li
               key={v.id}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+              className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]"
             >
-              <div className="flex items-start justify-between gap-3">
+              {v.photo_url ? (
+                <img
+                  src={v.photo_url}
+                  alt={`Foto do veículo ${v.model ?? ""}`.trim()}
+                  className="h-40 w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-24 w-full items-center justify-center bg-white/[0.02] text-[11px] uppercase tracking-[0.24em] text-white/40">
+                  Foto em cadastro
+                </div>
+              )}
+              <div className="flex items-start justify-between gap-3 p-4">
                 <div>
                   <p className="text-lg font-medium">
                     {v.model ?? "Modelo em validação"}

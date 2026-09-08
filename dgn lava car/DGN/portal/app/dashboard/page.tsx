@@ -5,6 +5,7 @@ import {
   balanceDisplay,
   formatDueDate,
   loadCurrentSubscriber,
+  nextAppointmentDisplay,
   nextServiceDisplay,
   paymentDisplayLabel,
   primarySubscription,
@@ -75,7 +76,9 @@ export default async function DashboardPage() {
             Próximo atendimento
           </p>
           <p className="mt-2 text-lg font-medium text-white/90">
-            {nextServiceDisplay(primary)}
+            {subscriber.upcoming_appointments.length > 0
+              ? nextAppointmentDisplay(subscriber.upcoming_appointments)
+              : nextServiceDisplay(primary)}
           </p>
           <Link
             href="/agendar"

@@ -96,3 +96,52 @@ export function formatDueDate(
   if (!iso) return "Data em atualização";
   return new Date(iso).toLocaleDateString("pt-BR");
 }
+
+// ---------------------------------------------------------------------------
+// Batch 2: display de próximos atendimentos (crm_appointments)
+// ---------------------------------------------------------------------------
+
+/**
+ * Shape mínimo pra derivadores. Casa com SubscriberAppointment do loader
+ * (declarada como interface separada aqui pra display.ts ficar sem I/O e
+ * sem depender do loader).
+ */
+export interface AppointmentShape {
+  scheduled_at: string;
+  service_type: string | null;
+  status: "scheduled" | "confirmed" | "done" | "cancelled" | "no_show";
+}
+
+/**
+ * Formato "15/09/2026 às 14h30" em America/Sao_Paulo. Não inventa data
+ * — se scheduled_at inválido, retorna a string cru.
+ */
+export function formatAppointmentDateTime(scheduled_at: string): string {
+  const d = new Date(scheduled_at);
+  if (Number.isNaN(d.getTime())) return scheduled_at;
+  const date = d.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
+  const time = d
+    .toLocaleTimeString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+    .replace(":", "h");
+  return `${date} às ${time}`;
+}
+
+/**
+ * Rótulo humano para o próximo atendimento. Retorna string vazia
+ * quando a lista está vazia — chamador decide se mostra placeholder.
+ */
+export function nextAppointmentDisplay(
+  appointments: AppointmentShape[],
+): string {
+  if (!appointments || appointments.length === 0) return "";
+  const first = appointments[0]!;
+  const when = formatAppointmentDateTime(first.scheduled_at);
+  if (first.service_type && first.service_type.trim().length > 0) {
+    return `${when} — ${first.service_type}`;
+  }
+  return when;
+}
