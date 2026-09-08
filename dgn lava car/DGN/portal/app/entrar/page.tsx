@@ -19,14 +19,22 @@ export default async function EntrarPage({ searchParams }: Props) {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-8 px-6 py-12">
-      <header className="space-y-2 text-center">
-        <p className="text-xs font-medium uppercase tracking-[0.32em] text-white/60">
-          DGN Club
-        </p>
-        <h1 className="text-3xl font-semibold">Área do Assinante</h1>
-        <p className="text-sm text-white/70">
-          Enviamos um link de acesso para o e-mail cadastrado na sua assinatura.
-        </p>
+      <header className="flex flex-col items-center gap-4 text-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/logo-dgn-clean.png"
+          alt="DGN Club"
+          width={640}
+          height={211}
+          className="h-14 w-auto select-none"
+          draggable={false}
+        />
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold">Área do Assinante</h1>
+          <p className="text-sm text-white/70">
+            Enviamos um link de acesso para o e-mail cadastrado na sua assinatura.
+          </p>
+        </div>
       </header>
 
       {sent ? (

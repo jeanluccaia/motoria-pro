@@ -20,11 +20,19 @@ export function PortalShell({ firstName, founderBadge, active, children }: Props
     <div className="min-h-screen">
       <header className="border-b border-white/10 bg-black/60 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-4">
-          <div>
-            <p className="text-[10px] font-medium uppercase tracking-[0.32em] text-white/50">
-              DGN Club
-            </p>
-            <p className="text-sm font-semibold">Olá, {firstName || "assinante"}</p>
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard" aria-label="DGN Club" className="shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo-dgn-clean.png"
+                alt="DGN Club"
+                width={640}
+                height={211}
+                className="h-7 w-auto select-none"
+                draggable={false}
+              />
+            </Link>
+            <p className="text-sm font-semibold text-white/90">Olá, {firstName || "assinante"}</p>
           </div>
           <div className="flex items-center gap-2">
             {founderBadge && (
