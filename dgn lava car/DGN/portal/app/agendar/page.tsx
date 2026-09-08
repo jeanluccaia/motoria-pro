@@ -1,13 +1,16 @@
 import { redirect } from "next/navigation";
 import { PortalShell } from "../_components/portal-shell";
 import { loadCurrentSubscriber } from "@/lib/portal/loader";
+import { urls as dgnUrls } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Solicitar atendimento — DGN Club" };
 
-// WhatsApp oficial DGN — final 6936 (brief P0).
+// Fonte única do número (WHATSAPP_DGN = 5519978146936 em lib/config.ts).
+// Env var só pode substituir se for outra URL wa.me válida; jamais aceita
+// default hardcoded aqui — o número errado 551938826936 causou incidente.
 const DGN_WHATSAPP_URL =
-  process.env.NEXT_PUBLIC_DGN_WHATSAPP_URL ?? "https://wa.me/551938826936";
+  process.env.NEXT_PUBLIC_DGN_WHATSAPP_URL ?? dgnUrls.agenda4U;
 
 export default async function AgendarPage() {
   const subscriber = await loadCurrentSubscriber();

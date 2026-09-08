@@ -91,8 +91,8 @@ export function nextServiceDisplay(
 export function formatDueDate(
   sub: SubscriberSubscriptionShape | null,
 ): string {
-  if (!sub) return "Sem vencimento cadastrado";
+  if (!sub) return "Data em atualização";
   const iso = sub.billing_due_at ?? sub.next_due_date ?? null;
-  if (!iso) return "Sem vencimento cadastrado";
+  if (!iso) return "Data em atualização";
   return new Date(iso).toLocaleDateString("pt-BR");
 }

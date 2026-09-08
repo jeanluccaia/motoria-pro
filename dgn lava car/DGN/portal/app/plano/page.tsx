@@ -49,7 +49,7 @@ export default async function PlanoPage() {
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
           <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">
-            Próximo vencimento
+            Próxima cobrança
           </p>
           <p className="mt-2 text-lg text-white/90">{formatDueDate(sub)}</p>
           {sub?.billing_due_source && (
