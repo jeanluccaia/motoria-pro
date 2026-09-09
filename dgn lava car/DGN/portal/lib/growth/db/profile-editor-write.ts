@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseAdminClient } from "./admin-client.ts";
+import { CustomerResolutionError, resolveCustomerId } from "./customer-resolver.ts";
 
 // -----------------------------------------------------------------------------
 // Edições de contato (telefone) e de dados do veículo (placa/marca/modelo).
@@ -16,6 +17,15 @@ export class ProfileEditorError extends Error {
   constructor(message: string, status: number) {
     super(message);
     this.status = status;
+  }
+}
+
+async function resolve(db: SupabaseClient, input: string): Promise<string> {
+  try {
+    return await resolveCustomerId(db, input);
+  } catch (err) {
+    if (err instanceof CustomerResolutionError) throw new ProfileEditorError(err.message, err.status);
+    throw err;
   }
 }
 
@@ -62,11 +72,11 @@ export async function listCustomerVehicles(
   customerId: string,
   db: SupabaseClient = getSupabaseAdminClient("profile-editor.list-vehicles"),
 ): Promise<VehicleWithPhoto[]> {
-  if (!customerId || customerId.length > 200) throw new ProfileEditorError("Cliente inválido.", 400);
+  const resolvedId = await resolve(db, customerId);
   const { data, error } = await db
     .from("crm_vehicles")
     .select("id, brand, model, plate, masked_plate, is_primary, photo_url, photo_updated_at")
-    .eq("customer_id", customerId)
+    .eq("customer_id", resolvedId)
     .order("is_primary", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: true });
   if (error) throw new ProfileEditorError(`Falha ao listar veículos: ${error.message}`, 502);
@@ -97,11 +107,12 @@ export interface UpdatePhoneInput {
 export async function updateCustomerPhone(input: UpdatePhoneInput): Promise<{ customerId: string; normalizedPhone: string }> {
   const db = input.db ?? getSupabaseAdminClient("profile-editor.update-phone");
   const normalized = normalizePhone(input.phone);
+  const resolvedId = await resolve(db, input.customerId);
 
   const current = await db
     .from("crm_customers")
     .select("id, primary_phone, normalized_phone")
-    .eq("id", input.customerId)
+    .eq("id", resolvedId)
     .maybeSingle();
   if (current.error && current.error.code !== "PGRST116") {
     throw new ProfileEditorError(`Falha ao consultar cliente: ${current.error.message}`, 502);
@@ -114,19 +125,19 @@ export async function updateCustomerPhone(input: UpdatePhoneInput): Promise<{ cu
       primary_phone: input.phone.trim(),
       normalized_phone: normalized,
     })
-    .eq("id", input.customerId);
+    .eq("id", resolvedId);
   if (update.error) throw new ProfileEditorError(`Falha ao gravar telefone: ${update.error.message}`, 502);
 
   await auditInline(db, {
     entityType: "customer",
-    entityId: input.customerId,
+    entityId: resolvedId,
     action: "customer_phone.updated",
     previousValue: { normalized_phone: current.data.normalized_phone },
     newValue: { normalized_phone: normalized },
     actor: input.actor || "dgn-admin",
   });
 
-  return { customerId: input.customerId, normalizedPhone: normalized };
+  return { customerId: resolvedId, normalizedPhone: normalized };
 }
 
 // -----------------------------------------------------------------------------
@@ -161,6 +172,7 @@ function maskPlate(plate: string | null): string | null {
 
 export async function updateVehicleFields(input: UpdateVehicleFieldsInput): Promise<{ vehicleId: string }> {
   const db = input.db ?? getSupabaseAdminClient("profile-editor.update-vehicle");
+  const resolvedCustomerId = await resolve(db, input.customerId);
 
   const current = await db
     .from("crm_vehicles")
@@ -171,7 +183,7 @@ export async function updateVehicleFields(input: UpdateVehicleFieldsInput): Prom
     throw new ProfileEditorError(`Falha ao consultar veículo: ${current.error.message}`, 502);
   }
   if (!current.data) throw new ProfileEditorError("Veículo não encontrado.", 404);
-  if (current.data.customer_id !== input.customerId) {
+  if (current.data.customer_id !== resolvedCustomerId) {
     throw new ProfileEditorError("Veículo pertence a outro cliente.", 403);
   }
 

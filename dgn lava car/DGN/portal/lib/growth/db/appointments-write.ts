@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseAdminClient } from "./admin-client.ts";
+import { CustomerResolutionError, resolveCustomerId } from "./customer-resolver.ts";
 
 // -----------------------------------------------------------------------------
 // CRUD de crm_appointments (MVP: create + list + cancel).
@@ -19,6 +20,15 @@ export class AppointmentError extends Error {
   constructor(message: string, status: number) {
     super(message);
     this.status = status;
+  }
+}
+
+async function resolve(db: SupabaseClient, input: string): Promise<string> {
+  try {
+    return await resolveCustomerId(db, input);
+  } catch (err) {
+    if (err instanceof CustomerResolutionError) throw new AppointmentError(err.message, err.status);
+    throw err;
   }
 }
 
@@ -69,13 +79,13 @@ export async function listAppointments(
   customerId: string,
   db: SupabaseClient = getSupabaseAdminClient("appointments.list"),
 ): Promise<AppointmentRow[]> {
-  if (!customerId || customerId.length > 200) throw new AppointmentError("Cliente inválido.", 400);
+  const resolvedId = await resolve(db, customerId);
   const { data, error } = await db
     .from("crm_appointments")
     .select(
       "id, customer_id, subscription_id, vehicle_id, scheduled_at, service_type, status, source, notes, cancelled_at, cancelled_reason, created_by, created_at, updated_at",
     )
-    .eq("customer_id", customerId)
+    .eq("customer_id", resolvedId)
     .order("scheduled_at", { ascending: true });
   if (error) throw new AppointmentError(`Falha ao listar agendamentos: ${error.message}`, 502);
   return (data ?? []) as AppointmentRow[];
@@ -94,14 +104,14 @@ export interface CreateAppointmentInput {
 
 export async function createAppointment(input: CreateAppointmentInput): Promise<AppointmentRow> {
   const db = input.db ?? getSupabaseAdminClient("appointments.create");
-  if (!input.customerId) throw new AppointmentError("Cliente inválido.", 400);
+  const resolvedCustomerId = await resolve(db, input.customerId);
   const when = new Date(input.scheduledAt);
   if (Number.isNaN(when.getTime())) throw new AppointmentError("Data/hora inválida.", 400);
 
   const insert = await db
     .from("crm_appointments")
     .insert({
-      customer_id: input.customerId,
+      customer_id: resolvedCustomerId,
       subscription_id: input.subscriptionId ?? null,
       vehicle_id: input.vehicleId ?? null,
       scheduled_at: when.toISOString(),
@@ -141,6 +151,7 @@ export interface CancelAppointmentInput {
 
 export async function cancelAppointment(input: CancelAppointmentInput): Promise<AppointmentRow> {
   const db = input.db ?? getSupabaseAdminClient("appointments.cancel");
+  const resolvedCustomerId = await resolve(db, input.customerId);
   const { data: current, error: readError } = await db
     .from("crm_appointments")
     .select("id, customer_id, status, scheduled_at")
@@ -148,7 +159,7 @@ export async function cancelAppointment(input: CancelAppointmentInput): Promise<
     .maybeSingle();
   if (readError && readError.code !== "PGRST116") throw new AppointmentError(`Falha ao ler agendamento: ${readError.message}`, 502);
   if (!current) throw new AppointmentError("Agendamento não encontrado.", 404);
-  if (current.customer_id !== input.customerId) throw new AppointmentError("Agendamento pertence a outro cliente.", 403);
+  if (current.customer_id !== resolvedCustomerId) throw new AppointmentError("Agendamento pertence a outro cliente.", 403);
   if (current.status === "cancelled") throw new AppointmentError("Agendamento já está cancelado.", 409);
   if (current.status === "done") throw new AppointmentError("Agendamento já foi executado.", 409);
 
