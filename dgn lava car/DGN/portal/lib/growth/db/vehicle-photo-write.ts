@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseAdminClient } from "./admin-client.ts";
+import { CustomerResolutionError, resolveCustomerId } from "./customer-resolver.ts";
 
 // -----------------------------------------------------------------------------
 // Fotos de veículo (bucket privado vehicle-photos).
@@ -27,6 +28,15 @@ export class VehiclePhotoError extends Error {
   constructor(message: string, status: number) {
     super(message);
     this.status = status;
+  }
+}
+
+async function resolve(db: SupabaseClient, input: string): Promise<string> {
+  try {
+    return await resolveCustomerId(db, input);
+  } catch (err) {
+    if (err instanceof CustomerResolutionError) throw new VehiclePhotoError(err.message, err.status);
+    throw err;
   }
 }
 
@@ -128,7 +138,8 @@ export async function uploadVehiclePhoto(
     throw new VehiclePhotoError("Arquivo vazio.", 400);
   }
 
-  const vehicle = await loadVehicle(db, input.vehicleId, input.customerId);
+  const resolvedCustomerId = await resolve(db, input.customerId);
+  const vehicle = await loadVehicle(db, input.vehicleId, resolvedCustomerId);
 
   const path = `${vehicle.customer_id}/${vehicle.id}/${crypto.randomUUID()}.${extForMime(input.fileMime)}`;
 
@@ -196,7 +207,8 @@ export interface RemoveVehiclePhotoInput {
 
 export async function removeVehiclePhoto(input: RemoveVehiclePhotoInput): Promise<{ vehicleId: string }> {
   const db = input.db ?? getSupabaseAdminClient("vehicle-photo.remove");
-  const vehicle = await loadVehicle(db, input.vehicleId, input.customerId);
+  const resolvedCustomerId = await resolve(db, input.customerId);
+  const vehicle = await loadVehicle(db, input.vehicleId, resolvedCustomerId);
   if (!vehicle.photo_storage_path) {
     return { vehicleId: vehicle.id };
   }
