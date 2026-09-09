@@ -34,6 +34,7 @@ export async function proxy(request: NextRequest) {
 
   const isPublic =
     pathname === "/login" ||
+    pathname === "/entrar" ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/webhooks/") ||
     pathname.startsWith("/api/cron/") ||
@@ -47,10 +48,9 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(to);
   }
 
-  // /login: usuário autenticado só é redirecionado se a URL não veio
-  // do fluxo de recovery/invite (que grava sessão momentânea e depois
-  // manda para /auth/reset-password, não para /login).
-  if (user && pathname === "/login") {
+  // /login e /entrar: usuário autenticado é redirecionado direto pra
+  // home. Evita mostrar o picker de novo pra quem já tem sessão.
+  if (user && (pathname === "/login" || pathname === "/entrar")) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
