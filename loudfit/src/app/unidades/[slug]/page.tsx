@@ -454,7 +454,7 @@ export default async function UnitPage({ params }: Props) {
 
             <p className="mt-6 text-xs text-[#7A7267]">
               A partir do segundo mês, aplica-se o valor mensal cheio de cada plano nesta unidade.
-              Power Plus tem taxa de inscrição de R$ 9,90 e fidelidade de 12 meses; o Mensal
+              Power Plus tem taxa de inscrição de R$ 0,00 e fidelidade de 12 meses; o Mensal
               Recorrente segue mês a mês, sem fidelidade e sem multa de cancelamento. O Power
               segue o valor cheio desde a primeira cobrança.
             </p>
