@@ -116,6 +116,19 @@ export function mapGrowthSnapshot(snapshot: GrowthDbSnapshot): DgnCustomer[] {
     // exibe como "plano do assinante".
     const activePlan = active && rawSubscriptionPlan ? rawSubscriptionPlan : null;
 
+    const rawPaymentMethod = text(subscription?.payment_method).toLowerCase();
+    const paymentMethod: "card_recurring" | "manual" | "not_needed" | "unknown" | null =
+      rawPaymentMethod === "card_recurring" || rawPaymentMethod === "manual" || rawPaymentMethod === "not_needed" || rawPaymentMethod === "unknown"
+        ? rawPaymentMethod
+        : null;
+    const subscriptionBlock: DgnCustomer["subscription"] = subscription ? {
+      nextDueDate: text(subscription.next_due_date) || null,
+      paymentMethod,
+      paymentMethodLabel: text(subscription.payment_method_label) || null,
+      status: text(subscription.subscription_status) || null,
+      isActive: subscription.is_active_subscriber === true,
+    } : null;
+
     return {
       id: text(customer.legacy_id) || customerId,
       name: text(customer.name), phone: text(customer.primary_phone),
@@ -131,6 +144,7 @@ export function mapGrowthSnapshot(snapshot: GrowthDbSnapshot): DgnCustomer[] {
       dataQualityStatus: text(customer.data_quality_status),
       dataQualityNotes: text(customer.data_quality_notes),
       hasValidPhone: Boolean(text(customer.normalized_phone)),
+      subscription: subscriptionBlock,
       commercial: { owner: text(member?.owner), commercialNotes: text(member?.commercial_notes),
         nextAction: text(member?.next_action), nextActionAt: text(member?.next_action_at),
         priority: priority(member?.priority), updatedAt: text(member?.updated_at) },

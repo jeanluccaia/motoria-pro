@@ -145,6 +145,20 @@ export interface DgnCustomer {
   dataQualityStatus?: string;
   dataQualityNotes?: string;
   hasValidPhone?: boolean;
+  /**
+   * Bloco financeiro canônico do contrato vigente. Vem 1:1 de `crm_subscriptions`
+   * e é populado por `mapGrowthSnapshot`. Fonte de verdade para exibir "Próxima
+   * cobrança" e "Forma de pagamento" na central operacional de assinantes.
+   * Nunca inferir por OS/histórico — PagBank é a origem para contratos
+   * recorrentes; alterações manuais exigem confirmação explícita (Fase 2).
+   */
+  subscription?: {
+    nextDueDate: string | null;
+    paymentMethod: "card_recurring" | "manual" | "not_needed" | "unknown" | null;
+    paymentMethodLabel: string | null;
+    status: string | null;
+    isActive: boolean;
+  } | null;
   commercial?: {
     owner: string;
     commercialNotes: string;

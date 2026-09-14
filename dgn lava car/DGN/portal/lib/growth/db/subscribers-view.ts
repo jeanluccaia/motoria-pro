@@ -9,10 +9,12 @@
  * A função é síncrona/read-only e não faz nenhuma escrita.
  */
 
-import legacyCustomers from "../dgn-customers.json";
-import { SUBSCRIBERS_2026_Q3 } from "../../../db/seeds/subscribers-2026-q3";
-import type { NormalizedName } from "./normalizers";
-import { normalizeName, normalizePhone, normalizePlate } from "./normalizers";
+import legacyCustomers from "../dgn-customers.json" with { type: "json" };
+import { SUBSCRIBERS_2026_Q3 } from "../../../db/seeds/subscribers-2026-q3.ts";
+import type { DgnCustomer } from "../dgn-growth-utils.ts";
+import { maskPlate } from "../dgn-growth-utils.ts";
+import type { NormalizedName } from "./normalizers.ts";
+import { normalizeName, normalizePhone, normalizePlate } from "./normalizers.ts";
 
 export interface DetectedSubscriberView {
   seedName: string;
@@ -72,6 +74,111 @@ function findLegacyMatch(
   if (byName) return { legacy: byName, reason: "match_by_name" };
 
   return { legacy: null, reason: "no_match" };
+}
+
+// ---------------------------------------------------------------------------
+// Central operacional de assinantes (Fase 1 read-only).
+// Unifica assinantes ativos + detectados + pendentes + inadimplentes numa
+// única listagem clicável para a aba /admin/growth/assinantes-detectados.
+// Cada linha aponta para /admin/growth/customers/[id] onde vive o Profile 360
+// com os 5 editores canônicos do Batch 2. NÃO cria segunda fonte de dados:
+// consome DgnCustomer[] já enriquecido por loadGrowthData().
+// ---------------------------------------------------------------------------
+
+export type SubscribersCentralRowStatus = "ativo" | "detectado" | "pendente_validacao" | "inadimplente";
+
+export interface SubscribersCentralRow {
+  id: string;                                    // legacy_id ou UUID — safe pra Link href
+  displayName: string;
+  planLabel: string;                             // activePlan canônico ou "—"
+  nextDueDate: string | null;                    // YYYY-MM-DD ou null
+  paymentMethodLabel: string;                    // já resolvido para exibição
+  vehicleLabel: string;                          // marca + modelo
+  maskedPlate: string;                           // placa mascarada
+  status: SubscribersCentralRowStatus;
+  statusLabel: string;                           // rótulo humano do status
+  hasActiveSubscription: boolean;
+  preservedFounderNumber?: string;               // Nº001/002/003
+  isReopenedFounder?: boolean;                   // Iara Nº004
+}
+
+function paymentMethodDisplay(
+  method: NonNullable<DgnCustomer["subscription"]>["paymentMethod"],
+  label: string | null,
+): string {
+  if (label && label.trim()) return label.trim();
+  switch (method) {
+    case "card_recurring": return "Recorrência no cartão";
+    case "manual":         return "Cobrança manual";
+    case "not_needed":     return "—";
+    case "unknown":        return "Não identificada";
+    default:               return "Não identificada";
+  }
+}
+
+function normalizeStatus(raw: string | null | undefined, isActive: boolean): SubscribersCentralRowStatus | null {
+  if (isActive) return "ativo";
+  const value = (raw ?? "").toLowerCase();
+  if (value === "ativo") return "ativo";
+  if (value === "detectado") return "detectado";
+  if (value === "pendente_validacao") return "pendente_validacao";
+  if (value === "inadimplente") return "inadimplente";
+  return null;
+}
+
+function statusLabel(status: SubscribersCentralRowStatus): string {
+  switch (status) {
+    case "ativo":                return "Ativo";
+    case "detectado":            return "Detectado";
+    case "pendente_validacao":   return "Pendente validação";
+    case "inadimplente":         return "Inadimplente";
+  }
+}
+
+const STATUS_ORDER: Record<SubscribersCentralRowStatus, number> = {
+  ativo: 0,
+  detectado: 1,
+  pendente_validacao: 2,
+  inadimplente: 3,
+};
+
+/**
+ * Recebe a lista completa vinda de `loadGrowthData()` já enriquecida
+ * (subscription block populado por mapGrowthSnapshot). Retorna apenas
+ * quem tem contrato relevante para a central operacional.
+ */
+export function buildSubscribersCentralView(customers: DgnCustomer[]): SubscribersCentralRow[] {
+  const rows: SubscribersCentralRow[] = [];
+  for (const customer of customers) {
+    const sub = customer.subscription;
+    if (!sub) continue;
+    const status = normalizeStatus(sub.status, sub.isActive);
+    if (!status) continue;
+
+    const normalized = normalizeName(customer.name);
+    rows.push({
+      id: customer.id,
+      displayName: customer.name || "Sem nome",
+      planLabel: (customer.activePlan && customer.activePlan.trim()) || "—",
+      nextDueDate: sub.nextDueDate,
+      paymentMethodLabel: paymentMethodDisplay(sub.paymentMethod, sub.paymentMethodLabel),
+      vehicleLabel: customer.vehicle || "A definir",
+      maskedPlate: maskPlate(customer.plate) || "—",
+      status,
+      statusLabel: statusLabel(status),
+      hasActiveSubscription: sub.isActive,
+      preservedFounderNumber: PRESERVED_FOUNDER_NUMBER[normalized.normalized],
+      isReopenedFounder: REOPENED_FOUNDERS.has(normalized.normalized),
+    });
+  }
+
+  rows.sort((a, b) => {
+    const byStatus = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
+    if (byStatus !== 0) return byStatus;
+    return a.displayName.localeCompare(b.displayName, "pt-BR", { sensitivity: "base" });
+  });
+
+  return rows;
 }
 
 export function buildDetectedSubscribersView(): DetectedSubscriberView[] {
