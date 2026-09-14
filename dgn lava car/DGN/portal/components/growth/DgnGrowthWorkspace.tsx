@@ -3092,7 +3092,7 @@ function toLocalDateTimeInput(value: string) {
   return local.toISOString().slice(0, 16);
 }
 
-function CommercialEditor({
+export function CommercialEditor({
   customer,
   enabled,
   onSaved,
@@ -3195,7 +3195,7 @@ interface PortalAccessState {
   betaEnabledAt: string | null;
 }
 
-function PortalAccessEditor({ customerId, enabled }: { customerId: string; enabled: boolean }) {
+export function PortalAccessEditor({ customerId, enabled }: { customerId: string; enabled: boolean }) {
   const [state, setState] = useState<PortalAccessState | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<null | "provision" | "resend" | "disable">(null);
@@ -3624,7 +3624,7 @@ function SelectBlock<T extends string>({
 // enabled=false (modo JSON ou sem admin session).
 // -----------------------------------------------------------------------------
 
-function ContactPhoneEditor({
+export function ContactPhoneEditor({
   customerId,
   currentPhone,
   enabled,
@@ -3700,7 +3700,7 @@ interface VehiclePhotoAndFields {
   photo_updated_at: string | null;
 }
 
-function VehiclesPhotoAndFieldsEditor({
+export function VehiclesPhotoAndFieldsEditor({
   customerId,
   enabled,
 }: {
@@ -3936,7 +3936,7 @@ interface AppointmentRowForAdmin {
   cancelled_reason: string | null;
 }
 
-function AppointmentsEditor({
+export function AppointmentsEditor({
   customerId,
   enabled,
 }: {
