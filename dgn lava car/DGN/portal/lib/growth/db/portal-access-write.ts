@@ -63,6 +63,10 @@ export interface PortalAccessStatus {
   hasAuth: boolean;
   hasSubscription: boolean;
   betaEnabledAt: string | null;
+  /** Telefone formatado para exibição (ex.: "(19) 99999-9999"). null se ausente/ inválido. Fatia 2C. */
+  phoneDisplay: string | null;
+  /** Conveniência: true quando phoneDisplay existe. Fatia 2C. */
+  hasPhone: boolean;
 }
 
 export interface PortalAccessMagicLinkSender {
@@ -76,6 +80,8 @@ interface CustomerRow {
   email: string | null;
   portal_beta_enabled: boolean;
   portal_beta_enabled_at: string | null;
+  normalized_phone: string | null;
+  primary_phone: string | null;
 }
 
 // Regex conservadora — mesma família da que valida no form /entrar do Portal.
@@ -106,7 +112,7 @@ async function resolveCustomer(db: SupabaseClient, customerId: string): Promise<
   // Tenta primeiro por legacy_id; se não achar, tenta por UUID puro. Os 11
   // assinantes PagBank misturam ambos (ex.: Daniela → legacy_id, Bruno → só id).
   const table = db.from("crm_customers");
-  const byLegacy = await table.select("id, legacy_id, name, email, portal_beta_enabled, portal_beta_enabled_at").eq("legacy_id", customerId).maybeSingle();
+  const byLegacy = await table.select("id, legacy_id, name, email, portal_beta_enabled, portal_beta_enabled_at, normalized_phone, primary_phone").eq("legacy_id", customerId).maybeSingle();
   if (byLegacy.error && byLegacy.error.code !== "PGRST116") {
     throw new PortalAccessError(`Falha ao localizar cliente: ${byLegacy.error.message}`, 502);
   }
@@ -116,7 +122,7 @@ async function resolveCustomer(db: SupabaseClient, customerId: string): Promise<
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(customerId)) {
     throw new PortalAccessError("Cliente não encontrado.", 404);
   }
-  const byId = await table.select("id, legacy_id, name, email, portal_beta_enabled, portal_beta_enabled_at").eq("id", customerId).maybeSingle();
+  const byId = await table.select("id, legacy_id, name, email, portal_beta_enabled, portal_beta_enabled_at, normalized_phone, primary_phone").eq("id", customerId).maybeSingle();
   if (byId.error && byId.error.code !== "PGRST116") {
     throw new PortalAccessError(`Falha ao localizar cliente: ${byId.error.message}`, 502);
   }
@@ -200,13 +206,31 @@ export async function readPortalAccessStatus(
   const customer = await resolveCustomer(db, customerId);
   const link = await findLinkByCustomer(db, customer.id);
   const hasSubscription = await customerHasSubscription(db, customer.id);
+  const phoneDisplay = formatBrazilianPhoneDisplayLocal(customer.normalized_phone ?? customer.primary_phone ?? null);
   return {
     enabled: customer.portal_beta_enabled,
     emailMasked: maskEmail(customer.email),
     hasAuth: Boolean(link),
     hasSubscription,
     betaEnabledAt: customer.portal_beta_enabled_at,
+    phoneDisplay,
+    hasPhone: phoneDisplay !== null,
   };
+}
+
+// Duplicata local intencional: portal-access-write NÃO importa de
+// portal-invite-write para evitar ciclo (portal-invite-write depende deste
+// módulo indiretamente via resolver). Formatter é pequeno e puro.
+function formatBrazilianPhoneDisplayLocal(raw: string | null): string | null {
+  if (!raw) return null;
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length < 12 || digits.length > 13 || !digits.startsWith("55")) return null;
+  const local = digits.slice(2);
+  const ddd = local.slice(0, 2);
+  const rest = local.slice(2);
+  if (rest.length === 9) return `(${ddd}) ${rest.slice(0, 5)}-${rest.slice(5)}`;
+  if (rest.length === 8) return `(${ddd}) ${rest.slice(0, 4)}-${rest.slice(4)}`;
+  return null;
 }
 
 // -----------------------------------------------------------------------------

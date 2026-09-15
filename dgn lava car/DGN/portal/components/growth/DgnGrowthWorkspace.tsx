@@ -3195,17 +3195,21 @@ interface PortalAccessState {
   hasAuth: boolean;
   hasSubscription: boolean;
   betaEnabledAt: string | null;
+  phoneDisplay: string | null;
+  hasPhone: boolean;
 }
 
 export function PortalAccessEditor({ customerId, enabled }: { customerId: string; enabled: boolean }) {
   const [state, setState] = useState<PortalAccessState | null>(null);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState<null | "provision" | "resend" | "disable">(null);
+  const [busy, setBusy] = useState<null | "provision" | "resend" | "disable" | "whatsapp">(null);
   const [email, setEmail] = useState("");
   const [result, setResult] = useState<{ tone: "success" | "error" | "info"; message: string } | null>(null);
   const [confirmingDisable, setConfirmingDisable] = useState(false);
+  const [whatsappPreview, setWhatsappPreview] = useState<null | { destinationLast4: string; templateVersion: string }>(null);
 
   const endpoint = `/api/admin/growth/customers/${encodeURIComponent(customerId)}/portal-access`;
+  const inviteEndpoint = `/api/admin/growth/customers/${encodeURIComponent(customerId)}/portal-invite`;
 
   useEffect(() => {
     if (!enabled) { setLoading(false); return; }
@@ -3300,6 +3304,30 @@ export function PortalAccessEditor({ customerId, enabled }: { customerId: string
     }
   };
 
+  const sendWhatsappInvite = async () => {
+    setBusy("whatsapp");
+    setResult(null);
+    try {
+      const response = await fetch(inviteEndpoint, { method: "POST" });
+      const body = await response.json();
+      if (!response.ok || !body.url) throw new Error(body.error || "Não foi possível preparar o convite.");
+      // Abre o WhatsApp em nova aba/janela — deep-link resolve para wa.me e o SO decide
+      // entre web.whatsapp.com (desktop) ou app nativo (mobile). Não navega a Central.
+      const opened = window.open(body.url, "_blank", "noopener,noreferrer");
+      setWhatsappPreview({ destinationLast4: body.destinationLast4, templateVersion: body.templateVersion });
+      setResult({
+        tone: "success",
+        message: opened
+          ? `WhatsApp aberto para o número ****${body.destinationLast4}. Confirme o texto no app antes de enviar.`
+          : `Convite preparado, mas o navegador bloqueou a nova aba. Copie a URL: ${body.url}`,
+      });
+    } catch (error) {
+      setResult({ tone: "error", message: error instanceof Error ? error.message : "Falha ao preparar convite." });
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const inputClass = "mt-2 h-10 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-sm text-white outline-none disabled:cursor-not-allowed disabled:opacity-45 focus:border-[#C9A84C]/35";
   const labelClass = "text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]";
   const primaryBtn = "inline-flex min-h-10 items-center justify-center rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 text-sm font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-40";
@@ -3359,11 +3387,35 @@ export function PortalAccessEditor({ customerId, enabled }: { customerId: string
             <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-200">
               <BadgeCheck size={13} /> Portal ativo
             </span>
-            <span className="text-xs text-[#AAA]">E-mail: <span className="font-mono text-[#DDD]">{state.emailMasked}</span></span>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">E-mail de acesso</p>
+              <p className="mt-1 font-mono text-sm text-white/85">{state.emailMasked ?? "—"}</p>
+            </div>
+            <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">WhatsApp</p>
+              <p className="mt-1 text-sm text-white/85">
+                {state.phoneDisplay ?? <span className="text-amber-300">Telefone não cadastrado</span>}
+              </p>
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button type="button" disabled={!enabled || busy !== null} onClick={resend} className={primaryBtn}>
               {busy === "resend" ? "Enviando…" : "Reenviar acesso"}
+            </button>
+            <button
+              type="button"
+              disabled={!enabled || busy !== null || !state.hasPhone || !state.emailMasked}
+              onClick={sendWhatsappInvite}
+              title={
+                !state.hasPhone ? "Telefone não cadastrado — cadastre no bloco Dados do cliente."
+                : !state.emailMasked ? "Cadastre o e-mail antes de enviar o convite."
+                : "Abre o WhatsApp já com a mensagem preenchida."
+              }
+              className={primaryBtn}
+            >
+              {busy === "whatsapp" ? "Preparando…" : "Enviar convite pelo WhatsApp"}
             </button>
             {!confirmingDisable ? (
               <button type="button" disabled={!enabled || busy !== null} onClick={() => { setConfirmingDisable(true); setResult(null); }} className={ghostBtn}>
@@ -3381,6 +3433,21 @@ export function PortalAccessEditor({ customerId, enabled }: { customerId: string
               </div>
             )}
           </div>
+          {!state.hasPhone && (
+            <p className="text-[11px] text-amber-300/85">
+              Cadastre o telefone no bloco <span className="font-semibold">Dados do cliente</span> para habilitar o convite pelo WhatsApp.
+            </p>
+          )}
+          {!state.emailMasked && (
+            <p className="text-[11px] text-amber-300/85">
+              Cadastre o e-mail antes de enviar o convite.
+            </p>
+          )}
+          {whatsappPreview && (
+            <p className="text-[11px] text-emerald-300/80">
+              Convite registrado como <span className="font-mono">whatsapp_aberto</span> · template <span className="font-mono">{whatsappPreview.templateVersion}</span> · destino ****{whatsappPreview.destinationLast4}.
+            </p>
+          )}
         </div>
       ) : (
         <div className="mt-4 space-y-3">
