@@ -3712,6 +3712,7 @@ export function VehiclesPhotoAndFieldsEditor({
   const [vehicles, setVehicles] = useState<VehiclePhotoAndFields[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
   const endpoint = `/api/admin/growth/customers/${encodeURIComponent(customerId)}`;
 
@@ -3733,6 +3734,9 @@ export function VehiclesPhotoAndFieldsEditor({
 
   useEffect(() => { void reload(); }, [reload]);
 
+  const isEmpty = !loading && vehicles.length === 0;
+  const addLabel = isEmpty ? "+ Adicionar veículo" : "+ Adicionar outro veículo";
+
   return (
     <div className="rounded-2xl border border-white/[0.06] bg-[#101010] p-4">
       <div className="flex items-baseline justify-between">
@@ -3740,13 +3744,168 @@ export function VehiclesPhotoAndFieldsEditor({
         {loading && <span className="text-[10px] text-[#777]">carregando…</span>}
       </div>
       {error && <p className="mt-2 text-xs text-red-300">{error}</p>}
-      {!loading && vehicles.length === 0 && (
+      {isEmpty && (
         <p className="mt-3 text-xs text-[#777]">Nenhum veículo cadastrado.</p>
       )}
       <div className="mt-3 space-y-3">
         {vehicles.map((v) => (
           <VehicleRow key={v.id} vehicle={v} customerId={customerId} enabled={enabled} onChanged={reload} />
         ))}
+      </div>
+      {!loading && (
+        <div className="mt-4">
+          {!showCreate ? (
+            <button
+              type="button"
+              disabled={!enabled}
+              onClick={() => setShowCreate(true)}
+              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 text-sm font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {addLabel}
+            </button>
+          ) : (
+            <VehicleCreateForm
+              customerId={customerId}
+              hasExistingVehicles={vehicles.length > 0}
+              onCancel={() => setShowCreate(false)}
+              onCreated={() => { setShowCreate(false); void reload(); }}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// VehicleCreateForm (hotfix cadastro manual):
+// Formulário embutido no bloco Veículos para criar veículo com placa/marca/modelo.
+// Após criar → dispara onCreated que chama reload da listagem. Foto é opcional
+// e adicionada depois no próprio card do veículo.
+// -----------------------------------------------------------------------------
+function VehicleCreateForm({
+  customerId,
+  hasExistingVehicles,
+  onCancel,
+  onCreated,
+}: {
+  customerId: string;
+  hasExistingVehicles: boolean;
+  onCancel: () => void;
+  onCreated: () => void;
+}) {
+  const [plate, setPlate] = useState("");
+  const [brand, setBrand] = useState("");
+  const [model, setModel] = useState("");
+  const [makePrimary, setMakePrimary] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const endpoint = `/api/admin/growth/customers/${encodeURIComponent(customerId)}/vehicles`;
+
+  const submit = async () => {
+    if (saving) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const payload: Record<string, unknown> = {
+        plate: plate.trim(),
+        brand: brand.trim() || null,
+        model: model.trim() || null,
+      };
+      // isPrimary só entra se hasExistingVehicles; se for o primeiro, o backend força true.
+      if (hasExistingVehicles && makePrimary) payload.isPrimary = true;
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Falha ao cadastrar veículo.");
+      onCreated();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Falha ao cadastrar veículo.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inputClass = "mt-2 h-10 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-sm text-white outline-none focus:border-[#C9A84C]/35";
+  const labelClass = "text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]";
+
+  return (
+    <div className="rounded-xl border border-[#C9A84C]/25 bg-white/[0.02] p-4">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">Novo veículo</p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        <label>
+          <span className={labelClass}>Placa *</span>
+          <input
+            value={plate}
+            onChange={(e) => setPlate(e.target.value.toUpperCase())}
+            maxLength={8}
+            placeholder="ABC1D23"
+            className={inputClass}
+          />
+        </label>
+        <label>
+          <span className={labelClass}>Marca</span>
+          <input
+            value={brand}
+            onChange={(e) => setBrand(e.target.value)}
+            maxLength={60}
+            placeholder="Ex.: Honda"
+            className={inputClass}
+          />
+        </label>
+        <label>
+          <span className={labelClass}>Modelo</span>
+          <input
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+            maxLength={80}
+            placeholder="Ex.: Civic"
+            className={inputClass}
+          />
+        </label>
+      </div>
+      {hasExistingVehicles && (
+        <label className="mt-3 flex items-center gap-2 text-xs text-white/70">
+          <input
+            type="checkbox"
+            checked={makePrimary}
+            onChange={(e) => setMakePrimary(e.target.checked)}
+            className="h-4 w-4 rounded border-white/[0.15] bg-white/[0.03]"
+          />
+          Definir como veículo principal
+        </label>
+      )}
+      {!hasExistingVehicles && (
+        <p className="mt-3 text-[11px] text-white/50">
+          Este é o primeiro veículo do cliente — será cadastrado automaticamente como principal.
+        </p>
+      )}
+      {error && (
+        <p className="mt-3 rounded-lg border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs text-red-200">
+          {error}
+        </p>
+      )}
+      <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={saving}
+          className="min-h-10 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-sm text-white/80 disabled:opacity-40"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          disabled={saving || plate.trim().length < 6}
+          onClick={() => void submit()}
+          className="min-h-10 rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/15 px-5 text-sm font-semibold text-[#E7C96A] disabled:opacity-40"
+        >
+          {saving ? "Cadastrando…" : "Cadastrar veículo"}
+        </button>
       </div>
     </div>
   );
