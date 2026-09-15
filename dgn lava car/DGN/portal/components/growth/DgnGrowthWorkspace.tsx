@@ -13,7 +13,9 @@ import {
   Crown,
   ExternalLink,
   Filter,
+  Maximize2,
   MessageCircle,
+  Minimize2,
   PanelRight,
   Search,
   Sparkles,
@@ -3949,6 +3951,7 @@ export function AppointmentsEditor({
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ scheduledAt: "", serviceType: "", notes: "" });
   const [notice, setNotice] = useState<{ tone: "success" | "error"; message: string } | null>(null);
+  const [editing, setEditing] = useState<AppointmentRowForAdmin | null>(null);
 
   const endpoint = `/api/admin/growth/customers/${encodeURIComponent(customerId)}/appointments`;
 
@@ -4058,7 +4061,7 @@ export function AppointmentsEditor({
           appointments.map((a) => {
             const when = new Date(a.scheduled_at);
             const isPast = when.getTime() < Date.now();
-            const canCancel = a.status === "scheduled" || a.status === "confirmed";
+            const isEditable = a.status === "scheduled" || a.status === "confirmed";
             return (
               <div
                 key={a.id}
@@ -4077,20 +4080,290 @@ export function AppointmentsEditor({
                   {a.notes && <p className="mt-1 text-[11px] text-[#888]">{a.notes}</p>}
                   {a.cancelled_reason && <p className="mt-1 text-[11px] text-red-300/80">Motivo: {a.cancelled_reason}</p>}
                 </div>
-                {canCancel && (
-                  <button
-                    type="button"
-                    disabled={!enabled}
-                    onClick={() => void cancel(a.id)}
-                    className="min-h-8 rounded-lg border border-red-400/25 bg-red-400/10 px-3 text-[11px] text-red-200 disabled:opacity-40"
-                  >
-                    Cancelar
-                  </button>
+                {isEditable && (
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={!enabled}
+                      onClick={() => setEditing(a)}
+                      className="min-h-8 rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-3 text-[11px] font-semibold text-[#E7C96A] disabled:opacity-40"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!enabled}
+                      onClick={() => void cancel(a.id)}
+                      className="min-h-8 rounded-lg border border-red-400/25 bg-red-400/10 px-3 text-[11px] text-red-200 disabled:opacity-40"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
                 )}
               </div>
             );
           })
         )}
+      </div>
+
+      {editing && (
+        <AppointmentEditModal
+          customerId={customerId}
+          appointment={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            setNotice({ tone: "success", message: "Agendamento atualizado." });
+            setEditing(null);
+            void reload();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// AppointmentEditModal (Fatia 2b)
+//
+// Modal amplo para edição in-place de um agendamento. Não faz delete+create —
+// dispara PATCH em /api/admin/growth/customers/[id]/appointments para o
+// updateAppointment do write layer.
+//
+// UX pedido no complemento da 2b:
+//   * Desktop: card confortavelmente largo (max-w-3xl padrão);
+//   * Mobile: praticamente full viewport (inset com margens pequenas);
+//   * Botão maximizar troca para fullscreen absoluto (inset-0);
+//   * Nada de scroll interno desnecessário — usar espaço vertical do viewport;
+//   * Escape / clique fora fecha (por segurança, exigimos clique no X ou Cancelar
+//     para evitar perda acidental de edição não salva).
+// -----------------------------------------------------------------------------
+
+interface VehicleOptionForEdit {
+  id: string;
+  brand: string | null;
+  model: string | null;
+  plate: string | null;
+  is_primary: boolean;
+}
+
+function toLocalDatetimeInputValue(iso: string): string {
+  // datetime-local espera "YYYY-MM-DDTHH:MM" no fuso local do navegador.
+  // Date(iso) converte de UTC para local; extraímos os campos localmente.
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function AppointmentEditModal({
+  customerId,
+  appointment,
+  onClose,
+  onSaved,
+}: {
+  customerId: string;
+  appointment: AppointmentRowForAdmin;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
+
+  const [scheduledAt, setScheduledAt] = useState(toLocalDatetimeInputValue(appointment.scheduled_at));
+  const [serviceType, setServiceType] = useState(appointment.service_type ?? "");
+  const [notes, setNotes] = useState(appointment.notes ?? "");
+  const [vehicleId, setVehicleId] = useState(appointment.vehicle_id ?? "");
+
+  const [vehicles, setVehicles] = useState<VehicleOptionForEdit[]>([]);
+  const [vehiclesLoading, setVehiclesLoading] = useState(true);
+
+  const endpoint = `/api/admin/growth/customers/${encodeURIComponent(customerId)}/appointments`;
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setVehiclesLoading(true);
+      try {
+        const response = await fetch(`/api/admin/growth/customers/${encodeURIComponent(customerId)}/vehicles`);
+        const body = await response.json();
+        if (!cancelled && response.ok) {
+          setVehicles((body.vehicles as VehicleOptionForEdit[]) ?? []);
+        }
+      } catch {
+        // silencioso — o campo veículo vira "manter atual"; o restante da edição continua funcional
+      } finally {
+        if (!cancelled) setVehiclesLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [customerId]);
+
+  const save = async () => {
+    if (saving) return;
+    setSaving(true);
+    setModalError(null);
+    try {
+      if (!scheduledAt) throw new Error("Data e hora são obrigatórias.");
+      const when = new Date(scheduledAt);
+      if (Number.isNaN(when.getTime())) throw new Error("Data/hora inválida.");
+      const payload: Record<string, unknown> = {
+        appointmentId: appointment.id,
+        scheduledAt: when.toISOString(),
+        serviceType: serviceType.trim() || null,
+        notes: notes.trim() || null,
+      };
+      // Só envia vehicleId se o usuário mexeu: assim preservamos a semântica
+      // "undefined = não mexer" no backend (evita audit ruidoso).
+      const currentVehicleId = appointment.vehicle_id ?? "";
+      if (vehicleId !== currentVehicleId) {
+        payload.vehicleId = vehicleId || null;
+      }
+      const response = await fetch(endpoint, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Falha ao salvar.");
+      onSaved();
+    } catch (e) {
+      setModalError(e instanceof Error ? e.message : "Falha ao salvar.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const containerClass = expanded
+    ? "fixed inset-0 z-50 flex flex-col bg-[#0A0A0A]"
+    : "fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-3 sm:items-center sm:p-6";
+  const panelClass = expanded
+    ? "flex h-full w-full flex-col bg-[#101010]"
+    : "flex max-h-[calc(100vh-2rem)] w-full max-w-3xl flex-col rounded-2xl border border-white/[0.08] bg-[#101010] shadow-2xl sm:max-h-[calc(100vh-4rem)]";
+  const inputClass = "h-11 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-sm text-white outline-none focus:border-[#C9A84C]/35";
+  const labelClass = "text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7D7D7D]";
+
+  const originalWhen = new Date(appointment.scheduled_at).toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+
+  return (
+    <div className={containerClass} role="dialog" aria-modal="true" aria-label="Editar agendamento">
+      <div className={panelClass}>
+        <header className="flex items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">Editar agendamento</p>
+            <p className="mt-0.5 truncate text-sm text-white/85">
+              Original: <span className="font-medium">{originalWhen}</span>
+              {appointment.service_type ? ` · ${appointment.service_type}` : ""}
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              title={expanded ? "Restaurar" : "Maximizar"}
+              aria-label={expanded ? "Restaurar" : "Maximizar"}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-white/70 hover:text-white"
+            >
+              {expanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              title="Fechar"
+              aria-label="Fechar"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-white/70 hover:text-white"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </header>
+
+        <div className="flex-1 overflow-y-auto px-5 py-5">
+          <div className={`grid gap-4 ${expanded ? "lg:grid-cols-2" : "sm:grid-cols-2"}`}>
+            <label className="flex flex-col gap-2">
+              <span className={labelClass}>Data e horário</span>
+              <input
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+                className={inputClass}
+              />
+            </label>
+
+            <label className="flex flex-col gap-2">
+              <span className={labelClass}>Veículo</span>
+              <select
+                value={vehicleId}
+                onChange={(e) => setVehicleId(e.target.value)}
+                disabled={vehiclesLoading}
+                className={inputClass}
+              >
+                <option value="">— Sem veículo vinculado —</option>
+                {vehicles.map((v) => {
+                  const label = [v.brand, v.model, v.plate ? `(${v.plate})` : null].filter(Boolean).join(" ").trim();
+                  return (
+                    <option key={v.id} value={v.id}>
+                      {label || v.id}{v.is_primary ? " · principal" : ""}
+                    </option>
+                  );
+                })}
+              </select>
+              {vehiclesLoading && <span className="text-[10px] text-white/45">carregando veículos…</span>}
+            </label>
+
+            <label className={`flex flex-col gap-2 ${expanded ? "lg:col-span-2" : "sm:col-span-2"}`}>
+              <span className={labelClass}>Serviço</span>
+              <input
+                type="text"
+                value={serviceType}
+                onChange={(e) => setServiceType(e.target.value)}
+                maxLength={80}
+                placeholder="Ex.: Lavagem completa"
+                className={inputClass}
+              />
+            </label>
+
+            <label className={`flex flex-col gap-2 ${expanded ? "lg:col-span-2" : "sm:col-span-2"}`}>
+              <span className={labelClass}>Observações</span>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                maxLength={500}
+                rows={expanded ? 8 : 4}
+                className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-sm text-white outline-none focus:border-[#C9A84C]/35"
+              />
+            </label>
+          </div>
+
+          {modalError && (
+            <p className="mt-4 rounded-lg border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs text-red-200">
+              {modalError}
+            </p>
+          )}
+        </div>
+
+        <footer className="flex flex-wrap items-center justify-end gap-2 border-t border-white/[0.06] px-5 py-4">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="min-h-10 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-sm text-white/80 disabled:opacity-40"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={() => void save()}
+            disabled={saving}
+            className="min-h-10 rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/15 px-5 text-sm font-semibold text-[#E7C96A] disabled:opacity-40"
+          >
+            {saving ? "Salvando…" : "Salvar alterações"}
+          </button>
+        </footer>
       </div>
     </div>
   );
