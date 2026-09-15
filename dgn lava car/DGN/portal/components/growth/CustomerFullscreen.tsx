@@ -272,7 +272,7 @@ export function CustomerFullscreen({
             index={5}
             title="Próximos atendimentos"
             icon={Calendar}
-            hint="Criar / cancelar já disponível. Editar (reagendar in-place) vem na Fatia 2b."
+            hint="Criar, editar (reagendar in-place) e cancelar. Toda edição é auditada e reflete imediatamente no Portal do assinante."
           >
             <AppointmentsEditor
               key={`appointments-${customer.id}`}

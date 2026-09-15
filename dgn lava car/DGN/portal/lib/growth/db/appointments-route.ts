@@ -6,6 +6,7 @@ import {
   cancelAppointment,
   createAppointment,
   listAppointments,
+  updateAppointment,
 } from "./appointments-write.ts";
 
 export interface AppointmentsRequest {
@@ -86,6 +87,71 @@ export async function handleAppointmentsPost(
     return Response.json({ appointment: created }, { status: 200 });
   } catch (error) {
     return toResponse(error, "Não foi possível criar o agendamento.");
+  }
+}
+
+export async function handleAppointmentsPatch(
+  request: AppointmentsRequest,
+  customerId: string,
+  deps: RouteDependencies = defaults,
+) {
+  if (!(await deps.authorize(request))) return unauthorized();
+  if (deps.source !== "db") return dbOnly();
+  if (!customerId || customerId.length > 200) return invalidId();
+  try {
+    const body = await request.json();
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return Response.json({ error: "payload inválido" }, { status: 400 });
+    }
+    const b = body as {
+      appointmentId?: unknown;
+      scheduledAt?: unknown;
+      serviceType?: unknown;
+      notes?: unknown;
+      vehicleId?: unknown;
+      subscriptionId?: unknown;
+    };
+    if (typeof b.appointmentId !== "string" || !b.appointmentId) {
+      return Response.json({ error: "appointmentId obrigatório." }, { status: 400 });
+    }
+
+    // Só passamos adiante campos realmente presentes no payload — assim
+    // updateAppointment sabe distinguir "não mexer" (undefined) de "limpar"
+    // (null explícito) para vehicleId / subscriptionId.
+    const patch: {
+      customerId: string;
+      appointmentId: string;
+      actor: string;
+      scheduledAt?: string;
+      serviceType?: string | null;
+      notes?: string | null;
+      vehicleId?: string | null;
+      subscriptionId?: string | null;
+    } = { customerId, appointmentId: b.appointmentId, actor: "dgn-admin" };
+
+    if ("scheduledAt" in b) {
+      if (typeof b.scheduledAt !== "string") {
+        return Response.json({ error: "scheduledAt inválido." }, { status: 400 });
+      }
+      patch.scheduledAt = b.scheduledAt;
+    }
+    if ("serviceType" in b) {
+      patch.serviceType = typeof b.serviceType === "string" ? b.serviceType : null;
+    }
+    if ("notes" in b) {
+      patch.notes = typeof b.notes === "string" ? b.notes : null;
+    }
+    if ("vehicleId" in b) {
+      patch.vehicleId = typeof b.vehicleId === "string" && b.vehicleId ? b.vehicleId : null;
+    }
+    if ("subscriptionId" in b) {
+      patch.subscriptionId = typeof b.subscriptionId === "string" && b.subscriptionId ? b.subscriptionId : null;
+    }
+
+    const updated = await updateAppointment(patch);
+    return Response.json({ appointment: updated }, { status: 200 });
+  } catch (error) {
+    return toResponse(error, "Não foi possível atualizar o agendamento.");
   }
 }
 
