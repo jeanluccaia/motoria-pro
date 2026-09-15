@@ -3,6 +3,7 @@ import "server-only";
 import { DGN_ADMIN_COOKIE, validateAdminSessionToken } from "../admin-session.ts";
 import {
   ProfileEditorError,
+  createCustomerVehicle,
   listCustomerVehicles,
   updateCustomerPhone,
   updateVehicleFields,
@@ -15,6 +16,11 @@ export interface ProfileEditorRequest {
 
 export interface VehiclesGetRequest {
   cookies: { get(name: string): { value: string } | undefined };
+}
+
+export interface VehiclesPostRequest {
+  cookies: { get(name: string): { value: string } | undefined };
+  json(): Promise<unknown>;
 }
 
 interface RouteDependencies {
@@ -51,6 +57,47 @@ export async function handleVehiclesGet(
     return Response.json({ vehicles: rows }, { status: 200 });
   } catch (error) {
     return toResponse(error, "Não foi possível listar veículos.");
+  }
+}
+
+/**
+ * POST /api/admin/growth/customers/[id]/vehicles
+ * Body: { plate: string, brand?: string|null, model?: string|null, isPrimary?: boolean }
+ * Cria um novo veículo para o customer resolvido pelo path — nunca pelo body.
+ */
+export async function handleVehiclesPost(
+  request: VehiclesPostRequest,
+  customerId: string,
+  deps: RouteDependencies = defaults,
+) {
+  if (!(await deps.authorize(request as ProfileEditorRequest))) return unauthorized();
+  if (deps.source !== "db") return dbOnly();
+  if (!customerId || customerId.length > 200) return invalidId();
+  try {
+    const body = await request.json();
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return Response.json({ error: "payload inválido" }, { status: 400 });
+    }
+    const b = body as {
+      plate?: unknown;
+      brand?: unknown;
+      model?: unknown;
+      isPrimary?: unknown;
+    };
+    if (typeof b.plate !== "string" || !b.plate.trim()) {
+      return Response.json({ error: "Placa obrigatória." }, { status: 400 });
+    }
+    const result = await createCustomerVehicle({
+      customerId,
+      plate: b.plate,
+      brand: typeof b.brand === "string" ? b.brand : b.brand === null ? null : undefined,
+      model: typeof b.model === "string" ? b.model : b.model === null ? null : undefined,
+      isPrimary: typeof b.isPrimary === "boolean" ? b.isPrimary : undefined,
+      actor: "dgn-admin",
+    });
+    return Response.json(result, { status: 200 });
+  } catch (error) {
+    return toResponse(error, "Não foi possível cadastrar o veículo.");
   }
 }
 

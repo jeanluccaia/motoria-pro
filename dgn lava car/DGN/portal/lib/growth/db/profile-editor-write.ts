@@ -170,6 +170,125 @@ function maskPlate(plate: string | null): string | null {
   return `${plate.slice(0, 3)}·${plate.slice(-2)}`;
 }
 
+// -----------------------------------------------------------------------------
+// createCustomerVehicle (hotfix cadastro manual):
+//   * Cria um novo veículo para um customer existente.
+//   * Placa é obrigatória (identificador operacional) e passa por normalizePlate
+//     (mesmo helper do updateVehicleFields, garante uppercase/sem hífen/espaço).
+//   * Dedupe GLOBAL: se normalized_plate já existir em outro customer, bloqueia
+//     com mensagem clara (não move veículo; não sobrescreve owner). O DB só tem
+//     constraint per-customer, então este check tem que ser feito aqui.
+//   * Primeiro veículo do customer sempre vira is_primary=true.
+//   * Demais entram como is_primary=false, a menos que o operador marque
+//     explicitamente — nesse caso os outros veículos daquele customer são
+//     rebaixados para is_primary=false antes do INSERT (garantindo single-primary).
+//   * source='MANUAL_ADMIN' (provenance canônica de cadastro admin, distinta
+//     dos futuros dados 4UCAR).
+//   * Audit action='vehicle.created' com metadata.
+// -----------------------------------------------------------------------------
+
+export interface CreateVehicleInput {
+  customerId: string;
+  plate: string;
+  brand?: string | null;
+  model?: string | null;
+  /** Se undefined, aplica regra: primeiro veículo do customer vira principal. */
+  isPrimary?: boolean;
+  actor: string;
+  db?: SupabaseClient;
+}
+
+export interface CreateVehicleResult {
+  vehicleId: string;
+  isPrimary: boolean;
+  normalizedPlate: string;
+}
+
+export async function createCustomerVehicle(input: CreateVehicleInput): Promise<CreateVehicleResult> {
+  const db = input.db ?? getSupabaseAdminClient("profile-editor.create-vehicle");
+  const resolvedCustomerId = await resolve(db, input.customerId);
+
+  const normalizedPlate = normalizePlate(input.plate);
+  if (!normalizedPlate) throw new ProfileEditorError("Placa obrigatória.", 400);
+
+  // Dedupe global: existe algum veículo com essa placa em qualquer customer?
+  const collision = await db
+    .from("crm_vehicles")
+    .select("id, customer_id")
+    .eq("normalized_plate", normalizedPlate)
+    .limit(1);
+  if (collision.error) throw new ProfileEditorError(`Falha ao verificar placa: ${collision.error.message}`, 502);
+  const collided = (collision.data ?? [])[0] as { id: string; customer_id: string } | undefined;
+  if (collided) {
+    if (collided.customer_id === resolvedCustomerId) {
+      throw new ProfileEditorError("Este cliente já possui um veículo com essa placa.", 409);
+    }
+    throw new ProfileEditorError("Esta placa já está vinculada a outro cliente.", 409);
+  }
+
+  // Conta veículos atuais do customer para decidir is_primary.
+  const countCurrent = await db
+    .from("crm_vehicles")
+    .select("id", { count: "exact", head: true })
+    .eq("customer_id", resolvedCustomerId);
+  if (countCurrent.error) throw new ProfileEditorError(`Falha ao contar veículos: ${countCurrent.error.message}`, 502);
+  const currentCount = countCurrent.count ?? 0;
+
+  const shouldBePrimary =
+    currentCount === 0            // primeiro veículo → sempre principal
+    || input.isPrimary === true;  // operador marcou explicitamente
+
+  // Se vai virar primary e já existem outros, rebaixa os existentes antes do INSERT.
+  if (shouldBePrimary && currentCount > 0) {
+    const demote = await db
+      .from("crm_vehicles")
+      .update({ is_primary: false })
+      .eq("customer_id", resolvedCustomerId)
+      .eq("is_primary", true);
+    if (demote.error) throw new ProfileEditorError(`Falha ao rebaixar veículo principal atual: ${demote.error.message}`, 502);
+  }
+
+  const insert = await db
+    .from("crm_vehicles")
+    .insert({
+      customer_id: resolvedCustomerId,
+      brand: input.brand?.trim() || null,
+      model: input.model?.trim() || null,
+      normalized_model: input.model?.trim().toLowerCase() || null,
+      plate: normalizedPlate,
+      normalized_plate: normalizedPlate,
+      masked_plate: maskPlate(normalizedPlate),
+      is_primary: shouldBePrimary,
+      source: "MANUAL_ADMIN",
+    })
+    .select("id, is_primary, normalized_plate")
+    .single();
+  if (insert.error) throw new ProfileEditorError(`Falha ao criar veículo: ${insert.error.message}`, 502);
+
+  const created = insert.data as { id: string; is_primary: boolean; normalized_plate: string };
+
+  await auditInline(db, {
+    entityType: "vehicle",
+    entityId: created.id,
+    action: "vehicle.created",
+    newValue: {
+      customer_id: resolvedCustomerId,
+      normalized_plate: created.normalized_plate,
+      is_primary: created.is_primary,
+      source: "MANUAL_ADMIN",
+      brand: input.brand?.trim() || null,
+      model: input.model?.trim() || null,
+    },
+    actor: input.actor || "dgn-admin",
+  });
+
+  return {
+    vehicleId: created.id,
+    isPrimary: created.is_primary,
+    normalizedPlate: created.normalized_plate,
+  };
+}
+
 export async function updateVehicleFields(input: UpdateVehicleFieldsInput): Promise<{ vehicleId: string }> {
   const db = input.db ?? getSupabaseAdminClient("profile-editor.update-vehicle");
   const resolvedCustomerId = await resolve(db, input.customerId);
