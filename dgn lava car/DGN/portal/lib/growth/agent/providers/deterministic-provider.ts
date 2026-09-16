@@ -46,9 +46,10 @@ const BLOCKER_LABEL: Record<string, string> = {
   MISSING_EMAIL: "sem e-mail cadastrado",
   NO_AUTH_LINK: "sem vínculo Auth",
   PORTAL_GATE_DISABLED: "gate do Portal desligado",
-  NO_ACTIVE_SUBSCRIPTION: "sem assinatura ativa",
+  NO_ACTIVE_SUBSCRIPTION: "sem assinatura ativa em crm_subscriptions",
   MISSING_PHONE_FOR_WHATSAPP: "sem telefone canônico (convite pelo WhatsApp bloqueado)",
   INCONSISTENT_PORTAL_STATE: "gate ligado sem provisionamento completo (Auth/email)",
+  INCONSISTENT_SUBSCRIBER_STATE: "aparenta assinante (commercialStatus/base viva) sem linha ativa em crm_subscriptions",
 };
 
 function readinessToCards(

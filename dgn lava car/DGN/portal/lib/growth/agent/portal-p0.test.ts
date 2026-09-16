@@ -337,5 +337,123 @@ test("system prompt: publica domínios canônicos + regra 'convite sozinho'", ()
   assert.match(SYSTEM_PROMPT, /convite do Portal/);
   assert.match(SYSTEM_PROMPT, /convite Founder/);
   assert.match(SYSTEM_PROMPT, /desambiguação|desambiguacao|Portal do Assinante ou convite/i);
-  assert.equal(SYSTEM_PROMPT_VERSION, "dgn-agent-2.3.0");
+  assert.equal(SYSTEM_PROMPT_VERSION, "dgn-agent-2.3.1");
+});
+
+// ---------------------------------------------------------------------------
+// HOTFIX P0 (2026-09-16) — elegibilidade parte SEMPRE de crm_subscriptions
+// (subscription.isActive). commercialStatus, knownSubscriberStatus e evidência
+// 4uCar não promovem para READY; quando divergem viram INCONSISTENT_SUBSCRIBER_STATE.
+// ---------------------------------------------------------------------------
+
+test("hotfix: commercialStatus 'Assinante Ativo' + knownSubscriberStatus 'renovacao_pendente' SEM crm_subscriptions ativa → BLOCKED", () => {
+  const c = makeCustomer({
+    id: "aparenta-nao-canonico",
+    name: "Aparenta Assinante",
+    phone: "19993890842", // bate com KNOWN_SUBSCRIBERS_2026_08_16 (Guilherme) para gerar knownSubscriberStatus
+    commercialStatus: "Assinante Ativo",
+    subscription: null, // <- ausência de linha canônica em crm_subscriptions
+    portalAccess: { portalBetaEnabled: true, hasEmail: true, hasAuthLink: true },
+    hasValidPhone: true,
+  });
+  const result = getSubscriberPortalReadiness(makeCtx([c]));
+  assert.equal(result.status, "ok");
+  const ready = result.data?.ready.find((r) => r.customerId === "aparenta-nao-canonico");
+  assert.ok(!ready, "não pode entrar em READY sem crm_subscriptions ativa");
+  const item = result.data?.blocked.find((b) => b.customerId === "aparenta-nao-canonico");
+  assert.ok(item, "esperado em blocked");
+  assert.equal(item?.portalAccessReady, false, "portalAccessReady precisa ser false");
+  assert.equal(item?.whatsappInviteReady, false);
+  assert.ok(item?.blockers.includes("NO_ACTIVE_SUBSCRIPTION"), "esperado blocker NO_ACTIVE_SUBSCRIPTION");
+  assert.ok(item?.blockers.includes("INCONSISTENT_SUBSCRIBER_STATE"), "esperado blocker INCONSISTENT_SUBSCRIBER_STATE");
+});
+
+test("hotfix: caminho canônico READY — subscription.isActive + email + Auth + gate → portalAccessReady=true", () => {
+  const c = makeCustomer({
+    id: "canonico-ready",
+    name: "Canônico READY",
+    commercialStatus: "Assinante Ativo",
+    subscription: { nextDueDate: null, paymentMethod: "card_recurring", paymentMethodLabel: "PagBank", status: "ativo", isActive: true },
+    portalAccess: { portalBetaEnabled: true, hasEmail: true, hasAuthLink: true },
+    hasValidPhone: true,
+    phone: "5519999999999",
+  });
+  const result = getSubscriberPortalReadiness(makeCtx([c]));
+  assert.equal(result.status, "ok");
+  const item = result.data?.ready.find((r) => r.customerId === "canonico-ready");
+  assert.ok(item, "esperado em READY");
+  assert.equal(item?.portalAccessReady, true);
+  assert.equal(item?.whatsappInviteReady, true);
+});
+
+test("hotfix: canônico sem telefone → portalAccessReady=true, whatsappInviteReady=false, blocker MISSING_PHONE_FOR_WHATSAPP", () => {
+  const c = makeCustomer({
+    id: "canonico-sem-fone",
+    name: "Canônico Sem Fone",
+    commercialStatus: "Assinante Ativo",
+    subscription: { nextDueDate: null, paymentMethod: "card_recurring", paymentMethodLabel: "PagBank", status: "ativo", isActive: true },
+    portalAccess: { portalBetaEnabled: true, hasEmail: true, hasAuthLink: true },
+    hasValidPhone: false,
+  });
+  const result = getSubscriberPortalReadiness(makeCtx([c]));
+  assert.equal(result.status, "ok");
+  const item = result.data?.ready.find((r) => r.customerId === "canonico-sem-fone");
+  assert.ok(item, "esperado em READY (portalAccessReady=true), mesmo sem telefone");
+  assert.equal(item?.portalAccessReady, true);
+  assert.equal(item?.whatsappInviteReady, false);
+  assert.ok(item?.blockers.includes("MISSING_PHONE_FOR_WHATSAPP"));
+  assert.ok(!item?.blockers.includes("NO_ACTIVE_SUBSCRIPTION"));
+  assert.ok(!item?.blockers.includes("INCONSISTENT_SUBSCRIBER_STATE"));
+});
+
+test("hotfix: commercialStatus 'Assinante Ativo' isolado (sem subscription canônica, sem knownSubscriberStatus) → NO_ACTIVE_SUBSCRIPTION + INCONSISTENT_SUBSCRIBER_STATE", () => {
+  const c = makeCustomer({
+    id: "commercial-status-so",
+    name: "Só CommercialStatus",
+    phone: "5519988887777", // não bate com base viva
+    commercialStatus: "Assinante Ativo",
+    subscription: null,
+    portalAccess: { portalBetaEnabled: false, hasEmail: false, hasAuthLink: false },
+  });
+  const result = getSubscriberPortalReadiness(makeCtx([c]));
+  assert.equal(result.status, "ok");
+  const item = result.data?.blocked.find((b) => b.customerId === "commercial-status-so");
+  assert.ok(item, "esperado em blocked");
+  assert.equal(item?.portalAccessReady, false);
+  assert.ok(item?.blockers.includes("NO_ACTIVE_SUBSCRIPTION"));
+  assert.ok(item?.blockers.includes("INCONSISTENT_SUBSCRIBER_STATE"));
+});
+
+test("hotfix issues: subscription não canônica + commercialStatus Ativo → issue INCONSISTENT_SUBSCRIBER_STATE", () => {
+  const c = makeCustomer({
+    id: "issue-incons-sub",
+    name: "Inconsistente Sub",
+    commercialStatus: "Assinante Ativo",
+    subscription: null,
+    portalAccess: { portalBetaEnabled: false, hasEmail: false, hasAuthLink: false },
+  });
+  const result = getPortalAccessIssues(makeCtx([c]));
+  assert.equal(result.status, "ok");
+  const issue = result.data?.find((i) => i.customerId === "issue-incons-sub" && i.issue === "INCONSISTENT_SUBSCRIBER_STATE");
+  assert.ok(issue, "esperado issue INCONSISTENT_SUBSCRIBER_STATE");
+  assert.match(issue!.detail, /crm_subscriptions/);
+});
+
+test("hotfix issues: ACCESS_ENABLED_WITHOUT_ACTIVE_SUBSCRIPTION exige ausência de subscription canônica (não vale commercialStatus)", () => {
+  // Cliente com commercialStatus Ativo + gate ligado, MAS sem subscription
+  // canônica → ainda deve disparar ACCESS_ENABLED_WITHOUT_ACTIVE_SUBSCRIPTION,
+  // porque commercialStatus não conta como "subscription vigente".
+  const c = makeCustomer({
+    id: "access-sem-canon",
+    name: "Access Sem Canônico",
+    commercialStatus: "Assinante Ativo",
+    subscription: null,
+    portalAccess: { portalBetaEnabled: true, hasEmail: true, hasAuthLink: true },
+  });
+  const result = getPortalAccessIssues(makeCtx([c]));
+  assert.equal(result.status, "ok");
+  const issue = result.data?.find(
+    (i) => i.customerId === "access-sem-canon" && i.issue === "ACCESS_ENABLED_WITHOUT_ACTIVE_SUBSCRIPTION",
+  );
+  assert.ok(issue, "esperado ACCESS_ENABLED_WITHOUT_ACTIVE_SUBSCRIPTION mesmo com commercialStatus='Assinante Ativo'");
 });
