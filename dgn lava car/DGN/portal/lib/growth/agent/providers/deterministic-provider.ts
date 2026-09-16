@@ -9,6 +9,7 @@ import { findCustomerByFuzzyName, getCustomerSummary } from "../skills/customer-
 import { suggestNextAction } from "../skills/next-action.ts";
 import { classifyDomain, AMBIGUOUS_INVITE_PROMPT } from "../domain-router.ts";
 import { getSubscriberPortalReadiness, type PortalReadinessItem } from "../skills/portal-readiness.ts";
+import { renderPortalReadinessResponse } from "../renderers/portal-readiness-renderer.ts";
 
 // -----------------------------------------------------------------------------
 // DeterministicAgentProvider — roteia por intent (regex/keywords) direto para
@@ -127,13 +128,15 @@ export class DeterministicAgentProvider implements AgentProvider {
     if (classification.domain === "SUBSCRIBER_PORTAL_ACCESS") {
       const readiness = getSubscriberPortalReadiness(ctx);
       if (readiness.status === "ok" && readiness.data) {
-        const { totalEvaluated, totalPortalReady, totalBlocked } = readiness.data;
-        const evaluatedLine = `${totalEvaluated} customer(s) avaliado(s) — ${totalPortalReady} pronto(s) para receber convite do Portal, ${totalBlocked} bloqueado(s). Cada customer aparece uma única vez, com todos os motivos consolidados.`;
+        // Mesma renderização server-side usada pelo LLM provider. Garante
+        // paridade textual entre os dois modos e elimina a chance de a LLM
+        // "quase" produzir o formato certo.
+        const text = renderPortalReadinessResponse(readiness.data);
         const cards = readinessToCards(readiness.data.ready.slice(0, 20), readiness.data.blocked.slice(0, 20));
         return finish({
           intent: "subscriber-attention",
           blocks: [
-            { kind: "text", text: evaluatedLine },
+            { kind: "text", text },
             cardsBlock(cards),
           ],
           disclosures: { facts: readiness.facts, inferences: readiness.inferences },

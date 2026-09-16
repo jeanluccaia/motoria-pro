@@ -21,7 +21,7 @@ import { getSubscriberAttention } from "./skills/subscriber-attention.ts";
 import { findCustomerByFuzzyName, getCustomerSummary } from "./skills/customer-summary.ts";
 import { suggestNextAction } from "./skills/next-action.ts";
 import { getFounderMetrics } from "./skills/founder-metrics-skill.ts";
-import { getSubscriberPortalReadiness, getPortalAccessIssues } from "./skills/portal-readiness.ts";
+import { getSubscriberPortalReadiness, getPortalAccessIssues, type PortalReadinessSummary } from "./skills/portal-readiness.ts";
 import { prepareFollowupMessage } from "./skills/prepare-followup-message.ts";
 import { prepareFounderApproach } from "./skills/prepare-founder-approach.ts";
 import { prepareRenewalMessage } from "./skills/prepare-renewal-message.ts";
@@ -75,6 +75,14 @@ export interface ToolInvocationAccumulator {
   invocations: Array<{ name: AgentToolName; input: Record<string, unknown>; status: SkillResult<unknown>["status"] }>;
   /** Contagem de invocações prepare_* nesta resposta — aplica o hard cap. */
   prepareCalls: number;
+  /**
+   * Resultado consolidado da última chamada de `get_subscriber_portal_readiness`.
+   * Populado quando a skill devolveu `status="ok"`. O LLM provider usa esse
+   * blob para RENDERIZAR o texto de Portal Readiness deterministicamente e
+   * SUBSTITUIR a prosa da LLM (que insistia em reagrupar e inventar
+   * contadores). Vive só no server; nunca vai para o cliente.
+   */
+  portalReadiness: PortalReadinessSummary | null;
 }
 
 function pushSkill<T>(acc: ToolInvocationAccumulator, name: AgentToolName, input: Record<string, unknown>, result: SkillResult<T>) {
@@ -296,6 +304,9 @@ export function buildAgentTools(ctx: AgentContext, acc: ToolInvocationAccumulato
         if (result.status !== "ok" || !result.data) {
           return { status: result.status, message: result.message ?? null };
         }
+        // Persiste o snapshot consolidado para o LLM provider substituir a
+        // prosa da LLM por texto renderizado deterministicamente.
+        acc.portalReadiness = result.data;
         return {
           status: "ok" as const,
           totalEvaluated: result.data.totalEvaluated,
@@ -555,6 +566,7 @@ export function createAccumulator(): ToolInvocationAccumulator {
     facts: [],
     inferences: [],
     invocations: [],
+    portalReadiness: null,
     prepareCalls: 0,
   };
 }
