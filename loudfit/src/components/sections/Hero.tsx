@@ -94,7 +94,7 @@ export function Hero() {
               <span className="relative inline-flex h-2 w-2 rounded-full bg-lf-volt" />
             </span>
             <span className="text-[11px] font-black uppercase tracking-[0.2em] text-lf-volt">
-              Oferta válida até 14/09
+              Oferta válida até 27/09
             </span>
           </div>
         </div>
