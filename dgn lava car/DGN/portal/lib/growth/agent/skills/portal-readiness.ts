@@ -43,6 +43,14 @@ export type PortalReadinessBlocker =
 
 export type PortalReadinessState = "READY" | "BLOCKED";
 
+export type PortalAccessIssueCode =
+  | "GATE_ENABLED_WITHOUT_AUTH"
+  | "GATE_ENABLED_WITHOUT_EMAIL"
+  | "AUTH_LINK_WITHOUT_EMAIL"
+  | "ACCESS_ENABLED_WITHOUT_ACTIVE_SUBSCRIPTION"
+  | "ACTIVE_SUBSCRIBER_WITHOUT_PORTAL"
+  | "INCONSISTENT_SUBSCRIBER_STATE";
+
 export interface PortalReadinessItem {
   customerId: string;
   name: string;
@@ -51,30 +59,52 @@ export interface PortalReadinessItem {
   portalAccessReady: boolean;
   /** Convite pelo WhatsApp está pronto (portalAccessReady + telefone canônico). */
   whatsappInviteReady: boolean;
+  /** Blockers canônicos — pode ter mais de um por customer. */
   blockers: PortalReadinessBlocker[];
+  /**
+   * Issues canônicas do diagnóstico aplicáveis a este customer — pré-consolidadas
+   * aqui para que a LLM não trate `getPortalAccessIssues` como uma "outra lista"
+   * de customers a apresentar em grupo separado. Um customer = um caso.
+   */
+  issues: PortalAccessIssueCode[];
+  /** Estado bruto por origem — útil para o LLM justificar sem recalcular. */
+  canonicalSubscriptionActive: boolean;
+  hasEmail: boolean;
+  hasAuthLink: boolean;
+  portalBetaEnabled: boolean;
+  hasValidPhone: boolean;
   href: string;
 }
 
 export interface PortalReadinessSummary {
+  /** Universo total (cada customer_id aparece 1x). Invariante: === totalPortalReady + totalBlocked. */
+  totalEvaluated: number;
+  /** Customers com portalAccessReady=true (cada customer_id 1x). */
+  totalPortalReady: number;
+  /** Customers com portalAccessReady=false (cada customer_id 1x). */
+  totalBlocked: number;
+  /** Lista dos READY — cada customer aparece 1x com todos os blockers/issues juntos. */
   ready: PortalReadinessItem[];
+  /** Lista dos BLOCKED — cada customer aparece 1x com todos os blockers/issues juntos. */
   blocked: PortalReadinessItem[];
-  /** Contagem por blocker canônico — bom para o operador entender onde intervir. */
-  blockerCounts: Record<PortalReadinessBlocker, number>;
-  /** Universo considerado (assinantes elegíveis, ativos ou reconhecidos). */
-  totalSubscribersConsidered: number;
+  /**
+   * FREQUÊNCIA (não quantidade de clientes). Um customer com N blockers soma N
+   * unidades distintas aqui. Portanto a soma pode ser > totalBlocked. Renderize
+   * como "frequência dos bloqueios", NUNCA como "quantidade de clientes".
+   */
+  blockerFrequency: Record<PortalReadinessBlocker, number>;
+  /** Instruções de renderização pré-computadas — para o LLM não inventar. */
+  presentation: {
+    invariants: string[];
+    renderingRules: string[];
+  };
 }
 
 export interface PortalAccessIssue {
   customerId: string;
   name: string;
   /** Motivo canônico da inconsistência — semelhante a blocker mas específico de diagnóstico. */
-  issue:
-    | "GATE_ENABLED_WITHOUT_AUTH"
-    | "GATE_ENABLED_WITHOUT_EMAIL"
-    | "AUTH_LINK_WITHOUT_EMAIL"
-    | "ACCESS_ENABLED_WITHOUT_ACTIVE_SUBSCRIPTION"
-    | "ACTIVE_SUBSCRIBER_WITHOUT_PORTAL"
-    | "INCONSISTENT_SUBSCRIBER_STATE";
+  issue: PortalAccessIssueCode;
   detail: string;
   href: string;
 }
@@ -123,24 +153,33 @@ function isInReadinessUniverse(customer: DgnCustomer): boolean {
   return hasCanonicalActiveSubscription(customer) || looksLikeSubscriber(customer);
 }
 
+/**
+ * Ponto único de verdade da classificação de um customer para o Portal.
+ * Devolve tudo que o item consolidado precisa (booleans brutos, blockers e
+ * issues aplicáveis), para que ninguém rode a mesma aritmética duas vezes em
+ * lugares diferentes (raiz da inconsistência do smoke A anterior).
+ */
 function classifyCustomer(customer: DgnCustomer): {
   state: PortalReadinessState;
   portalAccessReady: boolean;
   whatsappInviteReady: boolean;
   blockers: PortalReadinessBlocker[];
+  issues: PortalAccessIssueCode[];
+  canonicalSubscriptionActive: boolean;
+  hasEmail: boolean;
+  hasAuthLink: boolean;
+  portalBetaEnabled: boolean;
+  hasValidPhone: boolean;
 } {
   const portal = customer.portalAccess;
   const blockers: PortalReadinessBlocker[] = [];
+  const issues: PortalAccessIssueCode[] = [];
 
-  // Sem bloco = leitura em JSON mode ou dado ausente. Tratamos como
-  // NO_AUTH_LINK/MISSING_EMAIL/PORTAL_GATE_DISABLED por segurança (nada READY
-  // sem evidência). O caller decide se essa lista faz sentido para exibir.
   const portalBetaEnabled = portal?.portalBetaEnabled === true;
   const hasEmail = portal?.hasEmail === true;
   const hasAuthLink = portal?.hasAuthLink === true;
   const hasPhone = customer.hasValidPhone === true;
 
-  // FONTE CANÔNICA — só isso promove a READY. Ver comentário do módulo.
   const hasActiveSubscription = hasCanonicalActiveSubscription(customer);
   const appearsSubscriberByOtherSources = looksLikeSubscriber(customer);
 
@@ -149,18 +188,28 @@ function classifyCustomer(customer: DgnCustomer): {
   if (!hasAuthLink) blockers.push("NO_AUTH_LINK");
   if (!portalBetaEnabled) blockers.push("PORTAL_GATE_DISABLED");
 
-  // Sinaliza estado inconsistente quando o gate está ON mas o provisionamento
-  // não fecha (sem Auth ou sem email). Isso é diferente de "gate está OFF" —
-  // aqui o operador ligou algo que não deveria estar ligado.
   if (portalBetaEnabled && (!hasAuthLink || !hasEmail)) {
     blockers.push("INCONSISTENT_PORTAL_STATE");
   }
 
-  // Inconsistência da fonte de assinatura: commercialStatus ou base viva
-  // dizem "assinante" mas `crm_subscriptions` não confirma. Não promove a
-  // READY — apenas informa o operador que há conflito a reconciliar.
   if (!hasActiveSubscription && appearsSubscriberByOtherSources) {
     blockers.push("INCONSISTENT_SUBSCRIBER_STATE");
+  }
+
+  // Issues canônicas — mesmas regras que get_portal_access_issues aplica,
+  // consolidadas AQUI para que o item de readiness carregue todos os motivos
+  // que o operador precisa sobre o cliente. Não duplicamos com issues loose.
+  if (portalBetaEnabled && !hasAuthLink) issues.push("GATE_ENABLED_WITHOUT_AUTH");
+  if (portalBetaEnabled && !hasEmail) issues.push("GATE_ENABLED_WITHOUT_EMAIL");
+  if (hasAuthLink && !hasEmail) issues.push("AUTH_LINK_WITHOUT_EMAIL");
+  if ((portalBetaEnabled || hasAuthLink) && !hasActiveSubscription) {
+    issues.push("ACCESS_ENABLED_WITHOUT_ACTIVE_SUBSCRIPTION");
+  }
+  if (hasActiveSubscription && !portalBetaEnabled && !hasAuthLink) {
+    issues.push("ACTIVE_SUBSCRIBER_WITHOUT_PORTAL");
+  }
+  if (!hasActiveSubscription && appearsSubscriberByOtherSources) {
+    issues.push("INCONSISTENT_SUBSCRIBER_STATE");
   }
 
   const portalAccessReady = hasActiveSubscription && hasEmail && hasAuthLink && portalBetaEnabled;
@@ -172,12 +221,18 @@ function classifyCustomer(customer: DgnCustomer): {
     state: portalAccessReady ? "READY" : "BLOCKED",
     portalAccessReady,
     whatsappInviteReady,
-    blockers: dedupeBlockers(blockers),
+    blockers: dedupe(blockers),
+    issues: dedupe(issues),
+    canonicalSubscriptionActive: hasActiveSubscription,
+    hasEmail,
+    hasAuthLink,
+    portalBetaEnabled,
+    hasValidPhone: hasPhone,
   };
 }
 
-function dedupeBlockers(blockers: PortalReadinessBlocker[]): PortalReadinessBlocker[] {
-  return Array.from(new Set(blockers));
+function dedupe<T>(values: T[]): T[] {
+  return Array.from(new Set(values));
 }
 
 function blockerCountersZero(): Record<PortalReadinessBlocker, number> {
@@ -211,32 +266,37 @@ export function getSubscriberPortalReadiness(ctx: AgentContext): SkillResult<Por
     };
   }
 
-  const universe = ctx.customers.filter(isInReadinessUniverse);
-  const ready: PortalReadinessItem[] = [];
-  const blocked: PortalReadinessItem[] = [];
-  const blockerCounts = blockerCountersZero();
+  // Consolidação obrigatória: customer_id é identidade canônica. Se dois
+  // registros no ctx tiverem o mesmo id (não deveria acontecer, mas defesa em
+  // profundidade contra dedupe upstream falho), o segundo é ignorado — nunca
+  // criamos um caso duplicado. Fusão de fontes múltiplas do MESMO id já é
+  // resolvida em mapGrowthSnapshot; aqui protegemos a fronteira.
+  const byId = new Map<string, PortalReadinessItem>();
 
-  for (const customer of universe) {
-    const classification = classifyCustomer(customer);
-    const item: PortalReadinessItem = {
+  for (const customer of ctx.customers) {
+    if (!isInReadinessUniverse(customer)) continue;
+    if (byId.has(customer.id)) continue; // dedupe defensiva por customer_id
+    const c = classifyCustomer(customer);
+    byId.set(customer.id, {
       customerId: customer.id,
       name: customer.name,
-      state: classification.state,
-      portalAccessReady: classification.portalAccessReady,
-      whatsappInviteReady: classification.whatsappInviteReady,
-      blockers: classification.blockers,
+      state: c.state,
+      portalAccessReady: c.portalAccessReady,
+      whatsappInviteReady: c.whatsappInviteReady,
+      blockers: c.blockers,
+      issues: c.issues,
+      canonicalSubscriptionActive: c.canonicalSubscriptionActive,
+      hasEmail: c.hasEmail,
+      hasAuthLink: c.hasAuthLink,
+      portalBetaEnabled: c.portalBetaEnabled,
+      hasValidPhone: c.hasValidPhone,
       href: customerProfileHref(customer.id),
-    };
-    for (const b of classification.blockers) blockerCounts[b] += 1;
-    if (classification.state === "READY") ready.push(item);
-    else blocked.push(item);
+    });
   }
 
-  // Ordenação estável: primeiro pelos com WhatsApp pronto, depois nome.
-  ready.sort((a, b) => Number(b.whatsappInviteReady) - Number(a.whatsappInviteReady) || a.name.localeCompare(b.name));
-  blocked.sort((a, b) => a.name.localeCompare(b.name));
+  const totalEvaluated = byId.size;
 
-  if (universe.length === 0) {
+  if (totalEvaluated === 0) {
     return {
       status: "insufficient_data",
       message: "Nenhum assinante elegível na base atual — universo vazio.",
@@ -245,24 +305,65 @@ export function getSubscriberPortalReadiness(ctx: AgentContext): SkillResult<Por
     };
   }
 
+  const ready: PortalReadinessItem[] = [];
+  const blocked: PortalReadinessItem[] = [];
+  const blockerFrequency = blockerCountersZero();
+
+  for (const item of byId.values()) {
+    for (const b of item.blockers) blockerFrequency[b] += 1;
+    if (item.state === "READY") ready.push(item);
+    else blocked.push(item);
+  }
+
+  ready.sort((a, b) => Number(b.whatsappInviteReady) - Number(a.whatsappInviteReady) || a.name.localeCompare(b.name));
+  blocked.sort((a, b) => a.name.localeCompare(b.name));
+
+  const totalPortalReady = ready.length;
+  const totalBlocked = blocked.length;
+
+  // Invariante crítica: totalEvaluated === totalPortalReady + totalBlocked.
+  // Se cair aqui, é bug de consolidação — falha alta para não deixar contagem
+  // silenciosamente errada em produção.
+  if (totalEvaluated !== totalPortalReady + totalBlocked) {
+    throw new Error(
+      `[portal-readiness] invariante violada: totalEvaluated=${totalEvaluated} != ready(${totalPortalReady}) + blocked(${totalBlocked})`,
+    );
+  }
+
   return {
     status: "ok",
     data: {
+      totalEvaluated,
+      totalPortalReady,
+      totalBlocked,
       ready,
       blocked,
-      blockerCounts,
-      totalSubscribersConsidered: universe.length,
+      blockerFrequency,
+      presentation: {
+        invariants: [
+          "cada customer aparece uma única vez (identidade canônica = customer_id)",
+          "totalEvaluated = totalPortalReady + totalBlocked",
+          "blockerFrequency é FREQUÊNCIA — um customer pode ter múltiplos blockers, portanto a soma pode ser maior que totalBlocked",
+        ],
+        renderingRules: [
+          "use totalEvaluated / totalPortalReady / totalBlocked EXATAMENTE como vieram — não recalcule, não some manualmente",
+          "se agrupar bloqueados por motivo, cada customer aparece uma única vez com TODOS os blockers/issues consolidados no mesmo caso; nunca dividir o mesmo customer entre dois grupos",
+          "ao mostrar blockerFrequency, rotule como 'frequência dos bloqueios (um cliente pode ter mais de um)'; NUNCA como 'quantidade de clientes'",
+          "nunca cite um customer fora da coleção retornada (ready ∪ blocked); nada de observações soltas com nomes",
+        ],
+      },
     },
     facts: [
-      `${universe.length} customer(s) no universo (subscription canônica ativa + quem 'aparenta ser assinante' por commercialStatus/base viva).`,
-      `${ready.length} com acesso ao Portal provisionado (subscription canônica + gate + e-mail + vínculo Auth).`,
-      `${blocked.length} bloqueado(s).`,
+      `${totalEvaluated} customer(s) avaliado(s) no universo do Portal (cada customer_id 1x).`,
+      `${totalPortalReady} com acesso ao Portal provisionado (subscription canônica + gate + e-mail + vínculo Auth).`,
+      `${totalBlocked} bloqueado(s). Invariante: totalEvaluated = totalPortalReady + totalBlocked.`,
     ],
     inferences: [
       "Elegibilidade parte SEMPRE de crm_subscriptions.is_active_subscriber. commercialStatus, knownSubscriberStatus, 4uCar, Founder e Curadoria são contexto — nunca promovem a READY.",
       "'Acesso provisionado' NÃO afirma que o cliente logou/ativou. Não temos evento de primeiro login registrado.",
       "MISSING_PHONE_FOR_WHATSAPP só bloqueia o convite pelo WhatsApp; não bloqueia o acesso por e-mail.",
       "INCONSISTENT_SUBSCRIBER_STATE = fonte não canônica diz 'assinante' mas crm_subscriptions não confirma. Reconciliar antes de liberar Portal.",
+      "blockerFrequency é frequência: um customer com 3 blockers soma 3 unidades. NUNCA use como quantidade de clientes.",
     ],
   };
 }
@@ -414,4 +515,16 @@ export function readinessToAttentionCards(summary: PortalReadinessSummary): Atte
     });
   }
   return cards;
+}
+
+/**
+ * Uma linha textual consolidada para um customer bloqueado — todos os blockers
+ * e issues em UM texto. Usado pelo provider determinístico e ideal para a LLM
+ * espelhar em vez de agrupar por motivo (o que gera sobreposição).
+ */
+export function formatBlockedItemReasons(item: PortalReadinessItem): string {
+  const parts: string[] = [];
+  if (item.blockers.length > 0) parts.push(`Bloqueios: ${item.blockers.join(", ")}`);
+  if (item.issues.length > 0) parts.push(`Issues: ${item.issues.join(", ")}`);
+  return parts.join(" · ");
 }
