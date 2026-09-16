@@ -23,6 +23,14 @@ export interface GrowthDbSnapshot {
   interactions: Row[];
   scores: Row[];
   founderLinks?: Row[];
+  /**
+   * Vínculos crm_customer_auth (1:1 customer_id → auth_user_id). Alimenta o
+   * bloco `portalAccess.hasAuthLink` em cada DgnCustomer — sem isso, o
+   * Assistente DGN não consegue distinguir "gate ligado mas sem provisão" de
+   * "acesso realmente pronto". Nenhum dado sensível cruza (só a existência da
+   * linha; o auth_user_id fica no server).
+   */
+  customerAuths?: Row[];
 }
 
 type GrowthEnv = Record<string, string | undefined>;
@@ -56,7 +64,7 @@ async function selectAllOptional(db: SupabaseClient, table: string): Promise<Row
 }
 
 export async function readGrowthSnapshot(db: SupabaseClient): Promise<GrowthDbSnapshot> {
-  const [customers, vehicles, subscriptions, campaignMembers, interactions, scores, founderLinks] = await Promise.all([
+  const [customers, vehicles, subscriptions, campaignMembers, interactions, scores, founderLinks, customerAuths] = await Promise.all([
     selectAll(db, "crm_customers"),
     selectAll(db, "crm_vehicles"),
     selectAll(db, "crm_subscriptions"),
@@ -64,8 +72,9 @@ export async function readGrowthSnapshot(db: SupabaseClient): Promise<GrowthDbSn
     selectAll(db, "crm_interactions"),
     selectAll(db, "crm_score_snapshots"),
     selectAllOptional(db, "crm_founder_public_links"),
+    selectAllOptional(db, "crm_customer_auth"),
   ]);
-  return { customers, vehicles, subscriptions, campaignMembers, interactions, scores, founderLinks };
+  return { customers, vehicles, subscriptions, campaignMembers, interactions, scores, founderLinks, customerAuths };
 }
 
 const commercialStage: Record<string, FoundersPipelineStatus | ""> = {
@@ -93,6 +102,13 @@ const priority = (value: unknown): "baixa" | "normal" | "alta" | "urgente" => {
 };
 
 export function mapGrowthSnapshot(snapshot: GrowthDbSnapshot): DgnCustomer[] {
+  // Index de crm_customer_auth por customer_id — evita O(n²) ao mapear todos os
+  // customers. Só usa a existência do vínculo; nunca o auth_user_id em si.
+  const authIndex = new Set<string>();
+  for (const row of snapshot.customerAuths ?? []) {
+    const cid = text((row as { customer_id?: unknown }).customer_id);
+    if (cid) authIndex.add(cid);
+  }
   return snapshot.customers.map((customer) => {
     const customerId = text(customer.id);
     const vehicle = snapshot.vehicles.find((row) => row.customer_id === customerId && row.is_primary)
@@ -129,6 +145,17 @@ export function mapGrowthSnapshot(snapshot: GrowthDbSnapshot): DgnCustomer[] {
       isActive: subscription.is_active_subscriber === true,
     } : null;
 
+    // Portal Access — booleans só. Fonte 1:1 do CRM/Supabase. Populamos SEMPRE
+    // que estamos em modo DB (mesmo que gate=false / sem email) porque o skill
+    // de readiness precisa distinguir "não sei" de "sei que está desligado".
+    // Em modo JSON este bloco fica `undefined` (via mapper diferente); a skill
+    // devolve `unavailable` nesse cenário.
+    const portalAccess: DgnCustomer["portalAccess"] = {
+      portalBetaEnabled: customer.portal_beta_enabled === true,
+      hasEmail: typeof customer.email === "string" && customer.email.trim().length > 0,
+      hasAuthLink: authIndex.has(customerId),
+    };
+
     return {
       id: text(customer.legacy_id) || customerId,
       name: text(customer.name), phone: text(customer.primary_phone),
@@ -145,6 +172,7 @@ export function mapGrowthSnapshot(snapshot: GrowthDbSnapshot): DgnCustomer[] {
       dataQualityNotes: text(customer.data_quality_notes),
       hasValidPhone: Boolean(text(customer.normalized_phone)),
       subscription: subscriptionBlock,
+      portalAccess,
       commercial: { owner: text(member?.owner), commercialNotes: text(member?.commercial_notes),
         nextAction: text(member?.next_action), nextActionAt: text(member?.next_action_at),
         priority: priority(member?.priority), updatedAt: text(member?.updated_at) },

@@ -21,6 +21,7 @@ import { getSubscriberAttention } from "./skills/subscriber-attention.ts";
 import { findCustomerByFuzzyName, getCustomerSummary } from "./skills/customer-summary.ts";
 import { suggestNextAction } from "./skills/next-action.ts";
 import { getFounderMetrics } from "./skills/founder-metrics-skill.ts";
+import { getSubscriberPortalReadiness, getPortalAccessIssues } from "./skills/portal-readiness.ts";
 import { prepareFollowupMessage } from "./skills/prepare-followup-message.ts";
 import { prepareFounderApproach } from "./skills/prepare-founder-approach.ts";
 import { prepareRenewalMessage } from "./skills/prepare-renewal-message.ts";
@@ -48,6 +49,8 @@ export const AGENT_TOOL_NAMES = [
   "get_customer_summary",
   "suggest_next_action",
   "get_founder_metrics",
+  "get_subscriber_portal_readiness",
+  "get_portal_access_issues",
   // prepare-only
   "prepare_followup_message",
   "prepare_founder_approach",
@@ -280,6 +283,40 @@ export function buildAgentTools(ctx: AgentContext, acc: ToolInvocationAccumulato
           historical: d.historical,
           legacyFounderNotes: d.legacyFounderNotes,
         };
+      },
+    }),
+
+    get_subscriber_portal_readiness: tool({
+      description:
+        "Domínio SUBSCRIBER_PORTAL_ACCESS. Use SEMPRE que o operador perguntar sobre 'convite do Portal', 'acesso ao Portal', 'liberar acesso', 'ativação', 'magic link', 'quem está pronto para receber convite do Portal'. Devolve READY/BLOCKED por assinante com motivos canônicos (MISSING_EMAIL, NO_AUTH_LINK, PORTAL_GATE_DISABLED, NO_ACTIVE_SUBSCRIPTION, MISSING_PHONE_FOR_WHATSAPP, INCONSISTENT_PORTAL_STATE). NUNCA chame get_curation_opportunities/get_founder_metrics/get_founder_attention para essa pergunta — Portal ≠ Founder. Não infere 'primeiro login'/'ativação completa' — só afirma acesso PROVISIONADO.",
+      inputSchema: z.object({}),
+      execute: async () => {
+        const result = getSubscriberPortalReadiness(ctx);
+        pushSkill(acc, "get_subscriber_portal_readiness", {}, result);
+        if (result.status !== "ok" || !result.data) {
+          return { status: result.status, message: result.message ?? null };
+        }
+        return {
+          status: "ok" as const,
+          ready: result.data.ready,
+          blocked: result.data.blocked,
+          blockerCounts: result.data.blockerCounts,
+          totalSubscribersConsidered: result.data.totalSubscribersConsidered,
+        };
+      },
+    }),
+
+    get_portal_access_issues: tool({
+      description:
+        "Domínio SUBSCRIBER_PORTAL_ACCESS. Diagnóstico de inconsistências no provisionamento do Portal (gate ativo sem Auth, Auth sem e-mail canônico, acesso habilitado sem assinatura elegível, assinante ativo sem Portal). Use quando o operador perguntar 'onde o Portal está inconsistente', 'problemas de acesso', 'quem tem Portal errado'. Nunca corrige — só aponta com href do perfil.",
+      inputSchema: z.object({}),
+      execute: async () => {
+        const result = getPortalAccessIssues(ctx);
+        pushSkill(acc, "get_portal_access_issues", {}, result);
+        if (result.status !== "ok" || !result.data) {
+          return { status: result.status, message: result.message ?? null };
+        }
+        return { status: "ok" as const, issues: result.data };
       },
     }),
 

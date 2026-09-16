@@ -25,7 +25,7 @@ test("registry rejeita mode write — só read_only ou prepare_only", () => {
   assert.ok(!modes.has("write" as never), "mode write BANIDO");
 });
 
-test("Fase 1.5 + get_founder_metrics — 7 skills read_only registradas", () => {
+test("Fase 1.5 + Portal readiness — 9 skills read_only registradas", () => {
   const readOnly = getSkillsByMode("read_only").map((s) => s.name);
   const expected = [
     "get_daily_briefing",
@@ -35,6 +35,8 @@ test("Fase 1.5 + get_founder_metrics — 7 skills read_only registradas", () => 
     "get_customer_summary",
     "suggest_next_action",
     "get_founder_metrics",
+    "get_subscriber_portal_readiness",
+    "get_portal_access_issues",
   ];
   for (const name of expected) assert.ok(readOnly.includes(name), `skill read_only faltando: ${name}`);
   // isReadOnlyRegistry compat: passa a ser false porque temos prepare_only. Este
@@ -66,6 +68,7 @@ test("nenhum arquivo em skills/ importa camada de escrita do Growth", () => {
     "skills/customer-summary.ts",
     "skills/next-action.ts",
     "skills/founder-metrics-skill.ts",
+    "skills/portal-readiness.ts",
     // Fase 2 (prepare_only) — geram texto, não podem importar mutação.
     "skills/prepare-followup-message.ts",
     "skills/prepare-founder-approach.ts",

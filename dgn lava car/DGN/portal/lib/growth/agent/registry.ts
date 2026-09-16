@@ -48,6 +48,16 @@ export const AGENT_SKILL_REGISTRY: readonly SkillDefinition[] = [
     mode: "read_only",
     description: "Retorna o snapshot canônico de métricas Founder: confirmados (001/002/003), convites em aberto, selecionados, conversando, pagamento, convertidos, vagas disponíveis, Nº004 reaberta. Fonte única — nunca recalcule.",
   },
+  {
+    name: "get_subscriber_portal_readiness",
+    mode: "read_only",
+    description: "Domínio SUBSCRIBER_PORTAL_ACCESS. Responde 'quem está pronto para receber convite do Portal hoje e quais dados bloqueiam os demais?'. Lê SOMENTE crm_customers (portal_beta_enabled, email, telefone), crm_customer_auth (vínculo Auth) e crm_subscriptions. NUNCA usa Founder/Curadoria como fonte.",
+  },
+  {
+    name: "get_portal_access_issues",
+    mode: "read_only",
+    description: "Domínio SUBSCRIBER_PORTAL_ACCESS. Diagnóstico de inconsistências no provisionamento do Portal (gate ativo sem Auth, Auth sem e-mail, acesso habilitado sem assinatura ativa, assinante ativo sem Portal). Nunca corrige — só aponta.",
+  },
 
   // -----------------------------------------------------------------
   // PREPARE-ONLY (Fase 2) — geram conteúdo; jamais executam ação.
