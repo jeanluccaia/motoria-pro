@@ -288,7 +288,7 @@ export function buildAgentTools(ctx: AgentContext, acc: ToolInvocationAccumulato
 
     get_subscriber_portal_readiness: tool({
       description:
-        "Domínio SUBSCRIBER_PORTAL_ACCESS. Use SEMPRE que o operador perguntar sobre 'convite do Portal', 'acesso ao Portal', 'liberar acesso', 'ativação', 'magic link', 'quem está pronto para receber convite do Portal'. Devolve READY/BLOCKED por customer com motivos canônicos (MISSING_EMAIL, NO_AUTH_LINK, PORTAL_GATE_DISABLED, NO_ACTIVE_SUBSCRIPTION, MISSING_PHONE_FOR_WHATSAPP, INCONSISTENT_PORTAL_STATE, INCONSISTENT_SUBSCRIBER_STATE). Elegibilidade parte SEMPRE de crm_subscriptions.is_active_subscriber — commercialStatus, knownSubscriberStatus, 4uCar, Founder e Curadoria são contexto e nunca promovem a READY. NUNCA chame get_curation_opportunities/get_founder_metrics/get_founder_attention para essa pergunta — Portal ≠ Founder. Não infere 'primeiro login'/'ativação completa' — só afirma acesso PROVISIONADO.",
+        "Domínio SUBSCRIBER_PORTAL_ACCESS. Use SEMPRE que o operador perguntar sobre 'convite do Portal', 'acesso ao Portal', 'liberar acesso', 'ativação', 'magic link', 'quem está pronto para receber convite do Portal'. Devolve por customer_id um caso ÚNICO com TODOS os blockers e issues consolidados. Elegibilidade parte SEMPRE de crm_subscriptions.is_active_subscriber — commercialStatus, knownSubscriberStatus, 4uCar, Founder e Curadoria são contexto e nunca promovem a READY. NUNCA chame get_curation_opportunities/get_founder_metrics/get_founder_attention para essa pergunta — Portal ≠ Founder. Use totalEvaluated/totalPortalReady/totalBlocked EXATAMENTE como vieram; blockerFrequency é FREQUÊNCIA (soma pode ser > totalBlocked) — nunca apresente como quantidade de clientes. Um customer = um caso — nunca cite customers fora de ready ∪ blocked. Não infere 'primeiro login'/'ativação completa' — só afirma acesso PROVISIONADO.",
       inputSchema: z.object({}),
       execute: async () => {
         const result = getSubscriberPortalReadiness(ctx);
@@ -298,10 +298,13 @@ export function buildAgentTools(ctx: AgentContext, acc: ToolInvocationAccumulato
         }
         return {
           status: "ok" as const,
+          totalEvaluated: result.data.totalEvaluated,
+          totalPortalReady: result.data.totalPortalReady,
+          totalBlocked: result.data.totalBlocked,
           ready: result.data.ready,
           blocked: result.data.blocked,
-          blockerCounts: result.data.blockerCounts,
-          totalSubscribersConsidered: result.data.totalSubscribersConsidered,
+          blockerFrequency: result.data.blockerFrequency,
+          presentation: result.data.presentation,
         };
       },
     }),

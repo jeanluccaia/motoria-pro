@@ -75,13 +75,17 @@ function readinessToCards(
     });
   }
   for (const item of blocked) {
-    const reasonLabels = item.blockers.map((b) => BLOCKER_LABEL[b] ?? b).slice(0, 3).join("; ");
+    // Consolida TODOS os blockers e issues no MESMO card. Um customer = um caso.
+    // Nunca dividimos o mesmo customer entre "grupos" — a raiz da inconsistência
+    // do smoke A anterior foi exatamente isso (a LLM agrupava por motivo).
+    const blockerLabels = item.blockers.map((b) => BLOCKER_LABEL[b] ?? b).join("; ");
+    const issueTail = item.issues.length > 0 ? ` · Diagnóstico: ${item.issues.join(", ")}` : "";
     cards.push({
       id: `portal-blocked:${item.customerId}`,
       priority: "media",
       kind: "subscriber",
       title: item.name,
-      reason: `Bloqueios: ${reasonLabels || "n/d"}.`,
+      reason: `Bloqueios: ${blockerLabels || "n/d"}.${issueTail}`,
       nextAction: "Ver ficha para resolver os motivos antes de convidar.",
       href: item.href,
       ctaLabel: "Ver cliente",
@@ -123,19 +127,13 @@ export class DeterministicAgentProvider implements AgentProvider {
     if (classification.domain === "SUBSCRIBER_PORTAL_ACCESS") {
       const readiness = getSubscriberPortalReadiness(ctx);
       if (readiness.status === "ok" && readiness.data) {
-        const readyLine =
-          readiness.data.ready.length > 0
-            ? `${pluralize(readiness.data.ready.length, "assinante pronto para receber convite do Portal", "assinantes prontos para receber convite do Portal")}.`
-            : "Nenhum assinante com acesso ao Portal totalmente provisionado agora.";
-        const blockedLine =
-          readiness.data.blocked.length > 0
-            ? `${pluralize(readiness.data.blocked.length, "assinante bloqueado", "assinantes bloqueados")} — motivo canônico em cada card.`
-            : "";
+        const { totalEvaluated, totalPortalReady, totalBlocked } = readiness.data;
+        const evaluatedLine = `${totalEvaluated} customer(s) avaliado(s) — ${totalPortalReady} pronto(s) para receber convite do Portal, ${totalBlocked} bloqueado(s). Cada customer aparece uma única vez, com todos os motivos consolidados.`;
         const cards = readinessToCards(readiness.data.ready.slice(0, 20), readiness.data.blocked.slice(0, 20));
         return finish({
           intent: "subscriber-attention",
           blocks: [
-            { kind: "text", text: [readyLine, blockedLine].filter(Boolean).join(" ") },
+            { kind: "text", text: evaluatedLine },
             cardsBlock(cards),
           ],
           disclosures: { facts: readiness.facts, inferences: readiness.inferences },
