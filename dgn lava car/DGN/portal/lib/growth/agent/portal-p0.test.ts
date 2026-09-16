@@ -337,7 +337,7 @@ test("system prompt: publica domínios canônicos + regra 'convite sozinho'", ()
   assert.match(SYSTEM_PROMPT, /convite do Portal/);
   assert.match(SYSTEM_PROMPT, /convite Founder/);
   assert.match(SYSTEM_PROMPT, /desambiguação|desambiguacao|Portal do Assinante ou convite/i);
-  assert.equal(SYSTEM_PROMPT_VERSION, "dgn-agent-2.3.2");
+  assert.equal(SYSTEM_PROMPT_VERSION, "dgn-agent-2.3.3");
 });
 
 // ---------------------------------------------------------------------------

@@ -9,6 +9,7 @@ import type { AgentQuery, AgentResponse, AgentResponseBlock } from "../types.ts"
 import { buildAgentTools, createAccumulator } from "../tools.ts";
 import { SYSTEM_PROMPT, SYSTEM_PROMPT_VERSION } from "../system-prompt.ts";
 import { createConfiguredAnthropicProvider, readAnthropicEnv } from "./anthropic-client.ts";
+import { renderPortalReadinessResponse } from "../renderers/portal-readiness-renderer.ts";
 
 // -----------------------------------------------------------------------------
 // LlmAgentProvider — orquestra tool calling multi-step usando Vercel AI SDK.
@@ -76,7 +77,16 @@ export class LlmAgentProvider implements AgentProvider {
       temperature: 0.2,
     });
 
-    const text = extractText(result);
+    // Regra dura de renderização determinística: se a LLM chamou
+    // `get_subscriber_portal_readiness` com sucesso, DESCARTAMOS o texto que
+    // ela escreveu e substituímos por prosa gerada server-side a partir do
+    // resultado consolidado. Motivo: mesmo com system prompt reforçado, a LLM
+    // continuava reagrupando customers e escrevendo contadores errados. Aqui
+    // esse caminho fica fechado por construção — o texto vem do renderer.
+    const llmText = extractText(result);
+    const text = acc.portalReadiness
+      ? renderPortalReadinessResponse(acc.portalReadiness)
+      : llmText;
     const blocks: AgentResponseBlock[] = [];
     if (text.trim().length > 0) {
       blocks.push({ kind: "text", text });
