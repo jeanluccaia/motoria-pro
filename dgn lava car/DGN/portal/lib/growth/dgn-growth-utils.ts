@@ -159,6 +159,24 @@ export interface DgnCustomer {
     status: string | null;
     isActive: boolean;
   } | null;
+  /**
+   * Estado do provisionamento do Portal do Assinante — populado APENAS em modo
+   * DB (mapGrowthSnapshot). Só booleans/flags atravessam a fronteira; nunca
+   * e-mail, token, ou magic link. Fonte 1:1: `crm_customers.portal_beta_enabled`,
+   * `crm_customers.email` (presença), e existência de linha em
+   * `crm_customer_auth` para o customer.
+   *
+   * Usado pelo Assistente DGN para responder "quem está pronto para receber
+   * convite do Portal" — nunca deve ser confundido com aquisição Founder.
+   *
+   * `null` = leitura veio de JSON (source=json) e portanto não temos o dado.
+   * A skill de readiness devolve `unavailable` nesse cenário.
+   */
+  portalAccess?: {
+    portalBetaEnabled: boolean;
+    hasEmail: boolean;
+    hasAuthLink: boolean;
+  } | null;
   commercial?: {
     owner: string;
     commercialNotes: string;
