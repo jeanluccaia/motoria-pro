@@ -288,7 +288,7 @@ export function buildAgentTools(ctx: AgentContext, acc: ToolInvocationAccumulato
 
     get_subscriber_portal_readiness: tool({
       description:
-        "Domínio SUBSCRIBER_PORTAL_ACCESS. Use SEMPRE que o operador perguntar sobre 'convite do Portal', 'acesso ao Portal', 'liberar acesso', 'ativação', 'magic link', 'quem está pronto para receber convite do Portal'. Devolve READY/BLOCKED por assinante com motivos canônicos (MISSING_EMAIL, NO_AUTH_LINK, PORTAL_GATE_DISABLED, NO_ACTIVE_SUBSCRIPTION, MISSING_PHONE_FOR_WHATSAPP, INCONSISTENT_PORTAL_STATE). NUNCA chame get_curation_opportunities/get_founder_metrics/get_founder_attention para essa pergunta — Portal ≠ Founder. Não infere 'primeiro login'/'ativação completa' — só afirma acesso PROVISIONADO.",
+        "Domínio SUBSCRIBER_PORTAL_ACCESS. Use SEMPRE que o operador perguntar sobre 'convite do Portal', 'acesso ao Portal', 'liberar acesso', 'ativação', 'magic link', 'quem está pronto para receber convite do Portal'. Devolve READY/BLOCKED por customer com motivos canônicos (MISSING_EMAIL, NO_AUTH_LINK, PORTAL_GATE_DISABLED, NO_ACTIVE_SUBSCRIPTION, MISSING_PHONE_FOR_WHATSAPP, INCONSISTENT_PORTAL_STATE, INCONSISTENT_SUBSCRIBER_STATE). Elegibilidade parte SEMPRE de crm_subscriptions.is_active_subscriber — commercialStatus, knownSubscriberStatus, 4uCar, Founder e Curadoria são contexto e nunca promovem a READY. NUNCA chame get_curation_opportunities/get_founder_metrics/get_founder_attention para essa pergunta — Portal ≠ Founder. Não infere 'primeiro login'/'ativação completa' — só afirma acesso PROVISIONADO.",
       inputSchema: z.object({}),
       execute: async () => {
         const result = getSubscriberPortalReadiness(ctx);
@@ -308,7 +308,7 @@ export function buildAgentTools(ctx: AgentContext, acc: ToolInvocationAccumulato
 
     get_portal_access_issues: tool({
       description:
-        "Domínio SUBSCRIBER_PORTAL_ACCESS. Diagnóstico de inconsistências no provisionamento do Portal (gate ativo sem Auth, Auth sem e-mail canônico, acesso habilitado sem assinatura elegível, assinante ativo sem Portal). Use quando o operador perguntar 'onde o Portal está inconsistente', 'problemas de acesso', 'quem tem Portal errado'. Nunca corrige — só aponta com href do perfil.",
+        "Domínio SUBSCRIBER_PORTAL_ACCESS. Diagnóstico de inconsistências no provisionamento do Portal (gate ativo sem Auth, Auth sem e-mail canônico, acesso habilitado sem assinatura canônica, assinante canônico sem Portal, e commercialStatus/base viva conflitando com crm_subscriptions). Use quando o operador perguntar 'onde o Portal está inconsistente', 'problemas de acesso', 'quem tem Portal errado'. Nunca corrige — só aponta com href do perfil.",
       inputSchema: z.object({}),
       execute: async () => {
         const result = getPortalAccessIssues(ctx);

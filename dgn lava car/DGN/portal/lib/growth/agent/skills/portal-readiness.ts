@@ -6,8 +6,12 @@ import { customerProfileHref } from "../../customer-links.ts";
 // -----------------------------------------------------------------------------
 // Skills de acesso ao Portal do Assinante (domain SUBSCRIBER_PORTAL_ACCESS).
 //
-// Contexto do bug que motivou o P0: a palavra "convite" sozinha vinha
-// caindo em rotas Founder (aquisição). Aqui separamos:
+// FONTE DE VERDADE DA ELEGIBILIDADE = crm_subscriptions.is_active_subscriber
+// (exposto como `customer.subscription?.isActive` após mapGrowthSnapshot).
+// Nada mais promove um cliente a "pronto para Portal": commercialStatus,
+// knownSubscriberStatus, evidência 4uCar, Founder e Curadoria são apenas
+// CONTEXTO — quando divergem da fonte canônica, sinalizamos como
+// INCONSISTENT_SUBSCRIBER_STATE em vez de tratar como assinatura ativa.
 //
 //   * `get_subscriber_portal_readiness` responde
 //        "quem está pronto para receber convite do Portal hoje e
@@ -15,15 +19,14 @@ import { customerProfileHref } from "../../customer-links.ts";
 //   * `get_portal_access_issues` responde
 //        "onde o provisionamento está inconsistente?" (diagnóstico)
 //
-// Nenhuma dessas skills toca Founder/Curadoria — o universo é o assinante que
-// existe operacionalmente no CRM. Fontes usadas:
+// Nenhuma dessas skills toca Founder/Curadoria. Fontes usadas:
+//   * `crm_subscriptions.is_active_subscriber` (fonte canônica da elegibilidade)
 //   * `crm_customers.portal_beta_enabled` (gate)
-//   * `crm_customers.email` (presença)
-//   * `crm_customer_auth` (vínculo existe?)
-//   * `crm_customers.normalized_phone` (canal do convite WhatsApp)
-//   * `crm_subscriptions.is_active_subscriber` / `subscription.status`
-//   * base viva `KNOWN_SUBSCRIBERS_2026_08_16` (para reconhecer quem é
-//     assinante mesmo antes de o registro do CRM sinalizar)
+//   * `crm_customers.email` (presença — via `portalAccess.hasEmail`)
+//   * `crm_customer_auth` (vínculo existe? — via `portalAccess.hasAuthLink`)
+//   * `crm_customers.normalized_phone` (canal do convite WhatsApp — separado)
+//   * base viva `KNOWN_SUBSCRIBERS_2026_08_16` + `commercialStatus`: apenas
+//     para detectar INCONSISTENT_SUBSCRIBER_STATE, NUNCA para promover a READY.
 //
 // Nenhum evento de "primeiro login" / "ativou o Portal" existe hoje. Portanto
 // NÃO afirmamos ativação — só "acesso provisionado". Ver spec P0 do Jean.
@@ -35,7 +38,8 @@ export type PortalReadinessBlocker =
   | "PORTAL_GATE_DISABLED"
   | "NO_ACTIVE_SUBSCRIPTION"
   | "MISSING_PHONE_FOR_WHATSAPP"
-  | "INCONSISTENT_PORTAL_STATE";
+  | "INCONSISTENT_PORTAL_STATE"
+  | "INCONSISTENT_SUBSCRIBER_STATE";
 
 export type PortalReadinessState = "READY" | "BLOCKED";
 
@@ -69,25 +73,54 @@ export interface PortalAccessIssue {
     | "GATE_ENABLED_WITHOUT_EMAIL"
     | "AUTH_LINK_WITHOUT_EMAIL"
     | "ACCESS_ENABLED_WITHOUT_ACTIVE_SUBSCRIPTION"
-    | "ACTIVE_SUBSCRIBER_WITHOUT_PORTAL";
+    | "ACTIVE_SUBSCRIBER_WITHOUT_PORTAL"
+    | "INCONSISTENT_SUBSCRIBER_STATE";
   detail: string;
   href: string;
 }
 
 // ---------------------------------------------------------------------------
-// Universo: quem é considerado assinante para efeito de convite do Portal.
-// Fontes canônicas — igual à lógica que a Central de Assinantes já usa (assinantes-detectados).
+// Universo: quem entra na resposta do readiness.
+//
+// A ELEGIBILIDADE em si (portalAccessReady) exige subscription canônica ativa
+// — só `crm_subscriptions.is_active_subscriber === true` conta. Ver
+// `hasCanonicalActiveSubscription`.
+//
+// O UNIVERSO da resposta é intencionalmente mais largo: inclui quem tem
+// subscription canônica ativa E também quem "aparenta" ser assinante
+// (commercialStatus / knownSubscriberStatus) mas não tem subscription
+// canônica. Isso permite listar esses casos como BLOCKED com
+// NO_ACTIVE_SUBSCRIPTION + INCONSISTENT_SUBSCRIBER_STATE em vez de sumir
+// silenciosamente com eles.
+//
+// Fora do universo: quem não tem nenhum sinal de "poderia ser assinante" —
+// esses são leads/curadoria pura e não têm o que responder aqui.
 // ---------------------------------------------------------------------------
 
-function isEligibleSubscriber(customer: DgnCustomer): boolean {
-  if (customer.subscription?.isActive === true) return true;
+/**
+ * Fonte canônica de elegibilidade para o Portal. Espelha 1:1 a linha ativa
+ * em `crm_subscriptions` (populada por mapGrowthSnapshot). Nunca inferir por
+ * commercialStatus, knownSubscriberStatus, evidência 4uCar ou Founder.
+ */
+function hasCanonicalActiveSubscription(customer: DgnCustomer): boolean {
+  return customer.subscription?.isActive === true;
+}
+
+/**
+ * Sinal de que o customer "aparenta" ser assinante segundo fontes NÃO
+ * canônicas (commercialStatus, base viva 4uCar). Usado só para detectar
+ * INCONSISTENT_SUBSCRIBER_STATE e para manter o customer no universo do
+ * readiness (senão o operador não veria o conflito).
+ */
+function looksLikeSubscriber(customer: DgnCustomer): boolean {
   if (customer.commercialStatus === "Assinante Ativo") return true;
-  // knownSubscriberStatus é enriquecido pelo enrichKnownSubscribers antes do
-  // context chegar até aqui. Cobre casos onde o CRM ainda não migrou o cliente
-  // para "Assinante Ativo" mas ele já figura na base viva 4uCar.
   if (customer.knownSubscriberStatus === "ativo") return true;
   if (customer.knownSubscriberStatus === "renovacao_pendente") return true;
   return false;
+}
+
+function isInReadinessUniverse(customer: DgnCustomer): boolean {
+  return hasCanonicalActiveSubscription(customer) || looksLikeSubscriber(customer);
 }
 
 function classifyCustomer(customer: DgnCustomer): {
@@ -107,13 +140,11 @@ function classifyCustomer(customer: DgnCustomer): {
   const hasAuthLink = portal?.hasAuthLink === true;
   const hasPhone = customer.hasValidPhone === true;
 
-  const subscriptionElegible =
-    customer.subscription?.isActive === true ||
-    customer.commercialStatus === "Assinante Ativo" ||
-    customer.knownSubscriberStatus === "ativo" ||
-    customer.knownSubscriberStatus === "renovacao_pendente";
+  // FONTE CANÔNICA — só isso promove a READY. Ver comentário do módulo.
+  const hasActiveSubscription = hasCanonicalActiveSubscription(customer);
+  const appearsSubscriberByOtherSources = looksLikeSubscriber(customer);
 
-  if (!subscriptionElegible) blockers.push("NO_ACTIVE_SUBSCRIPTION");
+  if (!hasActiveSubscription) blockers.push("NO_ACTIVE_SUBSCRIPTION");
   if (!hasEmail) blockers.push("MISSING_EMAIL");
   if (!hasAuthLink) blockers.push("NO_AUTH_LINK");
   if (!portalBetaEnabled) blockers.push("PORTAL_GATE_DISABLED");
@@ -125,7 +156,14 @@ function classifyCustomer(customer: DgnCustomer): {
     blockers.push("INCONSISTENT_PORTAL_STATE");
   }
 
-  const portalAccessReady = subscriptionElegible && hasEmail && hasAuthLink && portalBetaEnabled;
+  // Inconsistência da fonte de assinatura: commercialStatus ou base viva
+  // dizem "assinante" mas `crm_subscriptions` não confirma. Não promove a
+  // READY — apenas informa o operador que há conflito a reconciliar.
+  if (!hasActiveSubscription && appearsSubscriberByOtherSources) {
+    blockers.push("INCONSISTENT_SUBSCRIBER_STATE");
+  }
+
+  const portalAccessReady = hasActiveSubscription && hasEmail && hasAuthLink && portalBetaEnabled;
 
   if (!hasPhone) blockers.push("MISSING_PHONE_FOR_WHATSAPP");
   const whatsappInviteReady = portalAccessReady && hasPhone;
@@ -150,6 +188,7 @@ function blockerCountersZero(): Record<PortalReadinessBlocker, number> {
     NO_ACTIVE_SUBSCRIPTION: 0,
     MISSING_PHONE_FOR_WHATSAPP: 0,
     INCONSISTENT_PORTAL_STATE: 0,
+    INCONSISTENT_SUBSCRIBER_STATE: 0,
   };
 }
 
@@ -172,7 +211,7 @@ export function getSubscriberPortalReadiness(ctx: AgentContext): SkillResult<Por
     };
   }
 
-  const universe = ctx.customers.filter(isEligibleSubscriber);
+  const universe = ctx.customers.filter(isInReadinessUniverse);
   const ready: PortalReadinessItem[] = [];
   const blocked: PortalReadinessItem[] = [];
   const blockerCounts = blockerCountersZero();
@@ -215,13 +254,15 @@ export function getSubscriberPortalReadiness(ctx: AgentContext): SkillResult<Por
       totalSubscribersConsidered: universe.length,
     },
     facts: [
-      `${universe.length} assinante(s) considerados (base viva + CRM).`,
-      `${ready.length} com acesso ao Portal provisionado (gate + e-mail + vínculo Auth).`,
-      `${blocked.length} bloqueados.`,
+      `${universe.length} customer(s) no universo (subscription canônica ativa + quem 'aparenta ser assinante' por commercialStatus/base viva).`,
+      `${ready.length} com acesso ao Portal provisionado (subscription canônica + gate + e-mail + vínculo Auth).`,
+      `${blocked.length} bloqueado(s).`,
     ],
     inferences: [
+      "Elegibilidade parte SEMPRE de crm_subscriptions.is_active_subscriber. commercialStatus, knownSubscriberStatus, 4uCar, Founder e Curadoria são contexto — nunca promovem a READY.",
       "'Acesso provisionado' NÃO afirma que o cliente logou/ativou. Não temos evento de primeiro login registrado.",
       "MISSING_PHONE_FOR_WHATSAPP só bloqueia o convite pelo WhatsApp; não bloqueia o acesso por e-mail.",
+      "INCONSISTENT_SUBSCRIBER_STATE = fonte não canônica diz 'assinante' mas crm_subscriptions não confirma. Reconciliar antes de liberar Portal.",
     ],
   };
 }
@@ -251,11 +292,9 @@ export function getPortalAccessIssues(ctx: AgentContext): SkillResult<PortalAcce
     const gate = portal.portalBetaEnabled;
     const hasEmail = portal.hasEmail;
     const hasAuthLink = portal.hasAuthLink;
-    const subscriptionElegible =
-      customer.subscription?.isActive === true ||
-      customer.commercialStatus === "Assinante Ativo" ||
-      customer.knownSubscriberStatus === "ativo" ||
-      customer.knownSubscriberStatus === "renovacao_pendente";
+    // Fonte canônica de assinatura. Ver comentário do módulo.
+    const hasActiveSubscription = hasCanonicalActiveSubscription(customer);
+    const appearsSubscriberByOtherSources = looksLikeSubscriber(customer);
 
     // 1) Gate ON sem vínculo Auth = portal marcado ativo mas provisionamento
     //    não fecha. UI mostra "Portal ativo" e o cliente não consegue entrar.
@@ -292,23 +331,41 @@ export function getPortalAccessIssues(ctx: AgentContext): SkillResult<PortalAcce
     }
 
     // 4) Gate/acesso habilitado mas sem assinatura vigente = restrição a fechar.
-    if ((gate || hasAuthLink) && !subscriptionElegible) {
+    //    "Assinatura vigente" aqui é SÓ crm_subscriptions canônico — não
+    //    aceita commercialStatus ou knownSubscriberStatus como prova.
+    if ((gate || hasAuthLink) && !hasActiveSubscription) {
       issues.push({
         customerId: customer.id,
         name: customer.name,
         issue: "ACCESS_ENABLED_WITHOUT_ACTIVE_SUBSCRIPTION",
-        detail: "Portal está habilitado mas o cliente não figura como assinante ativo hoje. Revalidar antes de manter acesso.",
+        detail: "Portal está habilitado mas não há assinatura ativa em crm_subscriptions. Revalidar antes de manter acesso.",
         href: customerProfileHref(customer.id),
       });
     }
 
-    // 5) Assinante ativo sem acesso — não é falha, mas é sinal de trabalho.
-    if (subscriptionElegible && !gate && !hasAuthLink) {
+    // 5) Assinante ativo (canônico) sem acesso — não é falha, mas é sinal de trabalho.
+    if (hasActiveSubscription && !gate && !hasAuthLink) {
       issues.push({
         customerId: customer.id,
         name: customer.name,
         issue: "ACTIVE_SUBSCRIBER_WITHOUT_PORTAL",
-        detail: "Assinante reconhecido sem provisionamento no Portal. Este cliente aguarda 'Liberar acesso'.",
+        detail: "Assinante canônico sem provisionamento no Portal. Este cliente aguarda 'Liberar acesso'.",
+        href: customerProfileHref(customer.id),
+      });
+    }
+
+    // 6) Fonte NÃO canônica diz "assinante", crm_subscriptions diz que não.
+    //    Sinaliza para reconciliar — NUNCA promover automaticamente.
+    if (!hasActiveSubscription && appearsSubscriberByOtherSources) {
+      const evidence: string[] = [];
+      if (customer.commercialStatus === "Assinante Ativo") evidence.push('commercialStatus="Assinante Ativo"');
+      if (customer.knownSubscriberStatus === "ativo") evidence.push('base viva 4uCar="ativo"');
+      if (customer.knownSubscriberStatus === "renovacao_pendente") evidence.push('base viva 4uCar="renovacao_pendente"');
+      issues.push({
+        customerId: customer.id,
+        name: customer.name,
+        issue: "INCONSISTENT_SUBSCRIBER_STATE",
+        detail: `Sem linha ativa em crm_subscriptions, mas ${evidence.join(" e ")}. Reconciliar antes de liberar Portal.`,
         href: customerProfileHref(customer.id),
       });
     }
