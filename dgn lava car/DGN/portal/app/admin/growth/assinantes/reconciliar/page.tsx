@@ -24,8 +24,8 @@ export default function ReconcileSubscribersPage() {
         <ReconcilerClient />
 
         <p className="mt-8 text-[11px] text-white/40">
-          O botão &quot;Aplicar selecionados&quot; será liberado em fase posterior. Este PR entrega
-          somente o preview read-only e a RPC de criação em rascunho.
+          O apply é executado pelo servidor: cada linha é revalidada contra o snapshot canônico
+          imediatamente antes do write, e nenhuma cobrança PagBank é modificada.
         </p>
       </div>
     </div>
