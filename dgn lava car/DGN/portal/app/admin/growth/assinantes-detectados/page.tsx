@@ -7,6 +7,7 @@ import {
 } from "@/lib/growth/db/subscribers-view";
 import { loadGrowthData } from "@/lib/growth/db/growth-reader";
 import { readSupabaseEnv } from "@/lib/growth/db/client";
+import { getCanonicalActiveSubscribersCount } from "@/lib/growth/canonical-subscribers";
 
 export const dynamic = "force-dynamic";
 
@@ -101,7 +102,9 @@ export default async function AssinantesPage({
   const data = await loadGrowthData({ logger: console });
   const allRows = buildSubscribersCentralView(data.customers);
 
-  const active       = allRows.filter((r) => r.status === "ativo").length;
+  // Ativos = customers distintos com crm_subscriptions.is_active_subscriber=true.
+  // MESMA regra do Dashboard, via `getCanonicalActiveSubscribersCount`.
+  const active       = getCanonicalActiveSubscribersCount(data.customers);
   const detected     = allRows.filter((r) => r.status === "detectado").length;
   const pending      = allRows.filter((r) => r.status === "pendente_validacao").length;
   const overdue      = allRows.filter((r) => r.status === "inadimplente").length;
@@ -130,7 +133,7 @@ export default async function AssinantesPage({
         </header>
 
         <section className="mt-6 grid gap-3 sm:grid-cols-4">
-          <StatCard label="Ativos"                     value={active}   tone="emerald" />
+          <StatCard label="Assinantes ativos"          value={active}   tone="emerald" />
           <StatCard label="Detectados"                 value={detected} tone="gold" />
           <StatCard label="Pendentes de validação"     value={pending}  tone="neutral" />
           <StatCard label="Inadimplentes"              value={overdue}  tone="warn" />

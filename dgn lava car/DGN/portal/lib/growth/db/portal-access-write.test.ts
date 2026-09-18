@@ -20,7 +20,9 @@ import {
 
 interface State {
   customers: Array<{ id: string; legacy_id: string | null; name: string; email: string | null; portal_beta_enabled: boolean; portal_beta_enabled_at: string | null }>;
-  subscriptions: Array<{ id: string; customer_id: string }>;
+  // is_active_subscriber é o único sinal que promove "assinante ativo".
+  // Rows com is_active_subscriber=false (ex.: detectado/inadimplente) NÃO liberam o Portal.
+  subscriptions: Array<{ id: string; customer_id: string; is_active_subscriber: boolean }>;
   links: Array<{ auth_user_id: string; customer_id: string }>;
   authUsers: Array<{ id: string; email: string }>;
   audit: Array<Record<string, unknown>>;
@@ -159,8 +161,8 @@ function baseState(): State {
       { id: "cust-3", legacy_id: "sem-assinatura", name: "Sem Assinatura", email: null, portal_beta_enabled: false, portal_beta_enabled_at: null },
     ],
     subscriptions: [
-      { id: "sub-1", customer_id: "cust-1" },
-      { id: "sub-2", customer_id: "cust-2" },
+      { id: "sub-1", customer_id: "cust-1", is_active_subscriber: true },
+      { id: "sub-2", customer_id: "cust-2", is_active_subscriber: true },
       // cust-3 propositalmente sem subscription
     ],
     links: [],
@@ -259,6 +261,35 @@ test("provision bloqueia customer sem assinatura registrada", async () => {
     () => provisionPortalAccess({ customerId: "sem-assinatura", email: "novo@dgn.com", actor: "digo", db, sendMagicLink: async () => ({ ok: true, status: 200 }) }),
     (error: unknown) => error instanceof PortalAccessError && error.status === 409 && /sem assinatura/i.test(error.message),
   );
+});
+
+// -----------------------------------------------------------------------------
+// P0 Consistência: assinatura NÃO canônica (detectada/inadimplente) NÃO libera Portal.
+// A regra canônica exige `crm_subscriptions.is_active_subscriber = true`.
+// -----------------------------------------------------------------------------
+
+test("provision bloqueia quando existe subscription mas is_active_subscriber=false", async () => {
+  const state = baseState();
+  // Substitui a sub ativa de cust-1 por uma linha detectada/inadimplente.
+  state.subscriptions = state.subscriptions.map((s) =>
+    s.customer_id === "cust-1" ? { ...s, is_active_subscriber: false } : s,
+  );
+  const db = buildFake(state);
+  await assert.rejects(
+    () => provisionPortalAccess({ customerId: "gustavo-plensack", email: "novo@dgn.com", actor: "digo", db, sendMagicLink: async () => ({ ok: true, status: 200 }) }),
+    (error: unknown) => error instanceof PortalAccessError && error.status === 409 && /sem assinatura/i.test(error.message),
+  );
+  assert.equal(state.audit.length, 0);
+  assert.equal(state.createUserCalls, 0);
+});
+
+test("readPortalAccessStatus.hasSubscription é false quando só há linha inativa (detectado/inadimplente)", async () => {
+  const state = baseState();
+  state.subscriptions = state.subscriptions.map((s) =>
+    s.customer_id === "cust-1" ? { ...s, is_active_subscriber: false } : s,
+  );
+  const status = await readPortalAccessStatus("gustavo-plensack", buildFake(state));
+  assert.equal(status.hasSubscription, false);
 });
 
 // -----------------------------------------------------------------------------
