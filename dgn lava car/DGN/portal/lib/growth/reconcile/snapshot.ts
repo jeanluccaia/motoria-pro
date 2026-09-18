@@ -57,6 +57,24 @@ export function buildUuidToDgnIdMap(rawCustomers: RawCustomerRow[]): Map<string,
   return map;
 }
 
+/**
+ * Reverso: DgnCustomer.id (legacy_id ou UUID) → UUID canônico. Usado pelo
+ * endpoint de APPLY para resolver o UUID exigido pelas RPCs
+ * `crm_promote_existing_subscription` e `crm_create_manual_subscription`.
+ */
+export function buildDgnIdToUuidMap(rawCustomers: RawCustomerRow[]): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const row of rawCustomers) {
+    const uuid = typeof row.id === "string" ? row.id : "";
+    if (!uuid) continue;
+    const legacy = typeof row.legacy_id === "string" && row.legacy_id.trim().length > 0
+      ? row.legacy_id
+      : "";
+    map.set(legacy || uuid, uuid);
+  }
+  return map;
+}
+
 function resolveCustomerId(rawCustomerId: unknown, uuidToDgnId: Map<string, string>): string {
   const raw = typeof rawCustomerId === "string" ? rawCustomerId : String(rawCustomerId ?? "");
   return uuidToDgnId.get(raw) ?? raw;
