@@ -4,11 +4,12 @@ import { loadGrowthData, readGrowthSnapshot } from "@/lib/growth/db/growth-reade
 import { getSupabaseAdminClient } from "@/lib/growth/db/admin-client";
 import { parseReconcileInput } from "@/lib/growth/reconcile/parser";
 import { reconcile } from "@/lib/growth/reconcile/reconciler";
-import type {
-  ReconcileInputRow,
-  ReconcileSubscriptionRow,
-  ReconcileVehicleRow,
-} from "@/lib/growth/reconcile/types";
+import {
+  buildUuidToDgnIdMap,
+  mapSubscriptionsForReconciler,
+  mapVehiclesForReconciler,
+} from "@/lib/growth/reconcile/snapshot";
+import type { ReconcileInputRow } from "@/lib/growth/reconcile/types";
 
 // ---------------------------------------------------------------------------
 // POST /api/admin/growth/subscribers/reconcile
@@ -97,36 +98,19 @@ export async function POST(request: NextRequest) {
   }
 
   // Fonte canônica: loadGrowthData (customers enriquecidos) + snapshot bruto
-  // (subscriptions + vehicles completos para suportar multi-sub por customer).
+  // (customers+subscriptions+vehicles completos para suportar multi-sub por
+  // customer). O snapshot bruto também alimenta o remap UUID → DgnCustomer.id,
+  // sem o qual subs de customers com legacy_id (padrão dos promovidos no
+  // Lote 1) somem para o matcher — bug real observado no smoke 2026-09-17.
   try {
     const data = await loadGrowthData({ logger: console });
     const snapshot = data.origin === "db"
       ? await readGrowthSnapshot(getSupabaseAdminClient("subscriber-reconcile.read"))
-      : { subscriptions: [], vehicles: [] };
+      : { customers: [], subscriptions: [], vehicles: [] };
 
-    const subscriptions: ReconcileSubscriptionRow[] = (snapshot.subscriptions ?? []).map((s) => ({
-      id: String(s.id ?? ""),
-      customer_id: String(s.customer_id ?? ""),
-      subscription_plan: String(s.subscription_plan ?? ""),
-      subscription_cycle: String(s.subscription_cycle ?? ""),
-      subscription_status: String(s.subscription_status ?? ""),
-      is_active_subscriber: s.is_active_subscriber === true,
-      provider_customer_id: (s.provider_customer_id as string | null) ?? null,
-      provider_subscription_id: (s.provider_subscription_id as string | null) ?? null,
-      vehicle_id: (s.vehicle_id as string | null) ?? null,
-      cycle_ends_at: (s.cycle_ends_at as string | null) ?? null,
-      billing_due_at: (s.billing_due_at as string | null) ?? null,
-      source_reference: (s.source_reference as string | null) ?? null,
-      payment_status: (s.payment_status as string | null) ?? null,
-      payment_evidence_source: (s.payment_evidence_source as string | null) ?? null,
-    }));
-    const vehicles: ReconcileVehicleRow[] = (snapshot.vehicles ?? []).map((v) => ({
-      id: String(v.id ?? ""),
-      customer_id: String(v.customer_id ?? ""),
-      plate: (v.plate as string | null) ?? null,
-      brand: (v.brand as string | null) ?? null,
-      model: (v.model as string | null) ?? null,
-    }));
+    const uuidToDgnId = buildUuidToDgnIdMap(snapshot.customers ?? []);
+    const subscriptions = mapSubscriptionsForReconciler(snapshot.subscriptions ?? [], uuidToDgnId);
+    const vehicles = mapVehiclesForReconciler(snapshot.vehicles ?? [], uuidToDgnId);
 
     const preview = reconcile({
       rows,
