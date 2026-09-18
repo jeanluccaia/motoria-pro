@@ -40,6 +40,13 @@ export interface AttentionCard {
   ctaLabel: string;
   /** ID do customer quando aplicável (para follow-up via `get_customer_summary`). */
   customerId?: string;
+  /**
+   * Categorias adicionais quando este cartão consolida múltiplos sinais do
+   * mesmo customer (ex.: convite Founder ativo + score alto de curadoria).
+   * Preenchido por `dedupeAttentionCards` na montagem do Daily Briefing.
+   * Nunca inclui o próprio `kind`.
+   */
+  secondaryKinds?: AttentionCard["kind"][];
 }
 
 /** Resumo agregado do Daily Briefing. */
