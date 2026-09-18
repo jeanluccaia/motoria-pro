@@ -61,6 +61,13 @@ export interface PortalAccessStatus {
   enabled: boolean;
   emailMasked: string | null;
   hasAuth: boolean;
+  /**
+   * True somente quando existe uma linha em `crm_subscriptions` para o
+   * customer com `is_active_subscriber = true`. Ou seja: assinatura canônica
+   * ativa (mesmo critério do agent em portal-readiness e do helper
+   * `derivePortalAccessStatus`). Presença de linhas apenas `detectado`,
+   * `inadimplente`, ou `pendente_validacao` NÃO conta.
+   */
   hasSubscription: boolean;
   betaEnabledAt: string | null;
   /** Telefone formatado para exibição (ex.: "(19) 99999-9999"). null se ausente/ inválido. Fatia 2C. */
@@ -130,8 +137,17 @@ async function resolveCustomer(db: SupabaseClient, customerId: string): Promise<
   return byId.data as CustomerRow;
 }
 
+// Assinatura CANÔNICA ATIVA — mesma regra que o agent aplica em
+// `portal-readiness` e que o Dashboard usa em `canonical-subscribers.ts`.
+// Uma linha `crm_subscriptions` só promove a "assinante ativo" quando
+// `is_active_subscriber = true`. Linhas `detectado`/`inadimplente`/
+// `pendente_validacao` NÃO liberam o Portal.
 async function customerHasSubscription(db: SupabaseClient, customerId: string): Promise<boolean> {
-  const { count, error } = await db.from("crm_subscriptions").select("id", { count: "exact", head: true }).eq("customer_id", customerId);
+  const { count, error } = await db
+    .from("crm_subscriptions")
+    .select("id", { count: "exact", head: true })
+    .eq("customer_id", customerId)
+    .eq("is_active_subscriber", true);
   if (error) throw new PortalAccessError(`Falha ao verificar assinatura: ${error.message}`, 502);
   return (count ?? 0) > 0;
 }

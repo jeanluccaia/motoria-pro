@@ -83,6 +83,11 @@ import { normalizePlanCodeForFilter } from "@/lib/founder-plan-filter";
 import { curationDisplayState, type FounderCurationAction } from "@/lib/growth/db/founder-curation";
 import { isFounderAcquisitionEligible, type FounderEligibility } from "@/lib/growth/founder-eligibility";
 import { canonicalPlanLabel } from "@/lib/growth/canonical-plan";
+import {
+  derivePortalAccessStatus,
+  type PortalAccessBlocker,
+  type PortalAccessStatusResult,
+} from "@/lib/growth/portal/access-status";
 
 type GrowthView = "intelligence" | "curadoria" | "founders" | "profile";
 type ProfileTab = "overview" | "commercial" | "campaign" | "timeline";
@@ -3193,6 +3198,12 @@ interface PortalAccessState {
   enabled: boolean;
   emailMasked: string | null;
   hasAuth: boolean;
+  /**
+   * True quando o cliente tem `crm_subscriptions.is_active_subscriber = true`.
+   * Semanticamente equivalente ao `canonicalSubscriptionActive` do
+   * `derivePortalAccessStatus`. O nome do campo é mantido por compatibilidade
+   * com o payload do endpoint, mas a leitura é canônica no backend.
+   */
   hasSubscription: boolean;
   betaEnabledAt: string | null;
   phoneDisplay: string | null;
@@ -3350,132 +3361,287 @@ export function PortalAccessEditor({ customerId, enabled }: { customerId: string
         <p className="mt-4 text-xs text-[#666]">Carregando estado…</p>
       ) : !state ? (
         <p className="mt-4 text-xs text-red-300">{result?.message ?? "Estado indisponível."}</p>
-      ) : !state.hasSubscription ? (
-        <p className="mt-4 text-xs text-[#B5A063]">Cliente sem assinatura registrada. Ative o Portal apenas após confirmar a assinatura.</p>
-      ) : state.enabled && !state.emailMasked ? (
-        // Portal habilitado mas sem e-mail (ex.: QA prov. via SQL, ou desabilitar+reabilitar).
-        // Fluxo idempotente: mesmo endpoint POST — provisionPortalAccess reaproveita gate + vínculo se existirem.
-        <div className="mt-4 space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[11px] font-semibold text-amber-200">
-              Portal ativo · e-mail pendente
-            </span>
-          </div>
-          <label>
-            <span className={labelClass}>Cadastrar e-mail de acesso</span>
-            <input
-              type="email"
-              inputMode="email"
-              autoComplete="off"
-              disabled={!enabled || busy !== null}
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="cliente@email.com"
-              className={inputClass}
-            />
-          </label>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[11px] text-[#888]">O Portal já está liberado. Informe o e-mail real do cliente para gerar o magic link.</p>
-            <button type="button" disabled={!enabled || busy !== null || email.trim().length === 0} onClick={provision} className={primaryBtn}>
-              {busy === "provision" ? "Enviando…" : "Cadastrar e-mail de acesso"}
-            </button>
-          </div>
-        </div>
-      ) : state.enabled ? (
-        <div className="mt-4 space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-200">
-              <BadgeCheck size={13} /> Portal ativo
-            </span>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">E-mail de acesso</p>
-              <p className="mt-1 font-mono text-sm text-white/85">{state.emailMasked ?? "—"}</p>
-            </div>
-            <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">WhatsApp</p>
-              <p className="mt-1 text-sm text-white/85">
-                {state.phoneDisplay ?? <span className="text-amber-300">Telefone não cadastrado</span>}
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <button type="button" disabled={!enabled || busy !== null} onClick={resend} className={primaryBtn}>
-              {busy === "resend" ? "Enviando…" : "Reenviar acesso"}
-            </button>
-            <button
-              type="button"
-              disabled={!enabled || busy !== null || !state.hasPhone || !state.emailMasked}
-              onClick={sendWhatsappInvite}
-              title={
-                !state.hasPhone ? "Telefone não cadastrado — cadastre no bloco Dados do cliente."
-                : !state.emailMasked ? "Cadastre o e-mail antes de enviar o convite."
-                : "Abre o WhatsApp já com a mensagem preenchida."
-              }
-              className={primaryBtn}
-            >
-              {busy === "whatsapp" ? "Preparando…" : "Enviar convite pelo WhatsApp"}
-            </button>
-            {!confirmingDisable ? (
-              <button type="button" disabled={!enabled || busy !== null} onClick={() => { setConfirmingDisable(true); setResult(null); }} className={ghostBtn}>
-                Desabilitar Portal
-              </button>
-            ) : (
-              <div className="flex flex-wrap items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/5 p-2">
-                <p className="text-[11px] text-red-200">Cliente perderá acesso ao Portal. Assinatura e dados permanecem.</p>
-                <button type="button" disabled={busy !== null} onClick={disable} className={dangerBtn}>
-                  {busy === "disable" ? "Desabilitando…" : "Confirmar"}
-                </button>
-                <button type="button" disabled={busy !== null} onClick={() => setConfirmingDisable(false)} className={ghostBtn}>
-                  Cancelar
-                </button>
-              </div>
-            )}
-          </div>
-          {!state.hasPhone && (
-            <p className="text-[11px] text-amber-300/85">
-              Cadastre o telefone no bloco <span className="font-semibold">Dados do cliente</span> para habilitar o convite pelo WhatsApp.
-            </p>
-          )}
-          {!state.emailMasked && (
-            <p className="text-[11px] text-amber-300/85">
-              Cadastre o e-mail antes de enviar o convite.
-            </p>
-          )}
-          {whatsappPreview && (
-            <p className="text-[11px] text-emerald-300/80">
-              Convite registrado como <span className="font-mono">whatsapp_aberto</span> · template <span className="font-mono">{whatsappPreview.templateVersion}</span> · destino ****{whatsappPreview.destinationLast4}.
-            </p>
-          )}
-        </div>
-      ) : (
-        <div className="mt-4 space-y-3">
-          <label>
-            <span className={labelClass}>E-mail do cliente</span>
-            <input
-              type="email"
-              inputMode="email"
-              autoComplete="off"
-              disabled={!enabled || busy !== null}
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="cliente@email.com"
-              className={inputClass}
-            />
-          </label>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[11px] text-[#888]">Use o e-mail real do cliente. Um link único será enviado — sem senha.</p>
-            <button type="button" disabled={!enabled || busy !== null || email.trim().length === 0} onClick={provision} className={primaryBtn}>
-              {busy === "provision" ? "Enviando…" : "Liberar acesso ao Portal"}
-            </button>
-          </div>
-        </div>
-      )}
+      ) : renderPortalAccessBody({
+          state,
+          enabled,
+          email,
+          setEmail,
+          busy,
+          confirmingDisable,
+          setConfirmingDisable,
+          setResult,
+          whatsappPreview,
+          provision,
+          resend,
+          disable,
+          sendWhatsappInvite,
+          inputClass,
+          labelClass,
+          primaryBtn,
+          ghostBtn,
+          dangerBtn,
+        })}
 
       {result && (
         <p className={`mt-3 text-xs ${toneClass}`}>{result.message}</p>
       )}
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// renderPortalAccessBody
+// Deriva o estado de acesso via `derivePortalAccessStatus` (mesmo critério do
+// agent portal-readiness) e escolhe a UI+CTA coerente com o status. Invariantes:
+//   - ACCESS_PROVISIONED nunca combina com o CTA "Liberar acesso ao Portal".
+//   - INCONSISTENT (Auth/gate sem assinatura canônica) exige reconciliação —
+//     não permite ação silenciosa.
+//   - NOT_PROVISIONED só oferece "Liberar acesso" quando existe subscription
+//     canônica ativa; sem ela, o form fica bloqueado.
+// -----------------------------------------------------------------------------
+
+interface PortalAccessBodyProps {
+  state: PortalAccessState;
+  enabled: boolean;
+  email: string;
+  setEmail: (value: string) => void;
+  busy: null | "provision" | "resend" | "disable" | "whatsapp";
+  confirmingDisable: boolean;
+  setConfirmingDisable: (value: boolean) => void;
+  setResult: (value: { tone: "success" | "error" | "info"; message: string } | null) => void;
+  whatsappPreview: null | { destinationLast4: string; templateVersion: string };
+  provision: () => void;
+  resend: () => void;
+  disable: () => void;
+  sendWhatsappInvite: () => void;
+  inputClass: string;
+  labelClass: string;
+  primaryBtn: string;
+  ghostBtn: string;
+  dangerBtn: string;
+}
+
+function accessStatusBadgeClasses(status: PortalAccessStatusResult["status"]): string {
+  switch (status) {
+    case "ACCESS_PROVISIONED":
+      return "border-emerald-500/30 bg-emerald-500/10 text-emerald-200";
+    case "ACCESS_INCOMPLETE":
+      return "border-amber-400/30 bg-amber-400/10 text-amber-200";
+    case "INCONSISTENT":
+      return "border-red-500/30 bg-red-500/10 text-red-200";
+    case "NOT_PROVISIONED":
+    default:
+      return "border-white/[0.08] bg-white/[0.03] text-white/70";
+  }
+}
+
+function formatBlockers(blockers: PortalAccessBlocker[]): string {
+  const labels: Record<PortalAccessBlocker, string> = {
+    MISSING_ACTIVE_SUBSCRIPTION: "assinatura canônica",
+    MISSING_EMAIL: "e-mail",
+    MISSING_AUTH_LINK: "vínculo Auth",
+    PORTAL_GATE_DISABLED: "gate do Portal",
+  };
+  return blockers.map((b) => labels[b] ?? b).join(", ");
+}
+
+function renderPortalAccessBody(props: PortalAccessBodyProps) {
+  const {
+    state, enabled, email, setEmail, busy, confirmingDisable, setConfirmingDisable, setResult,
+    whatsappPreview, provision, resend, disable, sendWhatsappInvite,
+    inputClass, labelClass, primaryBtn, ghostBtn, dangerBtn,
+  } = props;
+
+  const portalStatus = derivePortalAccessStatus({
+    canonicalSubscriptionActive: state.hasSubscription,
+    hasEmail: Boolean(state.emailMasked),
+    hasAuthLink: state.hasAuth,
+    portalBetaEnabled: state.enabled,
+  });
+
+  // INCONSISTENT: gate/Auth sem assinatura canônica ativa — exige reconciliação
+  // humana. Nunca oferecer "Liberar acesso" nem "Reenviar" silenciosamente.
+  if (portalStatus.status === "INCONSISTENT") {
+    return (
+      <div className="mt-4 space-y-3">
+        <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold ${accessStatusBadgeClasses(portalStatus.status)}`}>
+          {portalStatus.label}
+        </span>
+        <p className="text-xs text-red-200">
+          Portal marcado como ativo mas <span className="font-semibold">não há assinatura vigente</span> em
+          {" "}<span className="font-mono">crm_subscriptions</span>. Reconcilie a assinatura antes de manter o acesso.
+        </p>
+        {!confirmingDisable ? (
+          <button type="button" disabled={!enabled || busy !== null} onClick={() => { setConfirmingDisable(true); setResult(null); }} className={ghostBtn}>
+            Desabilitar Portal
+          </button>
+        ) : (
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/5 p-2">
+            <p className="text-[11px] text-red-200">Cliente perderá acesso ao Portal. Assinatura e dados permanecem.</p>
+            <button type="button" disabled={busy !== null} onClick={disable} className={dangerBtn}>
+              {busy === "disable" ? "Desabilitando…" : "Confirmar"}
+            </button>
+            <button type="button" disabled={busy !== null} onClick={() => setConfirmingDisable(false)} className={ghostBtn}>
+              Cancelar
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Sem assinatura canônica ativa: nunca mostrar form "Liberar acesso" — o
+  // backend rejeitaria com 409 e a UI ficaria enganosa.
+  if (!state.hasSubscription) {
+    return (
+      <div className="mt-4 space-y-3">
+        <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold ${accessStatusBadgeClasses(portalStatus.status)}`}>
+          {portalStatus.label}
+        </span>
+        <p className="text-xs text-[#B5A063]">
+          Cliente sem assinatura vigente em <span className="font-mono">crm_subscriptions</span>. Ative o Portal apenas após confirmar o contrato.
+        </p>
+      </div>
+    );
+  }
+
+  // ACCESS_INCOMPLETE (gate ligado sem e-mail): mesmo endpoint POST idempotente
+  // — provisionPortalAccess reaproveita gate + vínculo se existirem.
+  if (state.enabled && !state.emailMasked) {
+    return (
+      <div className="mt-4 space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold ${accessStatusBadgeClasses(portalStatus.status)}`}>
+            {portalStatus.label} · e-mail pendente
+          </span>
+        </div>
+        <label>
+          <span className={labelClass}>Cadastrar e-mail de acesso</span>
+          <input
+            type="email"
+            inputMode="email"
+            autoComplete="off"
+            disabled={!enabled || busy !== null}
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="cliente@email.com"
+            className={inputClass}
+          />
+        </label>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-[11px] text-[#888]">O Portal já está liberado. Informe o e-mail real do cliente para gerar o magic link.</p>
+          <button type="button" disabled={!enabled || busy !== null || email.trim().length === 0} onClick={provision} className={primaryBtn}>
+            {busy === "provision" ? "Enviando…" : "Cadastrar e-mail de acesso"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Gate ON com e-mail — pode ser ACCESS_PROVISIONED (tudo pronto) ou
+  // ACCESS_INCOMPLETE (falta Auth). Só mostramos como "Acesso liberado"
+  // quando é PROVISIONED de fato; caso contrário, exibimos os blockers e
+  // desabilitamos o convite WhatsApp para não convidar antes da hora.
+  if (state.enabled) {
+    const isFullyProvisioned = portalStatus.status === "ACCESS_PROVISIONED";
+    return (
+      <div className="mt-4 space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold ${accessStatusBadgeClasses(portalStatus.status)}`}>
+            {isFullyProvisioned ? <BadgeCheck size={13} /> : null}
+            {portalStatus.label}
+          </span>
+        </div>
+        {!isFullyProvisioned && (
+          <p className="text-[11px] text-amber-300/85">
+            Provisionamento incompleto: {formatBlockers(portalStatus.blockers)}.
+          </p>
+        )}
+        <div className="grid gap-2 sm:grid-cols-2">
+          <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">E-mail de acesso</p>
+            <p className="mt-1 font-mono text-sm text-white/85">{state.emailMasked ?? "—"}</p>
+          </div>
+          <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">WhatsApp</p>
+            <p className="mt-1 text-sm text-white/85">
+              {state.phoneDisplay ?? <span className="text-amber-300">Telefone não cadastrado</span>}
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" disabled={!enabled || busy !== null} onClick={resend} className={primaryBtn}>
+            {busy === "resend" ? "Enviando…" : "Reenviar acesso"}
+          </button>
+          <button
+            type="button"
+            disabled={!enabled || busy !== null || !state.hasPhone || !state.emailMasked || !isFullyProvisioned}
+            onClick={sendWhatsappInvite}
+            title={
+              !isFullyProvisioned ? "Complete o provisionamento (vínculo Auth) antes de convidar."
+              : !state.hasPhone ? "Telefone não cadastrado — cadastre no bloco Dados do cliente."
+              : !state.emailMasked ? "Cadastre o e-mail antes de enviar o convite."
+              : "Abre o WhatsApp já com a mensagem preenchida."
+            }
+            className={primaryBtn}
+          >
+            {busy === "whatsapp" ? "Preparando…" : "Enviar convite pelo WhatsApp"}
+          </button>
+          {!confirmingDisable ? (
+            <button type="button" disabled={!enabled || busy !== null} onClick={() => { setConfirmingDisable(true); setResult(null); }} className={ghostBtn}>
+              Desabilitar Portal
+            </button>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/5 p-2">
+              <p className="text-[11px] text-red-200">Cliente perderá acesso ao Portal. Assinatura e dados permanecem.</p>
+              <button type="button" disabled={busy !== null} onClick={disable} className={dangerBtn}>
+                {busy === "disable" ? "Desabilitando…" : "Confirmar"}
+              </button>
+              <button type="button" disabled={busy !== null} onClick={() => setConfirmingDisable(false)} className={ghostBtn}>
+                Cancelar
+              </button>
+            </div>
+          )}
+        </div>
+        {!state.hasPhone && (
+          <p className="text-[11px] text-amber-300/85">
+            Cadastre o telefone no bloco <span className="font-semibold">Dados do cliente</span> para habilitar o convite pelo WhatsApp.
+          </p>
+        )}
+        {whatsappPreview && (
+          <p className="text-[11px] text-emerald-300/80">
+            Convite registrado como <span className="font-mono">whatsapp_aberto</span> · template <span className="font-mono">{whatsappPreview.templateVersion}</span> · destino ****{whatsappPreview.destinationLast4}.
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  // NOT_PROVISIONED com subscription ativa: fluxo canônico "Liberar acesso".
+  return (
+    <div className="mt-4 space-y-3">
+      <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold ${accessStatusBadgeClasses(portalStatus.status)}`}>
+        {portalStatus.label}
+      </span>
+      <label>
+        <span className={labelClass}>E-mail do cliente</span>
+        <input
+          type="email"
+          inputMode="email"
+          autoComplete="off"
+          disabled={!enabled || busy !== null}
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder="cliente@email.com"
+          className={inputClass}
+        />
+      </label>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-[11px] text-[#888]">Use o e-mail real do cliente. Um link único será enviado — sem senha.</p>
+        <button type="button" disabled={!enabled || busy !== null || email.trim().length === 0} onClick={provision} className={primaryBtn}>
+          {busy === "provision" ? "Enviando…" : "Liberar acesso ao Portal"}
+        </button>
+      </div>
     </div>
   );
 }

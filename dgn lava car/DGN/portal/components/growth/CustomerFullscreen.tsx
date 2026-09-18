@@ -21,6 +21,10 @@ import {
   AppointmentsEditor,
   PortalAccessEditor,
 } from "@/components/growth/DgnGrowthWorkspace";
+import {
+  derivePortalAccessStatus,
+  type PortalAccessStatusResult,
+} from "@/lib/growth/portal/access-status";
 
 type PaymentMethod = NonNullable<DgnCustomer["subscription"]>["paymentMethod"];
 
@@ -95,6 +99,20 @@ function Section({
   );
 }
 
+function portalChipTone(status: PortalAccessStatusResult["status"]): string {
+  switch (status) {
+    case "ACCESS_PROVISIONED":
+      return "border-emerald-300/30 bg-emerald-300/[0.06] text-emerald-200";
+    case "ACCESS_INCOMPLETE":
+      return "border-amber-300/30 bg-amber-300/[0.06] text-amber-200";
+    case "INCONSISTENT":
+      return "border-red-300/30 bg-red-300/[0.06] text-red-200";
+    case "NOT_PROVISIONED":
+    default:
+      return "border-white/[0.08] bg-white/[0.03] text-white/70";
+  }
+}
+
 function HeaderChip({ label, value, tone }: { label: string; value: string; tone?: string }) {
   return (
     <div className={`inline-flex flex-col rounded-lg border px-3 py-1.5 ${tone ?? "border-white/[0.08] bg-white/[0.03] text-white/80"}`}>
@@ -128,10 +146,14 @@ export function CustomerFullscreen({
   const status = subscriptionStatusLabel(customer.subscription?.status);
   const planLabel = (customer.activePlan?.trim() || "Sem plano ativo");
   const vehicleLabel = customer.vehicle || "A definir";
-  const portalActive = Boolean(
-    customer.knownSubscriberPlan // enriched flag, or subscription.isActive fallback
-      ?? customer.subscription?.isActive,
-  );
+  // Estado canônico do Portal — MESMO critério do agent (portal-readiness) e
+  // do PortalAccessEditor. knownSubscriberPlan/commercialStatus NÃO entram.
+  const portalStatus: PortalAccessStatusResult = derivePortalAccessStatus({
+    canonicalSubscriptionActive: customer.subscription?.isActive === true,
+    hasEmail: customer.portalAccess?.hasEmail === true,
+    hasAuthLink: customer.portalAccess?.hasAuthLink === true,
+    portalBetaEnabled: customer.portalAccess?.portalBetaEnabled === true,
+  });
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] px-4 py-6 sm:px-6 sm:py-8 lg:px-10">
@@ -172,12 +194,8 @@ export function CustomerFullscreen({
             <HeaderChip label="Veículo principal" value={vehicleLabel} />
             <HeaderChip
               label="Portal"
-              value={portalActive ? "Ativo" : "Inativo"}
-              tone={
-                portalActive
-                  ? "border-emerald-300/30 bg-emerald-300/[0.06] text-emerald-200"
-                  : "border-white/[0.08] bg-white/[0.03] text-white/70"
-              }
+              value={portalStatus.label}
+              tone={portalChipTone(portalStatus.status)}
             />
           </div>
         </header>

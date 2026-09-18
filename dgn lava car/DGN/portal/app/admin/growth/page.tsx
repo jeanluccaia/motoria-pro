@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { loadGrowthData } from "@/lib/growth/db/growth-reader";
+import { loadGrowthData, readGrowthSnapshot } from "@/lib/growth/db/growth-reader";
+import { getSupabaseAdminClient } from "@/lib/growth/db/admin-client";
 import { KNOWN_SUBSCRIBERS_2026_08_16 } from "@/lib/growth/known-subscribers";
+import { getCanonicalActiveSubscriberMetrics } from "@/lib/growth/canonical-subscribers";
 import type { DgnCustomer } from "@/lib/growth/dgn-growth-data";
 import { buildAgentContext } from "@/lib/growth/agent/agent-context";
 import { getDailyBriefing } from "@/lib/growth/agent/skills/daily-briefing";
@@ -12,7 +14,8 @@ import { AlertTriangle, ArrowRight, Sparkles } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 type DashboardMetrics = {
-  activeSubscribers: number;
+  activeCustomers: number | null;
+  activeSubscriptions: number | null;
   pendingRenewal: number;
   confirmedFounders: number;
   activeInvites: number;
@@ -21,8 +24,10 @@ type DashboardMetrics = {
   loadError: string | null;
 };
 
+// "Renovação pendente" continua vindo da base viva 4uCar — é sinal de
+// vencimento em curto prazo, não contrato canônico. Fica ao lado de
+// "Assinantes ativos" mas mede população diferente com label distinto.
 async function computeMetrics(): Promise<DashboardMetrics> {
-  const activeSubscribers = KNOWN_SUBSCRIBERS_2026_08_16.filter((s) => s.status === "ativo").length;
   const pendingRenewal = KNOWN_SUBSCRIBERS_2026_08_16.filter(
     (s) => s.status === "renovacao_pendente",
   ).length;
@@ -30,12 +35,22 @@ async function computeMetrics(): Promise<DashboardMetrics> {
 
   try {
     const data = await loadGrowthData({ logger: console });
+    // Contagem de LINHAS ativas (para separar "assinantes" de "assinaturas"):
+    // vem do snapshot bruto quando estamos em modo DB — só assim distinguimos
+    // customers com N subscriptions (padrão José Sergio).
+    let activeSubscriptionRowCount: number | undefined;
+    if (data.origin === "db") {
+      const snapshot = await readGrowthSnapshot(getSupabaseAdminClient("dashboard.active-subs-count"));
+      activeSubscriptionRowCount = (snapshot.subscriptions ?? []).filter((s) => (s as { is_active_subscriber?: unknown }).is_active_subscriber === true).length;
+    }
+    const metrics = getCanonicalActiveSubscriberMetrics(data.customers, { activeSubscriptionRowCount });
     const activeInvites = getActiveInvitesCount(data.customers);
     const awaitingCuration = data.customers.filter(
       (c: DgnCustomer) => c.commercialStatus === "Aguardando Curadoria DGN",
     ).length;
     return {
-      activeSubscribers,
+      activeCustomers: metrics.activeCustomers,
+      activeSubscriptions: metrics.activeSubscriptions,
       pendingRenewal,
       confirmedFounders,
       activeInvites,
@@ -44,8 +59,11 @@ async function computeMetrics(): Promise<DashboardMetrics> {
       loadError: null,
     };
   } catch (error) {
+    // Sem leitura Supabase não temos como afirmar o número canônico —
+    // preferimos exibir "—" a mostrar um valor derivado de outra fonte.
     return {
-      activeSubscribers,
+      activeCustomers: null,
+      activeSubscriptions: null,
       pendingRenewal,
       confirmedFounders,
       activeInvites: 0,
@@ -104,7 +122,16 @@ export default async function DgnAdminDashboardPage() {
           className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
           data-testid="dashboard-metrics"
         >
-          <MetricCard label="Assinantes ativos" value={m.activeSubscribers} testid="metric-active-subscribers" />
+          <MetricCard
+            label="Assinantes ativos"
+            value={m.activeCustomers}
+            hint={
+              m.activeSubscriptions !== null && m.activeCustomers !== null && m.activeSubscriptions > m.activeCustomers
+                ? `${m.activeSubscriptions} assinaturas ativas`
+                : "Fonte: crm_subscriptions"
+            }
+            testid="metric-active-subscribers"
+          />
           <MetricCard label="Founders confirmados" value={m.confirmedFounders} tone="gold" testid="metric-confirmed-founders" />
           <MetricCard label="Convites em aberto" value={m.activeInvites} tone="gold" hidden={m.loadError !== null} testid="metric-active-invites" />
           <MetricCard label="Aguardando curadoria" value={m.awaitingCuration} hidden={m.loadError !== null} testid="metric-awaiting-curation" />
@@ -176,12 +203,14 @@ function IntelligenceCard({ briefing, error }: { briefing: DailyBriefing | null;
 function MetricCard({
   label,
   value,
+  hint,
   tone = "neutral",
   hidden = false,
   testid,
 }: {
   label: string;
-  value: number;
+  value: number | null;
+  hint?: string;
   tone?: "neutral" | "gold" | "warn";
   hidden?: boolean;
   testid?: string;
@@ -195,7 +224,10 @@ function MetricCard({
   return (
     <div className={`rounded-xl border p-4 ${toneClasses}`} data-testid={testid}>
       <p className="text-[10px] font-semibold uppercase tracking-[0.16em] opacity-70">{label}</p>
-      <p className="mt-3 text-3xl font-semibold tabular-nums" data-testid={testid ? `${testid}-value` : undefined}>{value}</p>
+      <p className="mt-3 text-3xl font-semibold tabular-nums" data-testid={testid ? `${testid}-value` : undefined}>
+        {value === null ? "—" : value}
+      </p>
+      {hint ? <p className="mt-1 text-[10px] uppercase tracking-[0.14em] opacity-50">{hint}</p> : null}
     </div>
   );
 }
