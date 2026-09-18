@@ -1,12 +1,45 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { AlertTriangle, ChevronDown, ChevronRight, Info } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, Info, X } from "lucide-react";
 import type {
   ReconcileClassification,
   ReconcilePreview,
   ReconcilePreviewItem,
 } from "@/lib/growth/reconcile/types";
+import type { ApplyResultCode } from "@/lib/growth/reconcile/apply";
+
+interface ApplyResultRow {
+  rowIndex: number;
+  input: Record<string, string | undefined>;
+  customerId: string | null;
+  classificationBeforeApply: string;
+  action: "PROMOTE_EXISTING" | "CREATE_NEW" | "NONE";
+  resultCode: ApplyResultCode;
+  subscriptionId: string | null;
+  existingSubscriptionId?: string | null;
+  reason?: string;
+  error?: string;
+}
+
+interface ApplyResponse {
+  processed: number;
+  counts: { proceed: number; stale: number; alreadyCorrect: number; reviewExisting: number; failed: number };
+  results: ApplyResultRow[];
+  note: string;
+  error?: string;
+}
+
+const RESULT_STYLE: Record<ApplyResultCode, { label: string; tone: string }> = {
+  PROMOTED:                     { label: "Promovida",            tone: "border-emerald-300/30 bg-emerald-300/[0.08] text-emerald-200" },
+  CREATED:                      { label: "Criada",               tone: "border-sky-300/30 bg-sky-300/[0.08] text-sky-200" },
+  ALREADY_CORRECT:              { label: "Já estava correta",    tone: "border-emerald-300/20 bg-emerald-300/[0.04] text-emerald-200/80" },
+  REVIEW_EXISTING_SUBSCRIPTION: { label: "Já existe equivalente", tone: "border-amber-300/30 bg-amber-300/[0.08] text-amber-200" },
+  REVIEW_REQUIRED:              { label: "Revisar",              tone: "border-white/20 bg-white/[0.04] text-white/80" },
+  STALE_PREVIEW_REVIEW_REQUIRED:{ label: "Preview desatualizado",tone: "border-amber-400/30 bg-amber-400/[0.08] text-amber-200" },
+  NOT_APPLICABLE:               { label: "Não aplicável",        tone: "border-white/10 bg-white/[0.02] text-white/50" },
+  FAILED:                       { label: "Falhou",               tone: "border-red-400/30 bg-red-400/[0.08] text-red-200" },
+};
 
 const SAMPLE = `name,phone,plan,status,paid_until
 Benedito Constantino,19981723362,Priority,ativo,31/12/2026
@@ -36,13 +69,17 @@ export function ReconcilerClient() {
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const [selected, setSelected] = useState<Record<number, boolean>>({});
+  const [applying, setApplying] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [applyResults, setApplyResults] = useState<ApplyResponse | null>(null);
 
-  const analyze = useCallback(async () => {
+  const analyze = useCallback(async (opts: { preserveResults?: boolean } = {}) => {
     setLoading(true);
     setError(null);
     setPreview(null);
     setSelected({});
     setExpanded({});
+    if (!opts.preserveResults) setApplyResults(null);
     try {
       const response = await fetch("/api/admin/growth/subscribers/reconcile", {
         method: "POST",
@@ -74,6 +111,50 @@ export function ReconcilerClient() {
     [selected],
   );
 
+  const selectedItems = useMemo(
+    () => (preview?.items ?? []).filter((it) => selected[it.rowIndex] && it.applyEnabled),
+    [preview, selected],
+  );
+
+  const applyPlan = useMemo(() => {
+    const promotes = selectedItems.filter((it) => it.classification === "PROMOTE_EXISTING").length;
+    const creates = selectedItems.filter((it) => it.classification === "CREATE_NEW").length;
+    return { promotes, creates, total: selectedItems.length };
+  }, [selectedItems]);
+
+  const apply = useCallback(async () => {
+    if (selectedItems.length === 0) return;
+    setApplying(true);
+    setError(null);
+    try {
+      const payload = {
+        text,
+        selections: selectedItems.map((it) => ({
+          rowIndex: it.rowIndex,
+          expectedClassification: it.classification,
+          expectedSubscriptionId: it.proposed?.kind === "PROMOTE_EXISTING" ? it.proposed.subscriptionId : undefined,
+          expectedCustomerId: it.customer.customerId ?? undefined,
+        })),
+      };
+      const response = await fetch("/api/admin/growth/subscribers/reconcile/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const body = (await response.json()) as ApplyResponse;
+      if (!response.ok) throw new Error(body.error ?? "Falha ao aplicar.");
+      setApplyResults(body);
+      setConfirmOpen(false);
+      setSelected({});
+      // Re-preview automático com o mesmo relatório
+      await analyze({ preserveResults: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro inesperado no apply.");
+    } finally {
+      setApplying(false);
+    }
+  }, [selectedItems, text, analyze]);
+
   return (
     <div className="mt-8 flex flex-col gap-6">
       <section className="rounded-2xl border border-white/[0.06] bg-[#101010] p-5">
@@ -97,7 +178,7 @@ export function ReconcilerClient() {
           </p>
           <button
             type="button"
-            onClick={analyze}
+            onClick={() => analyze()}
             disabled={loading || text.trim().length === 0}
             className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 text-sm font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-40"
           >
@@ -140,11 +221,11 @@ export function ReconcilerClient() {
               </p>
               <button
                 type="button"
-                disabled
-                title="Apply será liberado em fase posterior."
-                className="inline-flex min-h-10 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 text-sm font-semibold text-white/50 disabled:cursor-not-allowed"
+                onClick={() => setConfirmOpen(true)}
+                disabled={selectedCount === 0 || applying}
+                className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 text-sm font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Aplicar selecionados ({selectedCount}) · em breve
+                Aplicar selecionados ({selectedCount})
               </button>
             </div>
           </section>
@@ -179,6 +260,105 @@ export function ReconcilerClient() {
           </section>
         </>
       )}
+
+      {applyResults && <ApplyResultsPanel results={applyResults} />}
+
+      {confirmOpen && (
+        <ConfirmModal
+          plan={applyPlan}
+          applying={applying}
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={apply}
+        />
+      )}
+    </div>
+  );
+}
+
+function ApplyResultsPanel({ results }: { results: ApplyResponse }) {
+  const { counts } = results;
+  return (
+    <section className="rounded-2xl border border-white/[0.06] bg-[#101010] p-5" data-testid="reconciler-apply-results">
+      <div className="flex items-center gap-2">
+        <CheckCircle2 size={16} className="text-emerald-300" />
+        <p className="text-[11px] uppercase tracking-[0.14em] text-white/45">Resultado do apply</p>
+      </div>
+      <p className="mt-1 text-sm text-white/85">
+        {counts.proceed} aplicado(s) · {counts.stale} preview desatualizado · {counts.reviewExisting} revisar equivalente · {counts.alreadyCorrect} já correto(s) · {counts.failed} falha(s)
+      </p>
+      <p className="mt-1 text-[11px] text-white/50">{results.note}</p>
+      <ul className="mt-3 space-y-2">
+        {results.results.map((r) => {
+          const badge = RESULT_STYLE[r.resultCode];
+          return (
+            <li key={r.rowIndex} className="flex flex-col gap-1 rounded-lg border border-white/[0.05] bg-white/[0.02] p-3 text-[12px] text-white/80">
+              <div className="flex items-center gap-2">
+                <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${badge.tone}`}>
+                  {badge.label}
+                </span>
+                <span className="text-white/85">{r.input.name ?? `linha ${r.rowIndex + 1}`}</span>
+                <span className="text-white/40">→ {r.action}</span>
+              </div>
+              {r.reason && <p className="text-[11px] text-white/60">{r.reason}</p>}
+              {r.error && <p className="text-[11px] text-red-300">{r.error}</p>}
+              {(r.subscriptionId || r.existingSubscriptionId) && (
+                <p className="font-mono text-[10px] text-white/40">
+                  {r.subscriptionId ? `subscription_id: ${r.subscriptionId}` : `existing_subscription_id: ${r.existingSubscriptionId}`}
+                </p>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+function ConfirmModal({
+  plan, applying, onCancel, onConfirm,
+}: {
+  plan: { promotes: number; creates: number; total: number };
+  applying: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      role="dialog" aria-modal="true"
+    >
+      <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0F0F0F] p-6">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">Confirmar apply</p>
+            <h2 className="mt-1 text-lg font-semibold text-white">Você está prestes a atualizar {plan.total} assinatura(s).</h2>
+          </div>
+          <button type="button" onClick={onCancel} aria-label="Fechar" className="text-white/40 hover:text-white">
+            <X size={18} />
+          </button>
+        </div>
+        <ul className="mt-4 space-y-1 text-sm text-white/80">
+          <li>· {plan.promotes} subscription(s) existente(s) serão promovida(s)</li>
+          <li>· {plan.creates} nova(s) subscription(s) manual(is) serão criada(s)</li>
+          <li>· nenhuma cobrança PagBank será modificada</li>
+        </ul>
+        <p className="mt-3 text-[11px] text-white/50">
+          O servidor irá revalidar cada linha imediatamente antes de aplicar. Linhas cujo estado mudou
+          entre o preview e o apply serão marcadas como <span className="font-semibold">preview desatualizado</span>{" "}
+          e não serão escritas.
+        </p>
+        <div className="mt-5 flex justify-end gap-2">
+          <button type="button" onClick={onCancel} className="rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2 text-sm font-semibold text-white/80">
+            Cancelar
+          </button>
+          <button
+            type="button" onClick={onConfirm} disabled={applying}
+            className="rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 py-2 text-sm font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {applying ? "Aplicando…" : "Confirmar e aplicar"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
