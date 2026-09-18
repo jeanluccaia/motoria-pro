@@ -1,8 +1,9 @@
 import type { AgentContext } from "../agent-context.ts";
 import type { AttentionCard, DailyBriefing, Priority, SkillResult } from "../types.ts";
 import { getCurationOpportunities } from "./curation-opportunities.ts";
-import { getFounderAttention, sortByPriority } from "./founder-attention.ts";
+import { getFounderAttention } from "./founder-attention.ts";
 import { getSubscriberAttention } from "./subscriber-attention.ts";
+import { countUniqueCases, dedupeAttentionCards } from "./attention-dedupe.ts";
 
 // Daily Briefing = orquestração pura das outras 3 skills. Sem lógica nova
 // própria; garante que Dashboard e /assistente exibam exatamente o mesmo
@@ -79,10 +80,11 @@ export function getDailyBriefing(ctx: AgentContext): SkillResult<DailyBriefing> 
   const curationCards: AttentionCard[] = curation.data ?? [];
   const subscriberCards: AttentionCard[] = subscriber.data ?? [];
 
-  // Consolida por prioridade e limita para caber em uma tela sem rolar demais.
-  const merged = [...founderCards, ...curationCards, ...subscriberCards]
-    .slice()
-    .sort(sortByPriority);
+  // P0 "1 customer = 1 caso": consolida por customer_id ANTES do slice para
+  // que o mesmo cliente nunca apareça em dois cards (ex.: Founder ativo + score
+  // de curadoria). O sort primário é por prioridade — kinds derrotados viram
+  // secondaryKinds no card vencedor, preservando o contexto.
+  const merged = dedupeAttentionCards([...founderCards, ...curationCards, ...subscriberCards]);
   const cards = merged.slice(0, MAX_CARDS);
 
   const totals = {
@@ -90,7 +92,10 @@ export function getDailyBriefing(ctx: AgentContext): SkillResult<DailyBriefing> 
     curation: curationCards.length,
     subscriber: subscriberCards.length,
   };
-  const totalOpportunities = totals.founder + totals.curation + totals.subscriber;
+  // `totalOpportunities` reflete CASOS únicos (spec P0 §5: contador = unique
+  // customer_ids). Cards sem customerId (fallback subscriber-renewal) contam
+  // como caso individual — não há como consolidá-los sem identidade.
+  const totalOpportunities = countUniqueCases(merged);
   const displayedPriorities = cards.length;
 
   const briefing: DailyBriefing = {
