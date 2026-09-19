@@ -48,12 +48,33 @@ export function readGrowthDataConfig(env: GrowthEnv = process.env) {
 
 const DB_PAGE_SIZE = 500;
 
+/**
+ * PostgREST às vezes rejeita nosso service_role JWT com "JWT issued at future"
+ * quando a instância que atende a chamada tem clock ligeiramente atrás do `iat`
+ * assinado por outra instância Supabase. É transiente e some em segundos.
+ * Detectamos exatamente essa mensagem — nada mais — e reemitimos a página.
+ */
+function isTransientClockSkew(message: string): boolean {
+  return /JWT issued at future/i.test(message);
+}
+
+async function fetchPage(db: SupabaseClient, table: string, from: number): Promise<Row[]> {
+  const attempts = [0, 300, 900];
+  let lastError: string | null = null;
+  for (const delayMs of attempts) {
+    if (delayMs > 0) await new Promise((resolve) => setTimeout(resolve, delayMs));
+    const result = await db.from(table).select("*").range(from, from + DB_PAGE_SIZE - 1);
+    if (!result.error) return (result.data ?? []) as Row[];
+    lastError = result.error.message;
+    if (!isTransientClockSkew(lastError)) throw new Error(`${table}: ${lastError}`);
+  }
+  throw new Error(`${table}: ${lastError ?? "erro desconhecido após retries"}`);
+}
+
 async function selectAll(db: SupabaseClient, table: string): Promise<Row[]> {
   const rows: Row[] = [];
   for (let from = 0; ; from += DB_PAGE_SIZE) {
-    const result = await db.from(table).select("*").range(from, from + DB_PAGE_SIZE - 1);
-    if (result.error) throw new Error(`${table}: ${result.error.message}`);
-    const page = (result.data ?? []) as Row[];
+    const page = await fetchPage(db, table, from);
     rows.push(...page);
     if (page.length < DB_PAGE_SIZE) return rows;
   }

@@ -89,6 +89,74 @@ test("chave sb_secret permanece em apikey e não é enviada como Bearer JWT", as
   }
 });
 
+test("selectAll faz retry em 'JWT issued at future' e devolve a página na tentativa seguinte", async () => {
+  const data = snapshot();
+  const flakyCounters: Record<string, number> = {};
+  const flakyDb = {
+    from: (table: string) => ({
+      select: () => ({
+        range: async (from: number, to: number) => {
+          flakyCounters[table] = (flakyCounters[table] ?? 0) + 1;
+          if (table === "crm_score_snapshots" && flakyCounters[table] === 1) {
+            return { data: null, error: { message: "JWT issued at future" } };
+          }
+          if (table === "crm_interactions" && flakyCounters[table] === 1) {
+            return { data: null, error: { message: "JWT issued at future" } };
+          }
+          const tables: Record<string, unknown[]> = {
+            crm_customers: data.customers, crm_vehicles: data.vehicles, crm_subscriptions: data.subscriptions,
+            crm_campaign_members: data.campaignMembers, crm_interactions: data.interactions, crm_score_snapshots: data.scores,
+          };
+          return { data: tables[table]?.slice(from, to + 1) ?? [], error: null };
+        },
+      }),
+    }),
+  } as never;
+  const result = await loadGrowthData({ env: { DGN_GROWTH_DATA_SOURCE: "db" }, db: flakyDb, logger: { info() {}, error() {} } });
+  assert.equal(result.origin, "db"); assert.equal(result.customers.length, 4);
+  assert.equal(flakyCounters.crm_score_snapshots, 2, "crm_score_snapshots deve ter feito 2 tentativas (1 falha JWT + 1 sucesso)");
+  assert.equal(flakyCounters.crm_interactions, 2, "crm_interactions deve ter feito 2 tentativas (1 falha JWT + 1 sucesso)");
+});
+
+test("selectAll NÃO faz retry em erros não-transientes (protege contra hammer)", async () => {
+  const attemptsByTable: Record<string, number> = {};
+  const db = {
+    from: (table: string) => ({
+      select: () => ({
+        range: async () => {
+          attemptsByTable[table] = (attemptsByTable[table] ?? 0) + 1;
+          return { data: null, error: { message: "relation does not exist" } };
+        },
+      }),
+    }),
+  } as never;
+  await assert.rejects(loadGrowthData({ env: { DGN_GROWTH_DATA_SOURCE: "db" }, db, logger: { error() {} } }), /fallback local está desativado/);
+  for (const [table, count] of Object.entries(attemptsByTable)) {
+    assert.equal(count, 1, `${table}: erros não-JWT devem falhar na primeira tentativa (sem retry), foram ${count}`);
+  }
+});
+
+test("selectAll desiste após 3 tentativas se o erro JWT persistir", async () => {
+  // Testamos uma única tabela (isolada de Promise.all/short-circuit em readGrowthSnapshot)
+  // pra provar que 3 falhas consecutivas terminam com throw — sem loop infinito.
+  const { readGrowthSnapshot } = await import("./growth-reader.ts");
+  let attempts = 0;
+  const failingDb = {
+    from: () => ({
+      select: () => ({
+        range: async () => {
+          attempts += 1;
+          return { data: null, error: { message: "JWT issued at future" } };
+        },
+      }),
+    }),
+  } as never;
+  await assert.rejects(readGrowthSnapshot(failingDb), /JWT issued at future/);
+  // 3 tentativas na primeira tabela que falhou. Outras tabelas em Promise.all
+  // podem ter iniciado retries; short-circuit não é determinístico entre elas.
+  assert.ok(attempts >= 3, `esperava ao menos 3 tentativas (3 na primeira tabela), foram ${attempts}`);
+});
+
 test("rotas administrativas continuam negadas sem sessão válida", async () => {
   const source = await readFile(new URL("../../../proxy.ts", import.meta.url), "utf8");
   assert.match(source, /DGN_ADMIN_COOKIE/);
