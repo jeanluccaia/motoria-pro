@@ -4,9 +4,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   SubscriptionsWriteError,
   cancelSubscription,
+  computeUsage,
   createSubscription,
+  cycleMonthsFromDbCycle,
   dbCycleToModality,
   editSubscription,
+  includedPerMonthFromPlan,
   listSubscriptions,
   modalityToDbCycle,
 } from "./subscriptions-write.ts";
@@ -48,21 +51,32 @@ interface SubRow {
   vehicle_id: string | null;
   source_reference: string | null;
   notes: string | null;
+  financial_review_required: boolean;
+  financial_review_reason: string | null;
   created_at: string;
   updated_at: string;
+}
+
+interface ApptRow {
+  id: string;
+  customer_id: string;
+  subscription_id: string | null;
+  status: string;
+  scheduled_at: string;
 }
 
 interface State {
   customers: CustomerRow[];
   vehicles: VehicleRow[];
   subscriptions: SubRow[];
+  appointments: ApptRow[];
   rpcCalls: Array<{ fn: string; args: Record<string, unknown> }>;
   rpcResponses: Record<string, { data?: unknown; error?: { message: string } | null }>;
 }
 
 function buildFake(state: State): SupabaseClient {
   const makeBuilder = <T>(rows: T[]) => {
-    const filters: Array<{ column: string; value: unknown }> = [];
+    const filters: Array<{ column: string; value: unknown; op: "eq" | "not_is_null" }> = [];
     let wantSingle = false;
     let wantMaybe = false;
     let orderCol: string | null = null;
@@ -70,7 +84,13 @@ function buildFake(state: State): SupabaseClient {
 
     const runSelect = () => {
       let filtered = rows.slice();
-      for (const f of filters) filtered = filtered.filter((r) => (r as Record<string, unknown>)[f.column] === f.value);
+      for (const f of filters) {
+        if (f.op === "eq") {
+          filtered = filtered.filter((r) => (r as Record<string, unknown>)[f.column] === f.value);
+        } else if (f.op === "not_is_null") {
+          filtered = filtered.filter((r) => (r as Record<string, unknown>)[f.column] != null);
+        }
+      }
       if (orderCol) {
         filtered.sort((a, b) => {
           const av = (a as Record<string, unknown>)[orderCol!];
@@ -91,7 +111,13 @@ function buildFake(state: State): SupabaseClient {
 
     const chain: Record<string, unknown> = {
       select() { return chain; },
-      eq(column: string, value: unknown) { filters.push({ column, value }); return chain; },
+      eq(column: string, value: unknown) { filters.push({ column, value, op: "eq" }); return chain; },
+      not(column: string, op: string, value: unknown) {
+        if (op === "is" && value === null) {
+          filters.push({ column, value: null, op: "not_is_null" });
+        }
+        return chain;
+      },
       order(column: string, opts?: { ascending?: boolean }) { orderCol = column; orderAsc = opts?.ascending !== false; return chain; },
       maybeSingle() { wantMaybe = true; return finish(); },
       single() { wantSingle = true; return finish(); },
@@ -105,6 +131,7 @@ function buildFake(state: State): SupabaseClient {
       if (table === "crm_customers") return { select: () => makeBuilder(state.customers) };
       if (table === "crm_vehicles") return { select: () => makeBuilder(state.vehicles) };
       if (table === "crm_subscriptions") return { select: () => makeBuilder(state.subscriptions) };
+      if (table === "crm_appointments") return { select: () => makeBuilder(state.appointments) };
       throw new Error(`fake: tabela ${table} n/i`);
     },
     rpc: async (fn: string, args: Record<string, unknown>) => {
@@ -145,6 +172,8 @@ function baseState(): State {
         vehicle_id: null,
         source_reference: "Manual admin",
         notes: null,
+        financial_review_required: false,
+        financial_review_reason: null,
         created_at: "2026-09-01T00:00:00.000Z",
         updated_at: "2026-09-01T00:00:00.000Z",
       },
@@ -166,10 +195,13 @@ function baseState(): State {
         vehicle_id: "aaaa1111-1111-1111-1111-111111111111",
         source_reference: "PagBank recurring",
         notes: null,
+        financial_review_required: false,
+        financial_review_reason: null,
         created_at: "2026-08-01T00:00:00.000Z",
         updated_at: "2026-09-01T00:00:00.000Z",
       },
     ],
+    appointments: [],
     rpcCalls: [],
     rpcResponses: {},
   };
@@ -554,4 +586,188 @@ test("cancel: OK chama RPC com args e devolve CANCELLED", async () => {
   assert.equal(call.args.p_expected_customer_id, "11111111-1111-1111-1111-111111111111");
   assert.equal(call.args.p_reason, "Cliente pediu encerramento");
   assert.equal(call.args.p_actor, "dgn-admin");
+});
+
+// ─── FASE 2: contratos por veículo ──────────────────────────────────────────
+
+test("Fase 2: includedPerMonthFromPlan bate com regra oficial (1/2/4)", () => {
+  assert.equal(includedPerMonthFromPlan("Essential"), 1);
+  assert.equal(includedPerMonthFromPlan("Smart"), 2);
+  assert.equal(includedPerMonthFromPlan("Priority"), 4);
+  assert.equal(includedPerMonthFromPlan("Não identificado"), null);
+  assert.equal(includedPerMonthFromPlan("Corporate Care"), null);
+});
+
+test("Fase 2: cycleMonthsFromDbCycle mapeia enum canônico", () => {
+  assert.equal(cycleMonthsFromDbCycle("mensal"), 1);
+  assert.equal(cycleMonthsFromDbCycle("semestral"), 6);
+  assert.equal(cycleMonthsFromDbCycle("anual"), 12);
+  assert.equal(cycleMonthsFromDbCycle("outro"), null);
+  assert.equal(cycleMonthsFromDbCycle("não identificado"), null);
+});
+
+test("Fase 2: usage sem appointment vinculado NÃO calcula saldo (nunca 0 como uso real)", () => {
+  const usage = computeUsage(
+    {
+      id: "sub-x",
+      customer_id: "c1",
+      subscription_plan: "Smart",
+      subscription_cycle: "mensal",
+      subscription_status: "ativo",
+      is_active_subscriber: true,
+      subscription_source: "Manual",
+      payment_method: "manual",
+      payment_status: "unknown",
+      payment_evidence_source: "manual",
+      provider_customer_id: null,
+      provider_subscription_id: null,
+      cycle_ends_at: "2099-12-31T23:59:59.000Z",
+      next_due_date: null,
+      vehicle_id: null,
+      source_reference: null,
+      notes: null,
+      financial_review_required: false,
+      financial_review_reason: null,
+      created_at: "2026-09-01T00:00:00.000Z",
+      updated_at: "2026-09-01T00:00:00.000Z",
+    },
+    /* linkedAppointments */ [],
+  );
+  assert.equal(usage.includedPerMonth, 2);
+  assert.equal(usage.cycleMonths, 1);
+  assert.equal(usage.includedPerCycle, 2);
+  assert.equal(usage.balanceCanCalculate, false);
+  assert.equal(usage.balance, null);
+  assert.match(usage.note!, /não vinculados ao contrato/);
+});
+
+test("Fase 2: usage com plano legado (Não identificado) explica indeterminação", () => {
+  const usage = computeUsage(
+    {
+      id: "sub-x", customer_id: "c1",
+      subscription_plan: "Não identificado", subscription_cycle: "mensal",
+      subscription_status: "detectado", is_active_subscriber: false,
+      subscription_source: "Importação",
+      payment_method: "unknown", payment_status: "unknown", payment_evidence_source: "unknown",
+      provider_customer_id: null, provider_subscription_id: null,
+      cycle_ends_at: "2099-12-31T00:00:00Z", next_due_date: null, vehicle_id: null,
+      source_reference: null, notes: null,
+      financial_review_required: false, financial_review_reason: null,
+      created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z",
+    },
+    [],
+  );
+  assert.equal(usage.includedPerMonth, null);
+  assert.equal(usage.balanceCanCalculate, false);
+  assert.match(usage.note!, /fora da tabela oficial/);
+});
+
+test("Fase 2: usage com cycle 'outro' explica modalidade legada", () => {
+  const usage = computeUsage(
+    {
+      id: "sub-x", customer_id: "c1",
+      subscription_plan: "Smart", subscription_cycle: "outro",
+      subscription_status: "ativo", is_active_subscriber: true,
+      subscription_source: "Manual",
+      payment_method: "manual", payment_status: "unknown", payment_evidence_source: "manual",
+      provider_customer_id: null, provider_subscription_id: null,
+      cycle_ends_at: "2099-12-31T00:00:00Z", next_due_date: null, vehicle_id: null,
+      source_reference: null, notes: null,
+      financial_review_required: false, financial_review_reason: null,
+      created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z",
+    },
+    [],
+  );
+  assert.equal(usage.cycleMonths, null);
+  assert.equal(usage.balanceCanCalculate, false);
+  assert.match(usage.note!, /modalidade legada/i);
+});
+
+test("Fase 2: usage sem cycle_ends_at explica falta de janela", () => {
+  const usage = computeUsage(
+    {
+      id: "sub-x", customer_id: "c1",
+      subscription_plan: "Smart", subscription_cycle: "mensal",
+      subscription_status: "ativo", is_active_subscriber: true,
+      subscription_source: "Manual",
+      payment_method: "manual", payment_status: "unknown", payment_evidence_source: "manual",
+      provider_customer_id: null, provider_subscription_id: null,
+      cycle_ends_at: null, next_due_date: null, vehicle_id: null,
+      source_reference: null, notes: null,
+      financial_review_required: false, financial_review_reason: null,
+      created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z",
+    },
+    [],
+  );
+  assert.equal(usage.balanceCanCalculate, false);
+  assert.match(usage.note!, /Sem fim de vigência/i);
+});
+
+test("Fase 2: usage calcula saldo quando plano + ciclo + fim + vínculo linked existem", () => {
+  // Smart mensal, ciclo termina em 2027-01-31; incluídas=2. Vinculadas 1 done + 0 scheduled → saldo=1.
+  const usage = computeUsage(
+    {
+      id: "sub-x", customer_id: "c1",
+      subscription_plan: "Smart", subscription_cycle: "mensal",
+      subscription_status: "ativo", is_active_subscriber: true,
+      subscription_source: "Manual",
+      payment_method: "manual", payment_status: "unknown", payment_evidence_source: "manual",
+      provider_customer_id: null, provider_subscription_id: null,
+      cycle_ends_at: "2027-01-31T23:59:59.000Z", next_due_date: null, vehicle_id: null,
+      source_reference: null, notes: null,
+      financial_review_required: false, financial_review_reason: null,
+      created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z",
+    },
+    [
+      { subscription_id: "sub-x", status: "done",      scheduled_at: "2027-01-15T14:00:00Z" },
+      { subscription_id: "sub-x", status: "cancelled", scheduled_at: "2027-01-10T14:00:00Z" }, // fora
+      { subscription_id: "sub-y", status: "done",      scheduled_at: "2027-01-20T14:00:00Z" }, // outra sub
+    ],
+  );
+  assert.equal(usage.balanceCanCalculate, true);
+  assert.equal(usage.includedPerCycle, 2);
+  assert.equal(usage.performedInCycle, 1);
+  assert.equal(usage.reservedInCycle, 0);
+  assert.equal(usage.balance, 1);
+});
+
+test("Fase 2: usage NÃO soma contratos independentes (sub-y ignorado por sub-x)", () => {
+  // Passa 3 appointments vinculados a sub-y; sub-x deve seguir com balanceCanCalculate=false.
+  const usage = computeUsage(
+    {
+      id: "sub-x", customer_id: "c1",
+      subscription_plan: "Priority", subscription_cycle: "mensal",
+      subscription_status: "ativo", is_active_subscriber: true,
+      subscription_source: "Manual",
+      payment_method: "manual", payment_status: "unknown", payment_evidence_source: "manual",
+      provider_customer_id: null, provider_subscription_id: null,
+      cycle_ends_at: "2027-01-31T23:59:59.000Z", next_due_date: null, vehicle_id: null,
+      source_reference: null, notes: null,
+      financial_review_required: false, financial_review_reason: null,
+      created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z",
+    },
+    [
+      { subscription_id: "sub-y", status: "done", scheduled_at: "2027-01-15T14:00:00Z" },
+      { subscription_id: "sub-y", status: "done", scheduled_at: "2027-01-20T14:00:00Z" },
+      { subscription_id: "sub-y", status: "done", scheduled_at: "2027-01-25T14:00:00Z" },
+    ],
+  );
+  assert.equal(usage.balanceCanCalculate, false);
+  assert.equal(usage.appointmentsLinkedCount, 0);
+});
+
+test("Fase 2: list expõe financialReviewRequired quando sub tem flag ligada (caso David)", async () => {
+  const state = baseState();
+  // Simula 2 subs PagBank com financial_review_required=true (caso David)
+  state.subscriptions.forEach((s) => {
+    s.financial_review_required = s.id === "sub-pagbank";
+    s.financial_review_reason = s.id === "sub-pagbank" ? "David — possível duplicidade" : null;
+  });
+  const db = buildFake(state);
+  const rows = await listSubscriptions("digo-cliente", db);
+  const pagbank = rows.find((r) => r.id === "sub-pagbank")!;
+  const manual = rows.find((r) => r.id === "sub-manual")!;
+  assert.equal(pagbank.financialReviewRequired, true);
+  assert.match(pagbank.financialReviewReason!, /possível duplicidade/i);
+  assert.equal(manual.financialReviewRequired, false);
 });

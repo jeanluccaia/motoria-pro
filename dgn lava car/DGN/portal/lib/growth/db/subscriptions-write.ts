@@ -115,6 +115,36 @@ function parseCycleEndsAtIso(input: string | null | undefined, opts: { now?: Dat
 // Tipo devolvido ao browser. Nunca inclui provider_customer_id/subscription_id
 // como strings — só o boolean pagBankLocked.
 // -----------------------------------------------------------------------------
+export interface SubscriptionUsage {
+  /** 1/2/4 conforme plano; null quando plano não é Essential/Smart/Priority. */
+  includedPerMonth: number | null;
+  /** 1/6/12 conforme modalidade oficial; null quando cycle é outro/legado. */
+  cycleMonths: number | null;
+  /** includedPerMonth × cycleMonths; null quando qualquer um dos dois é null. */
+  includedPerCycle: number | null;
+  /**
+   * Fim do ciclo canônico (usa cycle_ends_at); null quando não definido no CRM
+   * — nesse caso NÃO calculamos saldo, para não inventar janela.
+   */
+  cycleEndsAt: string | null;
+  /**
+   * Quantos appointments do cliente estão vinculados a ESTE contrato via
+   * crm_appointments.subscription_id. Hoje o vínculo raramente é preenchido;
+   * quando é 0, o saldo NÃO é calculável com segurança.
+   */
+  appointmentsLinkedCount: number;
+  /** Contagem parcial linked-only, status=done, dentro do ciclo. */
+  performedInCycle: number | null;
+  /** Contagem parcial linked-only, status ∈ scheduled/confirmed, dentro do ciclo. */
+  reservedInCycle: number | null;
+  /** Saldo = incluídas − realizadas − reservadas; só quando calculável com segurança. */
+  balance: number | null;
+  /** True quando saldo foi calculado (linked-only + ciclo + plano válidos). */
+  balanceCanCalculate: boolean;
+  /** Explicação PT quando saldo não é calculável — nunca exibir 0 como uso real. */
+  note: string | null;
+}
+
 export interface SubscriptionListRow {
   id: string;
   plan: string;
@@ -132,6 +162,9 @@ export interface SubscriptionListRow {
   sourceReference: string | null;
   notes: string | null;
   pagBankLocked: boolean;
+  financialReviewRequired: boolean;
+  financialReviewReason: string | null;
+  usage: SubscriptionUsage;
   createdAt: string;
   updatedAt: string;
 }
@@ -154,11 +187,106 @@ interface SubscriptionRowRaw {
   vehicle_id: string | null;
   source_reference: string | null;
   notes: string | null;
+  financial_review_required: boolean;
+  financial_review_reason: string | null;
   created_at: string;
   updated_at: string;
 }
 
-function mapRow(row: SubscriptionRowRaw): SubscriptionListRow {
+// -----------------------------------------------------------------------------
+// Lavagens incluídas por plano. Regra oficial da campanha DGN Founder 2026:
+//   Essential = 1/mês · Smart = 2/mês · Priority = 4/mês
+// Qualquer outro valor (Não identificado, Corporate Care, legado) → null,
+// e a UI NÃO calcula saldo — evita mostrar 0 como se fosse uso real.
+// -----------------------------------------------------------------------------
+export function includedPerMonthFromPlan(plan: string): number | null {
+  switch (plan) {
+    case "Essential": return 1;
+    case "Smart":     return 2;
+    case "Priority":  return 4;
+    default:          return null;
+  }
+}
+
+export function cycleMonthsFromDbCycle(cycle: string): number | null {
+  switch (cycle) {
+    case "mensal":    return 1;
+    case "semestral": return 6;
+    case "anual":     return 12;
+    default:          return null; // "outro" | "não identificado"
+  }
+}
+
+interface AppointmentAggregate {
+  subscription_id: string;
+  status: string;
+  scheduled_at: string;
+}
+
+/**
+ * Calcula usage por contrato SEM inventar dado. Regras:
+ *  - includedPerMonth só quando plano é oficial.
+ *  - cycleMonths só quando cycle é mensal/semestral/anual.
+ *  - Contadores só contam appointments com subscription_id = ID desta sub
+ *    (o CRM hoje tem essa coluna quase sempre NULL — nesse caso, saldo NÃO
+ *    é calculável e o note explica).
+ *  - Ciclo mensal usa janela [cycle_ends_at - 30d, cycle_ends_at]; semestral
+ *    -180d, anual -365d. Se cycle_ends_at é NULL, saldo não calculável.
+ */
+export function computeUsage(
+  row: SubscriptionRowRaw,
+  linkedAppointments: AppointmentAggregate[],
+): SubscriptionUsage {
+  const includedPerMonth = includedPerMonthFromPlan(row.subscription_plan);
+  const cycleMonths = cycleMonthsFromDbCycle(row.subscription_cycle);
+  const includedPerCycle =
+    includedPerMonth != null && cycleMonths != null ? includedPerMonth * cycleMonths : null;
+
+  const linkedForThis = linkedAppointments.filter((a) => a.subscription_id === row.id);
+  const appointmentsLinkedCount = linkedForThis.length;
+
+  let performedInCycle: number | null = null;
+  let reservedInCycle: number | null = null;
+  let balance: number | null = null;
+  let canCalculate = false;
+  let note: string | null = null;
+
+  if (includedPerMonth == null) {
+    note = "Plano fora da tabela oficial — lavagens incluídas indeterminadas.";
+  } else if (cycleMonths == null) {
+    note = "Modalidade legada — ciclo não determinável; saldo não calculável.";
+  } else if (!row.cycle_ends_at) {
+    note = "Sem fim de vigência definido no CRM — saldo não calculável.";
+  } else if (appointmentsLinkedCount === 0) {
+    note = "Saldo não calculável — atendimentos ainda não vinculados ao contrato.";
+  } else {
+    const end = new Date(row.cycle_ends_at);
+    const startMs = end.getTime() - cycleMonths * 30 * 24 * 60 * 60 * 1000;
+    const inCycle = linkedForThis.filter((a) => {
+      const t = new Date(a.scheduled_at).getTime();
+      return t >= startMs && t <= end.getTime();
+    });
+    performedInCycle = inCycle.filter((a) => a.status === "done").length;
+    reservedInCycle = inCycle.filter((a) => a.status === "scheduled" || a.status === "confirmed").length;
+    balance = (includedPerCycle ?? 0) - performedInCycle - reservedInCycle;
+    canCalculate = true;
+  }
+
+  return {
+    includedPerMonth,
+    cycleMonths,
+    includedPerCycle,
+    cycleEndsAt: row.cycle_ends_at,
+    appointmentsLinkedCount,
+    performedInCycle,
+    reservedInCycle,
+    balance,
+    balanceCanCalculate: canCalculate,
+    note,
+  };
+}
+
+function mapRow(row: SubscriptionRowRaw, linkedAppointments: AppointmentAggregate[]): SubscriptionListRow {
   return {
     id: row.id,
     plan: row.subscription_plan,
@@ -176,6 +304,9 @@ function mapRow(row: SubscriptionRowRaw): SubscriptionListRow {
     sourceReference: row.source_reference,
     notes: row.notes,
     pagBankLocked: !!(row.provider_customer_id || row.provider_subscription_id),
+    financialReviewRequired: !!row.financial_review_required,
+    financialReviewReason: row.financial_review_reason,
+    usage: computeUsage(row, linkedAppointments),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -198,13 +329,27 @@ export async function listSubscriptions(
   const { data, error } = await db
     .from("crm_subscriptions")
     .select(
-      "id, customer_id, subscription_plan, subscription_cycle, subscription_status, is_active_subscriber, subscription_source, payment_method, payment_status, payment_evidence_source, provider_customer_id, provider_subscription_id, cycle_ends_at, next_due_date, vehicle_id, source_reference, notes, created_at, updated_at",
+      "id, customer_id, subscription_plan, subscription_cycle, subscription_status, is_active_subscriber, subscription_source, payment_method, payment_status, payment_evidence_source, provider_customer_id, provider_subscription_id, cycle_ends_at, next_due_date, vehicle_id, source_reference, notes, financial_review_required, financial_review_reason, created_at, updated_at",
     )
     .eq("customer_id", resolvedId)
     .order("is_active_subscriber", { ascending: false })
     .order("created_at", { ascending: true });
   if (error) throw new SubscriptionsWriteError(`Falha ao listar assinaturas: ${error.message}`, 502);
-  return ((data ?? []) as SubscriptionRowRaw[]).map(mapRow);
+
+  const rows = (data ?? []) as SubscriptionRowRaw[];
+  // Busca appointments vinculados a QUALQUER sub deste cliente (só quando há subs)
+  // — pequena query extra, evita N+1 por sub. Filtra depois em memória.
+  let linked: AppointmentAggregate[] = [];
+  if (rows.length > 0) {
+    const appt = await db
+      .from("crm_appointments")
+      .select("subscription_id, status, scheduled_at")
+      .eq("customer_id", resolvedId)
+      .not("subscription_id", "is", null);
+    if (appt.error) throw new SubscriptionsWriteError(`Falha ao consultar agendamentos: ${appt.error.message}`, 502);
+    linked = ((appt.data ?? []) as AppointmentAggregate[]).filter((a) => a.subscription_id);
+  }
+  return rows.map((r) => mapRow(r, linked));
 }
 
 // -----------------------------------------------------------------------------

@@ -27,6 +27,19 @@ import {
 //     distintos e nunca são fundidos.
 // -----------------------------------------------------------------------------
 
+export interface SubscriptionUsage {
+  includedPerMonth: number | null;
+  cycleMonths: number | null;
+  includedPerCycle: number | null;
+  cycleEndsAt: string | null;
+  appointmentsLinkedCount: number;
+  performedInCycle: number | null;
+  reservedInCycle: number | null;
+  balance: number | null;
+  balanceCanCalculate: boolean;
+  note: string | null;
+}
+
 export interface SubscriptionRow {
   id: string;
   plan: string;
@@ -44,6 +57,9 @@ export interface SubscriptionRow {
   sourceReference: string | null;
   notes: string | null;
   pagBankLocked: boolean;
+  financialReviewRequired: boolean;
+  financialReviewReason: string | null;
+  usage: SubscriptionUsage;
   createdAt: string;
   updatedAt: string;
 }
@@ -283,6 +299,14 @@ function SubscriptionCard({
                 Manual
               </span>
             )}
+            {row.financialReviewRequired && (
+              <span
+                className="inline-flex items-center gap-1 rounded-full border border-amber-300/30 bg-amber-300/[0.06] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-200"
+                title={row.financialReviewReason ?? undefined}
+              >
+                <ShieldAlert size={10} /> Em análise financeira
+              </span>
+            )}
           </div>
           <p className="mt-2 text-xs text-white/55">
             Veículo:{" "}
@@ -311,6 +335,7 @@ function SubscriptionCard({
               Referência de origem: <span className="text-white/70">{row.sourceReference}</span>
             </p>
           )}
+          <SubscriptionUsageBlock usage={row.usage} />
         </div>
         {enabled && !row.pagBankLocked && !isCancelled && (
           <div className="flex shrink-0 gap-2">
@@ -339,6 +364,52 @@ function SubscriptionCard({
 }
 
 // -----------------------------------------------------------------------------
+
+function SubscriptionUsageBlock({ usage }: { usage: SubscriptionUsage }) {
+  const includedLine =
+    usage.includedPerMonth != null
+      ? `${usage.includedPerMonth} lavagem${usage.includedPerMonth === 1 ? "" : "s"} incluída${usage.includedPerMonth === 1 ? "" : "s"} por mês`
+      : "Lavagens incluídas — indeterminadas para este plano";
+  const cycleLine =
+    usage.includedPerCycle != null
+      ? ` · ${usage.includedPerCycle} por ciclo (${usage.cycleMonths} ${usage.cycleMonths === 1 ? "mês" : "meses"})`
+      : "";
+
+  return (
+    <div className="mt-3 rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">
+        Uso do contrato
+      </p>
+      <p className="mt-1 text-xs text-white/80">
+        {includedLine}
+        <span className="text-white/50">{cycleLine}</span>
+      </p>
+
+      {usage.balanceCanCalculate ? (
+        <div className="mt-2 grid gap-2 text-[11px] text-white/70 sm:grid-cols-3">
+          <div className="rounded-lg border border-white/[0.05] bg-white/[0.02] px-2 py-1.5">
+            <span className="block text-[9px] font-semibold uppercase tracking-[0.14em] text-white/40">Realizadas no ciclo</span>
+            <span className="text-white/80">{usage.performedInCycle}</span>
+          </div>
+          <div className="rounded-lg border border-white/[0.05] bg-white/[0.02] px-2 py-1.5">
+            <span className="block text-[9px] font-semibold uppercase tracking-[0.14em] text-white/40">Reservadas no ciclo</span>
+            <span className="text-white/80">{usage.reservedInCycle}</span>
+          </div>
+          <div className="rounded-lg border border-white/[0.05] bg-white/[0.02] px-2 py-1.5">
+            <span className="block text-[9px] font-semibold uppercase tracking-[0.14em] text-white/40">Saldo disponível</span>
+            <span className={`font-semibold ${usage.balance != null && usage.balance < 0 ? "text-red-300" : "text-white/85"}`}>
+              {usage.balance}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <p className="mt-2 text-[11px] text-white/50 italic">
+          {usage.note ?? "Saldo não calculável com segurança."}
+        </p>
+      )}
+    </div>
+  );
+}
 
 function SubscriptionCreateForm({
   customerId,
