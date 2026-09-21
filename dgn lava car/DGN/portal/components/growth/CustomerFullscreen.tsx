@@ -21,6 +21,7 @@ import {
   AppointmentsEditor,
   PortalAccessEditor,
 } from "@/components/growth/DgnGrowthWorkspace";
+import { SubscriptionsManager } from "@/components/growth/SubscriptionsManager";
 import {
   derivePortalAccessStatus,
   type PortalAccessStatusResult,
@@ -232,23 +233,28 @@ export function CustomerFullscreen({
 
           <Section
             index={2}
-            title="Assinatura vigente"
+            title="Gerenciar assinaturas"
             icon={Wallet}
-            hint="Fonte canônica: crm_subscriptions. Alterações financeiras que afetem contrato PagBank vêm na Fase 2d."
+            hint="Cria, edita e cancela contratos manuais (Essential/Smart/Priority × Mensal/Fidelidade 6m/12m). Contratos PagBank ficam read-only — pagamento e vigência vêm pelo importer."
           >
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Fact label="Plano" value={planLabel} />
-              <Fact label="Status" value={status.label} />
-              <Fact label="Próxima cobrança" value={formatDate(customer.subscription?.nextDueDate)} />
-              <Fact
-                label="Forma de pagamento"
-                value={paymentMethodDisplay(
-                  customer.subscription?.paymentMethod ?? null,
-                  customer.subscription?.paymentMethodLabel ?? null,
-                )}
+            <div className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Fact label="Cliente desde" value={customer.customerSince || "—"} />
+                <Fact label="Último atendimento" value={customer.lastAttendance || "—"} />
+                <Fact
+                  label="Forma de pagamento (contrato vigente)"
+                  value={paymentMethodDisplay(
+                    customer.subscription?.paymentMethod ?? null,
+                    customer.subscription?.paymentMethodLabel ?? null,
+                  )}
+                />
+                <Fact label="Próxima cobrança (contrato vigente)" value={formatDate(customer.subscription?.nextDueDate)} />
+              </div>
+              <SubscriptionsManager
+                key={`subs-${customer.id}`}
+                customerId={customer.id}
+                enabled={editable}
               />
-              <Fact label="Cliente desde" value={customer.customerSince || "—"} />
-              <Fact label="Último atendimento" value={customer.lastAttendance || "—"} />
             </div>
           </Section>
 
