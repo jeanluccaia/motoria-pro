@@ -93,10 +93,21 @@ function ensurePlan(plan: string | null | undefined): DgnSubscriberPlan {
   );
 }
 
-function parseCycleEndsAtIso(input: string | null | undefined): string | null {
+function parseCycleEndsAtIso(input: string | null | undefined, opts: { now?: Date } = {}): string | null {
   if (!input || !input.trim()) return null;
   const d = new Date(input);
   if (Number.isNaN(d.getTime())) throw new SubscriptionsWriteError("Data de fim de vigência inválida.", 400);
+  // Bloqueia data no passado — assinatura que "continuará ativa" não pode
+  // terminar antes de hoje. Correção retroativa exige fluxo próprio (fora
+  // do editor da ficha). Comparação em UTC pra evitar ambiguidade de fuso.
+  const now = opts.now ?? new Date();
+  const todayUtcMs = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  if (d.getTime() < todayUtcMs) {
+    throw new SubscriptionsWriteError(
+      "Fim da vigência não pode ser uma data no passado. Correção retroativa exige fluxo específico.",
+      400,
+    );
+  }
   return d.toISOString();
 }
 

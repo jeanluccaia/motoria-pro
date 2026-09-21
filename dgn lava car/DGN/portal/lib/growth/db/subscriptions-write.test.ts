@@ -450,6 +450,89 @@ test("cancel: sem reason → 400 sem RPC", async () => {
   assert.equal(state.rpcCalls.length, 0);
 });
 
+// HOTFIX P0.2: past cycle_ends_at é bloqueado no write layer
+test("create: cycleEndsAt no passado → 400 (write layer bloqueia)", async () => {
+  const state = baseState();
+  const db = buildFake(state);
+  await assert.rejects(
+    () => createSubscription({
+      customerId: "digo-cliente",
+      plan: "Smart",
+      modality: "Mensal",
+      cycleEndsAt: "2020-01-01T23:59:59.000Z",
+      sourceReference: "teste",
+      actor: "dgn-admin",
+      db,
+    }),
+    (err: unknown) => err instanceof SubscriptionsWriteError && err.status === 400 && /passado/i.test(err.message),
+  );
+  // Nunca chamou RPC
+  assert.equal(state.rpcCalls.length, 0);
+});
+
+test("edit: cycleEndsAt no passado → 400 (chamada direta via API é bloqueada)", async () => {
+  const state = baseState();
+  const db = buildFake(state);
+  await assert.rejects(
+    () => editSubscription({
+      customerId: "digo-cliente",
+      subscriptionId: "sub-manual",
+      reason: "tentar retroativo",
+      cycleEndsAt: "2020-01-01T23:59:59.000Z",
+      actor: "dgn-admin",
+      db,
+    }),
+    (err: unknown) => err instanceof SubscriptionsWriteError && err.status === 400 && /passado/i.test(err.message),
+  );
+  assert.equal(state.rpcCalls.length, 0);
+});
+
+// HOTFIX P0.1: PATCH parcial não recebe modality/plan quando não passados
+test("edit: PATCH sem plan/modality passa null → RPC preserva valores existentes (coalesce)", async () => {
+  const state = baseState();
+  state.rpcResponses.crm_edit_manual_subscription = {
+    data: [{ result_code: "UPDATED", subscription_id: "sub-manual" }],
+    error: null,
+  };
+  const db = buildFake(state);
+  await editSubscription({
+    customerId: "digo-cliente",
+    subscriptionId: "sub-manual",
+    reason: "só troca de veículo",
+    vehicleId: "aaaa1111-1111-1111-1111-111111111111",
+    // plan e modality NÃO passados
+    actor: "dgn-admin",
+    db,
+  });
+  const call = state.rpcCalls.find((c) => c.fn === "crm_edit_manual_subscription")!;
+  assert.equal(call.args.p_plan, null, "p_plan deve ser null quando não passado");
+  assert.equal(call.args.p_cycle, null, "p_cycle deve ser null quando não passado");
+  assert.equal(call.args.p_vehicle_id, "aaaa1111-1111-1111-1111-111111111111");
+});
+
+// HOTFIX P0.1: modalidade "Outra" preservada quando modality não é passado
+test("edit: modalidade Outra (legada) sobrevive PATCH que só troca veículo", async () => {
+  const state = baseState();
+  // Simula sub existente com cycle "outro" (legado)
+  state.subscriptions[0].subscription_cycle = "outro";
+  state.rpcResponses.crm_edit_manual_subscription = {
+    data: [{ result_code: "UPDATED", subscription_id: "sub-manual" }],
+    error: null,
+  };
+  const db = buildFake(state);
+  await editSubscription({
+    customerId: "digo-cliente",
+    subscriptionId: "sub-manual",
+    reason: "só veículo",
+    vehicleId: "aaaa1111-1111-1111-1111-111111111111",
+    // modality NÃO passado — write layer passa null, RPC preserva
+    actor: "dgn-admin",
+    db,
+  });
+  const call = state.rpcCalls.find((c) => c.fn === "crm_edit_manual_subscription")!;
+  assert.equal(call.args.p_cycle, null, "sem modality → p_cycle=null → RPC preserva 'outro'");
+});
+
 // 8b: cancel manual OK
 test("cancel: OK chama RPC com args e devolve CANCELLED", async () => {
   const state = baseState();

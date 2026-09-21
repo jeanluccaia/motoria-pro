@@ -6,18 +6,25 @@ import {
   DGN_SUBSCRIBER_PLANS,
   DGN_BILLING_MODALITIES,
 } from "@/lib/growth/dgn-plans";
+import {
+  isPastDateInput,
+  todayLocalIso,
+  translateEvidenceSource,
+  translatePaymentMethod,
+  translatePaymentStatus,
+} from "./SubscriptionsManager.helpers";
 
 // -----------------------------------------------------------------------------
-// SubscriptionsManager — Editor de assinaturas na ficha do cliente (FASE 1).
+// SubscriptionsManager — Editor de assinaturas na ficha do cliente.
 //
-// Renderiza a lista de contratos (crm_subscriptions) e permite:
-//   * criar assinatura manual (plano, modalidade, veículo, fim da vigência, motivo)
-//   * editar assinatura manual (plano/modalidade/veículo/fim da vigência/motivo)
-//   * cancelar assinatura manual (motivo obrigatório)
-//
-// Contratos com vínculo PagBank (pagBankLocked=true) ficam read-only com aviso
-// claro; nenhuma ação de edição/cancelamento é oferecida na UI, e o backend
-// derruba tentativas de qualquer forma (defesa em profundidade).
+// Regras invioláveis (também garantidas server-side em subscriptions-write.ts):
+//   * Contratos PagBank (pagBankLocked=true) ficam read-only na UI e no server.
+//   * Só campos que o operador tocar de fato viajam no PATCH — nunca reescrever
+//     modalidade/plano "por default" (bug real: legacy "Outra" virando "Mensal").
+//   * Fim da vigência no passado é bloqueado (front + write layer).
+//   * Cancelamento exige clique → motivo → clique de confirmação (2 passos).
+//   * Motivo (reason) e origem do contrato (source_reference) são conceitos
+//     distintos e nunca são fundidos.
 // -----------------------------------------------------------------------------
 
 export interface SubscriptionRow {
@@ -83,14 +90,6 @@ function statusTone(status: string, isActive: boolean): { label: string; cls: st
   if (raw === "cancelado") return { label: "Cancelado", cls: "border-white/10 bg-white/[0.02] text-white/50" };
   if (raw === "encerrado") return { label: "Encerrado", cls: "border-white/10 bg-white/[0.02] text-white/50" };
   return { label: status || "—", cls: "border-white/10 bg-white/[0.02] text-white/60" };
-}
-
-function paymentToneLabel(status: string, evidence: string, method: string) {
-  const parts: string[] = [];
-  parts.push(`Pagamento: ${status || "—"}`);
-  parts.push(`Método: ${method || "—"}`);
-  parts.push(`Evidência: ${evidence || "—"}`);
-  return parts.join(" · ");
 }
 
 // -----------------------------------------------------------------------------
@@ -246,8 +245,11 @@ function SubscriptionCard({
   onChanged: () => Promise<void> | void;
 }) {
   const tone = statusTone(row.status, row.isActive);
-  const vehicleLabel = vehicles.find((v) => v.id === row.vehicleId)?.label ?? "—";
+  const vehicleLabel = row.vehicleId
+    ? vehicles.find((v) => v.id === row.vehicleId)?.label ?? row.vehicleId
+    : null;
   const isCancelled = row.status.toLowerCase() === "cancelado";
+  const isManual = !row.pagBankLocked;
 
   if (editing && !row.pagBankLocked) {
     return (
@@ -276,9 +278,19 @@ function SubscriptionCard({
                 <Lock size={10} /> PagBank
               </span>
             )}
+            {isManual && (
+              <span className="inline-flex items-center rounded-full border border-[#C9A84C]/25 bg-[#C9A84C]/[0.06] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#E7C96A]">
+                Manual
+              </span>
+            )}
           </div>
           <p className="mt-2 text-xs text-white/55">
-            Veículo: <span className="text-white/80">{vehicleLabel}</span>
+            Veículo:{" "}
+            {vehicleLabel ? (
+              <span className="text-white/80">{vehicleLabel}</span>
+            ) : (
+              <span className="text-white/60 italic">Nenhum veículo vinculado a este contrato</span>
+            )}
           </p>
           <p className="mt-1 text-xs text-white/55">
             Fim da vigência: <span className="text-white/80">{formatDate(row.cycleEndsAt)}</span>
@@ -286,11 +298,17 @@ function SubscriptionCard({
             Próxima cobrança: <span className="text-white/80">{formatDate(row.nextDueDate)}</span>
           </p>
           <p className="mt-1 text-[11px] text-white/45">
-            Origem: {row.source} · {paymentToneLabel(row.paymentStatus, row.paymentEvidenceSource, row.paymentMethod)}
+            Origem do contrato: <span className="text-white/70">{row.source}</span>
+            {" · "}
+            Pagamento: <span className="text-white/70">{translatePaymentStatus(row.paymentStatus)}</span>
+            {" · "}
+            Método: <span className="text-white/70">{translatePaymentMethod(row.paymentMethod)}</span>
+            {" · "}
+            Evidência: <span className="text-white/70">{translateEvidenceSource(row.paymentEvidenceSource)}</span>
           </p>
           {row.sourceReference && (
             <p className="mt-1 text-[11px] text-white/45">
-              Referência: {row.sourceReference}
+              Referência de origem: <span className="text-white/70">{row.sourceReference}</span>
             </p>
           )}
         </div>
@@ -345,10 +363,12 @@ function SubscriptionCreateForm({
 
   const endpoint = `/api/admin/growth/customers/${encodeURIComponent(customerId)}/subscriptions`;
 
+  const dateInvalid = cycleEndsAt !== "" && isPastDateInput(cycleEndsAt);
   const canSubmit =
     (DGN_SUBSCRIBER_PLANS as readonly string[]).includes(plan)
     && (DGN_BILLING_MODALITIES as readonly string[]).includes(modality)
-    && sourceReference.trim().length > 0;
+    && sourceReference.trim().length > 0
+    && !dateInvalid;
 
   const submit = async () => {
     if (!canSubmit || saving) return;
@@ -385,7 +405,9 @@ function SubscriptionCreateForm({
   };
 
   const summary = useMemo(() => {
-    const veh = vehicles.find((v) => v.id === vehicleId)?.label ?? "sem veículo vinculado";
+    const veh = vehicleId
+      ? vehicles.find((v) => v.id === vehicleId)?.label ?? "veículo selecionado"
+      : "sem veículo vinculado";
     const end = cycleEndsAt ? formatDate(new Date(`${cycleEndsAt}T00:00:00`).toISOString()) : "sem data de fim";
     return `${plan} · ${modality} · ${veh} · fim: ${end}`;
   }, [plan, modality, vehicleId, cycleEndsAt, vehicles]);
@@ -426,19 +448,28 @@ function SubscriptionCreateForm({
           <input
             type="date"
             value={cycleEndsAt}
+            min={todayLocalIso()}
             onChange={(e) => setCycleEndsAt(e.target.value)}
             className={inputCls}
           />
+          {dateInvalid && (
+            <p className="mt-1 text-[11px] text-red-300">
+              Data no passado — assinatura ativa não pode terminar antes de hoje.
+            </p>
+          )}
         </label>
         <label className="sm:col-span-2">
-          <span className={labelCls}>Motivo / origem *</span>
+          <span className={labelCls}>Origem do contrato *</span>
           <input
             value={sourceReference}
             onChange={(e) => setSourceReference(e.target.value)}
-            placeholder="Ex.: Contrato manual assinado 2026-09-21 (Digo)"
+            placeholder="Ex.: Contrato manual assinado 2026-09-21 (curadoria Digo)"
             className={inputCls}
             maxLength={200}
           />
+          <span className="mt-1 block text-[11px] text-white/45">
+            Descreva a origem do contrato (documento, canal, quem confirmou). Isto não confirma pagamento.
+          </span>
         </label>
         <label className="sm:col-span-2">
           <span className={labelCls}>Observações internas</span>
@@ -465,7 +496,7 @@ function SubscriptionCreateForm({
           </p>
           <p className="mt-1 text-xs text-white/80">{summary}</p>
           <p className="mt-1 text-[11px] text-white/50">
-            Motivo: <span className="text-white/70">{sourceReference}</span>
+            Origem do contrato: <span className="text-white/70">{sourceReference}</span>
           </p>
           <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
             <button type="button" onClick={() => setConfirming(false)} className={btnSecondary} disabled={saving}>
@@ -479,7 +510,7 @@ function SubscriptionCreateForm({
         </div>
       ) : (
         <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
-          <button type="button" onClick={onCancel} disabled={saving} className={btnSecondary}>Cancelar</button>
+          <button type="button" onClick={onCancel} disabled={saving} className={btnSecondary}>Descartar alterações</button>
           <button
             type="button"
             disabled={!canSubmit || saving}
@@ -509,15 +540,27 @@ function SubscriptionEditForm({
   onCancel: () => void;
   onSaved: () => Promise<void> | void;
 }) {
-  const initialModality = (DGN_BILLING_MODALITIES as readonly string[]).includes(row.modality)
-    ? row.modality
-    : "Mensal";
-  const [plan, setPlan] = useState<string>(row.plan || "Smart");
-  const [modality, setModality] = useState<string>(initialModality);
+  // ─── ESTADO INICIAL PRESERVA O QUE O CLIENTE REALMENTE TEM ─────────────────
+  // Nunca converter silenciosamente "Outra"/"Não identificado" para o default
+  // do select — bug real de prod (Wellington/Iara: PATCH de veículo alterava
+  // modalidade para Mensal). "touched" tracked separadamente pra decidir se o
+  // campo entra no PATCH.
+  const modalityIsLegacy = !(DGN_BILLING_MODALITIES as readonly string[]).includes(row.modality);
+  const planIsLegacy = !(DGN_SUBSCRIBER_PLANS as readonly string[]).includes(row.plan);
+
+  const [plan, setPlan] = useState<string>(row.plan);
+  const [planTouched, setPlanTouched] = useState(false);
+
+  const [modality, setModality] = useState<string>(row.modality);
+  const [modalityTouched, setModalityTouched] = useState(false);
+
   const [vehicleId, setVehicleId] = useState<string>(row.vehicleId ?? "");
-  const [clearVehicle, setClearVehicle] = useState<boolean>(row.vehicleId == null);
+  const [vehicleTouched, setVehicleTouched] = useState(false);
+
   const [cycleEndsAt, setCycleEndsAt] = useState<string>(isoToInputDate(row.cycleEndsAt));
+  const [cycleEndsAtTouched, setCycleEndsAtTouched] = useState(false);
   const [clearCycleEndsAt, setClearCycleEndsAt] = useState(false);
+
   const [reason, setReason] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -525,23 +568,38 @@ function SubscriptionEditForm({
 
   const endpoint = `/api/admin/growth/customers/${encodeURIComponent(customerId)}/subscriptions/${encodeURIComponent(row.id)}`;
 
-  const canSubmit = reason.trim().length > 0;
+  const dateInvalid =
+    cycleEndsAtTouched
+    && !clearCycleEndsAt
+    && cycleEndsAt !== ""
+    && isPastDateInput(cycleEndsAt);
+
+  // Um PATCH válido precisa: reason preenchido, ao menos 1 campo tocado, e data não inválida.
+  const anyTouched = planTouched || modalityTouched || vehicleTouched || cycleEndsAtTouched || clearCycleEndsAt;
+  const canSubmit =
+    reason.trim().length > 0
+    && anyTouched
+    && !dateInvalid
+    // Se plan foi alterado, precisa estar entre os oficiais
+    && (!planTouched || (DGN_SUBSCRIBER_PLANS as readonly string[]).includes(plan))
+    // Se modalidade foi alterada, precisa estar entre as oficiais
+    && (!modalityTouched || (DGN_BILLING_MODALITIES as readonly string[]).includes(modality));
 
   const submit = async () => {
     if (!canSubmit || saving) return;
     setSaving(true); setError(null);
     try {
+      // Só envia campos que o operador realmente tocou (PATCH parcial de verdade)
       const payload: Record<string, unknown> = { reason: reason.trim() };
-      if (plan !== row.plan) payload.plan = plan;
-      if (modality !== row.modality) payload.modality = modality;
-      if (clearVehicle) {
-        payload.clearVehicle = true;
-      } else if (vehicleId && vehicleId !== row.vehicleId) {
-        payload.vehicleId = vehicleId;
+      if (planTouched && plan !== row.plan) payload.plan = plan;
+      if (modalityTouched && modality !== row.modality) payload.modality = modality;
+      if (vehicleTouched) {
+        if (vehicleId === "") payload.clearVehicle = true;
+        else if (vehicleId !== row.vehicleId) payload.vehicleId = vehicleId;
       }
       if (clearCycleEndsAt) {
         payload.clearCycleEndsAt = true;
-      } else if (cycleEndsAt && cycleEndsAt !== isoToInputDate(row.cycleEndsAt)) {
+      } else if (cycleEndsAtTouched && cycleEndsAt && cycleEndsAt !== isoToInputDate(row.cycleEndsAt)) {
         payload.cycleEndsAt = new Date(`${cycleEndsAt}T23:59:59`).toISOString();
       }
 
@@ -562,20 +620,24 @@ function SubscriptionEditForm({
 
   const diff = useMemo(() => {
     const items: string[] = [];
-    if (plan !== row.plan) items.push(`Plano: ${row.plan} → ${plan}`);
-    if (modality !== row.modality) items.push(`Modalidade: ${row.modality} → ${modality}`);
-    if (clearVehicle && row.vehicleId) items.push("Veículo: remover vínculo");
-    else if (vehicleId && vehicleId !== row.vehicleId) {
-      const label = vehicles.find((v) => v.id === vehicleId)?.label ?? vehicleId;
-      const prev = vehicles.find((v) => v.id === row.vehicleId)?.label ?? "—";
-      items.push(`Veículo: ${prev} → ${label}`);
+    if (planTouched && plan !== row.plan) items.push(`Plano: ${row.plan} → ${plan}`);
+    if (modalityTouched && modality !== row.modality) items.push(`Modalidade: ${row.modality} → ${modality}`);
+    if (vehicleTouched) {
+      if (vehicleId === "" && row.vehicleId) items.push("Veículo: remover vínculo");
+      else if (vehicleId && vehicleId !== row.vehicleId) {
+        const label = vehicles.find((v) => v.id === vehicleId)?.label ?? vehicleId;
+        const prev = row.vehicleId
+          ? vehicles.find((v) => v.id === row.vehicleId)?.label ?? "sem vínculo"
+          : "sem vínculo";
+        items.push(`Veículo: ${prev} → ${label}`);
+      }
     }
     if (clearCycleEndsAt && row.cycleEndsAt) items.push("Fim da vigência: remover");
-    else if (cycleEndsAt && cycleEndsAt !== isoToInputDate(row.cycleEndsAt)) {
+    else if (cycleEndsAtTouched && cycleEndsAt && cycleEndsAt !== isoToInputDate(row.cycleEndsAt)) {
       items.push(`Fim da vigência: ${formatDate(row.cycleEndsAt)} → ${formatDate(new Date(`${cycleEndsAt}T00:00:00`).toISOString())}`);
     }
     return items;
-  }, [plan, modality, vehicleId, clearVehicle, cycleEndsAt, clearCycleEndsAt, row, vehicles]);
+  }, [planTouched, plan, modalityTouched, modality, vehicleTouched, vehicleId, clearCycleEndsAt, cycleEndsAtTouched, cycleEndsAt, row, vehicles]);
 
   return (
     <div className="rounded-2xl border border-[#C9A84C]/30 bg-white/[0.02] p-4">
@@ -583,31 +645,55 @@ function SubscriptionEditForm({
         Editar assinatura manual
       </p>
       <p className="mt-1 text-[11px] text-white/50">
-        Não modifica cobrança PagBank, financeiro do provedor nem confirma pagamento.
+        Só campos que você alterar são gravados. Não confirma pagamento, não altera cobrança PagBank.
       </p>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <label>
           <span className={labelCls}>Plano</span>
-          <select value={plan} onChange={(e) => setPlan(e.target.value)} className={inputCls}>
+          <select
+            value={plan}
+            onChange={(e) => { setPlan(e.target.value); setPlanTouched(true); }}
+            className={inputCls}
+          >
+            {planIsLegacy && (
+              <option value={row.plan}>
+                {row.plan} (legado — selecione um oficial para alterar)
+              </option>
+            )}
             {DGN_SUBSCRIBER_PLANS.map((p) => (<option key={p} value={p}>{p}</option>))}
           </select>
+          {!planTouched && (
+            <span className="mt-1 block text-[11px] text-white/40">
+              Mantém {row.plan} até você escolher outro.
+            </span>
+          )}
         </label>
         <label>
           <span className={labelCls}>Modalidade</span>
-          <select value={modality} onChange={(e) => setModality(e.target.value)} className={inputCls}>
+          <select
+            value={modality}
+            onChange={(e) => { setModality(e.target.value); setModalityTouched(true); }}
+            className={inputCls}
+          >
+            {modalityIsLegacy && (
+              <option value={row.modality}>
+                {row.modality} (legada — selecione uma oficial para alterar)
+              </option>
+            )}
             {DGN_BILLING_MODALITIES.map((m) => (<option key={m} value={m}>{m}</option>))}
           </select>
+          {!modalityTouched && (
+            <span className="mt-1 block text-[11px] text-white/40">
+              Mantém {row.modality} até você escolher outra.
+            </span>
+          )}
         </label>
         <label>
           <span className={labelCls}>Veículo vinculado</span>
           <select
-            value={clearVehicle ? "" : vehicleId}
-            onChange={(e) => {
-              const v = e.target.value;
-              if (v === "") { setClearVehicle(true); setVehicleId(""); }
-              else { setClearVehicle(false); setVehicleId(v); }
-            }}
+            value={vehicleId}
+            onChange={(e) => { setVehicleId(e.target.value); setVehicleTouched(true); }}
             className={inputCls}
           >
             <option value="">— sem veículo específico —</option>
@@ -615,13 +701,19 @@ function SubscriptionEditForm({
               <option key={v.id} value={v.id}>{v.label}{v.isPrimary ? " (principal)" : ""}</option>
             ))}
           </select>
+          {!vehicleTouched && !row.vehicleId && (
+            <span className="mt-1 block text-[11px] text-white/40">
+              Contrato sem veículo vinculado — não presume principal do cliente.
+            </span>
+          )}
         </label>
         <label>
           <span className={labelCls}>Fim da vigência</span>
           <input
             type="date"
             value={clearCycleEndsAt ? "" : cycleEndsAt}
-            onChange={(e) => { setClearCycleEndsAt(false); setCycleEndsAt(e.target.value); }}
+            min={todayLocalIso()}
+            onChange={(e) => { setClearCycleEndsAt(false); setCycleEndsAt(e.target.value); setCycleEndsAtTouched(true); }}
             className={inputCls}
           />
           <label className="mt-2 flex items-center gap-2 text-[11px] text-white/60">
@@ -630,22 +722,31 @@ function SubscriptionEditForm({
               checked={clearCycleEndsAt}
               onChange={(e) => {
                 setClearCycleEndsAt(e.target.checked);
-                if (e.target.checked) setCycleEndsAt("");
+                if (e.target.checked) { setCycleEndsAt(""); setCycleEndsAtTouched(true); }
               }}
               className="h-3.5 w-3.5 rounded border-white/15 bg-white/[0.03]"
             />
             Remover data de fim
           </label>
+          {dateInvalid && (
+            <p className="mt-1 text-[11px] text-red-300">
+              Data no passado — assinatura ativa não pode terminar antes de hoje.
+              Correção retroativa exige fluxo específico (fora deste editor).
+            </p>
+          )}
         </label>
         <label className="sm:col-span-2">
-          <span className={labelCls}>Motivo *</span>
+          <span className={labelCls}>Motivo da alteração *</span>
           <input
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Ex.: Ajuste de plano confirmado pelo cliente (Digo, 2026-09-21)"
+            placeholder="Ex.: Cliente pediu upgrade para Priority (Digo, 2026-09-21)"
             className={inputCls}
             maxLength={200}
           />
+          <span className="mt-1 block text-[11px] text-white/45">
+            Explica <em>por que</em> o contrato está sendo alterado. Não descreve pagamento.
+          </span>
         </label>
       </div>
 
@@ -661,7 +762,7 @@ function SubscriptionEditForm({
             Confirmar alterações
           </p>
           {diff.length === 0 ? (
-            <p className="mt-1 text-xs text-white/70">Nenhuma alteração detectada — apenas motivo será registrado.</p>
+            <p className="mt-1 text-xs text-white/70">Nenhuma alteração para gravar — motivo isolado não gera PATCH.</p>
           ) : (
             <ul className="mt-1 space-y-1 text-xs text-white/80">
               {diff.map((d) => (<li key={d}>· {d}</li>))}
@@ -674,7 +775,12 @@ function SubscriptionEditForm({
             <button type="button" onClick={() => setConfirming(false)} className={btnSecondary} disabled={saving}>
               Voltar
             </button>
-            <button type="button" onClick={submit} disabled={saving} className={btnPrimary}>
+            <button
+              type="button"
+              onClick={submit}
+              disabled={saving || diff.length === 0}
+              className={btnPrimary}
+            >
               <CheckCircle2 size={13} className="mr-1.5" />
               {saving ? "Salvando…" : "Confirmar e salvar"}
             </button>
@@ -682,7 +788,9 @@ function SubscriptionEditForm({
         </div>
       ) : (
         <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
-          <button type="button" onClick={onCancel} disabled={saving} className={btnSecondary}>Cancelar</button>
+          <button type="button" onClick={onCancel} disabled={saving} className={btnSecondary}>
+            Descartar alterações
+          </button>
           <button
             type="button"
             disabled={!canSubmit || saving}
@@ -737,7 +845,7 @@ function CancelSubscriptionButton({
   if (!asking) {
     return (
       <button type="button" onClick={() => setAsking(true)} className={btnDanger}>
-        <Trash2 size={13} className="mr-1.5" /> Cancelar
+        <Trash2 size={13} className="mr-1.5" /> Cancelar contrato
       </button>
     );
   }
@@ -745,7 +853,7 @@ function CancelSubscriptionButton({
   return (
     <div className="w-full rounded-xl border border-red-400/25 bg-red-400/10 p-3">
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-red-200">
-        Cancelar {row.plan} · {row.modality}
+        Cancelar contrato {row.plan} · {row.modality}
       </p>
       <label className="mt-2 block">
         <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-red-200/80">
@@ -765,8 +873,13 @@ function CancelSubscriptionButton({
         </p>
       )}
       <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
-        <button type="button" onClick={() => { setAsking(false); setReason(""); setError(null); }} className={btnSecondary} disabled={saving}>
-          Voltar
+        <button
+          type="button"
+          onClick={() => { setAsking(false); setReason(""); setError(null); }}
+          className={btnSecondary}
+          disabled={saving}
+        >
+          Descartar
         </button>
         <button type="button" onClick={submit} disabled={!reason.trim() || saving} className={btnDanger}>
           {saving ? "Cancelando…" : "Confirmar cancelamento"}
