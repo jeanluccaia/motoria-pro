@@ -88,6 +88,10 @@ import {
   type PortalAccessBlocker,
   type PortalAccessStatusResult,
 } from "@/lib/growth/portal/access-status";
+import {
+  classifyAppointment,
+  formatAppointmentSaoPaulo,
+} from "@/lib/growth/db/classify-appointment";
 
 type GrowthView = "intelligence" | "curadoria" | "founders" | "profile";
 type ProfileTab = "overview" | "commercial" | "campaign" | "timeline";
@@ -4446,57 +4450,13 @@ export function AppointmentsEditor({
         )}
       </div>
 
-      <div className="mt-4 space-y-2">
-        {appointments.length === 0 && !loading ? (
-          <p className="text-xs text-[#777]">Nenhum agendamento registrado.</p>
-        ) : (
-          appointments.map((a) => {
-            const when = new Date(a.scheduled_at);
-            const isPast = when.getTime() < Date.now();
-            const isEditable = a.status === "scheduled" || a.status === "confirmed";
-            return (
-              <div
-                key={a.id}
-                className={`flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/[0.05] p-2 text-xs ${
-                  a.status === "cancelled" ? "opacity-50" : ""
-                }`}
-              >
-                <div className="min-w-[220px] flex-1">
-                  <p className="text-sm font-medium text-white/90">
-                    {when.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" })}
-                    {isPast && a.status !== "cancelled" && <span className="ml-2 text-[10px] uppercase text-amber-300/80">passado</span>}
-                  </p>
-                  <p className="text-[11px] text-[#999]">
-                    {a.service_type || "Sem serviço definido"} · {a.status}
-                  </p>
-                  {a.notes && <p className="mt-1 text-[11px] text-[#888]">{a.notes}</p>}
-                  {a.cancelled_reason && <p className="mt-1 text-[11px] text-red-300/80">Motivo: {a.cancelled_reason}</p>}
-                </div>
-                {isEditable && (
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      disabled={!enabled}
-                      onClick={() => setEditing(a)}
-                      className="min-h-8 rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-3 text-[11px] font-semibold text-[#E7C96A] disabled:opacity-40"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      disabled={!enabled}
-                      onClick={() => void cancel(a.id)}
-                      className="min-h-8 rounded-lg border border-red-400/25 bg-red-400/10 px-3 text-[11px] text-red-200 disabled:opacity-40"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })
-        )}
-      </div>
+      <AppointmentsBoard
+        appointments={appointments}
+        loading={loading}
+        enabled={enabled}
+        onEdit={setEditing}
+        onCancel={(id) => void cancel(id)}
+      />
 
       {editing && (
         <AppointmentEditModal
@@ -4509,6 +4469,257 @@ export function AppointmentsEditor({
             void reload();
           }}
         />
+      )}
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// AppointmentsBoard (Fase 3)
+//
+// Agrupa a lista de crm_appointments em 3 seções compartilhadas com o
+// Dashboard (via lib/growth/db/classify-appointment.ts):
+//   1. Próximos atendimentos     — futuro + scheduled/confirmed
+//   2. Pendentes de desfecho     — passado + scheduled/confirmed
+//   3. Histórico                 — cancelled, done, no_show, status desconhecido
+//
+// Registros identificados como teste (evidência forte, ver classifier) ficam
+// em um bloco recolhido separado, para não poluir consulta operacional.
+// -----------------------------------------------------------------------------
+function AppointmentsBoard({
+  appointments,
+  loading,
+  enabled,
+  onEdit,
+  onCancel,
+}: {
+  appointments: AppointmentRowForAdmin[];
+  loading: boolean;
+  enabled: boolean;
+  onEdit: (a: AppointmentRowForAdmin) => void;
+  onCancel: (id: string) => void;
+}) {
+  const [showTestArtifacts, setShowTestArtifacts] = useState(false);
+  const grouped = useMemo(() => {
+    const now = new Date();
+    const proximos: AppointmentRowForAdmin[] = [];
+    const pendentes: AppointmentRowForAdmin[] = [];
+    const historico: AppointmentRowForAdmin[] = [];
+    const testes: AppointmentRowForAdmin[] = [];
+    for (const a of appointments) {
+      const cls = classifyAppointment({
+        scheduledAt: a.scheduled_at, status: a.status, notes: a.notes, now,
+      });
+      if (cls.isTestArtifact) { testes.push(a); continue; }
+      if (cls.category === "PROXIMO") proximos.push(a);
+      else if (cls.category === "PENDENTE_DESFECHO") pendentes.push(a);
+      else historico.push(a);
+    }
+    proximos.sort((x, y) => new Date(x.scheduled_at).getTime() - new Date(y.scheduled_at).getTime());
+    pendentes.sort((x, y) => new Date(y.scheduled_at).getTime() - new Date(x.scheduled_at).getTime());
+    historico.sort((x, y) => new Date(y.scheduled_at).getTime() - new Date(x.scheduled_at).getTime());
+    testes.sort((x, y) => new Date(y.scheduled_at).getTime() - new Date(x.scheduled_at).getTime());
+    return { proximos, pendentes, historico, testes };
+  }, [appointments]);
+
+  if (loading && appointments.length === 0) {
+    return <p className="mt-4 text-xs text-[#777]">carregando…</p>;
+  }
+  if (appointments.length === 0) {
+    return <p className="mt-4 text-xs text-[#777]">Nenhum agendamento registrado.</p>;
+  }
+
+  return (
+    <div className="mt-5 space-y-5">
+      <AppointmentGroup
+        title="Próximos atendimentos"
+        hint="Data futura, status operacional compatível. Nunca inclui cancelados nem concluídos."
+        rows={grouped.proximos}
+        emptyMsg="Nenhum atendimento futuro programado."
+        variant="proximo"
+        enabled={enabled}
+        onEdit={onEdit}
+        onCancel={onCancel}
+      />
+      <AppointmentGroup
+        title="Pendentes de desfecho"
+        hint="Data passada sem confirmação de conclusão ou cancelamento. Não presumir realização automática."
+        rows={grouped.pendentes}
+        emptyMsg="Nenhum atendimento passado aguardando desfecho."
+        variant="pendente"
+        enabled={enabled}
+        onEdit={onEdit}
+        onCancel={onCancel}
+      />
+      <AppointmentGroup
+        title="Histórico"
+        hint="Concluídos, cancelados e no-show. Estado final."
+        rows={grouped.historico}
+        emptyMsg="Sem histórico ainda."
+        variant="historico"
+        enabled={enabled}
+        onEdit={onEdit}
+        onCancel={onCancel}
+      />
+      {grouped.testes.length > 0 && (
+        <div className="rounded-xl border border-white/[0.05] bg-white/[0.02]">
+          <button
+            type="button"
+            onClick={() => setShowTestArtifacts((v) => !v)}
+            className="flex w-full items-center justify-between px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60 hover:text-white/85"
+          >
+            <span>Registros de teste ({grouped.testes.length})</span>
+            <span className="text-white/40">{showTestArtifacts ? "ocultar" : "mostrar"}</span>
+          </button>
+          {showTestArtifacts && (
+            <div className="border-t border-white/[0.05] p-2">
+              <p className="mb-2 text-[11px] text-white/45">
+                Marcadores dev inequívocos detectados nas observações (ex.: “SMOKE 2B”, “PATCH; id e created_at intactos”). Mantidos para auditoria; não poluem as consultas operacionais.
+              </p>
+              <div className="space-y-2">
+                {grouped.testes.map((a) => (
+                  <AppointmentCard
+                    key={a.id}
+                    row={a}
+                    variant="historico"
+                    enabled={enabled}
+                    onEdit={onEdit}
+                    onCancel={onCancel}
+                    forceTestBadge
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AppointmentGroup({
+  title,
+  hint,
+  rows,
+  emptyMsg,
+  variant,
+  enabled,
+  onEdit,
+  onCancel,
+}: {
+  title: string;
+  hint: string;
+  rows: AppointmentRowForAdmin[];
+  emptyMsg: string;
+  variant: "proximo" | "pendente" | "historico";
+  enabled: boolean;
+  onEdit: (a: AppointmentRowForAdmin) => void;
+  onCancel: (id: string) => void;
+}) {
+  return (
+    <div>
+      <div className="mb-2 flex items-baseline justify-between gap-2">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">
+          {title}
+          <span className="ml-2 text-white/40">({rows.length})</span>
+        </p>
+      </div>
+      <p className="mb-2 text-[11px] text-white/45">{hint}</p>
+      {rows.length === 0 ? (
+        <p className="text-[11px] text-white/50 italic">{emptyMsg}</p>
+      ) : (
+        <div className="space-y-2">
+          {rows.map((a) => (
+            <AppointmentCard
+              key={a.id}
+              row={a}
+              variant={variant}
+              enabled={enabled}
+              onEdit={onEdit}
+              onCancel={onCancel}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AppointmentCard({
+  row,
+  variant,
+  enabled,
+  onEdit,
+  onCancel,
+  forceTestBadge = false,
+}: {
+  row: AppointmentRowForAdmin;
+  variant: "proximo" | "pendente" | "historico";
+  enabled: boolean;
+  onEdit: (a: AppointmentRowForAdmin) => void;
+  onCancel: (id: string) => void;
+  forceTestBadge?: boolean;
+}) {
+  // Solicitação registrada vs. Reserva confirmada — o modelo hoje NÃO tem
+  // integração operacional homologada; qualquer 'scheduled' é solicitação
+  // registrada no CRM, não confirmação externa. 'confirmed' fica reservado
+  // para quando existir handshake com sistema operacional.
+  const isRequestOnly = row.status === "scheduled";
+  const isCancelled = row.status === "cancelled";
+  const isEditable = enabled && (row.status === "scheduled" || row.status === "confirmed");
+  const isPastPendente = variant === "pendente";
+  const borderCls = isCancelled
+    ? "border-white/[0.05] opacity-70"
+    : variant === "pendente"
+      ? "border-amber-300/25 bg-amber-300/[0.02]"
+      : "border-white/[0.05]";
+
+  return (
+    <div className={`flex flex-wrap items-start justify-between gap-2 rounded-lg border p-2 text-xs ${borderCls}`}>
+      <div className="min-w-[220px] flex-1">
+        <p className="text-sm font-medium text-white/90">
+          {formatAppointmentSaoPaulo(row.scheduled_at)}
+          {isPastPendente && (
+            <span className="ml-2 text-[10px] font-semibold uppercase tracking-wider text-amber-300">
+              passado sem desfecho
+            </span>
+          )}
+          {forceTestBadge && (
+            <span className="ml-2 rounded-full border border-white/15 bg-white/[0.05] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-white/60">
+              teste
+            </span>
+          )}
+        </p>
+        <p className="text-[11px] text-[#999]">
+          {row.service_type || "Sem serviço definido"} · status: {row.status}
+          {isRequestOnly && (
+            <span className="ml-2 text-[10px] uppercase tracking-wider text-white/50">
+              solicitação registrada
+            </span>
+          )}
+        </p>
+        {row.notes && <p className="mt-1 text-[11px] text-[#888]">{row.notes}</p>}
+        {row.cancelled_reason && (
+          <p className="mt-1 text-[11px] text-red-300/80">Motivo do cancelamento: {row.cancelled_reason}</p>
+        )}
+      </div>
+      {isEditable && (
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => onEdit(row)}
+            className="min-h-8 rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-3 text-[11px] font-semibold text-[#E7C96A]"
+          >
+            Editar
+          </button>
+          <button
+            type="button"
+            onClick={() => onCancel(row.id)}
+            className="min-h-8 rounded-lg border border-red-400/25 bg-red-400/10 px-3 text-[11px] text-red-200"
+          >
+            Cancelar
+          </button>
+        </div>
       )}
     </div>
   );
