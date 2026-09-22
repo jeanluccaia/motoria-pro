@@ -1,5 +1,30 @@
+-- ===========================================================================
+-- STATUS: NÃO APROVADO · DEPRECATED (2026-09-22, revisão financeira do Jean)
+--
+-- Este rascunho pretendia gravar payment_verification_status='manual_confirmation'
+-- nos 4 Founders (Benedito, Jose Moreira, Rikardo, Wellington) com base no
+-- audit_log `subscription.promoted` de 2026-09-17 ("Digo confirmou: ativo,
+-- pago"). Esse audit_log é confirmação administrativa, NÃO comprovante de
+-- recebimento.
+--
+-- Nenhuma das 4 subs tem, no banco, artefato que suporte `manual_confirmation`:
+--   * last_payment_confirmed_at = NULL
+--   * payment_method = 'unknown'
+--   * payment_confidence = 0.00
+--   * source_reference = "Founder Nº00X confirmado" ou "4uCar/planilha_...", i.e.
+--     acionamento comercial e planilha operacional, não recibo.
+--
+-- Backfill correto exige, POR SUB, o comprovante concreto: PIX/TED/boleto
+-- pago, data e canal, valor, ID de transação, e um audit_log dedicado
+-- `subscription.receipt_registered`. Sem isso o estado canônico continua
+-- MANUAL_REGISTERED e a UI marca "Verificação necessária".
+--
+-- Não executar. Não reaproveitar regras sem nova revisão pelo Jean.
+-- Mantido em disco só para rastro histórico.
+-- ===========================================================================
+
 -- ---------------------------------------------------------------------------
--- FASE 4 — RASCUNHO. NÃO APLICAR sem autorização explícita do Jean.
+-- [HISTÓRICO — RASCUNHO NÃO APROVADO]
 --
 -- Backfill: alinhar payment_verification_status das 4 subscriptions promovidas
 -- manualmente em 2026-09-17 pelo Digo, para que elas apareçam corretamente

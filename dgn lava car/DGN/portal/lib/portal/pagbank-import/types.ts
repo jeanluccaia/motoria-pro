@@ -133,6 +133,39 @@ export interface ImportRowOutcome {
   actions: ImportAction[];
 }
 
+/**
+ * Detalhes auditáveis de sobreposição manual↔provider — vem junto do action
+ * `flag_manual_provider_overlap`. NÃO decide nada; carrega o conteúdo que a
+ * fila humana precisa ver para separar dois contratos legítimos de uma
+ * representação duplicada do mesmo contrato.
+ */
+export interface ManualProviderOverlapEvidence {
+  customerId: string;
+  /** Assinatura manual que já vive no CRM. */
+  manualSubscription: {
+    id: string;
+    subscriptionPlan: string | null;
+    subscriptionSource: string | null;
+    paymentEvidenceSource: string | null;
+    paymentVerificationStatus: string | null;
+    cycleEndsAt: string | null;
+    vehicleId: string | null;
+    sourceReference: string | null;
+  };
+  /** Contrato PagBank que o importer estava prestes a criar. */
+  incomingProvider: {
+    providerCustomerId: string | null;
+    providerSubscriptionId: string;
+    plan: string;
+    amountMonthly: number;
+    nextDueDate: string | null;
+    lastPaymentConfirmedAt: string | null;
+    vehiclePlate: string | null;
+    vehicleBrand: string | null;
+    vehicleModel: string | null;
+  };
+}
+
 export type ImportAction =
   | { kind: "link_existing_customer"; customerId: string }
   | { kind: "link_batch_customer"; providerCustomerId: string }
@@ -147,6 +180,17 @@ export type ImportAction =
   | { kind: "create_subscription"; providerSubscriptionId: string; plan: string }
   | { kind: "update_subscription"; subscriptionId: string; providerSubscriptionId: string }
   | { kind: "flag_financial_review"; reason: string }
+  | {
+      /**
+       * Sobreposição possível: já existe subscription MANUAL ativa para o
+       * mesmo customer que o snapshot PagBank tentou instalar. O importer NÃO
+       * cria a sub PagBank paralela — emite este flag pedindo decisão humana
+       * (dois contratos legítimos VS mesma assinatura em duas representações).
+       */
+      kind: "flag_manual_provider_overlap";
+      reason: string;
+      evidence: ManualProviderOverlapEvidence;
+    }
   | { kind: "await_reconciliation"; providerCustomerId: string }
   | { kind: "skip"; reason: string };
 
@@ -169,6 +213,12 @@ export interface ImportSummary {
     subscriptions_would_update: number;
     vehicles_would_create: number;
     financial_reviews_flagged: number;
+    /**
+     * Quantas linhas do batch pararam por sobreposição manual↔provider —
+     * customer já tem sub manual ativa no CRM. Nenhuma sub PagBank foi
+     * criada nessas linhas; a decisão vai pra fila humana.
+     */
+    manual_provider_overlaps: number;
   };
   rows: ImportRowOutcome[];
   generated_at: string;

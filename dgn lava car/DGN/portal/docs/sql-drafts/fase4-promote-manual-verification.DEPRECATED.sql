@@ -1,7 +1,25 @@
--- ---------------------------------------------------------------------------
--- FASE 4 — RASCUNHO. NÃO APLICAR sem autorização explícita do Jean.
+-- ===========================================================================
+-- STATUS: NÃO APROVADO · DEPRECATED (2026-09-22, revisão financeira do Jean)
 --
--- Objetivo: quando o operador promove uma sub manual com
+-- Este rascunho propunha converter automaticamente
+--   payment_evidence_source='manual' + payment_status='confirmed'
+-- em payment_verification_status='manual_confirmation'.
+--
+-- FALHA CANÔNICA: confirmação administrativa (dgn-admin/Digo) NÃO é
+-- evidência de recebimento financeiro. `manual_confirmation` exige recibo
+-- real (PIX/TED/boleto pago), com data, valor, canal, comprovante — não
+-- basta o operador atestar que "está pago". Qualquer nova versão deste RPC
+-- DEVE receber a evidência de recebimento como parâmetro obrigatório e
+-- gravá-la em campo dedicado antes de mover o verification.
+--
+-- Não executar. Não reaproveitar regras sem nova revisão pelo Jean.
+-- Mantido em disco só para rastro histórico.
+-- ===========================================================================
+
+-- ---------------------------------------------------------------------------
+-- [HISTÓRICO — RASCUNHO NÃO APROVADO]
+--
+-- Objetivo original: quando o operador promove uma sub manual com
 --   payment_evidence_source='manual' + payment_status='confirmed'
 -- o RPC deve ALSO gravar payment_verification_status='manual_confirmation'.
 --

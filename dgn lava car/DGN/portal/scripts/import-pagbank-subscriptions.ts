@@ -39,14 +39,19 @@ import type {
 import type { PlannedNewCustomer } from "../lib/portal/pagbank-import/matcher.ts";
 import { getSupabaseAdminClient } from "../lib/growth/db/admin-client.ts";
 import { normalizeName, normalizePlate } from "../lib/growth/db/normalizers.ts";
+import {
+  buildSubscriptionRow,
+  type FinancialReviewSignal,
+} from "../lib/portal/pagbank-import/build-subscription-row.ts";
 
 const IMPORT_ACTOR = "importer:pagbank-p0";
-const IMPORT_SOURCE = "pagbank:snapshot-2026-09-01";
+const SOURCE_LABEL_PATTERN = /^pagbank:snapshot-\d{4}-\d{2}-\d{2}$/;
 
 interface Args {
   file: string;
   reconciliation?: string;
   apply: boolean;
+  sourceLabel: string;
 }
 
 function parseArgs(): Args {
@@ -54,9 +59,11 @@ function parseArgs(): Args {
   let file = "";
   let reconciliation: string | undefined;
   let apply = false;
+  let sourceLabel = "";
   for (const arg of argv) {
     if (arg.startsWith("--file=")) file = arg.slice("--file=".length);
     else if (arg.startsWith("--reconciliation=")) reconciliation = arg.slice("--reconciliation=".length);
+    else if (arg.startsWith("--source-label=")) sourceLabel = arg.slice("--source-label=".length).trim();
     else if (arg === "--apply") apply = true;
     else if (arg === "--dry-run") apply = false;
     else if (arg === "--help" || arg === "-h") {
@@ -69,16 +76,35 @@ function parseArgs(): Args {
     printHelp();
     process.exit(2);
   }
-  return { file, reconciliation, apply };
+  if (!sourceLabel) {
+    console.error(
+      "Erro: --source-label=<pagbank:snapshot-YYYY-MM-DD> obrigatório (identifica origem do import).\n" +
+      "      Ex.: --source-label=pagbank:snapshot-2026-09-22",
+    );
+    printHelp();
+    process.exit(2);
+  }
+  if (!SOURCE_LABEL_PATTERN.test(sourceLabel)) {
+    console.error(
+      `Erro: --source-label="${sourceLabel}" inválido. Esperado: pagbank:snapshot-YYYY-MM-DD.`,
+    );
+    process.exit(2);
+  }
+  return { file, reconciliation, apply, sourceLabel };
 }
 
 function printHelp(): void {
   console.log(`
 Uso:
-  scripts/import-pagbank-subscriptions.ts --file=<path> [--reconciliation=<path>] [--apply]
+  scripts/import-pagbank-subscriptions.ts \\
+    --file=<path> --source-label=pagbank:snapshot-YYYY-MM-DD \\
+    [--reconciliation=<path>] [--apply]
 
 Flags:
   --file=<path>              Arquivo JSON/CSV com contratos PagBank.
+  --source-label=<label>     OBRIGATÓRIO. Identificador da origem do import.
+                             Formato: pagbank:snapshot-YYYY-MM-DD. Grava em
+                             billing_due_source e no reason do audit_log.
   --reconciliation=<path>    Arquivo de reconciliação humana (opcional mas exigido em --apply).
                              Suporta decision APPROVED e NEW_CUSTOMER + subscription_overrides.
   --apply                    Persiste no banco (Supabase). Default: dry-run.
@@ -89,8 +115,9 @@ Gate de segurança para --apply (bloqueia se qualquer condição falhar):
   - todos os provider_customer_ids resolvidos (0 pending_reconciliation);
   - 0 errors;
   - todos os row outcomes ∈ { matched, new_customer_planned, duplicate }.
+  - nenhuma linha em manual↔provider overlap (POSSIBLE_MANUAL_PROVIDER_OVERLAP);
 
-Regras P0:
+Regras P0 e Fase 4:
   - Arquivo real NUNCA no git. Use .data/pagbank/... (gitignored).
   - Idempotência via provider_subscription_id.
   - Prioridade de match: reconciliation > provider_id > cpf > telefone > nome.
@@ -98,6 +125,12 @@ Regras P0:
   - David-like (2+ subs sem placa distinta) → financial_review_required=true.
   - José-like: multi_contract_decision=APPROVED_HUMAN_WITH_OPERATIONAL_EVIDENCE
     + subscription_overrides por contrato → cria 2 vehicles e vincula.
+  - MANUAL_PROVIDER_OVERLAP (Fase 4): customer com sub manual ativa e contrato
+    PagBank novo → review_required; NÃO cria sub paralela. Resolução humana
+    explícita antes de importar (mesmo contrato em duas representações vs 2
+    contratos legítimos).
+  - UPDATE preserva notes existentes se snapshot não trouxer nova nota, e
+    preserva subscription_detected_at (nunca é reescrito por refresh).
 `);
 }
 
@@ -203,7 +236,7 @@ async function main(): Promise<void> {
     existingSubscriptionsByProviderId: existingByProviderId,
     existingSubscriptionsByCustomerId: existingByCustomer,
     mode: args.apply ? "apply" : "dry_run",
-    sourceLabel: args.file,
+    sourceLabel: args.sourceLabel,
   });
 
   printSummary(summary);
@@ -221,7 +254,7 @@ async function main(): Promise<void> {
 
   enforceApplyGates(summary);
 
-  await applyChanges(summary);
+  await applyChanges(summary, args.sourceLabel);
   console.log("\n[apply] Persistência concluída.\n");
 }
 
@@ -248,11 +281,17 @@ async function loadCrmIndexes(): Promise<{
       provider_customer_id: string | null;
       provider_subscription_id: string | null;
       subscription_plan: string | null;
+      subscription_source: string | null;
       is_active_subscriber: boolean;
+      payment_evidence_source: string | null;
+      payment_verification_status: string | null;
+      cycle_ends_at: string | null;
+      vehicle_id: string | null;
+      source_reference: string | null;
     }>(
       supabase,
       "crm_subscriptions",
-      "id, customer_id, provider_customer_id, provider_subscription_id, subscription_plan, is_active_subscriber",
+      "id, customer_id, provider_customer_id, provider_subscription_id, subscription_plan, subscription_source, is_active_subscriber, payment_evidence_source, payment_verification_status, cycle_ends_at, vehicle_id, source_reference",
     );
 
     const providerCustomerByCustomerId = new Map<string, string>();
@@ -278,9 +317,17 @@ async function loadCrmIndexes(): Promise<{
       const row: ExistingSubscription = {
         id: s.id,
         customer_id: s.customer_id,
+        provider_customer_id: s.provider_customer_id,
         provider_subscription_id: s.provider_subscription_id,
         plan: s.subscription_plan,
+        subscription_source: s.subscription_source,
         is_active_subscriber: !!s.is_active_subscriber,
+        is_manual: !s.provider_subscription_id,
+        payment_evidence_source: s.payment_evidence_source,
+        payment_verification_status: s.payment_verification_status,
+        cycle_ends_at: s.cycle_ends_at,
+        vehicle_id: s.vehicle_id,
+        source_reference: s.source_reference,
       };
       if (row.provider_subscription_id) {
         existingByProviderId.set(row.provider_subscription_id, row);
@@ -335,6 +382,7 @@ function printSummary(summary: ImportSummary): void {
   console.log(`Would create subs:             ${t.subscriptions_would_create}`);
   console.log(`Would update subs:             ${t.subscriptions_would_update}`);
   console.log(`Financial reviews (customers): ${t.financial_reviews_flagged}`);
+  console.log(`Manual↔provider overlaps:      ${t.manual_provider_overlaps}`);
   console.log("");
 
   const attention = summary.rows.filter(
@@ -344,6 +392,31 @@ function printSummary(summary: ImportSummary): void {
     console.log("--- REVIEW / ERRO ---");
     for (const r of attention) {
       console.log(`• ${r.input.customer_name} · ${r.input.provider_subscription_id} [${r.outcome}] — ${r.notice ?? r.match.reason}`);
+    }
+    console.log("");
+  }
+
+  const overlapRows = summary.rows.filter((r) =>
+    r.actions.some((a) => a.kind === "flag_manual_provider_overlap"),
+  );
+  if (overlapRows.length > 0) {
+    console.log("--- MANUAL ↔ PROVIDER OVERLAP (decisão humana obrigatória) ---");
+    for (const r of overlapRows) {
+      const flags = r.actions.filter(
+        (a): a is Extract<ImportAction, { kind: "flag_manual_provider_overlap" }> =>
+          a.kind === "flag_manual_provider_overlap",
+      );
+      for (const f of flags) {
+        const m = f.evidence.manualSubscription;
+        const p = f.evidence.incomingProvider;
+        console.log(`• Customer ${f.evidence.customerId} — ${r.input.customer_name}`);
+        console.log(
+          `    · Manual: sub=${m.id} plan=${m.subscriptionPlan ?? "—"} source=${m.subscriptionSource ?? "—"} vehicle=${m.vehicleId ?? "—"} evidence=${m.paymentEvidenceSource ?? "—"}/${m.paymentVerificationStatus ?? "—"} cycle_ends_at=${m.cycleEndsAt ?? "—"}`,
+        );
+        console.log(
+          `    · PagBank incoming: psid=${p.providerSubscriptionId} plan=${p.plan} next_due=${p.nextDueDate ?? "—"} amount=R$${p.amountMonthly.toFixed(2)} plate=${p.vehiclePlate ?? "—"}`,
+        );
+      }
     }
     console.log("");
   }
@@ -408,6 +481,10 @@ function enforceApplyGates(summary: ImportSummary): void {
     problems.push(`pending_reconciliation_customers=${t.pending_reconciliation_customers}`);
   if (t.pending_reconciliation_rows > 0)
     problems.push(`pending_reconciliation_rows=${t.pending_reconciliation_rows}`);
+  if (t.manual_provider_overlaps > 0)
+    problems.push(
+      `manual_provider_overlaps=${t.manual_provider_overlaps} (resolver via reconciliation ou operação humana antes de --apply)`,
+    );
 
   for (const r of summary.rows) {
     if (!isRowApplyable(r)) {
@@ -470,7 +547,7 @@ interface ApplyReport {
   errors: string[];
 }
 
-async function applyChanges(summary: ImportSummary): Promise<void> {
+async function applyChanges(summary: ImportSummary, sourceLabel: string): Promise<void> {
   const supabase = getSupabaseAdminClient("pagbank.apply");
   const report: ApplyReport = {
     startedAt: new Date().toISOString(),
@@ -490,7 +567,7 @@ async function applyChanges(summary: ImportSummary): Promise<void> {
 
   for (const row of summary.rows) {
     try {
-      const result = await applyRow(supabase, row, plannedCustomerIdByPcid);
+      const result = await applyRow(supabase, row, plannedCustomerIdByPcid, sourceLabel);
       report.rows.push({
         provider_subscription_id: row.input.provider_subscription_id,
         outcome: row.outcome,
@@ -552,6 +629,7 @@ async function applyRow(
   supabase: ReturnType<typeof getSupabaseAdminClient>,
   row: ImportRowOutcome,
   plannedCustomerIdByPcid: Map<string, string>,
+  sourceLabel: string,
 ): Promise<ApplyRowResult> {
   const input = row.input;
 
@@ -562,9 +640,11 @@ async function applyRow(
       throw new Error(`duplicate sem update_subscription action`);
     }
     const financialReview = extractFinancialReview(row);
+    // Fetch precisa incluir campos que a política de preservação usa (notes,
+    // subscription_detected_at): jamais são sobrescritos silenciosamente.
     const { data: existing, error: fetchErr } = await supabase
       .from("crm_subscriptions")
-      .select("id, customer_id, vehicle_id")
+      .select("id, customer_id, vehicle_id, notes, subscription_detected_at")
       .eq("id", updateAction.subscriptionId)
       .maybeSingle();
     if (fetchErr) throw new Error(`fetch existing sub: ${fetchErr.message}`);
@@ -573,14 +653,18 @@ async function applyRow(
     let vehicleId = existing.vehicle_id as string | null;
     let vehicleCreated = false;
     if (!vehicleId && input.vehicle_plate) {
-      const v = await upsertVehicle(supabase, existing.customer_id, input);
+      const v = await upsertVehicle(supabase, existing.customer_id, input, sourceLabel);
       vehicleId = v.id;
       vehicleCreated = v.created;
     }
-    const patch = buildSubscriptionRow(input, existing.customer_id, vehicleId, financialReview, input.provider_customer_id ?? null);
+    const patch = buildSubscriptionRow(input, existing.customer_id, vehicleId, financialReview, input.provider_customer_id ?? null, sourceLabel, {
+      isUpdate: true,
+      existingNotes: (existing.notes ?? null) as string | null,
+      existingDetectedAt: (existing.subscription_detected_at ?? null) as string | null,
+    });
     const { error: updErr } = await supabase.from("crm_subscriptions").update(patch).eq("id", existing.id);
     if (updErr) throw new Error(`update sub: ${updErr.message}`);
-    await auditLog(supabase, "subscription", existing.id, "pagbank.subscription.updated", { source: IMPORT_SOURCE, provider_subscription_id: input.provider_subscription_id });
+    await auditLog(supabase, "subscription", existing.id, "pagbank.subscription.updated", { source: sourceLabel, provider_subscription_id: input.provider_subscription_id }, sourceLabel);
     return {
       customerId: existing.customer_id,
       customerCreated: false,
@@ -619,7 +703,7 @@ async function applyRow(
       if (existingLink?.customer_id) {
         customerId = existingLink.customer_id as string;
       } else {
-        customerId = await createCustomer(supabase, createAction.name, createAction.decisionSource);
+        customerId = await createCustomer(supabase, createAction.name, createAction.decisionSource, sourceLabel);
         customerCreated = true;
       }
       plannedCustomerIdByPcid.set(pcid, customerId);
@@ -632,18 +716,18 @@ async function applyRow(
   let vehicleId: string | null = null;
   let vehicleCreated = false;
   if (input.vehicle_plate) {
-    const v = await upsertVehicle(supabase, customerId, input);
+    const v = await upsertVehicle(supabase, customerId, input, sourceLabel);
     vehicleId = v.id;
     vehicleCreated = v.created;
   }
 
-  // 4. Subscription (upsert por provider_subscription_id).
+  // 4. Subscription (upsert por provider_subscription_id). Em UPDATE, campos
+  // que carregam contexto humano (notes, subscription_detected_at) NUNCA são
+  // sobrescritos silenciosamente pelo snapshot PagBank.
   const financialReview = extractFinancialReview(row);
-  const subRow = buildSubscriptionRow(input, customerId, vehicleId, financialReview, input.provider_customer_id ?? null);
-
   const { data: existingSub, error: existingErr } = await supabase
     .from("crm_subscriptions")
-    .select("id")
+    .select("id, notes, subscription_detected_at")
     .eq("provider_subscription_id", input.provider_subscription_id)
     .limit(1)
     .maybeSingle();
@@ -652,12 +736,18 @@ async function applyRow(
   let subscriptionId: string;
   let subscriptionAction: "created" | "updated";
   if (existingSub) {
-    const { error: updErr } = await supabase.from("crm_subscriptions").update(subRow).eq("id", existingSub.id);
+    const patch = buildSubscriptionRow(input, customerId, vehicleId, financialReview, input.provider_customer_id ?? null, sourceLabel, {
+      isUpdate: true,
+      existingNotes: (existingSub.notes ?? null) as string | null,
+      existingDetectedAt: (existingSub.subscription_detected_at ?? null) as string | null,
+    });
+    const { error: updErr } = await supabase.from("crm_subscriptions").update(patch).eq("id", existingSub.id);
     if (updErr) throw new Error(`update sub: ${updErr.message}`);
     subscriptionId = existingSub.id;
     subscriptionAction = "updated";
-    await auditLog(supabase, "subscription", subscriptionId, "pagbank.subscription.updated", { source: IMPORT_SOURCE, provider_subscription_id: input.provider_subscription_id });
+    await auditLog(supabase, "subscription", subscriptionId, "pagbank.subscription.updated", { source: sourceLabel, provider_subscription_id: input.provider_subscription_id }, sourceLabel);
   } else {
+    const subRow = buildSubscriptionRow(input, customerId, vehicleId, financialReview, input.provider_customer_id ?? null, sourceLabel, { isUpdate: false });
     const { data: inserted, error: insErr } = await supabase
       .from("crm_subscriptions")
       .insert(subRow)
@@ -667,12 +757,12 @@ async function applyRow(
     subscriptionId = inserted.id;
     subscriptionAction = "created";
     await auditLog(supabase, "subscription", subscriptionId, "pagbank.subscription.created", {
-      source: IMPORT_SOURCE,
+      source: sourceLabel,
       provider_subscription_id: input.provider_subscription_id,
       customer_id: customerId,
       vehicle_id: vehicleId,
       financial_review_required: financialReview.required,
-    });
+    }, sourceLabel);
   }
 
   return {
@@ -690,6 +780,7 @@ async function createCustomer(
   supabase: ReturnType<typeof getSupabaseAdminClient>,
   name: string,
   decisionSource: string,
+  sourceLabel: string,
 ): Promise<string> {
   const nameObj = normalizeName(name);
   const { data, error } = await supabase
@@ -697,7 +788,7 @@ async function createCustomer(
     .insert({
       name,
       normalized_name: nameObj.normalized,
-      origin: IMPORT_SOURCE,
+      origin: sourceLabel,
       data_quality_status: nameObj.isIncomplete ? "nome_incompleto" : "incompleto",
       data_quality_notes: `pagbank-import:decision_source=${decisionSource}; sem telefone/email do provedor`,
     })
@@ -705,10 +796,10 @@ async function createCustomer(
     .single();
   if (error) throw new Error(`insert customer: ${error.message}`);
   await auditLog(supabase, "customer", data.id, "pagbank.customer.created", {
-    source: IMPORT_SOURCE,
+    source: sourceLabel,
     decision_source: decisionSource,
     name,
-  });
+  }, sourceLabel);
   return data.id;
 }
 
@@ -716,6 +807,7 @@ async function upsertVehicle(
   supabase: ReturnType<typeof getSupabaseAdminClient>,
   customerId: string,
   input: { vehicle_plate?: string | null; vehicle_brand?: string | null; vehicle_model?: string | null },
+  sourceLabel: string,
 ): Promise<{ id: string; created: boolean }> {
   const plate = input.vehicle_plate!;
   const p = normalizePlate(plate);
@@ -744,23 +836,18 @@ async function upsertVehicle(
       masked_plate: p.masked,
       normalized_plate: normalizedPlate,
       is_primary: false,
-      source: IMPORT_SOURCE,
+      source: sourceLabel,
     })
     .select("id")
     .single();
   if (error) throw new Error(`insert vehicle: ${error.message}`);
   await auditLog(supabase, "vehicle", data.id, "pagbank.vehicle.created", {
-    source: IMPORT_SOURCE,
+    source: sourceLabel,
     customer_id: customerId,
     plate,
     model: input.vehicle_model ?? null,
-  });
+  }, sourceLabel);
   return { id: data.id, created: true };
-}
-
-interface FinancialReviewSignal {
-  required: boolean;
-  reason: string | null;
 }
 
 function extractFinancialReview(row: ImportRowOutcome): FinancialReviewSignal {
@@ -769,86 +856,8 @@ function extractFinancialReview(row: ImportRowOutcome): FinancialReviewSignal {
   return { required: true, reason: flag.reason };
 }
 
-const SUBSCRIPTION_STATUS_MAP: Record<string, string> = {
-  ACTIVE: "ativo",
-  PENDING: "pendente_validacao",
-  CANCELLED: "cancelado",
-  ENDED: "encerrado",
-};
-
-const PAYMENT_METHOD_MAP: Record<string, string> = {
-  CARD_RECURRING: "card_recurring",
-  MANUAL: "manual",
-  UNKNOWN: "unknown",
-};
-
-const PAYMENT_STATUS_MAP: Record<string, string> = {
-  CONFIRMED: "confirmed",
-  PENDING: "pending",
-  FAILED: "failed",
-  REFUNDED: "refunded",
-  UNKNOWN: "unknown",
-};
-
-const PAYMENT_EVIDENCE_SOURCE_MAP: Record<string, string> = {
-  PROVIDER: "provider",
-  MANUAL: "manual",
-  LEGACY: "legacy",
-  UNKNOWN: "unknown",
-};
-
-const MIGRATION_STATUS_MAP: Record<string, string> = {
-  NOT_NEEDED: "not_needed",
-  PENDING: "pending",
-  COMPLETE: "complete",
-};
-
-function buildSubscriptionRow(
-  input: ImportRowOutcome["input"],
-  customerId: string,
-  vehicleId: string | null,
-  financialReview: FinancialReviewSignal,
-  providerCustomerId: string | null,
-): Record<string, unknown> {
-  const paymentMethodLabel =
-    input.payment_method === "CARD_RECURRING"
-      ? "Cartão recorrente (PagBank)"
-      : input.payment_method === "MANUAL"
-        ? "Manual"
-        : "Desconhecido";
-  const paymentVerification =
-    input.payment_evidence_source === "PROVIDER" && input.payment_status === "CONFIRMED"
-      ? "provider_confirmed"
-      : "not_verified";
-  return {
-    customer_id: customerId,
-    subscription_plan: input.plan,
-    subscription_cycle: input.cycle,
-    subscription_status: SUBSCRIPTION_STATUS_MAP[input.status] ?? "detectado",
-    subscription_source: "Importação",
-    subscription_detected_at: new Date().toISOString(),
-    billing_status: "active",
-    billing_due_at: input.next_due_date ? new Date(input.next_due_date).toISOString() : null,
-    billing_due_source: IMPORT_SOURCE,
-    payment_method_label: paymentMethodLabel,
-    payment_verification_status: paymentVerification,
-    payment_method: PAYMENT_METHOD_MAP[input.payment_method] ?? "unknown",
-    payment_status: PAYMENT_STATUS_MAP[input.payment_status] ?? "unknown",
-    payment_evidence_source: PAYMENT_EVIDENCE_SOURCE_MAP[input.payment_evidence_source] ?? "unknown",
-    payment_confidence: input.payment_status === "CONFIRMED" && input.payment_evidence_source === "PROVIDER" ? 1 : 0,
-    provider_customer_id: providerCustomerId,
-    provider_subscription_id: input.provider_subscription_id,
-    last_payment_confirmed_at: input.last_payment_confirmed_at ? new Date(input.last_payment_confirmed_at).toISOString() : null,
-    next_due_date: input.next_due_date ?? null,
-    migration_status: MIGRATION_STATUS_MAP[input.migration_status] ?? "not_needed",
-    last_verified_at: new Date().toISOString(),
-    financial_review_required: financialReview.required,
-    financial_review_reason: financialReview.reason,
-    vehicle_id: vehicleId,
-    is_active_subscriber: input.status === "ACTIVE",
-    notes: input.note ?? null,
-  };
-}
+// buildSubscriptionRow foi extraído para lib/portal/pagbank-import/build-subscription-row.ts
+// (import no topo do arquivo). Deixado aqui só o link entre CLI e módulo puro.
 
 async function auditLog(
   supabase: ReturnType<typeof getSupabaseAdminClient>,
@@ -856,6 +865,7 @@ async function auditLog(
   entityId: string,
   action: string,
   newValue: Record<string, unknown>,
+  sourceLabel: string,
 ): Promise<void> {
   const { error } = await supabase.from("crm_audit_logs").insert({
     entity_type: entityType,
@@ -864,7 +874,7 @@ async function auditLog(
     previous_value: null,
     new_value: newValue,
     actor: IMPORT_ACTOR,
-    reason: "PagBank Portal Beta P0 import",
+    reason: `PagBank import (${sourceLabel})`,
   });
   if (error) {
     console.warn(`[audit] falha ao gravar log ${action} ${entityId}: ${error.message}`);

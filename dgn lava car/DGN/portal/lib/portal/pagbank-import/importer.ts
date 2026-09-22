@@ -3,6 +3,7 @@ import type {
   ImportAction,
   ImportRowOutcome,
   ImportSummary,
+  ManualProviderOverlapEvidence,
   MultiContractDecision,
   Outcome,
   PagBankImportFile,
@@ -38,8 +39,24 @@ export interface ExistingSubscription {
   id: string;
   customer_id: string;
   provider_subscription_id: string | null;
+  /** Só populado quando a sub vive no CRM ligada a algum PagBank customer. */
+  provider_customer_id?: string | null;
   plan: string | null;
   is_active_subscriber: boolean;
+  /**
+   * Fonte da assinatura conforme registrada no CRM ("Manual" | "Importação" |
+   * "4uCar" | "Portal"). Combinado com `provider_subscription_id IS NULL`
+   * indica sub manual.
+   */
+  subscription_source?: string | null;
+  /** Alias derivado para clareza; qualquer sub sem provider_subscription_id. */
+  is_manual?: boolean;
+  /** Evidência atual de pagamento (para exibir na fila humana). */
+  payment_evidence_source?: string | null;
+  payment_verification_status?: string | null;
+  cycle_ends_at?: string | null;
+  vehicle_id?: string | null;
+  source_reference?: string | null;
 }
 
 export interface RunImportOptions {
@@ -78,6 +95,7 @@ export function runPagBankImport(options: RunImportOptions): ImportSummary {
     subscriptions_would_update: 0,
     vehicles_would_create: 0,
     financial_reviews_flagged: 0,
+    manual_provider_overlaps: 0,
   };
 
   const touchedCustomerIds = new Set<string>();
@@ -268,7 +286,42 @@ export function runPagBankImport(options: RunImportOptions): ImportSummary {
       }
     }
 
-    // 5. Financial review batch-aware.
+    // 5. Sobreposição manual↔provider — quando o customer resolvido já tem
+    //    subs manuais ativas no CRM (provider_subscription_id IS NULL,
+    //    is_active_subscriber = true, subscription_source ≠ 'Importação'
+    //    puro-PagBank). NÃO criar sub PagBank paralela — emite um flag por
+    //    par (manual, incoming provider) e deixa a fila humana decidir se
+    //    são 2 contratos legítimos ou representações duplicadas do mesmo.
+    if (outcome === "matched" && match.candidate) {
+      const overlaps = detectManualProviderOverlaps({
+        input,
+        candidateId: match.candidate.id,
+        existingSubs: existingSubscriptionsByCustomerId.get(match.candidate.id) ?? [],
+      });
+      if (overlaps.length > 0) {
+        // Emite 1 flag por sub manual conflitante (fila humana precisa ver
+        // cada par). Contador do totals conta LINHAS do batch, não pares.
+        for (const ev of overlaps) actions.push({
+          kind: "flag_manual_provider_overlap",
+          reason:
+            `Cliente ${ev.customerId} já tem sub manual ativa (sub ${ev.manualSubscription.id}, plano ${ev.manualSubscription.subscriptionPlan ?? "—"}). ` +
+            `Snapshot PagBank traz contrato ${ev.incomingProvider.providerSubscriptionId} (plano ${ev.incomingProvider.plan}). ` +
+            `Não criar sub PagBank paralela sem decisão humana.`,
+          evidence: ev,
+        });
+        totals.matched -= 1;
+        outcome = "review_required";
+        totals.review_required += 1;
+        totals.manual_provider_overlaps += 1;
+        notice = notice ??
+          `Sobreposição manual↔PagBank detectada — resolução humana obrigatória antes de importar este contrato.`;
+        // Sub PagBank NÃO é criada aqui; pula os passos 5–6 restantes.
+        rows.push({ input, outcome, match, notice, actions });
+        continue;
+      }
+    }
+
+    // 5b. Financial review batch-aware.
     //    Aplicável a QUALQUER outcome (matched, review, pending_reconciliation)
     //    quando o mesmo provider_customer_id tem 2+ subs neste batch OU já tem
     //    subs ativas no CRM E o snapshot não fornece placa distinta para
@@ -389,6 +442,65 @@ function groupInputsByProviderCustomerId(
     map.set(r.provider_customer_id, (map.get(r.provider_customer_id) ?? 0) + 1);
   }
   return map;
+}
+
+/**
+ * Filtra subs manuais ativas do customer resolvido e devolve um bloco de
+ * evidência auditável por sub para o outcome POSSIBLE_MANUAL_PROVIDER_OVERLAP.
+ *
+ * Definição operacional de "manual" aqui:
+ *   provider_subscription_id IS NULL
+ *   AND is_active_subscriber = true
+ *
+ * Um subscription_source contendo "Manual" também dispara (defesa em
+ * profundidade caso o schema evolua). Provedor de dedupe primário continua
+ * sendo `provider_subscription_id` no fluxo normal — este helper só existe
+ * para o cenário onde o mesmo customer poderia acabar com 2 linhas:
+ * manual + PagBank.
+ */
+export function detectManualProviderOverlaps(params: {
+  input: PagBankSubscriptionInput;
+  candidateId: string;
+  existingSubs: ExistingSubscription[];
+}): ManualProviderOverlapEvidence[] {
+  const { input, candidateId, existingSubs } = params;
+  const manualActives = existingSubs.filter((s) => {
+    if (!s.is_active_subscriber) return false;
+    if (s.provider_subscription_id) return false; // sub PagBank, não é overlap
+    const src = (s.subscription_source ?? "").toLowerCase();
+    // Aceita ausência (schema antigo pode não popular) OU qualquer valor que
+    // não seja "importação" com provider_subscription_id — combinação já
+    // filtrada acima. "Manual" explícito também entra por defesa em
+    // profundidade.
+    return src === "" || src.includes("manual") || src.includes("importa") || src.includes("4ucar");
+  });
+
+  if (manualActives.length === 0) return [];
+
+  return manualActives.map((s) => ({
+    customerId: candidateId,
+    manualSubscription: {
+      id: s.id,
+      subscriptionPlan: s.plan ?? null,
+      subscriptionSource: s.subscription_source ?? null,
+      paymentEvidenceSource: s.payment_evidence_source ?? null,
+      paymentVerificationStatus: s.payment_verification_status ?? null,
+      cycleEndsAt: s.cycle_ends_at ?? null,
+      vehicleId: s.vehicle_id ?? null,
+      sourceReference: s.source_reference ?? null,
+    },
+    incomingProvider: {
+      providerCustomerId: input.provider_customer_id ?? null,
+      providerSubscriptionId: input.provider_subscription_id,
+      plan: input.plan,
+      amountMonthly: input.amount_monthly,
+      nextDueDate: input.next_due_date ?? null,
+      lastPaymentConfirmedAt: input.last_payment_confirmed_at ?? null,
+      vehiclePlate: input.vehicle_plate ?? null,
+      vehicleBrand: input.vehicle_brand ?? null,
+      vehicleModel: input.vehicle_model ?? null,
+    },
+  }));
 }
 
 function allGroupRowsHaveDistinctPlates(
