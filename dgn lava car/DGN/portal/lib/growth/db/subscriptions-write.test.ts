@@ -44,6 +44,9 @@ interface SubRow {
   payment_method: string;
   payment_status: string;
   payment_evidence_source: string;
+  payment_verification_status: string;
+  last_payment_confirmed_at: string | null;
+  last_verified_at: string | null;
   provider_customer_id: string | null;
   provider_subscription_id: string | null;
   cycle_ends_at: string | null;
@@ -165,6 +168,9 @@ function baseState(): State {
         payment_method: "manual",
         payment_status: "unknown",
         payment_evidence_source: "manual",
+        payment_verification_status: "manual_confirmation",
+        last_payment_confirmed_at: "2026-09-01T00:00:00.000Z",
+        last_verified_at: "2026-09-01T00:00:00.000Z",
         provider_customer_id: null,
         provider_subscription_id: null,
         cycle_ends_at: null,
@@ -188,6 +194,9 @@ function baseState(): State {
         payment_method: "card_recurring",
         payment_status: "confirmed",
         payment_evidence_source: "provider",
+        payment_verification_status: "provider_confirmed",
+        last_payment_confirmed_at: "2026-09-04T00:00:00.000Z",
+        last_verified_at: "2026-09-01T00:00:00.000Z",
         provider_customer_id: "cust-pagbank-1",
         provider_subscription_id: "sub-pagbank-1",
         cycle_ends_at: "2026-12-31T23:59:59.000Z",
@@ -619,6 +628,9 @@ test("Fase 2: usage sem appointment vinculado NÃO calcula saldo (nunca 0 como u
       payment_method: "manual",
       payment_status: "unknown",
       payment_evidence_source: "manual",
+      payment_verification_status: "not_verified",
+      last_payment_confirmed_at: null,
+      last_verified_at: null,
       provider_customer_id: null,
       provider_subscription_id: null,
       cycle_ends_at: "2099-12-31T23:59:59.000Z",
@@ -649,6 +661,7 @@ test("Fase 2: usage com plano legado (Não identificado) explica indeterminaçã
       subscription_status: "detectado", is_active_subscriber: false,
       subscription_source: "Importação",
       payment_method: "unknown", payment_status: "unknown", payment_evidence_source: "unknown",
+      payment_verification_status: "not_verified", last_payment_confirmed_at: null, last_verified_at: null,
       provider_customer_id: null, provider_subscription_id: null,
       cycle_ends_at: "2099-12-31T00:00:00Z", next_due_date: null, vehicle_id: null,
       source_reference: null, notes: null,
@@ -670,6 +683,7 @@ test("Fase 2: usage com cycle 'outro' explica modalidade legada", () => {
       subscription_status: "ativo", is_active_subscriber: true,
       subscription_source: "Manual",
       payment_method: "manual", payment_status: "unknown", payment_evidence_source: "manual",
+      payment_verification_status: "not_verified", last_payment_confirmed_at: null, last_verified_at: null,
       provider_customer_id: null, provider_subscription_id: null,
       cycle_ends_at: "2099-12-31T00:00:00Z", next_due_date: null, vehicle_id: null,
       source_reference: null, notes: null,
@@ -691,6 +705,7 @@ test("Fase 2: usage sem cycle_ends_at explica falta de janela", () => {
       subscription_status: "ativo", is_active_subscriber: true,
       subscription_source: "Manual",
       payment_method: "manual", payment_status: "unknown", payment_evidence_source: "manual",
+      payment_verification_status: "not_verified", last_payment_confirmed_at: null, last_verified_at: null,
       provider_customer_id: null, provider_subscription_id: null,
       cycle_ends_at: null, next_due_date: null, vehicle_id: null,
       source_reference: null, notes: null,
@@ -712,6 +727,7 @@ test("Fase 2: usage calcula saldo quando plano + ciclo + fim + vínculo linked e
       subscription_status: "ativo", is_active_subscriber: true,
       subscription_source: "Manual",
       payment_method: "manual", payment_status: "unknown", payment_evidence_source: "manual",
+      payment_verification_status: "not_verified", last_payment_confirmed_at: null, last_verified_at: null,
       provider_customer_id: null, provider_subscription_id: null,
       cycle_ends_at: "2027-01-31T23:59:59.000Z", next_due_date: null, vehicle_id: null,
       source_reference: null, notes: null,
@@ -740,6 +756,7 @@ test("Fase 2: usage NÃO soma contratos independentes (sub-y ignorado por sub-x)
       subscription_status: "ativo", is_active_subscriber: true,
       subscription_source: "Manual",
       payment_method: "manual", payment_status: "unknown", payment_evidence_source: "manual",
+      payment_verification_status: "not_verified", last_payment_confirmed_at: null, last_verified_at: null,
       provider_customer_id: null, provider_subscription_id: null,
       cycle_ends_at: "2027-01-31T23:59:59.000Z", next_due_date: null, vehicle_id: null,
       source_reference: null, notes: null,

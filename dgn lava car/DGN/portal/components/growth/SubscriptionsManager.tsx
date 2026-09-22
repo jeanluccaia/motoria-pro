@@ -1,11 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Lock, Trash2, Pencil, Plus, ShieldAlert, CheckCircle2 } from "lucide-react";
+import { Lock, Trash2, Pencil, Plus, ShieldAlert, CheckCircle2, AlertCircle } from "lucide-react";
 import {
   DGN_SUBSCRIBER_PLANS,
   DGN_BILLING_MODALITIES,
 } from "@/lib/growth/dgn-plans";
+import {
+  derivePaymentEvidence,
+  type PaymentEvidenceResult,
+} from "@/lib/growth/db/derive-payment-evidence";
 import {
   isPastDateInput,
   todayLocalIso,
@@ -50,7 +54,10 @@ export interface SubscriptionRow {
   paymentMethod: string;
   paymentStatus: string;
   paymentEvidenceSource: string;
+  paymentVerificationStatus: string;
   paymentMethodLabel: string | null;
+  lastPaymentConfirmedAt: string | null;
+  lastVerifiedAt: string | null;
   cycleEndsAt: string | null;
   nextDueDate: string | null;
   vehicleId: string | null;
@@ -324,17 +331,14 @@ function SubscriptionCard({
           <p className="mt-1 text-[11px] text-white/45">
             Origem do contrato: <span className="text-white/70">{row.source}</span>
             {" · "}
-            Pagamento: <span className="text-white/70">{translatePaymentStatus(row.paymentStatus)}</span>
-            {" · "}
             Método: <span className="text-white/70">{translatePaymentMethod(row.paymentMethod)}</span>
-            {" · "}
-            Evidência: <span className="text-white/70">{translateEvidenceSource(row.paymentEvidenceSource)}</span>
           </p>
           {row.sourceReference && (
             <p className="mt-1 text-[11px] text-white/45">
               Referência de origem: <span className="text-white/70">{row.sourceReference}</span>
             </p>
           )}
+          <PaymentEvidenceBlock row={row} />
           <SubscriptionUsageBlock usage={row.usage} />
         </div>
         {enabled && !row.pagBankLocked && !isCancelled && (
@@ -364,6 +368,81 @@ function SubscriptionCard({
 }
 
 // -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Bloco "Situação financeira" — Fase 4. Nunca infere que "ativa = paga";
+// diferencia visualmente PagBank confirmado / desatualizado / manual verificado
+// / manual só registrado / sem comprovação. Deriva do helper puro
+// derivePaymentEvidence, que também é testado isoladamente.
+// -----------------------------------------------------------------------------
+function PaymentEvidenceBlock({ row }: { row: SubscriptionRow }) {
+  const evidence = useMemo<PaymentEvidenceResult>(
+    () =>
+      derivePaymentEvidence({
+        paymentEvidenceSource: row.paymentEvidenceSource,
+        paymentVerificationStatus: row.paymentVerificationStatus,
+        paymentStatus: row.paymentStatus,
+        lastPaymentConfirmedAt: row.lastPaymentConfirmedAt,
+        lastVerifiedAt: row.lastVerifiedAt,
+      }),
+    [
+      row.paymentEvidenceSource,
+      row.paymentVerificationStatus,
+      row.paymentStatus,
+      row.lastPaymentConfirmedAt,
+      row.lastVerifiedAt,
+    ],
+  );
+
+  const toneCls =
+    evidence.tone === "emerald"
+      ? "border-emerald-300/25 bg-emerald-300/[0.05] text-emerald-200"
+      : evidence.tone === "amber"
+        ? "border-amber-300/30 bg-amber-300/[0.06] text-amber-200"
+        : evidence.tone === "red"
+          ? "border-red-300/30 bg-red-300/[0.06] text-red-200"
+          : "border-white/[0.08] bg-white/[0.03] text-white/80";
+
+  return (
+    <div className="mt-3 rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">
+        Situação financeira
+      </p>
+      <div className={`mt-2 inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-semibold ${toneCls}`}>
+        {evidence.needsVerificationLabel ? (
+          <AlertCircle size={11} className="shrink-0" />
+        ) : (
+          <CheckCircle2 size={11} className="shrink-0" />
+        )}
+        <span>{evidence.headline}</span>
+      </div>
+      <p className="mt-2 text-[11px] text-white/70">{evidence.detail}</p>
+      <div className="mt-2 grid gap-1.5 text-[11px] text-white/60 sm:grid-cols-2">
+        <span>
+          Última confirmação:{" "}
+          <span className="text-white/85">{formatDate(row.lastPaymentConfirmedAt)}</span>
+        </span>
+        <span>
+          Última conciliação:{" "}
+          <span className="text-white/85">{formatDate(row.lastVerifiedAt)}</span>
+        </span>
+        <span>
+          Situação bruta:{" "}
+          <span className="text-white/70">{translatePaymentStatus(row.paymentStatus)}</span>
+        </span>
+        <span>
+          Evidência bruta:{" "}
+          <span className="text-white/70">{translateEvidenceSource(row.paymentEvidenceSource)}</span>
+        </span>
+      </div>
+      {evidence.needsVerificationLabel && (
+        <p className="mt-2 rounded-lg border border-amber-300/25 bg-amber-300/[0.04] px-2.5 py-1.5 text-[11px] text-amber-100/90">
+          Verificação necessária antes de tratar como pago.
+        </p>
+      )}
+    </div>
+  );
+}
 
 function SubscriptionUsageBlock({ usage }: { usage: SubscriptionUsage }) {
   const includedLine =

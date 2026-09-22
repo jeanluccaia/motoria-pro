@@ -155,7 +155,10 @@ export interface SubscriptionListRow {
   paymentMethod: string;
   paymentStatus: string;
   paymentEvidenceSource: string;
+  paymentVerificationStatus: string;
   paymentMethodLabel: string | null;
+  lastPaymentConfirmedAt: string | null;
+  lastVerifiedAt: string | null;
   cycleEndsAt: string | null;
   nextDueDate: string | null;
   vehicleId: string | null;
@@ -180,6 +183,9 @@ interface SubscriptionRowRaw {
   payment_method: string;
   payment_status: string;
   payment_evidence_source: string;
+  payment_verification_status: string;
+  last_payment_confirmed_at: string | null;
+  last_verified_at: string | null;
   provider_customer_id: string | null;
   provider_subscription_id: string | null;
   cycle_ends_at: string | null;
@@ -297,7 +303,10 @@ function mapRow(row: SubscriptionRowRaw, linkedAppointments: AppointmentAggregat
     paymentMethod: row.payment_method,
     paymentStatus: row.payment_status,
     paymentEvidenceSource: row.payment_evidence_source,
+    paymentVerificationStatus: row.payment_verification_status,
     paymentMethodLabel: paymentMethodLabel(row.payment_method),
+    lastPaymentConfirmedAt: row.last_payment_confirmed_at,
+    lastVerifiedAt: row.last_verified_at,
     cycleEndsAt: row.cycle_ends_at,
     nextDueDate: row.next_due_date,
     vehicleId: row.vehicle_id,
@@ -329,7 +338,7 @@ export async function listSubscriptions(
   const { data, error } = await db
     .from("crm_subscriptions")
     .select(
-      "id, customer_id, subscription_plan, subscription_cycle, subscription_status, is_active_subscriber, subscription_source, payment_method, payment_status, payment_evidence_source, provider_customer_id, provider_subscription_id, cycle_ends_at, next_due_date, vehicle_id, source_reference, notes, financial_review_required, financial_review_reason, created_at, updated_at",
+      "id, customer_id, subscription_plan, subscription_cycle, subscription_status, is_active_subscriber, subscription_source, payment_method, payment_status, payment_evidence_source, payment_verification_status, last_payment_confirmed_at, last_verified_at, provider_customer_id, provider_subscription_id, cycle_ends_at, next_due_date, vehicle_id, source_reference, notes, financial_review_required, financial_review_reason, created_at, updated_at",
     )
     .eq("customer_id", resolvedId)
     .order("is_active_subscriber", { ascending: false })
