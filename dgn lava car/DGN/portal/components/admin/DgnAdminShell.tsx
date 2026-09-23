@@ -12,12 +12,13 @@ import {
   Menu,
   ShieldCheck,
   Sparkles,
+  Stethoscope,
   UserCheck,
   X,
   type LucideIcon,
 } from "lucide-react";
 
-type NavItem = { href: string; label: string; icon: LucideIcon };
+type NavItem = { href: string; label: string; icon: LucideIcon; badge?: string };
 
 const primaryNav: NavItem[] = [
   { href: "/admin/growth", label: "Dashboard", icon: LayoutDashboard },
@@ -26,6 +27,7 @@ const primaryNav: NavItem[] = [
   { href: "/admin/growth/founders-2026", label: "Founders", icon: Crown },
   { href: "/admin/growth/assinantes-detectados", label: "Assinantes", icon: ShieldCheck },
   { href: "/admin/growth/assinantes/reconciliar", label: "Reconciliar", icon: ClipboardCheck },
+  { href: "/admin/growth/diagnosticos", label: "Diagnósticos", icon: Stethoscope, badge: "Preview" },
   { href: "/admin/growth/assistente", label: "Assistente DGN", icon: Sparkles },
 ];
 
@@ -145,7 +147,7 @@ function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: 
         Principal
       </p>
       <nav className="flex flex-col gap-1" data-testid="admin-shell-nav">
-        {primaryNav.map(({ href, label, icon: Icon }) => {
+        {primaryNav.map(({ href, label, icon: Icon, badge }) => {
           const active = isRouteActive(pathname, href);
           return (
             <Link
@@ -161,6 +163,11 @@ function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: 
             >
               <Icon size={18} className={active ? "text-[#C9A84C]" : "text-white/50"} />
               <span>{label}</span>
+              {badge ? (
+                <span className="ml-auto rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-[#E7C96A]">
+                  {badge}
+                </span>
+              ) : null}
             </Link>
           );
         })}
