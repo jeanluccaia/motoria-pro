@@ -8,7 +8,10 @@
 --
 -- Padrão geral (mesmo de assinaturas):
 --   * SECURITY DEFINER, search_path = public, pg_temp
---   * GRANT só a service_role (fluxo admin no server-side)
+--   * Dono = postgres (herança do apply_migration MCP). Como service_role só
+--     tem SELECT nas tabelas, TODA escrita passa por estas RPCs — elas
+--     rodam como postgres (BYPASSRLS + INSERT/UPDATE/DELETE herdados).
+--   * GRANT EXECUTE só pra service_role (fluxo admin no server-side).
 --   * p_actor obrigatório (fixado pelo endpoint depois de validar admin session)
 --   * SET LOCAL "crm.actor" pra o trigger de audit registrar autor
 --   * Optimistic locking em crm_diagnostics via p_expected_revision
@@ -148,19 +151,42 @@ begin
     return next; return;
   end if;
 
-  -- Só chaves explicitamente presentes são aplicadas. Passar {"scores": null}
-  -- não zera — coalesce preserva o valor atual. Zerar exige patch com
-  -- array vazio '[]'.
+  -- Semântica final (validada pelos testes da branch):
+  --   * chave AUSENTE     → preserva atual
+  --   * chave PRESENTE=null → preserva atual (idem)
+  --   * chave PRESENTE=valor → substitui pelo valor
+  -- IMPORTANTE: `coalesce(p_patch->'k', col)` era um BUG — quando o cliente
+  -- passa {"k": null}, o operador `->` retorna JSONB null (não SQL NULL) e
+  -- o coalesce NÃO substitui, corrompendo a coluna. Aqui usamos `?` +
+  -- `jsonb_typeof <> 'null'` para tratar os dois casos.
   update public.crm_diagnostics
-     set inspection_areas = coalesce(p_patch->'inspection_areas', inspection_areas),
-         scores           = coalesce(p_patch->'scores',           scores),
-         recommendations  = coalesce(p_patch->'recommendations',  recommendations),
-         investment_items = coalesce(p_patch->'investment_items', investment_items),
-         summary          = coalesce(p_patch->>'summary',         summary),
-         public_visibility_defaults = coalesce(p_patch->'public_visibility_defaults', public_visibility_defaults),
-         performed_by     = coalesce(p_patch->>'performed_by',    performed_by),
-         performed_at     = coalesce((p_patch->>'performed_at')::date, performed_at),
-         status           = coalesce((p_patch->>'status')::public.crm_diagnostic_status, status),
+     set inspection_areas = case
+           when p_patch ? 'inspection_areas' and jsonb_typeof(p_patch->'inspection_areas') <> 'null'
+             then p_patch->'inspection_areas' else inspection_areas end,
+         scores = case
+           when p_patch ? 'scores' and jsonb_typeof(p_patch->'scores') <> 'null'
+             then p_patch->'scores' else scores end,
+         recommendations = case
+           when p_patch ? 'recommendations' and jsonb_typeof(p_patch->'recommendations') <> 'null'
+             then p_patch->'recommendations' else recommendations end,
+         investment_items = case
+           when p_patch ? 'investment_items' and jsonb_typeof(p_patch->'investment_items') <> 'null'
+             then p_patch->'investment_items' else investment_items end,
+         public_visibility_defaults = case
+           when p_patch ? 'public_visibility_defaults' and jsonb_typeof(p_patch->'public_visibility_defaults') <> 'null'
+             then p_patch->'public_visibility_defaults' else public_visibility_defaults end,
+         summary          = case
+           when p_patch ? 'summary' and jsonb_typeof(p_patch->'summary') <> 'null'
+             then p_patch->>'summary' else summary end,
+         performed_by     = case
+           when p_patch ? 'performed_by' and jsonb_typeof(p_patch->'performed_by') <> 'null'
+             then p_patch->>'performed_by' else performed_by end,
+         performed_at     = case
+           when p_patch ? 'performed_at' and jsonb_typeof(p_patch->'performed_at') <> 'null'
+             then (p_patch->>'performed_at')::date else performed_at end,
+         status           = case
+           when p_patch ? 'status' and jsonb_typeof(p_patch->'status') <> 'null'
+             then (p_patch->>'status')::public.crm_diagnostic_status else status end,
          revision         = revision + 1
    where id = p_diagnostic_id;
 
@@ -298,9 +324,12 @@ begin
     return next; return;
   end if;
 
-  select storage_path into v_storage_path
-    from public.crm_diagnostic_photos
-    where id = p_photo_id and diagnostic_id = p_diagnostic_id;
+  -- Alias explícito (p.storage_path) — evita ambiguidade com a coluna
+  -- output "storage_path" declarada em RETURNS TABLE. Bug real capturado
+  -- pelos testes da branch.
+  select p.storage_path into v_storage_path
+    from public.crm_diagnostic_photos p
+    where p.id = p_photo_id and p.diagnostic_id = p_diagnostic_id;
   if v_storage_path is null then
     result_code := 'PHOTO_NOT_FOUND'; return next; return;
   end if;

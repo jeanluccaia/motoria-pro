@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Stethoscope, Smartphone, PenLine } from "lucide-react";
+import { Stethoscope, Smartphone, PenLine, Beaker } from "lucide-react";
+import { NewDiagnosticButton } from "@/components/growth/diagnostics/NewDiagnosticButton";
 
 // DGN Diagnósticos — landing da Fase 0.5 (dev-only)
 // Não expõe fluxo de publicação nem rota pública. Só serve como
@@ -77,18 +78,46 @@ export default function DiagnosticosLandingPage() {
           </Link>
         </section>
 
-        <footer className="mt-10 rounded-2xl border border-amber-300/20 bg-amber-300/[0.03] p-5 text-xs leading-relaxed text-amber-100/80">
+        <section className="mt-8 rounded-2xl border border-emerald-300/25 bg-emerald-300/[0.03] p-6">
+          <div className="flex items-start gap-3">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-300/35 bg-emerald-300/[0.08] text-emerald-200">
+              <Beaker size={16} />
+            </span>
+            <div className="flex-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                Entrega 1 · homologação em Supabase branch
+              </p>
+              <h2 className="mt-1 text-lg font-semibold text-white">
+                Criar rascunho real (persiste no banco)
+              </h2>
+              <p className="mt-2 text-sm text-white/60">
+                Botão abaixo chama <span className="font-mono text-white/80">POST /api/admin/growth/customers/[id]/diagnostics</span> com
+                Idempotency-Key único. Redireciona pra editor real com autosave
+                server + retomada real via GET. Usa cliente/veículo de teste da
+                branch. NÃO usar em prod até homologação completa.
+              </p>
+              <div className="mt-4">
+                <NewDiagnosticButton
+                  customerId="11111111-1111-1111-1111-111111111111"
+                  vehicleId="aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+                  catalogVersion="diag-v1-2026-09"
+                  performedBy="Homologação Entrega 1"
+                  label="Criar rascunho real (TEST Customer A + HB20)"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer className="mt-6 rounded-2xl border border-amber-300/20 bg-amber-300/[0.03] p-5 text-xs leading-relaxed text-amber-100/80">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-300">
             Escopo desta fase
           </p>
           <ul className="mt-3 list-inside list-disc space-y-1 text-amber-100/70">
-            <li>Sem migration, RPC, bucket ou endpoint público.</li>
-            <li>Sem Supabase, sem tracking, sem eventos.</li>
-            <li>Dados fictícios (cliente com 2 veículos, avaliação parcial, foto interna).</li>
-            <li>
-              Preços de referência não são definitivos — o Digo valida antes de
-              qualquer publicação real.
-            </li>
+            <li>Form mock/preview continua com fixtures em memória (localStorage-only).</li>
+            <li>Rascunho real (botão acima) grava em <span className="font-mono">crm_diagnostics</span> via RPCs canônicas.</li>
+            <li>Rota pública, versão imutável, snapshot e tracking ficam pra Entrega 2.</li>
+            <li>Preços de referência não são definitivos — o Digo valida antes de qualquer publicação real.</li>
           </ul>
         </footer>
       </div>

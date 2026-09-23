@@ -243,8 +243,22 @@ alter table public.crm_diagnostic_photos force row level security;
 -- Sem CREATE POLICY: nenhum papel enxerga por default.
 -- service_role (usado pelo backend admin) tem BYPASSRLS por convenção Supabase.
 
-revoke all on public.crm_diagnostics       from public, anon, authenticated;
-revoke all on public.crm_diagnostic_photos from public, anon, authenticated;
+revoke all on public.crm_diagnostics       from public, anon, authenticated, service_role;
+revoke all on public.crm_diagnostic_photos from public, anon, authenticated, service_role;
 
-grant select, insert, update, delete on public.crm_diagnostics       to service_role;
-grant select, insert, update, delete on public.crm_diagnostic_photos to service_role;
+-- IMPORTANTE — regra do checkpoint:
+-- service_role tem SOMENTE SELECT. Toda escrita (INSERT/UPDATE/DELETE)
+-- passa OBRIGATORIAMENTE pelas RPCs canônicas (SECURITY DEFINER com dono
+-- postgres, GRANT EXECUTE só pra service_role). Endpoints não fazem
+-- INSERT/UPDATE/DELETE direto — se tentarem, o Postgres recusa com
+-- "permission denied".
+--
+-- Consequência prática:
+--   * crm_diagnostics_audit() (SECURITY DEFINER, dono postgres) consegue
+--     inserir em crm_audit_logs — audit não é bloqueado.
+--   * crm_diagnostics_touch_updated_at() é BEFORE UPDATE — só roda dentro
+--     de UPDATEs que passem pela permissão (o UPDATE em si vem via RPC).
+--   * Uma tentativa de INSERT/UPDATE/DELETE direto pelo service_role vai
+--     falhar. Isso é o TESTE 10 do plano de homologação.
+grant select on public.crm_diagnostics       to service_role;
+grant select on public.crm_diagnostic_photos to service_role;
