@@ -6,10 +6,15 @@ export const dynamic = "force-dynamic";
 
 export default async function DgnGrowthCustomerPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  const query = await searchParams;
+  const rawFlag = query.novaAssinatura;
+  const openCreateSubscription = (Array.isArray(rawFlag) ? rawFlag[0] : rawFlag) === "1";
 
   try {
     const data = await loadGrowthData({ logger: console });
@@ -23,6 +28,7 @@ export default async function DgnGrowthCustomerPage({
         customer={customer}
         dataOrigin={data.origin}
         backHref="/admin/growth/assinantes-detectados"
+        openCreateSubscription={openCreateSubscription}
       />
     );
   } catch (error) {

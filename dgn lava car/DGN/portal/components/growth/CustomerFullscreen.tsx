@@ -136,10 +136,17 @@ export function CustomerFullscreen({
   customer: initial,
   dataOrigin,
   backHref,
+  openCreateSubscription = false,
 }: {
   customer: DgnCustomer;
   dataOrigin: "json" | "db" | "json-fallback";
   backHref: string;
+  /**
+   * Ativado pelo server component quando a ficha é aberta com
+   * ?novaAssinatura=1 (fluxo "Tornar assinante" / "Adicionar assinante").
+   * Repassado ao SubscriptionsManager para abrir o form direto.
+   */
+  openCreateSubscription?: boolean;
 }) {
   const [customer, setCustomer] = useState<DgnCustomer>(initial);
   const editable = dataOrigin === "db";
@@ -254,6 +261,7 @@ export function CustomerFullscreen({
                 key={`subs-${customer.id}`}
                 customerId={customer.id}
                 enabled={editable}
+                autoOpenCreate={openCreateSubscription}
               />
             </div>
           </Section>

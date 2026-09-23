@@ -8,6 +8,8 @@ import {
 import { loadGrowthData } from "@/lib/growth/db/growth-reader";
 import { readSupabaseEnv } from "@/lib/growth/db/client";
 import { getCanonicalActiveSubscribersCount } from "@/lib/growth/canonical-subscribers";
+import { AddSubscriberDialog } from "@/components/growth/AddSubscriberDialog";
+import type { SubscriberSearchCandidate } from "@/lib/growth/subscriber-search";
 
 export const dynamic = "force-dynamic";
 
@@ -102,6 +104,19 @@ export default async function AssinantesPage({
   const data = await loadGrowthData({ logger: console });
   const allRows = buildSubscribersCentralView(data.customers);
 
+  // Candidatos para o modal "Adicionar assinante": só os campos que o filtro
+  // precisa. PII já foi preservada 1:1 (nome/telefone/placa vêm da mesma
+  // fonte que a tabela abaixo — nada novo entra no bundle client).
+  const searchCandidates: SubscriberSearchCandidate[] = data.customers.map((c) => ({
+    id: c.id,
+    name: c.name,
+    phone: c.phone,
+    vehicle: c.vehicle,
+    plate: c.plate,
+    hasActiveSubscription: c.subscription?.isActive === true,
+    activePlan: c.activePlan ?? null,
+  }));
+
   // Ativos = customers distintos com crm_subscriptions.is_active_subscriber=true.
   // MESMA regra do Dashboard, via `getCanonicalActiveSubscribersCount`.
   const active       = getCanonicalActiveSubscribersCount(data.customers);
@@ -119,17 +134,32 @@ export default async function AssinantesPage({
     <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <header className="border-b border-white/[0.06] pb-8">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
-            Central operacional
-          </p>
-          <h1 className="mt-3 max-w-3xl text-3xl font-semibold leading-[1.1] tracking-tight sm:text-4xl">
-            Assinantes
-          </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#A7A7A7]">
-            Todos os assinantes ativos, detectados e pendentes de validação num só lugar. Clique
-            em um cliente para abrir o Profile 360 e editar telefone, e-mail, veículo, foto,
-            agendamentos e acesso ao Portal — sem sair da aba Assinantes.
-          </p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
+                Central operacional
+              </p>
+              <h1 className="mt-3 max-w-3xl text-3xl font-semibold leading-[1.1] tracking-tight sm:text-4xl">
+                Assinantes
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#A7A7A7]">
+                Todos os assinantes ativos, detectados e pendentes de validação num só lugar. Clique
+                em um cliente para abrir o Profile 360 e editar telefone, e-mail, veículo, foto,
+                agendamentos e acesso ao Portal — sem sair da aba Assinantes.
+              </p>
+            </div>
+            <div className="shrink-0">
+              <AddSubscriberDialog
+                candidates={searchCandidates}
+                disabled={!dbConfigured}
+                disabledReason={
+                  !dbConfigured
+                    ? "Habilite a persistência (3 vars Supabase) para criar assinatura manual."
+                    : undefined
+                }
+              />
+            </div>
+          </div>
         </header>
 
         <section className="mt-6 grid gap-3 sm:grid-cols-4">

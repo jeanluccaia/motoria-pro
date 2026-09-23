@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Lock, Trash2, Pencil, Plus, ShieldAlert, CheckCircle2, AlertCircle } from "lucide-react";
 import {
   DGN_SUBSCRIBER_PLANS,
@@ -120,9 +120,18 @@ function statusTone(status: string, isActive: boolean): { label: string; cls: st
 export function SubscriptionsManager({
   customerId,
   enabled,
+  autoOpenCreate = false,
 }: {
   customerId: string;
   enabled: boolean;
+  /**
+   * Quando true e persistência está habilitada, abre o formulário de criação
+   * já no primeiro render e scrolla até ele. Usado pela entrada operacional
+   * "Tornar assinante" (Curadoria) e "Adicionar assinante" (Assinantes) —
+   * o operador é redirecionado com ?novaAssinatura=1 e cai direto no form,
+   * sem precisar rolar/clicar em "Adicionar assinatura manual".
+   */
+  autoOpenCreate?: boolean;
 }) {
   const [rows, setRows] = useState<SubscriptionRow[]>([]);
   const [vehicles, setVehicles] = useState<VehicleOption[]>([]);
@@ -130,6 +139,8 @@ export function SubscriptionsManager({
   const [error, setError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const autoOpenApplied = useRef(false);
+  const createSectionRef = useRef<HTMLDivElement | null>(null);
 
   const endpoint = `/api/admin/growth/customers/${encodeURIComponent(customerId)}`;
 
@@ -164,6 +175,21 @@ export function SubscriptionsManager({
   }, [endpoint, enabled]);
 
   useEffect(() => { void reload(); }, [reload]);
+
+  // Abre o form de criação automaticamente quando o operador chega via
+  // ?novaAssinatura=1. Só dispara uma vez por ciclo, depois do reload inicial
+  // terminar — assim evitamos abrir o form enquanto o loading esconde tudo.
+  useEffect(() => {
+    if (!autoOpenCreate) return;
+    if (autoOpenApplied.current) return;
+    if (!enabled) return;
+    if (loading) return;
+    autoOpenApplied.current = true;
+    setShowCreate(true);
+    requestAnimationFrame(() => {
+      createSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [autoOpenCreate, enabled, loading]);
 
   const editableRows = useMemo(() => rows.filter((r) => !r.pagBankLocked), [rows]);
   const pagBankRows = useMemo(() => rows.filter((r) => r.pagBankLocked), [rows]);
@@ -210,7 +236,7 @@ export function SubscriptionsManager({
       )}
 
       {enabled && !loading && (
-        <div className="pt-1">
+        <div className="pt-1" ref={createSectionRef}>
           {!showCreate ? (
             <button
               type="button"

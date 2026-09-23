@@ -19,6 +19,7 @@ import {
   PanelRight,
   Search,
   Sparkles,
+  UserPlus,
   UserRound,
   X,
   type LucideIcon,
@@ -1209,14 +1210,25 @@ function CurationView({
             })()
           ) : (
             pagedCustomers.map((customer, index) => (
-              <button
+              // Card externo: role=button (não <button>) porque contém o Link
+              // "Tornar assinante" — <a> dentro de <button> é HTML inválido e
+              // dispara warning de hydration no client.
+              <div
                 // key inclui filtro/ordenação/página/busca pra remount → dispara curation-item-in
                 key={`${curationFilter}|${curationPlanFilter}|${curationModalityFilter}|${curationSort}|${query}|${page}|${customer.id}`}
                 data-testid="curation-list-item"
                 data-customer-id={customer.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => handleSelect(customer.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    handleSelect(customer.id);
+                  }
+                }}
                 style={{ animationDelay: `${Math.min(index * 22, 260)}ms` }}
-                className={`curation-item-in mb-2 w-full rounded-2xl border p-3 text-left transition ${
+                className={`curation-item-in mb-2 w-full cursor-pointer rounded-2xl border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/50 ${
                   selectedCustomer.id === customer.id
                     ? "border-[#C9A84C]/35 bg-[#C9A84C]/10"
                     : "border-white/[0.05] bg-white/[0.02] hover:border-white/[0.12]"
@@ -1234,9 +1246,20 @@ function CurationView({
                       <ScorePill score={customer.scoreDgn} />
                     </div>
                     <p className="mt-2 text-xs text-[#7D7D7D]">{customer.commercialStatus}</p>
+                    <div className="mt-2.5 flex justify-end">
+                      <Link
+                        href={`/admin/growth/customers/${encodeURIComponent(customer.id)}?novaAssinatura=1`}
+                        data-testid="curation-convert-to-subscriber"
+                        onClick={(event) => event.stopPropagation()}
+                        className="inline-flex items-center gap-1 rounded-full border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#E7C96A] transition hover:border-[#C9A84C]/55"
+                      >
+                        <UserPlus size={10} />
+                        Tornar assinante
+                      </Link>
+                    </div>
                   </div>
                 </div>
-              </button>
+              </div>
             ))
           )}
         </div>
@@ -1271,13 +1294,23 @@ function CurationView({
           <div className="flex-1 min-w-0">
             <CustomerSnapshot customer={selectedCustomer} />
           </div>
-          <button
-            type="button"
-            onClick={() => onOpenDrawer(selectedCustomer.id)}
-            className="shrink-0 rounded-lg border border-white/15 px-3 py-1.5 text-[11px] font-semibold text-white/80 transition hover:border-white/30 hover:text-white"
-          >
-            Ver perfil completo
-          </button>
+          <div className="flex shrink-0 flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+            <Link
+              href={`/admin/growth/customers/${encodeURIComponent(selectedCustomer.id)}?novaAssinatura=1`}
+              data-testid="curation-detail-convert-to-subscriber"
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#C9A84C]/35 bg-[#C9A84C]/10 px-3 py-1.5 text-[11px] font-semibold text-[#E7C96A] transition hover:border-[#C9A84C]/60"
+            >
+              <UserPlus size={12} />
+              Tornar assinante
+            </Link>
+            <button
+              type="button"
+              onClick={() => onOpenDrawer(selectedCustomer.id)}
+              className="rounded-lg border border-white/15 px-3 py-1.5 text-[11px] font-semibold text-white/80 transition hover:border-white/30 hover:text-white"
+            >
+              Ver perfil completo
+            </button>
+          </div>
         </div>
 
         {/* key força reset limpo do estado do fast-path (planCode/categoria/motivo)
