@@ -1,20 +1,44 @@
 # DGN Diagnósticos — Contratos de endpoints da Entrega 1
 
-**Status:** rascunho pra revisão do Jean. Nenhum código Next.js foi escrito ainda. Rota pública `/diagnostico/[slug]` NÃO faz parte da Entrega 1.
+**Status:** rascunho pra revisão do Jean. Nenhum código Next.js foi escrito.
+
+Escopo da Entrega 1 (aprovado no checkpoint): create draft · patch draft · attach photo · detach photo · list · get detail. **Sem publish. Sem rota pública. Sem tracking.**
 
 ## Convenções gerais
 
-- **Gate admin:** todas as rotas abaixo passam pelo mesmo `validateAdminSessionToken` do proxy (`lib/growth/admin-session-core.ts`). Sem cookie válido → 401. Zero novo mecanismo.
-- **Autor:** o endpoint deriva `p_actor = "admin:<session-fingerprint>"` a partir do cookie e passa pra RPC — o cliente nunca informa autor.
-- **`If-Match` como header de revisão:** PATCH/attach/detach/publish exigem `If-Match: <revision>`. Ausência → **412 Precondition Required**. Divergência (RPC devolve `CONFLICT_REVISION_STALE`) → **409 Conflict** com body `{code:"CONFLICT_REVISION_STALE", current_revision:N}`.
-- **`ETag` na resposta:** todo GET/PATCH devolve `ETag: "<revision>"`. A UI grava e reenvia como `If-Match` no próximo PATCH.
-- **Idempotência:** POST de criação aceita header `Idempotency-Key` opcional (retry seguro).
-- **Content-Type:** `application/json` exceto no upload de foto (`multipart/form-data`).
-- **PII:** endpoints admin retornam a mesma PII que o `SubscriptionsManager` já expõe — nenhum dado novo passa a atravessar o bundle.
+- **Gate admin:** todas as rotas passam pelo `validateAdminSessionToken` do proxy (`lib/growth/admin-session-core.ts`). Sem cookie válido → 401.
+- **Autor:** o endpoint deriva `p_actor = "admin:<session-fingerprint>"` a partir do cookie e passa pra RPC. Cliente nunca informa autor.
+- **`If-Match` como header de revisão:** PATCH / attach / detach exigem `If-Match: <revision>`. Ausência → **412 Precondition Required**. Divergência (RPC devolve `CONFLICT_REVISION_STALE`) → **409 Conflict** com body `{code:"CONFLICT_REVISION_STALE", current_revision:N}`.
+- **`ETag` na resposta:** todo GET/PATCH devolve `ETag: "<revision>"`. UI grava e reenvia como `If-Match` na próxima escrita.
+- **Idempotency-Key** obrigatório em `POST /diagnostics` e `POST /photos`. Header `Idempotency-Key: <token 32 chars>`. Escopo por autor. Replay devolve o recurso já criado + `X-Replayed: true`.
+- **Content-Type:** `application/json` exceto no upload (`multipart/form-data`).
+- **PII:** endpoints admin retornam a mesma PII que o `SubscriptionsManager` já expõe — nada novo passa a atravessar o bundle.
+
+## Códigos de erro padronizados
+
+```json
+{ "error": { "code": "…", "message": "…", "details": { … } } }
+```
+
+- `SESSION_INVALID` (401)
+- `PRECONDITION_REQUIRED` (412) — falta `If-Match`
+- `CONFLICT_REVISION_STALE` (409) — `If-Match` divergente
+- `STATUS_NOT_EDITABLE` (409) — rascunho arquivado
+- `IDEMPOTENCY_REQUIRED` (400) — POST sem `Idempotency-Key`
+- `VALIDATION_FAILED` (422) — shape/valor inválido (detalhes por campo)
+- `NOT_FOUND` (404)
+- `PHOTO_NOT_FOUND` (404)
+- `UPLOAD_FAILED` (502) — bucket recusou; endpoint retornou já com rollback
+- `OVERRIDE_REASON_REQUIRED` (422) — `base_price_cents` diverge do catálogo sem `override_reason`
+
+---
 
 ## 1. POST `/api/admin/growth/customers/[id]/diagnostics`
 
 Cria rascunho vazio.
+
+**Headers**
+- `Idempotency-Key: <token>` (obrigatório).
 
 **Request**
 ```json
@@ -33,20 +57,21 @@ Cria rascunho vazio.
   "status": "draft"
 }
 ```
-Header: `ETag: "0"`.
+Header: `ETag: "0"`. Se replay: também `X-Replayed: true`.
 
 **Erros**
 - `400` — vehicle não pertence ao customer.
+- `400` `IDEMPOTENCY_REQUIRED`.
 - `404` — customer não existe.
-- `403` — sessão admin inválida.
+- `401` — sessão admin inválida.
 
 ## 2. GET `/api/admin/growth/customers/[id]/diagnostics`
 
-Lista diagnósticos do cliente (draft/published/archived). Paginado.
+Lista diagnósticos do cliente. Paginado. Só draft/review_ready nesta entrega (published entra na Entrega 2).
 
 **Query**
-- `?vehicle_id=<uuid>` — filtra por veículo (opcional).
-- `?status=draft|published|archived|all` — default `draft,published`.
+- `?vehicle_id=<uuid>`.
+- `?status=draft|review_ready|all` — default `draft,review_ready`.
 - `?limit=20&cursor=...`.
 
 **Response 200**
@@ -63,8 +88,7 @@ Lista diagnósticos do cliente (draft/published/archived). Paginado.
       "performed_by": "Gianluca",
       "performed_at": "2026-09-23",
       "updated_at": "2026-09-23T18:44:12Z",
-      "photo_count": 3,
-      "has_public_link": false
+      "photo_count": 3
     }
   ],
   "next_cursor": null
@@ -73,7 +97,7 @@ Lista diagnósticos do cliente (draft/published/archived). Paginado.
 
 ## 3. GET `/api/admin/growth/diagnostics/[diagnosticId]`
 
-Detalhe completo pra reabrir no form.
+Detalhe completo pra reabrir no form (retomada).
 
 **Response 200**
 ```json
@@ -86,10 +110,34 @@ Detalhe completo pra reabrir no form.
   "catalog_version": "diag-v1-2026-09",
   "performed_by": "…",
   "performed_at": "2026-09-23",
-  "inspection_areas": [{ "area_key": "pintura", "condition": "attention", "observation": "…", "public_visible": true }],
-  "scores":           [{ "criterion_key": "conservacao_pintura", "score": 6.5 }],
-  "recommendations":  [{ "service_key": "polimento_tecnico", "priority": "recomendado", "reason": "…" }],
-  "investment_items": [{ "service_key": "polimento_tecnico", "base_price_cents": 45000, "discount_percent": 20, "final_price_cents": 36000, "installments": 3, "pix_eligible": true, "note": "…" }],
+  "inspection_areas": [
+    {
+      "area_key": "pintura",
+      "condition": "attention",
+      "internal_notes": "referência técnica interna",
+      "public_notes": "micro-riscos no capô",
+      "public_visible": true
+    }
+  ],
+  "scores": [
+    { "criterion_key": "conservacao_pintura", "score": 6.5 }
+  ],
+  "recommendations": [
+    { "service_key": "polimento_tecnico", "catalog_version": "diag-v1-2026-09", "priority": "recomendado", "reason": "…" }
+  ],
+  "investment_items": [
+    {
+      "service_key": "polimento_tecnico",
+      "catalog_version": "diag-v1-2026-09",
+      "catalog_reference_price_cents": 45000,
+      "base_price_cents": 45000,
+      "discount_percent": 20,
+      "installments": 3,
+      "pix_eligible": true,
+      "note": "…",
+      "override_reason": null
+    }
+  ],
   "summary": "…",
   "public_visibility_defaults": { "show_areas": true, "show_scores": true, "show_investment": true },
   "photos": [
@@ -98,15 +146,12 @@ Detalhe completo pra reabrir no form.
       "caption": "…", "ordering": 1, "internal_only": false,
       "signed_url": "https://…", "signed_url_expires_at": "…"
     }
-  ],
-  "published_versions": [
-    { "id": "uuid", "version_number": 2, "published_at": "…", "public_slug": null }
   ]
 }
 ```
 Header: `ETag: "12"`.
 
-**Cuidado:** signed URLs são geradas na hora (TTL 15 min). Cliente nunca guarda em cache além disso.
+Signed URLs são geradas na hora (TTL 15 min). Cliente re-solicita via `/signed-url` quando expira.
 
 ## 4. PATCH `/api/admin/growth/diagnostics/[diagnosticId]/draft`
 
@@ -115,24 +160,21 @@ Autosave. Só chaves presentes viajam.
 **Headers**
 - `If-Match: "<revision>"` (obrigatório).
 
-**Request** (exemplo — todos os campos são opcionais)
-```json
-{
-  "inspection_areas": [ … ],
-  "scores":           [ … ],
-  "recommendations":  [ … ],
-  "investment_items": [ … ],
-  "summary": "…",
-  "performed_by": "…",
-  "performed_at": "2026-09-23",
-  "public_visibility_defaults": { "show_areas": true, "show_scores": true, "show_investment": true }
-}
-```
-
 **Validação server-side (antes da RPC)**
-- `scores[*].score`: `null` OU `number` em `[0, 10]` em steps de `0.5`. Nunca sobrescrever com `0` se veio `null`.
-- `inspection_areas[*].condition`: enum válido; `public_visible` boolean; `observation` string.
-- `investment_items[*].base_price_cents`: inteiro ≥ 0. `discount_percent`: inteiro em `[0, 100]`. `final_price_cents` **é ignorado** — recalculado no publish.
+
+- `scores[*].score`: `null` OU `number` em `[0, 10]` em steps de `0.5`. **Nunca sobrescrever com `0` se veio `null`.**
+- `inspection_areas[*]`:
+  - `area_key`: enum válido (9 áreas do catálogo).
+  - `condition`: enum válido.
+  - `public_visible`: boolean.
+  - `internal_notes` e `public_notes`: strings (podem ser vazias).
+- `investment_items[*]`:
+  - `service_key` + `catalog_version` obrigatórios.
+  - Endpoint recalcula `catalog_reference_price_cents` a partir do catálogo TS (`lib/growth/diagnostics/catalog.ts`) e valida contra o que veio.
+  - `base_price_cents`: inteiro ≥ 0.
+  - `discount_percent`: inteiro em `[0, 100]`.
+  - Se `base_price_cents <> catalog_reference_price_cents` **E** `btrim(override_reason)` vazio → **422 `OVERRIDE_REASON_REQUIRED`**.
+  - **`final_price_cents` do client é ignorado**. Nunca persistido no draft; só recalculado na publicação (Entrega 2).
 - `recommendations[*].priority`: enum válido.
 
 **Response 200**
@@ -142,10 +184,11 @@ Autosave. Só chaves presentes viajam.
 Header: `ETag: "13"`.
 
 **Erros**
-- `409` `{code:"CONFLICT_REVISION_STALE", current_revision:14}` — outra sessão salvou.
-- `412` — header `If-Match` ausente.
-- `422` — validação falhou (detalhes por campo).
-- `409` `{code:"STATUS_NOT_EDITABLE"}` — diagnostic já foi arquivado.
+- `409` `CONFLICT_REVISION_STALE` — outra sessão salvou.
+- `412` `PRECONDITION_REQUIRED` — falta `If-Match`.
+- `422` `VALIDATION_FAILED` — detalhes por campo.
+- `422` `OVERRIDE_REASON_REQUIRED` — override sem justificativa.
+- `409` `STATUS_NOT_EDITABLE`.
 
 ## 5. POST `/api/admin/growth/diagnostics/[diagnosticId]/photos`
 
@@ -153,14 +196,15 @@ Upload de foto. `multipart/form-data`.
 
 **Headers**
 - `If-Match: "<revision>"`.
+- `Idempotency-Key: <token>` (obrigatório).
 
 **Campos**
 - `file`: binário JPEG/PNG/WEBP, ≤ 10 MB.
 - `kind`: `inspection` | `hero` | `reference`.
 - `area_key`: obrigatório se `kind=inspection`.
-- `caption`: string opcional.
-- `ordering`: int opcional (default: max+1).
-- `internal_only`: boolean opcional (default: false).
+- `caption`: opcional.
+- `ordering`: opcional (default: max+1).
+- `internal_only`: opcional (default: false).
 
 **Response 201**
 ```json
@@ -172,13 +216,14 @@ Upload de foto. `multipart/form-data`.
   "revision": 14
 }
 ```
+Se replay: `X-Replayed: true` + mesmo `photo_id`.
 
 **Fluxo server**
 1. Valida sessão admin.
-2. Valida mime + size + payload.
+2. Valida MIME + tamanho + payload.
 3. Sobe pro bucket `diagnostic-media` no path canônico.
-4. Chama `crm_attach_diagnostic_photo(...)` com o path retornado.
-5. Se a RPC falhar (revision stale, etc.) → **remove o objeto do bucket** e devolve o erro.
+4. Chama `crm_attach_diagnostic_photo(...)` com o path retornado + `Idempotency-Key`.
+5. Se RPC falhar (`CONFLICT_REVISION_STALE` etc.) → **remove o objeto do bucket** e devolve o erro. Se remoção falhar, log warn (cron periódico de reconciliação limpa depois — job vem na Entrega 2 ou paralelo).
 
 ## 6. DELETE `/api/admin/growth/diagnostics/[diagnosticId]/photos/[photoId]`
 
@@ -192,11 +237,11 @@ Upload de foto. `multipart/form-data`.
 
 **Erros**
 - `409` `CONFLICT_REVISION_STALE`.
-- `404` `PHOTO_NOT_FOUND` (foto já removida ou não pertence ao diagnostic).
+- `404` `PHOTO_NOT_FOUND` (idempotente pra retries).
 
 ## 7. GET `/api/admin/growth/diagnostics/[diagnosticId]/photos/[photoId]/signed-url`
 
-Regera signed URL. Usado quando o form fica aberto por muito tempo.
+Regera signed URL quando o form ficou aberto.
 
 **Response 200**
 ```json
@@ -205,30 +250,13 @@ Regera signed URL. Usado quando o form fica aberto por muito tempo.
 
 Não altera revisão.
 
-## 8. (Fora da Entrega 1 — placeholder pra desenho)
+## 8. Observabilidade
 
-- `POST /api/admin/growth/diagnostics/[diagnosticId]/publish` — Entrega 2. Chama `crm_publish_diagnostic` e (opcionalmente) cria `crm_diagnostic_public_links` com slug nanoid.
-- `GET /diagnostico/[slug]` (rota pública) — Entrega 2. Server component que lê `crm_diagnostic_versions.public_payload` filtrado + injeta pixel de eventos.
-- `POST /api/public/diagnostics/[slug]/events` — Entrega 2. Dedupe + rate limit iguais aos do Founder.
-
-## 9. Erros padronizados
-
-Todos os erros seguem o shape:
-
-```json
-{
-  "error": {
-    "code": "CONFLICT_REVISION_STALE" | "NOT_FOUND" | "STATUS_NOT_EDITABLE"
-          | "VALIDATION_FAILED" | "PHOTO_NOT_FOUND" | "SESSION_INVALID"
-          | "UPLOAD_FAILED" | "SERVICE_UNAVAILABLE",
-    "message": "…",
-    "details": { "…contexto opcional…" }
-  }
-}
-```
-
-## 10. Observabilidade
-
-- Log estruturado por request: `route`, `status`, `duration_ms`, `actor_fingerprint`, `diagnostic_id`, `revision_before/after`, `result_code_from_rpc`.
+- Log estruturado por request: `route`, `status`, `duration_ms`, `actor_fingerprint`, `diagnostic_id`, `revision_before/after`, `result_code_from_rpc`, `idempotency_key`, `replay: bool`.
 - Sem PII no log (nome/telefone/placa). `actor_fingerprint` é hash SHA-256 do cookie, nunca o cookie.
-- `crm_audit_logs` já cobre a trilha before/after via trigger.
+- `crm_audit_logs` cobre a trilha before/after via trigger.
+
+## 9. Fora da Entrega 1 (placeholder pra desenho)
+
+- `POST /publish` + rota `/diagnostico/[slug]` + eventos + slug 22-chars fixo — **Entrega 2**.
+- `crm_publish_diagnostic`, `crm_diagnostic_versions`, `crm_diagnostic_public_links`, `crm_diagnostic_public_events` — **Entrega 2**.

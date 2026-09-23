@@ -1,67 +1,103 @@
 # DGN Diagnósticos — Drafts SQL da Entrega 1
 
-**Status:** RASCUNHO. Nenhum arquivo aqui foi aplicado. Não subir sem revisão do Jean.
+**Status:** RASCUNHO. Nada aqui foi aplicado. Só rodar depois de autorização explícita do Jean.
 
-**Objetivo:** persistir diagnósticos (draft + published), com autosave protegido por optimistic locking, versão publicada realmente imutável no banco, e mídia isolada em bucket próprio com filtragem server-side de fotos `internal_only`.
+## Escopo APROVADO desta entrega
+
+Só o que é necessário para **cadastrar rascunho, editar com autosave, anexar/remover fotos e retomar** — nada de publicação, versão imutável, link público ou tracking. Isso fica na Entrega 2 (`../entrega2/`).
+
+Entram nesta migração:
+
+- `crm_diagnostics` (tabela raiz com JSONB rico)
+- `crm_diagnostic_photos` (tabela)
+- bucket privado `diagnostic-media`
+- 4 RPCs: `crm_create_diagnostic_draft`, `crm_patch_diagnostic_draft`, `crm_attach_diagnostic_photo`, `crm_detach_diagnostic_photo`
+- Optimistic locking via `revision INT`
+- Idempotência via `idempotency_key` (unique parcial por autor)
+- Audit trigger em `crm_audit_logs`
+- RLS forçada, sem policy pra anon/authenticated
 
 ## Ordem de aplicação (quando autorizado)
 
-1. `20260924000000_diagnostics_core.sql` — enums + `crm_diagnostics` (JSONB rich) + `crm_diagnostic_photos` + triggers `updated_at` + audit trigger.
-2. `20260924000001_diagnostic_versions.sql` — `crm_diagnostic_versions` + trigger de imutabilidade (`BEFORE UPDATE/DELETE → RAISE`).
-3. `20260924000002_diagnostic_public.sql` — `crm_diagnostic_public_links` + `crm_diagnostic_public_events` (só schema; rota pública viva chega na Entrega 2).
-4. `20260924000003_diagnostic_media.sql` — bucket privado `diagnostic-media` + storage policies (service_role only).
-5. `20260924000004_diagnostics_rpcs.sql` — RPCs `crm_create_diagnostic_draft`, `crm_patch_diagnostic_draft` (optimistic locking), `crm_attach_diagnostic_photo`, `crm_detach_diagnostic_photo`, `crm_publish_diagnostic` (snapshot server-side, filtra internal_only).
+1. `20260924000000_diagnostics_core.sql` — enums + `crm_diagnostics` + `crm_diagnostic_photos` + triggers `updated_at` + trigger de audit + RLS forçada + grants service_role.
+2. `20260924000001_diagnostic_media.sql` — bucket privado `diagnostic-media` (10 MB, jpeg/png/webp), sem policies pra anon/authenticated.
+3. `20260924000002_diagnostics_rpcs.sql` — 4 RPCs (create/patch/attach/detach). Optimistic locking + idempotência.
 
 Cada arquivo tem `.down.sql` correspondente com `DROP` reversível.
 
-## Decisões estruturais chave
+## Decisões estruturais congeladas
 
-### Consolidação: 10 → 5 estruturas + 1 bucket
+### Consolidação: 5 tabelas + JSONB
 
-Depois de rodar o form/preview, ficou evidente que **inspection_areas, scores, recommendations e investment_items são sempre lidos/escritos juntos com o diagnóstico** (nunca isoladamente por endpoint). Manter tabela separada pra cada um multiplicava JOINs sem ganho de auditabilidade — o `crm_audit_logs` já captura before/after em JSONB.
-
-| Estrutura | Tipo | Por quê |
-|---|---|---|
-| `crm_diagnostics` | tabela | Root + `inspection_areas`/`scores`/`recommendations`/`investment_items` como JSONB. |
-| `crm_diagnostic_photos` | tabela | 1-N, precisa de storage_path, ordering, internal_only, área associada — não cabe em JSONB por causa de FKs e signed URLs. |
-| `crm_diagnostic_versions` | tabela imutável | Snapshot completo (JSONB) no ato da publicação. Trigger recusa UPDATE/DELETE. |
-| `crm_diagnostic_public_links` | tabela | Slug opaco + expires_at + enabled + revoked. Espelha `crm_founder_public_links`. |
-| `crm_diagnostic_public_events` | tabela append-only | Tracking com dedupe_key + visitor cookie + rate limit. Espelha `crm_founder_public_events`. |
-| bucket `diagnostic-media` | Storage | Privado, service_role only. Signed URL via server. |
-
-Total: 5 tabelas novas + 1 bucket (era 10). Auditabilidade preservada via `crm_audit_logs`.
+- Inspeção, notas DGN, recomendações e itens de investimento vivem como JSONB em `crm_diagnostics`. Sempre lidos/escritos juntos. Auditoria preservada via `crm_audit_logs` (before/after via trigger).
+- `crm_diagnostic_photos` continua tabela — precisa de storage_path, ordering e `internal_only` por foto individual.
 
 ### Optimistic locking
 
-`crm_diagnostics.revision INT NOT NULL DEFAULT 0`. Toda RPC de escrita recebe `p_expected_revision`. Se `current.revision <> p_expected_revision`, RPC devolve `CONFLICT_REVISION_STALE` e a UI mostra "outra sessão salvou; recarregue". Sucesso incrementa `revision`.
+`crm_diagnostics.revision INT NOT NULL DEFAULT 0`. Toda RPC de escrita exige `p_expected_revision`. Se a versão diverge, RPC devolve `CONFLICT_REVISION_STALE` sem gravar. UI mostra "outra sessão salvou; recarregue".
 
-### Imutabilidade real de versão
+### Idempotência
 
-`crm_diagnostic_versions` tem trigger `BEFORE UPDATE OR DELETE` que faz `RAISE EXCEPTION 'crm_diagnostic_versions is immutable'`. Nenhum caminho normal consegue editar/apagar. Correção de versão publicada → nova versão (não rewrite).
+- `crm_diagnostics.idempotency_key TEXT NOT NULL` + `UNIQUE (created_by, idempotency_key)`.
+- `crm_diagnostic_photos.idempotency_key TEXT NOT NULL` + `UNIQUE (diagnostic_id, uploaded_by, idempotency_key)`.
+- Replay do mesmo POST (mesmo actor + mesma chave) devolve o mesmo `diagnostic_id`/`photo_id` sem duplicar.
 
-### Investimento server-side
+### Autoridade de preço (adiada pra Entrega 2, mas modelada no draft)
 
-`crm_publish_diagnostic` **descarta** `final_price_cents` que veio no payload e recalcula:
+O draft armazena `investment_items` com o shape completo — `service_key`, `catalog_version`, `catalog_reference_price_cents`, `base_price_cents`, `discount_percent`, `override_reason`, `installments`, `pix_eligible`, `note`. O endpoint (fora do SQL) valida:
 
+- `catalog_reference_price_cents` vem do server (fonte: `lib/growth/diagnostics/catalog.ts`).
+- Se `base_price_cents == catalog_reference_price_cents`, `override_reason` pode ser null.
+- Se `base_price_cents <> catalog_reference_price_cents`, `override_reason` precisa vir preenchido — e é auditado no trigger.
+- **`final_price_cents` do client é IGNORADO**. Vira campo derivado que só a RPC `crm_publish_diagnostic` calcula (Entrega 2).
+
+O draft **NÃO** persiste `final_price_cents` no banco — só o hint no client é usado pra UI. Isso mata qualquer possibilidade de "publicar com preço enviado pelo client".
+
+### Áreas de inspeção: 3 campos separados
+
+Cada item de `inspection_areas` tem o shape:
+
+```json
+{
+  "area_key": "pintura",
+  "condition": "attention",
+  "internal_notes": "referência interna",
+  "public_notes": "micro-riscos no capô",
+  "public_visible": true
+}
 ```
-final_price_cents = round(base_price_cents * (1 - clamp(discount_percent, 0, 100) / 100))
-```
 
-`base_price_cents` é aceito do curador (o Digo pode ajustar por caso), mas a política é registrada no snapshot com `catalog_version`, `override_reason` e o `base_reference_cents` do catálogo TS pra rastrear divergência. Quando o `crm_service_catalog` real vier, a política pode ficar mais estrita.
+- `internal_notes` **NUNCA** entra em payload público (filtro server-side na Entrega 2).
+- `public_notes` só entra na versão pública se `public_visible=true`.
+- `public_visible=false` retira a área inteira do `public_payload` (Entrega 2).
+- Draft armazena os 3 campos como vieram — validação/filtro é da RPC `crm_publish_diagnostic`.
 
-### Filtro server-side de `internal_only`
+### Bucket separado `diagnostic-media`
 
-`crm_publish_diagnostic` monta o `public_snapshot` em SQL, filtrando fotos com `internal_only = true` **e** áreas com `public_visible = false`. Nunca depender do client. `crm_diagnostic_public_links.snapshot_version_id` aponta pra `crm_diagnostic_versions.id`, cuja coluna `public_payload` já vem filtrada — a página pública **só lê** `public_payload`, nunca a árvore original.
+- Privado, 10 MB, jpeg/png/webp.
+- Sem policies pra anon/authenticated.
+- Signed URL sempre via server (TTL 15 min).
+- Path canônico `<customer_id>/<diagnostic_id>/<uuid>.<ext>` (fixado no endpoint).
+- Endpoint faz "sobe → chama RPC → se RPC falhar, remove objeto do bucket" pra evitar órfãos.
 
 ## Rollback
 
-Cada arquivo tem `.down.sql`:
-- Ordem inversa: `20260924000004` → `...000000`.
-- `DROP TRIGGER`/`DROP FUNCTION`/`DROP TABLE ... CASCADE`/`DROP TYPE`.
-- Storage bucket: `DROP` via API (não SQL) — script separado.
+Ordem inversa:
+1. `20260924000002_diagnostics_rpcs.down.sql` — dropa 4 funções.
+2. `20260924000001_diagnostic_media.down.sql` — remove bucket (só depois de esvaziar; senão FK falha).
+3. `20260924000000_diagnostics_core.down.sql` — dropa triggers, funções auxiliares, tabelas e enums.
 
-## Ainda não escritos aqui
+## Contratos de endpoints
 
-- Rota `/diagnostico/[slug]` pública (Next.js) — Entrega 2.
-- Adapter server do autosave (endpoint PATCH sobre a RPC) — Entrega 1, no código Next.
-- Tela de listagem `/admin/growth/diagnosticos/lista` — Entrega 1, no código Next.
+Documentação em `../../entrega1-endpoints.md`. Rotas cobertas na Entrega 1: POST create, GET list, GET detail, PATCH draft, POST photo, DELETE photo, GET signed-url regen. `publish` e rota pública ficam para Entrega 2.
+
+## Testes planejados (antes de aplicar)
+
+- Suite pgTAP local ou Node contra Supabase branch:
+  - `crm_create_diagnostic_draft`: replay devolve mesmo id.
+  - `crm_patch_diagnostic_draft`: `CONFLICT_REVISION_STALE` bloqueia sobrescrita silenciosa.
+  - `crm_patch_diagnostic_draft`: `scores: null` no patch preserva score existente; `scores: []` zera.
+  - `crm_attach_diagnostic_photo`: replay não duplica.
+  - `crm_detach_diagnostic_photo`: `PHOTO_NOT_FOUND` idempotente para retries.
+  - Trigger de audit registra `previous_value`/`new_value` com actor.
+  - RLS forçada: `authenticated` role não consegue SELECT direto.

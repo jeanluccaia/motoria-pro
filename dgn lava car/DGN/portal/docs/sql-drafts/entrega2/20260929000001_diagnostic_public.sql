@@ -26,7 +26,8 @@ create table if not exists public.crm_diagnostic_public_links (
   -- Aponta pra versão IMUTÁVEL (nunca pra crm_diagnostics diretamente).
   version_id uuid not null references public.crm_diagnostic_versions (id) on delete restrict,
 
-  -- Slug opaco: nanoid 16 chars, base [a-z0-9]. Não vaza cliente/veículo.
+  -- Slug opaco: nanoid FIXO em 22 chars, base [a-z0-9] (regra do checkpoint).
+  -- Não vaza cliente/veículo. Não enumerável.
   slug text not null,
 
   enabled     boolean     not null default true,
@@ -40,7 +41,7 @@ create table if not exists public.crm_diagnostic_public_links (
   created_at  timestamptz not null default now(),
 
   constraint crm_diag_public_links_slug_format
-    check (slug ~ '^[a-z0-9]{16,32}$'),
+    check (slug ~ '^[a-z0-9]{22}$'),
   constraint crm_diag_public_links_slug_unique
     unique (slug),
   constraint crm_diag_public_links_revoke_pair

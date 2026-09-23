@@ -87,10 +87,16 @@ create table if not exists public.crm_diagnostics (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
 
+  -- Idempotência do POST inicial. Obrigatório no endpoint (Idempotency-Key).
+  -- Escopo por criador — evita colisão entre operadores diferentes.
+  idempotency_key text not null,
+
   -- Constraints defensivas
   constraint crm_diagnostics_status_not_null check (status is not null),
   constraint crm_diagnostics_revision_nonneg  check (revision >= 0),
-  constraint crm_diagnostics_catalog_version_nonempty check (btrim(catalog_version) <> '')
+  constraint crm_diagnostics_catalog_version_nonempty check (btrim(catalog_version) <> ''),
+  constraint crm_diagnostics_idempotency_nonempty     check (btrim(idempotency_key) <> ''),
+  constraint crm_diagnostics_idempotency_actor_unique unique (created_by, idempotency_key)
 );
 
 comment on table public.crm_diagnostics is
@@ -101,6 +107,26 @@ comment on column public.crm_diagnostics.revision is
 
 comment on column public.crm_diagnostics.scores is
   'Array [{criterion_key, score}]. score é number OR null. NULL nunca vira 0 na média — a UI e as RPCs devem preservar semântica de ausência.';
+
+comment on column public.crm_diagnostics.inspection_areas is
+  'Array de áreas. Shape esperado por área: {area_key, condition, internal_notes, public_notes, public_visible}. Regras de vazamento:
+   - internal_notes NUNCA entra em payload público. Existe pra o curador; fica só em full_payload da versão (Entrega 2) e em crm_audit_logs.
+   - public_notes só aparece na versão pública se public_visible=true.
+   - public_visible=false remove a área inteira do public_payload (Entrega 2).
+   Validação dos shapes é feita pelo endpoint antes de chamar a RPC; RPC apenas persiste.';
+
+comment on column public.crm_diagnostics.investment_items is
+  'Array de itens de investimento. Shape esperado:
+     {service_key, catalog_version, catalog_reference_price_cents, base_price_cents,
+      discount_percent, installments, pix_eligible, note, override_reason}
+   Regras de autoridade:
+   - service_key + catalog_version definem catalog_reference_price_cents (fonte = lib/growth/diagnostics/catalog.ts).
+   - Se base_price_cents = catalog_reference_price_cents: override_reason é nullable.
+   - Se base_price_cents <> catalog_reference_price_cents: override_reason é OBRIGATÓRIO (não vazio) e será auditado.
+   - final_price_cents NUNCA é armazenado no draft. É recalculado pela RPC publish (Entrega 2) a partir de base * (100 - clamp(discount, 0, 100)) / 100.';
+
+comment on column public.crm_diagnostics.recommendations is
+  'Array [{service_key, catalog_version, priority, reason}] — priority ∈ (opcional|recomendado|prioritario).';
 
 create index if not exists idx_diagnostics_customer   on public.crm_diagnostics (customer_id, updated_at desc);
 create index if not exists idx_diagnostics_vehicle    on public.crm_diagnostics (vehicle_id,  updated_at desc);
@@ -125,12 +151,17 @@ create table if not exists public.crm_diagnostic_photos (
   uploaded_by   text not null,
   uploaded_at   timestamptz not null default now(),
 
+  -- Idempotência do upload (Idempotency-Key no POST photo).
+  idempotency_key text not null,
+
   constraint crm_diag_photos_size_positive check (size_bytes > 0),
   constraint crm_diag_photos_size_max      check (size_bytes <= 10 * 1024 * 1024),   -- 10 MB (igual vehicle-photos)
   constraint crm_diag_photos_mime_allowed  check (mime_type in ('image/jpeg','image/png','image/webp')),
   constraint crm_diag_photos_area_when_inspection check (
     kind <> 'inspection' or area_key is not null
-  )
+  ),
+  constraint crm_diag_photos_idempotency_nonempty check (btrim(idempotency_key) <> ''),
+  constraint crm_diag_photos_idempotency_unique   unique (diagnostic_id, uploaded_by, idempotency_key)
 );
 
 comment on table public.crm_diagnostic_photos is
