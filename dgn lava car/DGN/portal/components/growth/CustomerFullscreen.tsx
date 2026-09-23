@@ -12,6 +12,7 @@ import {
   KeyRound,
   Repeat,
   History,
+  Stethoscope,
 } from "lucide-react";
 import type { DgnCustomer } from "@/lib/growth/dgn-growth-utils";
 import {
@@ -189,11 +190,23 @@ export function CustomerFullscreen({
                 ID operacional: <span className="font-mono text-white/60">{customer.id}</span>
               </p>
             </div>
-            {!editable && (
-              <span className="inline-flex h-fit items-center gap-1.5 rounded-full border border-amber-300/30 bg-amber-300/[0.06] px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-amber-200">
-                Persistência não habilitada — leitura apenas
-              </span>
-            )}
+            <div className="flex flex-col items-stretch gap-2 sm:items-end">
+              {editable ? (
+                <Link
+                  href={`/admin/growth/diagnosticos/novo?cliente=${encodeURIComponent(customer.id)}`}
+                  data-testid="customer-new-diagnostic"
+                  className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-[#C9A84C]/35 bg-[#C9A84C]/10 px-3 text-[12px] font-semibold text-[#E7C96A] transition hover:border-[#C9A84C]/60"
+                >
+                  <Stethoscope size={14} />
+                  Novo diagnóstico
+                </Link>
+              ) : null}
+              {!editable && (
+                <span className="inline-flex h-fit items-center gap-1.5 rounded-full border border-amber-300/30 bg-amber-300/[0.06] px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-amber-200">
+                  Persistência não habilitada — leitura apenas
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="mt-5 flex flex-wrap gap-2">

@@ -15,7 +15,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, Check, Loader2, RefreshCw, Save, Wifi, WifiOff } from "lucide-react";
+import { AlertTriangle, Check, Copy, Eye, Loader2, RefreshCw, Save, ShieldAlert, X } from "lucide-react";
+import {
+  BUFFER_KEY_PREFIX,
+  clearRecovery,
+  createLocalRecoveryStore,
+  ingestBufferOnLoad,
+  type RecoveryEnvelope,
+} from "@/lib/growth/diagnostics/recovery-storage";
 import {
   DGN_SCORE_CRITERIA,
   INSPECTION_AREAS,
@@ -73,30 +80,34 @@ type SaveState =
   | { kind: "error"; message: string }
   | { kind: "conflict"; currentRevision: number };
 
-const LOCAL_BUFFER_PREFIX = "dgn-diag-server-buffer:";
 const AUTOSAVE_DEBOUNCE_MS = 3000;
 
 export function DiagnosticFormServer({ initial }: { initial: DiagnosticServerDetail }) {
   const [detail, setDetail] = useState<DiagnosticServerDetail>(initial);
   const [saveState, setSaveState] = useState<SaveState>({ kind: "idle" });
+  const [recovery, setRecovery] = useState<RecoveryEnvelope<DiagnosticServerDetail> | null>(null);
+  const [showingRecoveryModal, setShowingRecoveryModal] = useState(false);
+  const storeRef = useRef(createLocalRecoveryStore());
 
-  // Rehidrata buffer local se ainda estiver na mesma revision
+  // Rehidrata buffer via helper puro:
+  //   * mesma revision → aplica em memória
+  //   * revision divergente → move pra recovery e mostra banner
+  //   * sem buffer → nada
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const stored = window.localStorage.getItem(LOCAL_BUFFER_PREFIX + initial.id);
-      if (!stored) return;
-      const parsed = JSON.parse(stored) as { rev: number; snapshot: DiagnosticServerDetail };
-      if (parsed.rev === initial.revision) {
-        // Buffer é sobre a MESMA revision que o server mandou → aplica
-        // (o usuário fechou a aba antes do server confirmar).
-        setDetail(parsed.snapshot);
-      } else {
-        // Server evoluiu; buffer é obsoleto — descarta.
-        window.localStorage.removeItem(LOCAL_BUFFER_PREFIX + initial.id);
-      }
-    } catch {
-      // ignore
+    const outcome = ingestBufferOnLoad<DiagnosticServerDetail>(
+      storeRef.current, initial.id, initial.revision,
+    );
+    if (outcome.recovery) setRecovery(outcome.recovery);
+    if (outcome.bufferApplied) {
+      const bufferKey = BUFFER_KEY_PREFIX + initial.id;
+      try {
+        const raw = typeof window !== "undefined" && window.localStorage
+          ? window.localStorage.getItem(bufferKey) : null;
+        if (raw) {
+          const parsed = JSON.parse(raw) as { rev: number; snapshot: DiagnosticServerDetail };
+          if (parsed.rev === initial.revision) setDetail(parsed.snapshot);
+        }
+      } catch { /* ignore */ }
     }
   }, [initial.id, initial.revision]);
 
@@ -114,7 +125,7 @@ export function DiagnosticFormServer({ initial }: { initial: DiagnosticServerDet
     if (typeof window === "undefined") return;
     try {
       window.localStorage.setItem(
-        LOCAL_BUFFER_PREFIX + next.id,
+        BUFFER_KEY_PREFIX + next.id,
         JSON.stringify({ rev: next.revision, snapshot: next }),
       );
     } catch { /* quota */ }
@@ -183,12 +194,16 @@ export function DiagnosticFormServer({ initial }: { initial: DiagnosticServerDet
     (next: DiagnosticServerDetail) => {
       persistToBuffer(next);
       clearDebounce();
-      if (saveState.kind === "conflict") return; // não agenda enquanto em conflito
+      // Recovery pendente → autosave PAUSADO até o operador decidir. Isso
+      // impede que uma edição stale sobrescreva o server. O buffer segue
+      // sendo escrito (proteção contra fechar aba).
+      if (recovery) return;
+      if (saveState.kind === "conflict") return;
       debounceRef.current = window.setTimeout(() => {
         void doPatch(next);
       }, AUTOSAVE_DEBOUNCE_MS) as unknown as number;
     },
-    [doPatch, persistToBuffer, saveState.kind],
+    [doPatch, persistToBuffer, recovery, saveState.kind],
   );
 
   const commit = useCallback(
@@ -232,6 +247,21 @@ export function DiagnosticFormServer({ initial }: { initial: DiagnosticServerDet
     }
   }, [detail.id, persistToBuffer]);
 
+  // Recovery: escolha explícita "carregar versão do servidor"
+  // → limpa recovery + reload.
+  const discardRecoveryAndReload = useCallback(async () => {
+    clearRecovery(storeRef.current, detail.id);
+    setRecovery(null);
+    setShowingRecoveryModal(false);
+    await reloadFromServer();
+  }, [detail.id, reloadFromServer]);
+
+  const dismissRecoveryAfterReview = useCallback(() => {
+    clearRecovery(storeRef.current, detail.id);
+    setRecovery(null);
+    setShowingRecoveryModal(false);
+  }, [detail.id]);
+
   const dgnAverage = computeDgnAverage(detail.scores as never);
   const evaluated = countEvaluatedCriteria(detail.scores as never);
   const partial = isPartialDiagnostic(detail.scores as never);
@@ -261,17 +291,34 @@ export function DiagnosticFormServer({ initial }: { initial: DiagnosticServerDet
             <SaveIndicator state={saveState} onSaveNow={saveNow} onReload={reloadFromServer} />
           </div>
         </div>
-        {saveState.kind === "conflict" ? (
+        {recovery ? (
+          <RecoveryBanner
+            savedRev={recovery.savedRev}
+            currentRev={detail.revision}
+            quarantinedAt={recovery.quarantinedAt}
+            onLoadServer={discardRecoveryAndReload}
+            onShowLocal={() => setShowingRecoveryModal(true)}
+          />
+        ) : saveState.kind === "conflict" ? (
           <ConflictBanner
             currentRevision={saveState.currentRevision}
             onReload={reloadFromServer}
           />
         ) : null}
         <p className="mt-4 text-[11px] text-white/45">
-          Autosave a cada 3s de ociosidade. localStorage é buffer de segurança
-          (recupera edição não persistida se você fechar a aba).
+          Autosave a cada 3s de ociosidade. Buffer local segura o conteúdo se
+          você fechar a aba — e se outra sessão salvou primeiro, seu trabalho
+          fica em recovery até você decidir explicitamente.
         </p>
       </header>
+      {recovery && showingRecoveryModal ? (
+        <RecoveryReviewModal
+          envelope={recovery}
+          onLoadServer={discardRecoveryAndReload}
+          onKeepAndClose={dismissRecoveryAfterReview}
+          onCloseWithoutClearing={() => setShowingRecoveryModal(false)}
+        />
+      ) : null}
 
       <Section title="Notas do avaliador">
         <label>
@@ -282,7 +329,7 @@ export function DiagnosticFormServer({ initial }: { initial: DiagnosticServerDet
             className="mt-1 w-full min-h-[100px] rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white outline-none focus:border-[#C9A84C]/40"
             value={detail.summary}
             onChange={(e) => commit((prev) => ({ ...prev, summary: e.target.value }))}
-            disabled={saveState.kind === "conflict"}
+            disabled={saveState.kind === "conflict" || Boolean(recovery)}
           />
         </label>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -295,7 +342,7 @@ export function DiagnosticFormServer({ initial }: { initial: DiagnosticServerDet
               className="mt-1 h-10 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 text-sm text-white outline-none focus:border-[#C9A84C]/40"
               value={detail.performed_at ?? ""}
               onChange={(e) => commit((prev) => ({ ...prev, performed_at: e.target.value || null }))}
-              disabled={saveState.kind === "conflict"}
+              disabled={saveState.kind === "conflict" || Boolean(recovery)}
             />
           </label>
           <label>
@@ -307,7 +354,7 @@ export function DiagnosticFormServer({ initial }: { initial: DiagnosticServerDet
               className="mt-1 h-10 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 text-sm text-white outline-none focus:border-[#C9A84C]/40"
               value={detail.performed_by}
               onChange={(e) => commit((prev) => ({ ...prev, performed_by: e.target.value }))}
-              disabled={saveState.kind === "conflict"}
+              disabled={saveState.kind === "conflict" || Boolean(recovery)}
             />
           </label>
         </div>
@@ -332,7 +379,7 @@ export function DiagnosticFormServer({ initial }: { initial: DiagnosticServerDet
                 label={areaDef.label}
                 hint={areaDef.hint}
                 area={area}
-                disabled={saveState.kind === "conflict"}
+                disabled={saveState.kind === "conflict" || Boolean(recovery)}
                 onChange={(next) => commit((prev) => {
                   const areas = [...prev.inspection_areas];
                   const at = areas.findIndex((a) => a.area_key === next.area_key);
@@ -356,7 +403,7 @@ export function DiagnosticFormServer({ initial }: { initial: DiagnosticServerDet
                 label={c.label}
                 hint={c.hint}
                 score={score}
-                disabled={saveState.kind === "conflict"}
+                disabled={saveState.kind === "conflict" || Boolean(recovery)}
                 onChange={(next) => commit((prev) => ({
                   ...prev,
                   scores: (() => {
@@ -644,5 +691,155 @@ function ScoreRow({
         </button>
       ) : null}
     </li>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Recovery UI — banner + modal.
+// Regra do checkpoint: nada é limpo automaticamente. Operador escolhe.
+
+function RecoveryBanner({
+  savedRev,
+  currentRev,
+  quarantinedAt,
+  onLoadServer,
+  onShowLocal,
+}: {
+  savedRev: number;
+  currentRev: number;
+  quarantinedAt: string;
+  onLoadServer: () => void;
+  onShowLocal: () => void;
+}) {
+  return (
+    <div className="mt-4 flex flex-col gap-3 rounded-xl border border-amber-300/35 bg-amber-300/[0.06] px-4 py-3 text-[12px] text-amber-100 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex items-start gap-2">
+        <ShieldAlert size={16} className="mt-0.5 shrink-0 text-amber-300" />
+        <div>
+          <p className="font-semibold uppercase tracking-[0.14em] text-amber-200">
+            Alterações locais não enviadas
+          </p>
+          <p className="mt-1 leading-relaxed">
+            Existem alterações locais que não foram enviadas porque este
+            diagnóstico foi atualizado em outra sessão. Seu buffer estava na
+            revisão <span className="font-mono">{savedRev}</span>; o servidor
+            já está na <span className="font-mono">{currentRev}</span>.
+            Quarentena desde{" "}
+            <span className="font-mono">
+              {new Date(quarantinedAt).toLocaleString("pt-BR")}
+            </span>.
+            Autosave pausado até você decidir.
+          </p>
+        </div>
+      </div>
+      <div className="flex shrink-0 flex-col gap-2 self-start sm:flex-row">
+        <button
+          type="button"
+          onClick={onShowLocal}
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.03] px-3 text-[11px] font-semibold text-white/80 hover:border-white/30"
+        >
+          <Eye size={12} /> Ver alterações locais
+        </button>
+        <button
+          type="button"
+          onClick={onLoadServer}
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-amber-300/40 bg-amber-300/[0.12] px-3 text-[11px] font-semibold text-amber-100 hover:bg-amber-300/[0.18]"
+        >
+          <RefreshCw size={12} /> Carregar versão do servidor
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function RecoveryReviewModal({
+  envelope,
+  onLoadServer,
+  onKeepAndClose,
+  onCloseWithoutClearing,
+}: {
+  envelope: RecoveryEnvelope<DiagnosticServerDetail>;
+  onLoadServer: () => void;
+  onKeepAndClose: () => void;
+  onCloseWithoutClearing: () => void;
+}) {
+  const payloadText = useMemo(
+    () => JSON.stringify(envelope.snapshot, null, 2),
+    [envelope.snapshot],
+  );
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(payloadText);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch { /* clipboard bloqueado — usuário pode copiar manualmente */ }
+  };
+  return (
+    <div
+      className="fixed inset-0 z-40 flex items-start justify-center bg-black/70 px-4 pt-10 backdrop-blur-sm"
+      onClick={onCloseWithoutClearing}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Alterações locais em recovery"
+        className="w-full max-w-3xl rounded-2xl border border-white/[0.08] bg-[#101010] shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header className="flex items-start justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-300">
+              Alterações locais em quarentena
+            </p>
+            <h2 className="mt-1 text-base font-semibold text-white">
+              Payload salvo em recovery (revisão {envelope.savedRev})
+            </h2>
+            <p className="mt-1 text-[11px] text-white/50">
+              Copie o que precisar, depois escolha se descarta local e carrega
+              server, ou fecha sem tocar (recovery continua pendurada).
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label="Fechar sem tocar em recovery"
+            onClick={onCloseWithoutClearing}
+            className="rounded-md p-1 text-white/50 hover:bg-white/[0.05] hover:text-white"
+          >
+            <X size={16} />
+          </button>
+        </header>
+        <div className="px-5 py-4">
+          <div className="mb-3 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={copy}
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.03] px-3 text-[11px] font-semibold text-white/80 hover:border-white/30"
+            >
+              <Copy size={12} /> {copied ? "Copiado!" : "Copiar JSON completo"}
+            </button>
+          </div>
+          <pre className="max-h-[50vh] overflow-auto rounded-xl border border-white/[0.06] bg-black/40 p-3 text-[11px] leading-relaxed text-white/70">
+            {payloadText}
+          </pre>
+        </div>
+        <footer className="flex flex-col-reverse gap-2 border-t border-white/[0.06] px-5 py-3 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={onKeepAndClose}
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/15 bg-white/[0.03] px-3 text-[11px] font-semibold text-white/80 hover:border-white/30"
+          >
+            <Check size={12} /> Já copiei — pode limpar recovery
+          </button>
+          <button
+            type="button"
+            onClick={onLoadServer}
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-amber-300/40 bg-amber-300/[0.12] px-3 text-[11px] font-semibold text-amber-100 hover:bg-amber-300/[0.18]"
+          >
+            <RefreshCw size={12} /> Descartar local e carregar servidor
+          </button>
+        </footer>
+      </div>
+    </div>
   );
 }
