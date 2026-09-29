@@ -2,10 +2,12 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getDiagnosticDetail } from "@/lib/growth/db/diagnostics-write";
+import { createDiagnosticMediaSignedUrl } from "@/lib/growth/db/diagnostics-storage";
 import { getSupabaseAdminClient } from "@/lib/growth/db/admin-client";
 import {
   DiagnosticFormServer,
   type DiagnosticServerDetail,
+  type DiagnosticServerPhoto,
 } from "@/components/growth/diagnostics/DiagnosticFormServer";
 import type { InspectionCondition } from "@/lib/growth/diagnostics/catalog";
 
@@ -29,6 +31,23 @@ export default async function DiagnosticEditPage({
     supabase.from("crm_vehicles").select("id, brand, model, plate").eq("id", detail.vehicleId).maybeSingle(),
   ]);
   if (!customerRow || !vehicleRow) notFound();
+
+  const photos: DiagnosticServerPhoto[] = await Promise.all(
+    detail.photos.map(async (p) => {
+      const url = await createDiagnosticMediaSignedUrl(p.storagePath).catch(() => null);
+      return {
+        id: p.id,
+        kind: p.kind as DiagnosticServerPhoto["kind"],
+        areaKey: p.areaKey,
+        caption: p.caption,
+        ordering: p.ordering,
+        internalOnly: p.internalOnly,
+        storagePath: p.storagePath,
+        signedUrl: url?.signedUrl,
+        signedUrlExpiresAt: url?.signedUrlExpiresAt,
+      };
+    }),
+  );
 
   const initial: DiagnosticServerDetail = {
     id: detail.id,
@@ -54,6 +73,7 @@ export default async function DiagnosticEditPage({
     scores: normalizeScores(detail.scores),
     recommendations: normalizeRecommendations(detail.recommendations),
     investment_items: normalizeInvestment(detail.investmentItems),
+    photos,
   };
 
   return (

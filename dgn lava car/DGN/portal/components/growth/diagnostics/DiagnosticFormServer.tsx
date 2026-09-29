@@ -4,7 +4,10 @@
 //
 // Diferente do DiagnosticForm.tsx (mock/Fase 0.5), este componente:
 //   * Recebe `detail` já hidratado pelo server (getDiagnosticDetail via GET /[id]).
-//   * Autosave PATCH com If-Match: <revision>. Server é a fonte canônica.
+//   * Autosave PATCH com header `X-Expected-Revision: <int>` (sem aspas).
+//     NÃO usar If-Match/ETag — Vercel intercepta If-Match quoted como ETag
+//     validation e devolve 412 antes do handler. Ver
+//     [[vercel-ifmatch-intercepta-patch]].
 //   * localStorage vira BUFFER de segurança (por diagnostic_id), sobrescrito
 //     ao carregar do server se o server for mais novo. Se o revision do
 //     server E do local baterem, o local prevalece (recuperar edição não
@@ -15,7 +18,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, Check, Copy, Eye, Loader2, RefreshCw, Save, ShieldAlert, X } from "lucide-react";
+import { AlertTriangle, Camera, Check, Copy, Eye, Loader2, Lock, RefreshCw, Save, ShieldAlert, Trash2, X } from "lucide-react";
 import {
   BUFFER_KEY_PREFIX,
   clearRecovery,
@@ -71,6 +74,19 @@ export interface DiagnosticServerDetail {
   }>;
   summary: string;
   updated_at: string;
+  photos: DiagnosticServerPhoto[];
+}
+
+export interface DiagnosticServerPhoto {
+  id: string;
+  kind: "inspection" | "hero" | "reference";
+  areaKey: string | null;
+  caption: string | null;
+  ordering: number;
+  internalOnly: boolean;
+  storagePath: string;
+  signedUrl?: string;
+  signedUrlExpiresAt?: string;
 }
 
 type SaveState =
@@ -150,9 +166,10 @@ export function DiagnosticFormServer({ initial }: { initial: DiagnosticServerDet
         };
         const res = await fetch(`/api/admin/growth/diagnostics/${encodeURIComponent(snapshot.id)}`, {
           method: "PATCH",
+          cache: "no-store",
           headers: {
             "Content-Type": "application/json",
-            "If-Match": `"${snapshot.revision}"`,
+            "X-Expected-Revision": String(snapshot.revision),
           },
           body: JSON.stringify(patchBody),
           signal: controller.signal,
@@ -246,6 +263,127 @@ export function DiagnosticFormServer({ initial }: { initial: DiagnosticServerDet
       });
     }
   }, [detail.id, persistToBuffer]);
+
+  // Upload de foto (por área): multipart real, X-Expected-Revision. Bloqueia
+  // se estiver em conflito ou recovery pendente. Ao succeed, atualiza a
+  // revisão e injeta a nova foto na lista local.
+  const uploadPhoto = useCallback(
+    async (input: { areaKey: string; file: File; caption: string; internalOnly: boolean }) => {
+      if (saveState.kind === "conflict" || recovery) {
+        throw new Error("Salve/resolva o conflito antes de enviar fotos.");
+      }
+      // Serializa: se autosave estiver rodando, aguarda o inflight abortar.
+      clearDebounce();
+      inflightRef.current?.abort();
+      const form = new FormData();
+      form.set("file", input.file);
+      form.set("kind", "inspection");
+      form.set("area_key", input.areaKey);
+      form.set("internal_only", input.internalOnly ? "true" : "false");
+      if (input.caption.trim()) form.set("caption", input.caption.trim());
+      const idem = typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const res = await fetch(`/api/admin/growth/diagnostics/${encodeURIComponent(detail.id)}/photos`, {
+        method: "POST",
+        cache: "no-store",
+        headers: {
+          "X-Expected-Revision": String(detail.revision),
+          "Idempotency-Key": idem,
+        },
+        body: form,
+      });
+      if (res.status === 409) {
+        const body = (await res.json().catch(() => ({}))) as {
+          error?: { code?: string; details?: { current_revision?: number } };
+        };
+        if (body.error?.code === "CONFLICT_REVISION_STALE") {
+          setSaveState({
+            kind: "conflict",
+            currentRevision: body.error.details?.current_revision ?? detail.revision,
+          });
+          throw new Error("Conflito ao enviar foto — recarregue.");
+        }
+      }
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody?.error?.message ?? `HTTP ${res.status}`);
+      }
+      const parsed = (await res.json()) as {
+        photo_id: string;
+        storage_path: string;
+        signed_url: string;
+        signed_url_expires_at: string;
+        revision: number;
+      };
+      const nextPhoto: DiagnosticServerPhoto = {
+        id: parsed.photo_id,
+        kind: "inspection",
+        areaKey: input.areaKey,
+        caption: input.caption.trim() || null,
+        ordering: 0,
+        internalOnly: input.internalOnly,
+        storagePath: parsed.storage_path,
+        signedUrl: parsed.signed_url,
+        signedUrlExpiresAt: parsed.signed_url_expires_at,
+      };
+      const next = {
+        ...detail,
+        revision: parsed.revision,
+        photos: [...detail.photos, nextPhoto],
+      };
+      setDetail(next);
+      persistToBuffer(next);
+      setSaveState({ kind: "saved", at: new Date().toISOString() });
+    },
+    [detail, persistToBuffer, recovery, saveState.kind],
+  );
+
+  const removePhoto = useCallback(
+    async (photoId: string) => {
+      if (saveState.kind === "conflict" || recovery) return;
+      clearDebounce();
+      inflightRef.current?.abort();
+      const res = await fetch(
+        `/api/admin/growth/diagnostics/${encodeURIComponent(detail.id)}/photos/${encodeURIComponent(photoId)}`,
+        {
+          method: "DELETE",
+          cache: "no-store",
+          headers: { "X-Expected-Revision": String(detail.revision) },
+        },
+      );
+      if (res.status === 409) {
+        const body = (await res.json().catch(() => ({}))) as {
+          error?: { code?: string; details?: { current_revision?: number } };
+        };
+        if (body.error?.code === "CONFLICT_REVISION_STALE") {
+          setSaveState({
+            kind: "conflict",
+            currentRevision: body.error.details?.current_revision ?? detail.revision,
+          });
+          return;
+        }
+      }
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        setSaveState({
+          kind: "error",
+          message: errBody?.error?.message ?? `HTTP ${res.status}`,
+        });
+        return;
+      }
+      const parsed = (await res.json()) as { revision: number; photo_state?: string };
+      const next = {
+        ...detail,
+        revision: parsed.revision,
+        photos: detail.photos.filter((p) => p.id !== photoId),
+      };
+      setDetail(next);
+      persistToBuffer(next);
+      setSaveState({ kind: "saved", at: new Date().toISOString() });
+    },
+    [detail, persistToBuffer, recovery, saveState.kind],
+  );
 
   // Recovery: escolha explícita "carregar versão do servidor"
   // → limpa recovery + reload.
@@ -373,12 +511,16 @@ export function DiagnosticFormServer({ initial }: { initial: DiagnosticServerDet
                   public_notes: "",
                   public_visible: true,
                 };
+            const areaPhotos = detail.photos.filter(
+              (p) => p.kind === "inspection" && p.areaKey === areaDef.key,
+            );
             return (
               <AreaRow
                 key={areaDef.key}
                 label={areaDef.label}
                 hint={areaDef.hint}
                 area={area}
+                photos={areaPhotos}
                 disabled={saveState.kind === "conflict" || Boolean(recovery)}
                 onChange={(next) => commit((prev) => {
                   const areas = [...prev.inspection_areas];
@@ -386,6 +528,8 @@ export function DiagnosticFormServer({ initial }: { initial: DiagnosticServerDet
                   if (at >= 0) areas[at] = next; else areas.push(next);
                   return { ...prev, inspection_areas: areas };
                 })}
+                onUploadPhoto={(payload) => uploadPhoto({ areaKey: areaDef.key, ...payload })}
+                onRemovePhoto={(photoId) => removePhoto(photoId)}
               />
             );
           })}
@@ -432,9 +576,14 @@ export function DiagnosticFormServer({ initial }: { initial: DiagnosticServerDet
 
       <Section title="Fotos">
         <p className="text-[12px] text-white/55">
-          Upload/remoção de fotos usa endpoints POST/DELETE dedicados
-          (rollback do bucket em caso de falha da RPC). UI de upload é uma
-          camada separada, não implementada nesta interface enxuta.
+          Adicione fotos direto na área de inspeção correspondente. JPEG/PNG/WEBP
+          até 10&nbsp;MB. Marque &quot;Somente uso interno&quot; para que a foto
+          nunca apareça na página do cliente (fica visível só aqui no admin).
+        </p>
+        <p className="mt-2 text-[11px] text-white/40">
+          {detail.photos.length === 0
+            ? "Nenhuma foto anexada."
+            : `${detail.photos.length} foto${detail.photos.length === 1 ? "" : "s"} anexada${detail.photos.length === 1 ? "" : "s"} no total (${detail.photos.filter((p) => p.internalOnly).length} interna${detail.photos.filter((p) => p.internalOnly).length === 1 ? "" : "s"}).`}
         </p>
       </Section>
     </div>
@@ -554,8 +703,11 @@ function AreaRow({
   label,
   hint,
   area,
+  photos,
   disabled,
   onChange,
+  onUploadPhoto,
+  onRemovePhoto,
 }: {
   label: string;
   hint: string;
@@ -566,8 +718,11 @@ function AreaRow({
     public_notes: string;
     public_visible: boolean;
   };
+  photos: DiagnosticServerPhoto[];
   disabled: boolean;
   onChange: (next: typeof area) => void;
+  onUploadPhoto: (payload: { file: File; caption: string; internalOnly: boolean }) => Promise<void>;
+  onRemovePhoto: (photoId: string) => Promise<void>;
 }) {
   return (
     <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
@@ -626,6 +781,241 @@ function AreaRow({
         />
         Mostrar essa área na página do cliente
       </label>
+      <AreaPhotos
+        photos={photos}
+        disabled={disabled}
+        onUpload={onUploadPhoto}
+        onRemove={onRemovePhoto}
+      />
+    </div>
+  );
+}
+
+const PHOTO_MIME_ALLOWED = ["image/jpeg", "image/png", "image/webp"] as const;
+const PHOTO_MAX_BYTES = 10 * 1024 * 1024;
+
+function AreaPhotos({
+  photos,
+  disabled,
+  onUpload,
+  onRemove,
+}: {
+  photos: DiagnosticServerPhoto[];
+  disabled: boolean;
+  onUpload: (payload: { file: File; caption: string; internalOnly: boolean }) => Promise<void>;
+  onRemove: (photoId: string) => Promise<void>;
+}) {
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [caption, setCaption] = useState("");
+  const [internalOnly, setInternalOnly] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (!pendingFile) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(pendingFile);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [pendingFile]);
+
+  const openPicker = () => {
+    if (disabled || isSending) return;
+    setError(null);
+    inputRef.current?.click();
+  };
+
+  const handleFile = (file: File | null) => {
+    setError(null);
+    if (!file) return;
+    if (!PHOTO_MIME_ALLOWED.includes(file.type as (typeof PHOTO_MIME_ALLOWED)[number])) {
+      setError(`Tipo não permitido (${file.type || "desconhecido"}). Use JPEG/PNG/WEBP.`);
+      return;
+    }
+    if (file.size <= 0 || file.size > PHOTO_MAX_BYTES) {
+      setError(`Tamanho fora do limite (10 MB): ${(file.size / 1024 / 1024).toFixed(2)} MB.`);
+      return;
+    }
+    setPendingFile(file);
+  };
+
+  const cancelPending = () => {
+    setPendingFile(null);
+    setCaption("");
+    setInternalOnly(false);
+    setError(null);
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const submitPending = async () => {
+    if (!pendingFile) return;
+    setIsSending(true);
+    setError(null);
+    try {
+      await onUpload({ file: pendingFile, caption, internalOnly });
+      cancelPending();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Falha ao enviar foto.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const remove = async (photoId: string) => {
+    if (disabled) return;
+    setRemovingId(photoId);
+    setError(null);
+    try {
+      await onRemove(photoId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Falha ao remover foto.");
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
+  return (
+    <div className="mt-4 rounded-xl border border-white/[0.06] bg-black/20 p-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">
+          Fotos da área
+        </p>
+        <p className="text-[10px] text-white/40">
+          JPEG · PNG · WEBP · até 10 MB
+        </p>
+      </div>
+
+      {photos.length > 0 ? (
+        <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+          {photos.map((p) => (
+            <li
+              key={p.id}
+              className="rounded-lg border border-white/[0.05] bg-white/[0.02] p-2"
+            >
+              <div className="relative">
+                {p.signedUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={p.signedUrl}
+                    alt={p.caption ?? "Foto da inspeção"}
+                    className="h-32 w-full rounded-md object-cover"
+                  />
+                ) : (
+                  <div className="flex h-32 w-full items-center justify-center rounded-md bg-black/40 text-[11px] text-white/40">
+                    URL indisponível
+                  </div>
+                )}
+                {p.internalOnly ? (
+                  <span
+                    className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-amber-300/[0.15] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-100"
+                    title="Somente uso interno — não aparece pro cliente"
+                  >
+                    <Lock size={10} /> Interna
+                  </span>
+                ) : null}
+              </div>
+              {p.caption ? (
+                <p className="mt-2 text-[11px] text-white/70">{p.caption}</p>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => remove(p.id)}
+                disabled={disabled || removingId === p.id}
+                className="mt-2 inline-flex items-center gap-1 rounded-md border border-red-300/25 bg-red-400/[0.06] px-2 py-1 text-[10px] font-semibold text-red-200 hover:bg-red-400/[0.12] disabled:opacity-50"
+              >
+                {removingId === p.id ? (
+                  <Loader2 size={10} className="animate-spin" />
+                ) : (
+                  <Trash2 size={10} />
+                )}
+                Remover
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept={PHOTO_MIME_ALLOWED.join(",")}
+        className="hidden"
+        onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
+      />
+
+      {pendingFile ? (
+        <div className="mt-3 rounded-lg border border-[#C9A84C]/25 bg-[#C9A84C]/[0.05] p-3">
+          <div className="flex gap-3">
+            {previewUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={previewUrl}
+                alt="Pré-visualização"
+                className="h-24 w-24 shrink-0 rounded-md object-cover"
+              />
+            ) : null}
+            <div className="min-w-0 flex-1 space-y-2">
+              <p className="truncate text-[11px] text-white/70">{pendingFile.name}</p>
+              <input
+                type="text"
+                placeholder="Legenda (opcional)"
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                className="h-9 w-full rounded-md border border-white/[0.08] bg-white/[0.03] px-2 text-[12px] text-white outline-none focus:border-[#C9A84C]/40"
+                maxLength={200}
+                disabled={isSending}
+              />
+              <label className="inline-flex items-center gap-2 text-[11px] text-white/70">
+                <input
+                  type="checkbox"
+                  checked={internalOnly}
+                  onChange={(e) => setInternalOnly(e.target.checked)}
+                  className="h-3.5 w-3.5 rounded border-white/20 bg-white/5 accent-amber-300"
+                  disabled={isSending}
+                />
+                Somente uso interno (não aparece pro cliente)
+              </label>
+            </div>
+          </div>
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              onClick={submitPending}
+              disabled={isSending}
+              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#C9A84C]/40 bg-[#C9A84C]/10 px-3 text-[11px] font-semibold text-[#E7C96A] hover:bg-[#C9A84C]/20 disabled:opacity-50"
+            >
+              {isSending ? <Loader2 size={11} className="animate-spin" /> : <Camera size={11} />}
+              {isSending ? "Enviando…" : "Enviar foto"}
+            </button>
+            <button
+              type="button"
+              onClick={cancelPending}
+              disabled={isSending}
+              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-3 text-[11px] font-semibold text-white/70 hover:border-white/25 disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={openPicker}
+          disabled={disabled}
+          className="mt-3 inline-flex h-9 items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-3 text-[11px] font-semibold text-white/75 hover:border-[#C9A84C]/30 disabled:opacity-50"
+        >
+          <Camera size={11} /> Adicionar foto
+        </button>
+      )}
+
+      {error ? (
+        <p className="mt-2 text-[11px] text-red-200">{error}</p>
+      ) : null}
     </div>
   );
 }

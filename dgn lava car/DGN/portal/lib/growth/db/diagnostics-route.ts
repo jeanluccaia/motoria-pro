@@ -47,38 +47,42 @@ const defaults: RouteDependencies = {
 // ---------------------------------------------------------------------------
 
 function unauthorized() {
-  return Response.json({ error: { code: "SESSION_INVALID", message: "unauthorized" } }, { status: 401 });
+  return jsonNoStore({ error: { code: "SESSION_INVALID", message: "unauthorized" } }, 401);
 }
 function dbOnly() {
-  return Response.json(
+  return jsonNoStore(
     { error: { code: "DB_MODE_REQUIRED", message: "Diagnósticos só estão disponíveis no modo DB." } },
-    { status: 409 },
+    409,
   );
 }
 function errFrom(err: unknown, fallbackMsg: string) {
   if (err instanceof DiagnosticsError) {
-    return Response.json({ error: { code: err.code, message: err.message, details: err.extra } }, { status: err.status });
+    return jsonNoStore({ error: { code: err.code, message: err.message, details: err.extra } }, err.status);
   }
   if (err instanceof SyntaxError) {
-    return Response.json({ error: { code: "BAD_JSON", message: "JSON inválido" } }, { status: 400 });
+    return jsonNoStore({ error: { code: "BAD_JSON", message: "JSON inválido" } }, 400);
   }
   console.error("[DGN Diagnósticos] erro inesperado:", err instanceof Error ? err.message : err);
-  return Response.json({ error: { code: "INTERNAL", message: fallbackMsg } }, { status: 500 });
+  return jsonNoStore({ error: { code: "INTERNAL", message: fallbackMsg } }, 500);
 }
-function requireIfMatch(req: DiagnosticsRequest): number | Response {
-  const raw = req.headers.get("If-Match");
-  if (!raw) {
-    return Response.json(
-      { error: { code: "PRECONDITION_REQUIRED", message: "If-Match: <revision> obrigatório." } },
-      { status: 412 },
+// Contrato de concorrência: header customizado X-Expected-Revision (inteiro,
+// sem aspas). NUNCA usar If-Match aqui — o Vercel intercepta If-Match quoted
+// como ETag validation e devolve 412 antes do handler rodar, mesmo depois de
+// o server já ter aplicado o efeito. Ver [[vercel-ifmatch-intercepta-patch]].
+function requireExpectedRevision(req: DiagnosticsRequest): number | Response {
+  const raw = req.headers.get("X-Expected-Revision");
+  if (raw === null || raw === "") {
+    return jsonNoStore(
+      { error: { code: "PRECONDITION_REQUIRED", message: "X-Expected-Revision obrigatório." } },
+      412,
     );
   }
-  const clean = raw.replace(/"/g, "").trim();
+  const clean = raw.trim();
   const n = Number.parseInt(clean, 10);
-  if (!Number.isInteger(n) || n < 0) {
-    return Response.json(
-      { error: { code: "PRECONDITION_REQUIRED", message: "If-Match precisa ser inteiro >= 0." } },
-      { status: 412 },
+  if (!Number.isInteger(n) || n < 0 || String(n) !== clean) {
+    return jsonNoStore(
+      { error: { code: "PRECONDITION_INVALID", message: "X-Expected-Revision precisa ser inteiro não negativo (sem aspas)." } },
+      412,
     );
   }
   return n;
@@ -86,20 +90,27 @@ function requireIfMatch(req: DiagnosticsRequest): number | Response {
 function requireIdempotencyKey(req: DiagnosticsRequest): string | Response {
   const raw = req.headers.get("Idempotency-Key");
   if (!raw || raw.trim().length === 0) {
-    return Response.json(
-      { error: { code: "IDEMPOTENCY_REQUIRED", message: "Idempotency-Key obrigatório." } },
-      { status: 400 },
-    );
+    return jsonNoStore({ error: { code: "IDEMPOTENCY_REQUIRED", message: "Idempotency-Key obrigatório." } }, 400);
   }
   return raw.trim();
 }
-function etagResponse(body: unknown, revision: number, status = 200, replayed = false) {
+// Response canônica pra mutação/leitura de diagnóstico:
+//   * X-Current-Revision inteiro sem aspas (nunca ETag — ver requireExpectedRevision)
+//   * Cache-Control: no-store (rotas admin sensíveis nunca revalidam via CDN)
+function revisionResponse(body: unknown, revision: number, status = 200, replayed = false) {
   const headers = new Headers({
-    ETag: `"${revision}"`,
+    "X-Current-Revision": String(revision),
+    "Cache-Control": "no-store",
     "Content-Type": "application/json; charset=utf-8",
   });
   if (replayed) headers.set("X-Replayed", "true");
   return new Response(JSON.stringify(body), { status, headers });
+}
+function jsonNoStore(body: unknown, status: number) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -119,21 +130,16 @@ export async function handleDiagnosticsCreate(
   try {
     const body = await request.json();
     if (typeof body !== "object" || body === null || Array.isArray(body)) {
-      return Response.json({ error: { code: "BAD_JSON", message: "payload inválido" } }, { status: 400 });
+      return jsonNoStore({ error: { code: "BAD_JSON", message: "payload inválido" } }, 400);
     }
     const b = body as Record<string, unknown>;
     const vehicleId = b.vehicle_id ?? b.vehicleId;
     const catalogVersion = b.catalog_version ?? b.catalogVersion;
     const performedBy = b.performed_by ?? b.performedBy;
     if (typeof vehicleId !== "string" || typeof catalogVersion !== "string" || typeof performedBy !== "string") {
-      return Response.json(
-        {
-          error: {
-            code: "VALIDATION_FAILED",
-            message: "vehicle_id, catalog_version e performed_by são obrigatórios.",
-          },
-        },
-        { status: 422 },
+      return jsonNoStore(
+        { error: { code: "VALIDATION_FAILED", message: "vehicle_id, catalog_version e performed_by são obrigatórios." } },
+        422,
       );
     }
     const created = await createDiagnosticDraft({
@@ -144,7 +150,7 @@ export async function handleDiagnosticsCreate(
       actor,
       idempotencyKey: idem,
     });
-    return etagResponse(
+    return revisionResponse(
       { diagnostic_id: created.diagnosticId, revision: created.revision, status: created.status },
       created.revision, 201, created.isReplay,
     );
@@ -178,7 +184,7 @@ export async function handleDiagnosticsList(
       statuses,
       limit: Number.parseInt(url.searchParams.get("limit") ?? "20", 10) || 20,
     });
-    return Response.json({ items, next_cursor: null }, { status: 200 });
+    return jsonNoStore({ items, next_cursor: null }, 200);
   } catch (err) {
     return errFrom(err, "Falha ao listar diagnósticos.");
   }
@@ -198,16 +204,15 @@ export async function handleDiagnosticGet(
   try {
     const detail = await getDiagnosticDetail(diagnosticId);
     if (!detail) {
-      return Response.json({ error: { code: "NOT_FOUND", message: "Diagnóstico não encontrado." } }, { status: 404 });
+      return jsonNoStore({ error: { code: "NOT_FOUND", message: "Diagnóstico não encontrado." } }, 404);
     }
-    // Signed URLs para as fotos
     const photos = await Promise.all(
       detail.photos.map(async (p) => {
         const url = await createDiagnosticMediaSignedUrl(p.storagePath);
         return { ...p, signedUrl: url.signedUrl, signedUrlExpiresAt: url.signedUrlExpiresAt };
       }),
     );
-    return etagResponse({ ...detail, photos }, detail.revision, 200);
+    return revisionResponse({ ...detail, photos }, detail.revision, 200);
   } catch (err) {
     return errFrom(err, "Falha ao ler diagnóstico.");
   }
@@ -224,25 +229,25 @@ export async function handleDiagnosticPatch(
 ): Promise<Response> {
   if (!(await deps.authorize(request))) return unauthorized();
   if (deps.source !== "db") return dbOnly();
-  const ifMatch = requireIfMatch(request);
-  if (ifMatch instanceof Response) return ifMatch;
+  const expectedRevision = requireExpectedRevision(request);
+  if (expectedRevision instanceof Response) return expectedRevision;
   const actor = deriveActorFingerprint(request.cookies.get(DGN_ADMIN_COOKIE)?.value);
   try {
     const body = await request.json();
     const validation = validatePatchPayload(body);
     if (!validation.ok) {
-      return Response.json(
+      return jsonNoStore(
         { error: { code: "VALIDATION_FAILED", message: "Payload inválido.", details: { issues: validation.issues } } },
-        { status: 422 },
+        422,
       );
     }
     const patched = await patchDiagnosticDraft({
       diagnosticId,
-      expectedRevision: ifMatch,
+      expectedRevision,
       patch: validation.value,
       actor,
     });
-    return etagResponse({ revision: patched.revision, status: patched.status }, patched.revision, 200);
+    return revisionResponse({ revision: patched.revision, status: patched.status }, patched.revision, 200);
   } catch (err) {
     return errFrom(err, "Falha ao aplicar patch.");
   }
@@ -259,14 +264,14 @@ export async function handlePhotoUpload(
 ): Promise<Response> {
   if (!(await deps.authorize(request))) return unauthorized();
   if (deps.source !== "db") return dbOnly();
-  const ifMatch = requireIfMatch(request);
-  if (ifMatch instanceof Response) return ifMatch;
+  const expectedRevision = requireExpectedRevision(request);
+  if (expectedRevision instanceof Response) return expectedRevision;
   const idem = requireIdempotencyKey(request);
   if (idem instanceof Response) return idem;
   const actor = deriveActorFingerprint(request.cookies.get(DGN_ADMIN_COOKIE)?.value);
 
   if (!request.formData) {
-    return Response.json({ error: { code: "BAD_REQUEST", message: "multipart/form-data esperado." } }, { status: 400 });
+    return jsonNoStore({ error: { code: "BAD_REQUEST", message: "multipart/form-data esperado." } }, 400);
   }
 
   let uploadedPath: string | null = null;
@@ -281,31 +286,24 @@ export async function handlePhotoUpload(
     const internalOnly = String(form.get("internal_only") ?? "false") === "true";
 
     if (!(file instanceof Blob)) {
-      return Response.json({ error: { code: "VALIDATION_FAILED", message: "campo 'file' obrigatório." } }, { status: 422 });
+      return jsonNoStore({ error: { code: "VALIDATION_FAILED", message: "campo 'file' obrigatório." } }, 422);
     }
     if (kind === "inspection" && !areaKey) {
-      return Response.json(
+      return jsonNoStore(
         { error: { code: "VALIDATION_FAILED", message: "area_key obrigatório para kind=inspection." } },
-        { status: 422 },
+        422,
       );
     }
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      return Response.json(
-        { error: { code: "VALIDATION_FAILED", message: `MIME não permitido: ${file.type}` } },
-        { status: 422 },
-      );
+      return jsonNoStore({ error: { code: "VALIDATION_FAILED", message: `MIME não permitido: ${file.type}` } }, 422);
     }
     if (file.size <= 0 || file.size > 10 * 1024 * 1024) {
-      return Response.json(
-        { error: { code: "VALIDATION_FAILED", message: `size fora do limite (10 MB): ${file.size}` } },
-        { status: 422 },
-      );
+      return jsonNoStore({ error: { code: "VALIDATION_FAILED", message: `size fora do limite (10 MB): ${file.size}` } }, 422);
     }
 
-    // Precisamos do customer_id pra montar o storage path canônico
     const detail = await getDiagnosticDetail(diagnosticId);
     if (!detail) {
-      return Response.json({ error: { code: "NOT_FOUND", message: "Diagnóstico não encontrado." } }, { status: 404 });
+      return jsonNoStore({ error: { code: "NOT_FOUND", message: "Diagnóstico não encontrado." } }, 404);
     }
     uploadedPath = buildStoragePath(detail.customerId, diagnosticId, file.type);
     const bytes = await file.arrayBuffer();
@@ -317,7 +315,7 @@ export async function handlePhotoUpload(
     try {
       attachRes = await attachDiagnosticPhoto({
         diagnosticId,
-        expectedRevision: ifMatch,
+        expectedRevision,
         kind,
         areaKey,
         storagePath: uploadedPath,
@@ -336,7 +334,7 @@ export async function handlePhotoUpload(
     }
 
     const url = await createDiagnosticMediaSignedUrl(uploadedPath);
-    return etagResponse(
+    return revisionResponse(
       {
         photo_id: attachRes.photoId,
         storage_path: uploadedPath,
@@ -363,26 +361,26 @@ export async function handlePhotoDelete(
 ): Promise<Response> {
   if (!(await deps.authorize(request))) return unauthorized();
   if (deps.source !== "db") return dbOnly();
-  const ifMatch = requireIfMatch(request);
-  if (ifMatch instanceof Response) return ifMatch;
+  const expectedRevision = requireExpectedRevision(request);
+  if (expectedRevision instanceof Response) return expectedRevision;
   const actor = deriveActorFingerprint(request.cookies.get(DGN_ADMIN_COOKIE)?.value);
   try {
     const res = await detachDiagnosticPhoto({
       diagnosticId,
-      expectedRevision: ifMatch,
+      expectedRevision,
       photoId,
       actor,
     });
     if (!res.wasFound) {
       // Idempotente: photo já foi apagada. Devolve 200 + revision atual.
       const cur = await getDiagnosticDetail(diagnosticId);
-      const rev = cur?.revision ?? ifMatch;
-      return etagResponse({ revision: rev, photo_state: "already_removed" }, rev, 200);
+      const rev = cur?.revision ?? expectedRevision;
+      return revisionResponse({ revision: rev, photo_state: "already_removed" }, rev, 200);
     }
     if (res.storagePath) {
       await removeDiagnosticMedia(res.storagePath);
     }
-    return etagResponse({ revision: res.revision as number }, res.revision as number, 200);
+    return revisionResponse({ revision: res.revision as number }, res.revision as number, 200);
   } catch (err) {
     return errFrom(err, "Falha ao remover foto.");
   }
@@ -403,14 +401,14 @@ export async function handlePhotoSignedUrl(
   try {
     const detail = await getDiagnosticDetail(diagnosticId);
     if (!detail) {
-      return Response.json({ error: { code: "NOT_FOUND", message: "Diagnóstico não encontrado." } }, { status: 404 });
+      return jsonNoStore({ error: { code: "NOT_FOUND", message: "Diagnóstico não encontrado." } }, 404);
     }
     const photo = detail.photos.find((p) => p.id === photoId);
     if (!photo) {
-      return Response.json({ error: { code: "PHOTO_NOT_FOUND", message: "Foto não encontrada." } }, { status: 404 });
+      return jsonNoStore({ error: { code: "PHOTO_NOT_FOUND", message: "Foto não encontrada." } }, 404);
     }
     const url = await createDiagnosticMediaSignedUrl(photo.storagePath);
-    return Response.json({ signed_url: url.signedUrl, signed_url_expires_at: url.signedUrlExpiresAt }, { status: 200 });
+    return jsonNoStore({ signed_url: url.signedUrl, signed_url_expires_at: url.signedUrlExpiresAt }, 200);
   } catch (err) {
     return errFrom(err, "Falha ao regenerar signed URL.");
   }

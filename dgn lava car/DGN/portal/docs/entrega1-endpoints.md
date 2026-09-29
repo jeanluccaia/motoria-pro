@@ -8,8 +8,9 @@ Escopo da Entrega 1 (aprovado no checkpoint): create draft · patch draft · att
 
 - **Gate admin:** todas as rotas passam pelo `validateAdminSessionToken` do proxy (`lib/growth/admin-session-core.ts`). Sem cookie válido → 401.
 - **Autor:** o endpoint deriva `p_actor = "admin:<session-fingerprint>"` a partir do cookie e passa pra RPC. Cliente nunca informa autor.
-- **`If-Match` como header de revisão:** PATCH / attach / detach exigem `If-Match: <revision>`. Ausência → **412 Precondition Required**. Divergência (RPC devolve `CONFLICT_REVISION_STALE`) → **409 Conflict** com body `{code:"CONFLICT_REVISION_STALE", current_revision:N}`.
-- **`ETag` na resposta:** todo GET/PATCH devolve `ETag: "<revision>"`. UI grava e reenvia como `If-Match` na próxima escrita.
+- **`X-Expected-Revision` como header de revisão:** PATCH / attach / detach exigem `X-Expected-Revision: <int>` (inteiro sem aspas). Ausência → **412 Precondition Required**. Formato inválido (não numérico, negativo, com aspas) → **412 PRECONDITION_INVALID**. Divergência (RPC devolve `CONFLICT_REVISION_STALE`) → **409 Conflict** com body `{code:"CONFLICT_REVISION_STALE", current_revision:N}`. **Não usamos `If-Match` nem `ETag`:** Vercel intercepta `If-Match` quoted como validação de ETag e devolve 412 platform antes do handler, mesmo depois do server já ter aplicado o efeito. Ver `docs/handoff/vercel-ifmatch-blocker.md` se existir; regra atual está travada nesse contrato.
+- **`X-Current-Revision` na resposta:** todo GET/PATCH/POST photos/DELETE photos devolve `X-Current-Revision: <int>` (inteiro sem aspas). UI grava e reenvia como `X-Expected-Revision` na próxima escrita. `revision` também vem no body JSON — usar o body é canônico.
+- **`Cache-Control: no-store`** em todas as respostas admin (mutação ou leitura).
 - **Idempotency-Key** obrigatório em `POST /diagnostics` e `POST /photos`. Header `Idempotency-Key: <token 32 chars>`. Escopo por autor. Replay devolve o recurso já criado + `X-Replayed: true`.
 - **Content-Type:** `application/json` exceto no upload (`multipart/form-data`).
 - **PII:** endpoints admin retornam a mesma PII que o `SubscriptionsManager` já expõe — nada novo passa a atravessar o bundle.
@@ -21,8 +22,9 @@ Escopo da Entrega 1 (aprovado no checkpoint): create draft · patch draft · att
 ```
 
 - `SESSION_INVALID` (401)
-- `PRECONDITION_REQUIRED` (412) — falta `If-Match`
-- `CONFLICT_REVISION_STALE` (409) — `If-Match` divergente
+- `PRECONDITION_REQUIRED` (412) — falta `X-Expected-Revision`
+- `PRECONDITION_INVALID` (412) — `X-Expected-Revision` fora do formato inteiro sem aspas
+- `CONFLICT_REVISION_STALE` (409) — `X-Expected-Revision` divergente da revision atual
 - `STATUS_NOT_EDITABLE` (409) — rascunho arquivado
 - `IDEMPOTENCY_REQUIRED` (400) — POST sem `Idempotency-Key`
 - `VALIDATION_FAILED` (422) — shape/valor inválido (detalhes por campo)
@@ -57,7 +59,7 @@ Cria rascunho vazio.
   "status": "draft"
 }
 ```
-Header: `ETag: "0"`. Se replay: também `X-Replayed: true`.
+Header: `X-Current-Revision: 0` + `Cache-Control: no-store`. Se replay: também `X-Replayed: true`.
 
 **Erros**
 - `400` — vehicle não pertence ao customer.
@@ -149,7 +151,7 @@ Detalhe completo pra reabrir no form (retomada).
   ]
 }
 ```
-Header: `ETag: "12"`.
+Header: `X-Current-Revision: 12` + `Cache-Control: no-store`.
 
 Signed URLs são geradas na hora (TTL 15 min). Cliente re-solicita via `/signed-url` quando expira.
 
@@ -158,7 +160,7 @@ Signed URLs são geradas na hora (TTL 15 min). Cliente re-solicita via `/signed-
 Autosave. Só chaves presentes viajam.
 
 **Headers**
-- `If-Match: "<revision>"` (obrigatório).
+- `X-Expected-Revision: <int>` (obrigatório, inteiro sem aspas).
 
 **Validação server-side (antes da RPC)**
 
@@ -181,11 +183,12 @@ Autosave. Só chaves presentes viajam.
 ```json
 { "revision": 13, "status": "draft" }
 ```
-Header: `ETag: "13"`.
+Header: `X-Current-Revision: 13` + `Cache-Control: no-store`.
 
 **Erros**
 - `409` `CONFLICT_REVISION_STALE` — outra sessão salvou.
-- `412` `PRECONDITION_REQUIRED` — falta `If-Match`.
+- `412` `PRECONDITION_REQUIRED` — falta `X-Expected-Revision`.
+- `412` `PRECONDITION_INVALID` — `X-Expected-Revision` mal formatado.
 - `422` `VALIDATION_FAILED` — detalhes por campo.
 - `422` `OVERRIDE_REASON_REQUIRED` — override sem justificativa.
 - `409` `STATUS_NOT_EDITABLE`.
@@ -195,7 +198,7 @@ Header: `ETag: "13"`.
 Upload de foto. `multipart/form-data`.
 
 **Headers**
-- `If-Match: "<revision>"`.
+- `X-Expected-Revision: <int>` (obrigatório, inteiro sem aspas).
 - `Idempotency-Key: <token>` (obrigatório).
 
 **Campos**
@@ -228,7 +231,7 @@ Se replay: `X-Replayed: true` + mesmo `photo_id`.
 ## 6. DELETE `/api/admin/growth/diagnostics/[diagnosticId]/photos/[photoId]`
 
 **Headers**
-- `If-Match: "<revision>"`.
+- `X-Expected-Revision: <int>` (obrigatório, inteiro sem aspas).
 
 **Fluxo server**
 1. Chama `crm_detach_diagnostic_photo(...)` — devolve `storage_path`.
