@@ -50,12 +50,13 @@ export function Hero() {
         <Link
           href={OFFER_HREF}
           aria-label="Comece agora — plano Trimestral"
-          className="absolute rounded-full ring-offset-2 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lf-black md:hidden"
+          className="absolute block cursor-pointer rounded-full ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lf-black md:hidden"
           style={{
             left: MOBILE_BUTTON.left,
             top: MOBILE_BUTTON.top,
             width: MOBILE_BUTTON.width,
             height: MOBILE_BUTTON.height,
+            zIndex: 20,
           }}
         >
           <span className="sr-only">Comece agora</span>
@@ -63,12 +64,13 @@ export function Hero() {
         <Link
           href={OFFER_HREF}
           aria-label="Comece agora — plano Trimestral"
-          className="absolute hidden rounded-full ring-offset-2 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lf-black md:block"
+          className="absolute hidden cursor-pointer rounded-full ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lf-black md:block"
           style={{
             left: DESKTOP_BUTTON.left,
             top: DESKTOP_BUTTON.top,
             width: DESKTOP_BUTTON.width,
             height: DESKTOP_BUTTON.height,
+            zIndex: 20,
           }}
         >
           <span className="sr-only">Comece agora</span>

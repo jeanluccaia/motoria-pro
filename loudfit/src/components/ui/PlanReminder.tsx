@@ -55,7 +55,7 @@ function PlanReminderInner({ isIpiranga }: PlanReminderProps) {
       )}
       {plano === 'power-plus' && monthlyPrice && (
         <p className="mt-1 text-sm text-gray-500">
-          1º mês por R$ 0,00 — taxa de inscrição R$ 0,00. Depois {monthlyPrice}/mês no cartão. Fidelidade de 12 meses.
+          1º mês por R$ 9,90 — depois {monthlyPrice}/mês no cartão. Fidelidade de 12 meses.
         </p>
       )}
       {plano === 'power' && monthlyPrice && (

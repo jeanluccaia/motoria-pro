@@ -29,7 +29,7 @@ export interface Plan {
 //  • Mensal Recorrente volta ao preço cheio de tabela (sem 1º mês
 //    promocional), mantendo "sem fidelidade" como diferencial.
 //  • Power Plus continua como alternativa com fidelidade de 12 meses,
-//    1º mês R$ 0,00 e taxa de inscrição R$ 0,00.
+//    1ª mensalidade promocional de R$ 9,90.
 //  • Power segue sem promoção (avulso, pagamento na unidade).
 const standardPlans: Plan[] = [
   {
@@ -69,8 +69,7 @@ const standardPlans: Plan[] = [
     featured: false,
     tier: 'accent',
     commitment: 'Fidelidade de 12 meses',
-    firstPayment: { label: '1º mês por', value: 'R$ 0,00' },
-    firstPaymentNote: 'Taxa de inscrição: R$ 0,00',
+    firstPayment: { label: '1º mês por', value: 'R$ 9,90' },
     checkoutUrl: null,
   },
   {
@@ -129,8 +128,7 @@ const ipirangaPlans: Plan[] = [
     featured: false,
     tier: 'accent',
     commitment: 'Fidelidade de 12 meses',
-    firstPayment: { label: '1º mês por', value: 'R$ 0,00' },
-    firstPaymentNote: 'Taxa de inscrição: R$ 0,00',
+    firstPayment: { label: '1º mês por', value: 'R$ 9,90' },
     checkoutUrl: null,
   },
   {
@@ -196,8 +194,7 @@ export const planConditions: Record<string, string[]> = {
   ],
   'power-plus': [
     'Fidelidade contratual de 12 meses',
-    'Primeiro mês por R$ 0,00',
-    'Taxa de inscrição de R$ 0,00',
+    'Primeira mensalidade por R$ 9,90',
     'A partir do segundo mês, valor mensal cheio desta unidade',
     'Cobrança mensal recorrente no cartão',
   ],
