@@ -76,6 +76,24 @@ export function Hero() {
           <span className="sr-only">Comece agora</span>
         </Link>
       </div>
+
+      {/* Barra CTA logo abaixo da capa — garante descoberta do CTA sem
+          duplicar texto sobre a arte. Aparece em qualquer breakpoint. */}
+      <div className="border-t border-b border-lf-line bg-lf-black">
+        <div className="mx-auto flex max-w-[1360px] flex-col items-center justify-between gap-4 px-5 py-5 sm:flex-row sm:px-8 md:px-12">
+          <p className="text-center text-sm font-medium text-lf-text sm:text-left">
+            Trimestral · 3 meses por{' '}
+            <strong className="text-lf-volt">R$ 99/mês</strong>
+            {' '}· camiseta Loud Fit de presente · válido até 14/10
+          </p>
+          <Link
+            href={OFFER_HREF}
+            className="lf-cta-volt inline-flex min-h-[48px] w-full items-center justify-center rounded-full px-8 py-3 text-[13px] font-black uppercase tracking-[0.14em] sm:w-auto sm:min-h-[52px] sm:px-10 sm:text-[14px]"
+          >
+            Comece agora
+          </Link>
+        </div>
+      </div>
     </section>
   )
 }
