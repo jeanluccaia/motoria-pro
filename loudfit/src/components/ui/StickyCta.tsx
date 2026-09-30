@@ -28,11 +28,11 @@ export function StickyCta() {
       ].join(' ')}
     >
       <p className="text-sm font-medium text-lf-muted">
-        1º mês por{' '}
-        <strong className="text-lf-volt">R$ 69,90</strong>
-        {' '}no Mensal Recorrente · válido até 27/09
+        3 meses de treino por{' '}
+        <strong className="text-lf-volt">R$ 99/mês</strong>
+        {' '}no Trimestral · válido até 14/10
       </p>
-      <Button href="/unidades" variant="volt" size="md">
+      <Button href="/unidades?plano=power-trimestral" variant="volt" size="md">
         Comece agora
       </Button>
     </div>

@@ -37,7 +37,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = `${name} — Academia em ${unit.cidade}`
   const description = slug === 'anchieta-sp'
     ? `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Fale direto com a equipe da unidade no WhatsApp para consultar planos e condições.`
-    : `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Mensal Recorrente com 1º mês por R$ 69,90, sem fidelidade e cancelamento sem multa.`
+    : slug === 'ipiranga'
+    ? `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Plano Trimestral: 3 meses de treino por R$ 139/mês (R$ 417 no total) com camiseta Loud Fit de presente.`
+    : `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Plano Trimestral: 3 meses de treino por R$ 99/mês (R$ 297 no total) com camiseta Loud Fit de presente.`
   return {
     title: { absolute: title },
     description,
@@ -154,7 +156,9 @@ export default async function UnitPage({ params }: Props) {
                   ? 'Estrutura completa. Condições e planos direto com a equipe da unidade.'
                   : unit.status === 'em_breve'
                   ? 'Unidade em inauguração.'
-                  : 'Estrutura completa. Mensal Recorrente: 1º mês por R$ 69,90, sem fidelidade e cancelamento sem multa.'}
+                  : isIpiranga
+                  ? 'Estrutura completa. Trimestral: 3 meses de treino por R$ 139/mês com camiseta Loud Fit de presente.'
+                  : 'Estrutura completa. Trimestral: 3 meses de treino por R$ 99/mês com camiseta Loud Fit de presente.'}
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 {isAnchieta && anchietaWhatsappHref && (
@@ -273,10 +277,10 @@ export default async function UnitPage({ params }: Props) {
                 <>
                   <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lf-volt">Matrícula online</p>
                   <h2 className="mt-3 text-3xl font-black text-gray-900 leading-tight">
-                    1º mês por R$ 69,90
+                    {isIpiranga ? '3 meses por R$ 139/mês' : '3 meses por R$ 99/mês'}
                   </h2>
                   <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-gray-400">
-                    Mensal Recorrente · Sem fidelidade · Cancele sem multa
+                    Trimestral · Camiseta Loud Fit de presente
                   </p>
                   <p className="mt-3 text-sm leading-relaxed text-gray-500">
                     {isIpiranga && unit.status === 'em_breve' && hasCheckout
@@ -453,10 +457,12 @@ export default async function UnitPage({ params }: Props) {
             />
 
             <p className="mt-6 text-xs text-[#7A7267]">
-              A partir do segundo mês, aplica-se o valor mensal cheio de cada plano nesta unidade.
-              Power Plus tem taxa de inscrição de R$ 0,00 e fidelidade de 12 meses; o Mensal
-              Recorrente segue mês a mês, sem fidelidade e sem multa de cancelamento. O Power
-              segue o valor cheio desde a primeira cobrança.
+              Trimestral: contratação única de 3 meses com camiseta Loud Fit de presente na
+              retirada; à vista ou em até 3× no cartão. Mensal Recorrente segue mês a mês pelo
+              valor cheio desta unidade, sem fidelidade e sem multa de cancelamento. Power Plus
+              tem 1º mês R$ 0,00, taxa de inscrição R$ 0,00 e fidelidade de 12 meses; a partir
+              do segundo mês, valor cheio da unidade. O Power segue o valor cheio desde a
+              primeira cobrança.
             </p>
           </Section>
         )}

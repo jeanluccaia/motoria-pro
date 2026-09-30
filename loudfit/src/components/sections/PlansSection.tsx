@@ -20,7 +20,7 @@ export function PlansSection() {
           Escolha seu plano
         </h2>
         <p className="mt-3 max-w-2xl text-[14.5px] leading-[1.55] text-[#5E5B54] md:text-base">
-          Três formas de treinar na Loud Fit. Todos os planos incluem musculação, aulas coletivas e a estrutura completa da rede.
+          Quatro formas de treinar na Loud Fit. Todos os planos incluem musculação, aulas coletivas e a estrutura completa da rede.
         </p>
       </Reveal>
 
@@ -56,7 +56,7 @@ export function PlansSection() {
 
       <Reveal delay={0.32}>
         <div className="mt-5 flex flex-col gap-1 border-t border-[#D8D0C0] pt-5 text-[11px] text-[#6E675C] sm:flex-row sm:justify-between">
-          <p>Oferta válida até 27/09. Mensal Recorrente: 1º mês R$ 69,90, sem fidelidade e cancelamento sem multa. Power Plus: 1º mês R$ 0,00 + taxa de inscrição R$ 0,00, fidelidade de 12 meses.</p>
+          <p>Oferta válida até 14/10. Trimestral: 3 meses de treino a partir de R$ 99/mês (R$ 297 no total) com camiseta Loud Fit de presente. Mensal Recorrente: preço mensal cheio de tabela, sem fidelidade e cancelamento sem multa. Power Plus: 1º mês R$ 0,00 + taxa de inscrição R$ 0,00, fidelidade de 12 meses.</p>
           <p>Valores e condições podem variar conforme a unidade. Ipiranga possui tabela própria.</p>
         </div>
       </Reveal>

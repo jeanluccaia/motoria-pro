@@ -27,11 +27,11 @@ export function PlansGrid({ plans, variant, ctaBase, ctaLabel, homePricing = fal
     setOpenSlug((current) => (current === slug ? null : slug))
   }
 
-  // 3 colunas em ≥lg (cabe os três cards lado a lado); 1 coluna no mobile
-  // com o card `tier=featured` (Mensal Recorrente) obrigatoriamente primeiro
-  // por `order-first` no próprio card.
+  // Grid: 1 col mobile → 2 cols tablet (md) → 4 cols wide (xl).
+  // O card `tier=featured` (Trimestral) fica primeiro no mobile via
+  // `order-first` no próprio card. Em desktop mantém a ordem natural.
   return (
-    <div className="mx-auto grid max-w-5xl grid-cols-1 items-start gap-5 lg:grid-cols-3">
+    <div className="mx-auto grid max-w-[1400px] grid-cols-1 items-start gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-4">
       {plans.map((plan, i) => (
         <Reveal key={plan.slug} delay={i * 0.06} className="flex w-full min-w-0 flex-col self-start">
           <ExpandablePlanCard

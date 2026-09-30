@@ -1,103 +1,78 @@
 import Link from 'next/link'
 
-const HERO_DESKTOP = '/media/hero/hero-setembro.webp'
-// -v2 força CDN/browsers a puxarem a versão nova (crop 9x16 clean).
-const HERO_MOBILE = '/media/hero/hero-setembro-mobile-v2.webp'
+const HERO_DESKTOP = '/media/hero/hero-outubro.webp'
+const HERO_MOBILE = '/media/hero/hero-outubro-mobile.webp'
+
+const OFFER_HREF = '/unidades?plano=power-trimestral'
+const OFFER_ALT =
+  'Loud Fit: 3 meses de treino por R$ 99 por mês. Plano trimestral com camiseta Loud Fit de presente. Oferta válida até 14/10/2026.'
+
+// Coordenadas do botão "COMECE AGORA" desenhado na arte, em porcentagem
+// do container. Como o container preserva o aspect-ratio da arte via
+// `aspect-[W/H]`, o link se mantém alinhado em qualquer largura.
+// Medidas conferidas contra os originais 1942x809 (desktop) e 1086x1448
+// (mobile) do Canva.
+const MOBILE_BUTTON = { left: '5.5%', top: '19%', width: '55%', height: '6%' }
+const DESKTOP_BUTTON = { left: '1.8%', top: '77%', width: '13%', height: '10%' }
 
 export function Hero() {
   return (
     <section
-      aria-label="Oferta de setembro — Mensal Recorrente, 1º mês por R$ 69,90"
-      className="relative isolate overflow-hidden bg-lf-black pt-16 min-h-[92svh] md:min-h-[75vh] lg:min-h-[86vh]"
+      aria-label={OFFER_ALT}
+      className="relative isolate overflow-hidden bg-white pt-16"
     >
-      {/* Hero image: `<picture>`-style swap por breakpoint.
-          Mobile: recorte vertical 900x1200 centrado nas atletas.
-          Desktop: 2000x833 aprovado, mantém a área escura à esquerda para o
-          texto (posição natural do frame, sem object-position agressivo). */}
-      <img
-        src={HERO_MOBILE}
-        alt=""
-        aria-hidden="true"
-        fetchPriority="high"
-        decoding="async"
-        className="absolute inset-0 -z-10 h-full w-full object-cover object-center md:hidden"
-      />
-      <img
-        src={HERO_DESKTOP}
-        alt=""
-        aria-hidden="true"
-        fetchPriority="high"
-        decoding="async"
-        className="absolute inset-0 -z-10 hidden h-full w-full object-cover object-center md:block"
-      />
+      {/* Container preserva a proporção original da arte para manter o botão
+          desenhado alinhado com o link acessível abaixo. Em desktop muito
+          largo o container é limitado a 2000px para não esticar demais. */}
+      <div className="relative mx-auto w-full aspect-[1086/1448] md:aspect-[1942/809] md:max-w-[2000px]">
+        <img
+          src={HERO_MOBILE}
+          alt={OFFER_ALT}
+          fetchPriority="high"
+          decoding="async"
+          width={1080}
+          height={1440}
+          className="absolute inset-0 h-full w-full object-cover md:hidden"
+        />
+        <img
+          src={HERO_DESKTOP}
+          alt={OFFER_ALT}
+          fetchPriority="high"
+          decoding="async"
+          width={2000}
+          height={833}
+          className="absolute inset-0 hidden h-full w-full object-cover md:block"
+        />
 
-      {/* Overlay mobile — a imagem `banner-mobile-9x16-clean` já vem com uma
-          área naturalmente escura no rodapé desenhada pra receber o texto.
-          O gradiente só reforça essa base (sem cobrir a atleta no topo). */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 md:hidden bg-[linear-gradient(180deg,rgba(8,8,8,0.30)_0%,rgba(8,8,8,0.08)_32%,rgba(8,8,8,0.25)_58%,rgba(8,8,8,0.88)_100%)]"
-      />
-
-      {/* Overlay desktop — reforça a coluna esquerda (onde vive o copy). A
-          imagem já entrega ~35% de área escura à esquerda; o gradiente
-          garante contraste independente do zoom do usuário. */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-10 hidden md:block bg-[linear-gradient(90deg,rgba(8,8,8,0.96)_0%,rgba(8,8,8,0.82)_28%,rgba(8,8,8,0.28)_62%,rgba(8,8,8,0)_86%),linear-gradient(180deg,rgba(8,8,8,0.32)_0%,rgba(8,8,8,0.10)_50%,rgba(8,8,8,0.5)_100%)]"
-      />
-
-      {/* Traço amarelo — identidade Loud Fit */}
-      <div aria-hidden="true" className="absolute bottom-0 left-0 right-0 h-px bg-lf-line" />
-      <div aria-hidden="true" className="absolute bottom-0 left-0 h-[3px] w-56 -skew-x-12 origin-left bg-lf-volt" />
-
-      {/* Conteúdo — mobile: ancorado no rodapé, sobre a área escura naturalmente
-          reservada na imagem `banner-mobile-9x16-clean`.
-          Desktop (md+): centralizado verticalmente na coluna escura à esquerda. */}
-      <div className="relative z-10 mx-auto flex min-h-[calc(92svh-4rem)] w-full max-w-[1360px] items-end px-5 pb-12 pt-8 sm:px-8 md:min-h-[75vh] md:items-center md:pt-14 md:py-20 lg:min-h-[86vh] lg:px-12">
-        <div className="w-full max-w-[560px]">
-          <h1
-            className="font-black uppercase leading-[0.94] tracking-[-0.015em] text-lf-text"
-            style={{ fontSize: 'clamp(2.75rem, 6.4vw, 5.75rem)' }}
-          >
-            <span className="block">1º mês por</span>
-            <span className="mt-1 block whitespace-nowrap text-lf-volt" style={{ fontSize: 'clamp(3.25rem, 10vw, 7.25rem)' }}>
-              R$ 69,90
-            </span>
-          </h1>
-
-          <p className="mt-5 max-w-[38ch] text-lf-text/90 md:mt-6 md:max-w-none md:whitespace-nowrap md:text-[17px] md:leading-[1.55]">
-            <span className="block text-[12.5px] font-medium leading-[1.3] text-lf-text/60 md:inline md:text-[17px] md:font-normal md:leading-[1.55] md:text-lf-text/90">
-              Mensal recorrente
-            </span>
-            <span aria-hidden="true" className="hidden md:inline"> • </span>
-            <span className="mt-[5px] block whitespace-nowrap text-[14px] font-semibold leading-[1.35] text-lf-text sm:text-[15px] md:mt-0 md:inline md:text-[17px] md:font-normal md:leading-[1.55] md:text-lf-text/90">
-              Sem fidelidade <span aria-hidden="true">•</span> Cancele sem multa
-            </span>
-          </p>
-
-          <div className="mt-7 md:mt-9">
-            <Link
-              href="/unidades"
-              className="lf-cta-volt inline-flex min-h-[52px] w-full items-center justify-center rounded-full px-8 py-4 text-[13px] font-black tracking-[0.14em] uppercase sm:w-auto sm:min-h-[56px] sm:px-10 sm:text-[14px]"
-            >
-              Comece agora
-            </Link>
-          </div>
-
-          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-lf-volt/60 bg-lf-volt/15 px-3.5 py-1.5 backdrop-blur-sm md:mt-6">
-            <span className="relative flex h-2 w-2">
-              <span
-                aria-hidden="true"
-                className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lf-volt opacity-70 motion-reduce:hidden"
-              />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-lf-volt" />
-            </span>
-            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-lf-volt">
-              Oferta válida até 27/09
-            </span>
-          </div>
-        </div>
+        {/* Link acessível sobre o "COMECE AGORA" desenhado na arte.
+            Coordenadas em % ancoram o link em qualquer largura desde que o
+            container mantenha o aspect-ratio da arte. */}
+        <Link
+          href={OFFER_HREF}
+          aria-label="Comece agora — plano Trimestral"
+          className="absolute rounded-full ring-offset-2 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lf-black md:hidden"
+          style={{
+            left: MOBILE_BUTTON.left,
+            top: MOBILE_BUTTON.top,
+            width: MOBILE_BUTTON.width,
+            height: MOBILE_BUTTON.height,
+          }}
+        >
+          <span className="sr-only">Comece agora</span>
+        </Link>
+        <Link
+          href={OFFER_HREF}
+          aria-label="Comece agora — plano Trimestral"
+          className="absolute hidden rounded-full ring-offset-2 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lf-black md:block"
+          style={{
+            left: DESKTOP_BUTTON.left,
+            top: DESKTOP_BUTTON.top,
+            width: DESKTOP_BUTTON.width,
+            height: DESKTOP_BUTTON.height,
+          }}
+        >
+          <span className="sr-only">Comece agora</span>
+        </Link>
       </div>
     </section>
   )

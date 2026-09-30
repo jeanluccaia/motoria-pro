@@ -65,6 +65,29 @@ function CheckIcon({ dark }: { dark?: boolean }) {
   )
 }
 
+function GiftIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="mt-[1px] shrink-0 text-lf-volt"
+    >
+      <path d="M20 12v10H4V12" />
+      <path d="M2 7h20v5H2z" />
+      <path d="M12 22V7" />
+      <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+      <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+    </svg>
+  )
+}
+
 function ChevronIcon({ open }: { open: boolean }) {
   return (
     <svg
@@ -215,11 +238,35 @@ export function ExpandablePlanCard({
             </div>
           ) : (
             <div className="mt-6 border-t border-white/10 pt-6">
-              <p className={cn('flex items-baseline text-lf-text', BODY)}>
-                <strong className="text-[38px] font-black leading-none">{plan.price}</strong>
-                <span className="ml-1 text-[14px] text-white/50">{plan.period}</span>
+              <p className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-lf-volt">
+                Por mês
               </p>
-              <p className="mt-3 text-[12px] leading-snug text-white/55">{plan.commitment}</p>
+              <p className={cn('mt-2 flex items-baseline text-lf-text', BODY)}>
+                <strong className="text-[44px] font-black leading-none tracking-tight md:text-[48px]">
+                  {plan.price}
+                </strong>
+                <span className="ml-1 text-[16px] text-white/60">{plan.period}</span>
+              </p>
+              {plan.totalPrice && (
+                <p className="mt-3 text-[13.5px] leading-snug text-white/75">
+                  Total: <span className="font-semibold text-lf-text">{plan.totalPrice}</span>
+                </p>
+              )}
+              {plan.paymentTerms && (
+                <p className="mt-1 text-[12.5px] leading-snug text-white/60">{plan.paymentTerms}</p>
+              )}
+              {!plan.totalPrice && !plan.paymentTerms && (
+                <p className="mt-3 text-[12px] leading-snug text-white/55">{plan.commitment}</p>
+              )}
+            </div>
+          )}
+
+          {plan.giftLine && (
+            <div className="mt-4 flex items-start gap-2 rounded-xl border border-lf-volt/50 bg-lf-volt/10 px-3.5 py-2.5">
+              <GiftIcon />
+              <span className="text-[12.5px] font-semibold leading-snug text-lf-text">
+                {plan.giftLine}
+              </span>
             </div>
           )}
 

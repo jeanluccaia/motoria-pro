@@ -18,14 +18,18 @@
 
 import { readStoredConsent } from '@/lib/consent'
 
-const DEDUP_KEY = 'lf_ipiranga_initiate_checkout_v1'
+// Bump para v2 na campanha de outubro/2026 — força o primeiro clique de
+// cada usuário a disparar com o novo valor mesmo que a sessão ainda tenha
+// o dedup v1 setado durante a transição de campanhas.
+const DEDUP_KEY = 'lf_ipiranga_initiate_checkout_v2'
 
-// Campanha de setembro/2026: o Mensal Recorrente tem 1º mês por R$ 69,90.
-// O InitiateCheckout usa o valor do primeiro compromisso da matrícula em BRL.
+// Campanha de outubro/2026: o Trimestral é a oferta destaque da Loud Fit.
+// Na unidade Ipiranga o Trimestral é R$ 139/mês (total R$ 417). O
+// InitiateCheckout usa o valor da primeira mensalidade em BRL.
 const IPIRANGA_INITIATE_CHECKOUT_PARAMS = {
-  value: 69.9,
+  value: 139,
   currency: 'BRL',
-  content_ids: ['ipiranga-mensal-recorrente'],
+  content_ids: ['ipiranga-trimestral'],
   content_type: 'product',
 } as const
 
@@ -53,8 +57,8 @@ function markFired() {
 }
 
 /**
- * Dispara `InitiateCheckout` no Meta Pixel para o plano Mensal Recorrente
- * da Loud Fit Ipiranga (1ª mensalidade R$ 69,90 na campanha de setembro/2026).
+ * Dispara `InitiateCheckout` no Meta Pixel para a matrícula da Loud Fit
+ * Ipiranga (Trimestral R$ 139/mês na campanha de outubro/2026).
  * Também empurra `initiate_checkout` no dataLayer para GTM.
  *
  * Idempotente por sessão SOMENTE quando o pixel foi de fato disparado —
@@ -89,8 +93,8 @@ export function dispatchIpirangaInitiateCheckout() {
     w.dataLayer.push({
       event: 'initiate_checkout',
       unit: 'ipiranga',
-      plan: 'mensal_recorrente',
-      value: 69.9,
+      plan: 'trimestral',
+      value: 139,
       currency: 'BRL',
     })
   }
