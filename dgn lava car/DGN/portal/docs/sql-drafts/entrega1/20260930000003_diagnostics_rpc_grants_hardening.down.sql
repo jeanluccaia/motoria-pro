@@ -1,0 +1,14 @@
+-- ---------------------------------------------------------------------------
+-- Down do hardening — NÃO USAR sem discussão explícita.
+--
+-- Reconceder EXECUTE para anon/authenticated recria o vetor de bypass do
+-- Portal server-side: qualquer request PostgREST autenticado (ou anônimo)
+-- passa a chamar diretamente as RPCs SECURITY DEFINER e cria/edita/apaga
+-- diagnósticos ignorando as validações do endpoint admin.
+--
+-- Este down existe só por simetria com os demais arquivos da Entrega 1.
+-- Se for necessário reverter o hardening, faça manualmente e revalide os
+-- endpoints antes.
+-- ---------------------------------------------------------------------------
+
+-- Intencionalmente sem statements. Ver comentário acima.
