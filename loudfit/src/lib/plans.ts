@@ -26,8 +26,8 @@ export interface Plan {
 // Campanha de outubro/2026:
 //  • Trimestral entra como card destaque — 3 meses por R$ 99/mês (R$ 297
 //    no total, à vista ou em 3×), com camiseta Loud Fit de presente.
-//  • Mensal Recorrente volta ao preço cheio de tabela (sem 1º mês
-//    promocional), mantendo "sem fidelidade" como diferencial.
+//  • Mensal Recorrente mantém 1ª mensalidade promocional de R$ 69 e
+//    "sem fidelidade" como diferencial.
 //  • Power Plus continua como alternativa com fidelidade de 12 meses,
 //    1ª mensalidade promocional de R$ 9,90.
 //  • Power segue sem promoção (avulso, pagamento na unidade).
@@ -57,6 +57,7 @@ const standardPlans: Plan[] = [
     featured: false,
     tier: 'accent',
     commitment: 'Sem fidelidade • Cancele sem multa',
+    firstPayment: { label: '1º mês por', value: 'R$ 69' },
     checkoutUrl: null,
   },
   {
@@ -116,6 +117,7 @@ const ipirangaPlans: Plan[] = [
     featured: false,
     tier: 'accent',
     commitment: 'Sem fidelidade • Cancele sem multa',
+    firstPayment: { label: '1º mês por', value: 'R$ 69' },
     checkoutUrl: null,
   },
   {
@@ -189,7 +191,8 @@ export const planConditions: Record<string, string[]> = {
   'power-recorrente': [
     'Sem fidelidade',
     'Cancelamento sem multa',
-    'Valor mensal cheio desta unidade',
+    'R$ 69 somente no primeiro mês',
+    'A partir do segundo mês, valor mensal cheio desta unidade',
     'Cobrança recorrente no cartão cadastrado',
   ],
   'power-plus': [

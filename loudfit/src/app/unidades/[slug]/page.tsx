@@ -458,10 +458,11 @@ export default async function UnitPage({ params }: Props) {
 
             <p className="mt-6 text-xs text-[#7A7267]">
               Trimestral: contratação única de 3 meses com camiseta Loud Fit de presente na
-              retirada; à vista ou em até 3× no cartão. Mensal Recorrente segue mês a mês pelo
-              valor cheio desta unidade, sem fidelidade e sem multa de cancelamento. Power Plus
-              tem 1ª mensalidade por R$ 9,90 e fidelidade de 12 meses; a partir do segundo mês,
-              valor cheio da unidade. O Power segue o valor cheio desde a primeira cobrança.
+              retirada; à vista ou em até 3× no cartão. Mensal Recorrente tem 1ª mensalidade
+              por R$ 69 e segue mês a mês pelo valor cheio desta unidade a partir do segundo
+              mês, sem fidelidade e sem multa de cancelamento. Power Plus tem 1ª mensalidade
+              por R$ 9,90 e fidelidade de 12 meses; a partir do segundo mês, valor cheio da
+              unidade. O Power segue o valor cheio desde a primeira cobrança.
             </p>
           </Section>
         )}

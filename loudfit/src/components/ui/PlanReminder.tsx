@@ -50,7 +50,7 @@ function PlanReminderInner({ isIpiranga }: PlanReminderProps) {
       )}
       {plano === 'power-recorrente' && monthlyPrice && (
         <p className="mt-1 text-sm text-gray-500">
-          Mensalidade de {monthlyPrice}/mês no cartão. Sem fidelidade — cancele sem multa.
+          1º mês por R$ 69 — depois {monthlyPrice}/mês no cartão. Sem fidelidade — cancele sem multa.
         </p>
       )}
       {plano === 'power-plus' && monthlyPrice && (

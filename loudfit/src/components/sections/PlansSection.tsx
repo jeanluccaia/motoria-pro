@@ -56,7 +56,7 @@ export function PlansSection() {
 
       <Reveal delay={0.32}>
         <div className="mt-5 flex flex-col gap-1 border-t border-[#D8D0C0] pt-5 text-[11px] text-[#6E675C] sm:flex-row sm:justify-between">
-          <p>Oferta válida até 14/10. Trimestral: 3 meses de treino a partir de R$ 99/mês (R$ 297 no total) com camiseta Loud Fit de presente. Mensal Recorrente: preço mensal cheio de tabela, sem fidelidade e cancelamento sem multa. Power Plus: 1º mês R$ 9,90, fidelidade de 12 meses.</p>
+          <p>Oferta válida até 14/10. Trimestral: 3 meses de treino a partir de R$ 99/mês (R$ 297 no total) com camiseta Loud Fit de presente. Mensal Recorrente: 1º mês R$ 69, sem fidelidade e cancelamento sem multa. Power Plus: 1º mês R$ 9,90, fidelidade de 12 meses.</p>
           <p>Valores e condições podem variar conforme a unidade. Ipiranga possui tabela própria.</p>
         </div>
       </Reveal>
