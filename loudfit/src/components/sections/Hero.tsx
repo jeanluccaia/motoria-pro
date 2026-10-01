@@ -5,7 +5,7 @@ const HERO_MOBILE = '/media/hero/hero-outubro-mobile.webp'
 
 const OFFER_HREF = '/unidades?plano=power-trimestral'
 const OFFER_ALT =
-  'Loud Fit: 3 meses de treino por R$ 99 por mês. Plano trimestral com camiseta Loud Fit de presente. Oferta válida até 14/10/2026.'
+  'Loud Fit: 3 meses de treino por R$ 99 por mês. Plano trimestral com camiseta Loud Fit de presente. Oferta válida até 31/10/2026.'
 
 export function Hero() {
   return (
