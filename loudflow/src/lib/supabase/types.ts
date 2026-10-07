@@ -214,6 +214,67 @@ export type EvoReconcileState = {
   updated_at: string;
 };
 
+export type FranchiseLeadStage =
+  | "new"
+  | "contact_attempt"
+  | "in_conversation"
+  | "qualified"
+  | "meeting_scheduled"
+  | "cof_sent"
+  | "negotiating"
+  | "won"
+  | "no_response"
+  | "disqualified"
+  | "lost";
+
+export type FranchiseLeadPriority = "low" | "normal" | "high";
+
+export type FranchiseLeadSource =
+  | "meta_instant_form"
+  | "meta_whatsapp"
+  | "manual"
+  | "google_ads"
+  | "site";
+
+export type FranchiseLeadActivityType = "contact" | "stage_change" | "schedule" | "note";
+
+export type FranchiseLead = {
+  id: string;
+  organization_id: string;
+  full_name: string;
+  phone: string | null;
+  phone_normalized: string | null;
+  email: string | null;
+  received_at: string | null;
+  last_contact_at: string | null;
+  last_conversation_status: string | null;
+  next_action: string | null;
+  next_contact_at: string | null;
+  pipeline_stage: FranchiseLeadStage;
+  priority: FranchiseLeadPriority;
+  source: FranchiseLeadSource | null;
+  investment_range: string | null;
+  start_timeline: string | null;
+  whatsapp_label: string | null;
+  notes: string | null;
+  lost_reason: string | null;
+  owner_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type FranchiseLeadActivity = {
+  id: string;
+  organization_id: string;
+  lead_id: string;
+  activity_type: FranchiseLeadActivityType;
+  summary: string;
+  occurred_at: string;
+  created_by: string | null;
+  created_at: string;
+};
+
 type TableDef<Row extends Record<string, unknown>, InsertKeys extends keyof Row = keyof Row> = {
   Row: Row;
   Insert: Partial<Row> & Pick<Row, InsertKeys>;
@@ -257,6 +318,11 @@ export type Database = {
         EvoReconcileState,
         "organization_id" | "last_run_at" | "last_window_end"
       >;
+      franchise_leads: TableDef<FranchiseLead, "organization_id" | "full_name">;
+      franchise_lead_activities: TableDef<
+        FranchiseLeadActivity,
+        "organization_id" | "lead_id" | "activity_type" | "summary"
+      >;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -270,6 +336,10 @@ export type Database = {
       evo_sale_processing_status: EvoSaleProcessingStatus;
       ad_conversion_platform: AdConversionPlatform;
       ad_conversion_delivery_status: AdConversionDeliveryStatus;
+      franchise_lead_stage: FranchiseLeadStage;
+      franchise_lead_priority: FranchiseLeadPriority;
+      franchise_lead_source: FranchiseLeadSource;
+      franchise_lead_activity_type: FranchiseLeadActivityType;
     };
     CompositeTypes: Record<string, never>;
   };

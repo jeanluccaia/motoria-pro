@@ -13,7 +13,9 @@
     "admin:passwords:single": "node --env-file=.env.local supabase/seed/set_admin_passwords.mjs --single",
     "admin:passwords:pwsh": "powershell -NoProfile -ExecutionPolicy Bypass -File supabase/seed/set-admin-passwords.ps1",
     "admin:passwords:pwsh:single": "powershell -NoProfile -ExecutionPolicy Bypass -File supabase/seed/set-admin-passwords.ps1 -Single",
-    "admin:recovery-links": "node --env-file=.env.local supabase/seed/send_recovery_links.mjs"
+    "admin:recovery-links": "node --env-file=.env.local supabase/seed/send_recovery_links.mjs",
+    "seed:crm-leads:dry": "node --env-file=.env.local supabase/seed/seed_franchise_leads.mjs",
+    "seed:crm-leads:apply": "node --env-file=.env.local supabase/seed/seed_franchise_leads.mjs --apply"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.2.6",
