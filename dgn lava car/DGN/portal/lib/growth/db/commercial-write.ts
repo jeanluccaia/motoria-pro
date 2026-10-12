@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseAdminClient } from "./admin-client.ts";
+import { CustomerResolutionError, resolveCustomerId } from "./customer-resolver.ts";
 
 export const commercialPriorities = ["baixa", "normal", "alta", "urgente"] as const;
 export type CommercialPriority = (typeof commercialPriorities)[number];
@@ -88,8 +89,24 @@ export async function updateCommercialFields(
   input: ReturnType<typeof validateCommercialPayload>,
   db: SupabaseClient = getSupabaseAdminClient("commercial-fields.update"),
 ) {
+  // Resolve slug|UUID → crm_customers.id canônico antes de qualquer join.
+  // Clientes PagBank (ex.: Viviane Tabata Manja) chegam aqui com DgnCustomer.id = UUID
+  // porque legacy_id é NULL; sem este passo, a RPC filtra por legacy_id e devolve P0002.
+  let resolvedCustomerId: string;
+  try {
+    resolvedCustomerId = await resolveCustomerId(db, customerId);
+  } catch (error) {
+    if (error instanceof CustomerResolutionError) {
+      if (error.status === 404) {
+        throw new CommercialWriteError("Cliente ou registro comercial inexistente.", 404);
+      }
+      throw new CommercialWriteError(error.message, error.status);
+    }
+    throw error;
+  }
+
   const result = await db.rpc("crm_update_customer_commercial_fields", {
-    p_customer_legacy_id: customerId,
+    p_customer_id: resolvedCustomerId,
     p_owner: input.owner,
     p_commercial_notes: input.commercialNotes || null,
     p_next_action: input.nextAction || null,

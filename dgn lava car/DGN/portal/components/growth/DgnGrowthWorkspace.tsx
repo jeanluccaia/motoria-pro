@@ -3163,8 +3163,16 @@ export function CommercialEditor({
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState<{ tone: "success" | "error"; message: string } | null>(null);
 
+  const ownerMissing = !form.owner.trim();
+
   const save = async () => {
     if (!enabled || saving) return;
+    if (ownerMissing) {
+      // Guard client-side: responsável é obrigatório. A RPC também valida (22023),
+      // mas o guard dá feedback imediato e evita round-trip.
+      setResult({ tone: "error", message: "Responsável é obrigatório." });
+      return;
+    }
     setSaving(true);
     setResult(null);
     try {
@@ -3198,6 +3206,7 @@ export function CommercialEditor({
 
   const inputClass = "mt-2 h-10 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-sm text-white outline-none disabled:cursor-not-allowed disabled:opacity-45 focus:border-[#C9A84C]/35";
   const labelClass = "text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D7D7D]";
+  const ownerInputClass = `${inputClass} ${enabled && ownerMissing ? "border-red-400/50 focus:border-red-400/60" : ""}`;
 
   return (
     <div className="rounded-2xl border border-[#C9A84C]/20 bg-[#101010] p-4">
@@ -3209,7 +3218,11 @@ export function CommercialEditor({
         <span className="rounded-full border border-white/[0.08] px-2 py-1 text-[10px] text-[#888]">{enabled ? "DB" : "Somente leitura"}</span>
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <label><span className={labelClass}>Responsável</span><input disabled={!enabled} maxLength={80} value={form.owner} onChange={(event) => setForm((state) => ({ ...state, owner: event.target.value }))} className={inputClass} /></label>
+        <label>
+          <span className={labelClass}>Responsável <span aria-hidden="true" className="text-red-400">*</span><span className="sr-only"> (obrigatório)</span></span>
+          <input disabled={!enabled} required maxLength={80} aria-required="true" aria-invalid={enabled && ownerMissing ? "true" : "false"} value={form.owner} onChange={(event) => setForm((state) => ({ ...state, owner: event.target.value }))} className={ownerInputClass} />
+          {enabled && ownerMissing ? <p className="mt-1 text-[11px] text-red-300">Preencha o responsável antes de salvar.</p> : null}
+        </label>
         <label><span className={labelClass}>Prioridade</span><select disabled={!enabled} value={form.priority} onChange={(event) => setForm((state) => ({ ...state, priority: event.target.value as typeof state.priority }))} className={inputClass}><option value="baixa">Baixa</option><option value="normal">Normal</option><option value="alta">Alta</option><option value="urgente">Urgente</option></select></label>
         <label><span className={labelClass}>Próxima ação</span><input disabled={!enabled} maxLength={240} value={form.nextAction} onChange={(event) => setForm((state) => ({ ...state, nextAction: event.target.value }))} className={inputClass} /></label>
         <label><span className={labelClass}>Data da próxima ação</span><input disabled={!enabled} type="datetime-local" value={form.nextActionAt} onChange={(event) => setForm((state) => ({ ...state, nextActionAt: event.target.value }))} className={inputClass} /></label>
@@ -3217,7 +3230,7 @@ export function CommercialEditor({
       <label className="mt-3 block"><span className={labelClass}>Observação comercial</span><textarea disabled={!enabled} maxLength={2000} rows={4} value={form.commercialNotes} onChange={(event) => setForm((state) => ({ ...state, commercialNotes: event.target.value }))} className="mt-2 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-3 text-sm text-white outline-none disabled:cursor-not-allowed disabled:opacity-45 focus:border-[#C9A84C]/35" /></label>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <p className={`text-xs ${result?.tone === "error" ? "text-red-300" : "text-emerald-300"}`}>{result?.message}</p>
-        <button type="button" disabled={!enabled || saving} onClick={save} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 text-sm font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-40">{saving ? "Salvando…" : "Salvar alterações"}</button>
+        <button type="button" disabled={!enabled || saving || ownerMissing} onClick={save} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 text-sm font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-40">{saving ? "Salvando…" : "Salvar alterações"}</button>
       </div>
     </div>
   );
