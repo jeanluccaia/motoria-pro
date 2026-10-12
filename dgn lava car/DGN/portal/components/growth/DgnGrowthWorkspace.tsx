@@ -3165,6 +3165,22 @@ export function CommercialEditor({
 
   const ownerMissing = !form.owner.trim();
 
+  // Preview-only diagnóstico: logs no console do browser quando rodando em
+  // domínio de deploy preview (*.vercel.app) ou localhost. Em app.dgnclub.com
+  // (produção) fica silencioso.
+  const isPreviewHost = (): boolean => {
+    if (typeof window === "undefined") return false;
+    const host = window.location.hostname;
+    return host.endsWith(".vercel.app") || host === "localhost" || host === "127.0.0.1";
+  };
+
+  const diagLog = (stage: string, extra?: Record<string, unknown>) => {
+    if (!isPreviewHost()) return;
+    const payload = { stage, ...(extra ?? {}) };
+    // eslint-disable-next-line no-console
+    console.log(`[commercial-save] ${JSON.stringify(payload)}`);
+  };
+
   const save = async () => {
     if (!enabled || saving) return;
     if (ownerMissing) {
@@ -3173,12 +3189,37 @@ export function CommercialEditor({
       setResult({ tone: "error", message: "Responsável é obrigatório." });
       return;
     }
+
+    const requestId =
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `rid-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const t0 = Date.now();
+
     setSaving(true);
     setResult(null);
+
+    // AbortController com 10s pra matar o hang silencioso. Em prod isso
+    // libera a UI em até 10s mesmo que a função Vercel nunca responda; em
+    // preview facilita capturar a timeline de diagnóstico sem esperar 3 min.
+    const controller = new AbortController();
+    const timeoutMs = 10_000;
+    const timeoutHandle = setTimeout(() => controller.abort(new DOMException("timeout", "AbortError")), timeoutMs);
+
+    diagLog("commercial-save:start", {
+      requestId,
+      customerId: customer.id,
+      t0Iso: new Date(t0).toISOString(),
+      timeoutMs,
+    });
+
     try {
-      const response = await fetch(`/api/admin/growth/customers/${encodeURIComponent(customer.id)}/commercial`, {
+      const requestInit: RequestInit = {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Request-Id": requestId,
+        },
         body: JSON.stringify({
           ...form,
           nextActionAt: form.nextActionAt ? new Date(form.nextActionAt).toISOString() : "",
@@ -3186,8 +3227,39 @@ export function CommercialEditor({
           // a RPC faz bootstrap silencioso; nenhuma corrida de dados envolvida.
           expectedUpdatedAt: current.updatedAt || "",
         }),
+        signal: controller.signal,
+      };
+
+      diagLog("commercial-save:request-sent", {
+        requestId,
+        elapsedMs: Date.now() - t0,
       });
-      const body = await response.json() as { error?: string; changed?: boolean; commercial?: NonNullable<DgnCustomer["commercial"]> };
+
+      const response = await fetch(
+        `/api/admin/growth/customers/${encodeURIComponent(customer.id)}/commercial`,
+        requestInit,
+      );
+
+      diagLog("commercial-save:response", {
+        requestId,
+        elapsedMs: Date.now() - t0,
+        status: response.status,
+        ok: response.ok,
+      });
+
+      const body = (await response.json()) as {
+        error?: string;
+        changed?: boolean;
+        commercial?: NonNullable<DgnCustomer["commercial"]>;
+      };
+
+      diagLog("commercial-save:body-parsed", {
+        requestId,
+        elapsedMs: Date.now() - t0,
+        changed: body.changed,
+        hasCommercial: Boolean(body.commercial),
+      });
+
       if (!response.ok || !body.commercial) {
         if (response.status === 409) throw new Error(body.error || "Os dados foram alterados em outra sessão. Recarregue a página.");
         throw new Error(body.error || "Não foi possível salvar as alterações.");
@@ -3198,8 +3270,24 @@ export function CommercialEditor({
         message: body.changed ? "Alterações salvas." : "Nenhuma alteração; nada a auditar.",
       });
     } catch (error) {
-      setResult({ tone: "error", message: error instanceof Error ? error.message : "Não foi possível salvar as alterações." });
+      const isAbort =
+        (error instanceof DOMException && error.name === "AbortError") ||
+        (error instanceof Error && error.name === "AbortError");
+      diagLog(isAbort ? "commercial-save:abort" : "commercial-save:error", {
+        requestId,
+        elapsedMs: Date.now() - t0,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      setResult({
+        tone: "error",
+        message: isAbort
+          ? "Tempo esgotado (10s) — nenhuma resposta do servidor. Nenhum dado foi alterado. Tente novamente ou verifique a conexão."
+          : error instanceof Error
+            ? error.message
+            : "Não foi possível salvar as alterações.",
+      });
     } finally {
+      clearTimeout(timeoutHandle);
       setSaving(false);
     }
   };

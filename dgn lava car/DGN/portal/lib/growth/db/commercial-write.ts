@@ -84,18 +84,47 @@ export function validateCommercialPayload(payload: unknown) {
 
 const priorityNumber: Record<CommercialPriority, number> = { baixa: 1, normal: 2, alta: 3, urgente: 4 };
 
+export interface UpdateCommercialOptions {
+  /** Correlation id gerado no browser; só usado pra log no server. */
+  requestId?: string;
+  /** Em ms. >0 arma AbortSignal para a RPC. Preview-only; prod passa 0. */
+  rpcTimeoutMs?: number;
+}
+
+/** Preview-only: evita emitir ruído em prod. VERCEL_ENV=preview em deploys preview. */
+function isPreviewRuntime(): boolean {
+  return process.env.VERCEL_ENV === "preview" || process.env.DGN_COMMERCIAL_DEBUG === "true";
+}
+
+function logStage(requestId: string | undefined, stage: string, extra?: Record<string, unknown>) {
+  if (!isPreviewRuntime()) return;
+  // Linha única plain-text para ficar fácil de filtrar nos Runtime Logs.
+  const payload = { stage, requestId: requestId ?? "unknown", ...(extra ?? {}) };
+  console.log(`[commercial] ${JSON.stringify(payload)}`);
+}
+
 export async function updateCommercialFields(
   customerId: string,
   input: ReturnType<typeof validateCommercialPayload>,
   db: SupabaseClient = getSupabaseAdminClient("commercial-fields.update"),
+  options: UpdateCommercialOptions = {},
 ) {
+  const requestId = options.requestId;
+  const rpcTimeoutMs = options.rpcTimeoutMs ?? 0;
+
   // Resolve slug|UUID → crm_customers.id canônico antes de qualquer join.
   // Clientes PagBank (ex.: Viviane Tabata Manja) chegam aqui com DgnCustomer.id = UUID
   // porque legacy_id é NULL; sem este passo, a RPC filtra por legacy_id e devolve P0002.
+  logStage(requestId, "resolver:start", { customerId });
+  const resolverStartedAt = Date.now();
   let resolvedCustomerId: string;
   try {
     resolvedCustomerId = await resolveCustomerId(db, customerId);
   } catch (error) {
+    logStage(requestId, "resolver:error", {
+      elapsedMs: Date.now() - resolverStartedAt,
+      message: error instanceof Error ? error.message : String(error),
+    });
     if (error instanceof CustomerResolutionError) {
       if (error.status === 404) {
         throw new CommercialWriteError("Cliente ou registro comercial inexistente.", 404);
@@ -104,8 +133,12 @@ export async function updateCommercialFields(
     }
     throw error;
   }
+  logStage(requestId, "resolver:ok", {
+    elapsedMs: Date.now() - resolverStartedAt,
+    resolvedCustomerId,
+  });
 
-  const result = await db.rpc("crm_update_customer_commercial_fields", {
+  const rpcArgs = {
     p_customer_id: resolvedCustomerId,
     p_owner: input.owner,
     p_commercial_notes: input.commercialNotes || null,
@@ -115,6 +148,44 @@ export async function updateCommercialFields(
     p_expected_updated_at: input.expectedUpdatedAt || null,
     p_actor: "dgn-admin",
     p_origin: "dgn-growth-admin",
+  };
+
+  logStage(requestId, "rpc:start", { rpcTimeoutMs: rpcTimeoutMs || null });
+  const rpcStartedAt = Date.now();
+  let result: Awaited<ReturnType<typeof db.rpc>>;
+  let controller: AbortController | null = null;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  try {
+    if (rpcTimeoutMs > 0) {
+      controller = new AbortController();
+      timer = setTimeout(() => controller!.abort(), rpcTimeoutMs);
+      result = await db
+        .rpc("crm_update_customer_commercial_fields", rpcArgs)
+        .abortSignal(controller.signal);
+    } else {
+      result = await db.rpc("crm_update_customer_commercial_fields", rpcArgs);
+    }
+  } catch (error) {
+    const aborted = controller?.signal.aborted ?? false;
+    logStage(requestId, aborted ? "rpc:timeout" : "rpc:threw", {
+      elapsedMs: Date.now() - rpcStartedAt,
+      aborted,
+      message: error instanceof Error ? error.message : String(error),
+    });
+    if (aborted) {
+      throw new CommercialWriteError(
+        "Timeout de diagnóstico: a RPC comercial não respondeu em tempo (Preview).",
+        504,
+      );
+    }
+    throw error;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+  logStage(requestId, "rpc:returned", {
+    elapsedMs: Date.now() - rpcStartedAt,
+    hadError: Boolean(result.error),
+    errorCode: result.error?.code,
   });
 
   if (result.error) {
@@ -127,5 +198,6 @@ export async function updateCommercialFields(
 
   const data = result.data as { changed: boolean; customerId: string; commercial: CommercialFields } | null;
   if (!data?.commercial) throw new CommercialWriteError("Resposta inválida do banco.", 502);
+  logStage(requestId, "response:building", { changed: data.changed });
   return data;
 }
