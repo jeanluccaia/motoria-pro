@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Semeia os 9 primeiros leads de franquia da Loud Fit no CRM.
+// Semeia os 10 primeiros leads de franquia da Loud Fit no CRM.
 //
 // Idempotente: usa (organization_id, phone_normalized) como chave de upsert
 // quando o telefone normaliza; para números incompletos, cai em busca por
@@ -163,6 +163,20 @@ const LEADS = [
     next_action: "Realizar a reunião e registrar o resultado",
     next_contact_at: brtToIso("07/10/2026 15:30"),
     source: "meta_whatsapp",
+  },
+  {
+    full_name: "Luana Gavioli dos Santos",
+    phone: "+5519993933215",
+    email: "luanagaviolidossantos@yahoo.com.br",
+    last_contact_at: brtToIso("08/10/2026"),
+    last_conversation_status:
+      "Reunião marcada para 09/10/2026; horário não informado",
+    pipeline_stage: "meeting_scheduled",
+    priority: "high",
+    next_action: "Registrar o resultado da reunião",
+    next_contact_at: brtToIso("09/10/2026"),
+    source: "meta_whatsapp",
+    notes: "Interessada em abrir uma unidade em Campinas ou região",
   },
 ];
 

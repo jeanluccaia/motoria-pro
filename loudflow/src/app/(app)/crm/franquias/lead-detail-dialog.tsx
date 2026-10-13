@@ -1,7 +1,16 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Pencil, PhoneCall, GitBranch, CalendarPlus, Clock } from "lucide-react";
+import {
+  Pencil,
+  PhoneCall,
+  GitBranch,
+  CalendarPlus,
+  Clock,
+  MessageSquare,
+  Sparkles,
+  AlertTriangle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +34,13 @@ import {
 } from "@/lib/crm/labels";
 import { formatDateTime, utcIsoToBrtInput, brtInputToUtcIso } from "@/lib/crm/dates";
 import { formatPhoneForDisplay } from "@/lib/crm/phone";
+import {
+  calculateLeadIntelligence,
+  waNumberFor,
+  ATTENTION_LEVEL_LABELS,
+  type LeadIntelligence,
+  type AttentionLevel,
+} from "@/lib/crm/intelligence";
 import { LeadDialog } from "./lead-dialog";
 import { registerContact, scheduleNextContact, changeStage } from "./actions";
 import type {
@@ -39,12 +55,36 @@ type Props = {
   onOpenChange: (o: boolean) => void;
   lead: FranchiseLead;
   activities: FranchiseLeadActivity[];
+  intelligence?: LeadIntelligence | null;
   role: Role;
 };
 
+function attentionBadgeClass(level: AttentionLevel): string {
+  switch (level) {
+    case "critical":
+      return "bg-rose-500/15 text-rose-200 border-rose-500/50";
+    case "today":
+      return "bg-amber-500/15 text-amber-200 border-amber-500/40";
+    case "soon":
+      return "bg-sky-500/15 text-sky-200 border-sky-500/30";
+    case "monitor":
+      return "bg-neutral-500/15 text-neutral-200 border-neutral-500/30";
+    case "none":
+    default:
+      return "bg-neutral-500/10 text-neutral-300 border-neutral-500/20";
+  }
+}
+
 type ActionMode = "none" | "contact" | "stage" | "schedule";
 
-export function LeadDetailDialog({ open, onOpenChange, lead, activities, role }: Props) {
+export function LeadDetailDialog({
+  open,
+  onOpenChange,
+  lead,
+  activities,
+  intelligence,
+  role,
+}: Props) {
   const canEditCadastro = role === "admin" || role === "marketing";
   const [editing, setEditing] = useState(false);
   const [mode, setMode] = useState<ActionMode>("none");
@@ -55,6 +95,16 @@ export function LeadDetailDialog({ open, onOpenChange, lead, activities, role }:
     schedule: "Agenda",
     note: "Observação",
   };
+
+  // Recalcula a inteligência localmente para refletir mudanças que já voltaram
+  // do servidor (ex: usuário acabou de registrar um contato). Determinístico,
+  // sem round-trip.
+  const intel = useMemo<LeadIntelligence>(() => {
+    if (intelligence) return intelligence;
+    return calculateLeadIntelligence(lead, activities, new Date());
+  }, [intelligence, lead, activities]);
+
+  const wa = waNumberFor(lead);
 
   const sortedActivities = useMemo(
     () => [...activities].sort((a, b) => b.occurred_at.localeCompare(a.occurred_at)),
@@ -85,6 +135,94 @@ export function LeadDetailDialog({ open, onOpenChange, lead, activities, role }:
           </DialogHeader>
 
           <div className="min-h-0 space-y-5 overflow-y-auto pr-1">
+            {!intel.excludeFromActiveQueue ? (
+              <section
+                aria-label="Recomendação do sistema"
+                className={cn(
+                  "rounded-lg border p-4",
+                  intel.attentionLevel === "critical"
+                    ? "border-rose-500/50 bg-rose-500/10"
+                    : intel.attentionLevel === "today"
+                      ? "border-amber-500/40 bg-amber-500/10"
+                      : "border-sky-500/30 bg-sky-500/10",
+                )}
+              >
+                <header className="flex flex-wrap items-center gap-2">
+                  <Sparkles className="size-4 text-lf-volt" aria-hidden />
+                  <h3 className="text-sm font-semibold tracking-tight text-foreground">
+                    Recomendação do sistema
+                  </h3>
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "normal-case tracking-normal",
+                      attentionBadgeClass(intel.attentionLevel),
+                    )}
+                  >
+                    {ATTENTION_LEVEL_LABELS[intel.attentionLevel]}
+                  </Badge>
+                  {intel.dueLabel ? (
+                    <span className="inline-flex items-center gap-1 rounded border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-200">
+                      <Clock className="size-3" aria-hidden /> {intel.dueLabel}
+                    </span>
+                  ) : null}
+                </header>
+                <p className="mt-2 text-base font-medium text-foreground">
+                  {intel.suggestedActionLabel}
+                </p>
+                <p className="text-[11px] uppercase tracking-wide text-lf-muted">
+                  Prioridade operacional {intel.score}/100
+                </p>
+
+                {intel.reasons.length > 0 ? (
+                  <ul className="mt-3 space-y-1.5">
+                    {intel.reasons.map((reason) => (
+                      <li
+                        key={reason}
+                        className="flex gap-2 text-sm text-foreground/90"
+                      >
+                        <AlertTriangle
+                          className="mt-0.5 size-3.5 shrink-0 text-amber-300"
+                          aria-hidden
+                        />
+                        <span>{reason}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() =>
+                      setMode(mapSuggestedActionToMode(intel.suggestedAction))
+                    }
+                    className="gap-2"
+                  >
+                    {primaryActionButtonLabel(intel.suggestedAction)}
+                  </Button>
+                  {wa ? (
+                    <a
+                      href={`https://wa.me/${wa}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/50 bg-emerald-500/15 px-3 py-2 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 lf-focus"
+                    >
+                      <MessageSquare className="size-3.5" aria-hidden /> Abrir WhatsApp
+                    </a>
+                  ) : null}
+                </div>
+              </section>
+            ) : (
+              <section
+                aria-label="Lead encerrado"
+                className="rounded-lg border border-neutral-500/40 bg-neutral-500/10 p-3 text-sm text-lf-muted"
+              >
+                {intel.reasons[0] ?? "Lead encerrado — apenas no histórico."}
+              </section>
+            )}
+
             <section className="grid gap-3 rounded-lg border border-border/80 bg-lf-graphite/50 p-3 sm:grid-cols-2">
               <Field label="Celular" value={formatPhoneForDisplay(lead.phone) || "—"} />
               <Field label="Email" value={lead.email ?? "—"} />
@@ -193,6 +331,50 @@ export function LeadDetailDialog({ open, onOpenChange, lead, activities, role }:
       ) : null}
     </>
   );
+}
+
+function mapSuggestedActionToMode(
+  action: LeadIntelligence["suggestedAction"],
+): ActionMode {
+  switch (action) {
+    case "record_meeting_outcome":
+    case "call_now":
+    case "whatsapp_reconnect":
+    case "send_followup":
+    case "resend_other_time":
+    case "confirm_visit":
+    case "validate_phone":
+      return "contact";
+    case "confirm_meeting":
+    case "schedule_meeting":
+      return "schedule";
+    case "wait_until_scheduled":
+    case "history_only":
+    default:
+      return "contact";
+  }
+}
+
+function primaryActionButtonLabel(
+  action: LeadIntelligence["suggestedAction"],
+): string {
+  switch (action) {
+    case "record_meeting_outcome":
+      return "Registrar resultado";
+    case "schedule_meeting":
+    case "confirm_meeting":
+      return "Agendar / confirmar";
+    case "call_now":
+    case "whatsapp_reconnect":
+    case "send_followup":
+    case "resend_other_time":
+    case "confirm_visit":
+      return "Registrar contato";
+    case "validate_phone":
+      return "Registrar contato";
+    default:
+      return "Registrar contato";
+  }
 }
 
 function Field({ label, value }: { label: string; value: string }) {
