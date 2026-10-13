@@ -8,12 +8,15 @@
     "start": "next start",
     "lint": "eslint",
     "test:rls": "playwright test",
+    "test:crm:intel": "node -e \"process.env.NO_WEBSERVER='1'; require('child_process').spawnSync(process.platform==='win32'?'npx.cmd':'npx',['playwright','test','tests/crm-intelligence.spec.ts'],{stdio:'inherit',env:{...process.env,NO_WEBSERVER:'1'}})\"",
     "seed:admin": "node --env-file=.env.local supabase/seed/seed_admin.mjs",
     "admin:passwords": "node --env-file=.env.local supabase/seed/set_admin_passwords.mjs",
     "admin:passwords:single": "node --env-file=.env.local supabase/seed/set_admin_passwords.mjs --single",
     "admin:passwords:pwsh": "powershell -NoProfile -ExecutionPolicy Bypass -File supabase/seed/set-admin-passwords.ps1",
     "admin:passwords:pwsh:single": "powershell -NoProfile -ExecutionPolicy Bypass -File supabase/seed/set-admin-passwords.ps1 -Single",
-    "admin:recovery-links": "node --env-file=.env.local supabase/seed/send_recovery_links.mjs"
+    "admin:recovery-links": "node --env-file=.env.local supabase/seed/send_recovery_links.mjs",
+    "seed:crm-leads:dry": "node --env-file=.env.local supabase/seed/seed_franchise_leads.mjs",
+    "seed:crm-leads:apply": "node --env-file=.env.local supabase/seed/seed_franchise_leads.mjs --apply"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.2.6",

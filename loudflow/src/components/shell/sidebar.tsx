@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Home, ListChecks, LineChart, Settings } from "lucide-react";
+import { Home, ListChecks, LineChart, Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/lib/supabase/types";
 import loudfitLockup from "@/../public/brand/loudfit-lockup.png";
@@ -19,6 +19,7 @@ type NavItem = {
 const nav: NavItem[] = [
   { href: "/", label: "Início", icon: Home },
   { href: "/tarefas", label: "Tarefas", icon: ListChecks },
+  { href: "/crm/franquias", label: "CRM", icon: Users, roles: ["admin", "marketing", "partner"] },
   { href: "/resultados", label: "Resultados", icon: LineChart },
   { href: "/config", label: "Configurações", icon: Settings, roles: ["admin"] },
 ];
@@ -87,8 +88,19 @@ export function BottomNav({ role }: { role: Role }) {
   const pathname = usePathname();
   const items = nav.filter((i) => !i.roles || i.roles.includes(role));
 
+  // Grid dinâmico (3 a 5 itens dependendo do perfil). Tailwind precisa das
+  // classes literais no bundle; por isso o switch explícito.
+  const colsClass =
+    items.length === 5
+      ? "grid-cols-5"
+      : items.length === 4
+        ? "grid-cols-4"
+        : items.length === 3
+          ? "grid-cols-3"
+          : "grid-cols-2";
+
   return (
-    <nav className="sticky bottom-0 z-30 grid grid-cols-4 border-t border-border bg-lf-graphite md:hidden">
+    <nav className={cn("sticky bottom-0 z-30 grid border-t border-border bg-lf-graphite md:hidden", colsClass)}>
       {items.map((item) => {
         const Icon = item.icon;
         const active =
