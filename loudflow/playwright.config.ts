@@ -24,10 +24,15 @@ export default defineConfig({
   use: {
     baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   },
-  webServer: {
-    command: "npm run dev",
-    url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-    reuseExistingServer: true,
-    timeout: 120_000,
-  },
+  // NO_WEBSERVER=1 pula o `next dev` para rodar specs puros (unit tests de
+  // módulos sem HTTP), como tests/crm-intelligence.spec.ts.
+  webServer:
+    process.env.NO_WEBSERVER === "1"
+      ? undefined
+      : {
+          command: "npm run dev",
+          url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+          reuseExistingServer: true,
+          timeout: 120_000,
+        },
 });

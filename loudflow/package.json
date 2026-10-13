@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:rls": "playwright test",
+    "test:crm:intel": "node -e \"process.env.NO_WEBSERVER='1'; require('child_process').spawnSync(process.platform==='win32'?'npx.cmd':'npx',['playwright','test','tests/crm-intelligence.spec.ts'],{stdio:'inherit',env:{...process.env,NO_WEBSERVER:'1'}})\"",
     "seed:admin": "node --env-file=.env.local supabase/seed/seed_admin.mjs",
     "admin:passwords": "node --env-file=.env.local supabase/seed/set_admin_passwords.mjs",
     "admin:passwords:single": "node --env-file=.env.local supabase/seed/set_admin_passwords.mjs --single",
