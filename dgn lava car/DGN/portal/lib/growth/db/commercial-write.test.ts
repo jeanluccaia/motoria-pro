@@ -354,3 +354,114 @@ test("save → RPC retorna commercial com updatedAt — simula round-trip reload
   assert.equal(result.commercial.updatedAt, freshUpdatedAt);
   assert.equal(result.commercial.owner, "Rodrigo Silva");
 });
+
+// ---------------------------------------------------------------------------
+// LOTE A — regressão no-op idêntico (hipótese Iara): a RPC devolve changed=false
+// quando o payload bate exatamente com o estado atual + expected_updated_at
+// correto. Esperado: um único RPC call, nenhum insert de audit, response 200
+// com body.changed=false. É esse body que o cliente usa pra renderizar
+// "Nenhuma alteração; nada a auditar.".
+// ---------------------------------------------------------------------------
+
+test("no-op Iara: payload idêntico + expected_updated_at correto → changed=false, 1 RPC call", async () => {
+  // Formato já normalizado (new Date().toISOString()); o validator reemite nesse formato.
+  const existingUpdatedAt = "2026-07-18T00:00:00.000Z";
+  const identicalPayload = { ...validPayload, expectedUpdatedAt: existingUpdatedAt };
+  const calls: Array<{ fn: string; args: Record<string, unknown> }> = [];
+  const client = buildFakeClient(
+    [{ id: IARA_UUID, legacy_id: "iara" }],
+    async (fn, args) => {
+      calls.push({ fn, args });
+      // Mesma forma que a RPC real devolve quando v_changed=false (linhas 125-131
+      // da migration 20261012203945_commercial_fields_uuid_canonical.sql):
+      // retorna o commercial atual com o updatedAt preservado, SEM audit log.
+      return {
+        data: {
+          changed: false,
+          customerId: args.p_customer_id,
+          commercial: {
+            owner: args.p_owner,
+            commercialNotes: args.p_commercial_notes,
+            nextAction: args.p_next_action,
+            nextActionAt: args.p_next_action_at,
+            priority: "alta",
+            updatedAt: existingUpdatedAt,
+            bootstrapped: false,
+          },
+        },
+        error: null,
+      };
+    },
+  );
+  const result = await updateCommercialFields("iara", validateCommercialPayload(identicalPayload), client);
+  assert.equal(calls.length, 1, "RPC deve ser chamada exatamente uma vez");
+  assert.equal(calls[0].fn, "crm_update_customer_commercial_fields");
+  assert.equal(calls[0].args.p_customer_id, IARA_UUID, "resolver deve ter traduzido slug → UUID antes da RPC");
+  assert.equal(calls[0].args.p_expected_updated_at, existingUpdatedAt);
+  assert.equal(result.changed, false, "no-op não deve reportar changed=true");
+  assert.equal(result.commercial.updatedAt, existingUpdatedAt, "updatedAt preservado — nenhum trigger disparou");
+});
+
+// ---------------------------------------------------------------------------
+// LOTE A — regressão timeout preview: se a RPC pendurar além de rpcTimeoutMs,
+// o AbortController server-side mata o await e lança CommercialWriteError(504).
+// Garante que a função nunca fica pendurada indefinidamente no preview
+// (prod continua passando rpcTimeoutMs=0 → caminho sem AbortSignal).
+// ---------------------------------------------------------------------------
+
+test("timeout preview: RPC pendura além de rpcTimeoutMs → CommercialWriteError 504, nenhum sucesso falso", async () => {
+  // Fake chainable: db.rpc(...).abortSignal(sig) devolve uma Promise que
+  // rejeita com DOMException("AbortError") quando o signal dispara, antes de
+  // qualquer resolução "feliz".
+  let abortSeen = false;
+  const client = {
+    from(table: string) {
+      if (table !== "crm_customers") throw new Error(`table ${table} n/i`);
+      return {
+        select: (_cols: string) => {
+          const chain: Record<string, unknown> = {
+            eq: () => chain,
+            maybeSingle: async () => ({ data: { id: IARA_UUID, legacy_id: "iara" }, error: null }),
+          };
+          return chain;
+        },
+      };
+    },
+    rpc(_fn: string, _args: Record<string, unknown>) {
+      // Promise que pendura "para sempre" até receber abort via chain.
+      let abortReject: ((reason: unknown) => void) | null = null;
+      const base = new Promise<{ data: unknown; error: unknown | null }>((_resolve, reject) => {
+        abortReject = reject;
+      });
+      const chain = Object.assign(base, {
+        abortSignal(signal: AbortSignal) {
+          const fire = () => {
+            abortSeen = true;
+            abortReject?.(new DOMException("The operation was aborted", "AbortError"));
+          };
+          if (signal.aborted) fire();
+          else signal.addEventListener("abort", fire, { once: true });
+          return base;
+        },
+      });
+      return chain;
+    },
+  } as unknown as SupabaseClient;
+
+  const start = Date.now();
+  await assert.rejects(
+    updateCommercialFields(
+      "iara",
+      validateCommercialPayload(validPayload),
+      client,
+      { requestId: "test-rid", rpcTimeoutMs: 50 },
+    ),
+    (error: unknown) =>
+      error instanceof CommercialWriteError
+      && error.status === 504
+      && /Timeout de diagnóstico/.test(error.message),
+  );
+  const elapsed = Date.now() - start;
+  assert.ok(abortSeen, "AbortSignal deve ter disparado");
+  assert.ok(elapsed < 1_000, `rejeição deve vir rápido (${elapsed}ms) — safety net, não espera a RPC real`);
+});
