@@ -3152,6 +3152,7 @@ export function CommercialEditor({
     nextActionAt: "",
     priority: "normal" as const,
     updatedAt: "",
+    version: 0,
   };
   const [form, setForm] = useState({
     owner: current.owner,
@@ -3223,9 +3224,9 @@ export function CommercialEditor({
         body: JSON.stringify({
           ...form,
           nextActionAt: form.nextActionAt ? new Date(form.nextActionAt).toISOString() : "",
-          // Vazio quando o prospect ainda não tem crm_campaign_members —
-          // a RPC faz bootstrap silencioso; nenhuma corrida de dados envolvida.
-          expectedUpdatedAt: current.updatedAt || "",
+          // null quando o prospect ainda não tem crm_campaign_members —
+          // a RPC faz bootstrap silencioso; nenhuma corrida envolvida.
+          expectedVersion: typeof current.version === "number" ? current.version : null,
         }),
         signal: controller.signal,
       };

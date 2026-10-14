@@ -184,6 +184,7 @@ export interface DgnCustomer {
     nextActionAt: string;
     priority: "baixa" | "normal" | "alta" | "urgente";
     updatedAt: string;
+    version: number;
   };
   curation: {
     profile: (typeof curationProfiles)[number] | "";

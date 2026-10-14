@@ -14,6 +14,7 @@ export interface CommercialFields {
   nextActionAt: string;
   priority: CommercialPriority;
   updatedAt: string;
+  version: number;
 }
 
 export interface CommercialWriteInput extends CommercialFields {
@@ -30,7 +31,7 @@ export class CommercialWriteError extends Error {
 }
 
 const allowedKeys = new Set([
-  "owner", "commercialNotes", "nextAction", "nextActionAt", "priority", "expectedUpdatedAt",
+  "owner", "commercialNotes", "nextAction", "nextActionAt", "priority", "expectedVersion",
 ]);
 
 function normalizedShort(value: unknown, field: string, max: number, allowEmpty: boolean) {
@@ -59,6 +60,14 @@ function normalizedDate(value: unknown, field: string, allowEmpty: boolean) {
   return parsed.toISOString();
 }
 
+function normalizedVersion(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
+    throw new CommercialWriteError("expectedVersion deve ser inteiro ≥ 0 ou null", 400);
+  }
+  return value;
+}
+
 export function validateCommercialPayload(payload: unknown) {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
     throw new CommercialWriteError("payload inválido", 400);
@@ -77,8 +86,8 @@ export function validateCommercialPayload(payload: unknown) {
     nextAction: normalizedShort(input.nextAction, "nextAction", 240, true),
     nextActionAt: normalizedDate(input.nextActionAt, "nextActionAt", true),
     priority: input.priority as CommercialPriority,
-    // Vazio = "cliente ainda não tem crm_campaign_members"; a RPC faz bootstrap silencioso.
-    expectedUpdatedAt: normalizedDate(input.expectedUpdatedAt, "expectedUpdatedAt", true),
+    // null = "cliente ainda não tem crm_campaign_members"; a RPC faz bootstrap silencioso.
+    expectedVersion: normalizedVersion(input.expectedVersion),
   };
 }
 
@@ -145,7 +154,7 @@ export async function updateCommercialFields(
     p_next_action: input.nextAction || null,
     p_next_action_at: input.nextActionAt || null,
     p_priority: priorityNumber[input.priority],
-    p_expected_updated_at: input.expectedUpdatedAt || null,
+    p_expected_version: input.expectedVersion,
     p_actor: "dgn-admin",
     p_origin: "dgn-growth-admin",
   };

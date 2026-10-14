@@ -13,7 +13,7 @@ const validPayload = {
   nextAction: " Confirmar   interesse no plano ",
   nextActionAt: "2026-08-01T15:00:00-03:00",
   priority: "alta",
-  expectedUpdatedAt: "2026-07-17T03:04:36.113111Z",
+  expectedVersion: 7,
 };
 
 function request(payload: unknown) {
@@ -84,6 +84,21 @@ test("validação rejeita payload inválido, campo extra, prioridade e data inv�
   assert.throws(() => validateCommercialPayload({ ...validPayload, commercialNotes: "<script>alert(1)<\/script>" }), /não aceita HTML/);
 });
 
+test("validação do expectedVersion: null (bootstrap), inteiro ≥ 0 (ok), negativo/decimal/string (400)", () => {
+  // Bootstrap: cliente sem crm_campaign_members ainda — null é aceito.
+  assert.doesNotThrow(() => validateCommercialPayload({ ...validPayload, expectedVersion: null }));
+  // Zero é válido (primeira versão pós-bootstrap).
+  assert.doesNotThrow(() => validateCommercialPayload({ ...validPayload, expectedVersion: 0 }));
+  // Inteiros positivos — ok.
+  assert.doesNotThrow(() => validateCommercialPayload({ ...validPayload, expectedVersion: 42 }));
+  // Negativo é inválido — versão nunca anda pra trás.
+  assert.throws(() => validateCommercialPayload({ ...validPayload, expectedVersion: -1 }), /expectedVersion deve ser inteiro/);
+  // Decimal inválido — version é bigint discreto.
+  assert.throws(() => validateCommercialPayload({ ...validPayload, expectedVersion: 3.14 }), /expectedVersion deve ser inteiro/);
+  // String inválida — não aceita round-trip JSON do tipo errado.
+  assert.throws(() => validateCommercialPayload({ ...validPayload, expectedVersion: "7" }), /expectedVersion deve ser inteiro/);
+});
+
 test("validação rejeita owner vazio ou só espaços com mensagem clara", () => {
   assert.throws(() => validateCommercialPayload({ ...validPayload, owner: "" }), /owner é obrigatório/);
   assert.throws(() => validateCommercialPayload({ ...validPayload, owner: "   " }), /owner é obrigatório/);
@@ -91,7 +106,7 @@ test("validação rejeita owner vazio ou só espaços com mensagem clara", () =>
 
 test("update válido normaliza texto, UTC e retorna estado final", async () => {
   let received: ReturnType<typeof validateCommercialPayload> | undefined;
-  const final = { owner: "Rodrigo Silva", commercialNotes: "Contato comercial\nem validação", nextAction: "Confirmar interesse no plano", nextActionAt: "2026-08-01T18:00:00.000Z", priority: "alta" as const, updatedAt: "2026-07-18T00:00:00Z" };
+  const final = { owner: "Rodrigo Silva", commercialNotes: "Contato comercial\nem validação", nextAction: "Confirmar interesse no plano", nextActionAt: "2026-08-01T18:00:00.000Z", priority: "alta" as const, updatedAt: "2026-07-18T00:00:00Z", version: 8 };
   const response = await handleCommercialPatch(request(validPayload), "iara", {
     authorize: async () => true,
     source: "db",
@@ -154,6 +169,52 @@ test("migration original (0003) mantém no-op sem auditoria e audita atomicament
   assert.match(sql, /p_expected_updated_at/);
 });
 
+test("migration 20261014 adiciona version bigint + trigger de incremento + sobrecarga RPC com p_expected_version", async () => {
+  const sql = await readFile(
+    new URL("../../../supabase/migrations/20261014150000_commercial_version_monotonic.sql", import.meta.url),
+    "utf8",
+  );
+  // Coluna version monotônica.
+  assert.match(sql, /add column if not exists version bigint not null default 0/);
+  // Trigger de incremento (new.version = coalesce(old.version, 0) + 1).
+  assert.match(sql, /create or replace function public\.crm_campaign_members_bump_version/);
+  assert.match(sql, /new\.version := coalesce\(old\.version, 0\) \+ 1/);
+  assert.match(sql, /create trigger trg_crm_campaign_members_version[\s\S]*before update[\s\S]*crm_campaign_members/);
+  // Nova sobrecarga com p_expected_version bigint.
+  assert.match(sql, /p_expected_version bigint/);
+  // Check otimista por version (não mais por updated_at).
+  assert.match(sql, /v_member\.version is distinct from p_expected_version/);
+  // 40001 continua sendo o errcode do conflito — endpoint traduz pra 409.
+  assert.match(sql, /errcode = '40001'/);
+  // No-op preserva invariantes.
+  const noop = sql.indexOf("if not v_changed then");
+  const audit = sql.indexOf("insert into public.crm_audit_logs");
+  assert.ok(noop >= 0 && audit > noop, "no-op precede o insert do audit log");
+  // Grants: só service_role.
+  assert.match(sql, /revoke all on function[\s\S]*uuid, text, text, text, timestamptz, integer, bigint[\s\S]*from public, anon, authenticated/);
+  assert.match(sql, /grant execute on function[\s\S]*uuid, text, text, text, timestamptz, integer, bigint[\s\S]*to service_role/);
+});
+
+test("conflito monotônico: expected_version N-1 quando atual é N → RPC devolve 40001 → 409", async () => {
+  // Simula outra sessão ter escrito entre o load e o save. UI carregou version=5,
+  // outra sessão escreveu, agora atual é 6. UI tenta salvar com expectedVersion=5
+  // → RPC detecta is distinct from → 40001 → endpoint devolve 409 humano.
+  const client = buildFakeClient(
+    [{ id: IARA_UUID, legacy_id: "iara" }],
+    async (_fn, args) => {
+      assert.equal(args.p_expected_version, 5, "endpoint envia a versão esperada stale");
+      return { data: null, error: { code: "40001", message: "registro alterado por outra sessão" } };
+    },
+  );
+  await assert.rejects(
+    updateCommercialFields("iara", validateCommercialPayload({ ...validPayload, expectedVersion: 5 }), client),
+    (error: unknown) =>
+      error instanceof CommercialWriteError
+      && error.status === 409
+      && /alterados em outra sessão/.test(error.message),
+  );
+});
+
 test("migration 20261012 passa a aceitar p_customer_id uuid e preserva invariantes", async () => {
   // Nome do arquivo bate com o version registrado em supabase_migrations.schema_migrations:
   // 20261012203945 | commercial_fields_uuid_canonical (apply via MCP em prod 2026-10-12).
@@ -182,10 +243,10 @@ test("mapper preserva os campos após reload", () => {
   const snapshot: GrowthDbSnapshot = {
     customers: [{ id: "uuid-iara", legacy_id: "iara", name: "Iara Menezes" }],
     vehicles: [], subscriptions: [], interactions: [], scores: [],
-    campaignMembers: [{ customer_id: "uuid-iara", campaign_id: "founders-2026", owner: "Rodrigo", commercial_notes: "Contato", next_action: "Confirmar", next_action_at: "2026-08-01T18:00:00Z", priority: 3, updated_at: "2026-07-18T00:00:00Z" }],
+    campaignMembers: [{ customer_id: "uuid-iara", campaign_id: "founders-2026", owner: "Rodrigo", commercial_notes: "Contato", next_action: "Confirmar", next_action_at: "2026-08-01T18:00:00Z", priority: 3, updated_at: "2026-07-18T00:00:00Z", version: 7 }],
   };
   const commercial = mapGrowthSnapshot(snapshot)[0].commercial;
-  assert.deepEqual(commercial, { owner: "Rodrigo", commercialNotes: "Contato", nextAction: "Confirmar", nextActionAt: "2026-08-01T18:00:00Z", priority: "alta", updatedAt: "2026-07-18T00:00:00Z" });
+  assert.deepEqual(commercial, { owner: "Rodrigo", commercialNotes: "Contato", nextAction: "Confirmar", nextActionAt: "2026-08-01T18:00:00Z", priority: "alta", updatedAt: "2026-07-18T00:00:00Z", version: 7 });
 });
 
 // ---------------------------------------------------------------------------
@@ -207,7 +268,7 @@ test("UUID canônico (Viviane) resolve e chama RPC com p_customer_id", async () 
           customerId: VIVIANE_UUID,
           commercial: {
             owner: "Rodrigo Silva", commercialNotes: "", nextAction: "", nextActionAt: null,
-            priority: "alta", updatedAt: "2026-10-12T00:00:00Z", bootstrapped: true,
+            priority: "alta", updatedAt: "2026-10-12T00:00:00Z", version: 1, bootstrapped: true,
           },
         },
         error: null,
@@ -231,7 +292,7 @@ test("slug (Rikardo) resolve para UUID canônico antes da RPC", async () => {
       return {
         data: {
           changed: true, customerId: RIKARDO_UUID,
-          commercial: { owner: "Rodrigo Silva", commercialNotes: "", nextAction: "", nextActionAt: null, priority: "alta", updatedAt: "2026-10-12T00:00:00Z" },
+          commercial: { owner: "Rodrigo Silva", commercialNotes: "", nextAction: "", nextActionAt: null, priority: "alta", updatedAt: "2026-10-12T00:00:00Z", version: 5 },
         },
         error: null,
       };
@@ -247,7 +308,7 @@ test("slug (Iara) continua funcionando — compat para legacy_id existentes", as
     async (_fn, args) => ({
       data: {
         changed: false, customerId: args.p_customer_id,
-        commercial: { owner: "Rodrigo", commercialNotes: "", nextAction: "", nextActionAt: null, priority: "alta", updatedAt: "2026-07-18T00:00:00Z" },
+        commercial: { owner: "Rodrigo", commercialNotes: "", nextAction: "", nextActionAt: null, priority: "alta", updatedAt: "2026-07-18T00:00:00Z", version: 3 },
       },
       error: null,
     }),
@@ -344,7 +405,7 @@ test("save → RPC retorna commercial com updatedAt — simula round-trip reload
         customerId: args.p_customer_id,
         commercial: {
           owner: args.p_owner, commercialNotes: args.p_commercial_notes, nextAction: args.p_next_action,
-          nextActionAt: args.p_next_action_at, priority: "alta", updatedAt: freshUpdatedAt,
+          nextActionAt: args.p_next_action_at, priority: "alta", updatedAt: freshUpdatedAt, version: 9,
         },
       },
       error: null,
@@ -363,18 +424,20 @@ test("save → RPC retorna commercial com updatedAt — simula round-trip reload
 // "Nenhuma alteração; nada a auditar.".
 // ---------------------------------------------------------------------------
 
-test("no-op Iara: payload idêntico + expected_updated_at correto → changed=false, 1 RPC call", async () => {
-  // Formato já normalizado (new Date().toISOString()); o validator reemite nesse formato.
+test("no-op Iara: payload idêntico + expected_version correto → changed=false, 1 RPC call", async () => {
+  // Versão monotônica: UI carrega version=N e envia expectedVersion=N. RPC
+  // compara, detecta no-op semântico, retorna sem UPDATE nem audit.
   const existingUpdatedAt = "2026-07-18T00:00:00.000Z";
-  const identicalPayload = { ...validPayload, expectedUpdatedAt: existingUpdatedAt };
+  const existingVersion = 7;
+  const identicalPayload = { ...validPayload, expectedVersion: existingVersion };
   const calls: Array<{ fn: string; args: Record<string, unknown> }> = [];
   const client = buildFakeClient(
     [{ id: IARA_UUID, legacy_id: "iara" }],
     async (fn, args) => {
       calls.push({ fn, args });
-      // Mesma forma que a RPC real devolve quando v_changed=false (linhas 125-131
-      // da migration 20261012203945_commercial_fields_uuid_canonical.sql):
-      // retorna o commercial atual com o updatedAt preservado, SEM audit log.
+      // Mesma forma que a RPC real devolve quando v_changed=false (migration
+      // 20261014150000_commercial_version_monotonic.sql): retorna o commercial
+      // atual com updatedAt+version preservados, SEM audit log.
       return {
         data: {
           changed: false,
@@ -386,6 +449,7 @@ test("no-op Iara: payload idêntico + expected_updated_at correto → changed=fa
             nextActionAt: args.p_next_action_at,
             priority: "alta",
             updatedAt: existingUpdatedAt,
+            version: existingVersion,
             bootstrapped: false,
           },
         },
@@ -397,9 +461,10 @@ test("no-op Iara: payload idêntico + expected_updated_at correto → changed=fa
   assert.equal(calls.length, 1, "RPC deve ser chamada exatamente uma vez");
   assert.equal(calls[0].fn, "crm_update_customer_commercial_fields");
   assert.equal(calls[0].args.p_customer_id, IARA_UUID, "resolver deve ter traduzido slug → UUID antes da RPC");
-  assert.equal(calls[0].args.p_expected_updated_at, existingUpdatedAt);
+  assert.equal(calls[0].args.p_expected_version, existingVersion, "endpoint envia expectedVersion monotônico");
+  assert.equal((calls[0].args as { p_expected_updated_at?: string }).p_expected_updated_at, undefined, "não deve mais mandar p_expected_updated_at");
   assert.equal(result.changed, false, "no-op não deve reportar changed=true");
-  assert.equal(result.commercial.updatedAt, existingUpdatedAt, "updatedAt preservado — nenhum trigger disparou");
+  assert.equal(result.commercial.version, existingVersion, "version preservado — nenhum trigger de version disparou");
 });
 
 // ---------------------------------------------------------------------------

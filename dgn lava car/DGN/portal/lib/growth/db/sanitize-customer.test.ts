@@ -35,6 +35,7 @@ function stubCustomer(overrides: Partial<DgnCustomer>): DgnCustomer {
       nextActionAt: "",
       priority: "normal",
       updatedAt: "",
+      version: 0,
     },
     curation: { profile: "", originGroup: "", commercialProfile: "", idealSchedule: "", founderDecision: "", founderNumber: "", internalNotes: "PII interna" },
     campaign: {

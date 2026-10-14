@@ -40,7 +40,7 @@ function growthCustomer(overrides: {
     portalAccess: undefined,
     commercial: {
       owner: "", commercialNotes: "", nextAction: "", nextActionAt: "",
-      priority: "normal", updatedAt: "",
+      priority: "normal", updatedAt: "", version: 0,
     },
     curation: {
       profile: "", originGroup: "", commercialProfile: "", idealSchedule: "",
