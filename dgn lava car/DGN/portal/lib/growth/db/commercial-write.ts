@@ -199,7 +199,16 @@ export async function updateCommercialFields(
 
   if (result.error) {
     const code = result.error.code;
+    const hint = (result.error as { hint?: string | null }).hint ?? "";
     if (code === "P0002") throw new CommercialWriteError("Cliente ou registro comercial inexistente.", 404);
+    // Conflito monotônico: errcode='P0001' com HINT 'commercial.version.conflict'
+    // (marcador estável aplicado pela RPC). O HINT evita que outros P0001
+    // genéricos virem 409 silenciosamente. errcode 40001 fica como fallback
+    // compatibilidade; PostgREST faz retry nele, então não deve chegar aqui
+    // na prática — mas mantemos o mapper caso a RPC seja revertida.
+    if (code === "P0001" && hint === "commercial.version.conflict") {
+      throw new CommercialWriteError("Os dados foram alterados em outra sessão. Recarregue a página.", 409);
+    }
     if (code === "40001") throw new CommercialWriteError("Os dados foram alterados em outra sessão. Recarregue a página.", 409);
     if (code === "22023") throw new CommercialWriteError(result.error.message, 400);
     throw new CommercialWriteError("Não foi possível salvar os campos comerciais.", 502);

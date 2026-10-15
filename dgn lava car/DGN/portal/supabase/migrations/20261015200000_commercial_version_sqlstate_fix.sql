@@ -1,0 +1,179 @@
+-- LOTE A — Fase 1 fix SQLSTATE do conflito monotônico (2026-10-15)
+--
+-- Motivo: homologação revelou que PostgREST faz retry automático em
+-- SQLSTATE 40001 (serialization_failure) com backoff interno — mesmo o
+-- conflito sendo intencional (verificação de versão monotônica, não
+-- deadlock recuperável). Resultado: a request HTTP demorava ~8s e
+-- devolvia 502 sem code, impedindo o mapper do endpoint de traduzir
+-- para 409.
+--
+-- Correção: usa errcode='P0001' (raise_exception default — PostgREST
+-- NÃO faz retry) + HINT estável 'commercial.version.conflict' como
+-- marcador exclusivo. O endpoint traduz P0001 + esse HINT específico
+-- em 409; outros P0001 continuam caindo no fallback 500 (não viram
+-- 409 silenciosamente).
+--
+-- Preserva:
+--   • coluna version bigint, trigger de bump, demais sobrecargas
+--   • mensagem humana para a UI
+--   • semântica "não escreveu nada" via EXCEPTION → ROLLBACK
+--   • grants exclusivos ao service_role
+
+create or replace function public.crm_update_customer_commercial_fields(
+  p_customer_id uuid,
+  p_owner text,
+  p_commercial_notes text,
+  p_next_action text,
+  p_next_action_at timestamptz,
+  p_priority integer,
+  p_expected_version bigint,
+  p_actor text,
+  p_origin text
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = public
+as $$
+declare
+  v_customer_id uuid;
+  v_member public.crm_campaign_members%rowtype;
+  v_updated public.crm_campaign_members%rowtype;
+  v_previous jsonb;
+  v_next jsonb;
+  v_changed boolean;
+  v_bootstrapped boolean := false;
+begin
+  if p_customer_id is null then
+    raise exception using errcode = '22023', message = 'customerId obrigatório';
+  end if;
+  if p_owner is null or btrim(p_owner) = '' or length(p_owner) > 80 then
+    raise exception using errcode = '22023', message = 'responsável inválido';
+  end if;
+  if p_commercial_notes is not null and length(p_commercial_notes) > 2000 then
+    raise exception using errcode = '22023', message = 'observação comercial excede 2000 caracteres';
+  end if;
+  if p_next_action is not null and length(p_next_action) > 240 then
+    raise exception using errcode = '22023', message = 'próxima ação excede 240 caracteres';
+  end if;
+  if p_priority is null or p_priority not between 1 and 4 then
+    raise exception using errcode = '22023', message = 'prioridade inválida';
+  end if;
+  if p_actor is null or btrim(p_actor) = '' then
+    raise exception using errcode = '22023', message = 'ator obrigatório';
+  end if;
+
+  select id into v_customer_id
+  from public.crm_customers
+  where id = p_customer_id;
+
+  if v_customer_id is null then
+    raise exception using errcode = 'P0002', message = 'cliente inexistente';
+  end if;
+
+  select * into v_member
+  from public.crm_campaign_members
+  where customer_id = v_customer_id
+    and campaign_id = 'founders-2026'
+  for update;
+
+  if not found then
+    insert into public.crm_campaign_members(campaign_id, customer_id)
+      values('founders-2026', v_customer_id)
+      returning * into v_member;
+    v_bootstrapped := true;
+  else
+    -- Concorrência monotônica. HINT 'commercial.version.conflict' é o
+    -- marcador estável que o endpoint usa para traduzir em 409.
+    -- errcode='P0001' (não 40001) impede o PostgREST de fazer retry
+    -- transient.
+    if p_expected_version is null
+      or v_member.version is distinct from p_expected_version then
+      raise exception using
+        errcode = 'P0001',
+        message = 'registro alterado por outra sessão; recarregue os dados',
+        hint    = 'commercial.version.conflict';
+    end if;
+  end if;
+
+  v_previous := jsonb_build_object(
+    'owner', v_member.owner,
+    'commercialNotes', v_member.commercial_notes,
+    'nextAction', v_member.next_action,
+    'nextActionAt', v_member.next_action_at,
+    'priority', case v_member.priority
+      when 1 then 'baixa' when 2 then 'normal'
+      when 3 then 'alta' when 4 then 'urgente' else null end
+  );
+
+  v_next := jsonb_build_object(
+    'owner', btrim(p_owner),
+    'commercialNotes', nullif(p_commercial_notes, ''),
+    'nextAction', nullif(btrim(coalesce(p_next_action, '')), ''),
+    'nextActionAt', p_next_action_at,
+    'priority', case p_priority
+      when 1 then 'baixa' when 2 then 'normal'
+      when 3 then 'alta' when 4 then 'urgente' end
+  );
+
+  v_changed := v_previous is distinct from v_next;
+
+  if not v_changed then
+    return jsonb_build_object(
+      'changed', false,
+      'customerId', v_customer_id,
+      'commercial', v_next || jsonb_build_object(
+        'updatedAt', v_member.updated_at,
+        'version', v_member.version,
+        'bootstrapped', v_bootstrapped
+      )
+    );
+  end if;
+
+  update public.crm_campaign_members
+  set owner = btrim(p_owner),
+      commercial_notes = nullif(p_commercial_notes, ''),
+      next_action = nullif(btrim(coalesce(p_next_action, '')), ''),
+      next_action_at = p_next_action_at,
+      priority = p_priority
+  where id = v_member.id
+  returning * into v_updated;
+
+  insert into public.crm_audit_logs (
+    entity_type,
+    entity_id,
+    action,
+    previous_value,
+    new_value,
+    actor,
+    reason
+  ) values (
+    'customer',
+    v_customer_id,
+    'commercial_fields.updated',
+    v_previous,
+    v_next,
+    btrim(p_actor),
+    'origin=' || coalesce(nullif(btrim(p_origin), ''), 'dgn-growth-admin')
+      || case when v_bootstrapped then '; bootstrap=true' else '' end
+  );
+
+  return jsonb_build_object(
+    'changed', true,
+    'customerId', v_customer_id,
+    'commercial', v_next || jsonb_build_object(
+      'updatedAt', v_updated.updated_at,
+      'version', v_updated.version,
+      'bootstrapped', v_bootstrapped
+    )
+  );
+end;
+$$;
+
+revoke all on function public.crm_update_customer_commercial_fields(
+  uuid, text, text, text, timestamptz, integer, bigint, text, text
+) from public, anon, authenticated;
+
+grant execute on function public.crm_update_customer_commercial_fields(
+  uuid, text, text, text, timestamptz, integer, bigint, text, text
+) to service_role;

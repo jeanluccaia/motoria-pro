@@ -184,7 +184,9 @@ test("migration 20261014 adiciona version bigint + trigger de incremento + sobre
   assert.match(sql, /p_expected_version bigint/);
   // Check otimista por version (não mais por updated_at).
   assert.match(sql, /v_member\.version is distinct from p_expected_version/);
-  // 40001 continua sendo o errcode do conflito — endpoint traduz pra 409.
+  // Conflito monotônico usa errcode='P0001' + HINT estável
+  // 'commercial.version.conflict' (fix 20261015200000 — PostgREST retry em
+  // 40001 escondia o code). Endpoint traduz P0001+hint em 409.
   assert.match(sql, /errcode = '40001'/);
   // No-op preserva invariantes.
   const noop = sql.indexOf("if not v_changed then");
@@ -195,15 +197,43 @@ test("migration 20261014 adiciona version bigint + trigger de incremento + sobre
   assert.match(sql, /grant execute on function[\s\S]*uuid, text, text, text, timestamptz, integer, bigint[\s\S]*to service_role/);
 });
 
-test("conflito monotônico: expected_version N-1 quando atual é N → RPC devolve 40001 → 409", async () => {
+test("migration 20261015200000 troca errcode do conflito monotônico para P0001 + HINT estável", async () => {
+  const sql = await readFile(
+    new URL("../../../supabase/migrations/20261015200000_commercial_version_sqlstate_fix.sql", import.meta.url),
+    "utf8",
+  );
+  // Nova sobrecarga mantém o signature uuid + bigint.
+  assert.match(sql, /p_expected_version bigint/);
+  // Check otimista permanece o mesmo (comparação monotônica).
+  assert.match(sql, /v_member\.version is distinct from p_expected_version/);
+  // SQLSTATE do conflito agora é P0001 (não 40001) — evita retry do PostgREST.
+  assert.match(sql, /errcode = 'P0001'/);
+  // HINT estável é o marcador exclusivo que o endpoint usa para traduzir em 409.
+  assert.match(sql, /hint\s*=\s*'commercial\.version\.conflict'/);
+  // 40001 NÃO deve mais aparecer na definição.
+  assert.ok(!/errcode = '40001'/.test(sql), "fix não deve manter errcode 40001");
+  // Grants preservados.
+  assert.match(sql, /grant execute on function[\s\S]*to service_role/);
+});
+
+test("conflito monotônico: expected_version N-1 quando atual é N → RPC devolve P0001+hint → 409", async () => {
   // Simula outra sessão ter escrito entre o load e o save. UI carregou version=5,
   // outra sessão escreveu, agora atual é 6. UI tenta salvar com expectedVersion=5
-  // → RPC detecta is distinct from → 40001 → endpoint devolve 409 humano.
+  // → RPC detecta is distinct from → P0001 com HINT 'commercial.version.conflict'
+  // → endpoint devolve 409 humano. O HINT é o marcador exclusivo que diferencia
+  // esse conflito de outros P0001 genéricos.
   const client = buildFakeClient(
     [{ id: IARA_UUID, legacy_id: "iara" }],
     async (_fn, args) => {
       assert.equal(args.p_expected_version, 5, "endpoint envia a versão esperada stale");
-      return { data: null, error: { code: "40001", message: "registro alterado por outra sessão" } };
+      return {
+        data: null,
+        error: {
+          code: "P0001",
+          message: "registro alterado por outra sessão",
+          hint: "commercial.version.conflict",
+        },
+      };
     },
   );
   await assert.rejects(
@@ -212,6 +242,19 @@ test("conflito monotônico: expected_version N-1 quando atual é N → RPC devol
       error instanceof CommercialWriteError
       && error.status === 409
       && /alterados em outra sessão/.test(error.message),
+  );
+});
+
+test("P0001 SEM o hint estável NÃO vira 409 (fallback 502)", async () => {
+  // Garante que outros raise_exception genéricos (P0001 default sem hint) caiam
+  // no fallback — não mapear qualquer P0001 silenciosamente como 409.
+  const client = buildFakeClient(
+    [{ id: IARA_UUID, legacy_id: "iara" }],
+    async () => ({ data: null, error: { code: "P0001", message: "erro genérico qualquer", hint: "" } }),
+  );
+  await assert.rejects(
+    updateCommercialFields("iara", validateCommercialPayload(validPayload), client),
+    (error: unknown) => error instanceof CommercialWriteError && error.status === 502,
   );
 });
 
@@ -359,7 +402,25 @@ test("RPC devolve P0002 → 404 humano com mesma mensagem", async () => {
   );
 });
 
-test("concorrência otimista (40001) vira 409 humano", async () => {
+test("concorrência otimista (P0001+hint) vira 409 humano", async () => {
+  // Fluxo canônico pós-fix: errcode='P0001' + hint='commercial.version.conflict'
+  // é o marcador do conflito monotônico.
+  const client = buildFakeClient(
+    [{ id: IARA_UUID, legacy_id: "iara" }],
+    async () => ({
+      data: null,
+      error: { code: "P0001", message: "registro alterado por outra sessão", hint: "commercial.version.conflict" },
+    }),
+  );
+  await assert.rejects(
+    updateCommercialFields("iara", validateCommercialPayload(validPayload), client),
+    (error: unknown) => error instanceof CommercialWriteError && error.status === 409,
+  );
+});
+
+test("concorrência otimista 40001 (fallback compat) ainda vira 409", async () => {
+  // Compat: se por qualquer razão a RPC voltar a emitir 40001 (migration
+  // revertida, prod ainda sem o fix), o mapper preserva o comportamento 409.
   const client = buildFakeClient(
     [{ id: IARA_UUID, legacy_id: "iara" }],
     async () => ({ data: null, error: { code: "40001", message: "registro alterado por outra sessão" } }),
