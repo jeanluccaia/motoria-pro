@@ -168,7 +168,10 @@ function PlanCard({
         ))}
       </ul>
 
-      <div className="mt-4 border-t border-white/[0.06] pt-3">
+      {/* mt-auto empurra a seção Modalidades+Preço+Botão para o fim do card
+          flex-col — alinha os três botões "Selecionar" pela base mesmo quando
+          um card tem bullet quebrando em linha extra. Sem absolute. */}
+      <div className="mt-auto border-t border-white/[0.06] pt-4">
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
           Modalidades aceitas
         </p>
