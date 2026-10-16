@@ -8,7 +8,13 @@ import {
   CalendarPlus,
   Clock,
   MessageSquare,
-  Sparkles,
+  Zap,
+  CalendarClock,
+  PhoneOff,
+  MessageCircleDashed,
+  Pause,
+  Archive,
+  CheckCircle,
   AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,10 +42,14 @@ import { formatDateTime, utcIsoToBrtInput, brtInputToUtcIso } from "@/lib/crm/da
 import { formatPhoneForDisplay } from "@/lib/crm/phone";
 import {
   calculateLeadIntelligence,
-  waNumberFor,
   type LeadIntelligence,
-  type AttentionLevel,
 } from "@/lib/crm/intelligence";
+import {
+  getLeadPresentation,
+  type IconKey,
+  type LeadPresentation,
+  type Tone,
+} from "@/lib/crm/presentation";
 import { LeadDialog } from "./lead-dialog";
 import { registerContact, scheduleNextContact, changeStage } from "./actions";
 import type {
@@ -57,22 +67,6 @@ type Props = {
   intelligence?: LeadIntelligence | null;
   role: Role;
 };
-
-function attentionBadgeClass(level: AttentionLevel): string {
-  switch (level) {
-    case "critical":
-      return "bg-rose-500/15 text-rose-200 border-rose-500/50";
-    case "today":
-      return "bg-amber-500/15 text-amber-200 border-amber-500/40";
-    case "soon":
-      return "bg-sky-500/15 text-sky-200 border-sky-500/30";
-    case "monitor":
-      return "bg-neutral-500/15 text-neutral-200 border-neutral-500/30";
-    case "none":
-    default:
-      return "bg-neutral-500/10 text-neutral-300 border-neutral-500/20";
-  }
-}
 
 type ActionMode = "none" | "contact" | "stage" | "schedule";
 
@@ -95,192 +89,151 @@ export function LeadDetailDialog({
     note: "Observação",
   };
 
-  // Recalcula a inteligência localmente para refletir mudanças que já voltaram
-  // do servidor (ex: usuário acabou de registrar um contato). Determinístico,
-  // sem round-trip.
   const intel = useMemo<LeadIntelligence>(() => {
     if (intelligence) return intelligence;
     return calculateLeadIntelligence(lead, activities, new Date());
   }, [intelligence, lead, activities]);
 
-  const wa = waNumberFor(lead);
+  const presentation = useMemo(() => getLeadPresentation(lead, intel), [lead, intel]);
 
   const sortedActivities = useMemo(
     () => [...activities].sort((a, b) => b.occurred_at.localeCompare(a.occurred_at)),
     [activities],
   );
 
+  const phoneInvalid = presentation.phone.state !== "valid";
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[calc(100svh-2rem)] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden p-5 sm:p-6 sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex flex-wrap items-center gap-2">
-              <span>{lead.full_name}</span>
+        <DialogContent
+          className={cn(
+            // Mobile: tela cheia; desktop: modal padrão.
+            "flex max-h-[100svh] w-full flex-col overflow-hidden p-0 sm:max-w-2xl",
+            "h-[100svh] sm:h-auto sm:max-h-[calc(100svh-2rem)]",
+          )}
+        >
+          <DialogHeader className="shrink-0 border-b border-border/70 px-4 pt-4 pb-3 sm:px-6 sm:pt-5">
+            <DialogTitle className="flex flex-wrap items-center gap-2 text-base sm:text-lg">
+              <span className="truncate">{lead.full_name}</span>
               <Badge
                 variant="outline"
-                className={cn("normal-case tracking-normal", stageBadgeClass(lead.pipeline_stage))}
+                className={cn(
+                  "normal-case tracking-normal",
+                  stageBadgeClass(lead.pipeline_stage),
+                )}
               >
                 {STAGE_LABELS[lead.pipeline_stage]}
               </Badge>
               <Badge
                 variant="outline"
-                className={cn("normal-case tracking-normal", priorityBadgeClass(lead.priority))}
+                className={cn(
+                  "normal-case tracking-normal",
+                  priorityBadgeClass(lead.priority),
+                )}
               >
                 Prioridade {PRIORITY_LABELS[lead.priority].toLowerCase()}
               </Badge>
             </DialogTitle>
-            <DialogDescription>Detalhes do lead e histórico de contatos.</DialogDescription>
+            <DialogDescription className="text-xs">
+              Detalhes do lead, próxima ação e histórico.
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="min-h-0 space-y-5 overflow-y-auto pr-1">
-            {intel.operationalTier !== "terminal" &&
-            intel.operationalTier !== "deprioritize" ? (
-              <section
-                aria-label="Recomendação do sistema"
-                className={cn(
-                  "rounded-lg border p-4",
-                  intel.attentionLevel === "critical"
-                    ? "border-rose-500/50 bg-rose-500/10"
-                    : intel.attentionLevel === "today"
-                      ? "border-amber-500/40 bg-amber-500/10"
-                      : "border-sky-500/30 bg-sky-500/10",
-                )}
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4 sm:px-6">
+            {phoneInvalid ? (
+              <div
+                role="alert"
+                className="flex items-start gap-2 rounded-md border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-sm text-amber-200"
               >
-                <header className="flex flex-wrap items-center gap-2">
-                  <Sparkles className="size-4 text-lf-volt" aria-hidden />
-                  <h3 className="text-sm font-semibold tracking-tight text-foreground">
-                    Recomendação do sistema
-                  </h3>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "normal-case tracking-normal",
-                      attentionBadgeClass(intel.attentionLevel),
-                    )}
-                  >
-                    {intel.tierLabel}
-                  </Badge>
-                  {intel.dueLabel ? (
-                    <span className="inline-flex items-center gap-1 rounded border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-200">
-                      <Clock className="size-3" aria-hidden /> {intel.dueLabel}
-                    </span>
-                  ) : null}
-                </header>
-                <p className="mt-2 text-base font-medium text-foreground">
-                  {intel.suggestedActionLabel}
-                </p>
-                <p className="text-[11px] uppercase tracking-wide text-lf-muted">
-                  Prioridade operacional {intel.score}/100
-                </p>
+                <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
+                <span>
+                  {presentation.phone.state === "incomplete"
+                    ? "Telefone incompleto — confirme o número antes de qualquer contato por WhatsApp ou ligação."
+                    : "Lead sem telefone cadastrado — use o email ou obtenha um número antes de ligar."}
+                </span>
+              </div>
+            ) : null}
 
-                {intel.reasons.length > 0 ? (
-                  <ul className="mt-3 space-y-1.5">
-                    {intel.reasons.map((reason) => (
-                      <li
-                        key={reason}
-                        className="flex gap-2 text-sm text-foreground/90"
-                      >
-                        <AlertTriangle
-                          className="mt-0.5 size-3.5 shrink-0 text-amber-300"
-                          aria-hidden
-                        />
-                        <span>{reason}</span>
-                      </li>
-                    ))}
-                  </ul>
+            {/* 1. Situação atual */}
+            <section aria-label="Situação atual" className="space-y-2">
+              <SectionTitle>Situação atual</SectionTitle>
+              <StatusChipRow presentation={presentation} />
+              <p className="text-sm text-foreground/90">{presentation.reason}</p>
+              {intel.reasons.length > 1 ? (
+                <ul className="space-y-1 text-xs text-lf-muted">
+                  {intel.reasons.slice(1).map((r) => (
+                    <li key={r} className="flex gap-1.5">
+                      <span aria-hidden>·</span>
+                      <span>{r}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
+
+            {/* 2. Próxima ação */}
+            {presentation.group !== "history" ? (
+              <section aria-label="Próxima ação" className="space-y-2">
+                <SectionTitle>Próxima ação</SectionTitle>
+                <PrimaryActionBar
+                  presentation={presentation}
+                  onPrimary={() => setMode(mapSuggestedActionToMode(intel.suggestedAction))}
+                />
+                {presentation.action.primary ? (
+                  <ActionShortcuts mode={mode} setMode={setMode} />
                 ) : null}
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={() =>
-                      setMode(mapSuggestedActionToMode(intel.suggestedAction))
-                    }
-                    className="gap-2"
-                  >
-                    {primaryActionButtonLabel(intel.suggestedAction)}
-                  </Button>
-                  {wa ? (
-                    <a
-                      href={`https://wa.me/${wa}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/50 bg-emerald-500/15 px-3 py-2 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 lf-focus"
-                    >
-                      <MessageSquare className="size-3.5" aria-hidden /> Abrir WhatsApp
-                    </a>
-                  ) : null}
-                </div>
+                {mode === "contact" ? (
+                  <RegisterContactForm lead={lead} onDone={() => setMode("none")} />
+                ) : null}
+                {mode === "stage" ? (
+                  <ChangeStageForm lead={lead} onDone={() => setMode("none")} />
+                ) : null}
+                {mode === "schedule" ? (
+                  <ScheduleNextContactForm lead={lead} onDone={() => setMode("none")} />
+                ) : null}
               </section>
             ) : (
               <section
                 aria-label="Lead encerrado"
                 className="rounded-lg border border-neutral-500/40 bg-neutral-500/10 p-3 text-sm text-lf-muted"
               >
-                {intel.reasons[0] ?? "Lead encerrado — apenas no histórico."}
+                {presentation.historyBadge === "deprioritize"
+                  ? "Lead marcado como Não priorizar — não é candidato à franquia."
+                  : "Lead encerrado — apenas no histórico."}
+                <ActionShortcuts mode={mode} setMode={setMode} compact />
+                {mode === "contact" ? (
+                  <RegisterContactForm lead={lead} onDone={() => setMode("none")} />
+                ) : null}
+                {mode === "stage" ? (
+                  <ChangeStageForm lead={lead} onDone={() => setMode("none")} />
+                ) : null}
+                {mode === "schedule" ? (
+                  <ScheduleNextContactForm lead={lead} onDone={() => setMode("none")} />
+                ) : null}
               </section>
             )}
 
-            <section className="grid gap-3 rounded-lg border border-border/80 bg-lf-graphite/50 p-3 sm:grid-cols-2">
-              <Field label="Celular" value={formatPhoneForDisplay(lead.phone) || "—"} />
-              <Field label="Email" value={lead.email ?? "—"} />
-              <Field label="Origem" value={lead.source ? SOURCE_LABELS[lead.source] : "—"} />
-              <Field label="Data de recebimento" value={formatDateTime(lead.received_at)} />
-              <Field label="Último contato" value={formatDateTime(lead.last_contact_at)} />
-              <Field label="Status da última conversa" value={lead.last_conversation_status ?? "—"} />
-              <Field label="Próxima ação" value={lead.next_action ?? "—"} />
-              <Field label="Próximo contato" value={formatDateTime(lead.next_contact_at)} />
-              <Field label="Investimento disponível" value={lead.investment_range ?? "—"} />
-              <Field label="Prazo para iniciar" value={lead.start_timeline ?? "—"} />
-              <Field label="Identificação no WhatsApp" value={lead.whatsapp_label ?? "—"} />
-              {lead.pipeline_stage === "lost" ? (
-                <Field label="Motivo da perda" value={lead.lost_reason ?? "—"} />
-              ) : null}
+            {/* 3. Contato */}
+            <section aria-label="Contato" className="space-y-2">
+              <SectionTitle>Contato</SectionTitle>
+              <div className="grid gap-3 rounded-lg border border-border/80 bg-lf-graphite/50 p-3 sm:grid-cols-2">
+                <Field label="Celular" value={formatPhoneForDisplay(lead.phone) || "—"} />
+                <Field label="Email" value={lead.email ?? "—"} />
+                <Field
+                  label="Identificação no WhatsApp"
+                  value={lead.whatsapp_label ?? "—"}
+                />
+                <Field
+                  label="Origem"
+                  value={lead.source ? SOURCE_LABELS[lead.source] : "—"}
+                />
+              </div>
             </section>
 
-            {lead.notes ? (
-              <section className="rounded-lg border border-border/80 bg-card/50 p-3">
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-lf-muted">Observações</h3>
-                <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90">{lead.notes}</p>
-              </section>
-            ) : null}
-
-            <section className="flex flex-wrap gap-2">
-              <Button type="button" size="sm" onClick={() => setMode(mode === "contact" ? "none" : "contact")} className="gap-2">
-                <PhoneCall className="size-4" aria-hidden /> Registrar contato
-              </Button>
-              <Button type="button" size="sm" variant="secondary" onClick={() => setMode(mode === "stage" ? "none" : "stage")} className="gap-2">
-                <GitBranch className="size-4" aria-hidden /> Alterar etapa
-              </Button>
-              <Button type="button" size="sm" variant="secondary" onClick={() => setMode(mode === "schedule" ? "none" : "schedule")} className="gap-2">
-                <CalendarPlus className="size-4" aria-hidden /> Agendar próximo contato
-              </Button>
-              {canEditCadastro ? (
-                <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(true)} className="gap-2">
-                  <Pencil className="size-4" aria-hidden /> Editar lead
-                </Button>
-              ) : null}
-            </section>
-
-            {mode === "contact" ? (
-              <RegisterContactForm
-                lead={lead}
-                onDone={() => setMode("none")}
-              />
-            ) : null}
-            {mode === "stage" ? (
-              <ChangeStageForm lead={lead} onDone={() => setMode("none")} />
-            ) : null}
-            {mode === "schedule" ? (
-              <ScheduleNextContactForm lead={lead} onDone={() => setMode("none")} />
-            ) : null}
-
-            <section>
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-lf-muted">
-                Histórico de contatos
-              </h3>
+            {/* 4. Histórico */}
+            <section aria-label="Histórico de contatos" className="space-y-2">
+              <SectionTitle>Histórico</SectionTitle>
               {sortedActivities.length === 0 ? (
                 <p className="rounded-md border border-dashed border-border/80 px-3 py-6 text-center text-sm text-lf-muted">
                   Nenhum contato registrado ainda.
@@ -301,16 +254,69 @@ export function LeadDetailDialog({
                           {activityLabels[a.activity_type]}
                         </span>
                       </div>
-                      <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90">{a.summary}</p>
+                      <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90">
+                        {a.summary}
+                      </p>
                     </li>
                   ))}
                 </ol>
               )}
             </section>
+
+            {/* 5. Informações complementares — recolhidas por padrão */}
+            <details className="rounded-lg border border-border/80 bg-card/50 open:bg-card/70">
+              <summary className="flex cursor-pointer items-center justify-between gap-2 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-lf-muted lf-focus">
+                <span>Informações complementares</span>
+                <span className="text-[11px] font-normal normal-case text-lf-muted/80">
+                  Clique para expandir
+                </span>
+              </summary>
+              <div className="grid gap-3 border-t border-border/60 p-3 sm:grid-cols-2">
+                <Field label="Data de recebimento" value={formatDateTime(lead.received_at)} />
+                <Field label="Último contato" value={formatDateTime(lead.last_contact_at)} />
+                <Field
+                  label="Status da última conversa"
+                  value={lead.last_conversation_status ?? "—"}
+                />
+                <Field label="Próxima ação cadastrada" value={lead.next_action ?? "—"} />
+                <Field label="Próximo contato" value={formatDateTime(lead.next_contact_at)} />
+                <Field
+                  label="Investimento disponível"
+                  value={lead.investment_range ?? "—"}
+                />
+                <Field label="Prazo para iniciar" value={lead.start_timeline ?? "—"} />
+                {lead.pipeline_stage === "lost" ? (
+                  <Field label="Motivo da perda" value={lead.lost_reason ?? "—"} />
+                ) : null}
+                {lead.notes ? (
+                  <div className="sm:col-span-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-lf-muted">
+                      Observações
+                    </p>
+                    <p className="mt-0.5 whitespace-pre-wrap text-sm text-foreground/90">
+                      {lead.notes}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            </details>
           </div>
 
-          <DialogFooter className="shrink-0 border-t border-border/80 pt-4">
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+          <DialogFooter className="shrink-0 flex-row items-center justify-between gap-2 border-t border-border/80 px-4 py-3 sm:px-6">
+            <div>
+              {canEditCadastro ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setEditing(true)}
+                  className="gap-2"
+                >
+                  <Pencil className="size-4" aria-hidden /> Editar cadastro
+                </Button>
+              ) : null}
+            </div>
+            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
               Fechar
             </Button>
           </DialogFooter>
@@ -333,6 +339,165 @@ export function LeadDetailDialog({
   );
 }
 
+// ------------------------------------------------------------------
+// Pedaços visuais
+// ------------------------------------------------------------------
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-lf-muted">
+      {children}
+    </h3>
+  );
+}
+
+function iconFor(key: IconKey, className: string): React.ReactNode {
+  const common = { className, "aria-hidden": true } as const;
+  switch (key) {
+    case "zap":
+      return <Zap {...common} />;
+    case "phone-call":
+      return <PhoneCall {...common} />;
+    case "calendar-clock":
+      return <CalendarClock {...common} />;
+    case "phone-off":
+      return <PhoneOff {...common} />;
+    case "message-circle-dashed":
+      return <MessageCircleDashed {...common} />;
+    case "pause":
+      return <Pause {...common} />;
+    case "archive":
+      return <Archive {...common} />;
+    case "check-circle":
+      return <CheckCircle {...common} />;
+  }
+}
+
+function toneChip(tone: Tone): string {
+  switch (tone) {
+    case "critical":
+      return "border-rose-500/50 bg-rose-500/15 text-rose-200";
+    case "warn":
+      return "border-amber-500/50 bg-amber-500/15 text-amber-200";
+    case "info":
+      return "border-sky-500/40 bg-sky-500/10 text-sky-200";
+    case "ok":
+      return "border-emerald-500/40 bg-emerald-500/10 text-emerald-200";
+    case "muted":
+    default:
+      return "border-border/60 bg-lf-graphite/60 text-lf-muted";
+  }
+}
+
+function StatusChipRow({ presentation }: { presentation: LeadPresentation }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span
+        className={cn(
+          "inline-flex items-center gap-1.5 rounded border px-2 py-1 text-xs font-semibold normal-case tracking-wide",
+          toneChip(presentation.statusTone),
+        )}
+        role="status"
+      >
+        {iconFor(presentation.statusIcon, "size-3.5")}
+        <span>{presentation.statusLabel}</span>
+      </span>
+      {presentation.dueLabel && presentation.dueLabel !== presentation.statusLabel ? (
+        <span className="inline-flex items-center gap-1 rounded border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold normal-case tracking-wide text-amber-200">
+          <Clock className="size-3" aria-hidden />
+          {presentation.dueLabel}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function PrimaryActionBar({
+  presentation,
+  onPrimary,
+}: {
+  presentation: LeadPresentation;
+  onPrimary: () => void;
+}) {
+  // Awaiting — sem ação ativa antecipada.
+  if (!presentation.action.primary) {
+    return (
+      <div className="rounded-lg border border-border/60 bg-lf-graphite/60 px-3 py-2 text-sm text-lf-muted">
+        <span className="inline-flex items-center gap-2">
+          <Pause className="size-4" aria-hidden />
+          {presentation.statusLabel}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Button
+        type="button"
+        onClick={onPrimary}
+        className="min-h-14 gap-2 px-4 text-sm sm:min-h-11"
+      >
+        {iconFor(presentation.statusIcon, "size-4")}
+        <span>{presentation.action.label}</span>
+      </Button>
+      {presentation.phone.canUseWhatsAppSecondary && presentation.phone.waHref ? (
+        <a
+          href={presentation.phone.waHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex min-h-14 items-center gap-1.5 rounded-md border border-emerald-500/50 bg-emerald-500/15 px-3 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 sm:min-h-11 lf-focus"
+          aria-label="Abrir conversa no WhatsApp"
+        >
+          <MessageSquare className="size-4" aria-hidden /> WhatsApp
+        </a>
+      ) : null}
+    </div>
+  );
+}
+
+function ActionShortcuts({
+  mode,
+  setMode,
+  compact,
+}: {
+  mode: ActionMode;
+  setMode: (m: ActionMode) => void;
+  compact?: boolean;
+}) {
+  return (
+    <div className={cn("flex flex-wrap gap-2", compact ? "mt-2" : null)}>
+      <Button
+        type="button"
+        size="sm"
+        variant="ghost"
+        onClick={() => setMode(mode === "contact" ? "none" : "contact")}
+        className="gap-2"
+      >
+        <PhoneCall className="size-4" aria-hidden /> Registrar contato
+      </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant="ghost"
+        onClick={() => setMode(mode === "stage" ? "none" : "stage")}
+        className="gap-2"
+      >
+        <GitBranch className="size-4" aria-hidden /> Alterar etapa
+      </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant="ghost"
+        onClick={() => setMode(mode === "schedule" ? "none" : "schedule")}
+        className="gap-2"
+      >
+        <CalendarPlus className="size-4" aria-hidden /> Agendar próximo contato
+      </Button>
+    </div>
+  );
+}
+
 function mapSuggestedActionToMode(
   action: LeadIntelligence["suggestedAction"],
 ): ActionMode {
@@ -344,6 +509,8 @@ function mapSuggestedActionToMode(
     case "resend_other_time":
     case "confirm_visit":
     case "validate_phone":
+    case "answer_new_lead":
+    case "forward_to_expansion":
       return "contact";
     case "confirm_meeting":
     case "schedule_meeting":
@@ -355,36 +522,20 @@ function mapSuggestedActionToMode(
   }
 }
 
-function primaryActionButtonLabel(
-  action: LeadIntelligence["suggestedAction"],
-): string {
-  switch (action) {
-    case "record_meeting_outcome":
-      return "Registrar resultado";
-    case "schedule_meeting":
-    case "confirm_meeting":
-      return "Agendar / confirmar";
-    case "call_now":
-    case "whatsapp_reconnect":
-    case "send_followup":
-    case "resend_other_time":
-    case "confirm_visit":
-      return "Registrar contato";
-    case "validate_phone":
-      return "Registrar contato";
-    default:
-      return "Registrar contato";
-  }
-}
-
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-lf-muted">{label}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-lf-muted">
+        {label}
+      </p>
       <p className="mt-0.5 text-sm text-foreground/90">{value}</p>
     </div>
   );
 }
+
+// ------------------------------------------------------------------
+// Forms de ação (preservados com pequenos ajustes)
+// ------------------------------------------------------------------
 
 function RegisterContactForm({ lead, onDone }: { lead: FranchiseLead; onDone: () => void }) {
   const [pending, startTransition] = useTransition();
