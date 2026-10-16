@@ -6,6 +6,7 @@ import {
   DGN_SUBSCRIBER_PLANS,
   DGN_BILLING_MODALITIES,
 } from "@/lib/growth/dgn-plans";
+import { resolvePreselectedPlan } from "@/lib/growth/plans/catalog";
 import {
   derivePaymentEvidence,
   type PaymentEvidenceResult,
@@ -121,6 +122,7 @@ export function SubscriptionsManager({
   customerId,
   enabled,
   autoOpenCreate = false,
+  preselectedPlan = null,
 }: {
   customerId: string;
   enabled: boolean;
@@ -132,6 +134,12 @@ export function SubscriptionsManager({
    * sem precisar rolar/clicar em "Adicionar assinatura manual".
    */
   autoOpenCreate?: boolean;
+  /**
+   * Plano pré-selecionado vindo da entrada "Oferecer assinatura" na ficha.
+   * Propagado ao SubscriptionCreateForm — se não for um plano oficial, é
+   * silenciosamente ignorado e o form cai no default "Smart".
+   */
+  preselectedPlan?: string | null;
 }) {
   const [rows, setRows] = useState<SubscriptionRow[]>([]);
   const [vehicles, setVehicles] = useState<VehicleOption[]>([]);
@@ -251,6 +259,7 @@ export function SubscriptionsManager({
             <SubscriptionCreateForm
               customerId={customerId}
               vehicles={vehicles}
+              initialPlan={preselectedPlan}
               onCancel={() => setShowCreate(false)}
               onCreated={async () => {
                 setShowCreate(false);
@@ -521,13 +530,20 @@ function SubscriptionCreateForm({
   vehicles,
   onCancel,
   onCreated,
+  initialPlan,
 }: {
   customerId: string;
   vehicles: VehicleOption[];
   onCancel: () => void;
   onCreated: () => Promise<void> | void;
+  /**
+   * Plano pré-selecionado quando a ficha é aberta via "Oferecer assinatura"
+   * (modal com os 3 cards). Precisa ser um dos planos oficiais — qualquer
+   * outro valor é ignorado silenciosamente e cai no default "Smart".
+   */
+  initialPlan?: string | null;
 }) {
-  const [plan, setPlan] = useState<string>("Smart");
+  const [plan, setPlan] = useState<string>(resolvePreselectedPlan(initialPlan));
   const [modality, setModality] = useState<string>("Mensal");
   const [vehicleId, setVehicleId] = useState<string>(vehicles[0]?.id ?? "");
   const [cycleEndsAt, setCycleEndsAt] = useState<string>("");

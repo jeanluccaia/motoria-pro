@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   ArrowLeft,
   ShieldCheck,
@@ -13,6 +13,7 @@ import {
   Repeat,
   History,
   Stethoscope,
+  Sparkles,
 } from "lucide-react";
 import type { DgnCustomer } from "@/lib/growth/dgn-growth-utils";
 import {
@@ -23,6 +24,8 @@ import {
   PortalAccessEditor,
 } from "@/components/growth/DgnGrowthWorkspace";
 import { SubscriptionsManager } from "@/components/growth/SubscriptionsManager";
+import { OfferPlansModal } from "@/components/growth/OfferPlansModal";
+import type { DgnSubscriberPlan } from "@/lib/growth/dgn-plans";
 import {
   derivePortalAccessStatus,
   type PortalAccessStatusResult,
@@ -138,6 +141,7 @@ export function CustomerFullscreen({
   dataOrigin,
   backHref,
   openCreateSubscription = false,
+  initialPreselectedPlan = null,
 }: {
   customer: DgnCustomer;
   dataOrigin: "json" | "db" | "json-fallback";
@@ -148,9 +152,20 @@ export function CustomerFullscreen({
    * Repassado ao SubscriptionsManager para abrir o form direto.
    */
   openCreateSubscription?: boolean;
+  /**
+   * Plano pré-selecionado vindo da query ?plano=<Essential|Smart|Priority>.
+   * Já validado contra DGN_SUBSCRIBER_PLANS no server component — chega aqui
+   * sempre ou null, ou plano oficial. Usado quando o operador compartilha o
+   * link direto da oferta.
+   */
+  initialPreselectedPlan?: DgnSubscriberPlan | null;
 }) {
   const [customer, setCustomer] = useState<DgnCustomer>(initial);
   const editable = dataOrigin === "db";
+  const [offerOpen, setOfferOpen] = useState(false);
+  const [preselectedPlan, setPreselectedPlan] = useState<DgnSubscriberPlan | null>(initialPreselectedPlan);
+  const [autoOpenFromOffer, setAutoOpenFromOffer] = useState(false);
+  const subscriptionsSectionRef = useRef<HTMLDivElement | null>(null);
 
   const status = subscriptionStatusLabel(customer.subscription?.status);
   const planLabel = (customer.activePlan?.trim() || "Sem plano ativo");
@@ -192,14 +207,25 @@ export function CustomerFullscreen({
             </div>
             <div className="flex flex-col items-stretch gap-2 sm:items-end">
               {editable ? (
-                <Link
-                  href={`/admin/growth/diagnosticos/novo?cliente=${encodeURIComponent(customer.id)}`}
-                  data-testid="customer-new-diagnostic"
-                  className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-[#C9A84C]/35 bg-[#C9A84C]/10 px-3 text-[12px] font-semibold text-[#E7C96A] transition hover:border-[#C9A84C]/60"
-                >
-                  <Stethoscope size={14} />
-                  Novo diagnóstico
-                </Link>
+                <div className="flex flex-wrap gap-2 sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setOfferOpen(true)}
+                    data-testid="customer-offer-subscription"
+                    className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-[#C9A84C]/35 bg-[#C9A84C]/10 px-3 text-[12px] font-semibold text-[#E7C96A] transition hover:border-[#C9A84C]/60"
+                  >
+                    <Sparkles size={14} />
+                    Oferecer assinatura
+                  </button>
+                  <Link
+                    href={`/admin/growth/diagnosticos/novo?cliente=${encodeURIComponent(customer.id)}`}
+                    data-testid="customer-new-diagnostic"
+                    className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 text-[12px] font-semibold text-white/80 transition hover:border-white/[0.18]"
+                  >
+                    <Stethoscope size={14} />
+                    Novo diagnóstico
+                  </Link>
+                </div>
               ) : null}
               {!editable && (
                 <span className="inline-flex h-fit items-center gap-1.5 rounded-full border border-amber-300/30 bg-amber-300/[0.06] px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-amber-200">
@@ -270,12 +296,15 @@ export function CustomerFullscreen({
                 />
                 <Fact label="Próxima cobrança (contrato vigente)" value={formatDate(customer.subscription?.nextDueDate)} />
               </div>
-              <SubscriptionsManager
-                key={`subs-${customer.id}`}
-                customerId={customer.id}
-                enabled={editable}
-                autoOpenCreate={openCreateSubscription}
-              />
+              <div ref={subscriptionsSectionRef}>
+                <SubscriptionsManager
+                  key={`subs-${customer.id}`}
+                  customerId={customer.id}
+                  enabled={editable}
+                  autoOpenCreate={openCreateSubscription || autoOpenFromOffer}
+                  preselectedPlan={preselectedPlan}
+                />
+              </div>
             </div>
           </Section>
 
@@ -368,6 +397,22 @@ export function CustomerFullscreen({
           audit log. Founders Nº001, Nº002, Nº003 permanecem preservados; Iara Nº004 aberta.
         </footer>
       </div>
+
+      <OfferPlansModal
+        open={offerOpen}
+        onClose={() => setOfferOpen(false)}
+        customerName={customer.name}
+        disabled={!editable}
+        disabledReason="Persistência não habilitada neste ambiente — a oferta é apenas visual."
+        onSelectPlan={(plan) => {
+          setPreselectedPlan(plan);
+          setAutoOpenFromOffer(true);
+          setOfferOpen(false);
+          requestAnimationFrame(() => {
+            subscriptionsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+          });
+        }}
+      />
     </div>
   );
 }
