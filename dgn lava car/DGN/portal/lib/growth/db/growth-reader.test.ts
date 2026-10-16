@@ -43,6 +43,68 @@ test("mapper preserva quatro clientes, Founders 001-003 e Iara selecionada sem c
   assert.equal(mapped[0].vehicle, "VW T-Cross"); assert.equal(mapped[0].recommendedPlan, "Smart");
 });
 
+test("LOTE B — Iara com manual Priority ativo + legado detectado: contrato canônico vence legado em qualquer ordem", () => {
+  // Caso real: Iara tem 2 rows em crm_subscriptions. Antes do fix, mapGrowthSnapshot
+  // usava .find() na primeira que o Postgres devolvesse — e o legado (is_active=false,
+  // status=detectado) podia aparecer antes do manual (is_active=true, status=ativo),
+  // derrubando a Central/Profile360/métricas canônicas para "sem assinatura".
+  const base = snapshot();
+  const legado = { customer_id: "4", id: "legado-detectado", subscription_plan: "Priority", subscription_cycle: "não identificado", subscription_status: "detectado", is_active_subscriber: false, subscription_source: "Importação", created_at: "2026-07-17T03:04:35+00:00" };
+  const manual = { customer_id: "4", id: "manual-priority-ativo", subscription_plan: "Priority", subscription_cycle: "mensal", subscription_status: "ativo", is_active_subscriber: true, subscription_source: "Manual", payment_method: "manual", created_at: "2026-10-11T15:55:14+00:00" };
+  // Ordem A: legado primeiro (replica o cenário bug — .find() cairia no detectado)
+  const mappedA = mapGrowthSnapshot({ ...base, subscriptions: [...base.subscriptions.filter((s) => s.customer_id !== "4"), legado, manual] });
+  const iaraA = mappedA.find((row) => row.id === "iara-menezes")!;
+  assert.equal(iaraA.subscription?.isActive, true, "manual Priority ativo deve vencer o legado detectado — ordem A");
+  assert.equal(iaraA.activePlan, "Priority");
+  assert.equal(iaraA.commercialStatus, "Assinante Ativo");
+  // Ordem B: manual primeiro — mesmo resultado (prova determinismo)
+  const mappedB = mapGrowthSnapshot({ ...base, subscriptions: [...base.subscriptions.filter((s) => s.customer_id !== "4"), manual, legado] });
+  const iaraB = mappedB.find((row) => row.id === "iara-menezes")!;
+  assert.equal(iaraB.subscription?.isActive, true, "mesmo resultado independentemente da ordem — ordem B");
+  assert.equal(iaraB.activePlan, "Priority");
+});
+
+test("LOTE B — dois contratos ATIVOS em veículos diferentes: vence o mais recente, mapper não cruza clientes", () => {
+  // Cenário futuro: cliente com N subs ativas simultâneas (ex.: Priority Fofox +
+  // Smart em outro veículo). O mapper carrega UMA sub por customer (contrato
+  // documentado em canonical-subscribers.ts) — a aba "Gerenciar Assinaturas"
+  // (SubscriptionsManager / listSubscriptions) mostra TODAS. Aqui provamos:
+  //   (a) prevalece o mais recente por created_at;
+  //   (b) o fix não "cola" uma sub de outro customer na Iara (filtro por
+  //       customer_id continua estanque).
+  const base = snapshot();
+  const antigo = { customer_id: "4", id: "sub-antiga-fofox", subscription_plan: "Priority", subscription_cycle: "mensal", subscription_status: "ativo", is_active_subscriber: true, created_at: "2026-07-01T00:00:00+00:00", vehicle_id: "veic-fofox" };
+  const recente = { customer_id: "4", id: "sub-recente-outro", subscription_plan: "Smart", subscription_cycle: "mensal", subscription_status: "ativo", is_active_subscriber: true, created_at: "2026-10-11T15:55:14+00:00", vehicle_id: "veic-outro" };
+  const outraPessoaSub = { customer_id: "3", id: "rikardo-sub", subscription_plan: "Priority", subscription_cycle: "mensal", subscription_status: "ativo", is_active_subscriber: true, created_at: "2026-10-14T00:00:00+00:00", vehicle_id: "veic-onix" };
+  const mapped = mapGrowthSnapshot({
+    ...base,
+    subscriptions: [
+      ...base.subscriptions.filter((s) => s.customer_id !== "4" && s.customer_id !== "3"),
+      outraPessoaSub, antigo, recente,
+    ],
+  });
+  const iara = mapped.find((row) => row.id === "iara-menezes")!;
+  const rikardo = mapped.find((row) => row.id === "rikardo-oliveira")!;
+  // Iara: entre 2 ativos, prevalece o mais recente (Smart) — fix determinístico.
+  assert.equal(iara.activePlan, "Smart", "entre 2 ativos, mais recente vence");
+  assert.equal(iara.subscription?.isActive, true);
+  // Rikardo mantém a sub DELE, nunca a da Iara (filtro por customer_id estanque).
+  assert.equal(rikardo.activePlan, "Priority", "mapper não deve cruzar subs entre clientes");
+  assert.equal(rikardo.subscription?.isActive, true);
+});
+
+test("LOTE B — múltiplas subs sem nenhuma ativa não quebram o mapper (fallback pelo mais recente)", () => {
+  const base = snapshot();
+  const antigo = { customer_id: "4", id: "cancelada-antiga", subscription_plan: "Essential", subscription_cycle: "mensal", subscription_status: "cancelado", is_active_subscriber: false, created_at: "2025-01-01T00:00:00+00:00" };
+  const detectado = { customer_id: "4", id: "detectado-recente", subscription_plan: "Priority", subscription_cycle: "mensal", subscription_status: "detectado", is_active_subscriber: false, created_at: "2026-07-01T00:00:00+00:00" };
+  const mapped = mapGrowthSnapshot({ ...base, subscriptions: [...base.subscriptions.filter((s) => s.customer_id !== "4"), antigo, detectado] });
+  const iara = mapped.find((row) => row.id === "iara-menezes")!;
+  // Invariante do fix: sem nenhuma sub ativa, isActive=false e activePlan=null.
+  // commercialStatus depende da camada de campaign_member (ortogonal ao fix de contrato).
+  assert.equal(iara.subscription?.isActive, false);
+  assert.equal(iara.activePlan, null);
+});
+
 test("modo DB é estável entre leituras e retorna somente quatro registros", async () => {
   const db = mockDb(snapshot()); const env = { DGN_GROWTH_DATA_SOURCE: "db" };
   const first = await loadGrowthData({ env, db }); const reload = await loadGrowthData({ env, db });

@@ -134,7 +134,20 @@ export function mapGrowthSnapshot(snapshot: GrowthDbSnapshot): DgnCustomer[] {
     const customerId = text(customer.id);
     const vehicle = snapshot.vehicles.find((row) => row.customer_id === customerId && row.is_primary)
       ?? snapshot.vehicles.find((row) => row.customer_id === customerId);
-    const subscription = snapshot.subscriptions.find((row) => row.customer_id === customerId);
+    // LOTE B — Iara: cliente pode ter N subscriptions (ex.: Priority manual ativo +
+    // Priority detectado legado da importação 4U). `.find()` sem ordenação deixava
+    // Postgres decidir qual aparece na Central/Profile360/métricas — o legado
+    // (is_active=false) podia vencer o manual Priority ativo. Regra canônica
+    // explícita: contrato com is_active_subscriber=true sempre vence; empate
+    // (improvável) resolve por created_at DESC.
+    const subscription = snapshot.subscriptions
+      .filter((row) => row.customer_id === customerId)
+      .sort((a, b) => {
+        const aActive = a.is_active_subscriber === true ? 1 : 0;
+        const bActive = b.is_active_subscriber === true ? 1 : 0;
+        if (aActive !== bActive) return bActive - aActive;
+        return text(b.created_at).localeCompare(text(a.created_at));
+      })[0];
     const member = snapshot.campaignMembers.find((row) => row.customer_id === customerId);
     const score = snapshot.scores.filter((row) => row.customer_id === customerId)
       .sort((a, b) => text(b.calculated_at).localeCompare(text(a.calculated_at)))[0];
