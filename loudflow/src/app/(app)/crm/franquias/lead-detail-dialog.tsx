@@ -432,21 +432,23 @@ function PrimaryActionBar({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-stretch gap-2 sm:items-center">
       <Button
         type="button"
         onClick={onPrimary}
-        className="min-h-14 gap-2 px-4 text-sm sm:min-h-11"
+        className="min-h-14 w-full gap-2 px-4 text-sm sm:min-h-11 sm:w-auto sm:max-w-md"
       >
-        {iconFor(presentation.statusIcon, "size-4")}
-        <span>{presentation.action.label}</span>
+        <span className="shrink-0">{iconFor(presentation.statusIcon, "size-4")}</span>
+        <span className="min-w-0 flex-1 truncate text-left">
+          {presentation.action.label}
+        </span>
       </Button>
       {presentation.phone.canUseWhatsAppSecondary && presentation.phone.waHref ? (
         <a
           href={presentation.phone.waHref}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex min-h-14 items-center gap-1.5 rounded-md border border-emerald-500/50 bg-emerald-500/15 px-3 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 sm:min-h-11 lf-focus"
+          className="inline-flex min-h-12 items-center justify-center gap-1.5 rounded-md border border-emerald-500/50 bg-emerald-500/15 px-3 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 sm:min-h-11 lf-focus"
           aria-label="Abrir conversa no WhatsApp"
         >
           <MessageSquare className="size-4" aria-hidden /> WhatsApp

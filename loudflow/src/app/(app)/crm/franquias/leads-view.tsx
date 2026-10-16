@@ -760,10 +760,12 @@ function ActionButtons({
         e.stopPropagation();
         onOpen(lead.id);
       }}
-      className="min-h-11 gap-1.5"
+      className="min-h-14 w-full gap-1.5 sm:min-h-11 sm:w-auto sm:max-w-xs"
     >
-      {iconFor(presentation.statusIcon, "size-4")}
-      <span className="truncate">{presentation.action.label}</span>
+      <span className="shrink-0">{iconFor(presentation.statusIcon, "size-4")}</span>
+      <span className="min-w-0 flex-1 truncate text-left">
+        {presentation.action.label}
+      </span>
     </Button>
   );
 
@@ -773,7 +775,7 @@ function ActionButtons({
       target="_blank"
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
-      className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-emerald-500/50 bg-emerald-500/15 px-3 py-2 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 lf-focus"
+      className="inline-flex min-h-12 items-center gap-1.5 rounded-md border border-emerald-500/50 bg-emerald-500/15 px-3 py-2 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 sm:min-h-11 lf-focus"
       aria-label="Abrir conversa no WhatsApp"
     >
       <MessageSquare className="size-3.5" aria-hidden />
@@ -782,7 +784,7 @@ function ActionButtons({
   ) : null;
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-stretch gap-2 sm:items-center">
       {primary}
       {secondary}
     </div>
