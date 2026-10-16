@@ -17,6 +17,7 @@ import {
   groupForTier,
   isWhatsAppPrimary,
   phoneState,
+  shortActionLabel,
   LEAD_GROUP_LABELS,
   type LeadGroup,
 } from "../src/lib/crm/presentation";
@@ -251,6 +252,73 @@ test.describe("Apresentação — groupOrderedLeads preserva a ordem canônica",
 
     const counts = countsFromBuckets(buckets);
     expect(counts).toEqual({ act_now: 2, reactivate: 1, awaiting: 1, history: 1 });
+  });
+});
+
+test.describe("Apresentação — CTA curto do botão primário", () => {
+  test("shortActionLabel mapeia ações WhatsApp para 'Chamar no WhatsApp'", () => {
+    expect(shortActionLabel("whatsapp_reconnect")).toBe("Chamar no WhatsApp");
+    expect(shortActionLabel("send_followup")).toBe("Chamar no WhatsApp");
+    expect(shortActionLabel("resend_other_time")).toBe("Chamar no WhatsApp");
+    expect(shortActionLabel("answer_new_lead")).toBe("Chamar no WhatsApp");
+  });
+
+  test("shortActionLabel: call_now → 'Ligar agora'; validate_phone → 'Conferir telefone'", () => {
+    expect(shortActionLabel("call_now")).toBe("Ligar agora");
+    expect(shortActionLabel("validate_phone")).toBe("Conferir telefone");
+  });
+
+  test("shortActionLabel: ações de reunião/agendamento → 'Registrar contato'", () => {
+    expect(shortActionLabel("record_meeting_outcome")).toBe("Registrar contato");
+    expect(shortActionLabel("confirm_meeting")).toBe("Registrar contato");
+    expect(shortActionLabel("schedule_meeting")).toBe("Registrar contato");
+    expect(shortActionLabel("confirm_visit")).toBe("Registrar contato");
+  });
+
+  test("shortActionLabel: forward_to_expansion → 'Encaminhar'", () => {
+    expect(shortActionLabel("forward_to_expansion")).toBe("Encaminhar");
+  });
+
+  test("shortActionLabel: terminais/aguardando → 'Aguardar' ou 'Ver detalhes'", () => {
+    expect(shortActionLabel("wait_until_scheduled")).toBe("Aguardar");
+    expect(shortActionLabel("history_only")).toBe("Ver detalhes");
+  });
+
+  test("buttonLabel sempre tem ≤ 24 caracteres (cabe no CTA sem truncate)", () => {
+    const actions = [
+      "whatsapp_reconnect",
+      "send_followup",
+      "resend_other_time",
+      "call_now",
+      "validate_phone",
+      "record_meeting_outcome",
+      "confirm_meeting",
+      "schedule_meeting",
+      "confirm_visit",
+      "answer_new_lead",
+      "forward_to_expansion",
+      "wait_until_scheduled",
+      "history_only",
+    ] as const;
+    for (const a of actions) {
+      expect(shortActionLabel(a).length).toBeLessThanOrEqual(24);
+    }
+  });
+
+  test("presentation.action.buttonLabel reflete shortActionLabel", () => {
+    const lead = makeLead({
+      pipeline_stage: "qualified",
+      priority: "high",
+      next_contact_at: brtDate(NOW_BRT_YMD, "16:00"),
+      last_contact_at: daysFromNow(-1),
+      last_conversation_status: "Ficou de marcar uma visita à unidade com a sócia",
+      next_action: "Chamar e agendar a visita com a sócia",
+    });
+    const { intel, presentation } = present(lead);
+    expect(intel.suggestedAction).toBe("call_now");
+    expect(presentation.action.buttonLabel).toBe("Ligar agora");
+    // A instrução LONGA (vinda do next_action) continua acessível em action.label
+    expect(presentation.action.label).toBe("Chamar e agendar a visita com a sócia");
   });
 });
 

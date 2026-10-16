@@ -317,7 +317,7 @@ export function LeadsView({ leads, activities, role }: Props) {
                   <tr>
                     <th className="w-14 px-3 py-3 font-medium">#</th>
                     <th className="px-3 py-3 font-medium">Nome</th>
-                    <th className="w-[32%] px-3 py-3 font-medium">Motivo</th>
+                    <th className="w-[36%] px-3 py-3 font-medium">Próxima ação</th>
                     <th className="w-44 px-3 py-3 font-medium">Situação</th>
                     <th className="w-56 px-3 py-3 font-medium">Ação</th>
                   </tr>
@@ -578,14 +578,20 @@ function PrimaryCard({
     <article className="relative overflow-hidden rounded-xl border border-lf-volt/50 bg-lf-graphite/80 p-4 sm:p-5">
       <div className="flex flex-wrap items-start gap-3">
         <PositionBadge n={1} prominent />
-        <div className="min-w-0 flex-1 space-y-1.5">
+        <div className="min-w-0 flex-1 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-base font-semibold tracking-tight text-foreground sm:text-lg">
               {lead.full_name}
             </h3>
             <StatusChip presentation={presentation} />
           </div>
-          <p className="text-sm text-foreground/80">{presentation.reason}</p>
+          <p className="text-base font-medium text-foreground">
+            {presentation.action.label}
+          </p>
+          <p className="text-xs text-lf-muted">
+            <span className="font-semibold uppercase tracking-wide">Motivo:</span>{" "}
+            {presentation.reason}
+          </p>
         </div>
       </div>
 
@@ -760,12 +766,10 @@ function ActionButtons({
         e.stopPropagation();
         onOpen(lead.id);
       }}
-      className="min-h-14 w-full gap-1.5 sm:min-h-11 sm:w-auto sm:max-w-xs"
+      className="min-h-14 w-full gap-2 whitespace-nowrap px-4 text-sm sm:min-h-12 sm:w-auto"
     >
-      <span className="shrink-0">{iconFor(presentation.statusIcon, "size-4")}</span>
-      <span className="min-w-0 flex-1 truncate text-left">
-        {presentation.action.label}
-      </span>
+      {iconFor(presentation.statusIcon, "size-4")}
+      <span>{presentation.action.buttonLabel}</span>
     </Button>
   );
 
@@ -775,10 +779,10 @@ function ActionButtons({
       target="_blank"
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
-      className="inline-flex min-h-12 items-center gap-1.5 rounded-md border border-emerald-500/50 bg-emerald-500/15 px-3 py-2 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 sm:min-h-11 lf-focus"
+      className="inline-flex min-h-12 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-emerald-500/50 bg-emerald-500/15 px-3 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 lf-focus"
       aria-label="Abrir conversa no WhatsApp"
     >
-      <MessageSquare className="size-3.5" aria-hidden />
+      <MessageSquare className="size-4" aria-hidden />
       WhatsApp
     </a>
   ) : null;
@@ -808,7 +812,7 @@ function TabsBar({
     <div
       role="tablist"
       aria-label="Grupos de leads"
-      className="flex items-center gap-1 overflow-x-auto border-b border-border/60 px-2 pt-2"
+      className="grid grid-cols-4 gap-1 border-b border-border/60 px-2 pt-2 sm:flex sm:items-center sm:gap-2"
     >
       {LEAD_GROUP_ORDER.map((g) => {
         const isActive = g === activeTab;
@@ -820,13 +824,13 @@ function TabsBar({
             aria-selected={isActive}
             onClick={() => onChange(g)}
             className={cn(
-              "inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-t-md border-b-2 px-3 py-2 text-sm font-semibold transition-colors lf-focus",
+              "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-t-md border-b-2 px-2 py-1 text-xs font-semibold leading-tight transition-colors lf-focus sm:min-h-11 sm:flex-row sm:gap-2 sm:px-3 sm:py-2 sm:text-sm",
               isActive
                 ? "border-lf-volt text-foreground"
                 : "border-transparent text-lf-muted hover:text-foreground",
             )}
           >
-            <span>{LEAD_GROUP_LABELS[g]}</span>
+            <span className="text-center">{LEAD_GROUP_LABELS[g]}</span>
             <span
               className={cn(
                 "inline-flex min-w-6 items-center justify-center rounded px-1.5 py-0.5 text-[11px] font-semibold tabular-nums",
@@ -887,7 +891,11 @@ function LeadRow({
         </div>
       </td>
       <td className="px-3 py-3 align-top">
-        <p className="line-clamp-2 text-sm text-foreground/90">{presentation.reason}</p>
+        <p className="text-sm font-medium text-foreground">{presentation.action.label}</p>
+        <p className="mt-1 line-clamp-2 text-xs text-lf-muted">
+          <span className="font-semibold uppercase tracking-wide">Motivo:</span>{" "}
+          {presentation.reason}
+        </p>
       </td>
       <td className="px-3 py-3 align-top">
         <StatusChip presentation={presentation} />
@@ -948,7 +956,13 @@ function LeadMobileCard({
           ) : null}
         </div>
 
-        <p className="mt-2 text-sm text-foreground/90">{presentation.reason}</p>
+        <p className="mt-3 text-sm font-medium text-foreground">
+          {presentation.action.label}
+        </p>
+        <p className="mt-1 text-xs text-lf-muted">
+          <span className="font-semibold uppercase tracking-wide">Motivo:</span>{" "}
+          {presentation.reason}
+        </p>
       </button>
 
       <div className="mt-3">

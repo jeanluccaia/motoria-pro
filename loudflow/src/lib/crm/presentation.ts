@@ -130,6 +130,36 @@ export function isWhatsAppPrimary(action: SuggestedAction): boolean {
   return WA_PRIMARY_ACTIONS.has(action);
 }
 
+// CTA curto para o botão primário. Deriva EXCLUSIVAMENTE do tipo de ação
+// já determinado por [[intelligence.ts]] — não há nova inteligência aqui.
+// A instrução longa (`suggestedActionLabel`, que pode ter sido customizada
+// com o `next_action` do lead) continua sendo exibida acima do botão.
+export function shortActionLabel(action: SuggestedAction): string {
+  switch (action) {
+    case "whatsapp_reconnect":
+    case "send_followup":
+    case "resend_other_time":
+    case "answer_new_lead":
+      return "Chamar no WhatsApp";
+    case "call_now":
+      return "Ligar agora";
+    case "validate_phone":
+      return "Conferir telefone";
+    case "record_meeting_outcome":
+    case "confirm_meeting":
+    case "schedule_meeting":
+    case "confirm_visit":
+      return "Registrar contato";
+    case "forward_to_expansion":
+      return "Encaminhar";
+    case "wait_until_scheduled":
+      return "Aguardar";
+    case "history_only":
+    default:
+      return "Ver detalhes";
+  }
+}
+
 // ------------------------------------------------------------------
 // Tipo principal de apresentação
 // ------------------------------------------------------------------
@@ -153,7 +183,12 @@ export type LeadPresentation = {
   // Ação principal — vem exclusivamente de intelligence.
   action: {
     kind: SuggestedAction;
+    // Instrução LONGA (vinda do operador via lead.next_action ou do label
+    // canônico). Deve aparecer como texto ao lado/acima do botão para dar
+    // contexto. NUNCA é usada DENTRO do botão (que precisa ser curto).
     label: string;
+    // CTA curto do botão primário. Fixo por tipo de ação, sem truncate.
+    buttonLabel: string;
     // Mostra ou não um botão de ação principal clicável.
     // Awaiting / deprioritize / terminal não têm ação primária.
     primary: boolean;
@@ -223,6 +258,7 @@ export function getLeadPresentation(
     action: {
       kind: intel.suggestedAction,
       label: intel.suggestedActionLabel,
+      buttonLabel: shortActionLabel(intel.suggestedAction),
       primary: showPrimaryAction,
     },
 
