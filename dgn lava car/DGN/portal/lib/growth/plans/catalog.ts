@@ -1,11 +1,17 @@
 // -----------------------------------------------------------------------------
 // Catálogo canônico de ofertas DGN — fonte única usada pela UI "Oferecer
-// assinatura" na ficha do cliente. Reaproveita DGN_SUBSCRIBER_PLANS (planos
-// oficiais) e includedPerMonthFromPlan (lavagens incluídas por plano).
+// assinatura" na ficha do cliente.
 //
-// Preço NÃO é hardcoded. A operação informa quando quiser — a UI mostra
-// "Sob consulta operacional" enquanto priceMonthlyBRL for null. Isso respeita
-// o invariante "não inventar número de cobrança sem fonte oficial".
+// Benefícios: espelhamos APENAS os bullets homologados em
+// founder-offer-catalog.ts (fonte extraída de dgnclub.com e já validada por
+// testes de drift). Como o briefing de 12/10 tira "Founder" do centro das
+// chamadas de adesão, o rótulo "Founder" não aparece na UI — só a redação
+// oficial dos bullets.
+//
+// Preço NÃO é hardcoded aqui. A matriz oficial em founder-offer-catalog.ts
+// depende de categoria do veículo (Hatch/Sedan/SUV/Picape). Enquanto a UI
+// "Oferecer assinatura" não pedir a categoria, exibimos "Sob consulta
+// operacional" — comportamento seguro, zero número presumido.
 //
 // Modalidades aceitas por plano também não são opinião: hoje todos os planos
 // aceitam as 3 modalidades (Mensal, Fid 6m, Fid 12m), mas o schema deixa
@@ -13,58 +19,76 @@
 // -----------------------------------------------------------------------------
 
 import { DGN_SUBSCRIBER_PLANS, DGN_BILLING_MODALITIES, type DgnSubscriberPlan, type DgnBillingModality } from "../dgn-plans.ts";
-import { includedPerMonthFromPlan } from "../db/subscriptions-write.ts";
+import { founderPlanDefinitions, type FounderPlanCode } from "../../founder-offer-catalog.ts";
+
+// Lavagens incluídas por mês — regra canônica DGN. Inlined aqui para que
+// catalog.ts seja client-safe (subscriptions-write.ts é server-only e
+// carrega service_role). Teste cruzado garante zero drift com
+// includedPerMonthFromPlan e com founderPlanDefinitions.
+const WASHES_PER_MONTH: Record<DgnSubscriberPlan, number> = {
+  Essential: 1,
+  Smart: 2,
+  Priority: 4,
+};
 
 export interface PlanOfferEntry {
   plan: DgnSubscriberPlan;
   /** Lavagens incluídas por mês para o plano. Vem de includedPerMonthFromPlan. */
   washesPerMonth: number;
-  /** Resumo curto do público-alvo. Nunca inventa — só reusa o que a campanha oficial já comunica. */
+  /** Resumo curto do público-alvo. Reusa a descrição oficial do catálogo canônico. */
   idealFor: string;
-  /** Benefícios concretos do plano. Lista curta — nada de marketing solto. */
+  /** Benefícios concretos do plano — redação EXATA do catálogo canônico homologado. */
   benefits: readonly string[];
   /** Modalidades oficialmente aceitas. Nunca inclui Semestral/Anual/Trimestral soltos. */
   modalities: readonly DgnBillingModality[];
-  /** Preço mensal em BRL. null = "Sob consulta operacional" — operação informa quando quiser. */
+  /** Preço mensal em BRL. null = "Sob consulta operacional" (depende da categoria do veículo). */
   priceMonthlyBRL: number | null;
 }
 
 const SHARED_MODALITIES = DGN_BILLING_MODALITIES;
 
+const PLAN_TO_FOUNDER_CODE: Record<DgnSubscriberPlan, FounderPlanCode> = {
+  Essential: "essential",
+  Smart: "smart",
+  Priority: "priority",
+};
+
+function officialBenefits(plan: DgnSubscriberPlan): readonly string[] {
+  const code = PLAN_TO_FOUNDER_CODE[plan];
+  const def = founderPlanDefinitions.find((p) => p.planCode === code);
+  if (!def) throw new Error(`Plano ${plan} sem definição canônica em founderPlanDefinitions`);
+  return def.benefits;
+}
+
+function officialDescription(plan: DgnSubscriberPlan): string {
+  const code = PLAN_TO_FOUNDER_CODE[plan];
+  const def = founderPlanDefinitions.find((p) => p.planCode === code);
+  if (!def) throw new Error(`Plano ${plan} sem definição canônica em founderPlanDefinitions`);
+  return def.description;
+}
+
 export const DGN_PLAN_CATALOG: Record<DgnSubscriberPlan, PlanOfferEntry> = {
   Essential: {
     plan: "Essential",
-    washesPerMonth: includedPerMonthFromPlan("Essential") ?? 1,
-    idealFor: "Primeira experiência DGN — rotina enxuta, uma lavagem mensal.",
-    benefits: [
-      "1 lavagem completa por mês",
-      "Agendamento prioritário pela operação",
-      "Sem taxa de adesão",
-    ],
+    washesPerMonth: WASHES_PER_MONTH.Essential,
+    idealFor: officialDescription("Essential"),
+    benefits: officialBenefits("Essential"),
     modalities: SHARED_MODALITIES,
     priceMonthlyBRL: null,
   },
   Smart: {
     plan: "Smart",
-    washesPerMonth: includedPerMonthFromPlan("Smart") ?? 2,
-    idealFor: "Uso recorrente — duas lavagens por mês para quem dirige com mais frequência.",
-    benefits: [
-      "2 lavagens completas por mês",
-      "Agendamento prioritário",
-      "Histórico operacional vinculado ao veículo",
-    ],
+    washesPerMonth: WASHES_PER_MONTH.Smart,
+    idealFor: officialDescription("Smart"),
+    benefits: officialBenefits("Smart"),
     modalities: SHARED_MODALITIES,
     priceMonthlyBRL: null,
   },
   Priority: {
     plan: "Priority",
-    washesPerMonth: includedPerMonthFromPlan("Priority") ?? 4,
-    idealFor: "Rotina intensa — quatro lavagens por mês com atendimento preferencial.",
-    benefits: [
-      "4 lavagens completas por mês",
-      "Prioridade na agenda operacional",
-      "Acompanhamento comercial humano",
-    ],
+    washesPerMonth: WASHES_PER_MONTH.Priority,
+    idealFor: officialDescription("Priority"),
+    benefits: officialBenefits("Priority"),
     modalities: SHARED_MODALITIES,
     priceMonthlyBRL: null,
   },

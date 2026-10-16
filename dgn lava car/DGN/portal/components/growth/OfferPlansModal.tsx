@@ -191,7 +191,7 @@ function PlanCard({
           data-testid={`offer-plan-${offer.plan.toLowerCase()}-select`}
           className="inline-flex items-center gap-1.5 rounded-lg border border-[#C9A84C]/40 bg-[#C9A84C]/15 px-3 py-1.5 text-[11px] font-semibold text-[#E7C96A] transition hover:border-[#C9A84C]/70 hover:bg-[#C9A84C]/25 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Converter com {offer.plan}
+          Selecionar {offer.plan}
           <ArrowRight size={11} />
         </button>
       </div>

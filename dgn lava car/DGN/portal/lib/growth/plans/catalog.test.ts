@@ -52,9 +52,45 @@ test("getPlanOffer recusa plano fora da lista oficial (defesa contra typo/query 
 });
 
 test("benefícios de cada plano citam a quantidade correta de lavagens — zero drift texto × regra", () => {
-  assert.ok(DGN_PLAN_CATALOG.Essential.benefits.some((b) => /1\s+lavagem/i.test(b)));
-  assert.ok(DGN_PLAN_CATALOG.Smart.benefits.some((b) => /2\s+lavagens/i.test(b)));
-  assert.ok(DGN_PLAN_CATALOG.Priority.benefits.some((b) => /4\s+lavagens/i.test(b)));
+  assert.ok(DGN_PLAN_CATALOG.Essential.benefits.some((b) => /1\s+Lavagem/i.test(b)));
+  assert.ok(DGN_PLAN_CATALOG.Smart.benefits.some((b) => /2\s+Lavagens/i.test(b)));
+  assert.ok(DGN_PLAN_CATALOG.Priority.benefits.some((b) => /4\s+Lavagens/i.test(b)));
+});
+
+test("benefícios espelham o catálogo canônico Founder — mesma redação, zero drift", async () => {
+  const { founderPlanDefinitions } = await import("../../founder-offer-catalog.ts");
+  const expectedByCode = Object.fromEntries(
+    founderPlanDefinitions.map((p) => [p.planCode, p.benefits]),
+  );
+  assert.deepEqual([...DGN_PLAN_CATALOG.Essential.benefits], [...expectedByCode.essential]);
+  assert.deepEqual([...DGN_PLAN_CATALOG.Smart.benefits], [...expectedByCode.smart]);
+  assert.deepEqual([...DGN_PLAN_CATALOG.Priority.benefits], [...expectedByCode.priority]);
+});
+
+test("washesPerMonth NÃO deriva do server-only subscriptions-write — mas bate com ele (zero drift)", async () => {
+  const { includedPerMonthFromPlan } = await import("../db/subscriptions-write.ts");
+  assert.equal(DGN_PLAN_CATALOG.Essential.washesPerMonth, includedPerMonthFromPlan("Essential"));
+  assert.equal(DGN_PLAN_CATALOG.Smart.washesPerMonth, includedPerMonthFromPlan("Smart"));
+  assert.equal(DGN_PLAN_CATALOG.Priority.washesPerMonth, includedPerMonthFromPlan("Priority"));
+});
+
+test("nenhuma promessa não homologada (taxa de adesão, acompanhamento humano) vaza para o catálogo", () => {
+  const forbidden = [
+    /sem\s+taxa/i,
+    /acompanhamento\s+comercial\s+humano/i,
+    /garantia/i,
+    /dinheiro\s+de\s+volta/i,
+  ];
+  for (const entry of listPlanOffers()) {
+    for (const bullet of entry.benefits) {
+      for (const rx of forbidden) {
+        assert.ok(
+          !rx.test(bullet),
+          `plano ${entry.plan} contém promessa não homologada: "${bullet}" (padrão ${rx})`,
+        );
+      }
+    }
+  }
 });
 
 test("resolvePreselectedPlan aceita planos oficiais e cai no fallback para qualquer outra coisa", () => {
