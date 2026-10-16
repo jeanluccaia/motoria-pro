@@ -38,7 +38,6 @@ import {
   buildCallQueue,
   computeAlerts,
   waNumberFor,
-  ATTENTION_LEVEL_LABELS,
   type LeadIntelligence,
   type AttentionLevel,
 } from "@/lib/crm/intelligence";
@@ -61,6 +60,7 @@ type Props = {
 type AlertFilter =
   | "none"
   | "overdueContacts"
+  | "withoutReturn"
   | "meetingsWithoutOutcome"
   | "leadsWithoutNextAction"
   | "phonesToConfirm"
@@ -137,10 +137,11 @@ export function LeadsView({ leads, activities, role }: Props) {
         highPriority += 1;
       }
       if (l.pipeline_stage === "meeting_scheduled") scheduled += 1;
-      if (l.pipeline_stage === "no_response") noResponse += 1;
+      const intel = intelligenceByLead.get(l.id);
+      if (intel?.operationalTier === "reactivate") noResponse += 1;
     }
     return { total, highPriority, scheduled, noResponse };
-  }, [leads]);
+  }, [leads, intelligenceByLead]);
 
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -153,8 +154,18 @@ export function LeadsView({ leads, activities, role }: Props) {
       if (alertFilter !== "none") {
         const intel = intelligenceByLead.get(l.id);
         if (!intel) return false;
+        const isActiveTier =
+          intel.operationalTier === "respond_now" ||
+          intel.operationalTier === "call_today" ||
+          intel.operationalTier === "follow_up" ||
+          intel.operationalTier === "verify_phone";
         if (alertFilter === "overdueContacts") {
-          if (!(intel.dueLabel && /atrasado/i.test(intel.dueLabel))) return false;
+          if (!isActiveTier) return false;
+          if (!(intel.dueLabel && /atrasado|reunião há/i.test(intel.dueLabel)))
+            return false;
+        }
+        if (alertFilter === "withoutReturn") {
+          if (intel.operationalTier !== "reactivate") return false;
         }
         if (alertFilter === "meetingsWithoutOutcome") {
           if (intel.suggestedAction !== "record_meeting_outcome") return false;
@@ -468,7 +479,7 @@ function CallQueueCard({
             variant="outline"
             className={cn("normal-case tracking-normal", attentionBadgeClass(intel.attentionLevel))}
           >
-            {ATTENTION_LEVEL_LABELS[intel.attentionLevel]}
+            {intel.tierLabel}
           </Badge>
           <span className="truncate font-semibold text-foreground">{lead.full_name}</span>
           {intel.dueLabel ? (
@@ -525,9 +536,15 @@ function AlertsRow({
   const items: { key: AlertFilter; label: string; value: number; icon: React.ReactNode }[] = [
     {
       key: "overdueContacts",
-      label: "Contatos atrasados",
+      label: "Ações atrasadas",
       value: alerts.overdueContacts,
       icon: <AlertTriangle className="size-3.5" aria-hidden />,
+    },
+    {
+      key: "withoutReturn",
+      label: "Sem retorno",
+      value: alerts.withoutReturn,
+      icon: <PhoneOff className="size-3.5" aria-hidden />,
     },
     {
       key: "meetingsWithoutOutcome",
@@ -600,7 +617,9 @@ function AlertsRow({
 function alertFilterLabel(k: AlertFilter): string {
   switch (k) {
     case "overdueContacts":
-      return "Contatos atrasados";
+      return "Ações atrasadas";
+    case "withoutReturn":
+      return "Sem retorno";
     case "meetingsWithoutOutcome":
       return "Reuniões sem resultado";
     case "leadsWithoutNextAction":
@@ -655,7 +674,7 @@ function LeadRow({
               variant="outline"
               className={cn("normal-case tracking-normal", attentionBadgeClass(intel.attentionLevel))}
             >
-              {ATTENTION_LEVEL_LABELS[intel.attentionLevel]}
+              {intel.tierLabel}
             </Badge>
           ) : null}
           {lead.phone_normalized === null && lead.phone ? (
@@ -730,7 +749,7 @@ function LeadMobileCard({
                   variant="outline"
                   className={cn("normal-case tracking-normal", attentionBadgeClass(intel.attentionLevel))}
                 >
-                  {ATTENTION_LEVEL_LABELS[intel.attentionLevel]}
+                  {intel.tierLabel}
                 </Badge>
               ) : null}
               {lead.phone_normalized === null && lead.phone ? (

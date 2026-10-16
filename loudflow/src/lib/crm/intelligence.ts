@@ -1,19 +1,19 @@
 // Prioridade operacional dos leads de franquia.
 //
-// Objetivo: responder quatro perguntas da equipe comercial sem depender de
-// LLM, cron ou integrações externas.
+// Modelo: cada lead é classificado em um ÚNICO tier operacional. O tier
+// decide a seção da UI em que o lead aparece ("Responder agora", "Ligar
+// hoje", etc.) e o seu peso na fila ativa. Dentro do mesmo tier, usamos
+// próximo contato vencido → prioridade manual → interação recente → score
+// → data de recebimento para ordenar.
 //
-//   1. Quem precisamos chamar agora?
-//   2. Por que esse lead está priorizado?
-//   3. Qual é a próxima ação recomendada?
-//   4. Quais contatos ou reuniões estão atrasados?
+// Classificação sempre tenta, nessa ordem:
 //
-// Regras determinísticas, calculadas a partir dos dados do lead + histórico
-// de atividades. O número final (score 0-100) serve só para ORDENAR o
-// trabalho — nunca aparece sozinho; sempre acompanhado de motivos humanos.
-//
-// Nome correto do campo exposto na UI: "Prioridade operacional".
-// Não é "probabilidade de fechamento".
+//   1. Campos estruturados (pipeline_stage, priority, next_contact_at,
+//      activity_type em `activities`, phone_normalized, received_at).
+//   2. Dados explícitos das atividades (ex.: contato posterior à reunião).
+//   3. Regex em texto livre (last_conversation_status, notes) SOMENTE como
+//      fallback temporário para os ~20 leads importados sem campos
+//      estruturados. Marcado com TODO para migrar para colunas tipadas.
 //
 // Fuso: toda noção de "hoje", "amanhã" e "atrasado" usa America/Sao_Paulo.
 // Centralizado em [[dates.ts]] via APP_TZ.
@@ -28,6 +28,60 @@ import type {
 // Tipos públicos
 // ------------------------------------------------------------------
 
+// Tier operacional — é o campo que a UI deve usar para montar as seções
+// e os indicadores. O número ao lado é o rank (menor = mais urgente).
+//
+//   1. respond_now   — novo lead < 72h, reunião vencida sem resultado,
+//                      qualificado sem próximo passo.
+//   2. call_today    — compromisso para hoje, próximo contato vencido ou
+//                      marcado para hoje.
+//   3. follow_up     — compromisso para amanhã, lead ativo ainda dentro
+//                      da janela natural.
+//   4. verify_phone  — lead ativo cujo telefone precisa ser conferido
+//                      antes de qualquer tentativa de WhatsApp.
+//   5. reactivate    — sem retorno após primeira tentativa, novo lead
+//                      com mais de 72h sem resposta, no_response.
+//   6. awaiting      — reunião ou retorno combinado para data futura.
+//   7. deprioritize  — fornecedor, parceria, oferta comercial — não é
+//                      candidato a franquia, mas ainda não foi marcado
+//                      como lost.
+//   8. terminal      — won / lost / disqualified.
+export type OperationalTier =
+  | "respond_now"
+  | "call_today"
+  | "follow_up"
+  | "verify_phone"
+  | "reactivate"
+  | "awaiting"
+  | "deprioritize"
+  | "terminal";
+
+export const OPERATIONAL_TIER_RANK: Record<OperationalTier, number> = {
+  respond_now: 1,
+  call_today: 2,
+  follow_up: 3,
+  verify_phone: 4,
+  reactivate: 5,
+  awaiting: 6,
+  deprioritize: 7,
+  terminal: 8,
+};
+
+// Label base em pt-BR, linguagem comercial. Para `awaiting`, a UI deve
+// concatenar com a data concreta: "Aguardando até 19/10".
+export const OPERATIONAL_TIER_LABELS: Record<OperationalTier, string> = {
+  respond_now: "Responder agora",
+  call_today: "Ligar hoje",
+  follow_up: "Acompanhar",
+  verify_phone: "Conferir telefone",
+  reactivate: "Reativar",
+  awaiting: "Aguardando",
+  deprioritize: "Não priorizar",
+  terminal: "Histórico",
+};
+
+// AttentionLevel permanece como "estilo visual" — mapeia para a classe
+// de badge atual. Não é usado para texto; o texto vem de tierLabel.
 export type AttentionLevel = "critical" | "today" | "soon" | "monitor" | "none";
 export type Temperature = "hot" | "warm" | "cold" | "inactive";
 
@@ -42,11 +96,15 @@ export type SuggestedAction =
   | "confirm_visit"
   | "validate_phone"
   | "wait_until_scheduled"
+  | "answer_new_lead"
+  | "forward_to_expansion"
   | "history_only";
 
 export type LeadIntelligence = {
   score: number;
   temperature: Temperature;
+  operationalTier: OperationalTier;
+  tierLabel: string;
   attentionLevel: AttentionLevel;
   reasons: string[];
   suggestedAction: SuggestedAction;
@@ -71,6 +129,7 @@ export const WEIGHTS = {
   recentContact: 10,
   nextContactToday: 20,
   nextContactOverdue: 25,
+  newLeadFresh: 25,
 
   // Reduções
   stillStructuringCapital: -10,
@@ -80,8 +139,6 @@ export const WEIGHTS = {
   noContactInfo: -30,
 } as const;
 
-// Rótulos pt-BR das próximas ações sugeridas. Mantidos aqui para a UI
-// nunca inventar texto novo.
 export const SUGGESTED_ACTION_LABELS: Record<SuggestedAction, string> = {
   record_meeting_outcome: "Registrar o resultado da reunião",
   call_now: "Ligar agora",
@@ -91,13 +148,15 @@ export const SUGGESTED_ACTION_LABELS: Record<SuggestedAction, string> = {
   send_followup: "Enviar follow-up curto",
   resend_other_time: "Reenviar em outro horário",
   confirm_visit: "Confirmar a visita com a sócia",
-  validate_phone: "Validar o telefone",
+  validate_phone: "Conferir o telefone",
   wait_until_scheduled: "Aguardar até a data combinada",
+  answer_new_lead: "Responder o novo lead",
+  forward_to_expansion: "Encaminhar ao responsável por expansão",
   history_only: "Manter somente no histórico",
 };
 
 export const ATTENTION_LEVEL_LABELS: Record<AttentionLevel, string> = {
-  critical: "Crítico",
+  critical: "Responder agora",
   today: "Hoje",
   soon: "Em breve",
   monitor: "Monitorar",
@@ -115,6 +174,12 @@ const dateOnlyFmt = new Intl.DateTimeFormat("en-CA", {
   day: "2-digit",
 });
 
+const dayMonthFmt = new Intl.DateTimeFormat("pt-BR", {
+  timeZone: APP_TZ,
+  day: "2-digit",
+  month: "2-digit",
+});
+
 function ymdInBrt(d: Date): string {
   return dateOnlyFmt.format(d);
 }
@@ -122,8 +187,6 @@ function ymdInBrt(d: Date): string {
 function diffDaysInBrt(aIso: string | null, nowYmd: string): number | null {
   if (!aIso) return null;
   const target = ymdInBrt(new Date(aIso));
-  // Comparação em YMD lexicográfica é segura para datas no formato en-CA.
-  // Usamos UTC midnight para subtrair dias sem drift de horário de verão.
   const [ty, tm, td] = target.split("-").map((n) => Number(n));
   const [ny, nm, nd] = nowYmd.split("-").map((n) => Number(n));
   const tMs = Date.UTC(ty, tm - 1, td);
@@ -138,20 +201,53 @@ function daysSinceInBrt(iso: string | null, now: Date): number | null {
   return diffDaysInBrt(iso, nowYmd);
 }
 
+function hoursBetween(aIso: string | null, now: Date): number | null {
+  if (!aIso) return null;
+  const a = new Date(aIso).getTime();
+  if (Number.isNaN(a)) return null;
+  return (now.getTime() - a) / 3_600_000;
+}
+
 // ------------------------------------------------------------------
-// Classificação textual auxiliar
+// Helpers de classificação
 // ------------------------------------------------------------------
 
+// TODO: substituir por um booleano estruturado (ex.: lead_kind =
+// 'customer' | 'partner' | 'vendor'). Hoje usamos regex em
+// last_conversation_status/notes para resgatar os ~20 leads importados
+// sem a coluna. Esta função deve ser aposentada quando a coluna existir.
+const RE_NON_CUSTOMER = /capta[cç][aã]o de pontos|camisetas|m[eé]dicar|atendimento m[eé]dico|m[aá]quinas de bebidas|propor parceria|parceria com m[aá]quinas|fornecedor|benef[ií]cios? comerciais?|oferecer camisetas|área protegida/i;
+
 const RE_STRUCTURING = /estruturando (o |)capital/i;
-const RE_INVESTMENT_700K_PLUS = /r\$?\s*7(00|50)\s*mil|r\$?\s*8\d{2}\s*mil|r\$?\s*9\d{2}\s*mil|r\$?\s*[1-9](\.|,)?\s*m[ií]/i;
+const RE_INVESTMENT_700K_PLUS =
+  /r\$?\s*7(00|50)\s*mil|r\$?\s*8\d{2}\s*mil|r\$?\s*9\d{2}\s*mil|r\$?\s*[1-9](\.|,)?\s*m[ií]/i;
 const RE_START_UPTO_3M = /at[eé]\s*3\s*m[eê]s/i;
+const RE_NOT_VISUALIZED = /n[aã]o visualizou/i;
+const RE_SAW_NO_REPLY = /visualizou e n[aã]o respondeu/i;
+const RE_VISIT = /visita/i;
+const RE_CHILD_INTEREST = /interesse do filho|filho na franquia|encaminhar(ia|á)? a apresenta/i;
+// Sinais de "retorno frio": lead que recebeu a nossa mensagem e não voltou,
+// ou que encerrou a conversa com um "ok obrigada" / "não respondeu".
+// Nessas condições, um next_contact_at vencido é só um lembrete — não há
+// compromisso real para cobrar e a ação certa é reativação.
+const RE_COLD_RESPONSE =
+  /n[aã]o visualizou|visualizou e n[aã]o respondeu|n[aã]o respondeu|ok,?\s*obrigad[ao]|sem retorno/i;
+// Sinais fortes de que ainda existe um fio comercial vivo. Se qualquer um
+// desses aparecer, não rebaixamos o lead para reactivate mesmo que o
+// status também contenha algum sinal frio.
+const RE_HOT_SIGNAL =
+  /reuni[aã]o|visita|sociedade|franqueado|franqueada|c[oô]f|aguardando (visita|conversa|retorno|resposta)|ficou de (marcar|retornar|conversar)/i;
+// "Reunião realizada" + lead ainda qualificado = fechar a decisão. Isso é
+// mais quente que um qualificado tentando agendar a visita. Fallback por
+// texto livre; TODO migrar para `last_meeting_outcome` tipado.
+const RE_MEETING_HELD =
+  /reuni[aã]o realizada|reuni[aã]o aconteceu|p[oó]s[-\s]reuni[aã]o|na reuni[aã]o com|ap[oó]s a reuni[aã]o/i;
 
 function hasValidPhone(lead: FranchiseLead): boolean {
   return Boolean(lead.phone_normalized);
 }
 
 function hasPhoneIncomplete(lead: FranchiseLead): boolean {
-  // Operador registrou um bruto mas a normalização falhou.
   return Boolean(lead.phone) && !lead.phone_normalized;
 }
 
@@ -176,8 +272,6 @@ function hasMeetingOutcomeAfter(
   activities: FranchiseLeadActivity[],
   meetingAtIso: string,
 ): boolean {
-  // Qualquer atividade de contato OU mudança de etapa posterior ao horário
-  // da reunião conta como "resultado registrado" para efeito de alerta.
   const meetingMs = new Date(meetingAtIso).getTime();
   return activities.some(
     (a) =>
@@ -188,7 +282,6 @@ function hasMeetingOutcomeAfter(
 
 function investmentIndicatesSevenHundredPlus(lead: FranchiseLead): boolean {
   if (!lead.investment_range) return false;
-  // Guarda contra "ainda estou estruturando o capital" classificar como alto.
   if (RE_STRUCTURING.test(lead.investment_range)) return false;
   return RE_INVESTMENT_700K_PLUS.test(lead.investment_range);
 }
@@ -204,6 +297,411 @@ function isStillStructuringCapital(lead: FranchiseLead): boolean {
   );
 }
 
+function looksLikeNonCustomer(lead: FranchiseLead): boolean {
+  const haystack = [
+    lead.last_conversation_status ?? "",
+    lead.notes ?? "",
+    lead.lost_reason ?? "",
+  ].join(" | ");
+  return RE_NON_CUSTOMER.test(haystack);
+}
+
+function receivedReferenceIso(lead: FranchiseLead): string {
+  return lead.received_at ?? lead.created_at;
+}
+
+// ------------------------------------------------------------------
+// Classificação do tier operacional
+// ------------------------------------------------------------------
+
+type TierContext = {
+  tier: OperationalTier;
+  reasons: string[];
+  suggestedAction: SuggestedAction;
+  dueLabel: string | null;
+  // Metadados usados por score/attentionLevel/sort.
+  overdueDays: number; // 0 se não atrasado; positivo = dias de atraso
+  isMeetingToday: boolean;
+  isMeetingFuture: boolean;
+  isMeetingPastWithoutOutcome: boolean;
+  isNextContactToday: boolean;
+  isNextContactTomorrow: boolean;
+  isNewLeadFresh: boolean;
+  isNewLeadOverdueSla: boolean;
+  isQualifiedWithoutMeeting: boolean;
+  hoursSinceReceived: number | null;
+  nextContactIso: string | null;
+};
+
+function classifyTier(
+  lead: FranchiseLead,
+  activities: FranchiseLeadActivity[],
+  now: Date,
+  nowYmd: string,
+): TierContext {
+  const reasons: string[] = [];
+  const ctx: TierContext = {
+    tier: "follow_up",
+    reasons,
+    suggestedAction: "whatsapp_reconnect",
+    dueLabel: null,
+    overdueDays: 0,
+    isMeetingToday: false,
+    isMeetingFuture: false,
+    isMeetingPastWithoutOutcome: false,
+    isNextContactToday: false,
+    isNextContactTomorrow: false,
+    isNewLeadFresh: false,
+    isNewLeadOverdueSla: false,
+    isQualifiedWithoutMeeting: false,
+    hoursSinceReceived: null,
+    nextContactIso: lead.next_contact_at,
+  };
+
+  // ----- 1) Terminal real.
+  const terminal = isTerminalStage(lead);
+  if (terminal) {
+    ctx.tier = "terminal";
+    ctx.suggestedAction = "history_only";
+    reasons.push(terminalReason(terminal));
+    return ctx;
+  }
+
+  // ----- 2) Lead claramente fora do público (parceria/fornecedor) sem
+  // ter sido marcado como lost. Isso NUNCA deve subir para a fila ativa.
+  // Fallback por texto livre; TODO migrar para coluna tipada.
+  if (looksLikeNonCustomer(lead)) {
+    ctx.tier = "deprioritize";
+    ctx.suggestedAction = "forward_to_expansion";
+    reasons.push(
+      "Contato parece ser parceria/fornecedor — não é candidato à franquia",
+    );
+    return ctx;
+  }
+
+  // ----- 3) Novo lead sem nenhuma tentativa de contato.
+  // Prioridade estritamente por SLA, independente de dados de qualificação.
+  const nenhumContato =
+    !hasContactAttemptEver(activities) && !lead.last_contact_at;
+  if (lead.pipeline_stage === "new" && nenhumContato) {
+    const hours = hoursBetween(receivedReferenceIso(lead), now);
+    ctx.hoursSinceReceived = hours;
+    if (hours == null || hours <= 24) {
+      ctx.tier = "respond_now";
+      ctx.isNewLeadFresh = true;
+      ctx.suggestedAction = "answer_new_lead";
+      reasons.push("Novo lead — responder agora");
+      return ctx;
+    }
+    if (hours <= 72) {
+      ctx.tier = "respond_now";
+      ctx.isNewLeadOverdueSla = true;
+      ctx.suggestedAction = "answer_new_lead";
+      reasons.push(
+        `Novo lead atrasado — recebido há ${Math.round(hours)} horas sem resposta`,
+      );
+      return ctx;
+    }
+    // Depois de 72h sem resposta, cai no caminho de reativação.
+    ctx.tier = "reactivate";
+    ctx.suggestedAction = hasValidPhone(lead)
+      ? "whatsapp_reconnect"
+      : "validate_phone";
+    reasons.push("Novo lead sem resposta há mais de 72 horas — tentar reativar");
+    return ctx;
+  }
+
+  // ----- 4) Reunião agendada: distinguir passada, hoje e futura.
+  if (lead.pipeline_stage === "meeting_scheduled") {
+    const meetingAtIso = lead.next_contact_at;
+    if (!meetingAtIso) {
+      // Reunião marcada sem data — ação é confirmar o horário HOJE.
+      ctx.tier = "call_today";
+      ctx.suggestedAction = "confirm_meeting";
+      reasons.push("Reunião marcada sem data — confirmar o horário");
+      return ctx;
+    }
+    const diffDays = diffDaysInBrt(meetingAtIso, nowYmd);
+    const meetingMs = new Date(meetingAtIso).getTime();
+    const nowMs = now.getTime();
+    const outcome = hasMeetingOutcomeAfter(activities, meetingAtIso);
+
+    if (diffDays != null && diffDays > 0 && !outcome) {
+      ctx.tier = "respond_now";
+      ctx.isMeetingPastWithoutOutcome = true;
+      ctx.overdueDays = diffDays;
+      ctx.suggestedAction = "record_meeting_outcome";
+      ctx.dueLabel = `Reunião há ${diffDays} dia${diffDays === 1 ? "" : "s"}`;
+      reasons.push(
+        `Reunião já aconteceu e falta registrar o resultado (${diffDays} dia${diffDays === 1 ? "" : "s"} atrás)`,
+      );
+      return ctx;
+    }
+    if (diffDays === 0) {
+      if (meetingMs < nowMs && !outcome) {
+        ctx.tier = "respond_now";
+        ctx.isMeetingPastWithoutOutcome = true;
+        ctx.dueLabel = "Reunião de hoje pendente de resultado";
+        ctx.suggestedAction = "record_meeting_outcome";
+        reasons.push(
+          "Reunião de hoje já aconteceu — falta registrar o resultado",
+        );
+        return ctx;
+      }
+      ctx.tier = "call_today";
+      ctx.isMeetingToday = true;
+      ctx.dueLabel = "Reunião hoje";
+      ctx.suggestedAction = "confirm_meeting";
+      reasons.push("Reunião marcada para hoje");
+      return ctx;
+    }
+    // Reunião futura.
+    ctx.isMeetingFuture = true;
+    const absDays = diffDays == null ? 2 : Math.abs(diffDays);
+    if (absDays === 1) {
+      ctx.tier = "follow_up";
+      ctx.suggestedAction = "confirm_meeting";
+      ctx.dueLabel = "Reunião amanhã";
+      reasons.push("Reunião marcada para amanhã — confirmar com o lead");
+      return ctx;
+    }
+    ctx.tier = "awaiting";
+    ctx.suggestedAction = "wait_until_scheduled";
+    ctx.dueLabel = `Aguardando até ${dayMonthFmt.format(new Date(meetingAtIso))}`;
+    reasons.push(`Reunião futura em ${dayMonthFmt.format(new Date(meetingAtIso))}`);
+    return ctx;
+  }
+
+  // ----- 5) Telefone precisa ser conferido e o lead segue ativo. Esse
+  // tier aparece ANTES de qualquer sugestão de WhatsApp — a ação primária
+  // vira "Conferir telefone".
+  if (hasPhoneIncomplete(lead)) {
+    const stage = lead.pipeline_stage;
+    const isActiveStage =
+      stage === "new" ||
+      stage === "contact_attempt" ||
+      stage === "in_conversation" ||
+      stage === "qualified" ||
+      stage === "cof_sent" ||
+      stage === "negotiating";
+    if (isActiveStage) {
+      ctx.tier = "verify_phone";
+      ctx.suggestedAction = "validate_phone";
+      reasons.push("Telefone está incompleto — conferir antes de continuar");
+      // Se também há sinal de "sem retorno", registramos como motivo
+      // adicional mas o tier continua sendo verify_phone para não gastar
+      // tentativas de WhatsApp em um número provavelmente errado.
+      const daysSinceContact = daysSinceInBrt(lead.last_contact_at, now);
+      if (daysSinceContact != null && daysSinceContact >= 3) {
+        reasons.push(
+          `Sem retorno há ${daysSinceContact} dia${daysSinceContact === 1 ? "" : "s"}`,
+        );
+      }
+      return ctx;
+    }
+  }
+
+  // ----- 6) Qualificado (ou avançado) sem reunião — precisa agendar.
+  const isQualified =
+    lead.pipeline_stage === "qualified" ||
+    lead.pipeline_stage === "cof_sent" ||
+    lead.pipeline_stage === "negotiating";
+
+  if (isQualified) {
+    const diffDays =
+      lead.next_contact_at != null
+        ? diffDaysInBrt(lead.next_contact_at, nowYmd)
+        : null;
+    // Primeiro olhamos o status atual; depois, como fallback, o summary da
+    // atividade mais recente registrada no histórico.
+    const latestActivitySummary = activities
+      .filter((a) => a.activity_type === "contact")
+      .sort((a, b) => b.occurred_at.localeCompare(a.occurred_at))[0]?.summary;
+    const meetingHeld =
+      RE_MEETING_HELD.test(lead.last_conversation_status ?? "") ||
+      (latestActivitySummary ? RE_MEETING_HELD.test(latestActivitySummary) : false);
+
+    if (!lead.next_contact_at) {
+      ctx.tier = "respond_now";
+      ctx.isQualifiedWithoutMeeting = true;
+      ctx.suggestedAction = "schedule_meeting";
+      reasons.push("Lead qualificado e sem próximo contato marcado");
+      return ctx;
+    }
+    // Qualificado com reunião JÁ realizada e aguardando próximo passo —
+    // fechar a decisão é prioridade máxima entre os ativos.
+    if (meetingHeld && diffDays != null && diffDays >= 0) {
+      ctx.tier = "respond_now";
+      ctx.suggestedAction = "call_now";
+      if (diffDays >= 1) {
+        ctx.overdueDays = diffDays;
+        ctx.dueLabel = `Atrasado há ${diffDays} dia${diffDays === 1 ? "" : "s"}`;
+      } else {
+        ctx.isNextContactToday = true;
+        ctx.dueLabel = "Hoje";
+      }
+      reasons.push("Reunião realizada — fechar a decisão com o lead");
+      return ctx;
+    }
+    if (diffDays != null && diffDays >= 1) {
+      ctx.tier = "call_today";
+      ctx.overdueDays = diffDays;
+      ctx.suggestedAction = "call_now";
+      ctx.dueLabel = `Atrasado há ${diffDays} dia${diffDays === 1 ? "" : "s"}`;
+      reasons.push(
+        `Próximo contato atrasado há ${diffDays} dia${diffDays === 1 ? "" : "s"}`,
+      );
+      return ctx;
+    }
+    if (diffDays === 0) {
+      ctx.tier = "call_today";
+      ctx.isNextContactToday = true;
+      ctx.suggestedAction = "call_now";
+      ctx.dueLabel = "Hoje";
+      reasons.push("Próximo contato marcado para hoje");
+      return ctx;
+    }
+    if (diffDays === -1) {
+      ctx.tier = "follow_up";
+      ctx.isNextContactTomorrow = true;
+      ctx.suggestedAction = "wait_until_scheduled";
+      ctx.dueLabel = "Amanhã";
+      reasons.push("Próximo contato marcado para amanhã");
+      return ctx;
+    }
+    // Futuro além de amanhã → aguardando.
+    ctx.tier = "awaiting";
+    ctx.suggestedAction = "wait_until_scheduled";
+    ctx.dueLabel = `Aguardando até ${dayMonthFmt.format(new Date(lead.next_contact_at))}`;
+    reasons.push(
+      `Qualificado com retorno combinado para ${dayMonthFmt.format(new Date(lead.next_contact_at))}`,
+    );
+    return ctx;
+  }
+
+  // ----- 7) in_conversation / contact_attempt / new (já com contato).
+  if (
+    lead.pipeline_stage === "in_conversation" ||
+    lead.pipeline_stage === "contact_attempt" ||
+    (lead.pipeline_stage === "new" && !nenhumContato)
+  ) {
+    const diffDays =
+      lead.next_contact_at != null
+        ? diffDaysInBrt(lead.next_contact_at, nowYmd)
+        : null;
+
+    // Guard anti-"falso compromisso": se a última interação foi fria (não
+    // visualizou / visualizou sem responder / "ok, obrigada") E não há
+    // sinal comercial vivo (reunião, visita, sociedade, cof, aguardando
+    // retorno concreto), o lead vai para reactivate independentemente de
+    // next_contact_at estar atrasado. Atraso sozinho não faz um lead
+    // frio subir para "Ligar hoje".
+    const status = lead.last_conversation_status ?? "";
+    const notViewedNow = RE_NOT_VISUALIZED.test(status);
+    const coldSignal = RE_COLD_RESPONSE.test(status);
+    const hotSignal = RE_HOT_SIGNAL.test(status) || RE_HOT_SIGNAL.test(lead.notes ?? "");
+    if (coldSignal && !hotSignal) {
+      ctx.tier = "reactivate";
+      ctx.suggestedAction = notViewedNow ? "resend_other_time" : "send_followup";
+      const daysSinceContact = daysSinceInBrt(lead.last_contact_at, now);
+      reasons.push(
+        notViewedNow
+          ? "Última mensagem não foi visualizada — reenviar em outro horário"
+          : "Sem retorno após a última mensagem",
+      );
+      if (daysSinceContact != null && daysSinceContact >= 3) {
+        reasons.push(
+          `Sem resposta há ${daysSinceContact} dia${daysSinceContact === 1 ? "" : "s"}`,
+        );
+      }
+      return ctx;
+    }
+
+    if (diffDays != null && diffDays >= 1) {
+      ctx.tier = "call_today";
+      ctx.overdueDays = diffDays;
+      ctx.suggestedAction = "call_now";
+      ctx.dueLabel = `Atrasado há ${diffDays} dia${diffDays === 1 ? "" : "s"}`;
+      reasons.push(
+        `Próximo contato atrasado há ${diffDays} dia${diffDays === 1 ? "" : "s"}`,
+      );
+      return ctx;
+    }
+    if (diffDays === 0) {
+      ctx.tier = "call_today";
+      ctx.isNextContactToday = true;
+      ctx.suggestedAction = "call_now";
+      ctx.dueLabel = "Hoje";
+      reasons.push("Próximo contato marcado para hoje");
+      return ctx;
+    }
+    if (diffDays === -1) {
+      ctx.tier = "follow_up";
+      ctx.isNextContactTomorrow = true;
+      ctx.suggestedAction = "wait_until_scheduled";
+      ctx.dueLabel = "Amanhã";
+      reasons.push("Próximo contato marcado para amanhã");
+      return ctx;
+    }
+    if (diffDays != null && diffDays < -1) {
+      ctx.tier = "awaiting";
+      ctx.suggestedAction = "wait_until_scheduled";
+      ctx.dueLabel = `Aguardando até ${dayMonthFmt.format(new Date(lead.next_contact_at!))}`;
+      reasons.push(
+        `Retorno combinado para ${dayMonthFmt.format(new Date(lead.next_contact_at!))}`,
+      );
+      return ctx;
+    }
+
+    // Sem próximo contato: usar status/dias desde o último contato
+    // para decidir entre follow_up e reactivate.
+    const daysSinceContact = daysSinceInBrt(lead.last_contact_at, now);
+    const sawNoReply = RE_SAW_NO_REPLY.test(lead.last_conversation_status ?? "");
+    const notViewed = RE_NOT_VISUALIZED.test(lead.last_conversation_status ?? "");
+    if (sawNoReply || notViewed || (daysSinceContact != null && daysSinceContact > 2)) {
+      ctx.tier = "reactivate";
+      ctx.suggestedAction = notViewed ? "resend_other_time" : "send_followup";
+      reasons.push(
+        daysSinceContact != null
+          ? `Sem resposta há ${daysSinceContact} dia${daysSinceContact === 1 ? "" : "s"}`
+          : "Última mensagem sem retorno",
+      );
+      return ctx;
+    }
+
+    ctx.tier = "follow_up";
+    ctx.suggestedAction = hasValidPhone(lead)
+      ? "whatsapp_reconnect"
+      : "validate_phone";
+    reasons.push("Conversa recente — manter em acompanhamento");
+    return ctx;
+  }
+
+  // ----- 8) no_response explícito → reativar.
+  if (lead.pipeline_stage === "no_response") {
+    const daysSinceContact = daysSinceInBrt(lead.last_contact_at, now);
+    ctx.tier = "reactivate";
+    ctx.suggestedAction = "send_followup";
+    reasons.push(
+      daysSinceContact != null
+        ? `Sem retorno há ${daysSinceContact} dia${daysSinceContact === 1 ? "" : "s"}`
+        : "Sem retorno após as últimas tentativas",
+    );
+    return ctx;
+  }
+
+  // Fallback defensivo — nunca deveria chegar aqui.
+  ctx.tier = "follow_up";
+  reasons.push("Lead sem sinais operacionais relevantes no momento");
+  return ctx;
+}
+
+function terminalReason(kind: "won" | "lost" | "disqualified"): string {
+  if (kind === "won") return "Lead já convertido — manter apenas no histórico";
+  if (kind === "lost") return "Lead perdido — manter apenas no histórico";
+  return "Lead desqualificado — manter apenas no histórico";
+}
+
 // ------------------------------------------------------------------
 // Função principal
 // ------------------------------------------------------------------
@@ -213,13 +711,18 @@ export function calculateLeadIntelligence(
   activities: FranchiseLeadActivity[],
   now: Date = new Date(),
 ): LeadIntelligence {
-  const terminal = isTerminalStage(lead);
-  if (terminal) {
+  const nowYmd = ymdInBrt(now);
+  const ctx = classifyTier(lead, activities, now, nowYmd);
+
+  // Tier terminal → saída curta.
+  if (ctx.tier === "terminal") {
     return {
       score: 0,
       temperature: "inactive",
+      operationalTier: "terminal",
+      tierLabel: OPERATIONAL_TIER_LABELS.terminal,
       attentionLevel: "none",
-      reasons: terminalReason(terminal),
+      reasons: ctx.reasons,
       suggestedAction: "history_only",
       suggestedActionLabel: SUGGESTED_ACTION_LABELS.history_only,
       dueLabel: null,
@@ -227,352 +730,222 @@ export function calculateLeadIntelligence(
     };
   }
 
-  const nowYmd = ymdInBrt(now);
   const daysSinceContact = daysSinceInBrt(lead.last_contact_at, now);
-  const daysUntilNextContact =
-    lead.next_contact_at != null
-      ? -1 * (diffDaysInBrt(lead.next_contact_at, nowYmd) ?? 0)
-      : null;
-  const nowMs = now.getTime();
 
-  const reasons: string[] = [];
-  const flags = {
-    meetingPastWithoutOutcome: false,
-    meetingToday: false,
-    meetingFuture: false,
-    nextContactToday: false,
-    nextContactTomorrow: false,
-    nextContactOverdueDays: 0,
-    qualifiedWithoutMeeting: false,
-    qualifiedAwaitingConfirmation: false,
-    newLeadNoAttempt: false,
-    noResponse7d: false,
-    noResponse14d: false,
-    phoneIncomplete: hasPhoneIncomplete(lead),
-    noContactInfo: !hasAnyContactInfo(lead),
-    stillStructuringCapital: isStillStructuringCapital(lead),
-    investment700kPlus: investmentIndicatesSevenHundredPlus(lead),
-    startUpTo3Months: startTimelineUpTo3Months(lead),
-    manualHigh: lead.priority === "high",
-    inConversation: lead.pipeline_stage === "in_conversation",
-    recentContact: daysSinceContact != null && daysSinceContact <= 2,
-    qualified:
-      lead.pipeline_stage === "qualified" ||
-      lead.pipeline_stage === "cof_sent" ||
-      lead.pipeline_stage === "negotiating",
-    meetingScheduled: lead.pipeline_stage === "meeting_scheduled",
-    waitingToConfirmVisit: false,
-    waitingAtScheduledDate: false,
-  };
+  // Enriquece com motivos adicionais (independentes do tier) para a UI
+  // mostrar contexto completo.
+  const additionalReasons: string[] = [];
 
-  // Reunião agendada: distinguimos passada, hoje e futura.
-  if (lead.pipeline_stage === "meeting_scheduled") {
-    const meetingAtIso = lead.next_contact_at;
-    if (meetingAtIso) {
-      const diffDays = diffDaysInBrt(meetingAtIso, nowYmd);
-      const meetingMs = new Date(meetingAtIso).getTime();
-      if (diffDays == null) {
-        // next_contact_at inválido — tratamos como "a confirmar"
-        flags.meetingFuture = true;
-      } else if (diffDays > 0) {
-        // Reunião em dia anterior ao de hoje.
-        const outcome = hasMeetingOutcomeAfter(activities, meetingAtIso);
-        if (!outcome) {
-          flags.meetingPastWithoutOutcome = true;
-          reasons.push(
-            `Reunião já aconteceu e falta registrar o resultado (${diffDays} dia${diffDays === 1 ? "" : "s"} atrás)`,
-          );
-        }
-      } else if (diffDays === 0) {
-        // Mesmo dia — passou ou está por vir dentro de hoje?
-        if (meetingMs < nowMs) {
-          const outcome = hasMeetingOutcomeAfter(activities, meetingAtIso);
-          if (!outcome) {
-            flags.meetingPastWithoutOutcome = true;
-            reasons.push(
-              "Reunião de hoje já aconteceu — falta registrar o resultado",
-            );
-          } else {
-            flags.meetingToday = true;
-          }
-        } else {
-          flags.meetingToday = true;
-          reasons.push("Reunião marcada para hoje");
-        }
-      } else {
-        flags.meetingFuture = true;
-        reasons.push("Reunião futura — confirmar com o lead");
-      }
-    } else {
-      // Reunião marcada sem data → tratar como pendência de confirmação.
-      flags.qualifiedAwaitingConfirmation = true;
-      reasons.push("Reunião marcada sem data — confirmar o horário");
-    }
+  if (investmentIndicatesSevenHundredPlus(lead)) {
+    additionalReasons.push("Pretende investir a partir de R$ 700 mil");
   }
-
-  // Próximo contato — classificação por dia (BRT).
-  if (lead.next_contact_at && !flags.meetingPastWithoutOutcome) {
-    const diffDays = diffDaysInBrt(lead.next_contact_at, nowYmd);
-    if (diffDays != null) {
-      if (diffDays > 0) {
-        flags.nextContactOverdueDays = diffDays;
-        if (!flags.meetingToday && !flags.meetingFuture) {
-          reasons.push(
-            `Próximo contato atrasado há ${diffDays} dia${diffDays === 1 ? "" : "s"}`,
-          );
-        }
-      } else if (diffDays === 0) {
-        if (!flags.meetingPastWithoutOutcome && !flags.meetingToday) {
-          flags.nextContactToday = true;
-          reasons.push("Próximo contato marcado para hoje");
-        }
-      } else if (diffDays === -1) {
-        flags.nextContactTomorrow = true;
-        reasons.push("Próximo contato marcado para amanhã");
-      }
-    }
+  if (startTimelineUpTo3Months(lead)) {
+    additionalReasons.push("Pretende iniciar em até 3 meses");
   }
-
-  // Qualificado sem reunião ainda.
+  if (lead.priority === "high") {
+    additionalReasons.push("Prioridade manual alta");
+  }
+  if (isStillStructuringCapital(lead)) {
+    additionalReasons.push("Ainda está estruturando o capital");
+  }
   if (
-    flags.qualified &&
-    !flags.meetingScheduled &&
-    !lead.next_contact_at
+    daysSinceContact != null &&
+    daysSinceContact > 14 &&
+    ctx.tier !== "verify_phone" &&
+    !ctx.reasons.some((r) => /sem resposta|sem retorno/i.test(r))
   ) {
-    flags.qualifiedWithoutMeeting = true;
-    reasons.push("Lead qualificado e ainda não tem reunião agendada");
+    additionalReasons.push(`Sem resposta há ${daysSinceContact} dias`);
   }
 
-  // Lead novo sem nenhuma tentativa de contato.
-  if (
-    lead.pipeline_stage === "new" &&
-    !hasContactAttemptEver(activities) &&
-    !lead.last_contact_at
-  ) {
-    flags.newLeadNoAttempt = true;
-    reasons.push("Lead novo — nenhuma tentativa de contato ainda");
-  }
-
-  // Sem resposta há dias (gate: lead já teve algum contato).
-  if (daysSinceContact != null) {
-    if (daysSinceContact > 14) {
-      flags.noResponse14d = true;
-      reasons.push(`Sem resposta há ${daysSinceContact} dias`);
-    } else if (daysSinceContact > 7) {
-      flags.noResponse7d = true;
-      reasons.push(`Sem resposta há ${daysSinceContact} dias`);
-    }
-  }
-
-  // Investimento / prazo / prioridade manual.
-  if (flags.investment700kPlus) {
-    reasons.push("Pretende investir a partir de R$ 700 mil");
-  }
-  if (flags.startUpTo3Months) {
-    reasons.push("Pretende iniciar em até 3 meses");
-  }
-  if (flags.manualHigh) {
-    reasons.push("Prioridade manual alta");
-  }
-  if (flags.qualified) {
-    reasons.push("Lead qualificado");
-  }
-
-  // Reduções / avisos
-  if (flags.phoneIncomplete) {
-    reasons.push("Telefone precisa ser confirmado");
-  }
-  if (flags.noContactInfo) {
-    reasons.push("Sem telefone válido nem email");
-  }
-  if (flags.stillStructuringCapital) {
-    reasons.push("Ainda está estruturando o capital");
-  }
-
-  // Prioridade alta sem próxima ação é um problema operacional em si.
-  if (lead.priority === "high" && !lead.next_action) {
-    reasons.push("Prioridade alta sem próxima ação definida");
-  }
-
-  // Qualificado sem próximo contato também.
-  if (flags.qualified && !lead.next_contact_at && !flags.meetingScheduled) {
-    reasons.push("Qualificado sem próximo contato marcado");
+  // Deduplica preservando ordem.
+  const combinedReasons: string[] = [];
+  for (const r of [...ctx.reasons, ...additionalReasons]) {
+    if (!combinedReasons.includes(r)) combinedReasons.push(r);
   }
 
   // ----------------------------------------------------------------
-  // Score
+  // Score (0..100). Serve só para ordenar dentro do tier.
   // ----------------------------------------------------------------
   let score = 0;
-  if (flags.meetingScheduled) score += WEIGHTS.meetingScheduled;
-  if (flags.meetingPastWithoutOutcome) score += WEIGHTS.meetingPastWithoutOutcome;
-  if (flags.qualified) score += WEIGHTS.qualified;
-  if (flags.startUpTo3Months) score += WEIGHTS.startTimelineUpTo3Months;
-  if (flags.investment700kPlus) score += WEIGHTS.investmentFrom700k;
-  if (flags.manualHigh) score += WEIGHTS.manualHigh;
-  if (flags.inConversation) score += WEIGHTS.inConversation;
-  if (flags.recentContact) score += WEIGHTS.recentContact;
-  if (flags.nextContactToday) score += WEIGHTS.nextContactToday;
-  if (flags.nextContactOverdueDays > 0) score += WEIGHTS.nextContactOverdue;
+  if (ctx.tier === "respond_now") score += 30;
+  if (ctx.tier === "call_today") score += 20;
+  if (ctx.tier === "follow_up") score += 10;
+  if (ctx.tier === "verify_phone") score += 10;
 
-  if (flags.stillStructuringCapital) score += WEIGHTS.stillStructuringCapital;
-  if (flags.noResponse14d) score += WEIGHTS.noResponseOver14d;
-  else if (flags.noResponse7d) score += WEIGHTS.noResponseOver7d;
-  if (flags.phoneIncomplete) score += WEIGHTS.phoneIncomplete;
-  if (flags.noContactInfo) score += WEIGHTS.noContactInfo;
+  if (ctx.isMeetingPastWithoutOutcome) score += WEIGHTS.meetingPastWithoutOutcome;
+  if (lead.pipeline_stage === "meeting_scheduled" && !ctx.isMeetingPastWithoutOutcome)
+    score += WEIGHTS.meetingScheduled;
+  if (
+    lead.pipeline_stage === "qualified" ||
+    lead.pipeline_stage === "cof_sent" ||
+    lead.pipeline_stage === "negotiating"
+  )
+    score += WEIGHTS.qualified;
+  if (startTimelineUpTo3Months(lead)) score += WEIGHTS.startTimelineUpTo3Months;
+  if (investmentIndicatesSevenHundredPlus(lead)) score += WEIGHTS.investmentFrom700k;
+  if (lead.priority === "high") score += WEIGHTS.manualHigh;
+  if (lead.pipeline_stage === "in_conversation") score += WEIGHTS.inConversation;
+  if (daysSinceContact != null && daysSinceContact <= 2) score += WEIGHTS.recentContact;
+  if (ctx.isNextContactToday) score += WEIGHTS.nextContactToday;
+  if (ctx.overdueDays > 0) score += WEIGHTS.nextContactOverdue;
+  if (ctx.isNewLeadFresh || ctx.isNewLeadOverdueSla) score += WEIGHTS.newLeadFresh;
 
-  // Limitação 0..100
+  if (isStillStructuringCapital(lead)) score += WEIGHTS.stillStructuringCapital;
+  if (daysSinceContact != null && daysSinceContact > 14)
+    score += WEIGHTS.noResponseOver14d;
+  else if (daysSinceContact != null && daysSinceContact > 7)
+    score += WEIGHTS.noResponseOver7d;
+  if (hasPhoneIncomplete(lead)) score += WEIGHTS.phoneIncomplete;
+  if (!hasAnyContactInfo(lead)) score += WEIGHTS.noContactInfo;
+
   if (score < 0) score = 0;
   if (score > 100) score = 100;
 
   // ----------------------------------------------------------------
-  // Attention level
+  // Attention level (estilo visual) derivado do tier.
   // ----------------------------------------------------------------
   let attentionLevel: AttentionLevel = "none";
-
-  // Crítico
-  if (
-    flags.meetingPastWithoutOutcome ||
-    flags.nextContactOverdueDays >= 3 ||
-    (lead.priority === "high" && !lead.next_action) ||
-    (flags.qualified && !lead.next_contact_at && !flags.meetingScheduled) ||
-    flags.newLeadNoAttempt
-  ) {
-    attentionLevel = "critical";
-  }
-  // Hoje
-  else if (
-    flags.nextContactToday ||
-    flags.meetingToday ||
-    (flags.nextContactOverdueDays >= 1 && flags.nextContactOverdueDays <= 2) ||
-    flags.qualifiedAwaitingConfirmation
-  ) {
-    attentionLevel = "today";
-  }
-  // Em breve
-  else if (
-    flags.nextContactTomorrow ||
-    (flags.inConversation && daysSinceContact != null && daysSinceContact >= 3)
-  ) {
-    attentionLevel = "soon";
-  }
-  // Monitorar
-  else if (
-    flags.stillStructuringCapital ||
-    flags.noResponse7d ||
-    flags.noResponse14d ||
-    flags.phoneIncomplete ||
-    lead.pipeline_stage === "no_response"
-  ) {
-    attentionLevel = "monitor";
+  switch (ctx.tier) {
+    case "respond_now":
+      attentionLevel = "critical";
+      break;
+    case "call_today":
+    case "verify_phone":
+      attentionLevel = "today";
+      break;
+    case "follow_up":
+      attentionLevel = "soon";
+      break;
+    case "reactivate":
+      attentionLevel = "monitor";
+      break;
+    case "awaiting":
+      attentionLevel = "soon";
+      break;
+    case "deprioritize":
+      attentionLevel = "none";
+      break;
+    default:
+      attentionLevel = "none";
+      break;
   }
 
   // ----------------------------------------------------------------
-  // Suggested action
-  // ----------------------------------------------------------------
-  let suggestedAction: SuggestedAction;
-  if (flags.meetingPastWithoutOutcome) {
-    suggestedAction = "record_meeting_outcome";
-  } else if (flags.phoneIncomplete) {
-    suggestedAction = "validate_phone";
-  } else if (flags.nextContactOverdueDays >= 1) {
-    suggestedAction = "call_now";
-  } else if (flags.meetingToday || flags.meetingFuture) {
-    suggestedAction = "confirm_meeting";
-  } else if (flags.qualifiedWithoutMeeting || flags.qualified) {
-    suggestedAction = "schedule_meeting";
-  } else if (flags.nextContactToday) {
-    suggestedAction = "call_now";
-  } else if (
-    lead.pipeline_stage === "contact_attempt" &&
-    /n[aã]o visualizou/i.test(lead.last_conversation_status ?? "")
-  ) {
-    suggestedAction = "resend_other_time";
-  } else if (
-    lead.pipeline_stage === "no_response" ||
-    /visualizou e n[aã]o respondeu/i.test(lead.last_conversation_status ?? "")
-  ) {
-    suggestedAction = "send_followup";
-  } else if (
-    /visita/i.test(lead.next_action ?? "") ||
-    /visita/i.test(lead.last_conversation_status ?? "")
-  ) {
-    suggestedAction = "confirm_visit";
-  } else if (flags.newLeadNoAttempt) {
-    suggestedAction = "whatsapp_reconnect";
-  } else if (
-    flags.nextContactTomorrow ||
-    (lead.next_contact_at && daysUntilNextContact != null && daysUntilNextContact > 1)
-  ) {
-    suggestedAction = "wait_until_scheduled";
-  } else {
-    suggestedAction = "whatsapp_reconnect";
-  }
-
-  // ----------------------------------------------------------------
-  // Temperature
+  // Temperature (sinal frio/morno/quente — usado em futuros filtros).
   // ----------------------------------------------------------------
   let temperature: Temperature;
   if (
-    flags.meetingPastWithoutOutcome ||
-    flags.meetingScheduled ||
-    (flags.qualified && (flags.startUpTo3Months || flags.investment700kPlus))
+    ctx.isMeetingPastWithoutOutcome ||
+    lead.pipeline_stage === "meeting_scheduled" ||
+    (ctx.tier === "respond_now" && lead.pipeline_stage !== "new")
   ) {
     temperature = "hot";
   } else if (
-    flags.qualified ||
-    flags.inConversation ||
-    flags.nextContactToday ||
-    flags.nextContactOverdueDays > 0 ||
-    flags.manualHigh
+    ctx.tier === "call_today" ||
+    ctx.tier === "follow_up" ||
+    ctx.tier === "respond_now"
   ) {
     temperature = "warm";
-  } else if (flags.noResponse14d || flags.phoneIncomplete || flags.noContactInfo) {
+  } else if (
+    ctx.tier === "reactivate" ||
+    ctx.tier === "verify_phone" ||
+    ctx.tier === "awaiting"
+  ) {
     temperature = "cold";
   } else {
-    temperature = "warm";
+    temperature = "inactive";
   }
 
   // ----------------------------------------------------------------
-  // Due label
+  // Suggested action label.
+  //
+  // Para tiers 1-3 (ativos), se o lead tem `next_action` cadastrada e ela
+  // é mais específica que a nossa frase genérica, exibimos a frase do
+  // operador para evitar texto genérico ("Confirmar interesse do filho"
+  // vs. "Retomar o contato pelo WhatsApp"). Caso contrário, usamos o
+  // label canônico. Isso NÃO altera `suggestedAction`, que continua
+  // sendo o enum usado pelo mapeamento de ações no dialog.
   // ----------------------------------------------------------------
-  let dueLabel: string | null = null;
-  if (flags.meetingPastWithoutOutcome && lead.next_contact_at) {
-    const diffDays = diffDaysInBrt(lead.next_contact_at, nowYmd);
-    if (diffDays != null && diffDays > 0) {
-      dueLabel = `Reunião há ${diffDays} dia${diffDays === 1 ? "" : "s"}`;
-    } else {
-      dueLabel = "Reunião pendente de resultado";
-    }
-  } else if (flags.nextContactOverdueDays >= 1) {
-    dueLabel = `Atrasado há ${flags.nextContactOverdueDays} dia${flags.nextContactOverdueDays === 1 ? "" : "s"}`;
-  } else if (flags.nextContactToday) {
-    dueLabel = "Hoje";
-  } else if (flags.nextContactTomorrow) {
-    dueLabel = "Amanhã";
+  let suggestedActionLabel = SUGGESTED_ACTION_LABELS[ctx.suggestedAction];
+  if (
+    (ctx.tier === "respond_now" ||
+      ctx.tier === "call_today" ||
+      ctx.tier === "follow_up") &&
+    lead.next_action &&
+    lead.next_action.trim().length > 0 &&
+    isSpecificNextAction(lead.next_action)
+  ) {
+    suggestedActionLabel = lead.next_action.trim();
+  }
+  // Exceção específica: Doni — "Confirmar interesse do filho" tem precedência.
+  if (
+    (ctx.tier === "call_today" ||
+      ctx.tier === "follow_up" ||
+      ctx.tier === "reactivate") &&
+    RE_CHILD_INTEREST.test(
+      `${lead.next_action ?? ""} ${lead.last_conversation_status ?? ""}`,
+    )
+  ) {
+    suggestedActionLabel = "Confirmar interesse do filho";
+  }
+  // Exceção específica: visita com a sócia.
+  if (
+    (ctx.tier === "call_today" || ctx.tier === "follow_up") &&
+    (RE_VISIT.test(lead.next_action ?? "") ||
+      RE_VISIT.test(lead.last_conversation_status ?? ""))
+  ) {
+    suggestedActionLabel =
+      lead.next_action && lead.next_action.trim().length > 0
+        ? lead.next_action.trim()
+        : SUGGESTED_ACTION_LABELS.confirm_visit;
   }
 
-  // Reasons mínimo: se não gerou nenhum motivo mas o lead está em etapas
-  // intermediárias, sempre damos ao menos uma frase operacional para a UI.
-  if (reasons.length === 0) {
-    reasons.push("Lead sem sinais operacionais relevantes no momento");
+  // Último fallback: se nenhum motivo foi gerado, dá uma frase operacional
+  // para a UI nunca ficar vazia.
+  if (combinedReasons.length === 0) {
+    combinedReasons.push("Lead sem sinais operacionais relevantes no momento");
   }
 
   return {
     score,
     temperature,
+    operationalTier: ctx.tier,
+    tierLabel: tierDisplayLabel(ctx),
     attentionLevel,
-    reasons,
-    suggestedAction,
-    suggestedActionLabel: SUGGESTED_ACTION_LABELS[suggestedAction],
-    dueLabel,
-    excludeFromActiveQueue: false,
+    reasons: combinedReasons,
+    suggestedAction: ctx.suggestedAction,
+    suggestedActionLabel,
+    dueLabel: ctx.dueLabel,
+    excludeFromActiveQueue: isExcludedFromActiveQueue(ctx.tier),
   };
 }
 
-function terminalReason(kind: "won" | "lost" | "disqualified"): string[] {
-  if (kind === "won") return ["Lead já convertido — manter apenas no histórico"];
-  if (kind === "lost") return ["Lead perdido — manter apenas no histórico"];
-  return ["Lead desqualificado — manter apenas no histórico"];
+function tierDisplayLabel(ctx: TierContext): string {
+  // `awaiting` ganha a data concreta embutida; os demais usam o label base.
+  if (ctx.tier === "awaiting" && ctx.nextContactIso) {
+    return `Aguardando até ${dayMonthFmt.format(new Date(ctx.nextContactIso))}`;
+  }
+  return OPERATIONAL_TIER_LABELS[ctx.tier];
+}
+
+function isSpecificNextAction(text: string): boolean {
+  // Heurística simples para evitar que uma frase genérica "Fazer contato"
+  // substitua um label mais informativo. Qualquer texto > 15 chars e sem
+  // ser só verbo + preposição conta como "específico".
+  const t = text.trim();
+  if (t.length < 10) return false;
+  if (/^fazer contato$/i.test(t)) return false;
+  return true;
+}
+
+function isExcludedFromActiveQueue(tier: OperationalTier): boolean {
+  // Fila "Quem chamar agora" só mostra tiers 1-4.
+  return (
+    tier === "reactivate" ||
+    tier === "awaiting" ||
+    tier === "deprioritize" ||
+    tier === "terminal"
+  );
 }
 
 // ------------------------------------------------------------------
@@ -584,56 +957,51 @@ export type IntelligenceEnrichedLead = {
   intel: LeadIntelligence;
 };
 
-const ATTENTION_RANK: Record<AttentionLevel, number> = {
-  critical: 0,
-  today: 1,
-  soon: 2,
-  monitor: 3,
-  none: 4,
-};
-
 const PRIORITY_RANK = { high: 0, normal: 1, low: 2 } as const;
 
-// Ordenação:
-// 1. Atenção crítica
-// 2. Reunião vencida sem resultado
-// 3. Próximo contato mais atrasado
-// 4. Score (prioridade operacional)
-// 5. Prioridade manual
-// 6. Contato mais antigo (ou criação, se nunca houve contato)
+// Ordenação dentro do tier (regra do usuário):
+//   1. Próximo contato vencido (mais atrasado primeiro).
+//   2. Prioridade manual (high > normal > low).
+//   3. Interação recente (last_contact_at desc).
+//   4. Score (desc).
+//   5. Data de recebimento (received_at/created_at asc — quem espera há mais).
 export function sortByOperationalPriority(
   a: IntelligenceEnrichedLead,
   b: IntelligenceEnrichedLead,
 ): number {
-  const aRank = ATTENTION_RANK[a.intel.attentionLevel];
-  const bRank = ATTENTION_RANK[b.intel.attentionLevel];
+  const aRank = OPERATIONAL_TIER_RANK[a.intel.operationalTier];
+  const bRank = OPERATIONAL_TIER_RANK[b.intel.operationalTier];
   if (aRank !== bRank) return aRank - bRank;
 
-  const aMeeting = a.intel.suggestedAction === "record_meeting_outcome" ? 0 : 1;
-  const bMeeting = b.intel.suggestedAction === "record_meeting_outcome" ? 0 : 1;
-  if (aMeeting !== bMeeting) return aMeeting - bMeeting;
-
-  // Mais atrasado primeiro — comparamos dueLabel via extração numérica.
   const aOverdue = overdueMagnitude(a);
   const bOverdue = overdueMagnitude(b);
   if (aOverdue !== bOverdue) return bOverdue - aOverdue;
-
-  if (a.intel.score !== b.intel.score) return b.intel.score - a.intel.score;
 
   const ap = PRIORITY_RANK[a.lead.priority];
   const bp = PRIORITY_RANK[b.lead.priority];
   if (ap !== bp) return ap - bp;
 
-  // Último recurso: contato mais antigo primeiro (quem está esperando há mais tempo).
-  const aContact = a.lead.last_contact_at ?? a.lead.created_at;
-  const bContact = b.lead.last_contact_at ?? b.lead.created_at;
-  return aContact.localeCompare(bContact);
+  const aLast = a.lead.last_contact_at ?? "";
+  const bLast = b.lead.last_contact_at ?? "";
+  if (aLast && bLast && aLast !== bLast) return bLast.localeCompare(aLast);
+  if (aLast && !bLast) return -1;
+  if (!aLast && bLast) return 1;
+
+  if (a.intel.score !== b.intel.score) return b.intel.score - a.intel.score;
+
+  const aRecv = a.lead.received_at ?? a.lead.created_at;
+  const bRecv = b.lead.received_at ?? b.lead.created_at;
+  return aRecv.localeCompare(bRecv);
 }
 
 function overdueMagnitude(e: IntelligenceEnrichedLead): number {
   const match = /\d+/.exec(e.intel.dueLabel ?? "");
   if (!match) return 0;
-  return Number(match[0]);
+  // "Reunião há 4 dias", "Atrasado há 4 dias", "Reunião hoje" (sem número).
+  // Só conta como atraso se o label mencionar "atraso" ou "reunião há".
+  const label = e.intel.dueLabel ?? "";
+  if (/atrasado|reunião há/i.test(label)) return Number(match[0]);
+  return 0;
 }
 
 export function buildCallQueue(
@@ -650,7 +1018,6 @@ export function buildCallQueue(
       now,
     );
     if (intel.excludeFromActiveQueue) continue;
-    if (intel.attentionLevel === "none") continue;
     enriched.push({ lead, intel });
   }
   enriched.sort(sortByOperationalPriority);
@@ -662,11 +1029,19 @@ export function buildCallQueue(
 // ------------------------------------------------------------------
 
 export type AlertCounters = {
+  // Tiers 1-4 com contato vencido (dueLabel começa com "Atrasado" ou
+  // "Reunião há"). NUNCA conta leads em Reativar.
   overdueContacts: number;
+  // Reuniões vencidas sem resultado — subconjunto de respond_now.
   meetingsWithoutOutcome: number;
+  // Leads ativos (tiers 1-4) sem next_action salva.
   leadsWithoutNextAction: number;
+  // Qualquer lead com telefone bruto + phone_normalized null.
   phonesToConfirm: number;
+  // Novos leads sem nenhuma tentativa de contato (SLA 0-72h).
   newLeadsWithoutContact: number;
+  // Reativação: tiers 5 (reactivate) + no_response + contact_attempt sem retorno.
+  withoutReturn: number;
 };
 
 export function computeAlerts(
@@ -680,23 +1055,30 @@ export function computeAlerts(
     leadsWithoutNextAction: 0,
     phonesToConfirm: 0,
     newLeadsWithoutContact: 0,
+    withoutReturn: 0,
   };
   for (const lead of leads) {
     if (isTerminalStage(lead)) continue;
-    const intel = calculateLeadIntelligence(
-      lead,
-      activitiesByLead.get(lead.id) ?? [],
-      now,
-    );
+    const activities = activitiesByLead.get(lead.id) ?? [];
+    const intel = calculateLeadIntelligence(lead, activities, now);
+
+    const isActiveTier =
+      intel.operationalTier === "respond_now" ||
+      intel.operationalTier === "call_today" ||
+      intel.operationalTier === "follow_up" ||
+      intel.operationalTier === "verify_phone";
+
+    if (
+      isActiveTier &&
+      intel.dueLabel &&
+      /atrasado|reunião há/i.test(intel.dueLabel)
+    ) {
+      counters.overdueContacts += 1;
+    }
     if (intel.suggestedAction === "record_meeting_outcome") {
       counters.meetingsWithoutOutcome += 1;
     }
-    const nowYmd = ymdInBrt(now);
-    const diffDays = diffDaysInBrt(lead.next_contact_at, nowYmd);
-    if (diffDays != null && diffDays >= 1) {
-      counters.overdueContacts += 1;
-    }
-    if (!lead.next_action) {
+    if (isActiveTier && !lead.next_action) {
       counters.leadsWithoutNextAction += 1;
     }
     if (hasPhoneIncomplete(lead)) {
@@ -704,10 +1086,13 @@ export function computeAlerts(
     }
     if (
       lead.pipeline_stage === "new" &&
-      !hasContactAttemptEver(activitiesByLead.get(lead.id) ?? []) &&
+      !hasContactAttemptEver(activities) &&
       !lead.last_contact_at
     ) {
       counters.newLeadsWithoutContact += 1;
+    }
+    if (intel.operationalTier === "reactivate") {
+      counters.withoutReturn += 1;
     }
     void hasValidPhone;
   }

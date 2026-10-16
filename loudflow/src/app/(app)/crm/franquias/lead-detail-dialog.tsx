@@ -37,7 +37,6 @@ import { formatPhoneForDisplay } from "@/lib/crm/phone";
 import {
   calculateLeadIntelligence,
   waNumberFor,
-  ATTENTION_LEVEL_LABELS,
   type LeadIntelligence,
   type AttentionLevel,
 } from "@/lib/crm/intelligence";
@@ -135,7 +134,8 @@ export function LeadDetailDialog({
           </DialogHeader>
 
           <div className="min-h-0 space-y-5 overflow-y-auto pr-1">
-            {!intel.excludeFromActiveQueue ? (
+            {intel.operationalTier !== "terminal" &&
+            intel.operationalTier !== "deprioritize" ? (
               <section
                 aria-label="Recomendação do sistema"
                 className={cn(
@@ -159,7 +159,7 @@ export function LeadDetailDialog({
                       attentionBadgeClass(intel.attentionLevel),
                     )}
                   >
-                    {ATTENTION_LEVEL_LABELS[intel.attentionLevel]}
+                    {intel.tierLabel}
                   </Badge>
                   {intel.dueLabel ? (
                     <span className="inline-flex items-center gap-1 rounded border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-200">
