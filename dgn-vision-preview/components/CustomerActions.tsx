@@ -4,23 +4,23 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { OfferSubscription } from "@/components/OfferSubscription";
 import { IconArrow } from "@/components/Icons";
+import type { Customer } from "@/lib/data";
 
-export function CustomerActions({
-  customerFirstName,
-  recommended = "priority",
-  ctaLabel = "Oferecer assinatura",
-}: {
-  customerFirstName: string;
-  recommended?: "essential" | "smart" | "priority";
-  ctaLabel?: string;
-}) {
+function ctaLabelFor(customer: Customer): string {
+  const k = customer.opportunity.kind;
+  if (k === "corporate") return "Apresentar Corporate Care";
+  if (k === "upgrade") return "Oferecer upgrade";
+  return "Oferecer assinatura";
+}
+
+export function CustomerActions({ customer }: { customer: Customer }) {
   const router = useRouter();
   const search = useSearchParams();
-  const presentFlag = search.get("present");
+  const presentFlag = search?.get("present") ?? null;
   const [open, setOpen] = useState(false);
   const [stage, setStage] = useState<"select" | "confirmation">("select");
 
-  // Modo Apresentação: ?present=offer abre modal, ?present=confirmation vai pra tela confirmada
+  // Integração com Modo Apresentação
   useEffect(() => {
     if (presentFlag === "offer") {
       setStage("select");
@@ -45,12 +45,11 @@ export function CustomerActions({
   return (
     <>
       <OfferSubscription
-        customerName={customerFirstName}
-        recommended={recommended}
+        customer={customer}
         open={open}
         onOpenChange={handleOpenChange}
         initialStage={stage}
-        initialPlan={recommended}
+        initialPlan={customer.opportunity.recommendedPlan}
       />
       <button
         onClick={() => {
@@ -59,35 +58,28 @@ export function CustomerActions({
         }}
         className="btn-primary"
       >
-        {ctaLabel} <IconArrow size={14} />
+        {ctaLabelFor(customer)} <IconArrow size={14} />
       </button>
     </>
   );
 }
 
-export function OpportunityLink({
-  customerFirstName,
-  recommended = "priority",
-}: {
-  customerFirstName: string;
-  recommended?: "essential" | "smart" | "priority";
-}) {
+export function OpportunityLink({ customer }: { customer: Customer }) {
   const [open, setOpen] = useState(false);
   return (
     <>
       <OfferSubscription
-        customerName={customerFirstName}
-        recommended={recommended}
+        customer={customer}
         open={open}
         onOpenChange={setOpen}
         initialStage="select"
-        initialPlan={recommended}
+        initialPlan={customer.opportunity.recommendedPlan}
       />
       <button
         onClick={() => setOpen(true)}
         className="text-sm text-gold-300 hover:text-gold-200 underline underline-offset-4 decoration-gold-400/30 hover:decoration-gold-300"
       >
-        Abrir oferta de assinatura →
+        {ctaLabelFor(customer)} →
       </button>
     </>
   );

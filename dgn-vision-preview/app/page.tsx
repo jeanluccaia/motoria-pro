@@ -1,66 +1,29 @@
 import Link from "next/link";
 import {
-  commandMetrics,
-  customers,
-  nextRecommendedAction,
+  COMMAND_METRICS,
+  CUSTOMERS,
+  DEMO_DATE,
+  DEMO_OPERATOR,
+  NEXT_RECOMMENDED_ACTION,
+  TODAY_PULSE,
+  customerById,
   prospectCustomers,
-  todayPulse,
   upsellCustomers,
   type Customer,
 } from "@/lib/data";
 import { MetricCard } from "@/components/MetricCard";
-import { IconArrow, IconCalendar, IconSpark, IconTrend, IconUsers } from "@/components/Icons";
+import {
+  IconArrow,
+  IconCalendar,
+  IconSpark,
+  IconTrend,
+  IconUsers,
+} from "@/components/Icons";
 import { StartPresentationButton } from "@/components/presentation/StartPresentationButton";
-
-function OpportunityRow({
-  customer,
-  variant = "prospect",
-}: {
-  customer: Customer;
-  variant?: "prospect" | "upsell";
-}) {
-  return (
-    <li>
-      <Link
-        href={`/clientes/${customer.id}`}
-        className="group flex items-start gap-3 p-3 rounded-xl border border-white/5 bg-white/[0.015] hover:bg-white/[0.04] hover:border-white/10 transition-colors"
-      >
-        <div className="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-ink-700 to-ink-850 border border-white/10 flex items-center justify-center text-xs font-semibold text-ink-100">
-          {customer.avatarInitials}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-sm text-white font-medium truncate">
-              {customer.name}
-            </p>
-            {customer.tier === "Fundador" && (
-              <span className="pill bg-gold-400/10 text-gold-300 border border-gold-400/20">
-                Fundador
-              </span>
-            )}
-          </div>
-          <p className="mt-0.5 text-xs text-ink-400 truncate">
-            {customer.opportunity.title}
-          </p>
-          <p
-            className={`mt-1 text-[11px] uppercase tracking-wider ${
-              variant === "upsell" ? "text-accent-emerald" : "text-gold-300"
-            }`}
-          >
-            {customer.opportunity.value}
-          </p>
-        </div>
-        <IconArrow
-          size={12}
-          className="shrink-0 mt-1 text-ink-500 group-hover:text-gold-300 transition-colors"
-        />
-      </Link>
-    </li>
-  );
-}
+import { PresentationHighlight } from "@/components/presentation/PresentationProvider";
 
 export default function VisaoGeralPage() {
-  const featured = customers.find((c) => c.id === nextRecommendedAction.customerId)!;
+  const featured = customerById(NEXT_RECOMMENDED_ACTION.customerId)!;
 
   return (
     <div className="px-6 lg:px-10 py-10 lg:py-12 space-y-10">
@@ -69,15 +32,18 @@ export default function VisaoGeralPage() {
         <div className="max-w-2xl">
           <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-wider text-gold-300">
             <span className="w-1.5 h-1.5 rounded-full bg-gold-400 animate-pulse" />
-            Terça-feira · 17 de outubro
+            {DEMO_DATE.display}
+            <span className="pill ml-2 bg-white/5 text-ink-300 border border-white/10 normal-case tracking-normal text-[10px]">
+              demonstração
+            </span>
           </div>
           <h1 className="mt-3 text-4xl lg:text-5xl font-semibold tracking-tight text-white leading-[1.05]">
-            Bom dia, Digo. Um dia{" "}
+            Bom dia, {DEMO_OPERATOR.firstName}. Um dia{" "}
             <span className="text-gold-300">organizado</span> pela frente.
           </h1>
-          <p className="mt-4 text-ink-200 text-[17px] leading-relaxed">
-            Nove atendimentos agendados, dois já em andamento e uma oportunidade
-            comercial de alta prioridade esperando sua decisão.
+          <p className="mt-4 text-ink-100 text-[17px] leading-relaxed">
+            Nove atendimentos agendados, dois já em andamento e uma
+            oportunidade comercial de alta prioridade esperando sua decisão.
           </p>
         </div>
 
@@ -87,99 +53,101 @@ export default function VisaoGeralPage() {
       </section>
 
       {/* KPIs */}
-      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        <MetricCard
-          label="Assinantes ativos"
-          value={commandMetrics.activeSubscribers.value}
-          delta={commandMetrics.activeSubscribers.delta}
-          tone="positive"
-          icon={<IconUsers />}
-        />
-        <MetricCard
-          label="Oportunidades comerciais"
-          value={commandMetrics.openOpportunities.value}
-          delta={commandMetrics.openOpportunities.delta}
-          tone="gold"
-          icon={<IconSpark />}
-        />
-        <MetricCard
-          label="Atendimentos hoje"
-          value={commandMetrics.todayAppointments.value}
-          delta={commandMetrics.todayAppointments.delta}
-          tone="neutral"
-          icon={<IconCalendar />}
-        />
-        <MetricCard
-          label="Receita recorrente"
-          value={commandMetrics.mrr.value}
-          delta={commandMetrics.mrr.delta}
-          tone="positive"
-          icon={<IconTrend />}
-        />
-      </section>
+      <PresentationHighlight id="overview-kpis">
+        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          <MetricCard
+            label="Assinantes ativos"
+            value={COMMAND_METRICS.activeSubscribers.value}
+            delta={COMMAND_METRICS.activeSubscribers.delta}
+            tone="positive"
+            icon={<IconUsers />}
+          />
+          <MetricCard
+            label="Oportunidades comerciais"
+            value={COMMAND_METRICS.openOpportunities.value}
+            delta={COMMAND_METRICS.openOpportunities.delta}
+            tone="gold"
+            icon={<IconSpark />}
+          />
+          <MetricCard
+            label="Atendimentos hoje"
+            value={COMMAND_METRICS.todayAppointments.value}
+            delta={COMMAND_METRICS.todayAppointments.delta}
+            tone="neutral"
+            icon={<IconCalendar />}
+          />
+          <MetricCard
+            label="Receita recorrente"
+            value={COMMAND_METRICS.mrr.value}
+            delta={COMMAND_METRICS.mrr.delta}
+            tone="positive"
+            icon={<IconTrend />}
+          />
+        </section>
+      </PresentationHighlight>
 
       {/* Próxima ação recomendada + Pulso */}
       <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Oportunidade destaque */}
-        <div className="xl:col-span-2 surface-raised p-8 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-gold-400/[0.07] via-transparent to-transparent pointer-events-none" />
-          <div className="absolute top-0 right-0 w-80 h-80 bg-gold-400/5 rounded-full blur-3xl pointer-events-none" />
+        <PresentationHighlight id="overview-next-action" className="xl:col-span-2">
+          <div className="surface-raised p-8 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-gold-400/[0.07] via-transparent to-transparent pointer-events-none" />
+            <div className="absolute top-0 right-0 w-80 h-80 bg-gold-400/5 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="relative">
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div className="inline-flex items-center gap-2 pill bg-gold-400/10 text-gold-300 border border-gold-400/20">
-                <IconSpark size={12} />
-                Próxima ação recomendada
-              </div>
-              <span className="text-[11px] uppercase tracking-wider text-ink-400">
-                Prioridade alta · atualizado há 4 min
-              </span>
-            </div>
-
-            <h2 className="mt-5 text-2xl lg:text-[28px] text-white font-semibold leading-tight tracking-tight max-w-2xl">
-              {nextRecommendedAction.headline}
-            </h2>
-
-            <p className="mt-3 text-ink-200 max-w-2xl leading-relaxed">
-              {nextRecommendedAction.rationale}
-            </p>
-
-            <div className="mt-6 flex items-center gap-5 flex-wrap">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-ink-700 to-ink-850 border border-white/10 flex items-center justify-center text-sm font-semibold text-ink-100">
-                  {featured.avatarInitials}
+            <div className="relative">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div className="inline-flex items-center gap-2 pill bg-gold-400/10 text-gold-300 border border-gold-400/20">
+                  <IconSpark size={12} />
+                  Próxima ação recomendada
                 </div>
+                <span className="text-[11px] uppercase tracking-wider text-ink-300">
+                  Prioridade alta
+                </span>
+              </div>
+
+              <h2 className="mt-5 text-2xl lg:text-[28px] text-white font-semibold leading-tight tracking-tight max-w-2xl">
+                {NEXT_RECOMMENDED_ACTION.headline}
+              </h2>
+
+              <p className="mt-3 text-ink-100 max-w-2xl leading-relaxed">
+                {NEXT_RECOMMENDED_ACTION.rationale}
+              </p>
+
+              <div className="mt-6 flex items-center gap-5 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-ink-700 to-ink-850 border border-white/10 flex items-center justify-center text-sm font-semibold text-ink-100">
+                    {featured.avatarInitials}
+                  </div>
+                  <div className="leading-tight">
+                    <p className="text-sm text-white font-medium">{featured.name}</p>
+                    <p className="text-xs text-ink-300">
+                      Cliente desde {featured.since}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="h-10 w-px bg-white/5 hidden sm:block" />
+
                 <div className="leading-tight">
-                  <p className="text-sm text-white font-medium">{featured.name}</p>
-                  <p className="text-xs text-ink-400">
-                    {featured.vehicle.make} {featured.vehicle.model} · Cliente desde{" "}
-                    {featured.since}
+                  <p className="text-[11px] uppercase tracking-wider text-ink-300">
+                    Potencial estimado
+                  </p>
+                  <p className="text-sm text-gold-300 font-semibold">
+                    {featured.opportunity.projection.deltaDisplay}
                   </p>
                 </div>
+
+                <div className="flex-1" />
+
+                <Link
+                  href={`/clientes/${featured.id}`}
+                  className="btn-primary"
+                >
+                  Abrir cliente 360° <IconArrow size={14} />
+                </Link>
               </div>
-
-              <div className="h-10 w-px bg-white/5 hidden sm:block" />
-
-              <div className="leading-tight">
-                <p className="text-[11px] uppercase tracking-wider text-ink-400">
-                  Potencial
-                </p>
-                <p className="text-sm text-gold-300 font-semibold">
-                  {featured.opportunity.value}
-                </p>
-              </div>
-
-              <div className="flex-1" />
-
-              <Link
-                href={`/clientes/${featured.id}`}
-                className="btn-primary"
-              >
-                Abrir cliente 360° <IconArrow size={14} />
-              </Link>
             </div>
           </div>
-        </div>
+        </PresentationHighlight>
 
         {/* Pulso lateral — contagem rápida */}
         <div className="surface-raised p-6 flex flex-col gap-5">
@@ -193,10 +161,10 @@ export default function VisaoGeralPage() {
 
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: "Em atendimento", value: "2", tone: "emerald" },
-              { label: "Aguardando", value: "3", tone: "gold" },
-              { label: "Agendados", value: "4", tone: "neutral" },
-              { label: "Concluídos", value: "1", tone: "neutral" },
+              { label: "Em atendimento", value: "1" },
+              { label: "Aguardando", value: "1" },
+              { label: "Agendados", value: "2" },
+              { label: "Concluídos", value: "0" },
             ].map((kpi) => (
               <div
                 key={kpi.label}
@@ -205,7 +173,7 @@ export default function VisaoGeralPage() {
                 <p className="text-[32px] leading-none font-semibold text-white tabular-nums">
                   {kpi.value}
                 </p>
-                <p className="mt-1.5 text-[11px] uppercase tracking-wider text-ink-400">
+                <p className="mt-1.5 text-[11px] uppercase tracking-wider text-ink-300">
                   {kpi.label}
                 </p>
               </div>
@@ -213,7 +181,7 @@ export default function VisaoGeralPage() {
           </div>
 
           <div className="mt-auto pt-5 border-t border-white/5">
-            <p className="text-[11px] uppercase tracking-wider text-ink-400">
+            <p className="text-[11px] uppercase tracking-wider text-ink-300">
               Capacidade do dia
             </p>
             <div className="mt-3 h-2 rounded-full bg-white/5 overflow-hidden">
@@ -223,31 +191,33 @@ export default function VisaoGeralPage() {
               />
             </div>
             <div className="mt-2 flex items-center justify-between text-xs">
-              <span className="text-ink-300">9 de 13 slots ocupados</span>
+              <span className="text-ink-200">9 de 13 slots ocupados</span>
               <span className="text-gold-300 font-medium">68%</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Pulso do dia (timeline) + oportunidades priorizadas */}
+      {/* Pulso do dia + oportunidades */}
       <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 surface p-6 lg:p-8">
-          <div className="flex items-end justify-between mb-6">
+          <div className="flex items-end justify-between mb-6 flex-wrap gap-3">
             <div>
               <h3 className="text-xl font-semibold text-white">Pulso do dia</h3>
-              <p className="text-sm text-ink-400 mt-1">
-                Linha do tempo operacional da Unidade Jardins
+              <p className="text-sm text-ink-300 mt-1">
+                Linha do tempo operacional da {COMMAND_METRICS_UNIT}
               </p>
             </div>
-            <button className="btn-subtle">Ver agenda completa</button>
+            <Link href="/agenda" className="btn-subtle">
+              Ver agenda completa <IconArrow size={12} />
+            </Link>
           </div>
 
           <ol className="relative space-y-1">
             <div className="absolute left-[52px] top-2 bottom-2 w-px bg-gradient-to-b from-white/5 via-white/10 to-white/5" />
-            {todayPulse.map((item) => (
-              <li key={item.time} className="relative flex items-start gap-5 py-3">
-                <div className="w-11 shrink-0 text-right text-sm tabular-nums text-ink-300 font-mono pt-0.5">
+            {TODAY_PULSE.map((item) => (
+              <li key={item.time + item.title} className="relative flex items-start gap-5 py-3">
+                <div className="w-11 shrink-0 text-right text-sm tabular-nums text-ink-200 font-mono pt-0.5">
                   {item.time}
                 </div>
                 <div
@@ -282,7 +252,7 @@ export default function VisaoGeralPage() {
                       </span>
                     )}
                   </div>
-                  <p className="mt-0.5 text-sm text-ink-400">{item.detail}</p>
+                  <p className="mt-0.5 text-sm text-ink-200">{item.detail}</p>
                 </div>
               </li>
             ))}
@@ -294,8 +264,8 @@ export default function VisaoGeralPage() {
             <h3 className="text-xl font-semibold text-white">
               Oportunidades priorizadas
             </h3>
-            <span className="pill bg-white/5 text-ink-300 border border-white/10">
-              {customers.length} ativas
+            <span className="pill bg-white/5 text-ink-200 border border-white/10">
+              {CUSTOMERS.length} ativas
             </span>
           </div>
 
@@ -306,7 +276,7 @@ export default function VisaoGeralPage() {
                   Abrir assinatura
                 </span>
                 <span className="h-px flex-1 bg-white/5" />
-                <span className="text-[11px] text-ink-500">
+                <span className="text-[11px] text-ink-400">
                   {prospectCustomers.length}
                 </span>
               </div>
@@ -325,7 +295,7 @@ export default function VisaoGeralPage() {
                   Upsell · assinante ativo
                 </span>
                 <span className="h-px flex-1 bg-white/5" />
-                <span className="text-[11px] text-ink-500">
+                <span className="text-[11px] text-ink-400">
                   {upsellCustomers.length}
                 </span>
               </div>
@@ -338,13 +308,62 @@ export default function VisaoGeralPage() {
           )}
 
           <div className="mt-auto pt-6 border-t border-white/5">
-            <p className="text-xs text-ink-400">
-              Projeções são ilustrativas, baseadas em histórico vs. valor da assinatura.
-              Não representam receita confirmada.
+            <p className="text-xs text-ink-200">
+              Projeções são ilustrativas, calculadas a partir do histórico de cada
+              cliente. Não representam receita confirmada.
             </p>
           </div>
         </div>
       </section>
     </div>
+  );
+}
+
+const COMMAND_METRICS_UNIT = "Unidade Jardins";
+
+function OpportunityRow({
+  customer,
+  variant = "prospect",
+}: {
+  customer: Customer;
+  variant?: "prospect" | "upsell";
+}) {
+  return (
+    <li>
+      <Link
+        href={`/clientes/${customer.id}`}
+        className="group flex items-start gap-3 p-3 rounded-xl border border-white/5 bg-white/[0.015] hover:bg-white/[0.04] hover:border-white/10 transition-colors"
+      >
+        <div className="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-ink-700 to-ink-850 border border-white/10 flex items-center justify-center text-xs font-semibold text-ink-100">
+          {customer.avatarInitials}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-white font-medium truncate">
+              {customer.name}
+            </p>
+            {customer.tier === "Fundador" && (
+              <span className="pill bg-gold-400/10 text-gold-300 border border-gold-400/20">
+                Fundador
+              </span>
+            )}
+          </div>
+          <p className="mt-0.5 text-xs text-ink-200 truncate">
+            {customer.opportunity.title}
+          </p>
+          <p
+            className={`mt-1 text-[11px] uppercase tracking-wider ${
+              variant === "upsell" ? "text-accent-emerald" : "text-gold-300"
+            }`}
+          >
+            {customer.opportunity.projection.deltaDisplay}
+          </p>
+        </div>
+        <IconArrow
+          size={12}
+          className="shrink-0 mt-1 text-ink-300 group-hover:text-gold-300 transition-colors"
+        />
+      </Link>
+    </li>
   );
 }

@@ -6,15 +6,18 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SCENES } from "./scenes";
+import { assertDataConsistency } from "@/lib/data";
 
 type Ctx = {
   active: boolean;
   stepIndex: number;
   totalSteps: number;
+  currentHighlight: string | null;
   start: () => void;
   stop: () => void;
   next: () => void;
@@ -26,7 +29,8 @@ const PresentationContext = createContext<Ctx | null>(null);
 
 export function usePresentation() {
   const ctx = useContext(PresentationContext);
-  if (!ctx) throw new Error("usePresentation must be used inside provider");
+  if (!ctx)
+    throw new Error("usePresentation must be used inside provider");
   return ctx;
 }
 
@@ -40,77 +44,81 @@ export function PresentationProvider({
   const [active, setActive] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const totalSteps = SCENES.length;
+  const didInitFromUrl = useRef(false);
 
-  // Permite abrir via URL ?present=1[&step=n]
+  // Permite abrir via URL ?present=1[&step=n] + validação de consistência
   useEffect(() => {
-    if (search.get("present") === "1") {
+    if (didInitFromUrl.current) return;
+    didInitFromUrl.current = true;
+    if (search?.get("present") === "1") {
       const s = Number(search.get("step") ?? 0);
       setActive(true);
-      setStepIndex(Number.isFinite(s) ? Math.min(Math.max(s, 0), totalSteps - 1) : 0);
+      setStepIndex(
+        Number.isFinite(s) ? Math.min(Math.max(s, 0), totalSteps - 1) : 0
+      );
     }
-  }, [search, totalSteps]);
-
-  const applyScene = useCallback(
-    (i: number) => {
-      const scene = SCENES[i];
-      if (!scene) return;
-      // navega apenas se mudou a rota base
-      const current = window.location.pathname + window.location.search;
-      if (current !== scene.route) {
-        router.push(scene.route);
+    if (process.env.NODE_ENV !== "production") {
+      const issues = assertDataConsistency();
+      if (issues.length) {
+        console.warn("[DGN Vision] Inconsistências de dados:", issues);
+      } else {
+        console.info("[DGN Vision] Dados demonstrativos consistentes ✓");
       }
-    },
-    [router]
-  );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Navegação reativa — reage a mudança de stepIndex, nunca durante o updater
+  useEffect(() => {
+    if (!active) return;
+    const scene = SCENES[stepIndex];
+    if (!scene) return;
+    const current = window.location.pathname + window.location.search;
+    if (current !== scene.route) {
+      router.push(scene.route);
+    }
+  }, [active, stepIndex, router]);
 
   const start = useCallback(() => {
-    setActive(true);
     setStepIndex(0);
-    applyScene(0);
-  }, [applyScene]);
+    setActive(true);
+  }, []);
 
   const stop = useCallback(() => {
     setActive(false);
-    // Limpa querystring da cena de oferta/confirmação
+    // Limpa querystring sem navegação do Next
     const url = new URL(window.location.href);
     url.searchParams.delete("present");
     url.searchParams.delete("step");
     window.history.replaceState({}, "", url.toString());
   }, []);
 
-  const next = useCallback(() => {
-    setStepIndex((i) => {
-      const n = Math.min(i + 1, totalSteps - 1);
-      applyScene(n);
-      return n;
-    });
-  }, [applyScene, totalSteps]);
-
-  const prev = useCallback(() => {
-    setStepIndex((i) => {
-      const n = Math.max(i - 1, 0);
-      applyScene(n);
-      return n;
-    });
-  }, [applyScene]);
-
+  const next = useCallback(
+    () => setStepIndex((i) => Math.min(i + 1, totalSteps - 1)),
+    [totalSteps]
+  );
+  const prev = useCallback(
+    () => setStepIndex((i) => Math.max(i - 1, 0)),
+    []
+  );
   const goTo = useCallback(
-    (i: number) => {
-      const n = Math.min(Math.max(i, 0), totalSteps - 1);
-      setStepIndex(n);
-      applyScene(n);
-    },
-    [applyScene, totalSteps]
+    (i: number) =>
+      setStepIndex(() => Math.min(Math.max(i, 0), totalSteps - 1)),
+    [totalSteps]
   );
 
-  // Atalhos de teclado
+  // Atalhos de teclado — Esc sempre encerra, independente de modal (modal usa stopPropagation)
   useEffect(() => {
     if (!active) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
         stop();
-      } else if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
+      } else if (
+        e.key === "ArrowRight" ||
+        e.key === " " ||
+        e.key === "PageDown"
+      ) {
         e.preventDefault();
         next();
       } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
@@ -122,14 +130,57 @@ export function PresentationProvider({
     return () => window.removeEventListener("keydown", handler);
   }, [active, next, prev, stop]);
 
+  const currentHighlight = active ? SCENES[stepIndex]?.highlight ?? null : null;
+
   const value = useMemo<Ctx>(
-    () => ({ active, stepIndex, totalSteps, start, stop, next, prev, goTo }),
-    [active, stepIndex, totalSteps, start, stop, next, prev, goTo]
+    () => ({
+      active,
+      stepIndex,
+      totalSteps,
+      currentHighlight,
+      start,
+      stop,
+      next,
+      prev,
+      goTo,
+    }),
+    [active, stepIndex, totalSteps, currentHighlight, start, stop, next, prev, goTo]
   );
 
   return (
     <PresentationContext.Provider value={value}>
       {children}
     </PresentationContext.Provider>
+  );
+}
+
+/**
+ * Marca um elemento como alvo de destaque numa cena específica.
+ * Quando a cena atual tem highlight === id, o elemento recebe um ring dourado.
+ */
+export function PresentationHighlight({
+  id,
+  className = "",
+  children,
+}: {
+  id: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const ctx = useContext(PresentationContext);
+  const isActive = ctx?.currentHighlight === id;
+  return (
+    <div
+      data-highlight={id}
+      className={
+        className +
+        " transition-all duration-500 " +
+        (isActive
+          ? "ring-2 ring-gold-400/70 ring-offset-4 ring-offset-ink-950 rounded-2xl shadow-gold"
+          : "")
+      }
+    >
+      {children}
+    </div>
   );
 }
