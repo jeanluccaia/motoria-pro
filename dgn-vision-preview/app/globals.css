@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: #0A0B0D;
+  color: #E5E8ED;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+code,
+pre,
+kbd,
+.font-mono {
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo,
+    monospace !important;
+}
+
+body {
+  font-size: 15px;
+  line-height: 1.55;
+  font-feature-settings: "cv11", "ss01", "ss03";
+}
+
+::selection {
+  background: rgba(201, 163, 62, 0.35);
+  color: #FBF6E8;
+}
+
+/* Scrollbar discreta no tema grafite */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #242A33;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #333B47;
+}
+
+@layer components {
+  .surface {
+    @apply bg-ink-900/80 backdrop-blur-sm border border-white/5 rounded-2xl;
+  }
+  .surface-raised {
+    @apply bg-ink-850 border border-white/[0.06] rounded-2xl shadow-glass;
+  }
+  .pill {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium tracking-wide uppercase;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gold-400 text-ink-950 font-semibold text-sm hover:bg-gold-300 transition-colors shadow-gold;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-white/10 text-ink-100 text-sm font-medium hover:bg-white/5 transition-colors;
+  }
+  .btn-subtle {
+    @apply inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium text-ink-200 hover:text-white hover:bg-white/5 transition-colors;
+  }
+  .kbd {
+    @apply inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-md border border-white/10 bg-white/[0.03] text-[11px] text-ink-300 font-mono;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(201,163,62,0.08), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 8s ease-in-out infinite;
+}
