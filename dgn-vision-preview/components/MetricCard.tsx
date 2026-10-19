@@ -6,15 +6,26 @@ export function MetricCard({
   delta,
   tone = "neutral",
   icon,
+  compact = false,
+  badge,
 }: {
   label: string;
   value: string | number;
   delta?: string;
   tone?: "neutral" | "gold" | "positive";
   icon?: React.ReactNode;
+  /** Reduz padding, tamanho de fonte e espaçamento interno. */
+  compact?: boolean;
+  /** Pequena etiqueta auxiliar (ex: "contexto demo") exibida acima do valor. */
+  badge?: string;
 }) {
   return (
-    <div className="surface-raised p-6 relative overflow-hidden group hover:border-white/10 transition-colors">
+    <div
+      className={clsx(
+        "surface-raised relative overflow-hidden group hover:border-white/10 transition-colors",
+        compact ? "p-4" : "p-6"
+      )}
+    >
       <div
         className={clsx(
           "absolute inset-x-0 top-0 h-px",
@@ -24,22 +35,44 @@ export function MetricCard({
         )}
       />
       <div className="flex items-start justify-between">
-        <div className="flex flex-col gap-1">
-          <span className="text-[11px] uppercase tracking-wider text-ink-400 font-medium">
-            {label}
-          </span>
-          <span className="text-[32px] leading-none font-semibold text-white tabular-nums tracking-tight">
+        <div className="flex flex-col gap-0.5 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span
+              className={clsx(
+                "uppercase tracking-wider text-ink-400 font-medium",
+                compact ? "text-[10px]" : "text-[11px]"
+              )}
+            >
+              {label}
+            </span>
+            {badge && (
+              <span className="pill bg-white/5 text-ink-400 border border-white/10 normal-case tracking-normal text-[9px] py-0.5 px-1.5">
+                {badge}
+              </span>
+            )}
+          </div>
+          <span
+            className={clsx(
+              "leading-none font-semibold text-white tabular-nums tracking-tight",
+              compact ? "text-[26px] mt-1" : "text-[32px] mt-1"
+            )}
+          >
             {value}
           </span>
         </div>
         {icon && (
-          <div className="w-9 h-9 rounded-xl border border-white/5 bg-white/[0.02] flex items-center justify-center text-ink-300">
+          <div
+            className={clsx(
+              "rounded-xl border border-white/5 bg-white/[0.02] flex items-center justify-center text-ink-300 shrink-0",
+              compact ? "w-8 h-8" : "w-9 h-9"
+            )}
+          >
             {icon}
           </div>
         )}
       </div>
       {delta && (
-        <div className="mt-4 flex items-center gap-2">
+        <div className={clsx("flex items-center gap-2", compact ? "mt-2.5" : "mt-4")}>
           <span
             className={clsx(
               "pill",

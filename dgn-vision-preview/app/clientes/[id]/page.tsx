@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   CUSTOMERS,
+  appointmentStatus,
   customerById,
   nextAppointmentByCustomer,
   vehicleById,
@@ -190,7 +191,9 @@ export default async function ClientePage({
             )}
 
             {/* Próximo atendimento */}
-            {next && (
+            {next && (() => {
+              const nextStatus = appointmentStatus(next);
+              return (
               <div className="surface p-6 lg:p-7">
                 <div className="flex items-center justify-between mb-5">
                   <h3 className="text-lg font-semibold text-white">
@@ -198,14 +201,16 @@ export default async function ClientePage({
                   </h3>
                   <span
                     className={`pill ${
-                      next.status === "Confirmado"
+                      nextStatus === "Confirmado"
                         ? "bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/20"
-                        : next.status === "Em andamento"
+                        : nextStatus === "Em andamento"
                         ? "bg-gold-400/10 text-gold-300 border border-gold-400/20"
+                        : nextStatus === "Concluído"
+                        ? "bg-white/5 text-ink-300 border border-white/10"
                         : "bg-accent-amber/10 text-accent-amber border border-accent-amber/20"
                     }`}
                   >
-                    {next.status}
+                    {nextStatus}
                   </span>
                 </div>
 
@@ -234,7 +239,8 @@ export default async function ClientePage({
                   </div>
                 </div>
               </div>
-            )}
+              );
+            })()}
 
             {/* Histórico */}
             <div className="surface p-6 lg:p-7">

@@ -6,6 +6,7 @@ import "./globals.css";
 import { AppShell } from "@/components/AppShell";
 import { PresentationProvider } from "@/components/presentation/PresentationProvider";
 import { PresentationOverlay } from "@/components/presentation/PresentationOverlay";
+import { BrandSkinOverlay } from "@/components/presentation/BrandSkinOverlay";
 
 export const metadata: Metadata = {
   title: "DGN Vision · Preview Executivo",
@@ -27,6 +28,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <PresentationProvider>
             <AppShell>{children}</AppShell>
+            <BrandSkinOverlay />
             <PresentationOverlay />
           </PresentationProvider>
         </Suspense>

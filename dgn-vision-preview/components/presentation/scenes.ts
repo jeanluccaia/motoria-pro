@@ -6,24 +6,33 @@ export type Scene = {
   route: string;
   /** Id do elemento envolvido em <PresentationHighlight> que deve ganhar ring dourado */
   highlight?: string;
+  /** Flag para cena SaaS que troca o skin da marca. */
+  skinOverride?: "second-brand";
 };
 
+/**
+ * Cada cena deve apontar highlight para um elemento acima do viewport mínimo
+ * esperado (para o scroll-into-view do PresentationProvider deslocar o conteúdo
+ * corretamente). O painel narrativo fica no canto direito e nunca cobre o highlight.
+ */
 export const SCENES: Scene[] = [
   {
     id: "overview",
     title: "O dia inteiro em uma tela",
     caption:
-      "O Command Center resume a operação, prioriza a próxima ação e evita que o empresário navegue entre sistemas.",
-    takeaway: "9 atendimentos hoje · 1 oportunidade de alta prioridade.",
+      "O Command Center resume a operação, prioriza a próxima ação e evita que o empresário navegue entre sistemas",
+    takeaway:
+      "Operação ao vivo + oportunidades priorizadas, sem precisar abrir outro sistema",
     route: "/",
-    highlight: "overview-kpis",
+    highlight: "overview-next-action",
   },
   {
     id: "opportunity",
     title: "Inteligência comercial em ação",
     caption:
-      "A DGN monitora o comportamento de cada cliente e sugere a próxima oferta com justificativa — não um palpite, um sinal.",
-    takeaway: "Roberta: 4 visitas em 4 meses, NPS 10, ticket médio R$ 480.",
+      "A plataforma monitora o comportamento de cada cliente e sugere a próxima oferta com justificativa — sinal, não palpite",
+    takeaway:
+      "Roberta: 3 avulsos em 90 dias · NPS 10 · perfil VIP → recomenda Priority",
     route: "/",
     highlight: "overview-next-action",
   },
@@ -31,8 +40,8 @@ export const SCENES: Scene[] = [
     id: "cliente-360",
     title: "Perfil 360° em 3 segundos",
     caption:
-      "Um clique mostra veículo, condição, histórico e oportunidade. Sem navegar entre abas, sem buscar.",
-    takeaway: "Perfil demonstrativo da Roberta aberto.",
+      "Um clique abre veículo, condição, histórico e oportunidade. Sem navegar entre abas, sem buscar",
+    takeaway: "Perfil demonstrativo da Roberta aberto",
     route: "/clientes/roberta-vinciguerra",
     highlight: "customer-hero",
   },
@@ -40,24 +49,27 @@ export const SCENES: Scene[] = [
     id: "oferta",
     title: "Oferta de assinatura em um clique",
     caption:
-      "Três planos canônicos. A escolha prepara a conversa — nenhum contrato, nenhuma cobrança criada neste momento.",
-    takeaway: "Essential · Smart · Priority — Priority é o recomendado.",
+      "Três planos canônicos. A escolha prepara a conversa — nenhum contrato ou cobrança criada neste momento",
+    takeaway: "Essential · Smart · Priority — Priority é o recomendado",
     route: "/clientes/roberta-vinciguerra?present=offer",
   },
   {
-    id: "confirmacao",
-    title: "Preparação demonstrativa",
+    id: "estado-oferta",
+    title: "A oportunidade vira estado",
     caption:
-      "Em produção, aqui enviaríamos o convite por WhatsApp e abriríamos o checkout. No preview, apenas simulamos o próximo passo.",
-    takeaway: "Nenhum contrato ou cobrança foi criado.",
-    route: "/clientes/roberta-vinciguerra?present=confirmation",
+      "Após preparar a oferta, a plataforma passa a acompanhar o estado — na ficha do cliente e na Visão Geral — até o envio",
+    takeaway:
+      "Oferta Priority preparada · aguardando envio · nenhum contrato ou cobrança criada",
+    route: "/?present=prepared",
+    highlight: "overview-next-action",
   },
   {
     id: "saas",
     title: "A mesma plataforma, outra operação",
     caption:
-      "Trocar DGN por outra marca é configuração — a inteligência comercial, a jornada e as integrações permanecem.",
-    takeaway: "Demonstração conceitual de SaaS replicável.",
+      "Trocar DGN por outra marca é configuração — a inteligência comercial, a jornada e as integrações permanecem. Simulação visual, sem infraestrutura multi-tenant em produção",
+    takeaway: "Northside Detailing · mesma plataforma, outra marca",
     route: "/?present=saas",
+    skinOverride: "second-brand",
   },
 ];

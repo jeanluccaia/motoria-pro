@@ -10,14 +10,16 @@ import {
   useState,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SCENES } from "./scenes";
+import { SCENES, type Scene } from "./scenes";
 import { assertDataConsistency } from "@/lib/data";
 
 type Ctx = {
   active: boolean;
   stepIndex: number;
   totalSteps: number;
+  currentScene: Scene | null;
   currentHighlight: string | null;
+  skinOverride: "second-brand" | null;
   start: () => void;
   stop: () => void;
   next: () => void;
@@ -27,10 +29,38 @@ type Ctx = {
 
 const PresentationContext = createContext<Ctx | null>(null);
 
+const OFFER_KEY = "dgn-vision-offers-v1";
+const SNAPSHOT_KEY = "dgn-vision-offers-snapshot-v1";
+
+/** Snapshot do localStorage de ofertas antes de iniciar a apresentação. */
+function snapshotOffersAndReset() {
+  if (typeof window === "undefined") return;
+  const current = window.localStorage.getItem(OFFER_KEY);
+  if (current != null) {
+    window.sessionStorage.setItem(SNAPSHOT_KEY, current);
+  } else {
+    window.sessionStorage.removeItem(SNAPSHOT_KEY);
+  }
+  window.localStorage.removeItem(OFFER_KEY);
+  window.dispatchEvent(new CustomEvent("dgn-offers-changed"));
+}
+
+/** Restaura o snapshot salvo em sessionStorage. */
+function restoreOffersSnapshot() {
+  if (typeof window === "undefined") return;
+  const snap = window.sessionStorage.getItem(SNAPSHOT_KEY);
+  if (snap != null) {
+    window.localStorage.setItem(OFFER_KEY, snap);
+    window.sessionStorage.removeItem(SNAPSHOT_KEY);
+  } else {
+    window.localStorage.removeItem(OFFER_KEY);
+  }
+  window.dispatchEvent(new CustomEvent("dgn-offers-changed"));
+}
+
 export function usePresentation() {
   const ctx = useContext(PresentationContext);
-  if (!ctx)
-    throw new Error("usePresentation must be used inside provider");
+  if (!ctx) throw new Error("usePresentation must be used inside provider");
   return ctx;
 }
 
@@ -52,10 +82,12 @@ export function PresentationProvider({
     didInitFromUrl.current = true;
     if (search?.get("present") === "1") {
       const s = Number(search.get("step") ?? 0);
+      const target = Number.isFinite(s)
+        ? Math.min(Math.max(s, 0), totalSteps - 1)
+        : 0;
+      snapshotOffersAndReset();
       setActive(true);
-      setStepIndex(
-        Number.isFinite(s) ? Math.min(Math.max(s, 0), totalSteps - 1) : 0
-      );
+      setStepIndex(target);
     }
     if (process.env.NODE_ENV !== "production") {
       const issues = assertDataConsistency();
@@ -79,14 +111,33 @@ export function PresentationProvider({
     }
   }, [active, stepIndex, router]);
 
+  // Scroll into view do highlight ao mudar de cena, com offset para o painel narrativo
+  useEffect(() => {
+    if (!active) return;
+    const scene = SCENES[stepIndex];
+    if (!scene?.highlight) return;
+    // Aguarda router.push + render antes de scrollar
+    const t = setTimeout(() => {
+      const el = document.querySelector(`[data-highlight="${scene.highlight}"]`);
+      if (el instanceof HTMLElement) {
+        const rect = el.getBoundingClientRect();
+        const offset = window.innerHeight * 0.2; // 20% do viewport pra respirar
+        const target = window.scrollY + rect.top - offset;
+        window.scrollTo({ top: Math.max(target, 0), behavior: "smooth" });
+      }
+    }, 350);
+    return () => clearTimeout(t);
+  }, [active, stepIndex]);
+
   const start = useCallback(() => {
+    snapshotOffersAndReset();
     setStepIndex(0);
     setActive(true);
   }, []);
 
   const stop = useCallback(() => {
     setActive(false);
-    // Limpa querystring sem navegação do Next
+    restoreOffersSnapshot();
     const url = new URL(window.location.href);
     url.searchParams.delete("present");
     url.searchParams.delete("step");
@@ -107,7 +158,7 @@ export function PresentationProvider({
     [totalSteps]
   );
 
-  // Atalhos de teclado — Esc sempre encerra, independente de modal (modal usa stopPropagation)
+  // Esc encerra, setas/Space navegam
   useEffect(() => {
     if (!active) return;
     const handler = (e: KeyboardEvent) => {
@@ -130,21 +181,25 @@ export function PresentationProvider({
     return () => window.removeEventListener("keydown", handler);
   }, [active, next, prev, stop]);
 
-  const currentHighlight = active ? SCENES[stepIndex]?.highlight ?? null : null;
+  const currentScene = active ? SCENES[stepIndex] ?? null : null;
+  const currentHighlight = currentScene?.highlight ?? null;
+  const skinOverride = currentScene?.skinOverride ?? null;
 
   const value = useMemo<Ctx>(
     () => ({
       active,
       stepIndex,
       totalSteps,
+      currentScene,
       currentHighlight,
+      skinOverride,
       start,
       stop,
       next,
       prev,
       goTo,
     }),
-    [active, stepIndex, totalSteps, currentHighlight, start, stop, next, prev, goTo]
+    [active, stepIndex, totalSteps, currentScene, currentHighlight, skinOverride, start, stop, next, prev, goTo]
   );
 
   return (

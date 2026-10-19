@@ -3,25 +3,40 @@
 import { usePresentation } from "./PresentationProvider";
 import { SCENES } from "./scenes";
 
+/**
+ * Painel narrativo da apresentação.
+ * Posicionamento: bottom-right em desktop, bottom full-width em mobile.
+ * Em desktop, nunca cobre o conteúdo central (max-w controlado + canto direito).
+ * No mobile, reserva padding-bottom no body para evitar oclusão.
+ */
 export function PresentationOverlay() {
-  const { active, stepIndex, totalSteps, next, prev, stop, goTo } = usePresentation();
-  if (!active) return null;
+  const { active, stepIndex, totalSteps, currentScene, next, prev, stop, goTo } =
+    usePresentation();
+  if (!active || !currentScene) return null;
 
-  const scene = SCENES[stepIndex];
+  const isLast = stepIndex === totalSteps - 1;
   const progress = ((stepIndex + 1) / totalSteps) * 100;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[60] pointer-events-none">
-      {/* Barra superior fina com progresso */}
-      <div className="fixed top-0 inset-x-0 h-[3px] bg-white/5 pointer-events-none">
+    <>
+      {/* Reserva de espaço no bottom pra o painel não cobrir conteúdo quando overlay fica fixo */}
+      <style>{`
+        html, body { scroll-padding-bottom: 280px; }
+        @media (min-width: 1024px) {
+          html, body { scroll-padding-bottom: 160px; }
+        }
+      `}</style>
+
+      {/* Barra de progresso no topo */}
+      <div className="fixed top-0 inset-x-0 h-[3px] bg-white/5 z-[60] pointer-events-none">
         <div
           className="h-full bg-gradient-to-r from-gold-400 to-gold-300 transition-all duration-500"
           style={{ width: `${progress}%` }}
         />
       </div>
 
-      {/* Pontos de etapa no topo */}
-      <div className="fixed top-5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 pointer-events-auto bg-ink-900/80 backdrop-blur-md border border-white/5 rounded-full px-3 py-2 shadow-glass">
+      {/* Dots indicando etapa */}
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-1.5 pointer-events-auto bg-ink-900/80 backdrop-blur-md border border-white/5 rounded-full px-3 py-2 shadow-glass">
         {SCENES.map((s, i) => (
           <button
             key={s.id}
@@ -41,70 +56,58 @@ export function PresentationOverlay() {
         </span>
       </div>
 
-      {/* Painel inferior */}
-      <div className="mx-auto max-w-3xl px-4 pb-6 pointer-events-auto">
-        <div className="relative rounded-2xl border border-gold-400/20 bg-ink-900/90 backdrop-blur-md shadow-glass overflow-hidden">
+      {/* Painel narrativo — canto direito em desktop, bottom em mobile */}
+      <div className="fixed bottom-4 right-4 left-4 lg:left-auto lg:right-6 lg:bottom-6 lg:max-w-[420px] z-[60] pointer-events-auto">
+        <div className="relative rounded-2xl border border-gold-400/25 bg-ink-900/95 backdrop-blur-md shadow-glass overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-400/50 to-transparent" />
-          <div className="p-5 md:p-6">
-            <div className="flex items-start justify-between gap-4 flex-wrap">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="pill bg-gold-400/10 text-gold-300 border border-gold-400/20">
-                    Modo Apresentação
-                  </span>
-                  <span className="text-[11px] uppercase tracking-wider text-ink-400">
-                    Etapa {stepIndex + 1} de {totalSteps}
-                  </span>
-                </div>
-                <h3 className="mt-2 text-[22px] md:text-2xl font-semibold text-white tracking-tight leading-snug">
-                  {scene.title}
-                </h3>
-                <p className="mt-2 text-[15px] text-ink-200 leading-relaxed">
-                  {scene.caption}
-                </p>
-                <p className="mt-2 text-[13px] text-gold-300 font-medium">
-                  → {scene.takeaway}
-                </p>
+          <div className="p-5">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="pill bg-gold-400/10 text-gold-300 border border-gold-400/20 shrink-0">
+                  Apresentação
+                </span>
+                <span className="text-[11px] uppercase tracking-wider text-ink-400 shrink-0">
+                  {stepIndex + 1} / {totalSteps}
+                </span>
               </div>
               <button
                 onClick={stop}
-                className="btn-subtle shrink-0"
+                className="btn-subtle shrink-0 text-xs"
                 aria-label="Encerrar apresentação"
               >
                 Encerrar · <span className="kbd">Esc</span>
               </button>
             </div>
 
-            <div className="mt-5 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-xs text-ink-400">
+            <h3 className="mt-3 text-[18px] font-semibold text-white tracking-tight leading-snug">
+              {currentScene.title}
+            </h3>
+            <p className="mt-1.5 text-[13px] text-ink-200 leading-relaxed">
+              {currentScene.caption}
+            </p>
+            <p className="mt-2 text-[12px] text-gold-300 font-medium leading-snug">
+              → {currentScene.takeaway}
+            </p>
+
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <div className="hidden lg:flex items-center gap-1.5 text-[11px] text-ink-400">
                 <span className="kbd">←</span>
                 <span className="kbd">→</span>
                 <span>navegar</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full lg:w-auto">
                 <button
                   onClick={prev}
                   disabled={stepIndex === 0}
-                  className="btn-ghost disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="btn-ghost disabled:opacity-30 disabled:cursor-not-allowed flex-1 lg:flex-initial"
                 >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M19 12H5M12 19l-7-7 7-7" />
-                  </svg>
                   Voltar
                 </button>
                 <button
-                  onClick={next}
-                  disabled={stepIndex === totalSteps - 1}
-                  className="btn-primary disabled:opacity-30 disabled:cursor-not-allowed"
+                  onClick={isLast ? stop : next}
+                  className="btn-primary flex-1 lg:flex-initial"
                 >
-                  {stepIndex === totalSteps - 1 ? "Fim" : "Avançar"}
+                  {isLast ? "Encerrar" : "Avançar"}
                   <svg
                     width="14"
                     height="14"
@@ -121,6 +124,6 @@ export function PresentationOverlay() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

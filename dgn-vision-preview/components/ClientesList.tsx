@@ -20,7 +20,9 @@ export function ClientesList() {
   const [filter, setFilter] = useState<Filter>("all");
 
   const items = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const qRaw = query.trim().toLowerCase();
+    const qNorm = normalize(query);
     return CUSTOMERS.filter((c) => {
       const v = vehicleByCustomer(c.id);
       const hay = [
@@ -34,7 +36,9 @@ export function ClientesList() {
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
-      if (q && !hay.includes(q)) return false;
+      const hayNorm = normalize(hay);
+      // Match normal (texto) OU match normalizado (placa com/sem hífen)
+      if (qRaw && !hay.includes(qRaw) && !hayNorm.includes(qNorm)) return false;
 
       if (filter === "subscribers" && !c.plan) return false;
       if (filter === "casual" && c.plan) return false;

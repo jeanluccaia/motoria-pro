@@ -3,6 +3,7 @@ import {
   APPOINTMENTS,
   DEMO_DATE,
   DEMO_UNIT,
+  appointmentStatus,
   customerById,
   vehicleById,
 } from "@/lib/data";
@@ -39,6 +40,10 @@ export default function AgendaPage() {
             const c = customerById(a.customerId);
             const v = vehicleById(a.vehicleId);
             if (!c || !v) return null;
+            const status = appointmentStatus(a);
+            const isLive = status === "Em andamento";
+            const isPending = status === "A confirmar";
+            const isDone = status === "Concluído";
             return (
               <li
                 key={a.id}
@@ -54,10 +59,12 @@ export default function AgendaPage() {
                 </div>
                 <div
                   className={`relative z-10 shrink-0 mt-2 w-3 h-3 rounded-full ring-4 ${
-                    a.isLive
+                    isLive
                       ? "bg-gold-400 ring-gold-400/15"
-                      : a.status === "A confirmar"
+                      : isPending
                       ? "bg-accent-amber ring-accent-amber/15"
+                      : isDone
+                      ? "bg-ink-500 ring-ink-500/15"
                       : "bg-accent-emerald ring-accent-emerald/15"
                   }`}
                 />
@@ -68,14 +75,16 @@ export default function AgendaPage() {
                     </p>
                     <span
                       className={`pill ${
-                        a.isLive
+                        isLive
                           ? "bg-gold-400/10 text-gold-300 border border-gold-400/20"
-                          : a.status === "A confirmar"
+                          : isPending
                           ? "bg-accent-amber/10 text-accent-amber border border-accent-amber/20"
+                          : isDone
+                          ? "bg-white/5 text-ink-300 border border-white/10"
                           : "bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/20"
                       }`}
                     >
-                      {a.isLive ? "Em andamento" : a.status}
+                      {status}
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-ink-200">
@@ -117,7 +126,7 @@ export default function AgendaPage() {
           <p className="mt-1 text-sm text-ink-200 max-w-2xl">
             Esta tela é somente leitura no preview. Reagendamento, encaixe e
             comunicação direta com o cliente estão previstos para a próxima
-            fase, integrados ao WhatsApp e ao PagBank.
+            fase, integrados ao WhatsApp e ao PagBank
           </p>
         </div>
       </section>

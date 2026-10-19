@@ -35,11 +35,29 @@ export function OpportunityCard({ customer }: { customer: Customer }) {
         </h3>
         <p className="mt-3 text-sm text-ink-200 leading-relaxed">{o.reason}</p>
 
-        <div className="mt-5 rounded-xl border border-gold-400/20 bg-gold-400/[0.05] p-4">
-          <p className="text-[11px] uppercase tracking-wider text-gold-300">
-            Projeção ilustrativa — não é receita confirmada
+        <div
+          className={`mt-5 rounded-xl p-4 border ${
+            p.argument === "revenue_gain"
+              ? "border-accent-emerald/20 bg-accent-emerald/[0.05]"
+              : p.argument === "client_saving"
+              ? "border-accent-emerald/20 bg-accent-emerald/[0.05]"
+              : "border-gold-400/20 bg-gold-400/[0.05]"
+          }`}
+        >
+          <p
+            className={`text-[11px] uppercase tracking-wider ${
+              p.argument === "revenue_gain" || p.argument === "client_saving"
+                ? "text-accent-emerald"
+                : "text-gold-300"
+            }`}
+          >
+            {p.argument === "revenue_gain"
+              ? "Projeção ilustrativa de receita"
+              : p.argument === "client_saving"
+              ? "Projeção ilustrativa de economia para o cliente"
+              : "Projeção ilustrativa de previsibilidade"}
           </p>
-          <p className="mt-1 text-2xl font-semibold text-white tabular-nums">
+          <p className="mt-1 text-xl lg:text-[22px] font-semibold text-white leading-tight">
             {p.deltaDisplay}
           </p>
           <div className="mt-3 grid grid-cols-2 gap-3 text-[12px]">
@@ -76,7 +94,6 @@ export function OpportunityCard({ customer }: { customer: Customer }) {
                 hour: "2-digit",
                 minute: "2-digit",
               })}
-              .
             </div>
           </div>
         ) : (
