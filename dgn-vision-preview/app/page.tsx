@@ -26,7 +26,8 @@ import {
 import { StartPresentationButton } from "@/components/presentation/StartPresentationButton";
 import { PresentationHighlight } from "@/components/presentation/PresentationProvider";
 import { OpportunityStatusLine } from "@/components/OpportunityStatusLine";
-import { APPOINTMENTS, appointmentStatus } from "@/lib/data";
+import { PulseTimeline } from "@/components/PulseTimeline";
+import { APPOINTMENTS } from "@/lib/data";
 
 export default function VisaoGeralPage() {
   const featured = customerById(NEXT_RECOMMENDED_ACTION.customerId)!;
@@ -44,9 +45,6 @@ export default function VisaoGeralPage() {
           <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-wider text-gold-300">
             <span className="w-1.5 h-1.5 rounded-full bg-gold-400 animate-pulse" />
             {DEMO_DATE.display}
-            <span className="pill ml-2 bg-white/5 text-ink-300 border border-white/10 normal-case tracking-normal text-[10px]">
-              demonstração
-            </span>
           </div>
           <h1 className="mt-2 text-[32px] lg:text-[40px] font-semibold tracking-tight text-white leading-[1.1]">
             Bom dia, {DEMO_OPERATOR.firstName}
@@ -135,7 +133,8 @@ export default function VisaoGeralPage() {
         </PresentationHighlight>
 
         {/* Operação agora — derivada */}
-        <div className="xl:col-span-4 surface-raised p-5 flex flex-col gap-4">
+        <PresentationHighlight id="overview-operation" className="xl:col-span-4">
+        <div className="surface-raised p-5 flex flex-col gap-4 h-full">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-semibold text-white">Operação agora</h3>
             <span className="pill bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/20">
@@ -185,6 +184,7 @@ export default function VisaoGeralPage() {
             </div>
           </div>
         </div>
+        </PresentationHighlight>
       </section>
 
       {/* Indicadores compactos */}
@@ -229,64 +229,8 @@ export default function VisaoGeralPage() {
 
       {/* Pulso do dia + oportunidades */}
       <section className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        <div className="xl:col-span-8 surface p-6 lg:p-7">
-          <div className="flex items-end justify-between mb-5 flex-wrap gap-3">
-            <div>
-              <h3 className="text-lg font-semibold text-white">Pulso do dia</h3>
-              <p className="text-sm text-ink-300 mt-0.5">
-                Linha do tempo operacional da {DEMO_UNIT.name}
-              </p>
-            </div>
-            <Link href="/agenda" className="btn-subtle">
-              Ver agenda completa <IconArrow size={12} />
-            </Link>
-          </div>
+        <PulseTimeline pulse={pulse} />
 
-          <ol className="relative space-y-1">
-            <div className="absolute left-[52px] top-2 bottom-2 w-px bg-gradient-to-b from-white/5 via-white/10 to-white/5" />
-            {pulse.map((item) => (
-              <li key={item.time + item.title} className="relative flex items-start gap-5 py-2.5">
-                <div className="w-11 shrink-0 text-right text-sm tabular-nums text-ink-200 font-mono pt-0.5">
-                  {item.time}
-                </div>
-                <div
-                  className={`relative z-10 shrink-0 mt-1.5 w-2.5 h-2.5 rounded-full ring-4 ${
-                    item.highlight
-                      ? "bg-gold-400 ring-gold-400/15"
-                      : item.kind === "pendente"
-                      ? "bg-accent-amber ring-accent-amber/15"
-                      : item.kind === "operacional"
-                      ? "bg-ink-500 ring-ink-500/15"
-                      : item.kind === "comercial"
-                      ? "bg-accent-emerald ring-accent-emerald/15"
-                      : "bg-white/40 ring-white/5"
-                  }`}
-                />
-                <div className="flex-1 min-w-0 pb-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-[15px] text-white font-medium">{item.title}</p>
-                    {item.highlight && (
-                      <span className="pill bg-gold-400/10 text-gold-300 border border-gold-400/20">
-                        Agora
-                      </span>
-                    )}
-                    {item.kind === "pendente" && (
-                      <span className="pill bg-accent-amber/10 text-accent-amber border border-accent-amber/20">
-                        Pendente
-                      </span>
-                    )}
-                    {item.kind === "comercial" && (
-                      <span className="pill bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/20">
-                        Comercial
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-0.5 text-sm text-ink-200">{item.detail}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
 
         <div className="xl:col-span-4 surface p-5 lg:p-6 flex flex-col">
           <div className="flex items-center justify-between mb-4">
@@ -381,8 +325,6 @@ function OpportunityRow({
           <p
             className={`mt-1 text-[11px] uppercase tracking-wider ${
               customer.opportunity.projection.argument === "revenue_gain"
-                ? "text-accent-emerald"
-                : customer.opportunity.projection.argument === "client_saving"
                 ? "text-accent-emerald"
                 : "text-gold-300"
             }`}

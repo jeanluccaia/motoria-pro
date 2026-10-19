@@ -110,7 +110,7 @@ export default async function ClientePage({
         </section>
       </PresentationHighlight>
 
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-10 pt-24 lg:pt-32 pb-10 space-y-8">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10 pt-24 lg:pt-32 pb-32 md:pb-10 space-y-8">
         {/* STATS */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatBlock

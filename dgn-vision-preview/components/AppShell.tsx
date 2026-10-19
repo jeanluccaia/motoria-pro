@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { usePresentation } from "@/components/presentation/PresentationProvider";
+import { APPOINTMENTS, SIM_CLOCK, DEMO_UNIT } from "@/lib/data";
 
 type NavItem = {
   href: string;
@@ -28,8 +29,8 @@ const PRIMARY_NAV: NavItem[] = [
 
 const FUTURE_NAV: NavItem[] = [
   { href: "#", label: "Evolução Estética", desc: "Correção · Proteção · Manutenção", disabled: true },
-  { href: "#", label: "Gestão de Frotas", desc: "Corporate Care", disabled: true },
-  { href: "#", label: "Inteligência Comercial", desc: "Oportunidades automáticas", disabled: true },
+  { href: "#", label: "Gestão de Frotas", desc: "Contrato empresarial", disabled: true },
+  { href: "#", label: "Financeiro", desc: "Recorrência · PagBank · NF-e", disabled: true },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -260,9 +261,9 @@ function SidebarFooter() {
         <span className="w-1.5 h-1.5 rounded-full bg-gold-400 animate-pulse" />
         Operação
       </div>
-      <p className="mt-2 text-sm text-ink-100">Unidade Jardins</p>
+      <p className="mt-2 text-sm text-ink-100">{DEMO_UNIT.name}</p>
       <p className="text-xs text-ink-300">
-        Quarta · 09:12 · 4 atendimentos hoje
+        {SIM_CLOCK.display} · {APPOINTMENTS.length} atendimentos hoje
       </p>
     </div>
   );
@@ -353,13 +354,18 @@ function FutureGroup({ items }: { items: NavItem[] }) {
           {items.map((it) => (
             <div
               key={it.label}
-              className="flex items-start gap-3 px-3 py-2 rounded-lg opacity-55"
-              title="Módulo em desenvolvimento"
+              className="flex items-start gap-3 px-3 py-2 rounded-lg"
+              title="Módulo previsto para a próxima fase"
             >
-              <div className="mt-1 w-1.5 h-1.5 rounded-full bg-ink-500" />
-              <div className="flex flex-col">
-                <span className="text-sm text-ink-100">{it.label}</span>
-                <span className="text-[11px] text-ink-300 uppercase tracking-wide">
+              <div className="mt-1 w-1.5 h-1.5 rounded-full bg-ink-500 shrink-0" />
+              <div className="flex flex-col min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-sm text-ink-200">{it.label}</span>
+                  <span className="pill bg-white/5 text-ink-400 border border-white/10 normal-case tracking-normal text-[9px] py-0.5 px-1.5">
+                    Em breve
+                  </span>
+                </div>
+                <span className="text-[11px] text-ink-400 uppercase tracking-wide">
                   {it.desc}
                 </span>
               </div>

@@ -31,9 +31,9 @@ export function BrandSkinOverlay() {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-ink-950">
-      {/* Banner "simulação visual" */}
-      <div className="sticky top-0 z-[55] bg-gradient-to-r from-teal-500/15 via-teal-500/10 to-transparent border-b border-teal-400/20 backdrop-blur-md">
-        <div className="px-6 lg:px-10 py-2.5 flex items-center gap-3 flex-wrap">
+      {/* Banner "simulação visual" — z-index acima da progress bar da apresentação */}
+      <div className="sticky top-[3px] z-[65] bg-gradient-to-r from-teal-500/15 via-teal-500/10 to-transparent border-b border-teal-400/20 backdrop-blur-md">
+        <div className="px-6 lg:px-10 py-3 flex items-center gap-3 flex-wrap">
           <span className="pill bg-teal-400/15 text-teal-200 border border-teal-400/30">
             Simulação visual · nova marca fictícia
           </span>
@@ -88,7 +88,7 @@ export function BrandSkinOverlay() {
               </div>
 
               <h2 className="mt-4 text-2xl lg:text-[26px] text-white font-semibold leading-tight tracking-tight max-w-2xl">
-                Oferecer plano Boutique para Julia antes da próxima troca de pneu
+                Oferecer plano Signature para Julia após o detalhamento completo
               </h2>
 
               <div className="mt-4 flex items-center gap-5 flex-wrap">
@@ -99,7 +99,7 @@ export function BrandSkinOverlay() {
                   <div className="leading-tight">
                     <p className="text-[15px] text-white font-medium">Julia Vaz</p>
                     <p className="text-xs text-ink-300">
-                      Cliente desde 2024 · perfil detalhista
+                      Cliente desde 2024 · detalhamento full detail trimestral
                     </p>
                   </div>
                 </div>
@@ -111,13 +111,13 @@ export function BrandSkinOverlay() {
                     Argumento
                   </p>
                   <p className="text-sm text-teal-300 font-semibold">
-                    Previsibilidade + revisão interna trimestral inclusa
+                    Proteção cerâmica + revisão de pintura inclusas
                   </p>
                 </div>
 
                 <div className="flex-1" />
 
-                <span className="btn-primary opacity-80 pointer-events-none">
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-ink-950 text-sm font-medium transition-colors pointer-events-none">
                   Abrir cliente 360° <IconArrow size={14} />
                 </span>
               </div>

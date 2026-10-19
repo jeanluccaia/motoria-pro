@@ -10,12 +10,18 @@ import { SCENES } from "./scenes";
  * No mobile, reserva padding-bottom no body para evitar oclusão.
  */
 export function PresentationOverlay() {
-  const { active, stepIndex, totalSteps, currentScene, next, prev, stop, goTo } =
+  const { active, stepIndex, totalSteps, currentScene, panelPosition, next, prev, stop, goTo } =
     usePresentation();
   if (!active || !currentScene) return null;
 
   const isLast = stepIndex === totalSteps - 1;
   const progress = ((stepIndex + 1) / totalSteps) * 100;
+
+  // top-right fica abaixo da barra de dots (que está em top-5), bottom-right é o default
+  const panelPos =
+    panelPosition === "top-right"
+      ? "top-20 right-4 left-4 lg:left-auto lg:right-6 lg:top-20"
+      : "bottom-4 right-4 left-4 lg:left-auto lg:right-6 lg:bottom-6";
 
   return (
     <>
@@ -56,8 +62,8 @@ export function PresentationOverlay() {
         </span>
       </div>
 
-      {/* Painel narrativo — canto direito em desktop, bottom em mobile */}
-      <div className="fixed bottom-4 right-4 left-4 lg:left-auto lg:right-6 lg:bottom-6 lg:max-w-[420px] z-[60] pointer-events-auto">
+      {/* Painel narrativo — posição dinâmica para não cobrir modal nas cenas 4+ */}
+      <div className={`fixed ${panelPos} lg:max-w-[420px] z-[60] pointer-events-auto`}>
         <div className="relative rounded-2xl border border-gold-400/25 bg-ink-900/95 backdrop-blur-md shadow-glass overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-400/50 to-transparent" />
           <div className="p-5">

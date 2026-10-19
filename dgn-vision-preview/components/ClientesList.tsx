@@ -92,10 +92,19 @@ export function ClientesList() {
       </div>
 
       {items.length === 0 ? (
-        <div className="surface p-10 text-center">
+        <div className="surface p-10 text-center space-y-4">
           <p className="text-ink-200">
-            Nenhum cliente encontrado com os filtros atuais.
+            Nenhum cliente encontrado com os filtros atuais
           </p>
+          <button
+            onClick={() => {
+              setQuery("");
+              setFilter("all");
+            }}
+            className="btn-subtle"
+          >
+            Limpar busca e filtros
+          </button>
         </div>
       ) : (
         <ul className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

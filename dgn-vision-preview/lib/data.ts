@@ -17,16 +17,16 @@
 
 export const DEMO_DATE = {
   iso: "2026-10-22",
-  weekday: "Quarta-feira",
-  display: "Quarta-feira · 22 de outubro de 2026",
-  shortDisplay: "Quarta · 22/10",
+  weekday: "Quinta-feira",
+  display: "Quinta-feira · 22 de outubro de 2026",
+  shortDisplay: "Quinta · 22/10",
 };
 
 /** Hora corrente demonstrativa — usada para derivar status de atendimentos. */
 export const SIM_CLOCK = {
   nowHHMM: "09:12",
   nowMinutes: 9 * 60 + 12,
-  display: "Quarta · 09:12",
+  display: "Quinta · 09:12",
 };
 
 export const DEMO_UNIT = {
@@ -120,14 +120,17 @@ export type OpportunityKind = "new_subscription" | "upgrade" | "corporate";
 
 /**
  * Tipo de argumento comercial:
- *   revenue_gain  – withOfferValue > baselineValue (ganho real para a operação)
- *   client_saving – withOfferValue < baselineValue (economia para o cliente, trade de LTV)
- *   predictability – similar em valor, troca por previsibilidade/mais serviço
+ *   revenue_gain   – withOfferValue > baselineValue (ganho real para a operação)
+ *   predictability – mesmo bolso, troca por previsibilidade/mais serviço entregue
+ *   retention      – oferta reduz receita no curto prazo, mas aumenta LTV via fidelização
+ *
+ * Nunca apresentar como "upsell financeiro" quando o delta é negativo — o argumento
+ * é retenção/fidelização, não aumento de receita.
  */
 export type ProjectionArgument =
   | "revenue_gain"
-  | "client_saving"
-  | "predictability";
+  | "predictability"
+  | "retention";
 
 export type Projection = {
   /** O que o cliente gasta hoje */
@@ -316,20 +319,26 @@ export const vehicleByCustomer = (customerId: string) =>
 
 /* ========== PROJEÇÕES — pré-calculadas e verificáveis ========== */
 
-// ROBERTA: avulsa, consome R$ 480 em serviço aproximadamente a cada 30 dias → 3 visitas/trimestre.
-// Caso realmente comparemos "mesmo trimestre": 3 × 480 = 1.440 (avulso) vs 3 × 596 = 1.788 (Priority).
-// A Priority custa R$ 348 a mais no trimestre, mas entrega 6 atendimentos premium (vs 3 avulsos).
-// Argumento: previsibilidade + 2x em serviço entregue. Não vendemos como "ganho de receita".
-const ROBERTA_BASELINE = 3 * 480; // 1.440 trimestre avulso (3 visitas de R$ 480)
+// ROBERTA: avulsa, consome R$ 480 por visita, 3 visitas em 90 dias (uma por mês).
+// Baseline trimestre: 3 × 480 = 1.440. Com Priority: 3 × 596 = 1.788.
+// Receita trimestral da DGN: +R$ 348. Serviço entregue: 6 atendimentos premium (vs 3 avulsos).
+// Argumento: previsibilidade mensal + 2× serviço entregue (sem alegar margem — não temos custo).
+const ROBERTA_BASELINE = 3 * 480; // 1.440 trimestre avulso
 const ROBERTA_WITH_OFFER = 3 * PLAN_CATALOG.priority.priceMonthly; // 1.788 trimestre
-const ROBERTA_DELTA = ROBERTA_WITH_OFFER - ROBERTA_BASELINE; // +348 (ganho real para a operação)
+const ROBERTA_DELTA = ROBERTA_WITH_OFFER - ROBERTA_BASELINE; // +348
 
-// CAMILA: Smart (R$ 329/mês) + 3 serviços avulsos extras no trimestre a R$ 480 = sinal de upgrade.
-const CAMILA_BASELINE = 3 * PLAN_CATALOG.smart.priceMonthly + 3 * 480; // 987 + 1.440 = 2.427
+// CAMILA: Smart (R$ 329/mês) + 3 avulsos extras no trimestre a R$ 480. Priority inclui tudo.
+// Baseline: 3 × 329 + 3 × 480 = R$ 2.427 no trimestre.
+// Com Priority: 3 × 596 = R$ 1.788 (cliente paga menos, DGN recebe menos receita bruta).
+// Delta é -639 → NÃO é upsell financeiro. Argumento é RETENÇÃO: cliente sinaliza demanda
+// acima do Smart, se não evoluir pode migrar pra concorrente que ofereça o bundle. Priority
+// consolida o relacionamento, previne churn e estabiliza receita em R$ 596/mês (vs picos).
+const CAMILA_BASELINE = 3 * PLAN_CATALOG.smart.priceMonthly + 3 * 480; // 2.427
 const CAMILA_WITH_OFFER = 3 * PLAN_CATALOG.priority.priceMonthly; // 1.788
-const CAMILA_DELTA = CAMILA_WITH_OFFER - CAMILA_BASELINE; // -639 (economia para o cliente)
+const CAMILA_DELTA = CAMILA_WITH_OFFER - CAMILA_BASELINE; // -639 (retention, não gain)
 
 // ANDRÉ: Priority individual + 3 veículos corporativos adicionais (Corporate Care).
+// Oportunidade de maior ticket incremental da base — prioridade comercial ALTA.
 const ANDRE_BASELINE = PLAN_CATALOG.priority.priceMonthly; // 596
 const ANDRE_FLEET_MONTHLY = 3 * PLAN_CATALOG.priority.priceMonthly; // 1.788
 const ANDRE_WITH_OFFER = ANDRE_BASELINE + ANDRE_FLEET_MONTHLY; // 2.384
@@ -375,10 +384,11 @@ export const CUSTOMERS: Customer[] = [
       priority: "alta",
     },
     stats: {
+      // 7 atendimentos × R$ 480 = R$ 3.360 (bate com histórico declarado em 2026)
       attendancesYear: 7,
       retentionDisplay: "100%",
-      lifetimeDisplay: "R$ 3.420",
-      lifetimeValue: 3420,
+      lifetimeDisplay: "R$ 3.360",
+      lifetimeValue: 3360,
     },
     history: [
       { dateDisplay: "29/09/2026", service: "Detalhamento Executivo", unit: "Jardins", nps: 10, amount: 480 },
@@ -406,13 +416,13 @@ export const CUSTOMERS: Customer[] = [
       label: "Priority",
       priceDisplay: "R$ 596",
       cycle: "Mensal · desde março de 2024",
-      nextVisitText: "Próxima visita inclusa em 11 dias",
+      nextVisitText: "Próxima visita incluída · 03/11 (segunda-feira)",
     },
     opportunity: {
       kind: "corporate",
       title: "Corporate Care — frota do Grupo Pellegrino",
       reason:
-        "Já é Priority individual. CNPJ do titular tem mais 3 veículos corporativos identificados — oportunidade de estender o cuidado à frota com contrato empresarial",
+        "Já é Priority individual. CNPJ do titular tem mais 3 veículos corporativos identificados — oportunidade de estender o cuidado à frota com contrato empresarial. Maior ticket incremental da base atual",
       corporateFleet: {
         vehicles: 3,
         monthlyEstimate: ANDRE_FLEET_MONTHLY,
@@ -430,18 +440,22 @@ export const CUSTOMERS: Customer[] = [
         explain:
           `Mantém a Priority individual (R$ ${ANDRE_BASELINE}). Adiciona ${3} veículos corporativos a R$ ${PLAN_CATALOG.priority.priceMonthly} cada = R$ ${ANDRE_FLEET_MONTHLY}/mês incrementais, sob um único contrato empresarial com NF-e consolidada`,
       },
-      priority: "média",
+      // Maior ticket incremental da base — comercialmente, prioridade alta.
+      priority: "alta",
     },
     stats: {
-      attendancesYear: 19,
+      // Priority = 2 serviços premium/mês × 10 meses de 2026 = 20 visitas no ano.
+      attendancesYear: 20,
       retentionDisplay: "100%",
-      lifetimeDisplay: "R$ 11.320",
-      lifetimeValue: 11320,
+      // 32 meses de Priority desde março/2024 × R$ 596 = R$ 19.072
+      lifetimeDisplay: "R$ 19.072",
+      lifetimeValue: 19072,
     },
     history: [
-      { dateDisplay: "25/09/2026", service: "Priority mensal", unit: "Jardins", nps: 10 },
-      { dateDisplay: "28/08/2026", service: "Priority mensal", unit: "Jardins", nps: 10 },
-      { dateDisplay: "30/07/2026", service: "Priority mensal", unit: "Jardins", nps: 9 },
+      { dateDisplay: "25/09/2026", service: "Priority mensal — correção + proteção", unit: "Jardins", nps: 10 },
+      { dateDisplay: "11/09/2026", service: "Priority mensal — enceramento", unit: "Jardins", nps: 10 },
+      { dateDisplay: "28/08/2026", service: "Priority mensal — correção + proteção", unit: "Jardins", nps: 10 },
+      { dateDisplay: "14/08/2026", service: "Priority mensal — enceramento", unit: "Jardins", nps: 9 },
     ],
   },
   {
@@ -463,13 +477,13 @@ export const CUSTOMERS: Customer[] = [
       label: "Smart",
       priceDisplay: "R$ 329",
       cycle: "Mensal · desde junho de 2025",
-      nextVisitText: "Próxima visita inclusa em 4 dias",
+      nextVisitText: "Próxima visita incluída · 29/10 (quinta-feira)",
     },
     opportunity: {
       kind: "upgrade",
-      title: "Upgrade natural para Priority",
+      title: "Upgrade para Priority — retenção",
       reason:
-        "Smart + 3 avulsos pagos em 90 dias indicam demanda acima do plano atual. Priority inclui o que ela já consome e adiciona proteção cerâmica",
+        "Smart + 3 avulsos pagos em 90 dias indicam demanda acima do plano atual. Priority inclui o que ela já contrata extra e adiciona proteção cerâmica — consolida o relacionamento antes que a demanda vire motivo pra buscar fora",
       recommendedPlan: "priority",
       projection: {
         baselineLabel: "Hoje (Smart + 3 extras)",
@@ -477,19 +491,21 @@ export const CUSTOMERS: Customer[] = [
         withOfferLabel: "Com Priority",
         withOfferValue: CAMILA_WITH_OFFER,
         deltaValue: CAMILA_DELTA,
-        deltaDisplay: `Economia de R$ ${Math.abs(CAMILA_DELTA).toLocaleString("pt-BR")} no trimestre + proteção superior`,
-        argument: "client_saving",
+        deltaDisplay: "Retenção + previsibilidade (não é upsell financeiro de curto prazo)",
+        argument: "retention",
         period: "trimestre",
         explain:
-          `Baseline: 3 × Smart (R$ ${PLAN_CATALOG.smart.priceMonthly}) + 3 avulsos extras (R$ 480 cada) = R$ ${CAMILA_BASELINE.toLocaleString("pt-BR")}. Com Priority (R$ ${PLAN_CATALOG.priority.priceMonthly} × 3) = R$ ${CAMILA_WITH_OFFER.toLocaleString("pt-BR")}, com os extras já inclusos e proteção cerâmica anual. Ganho para DGN: fidelização e previsibilidade do ticket (receita se estabiliza em R$ ${PLAN_CATALOG.priority.priceMonthly}/mês)`,
+          `No trimestre atual, a cliente paga R$ ${CAMILA_BASELINE.toLocaleString("pt-BR")} (3 × Smart + 3 avulsos a R$ 480). Com Priority (R$ ${PLAN_CATALOG.priority.priceMonthly} × 3) ela passa a pagar R$ ${CAMILA_WITH_OFFER.toLocaleString("pt-BR")} — a receita bruta da DGN cai R$ ${Math.abs(CAMILA_DELTA).toLocaleString("pt-BR")} no trimestre. O argumento comercial é RETENÇÃO: cliente que paga 3 avulsos acima do plano é sinal de churn. Priority consolida o relacionamento, estabiliza o ticket mensal e protege o LTV`,
       },
       priority: "alta",
     },
     stats: {
-      attendancesYear: 11,
+      // Smart quinzenal × 10 meses de 2026 (20 visitas) + 3 extras = 23 atendimentos no ano
+      attendancesYear: 23,
       retentionDisplay: "100%",
-      lifetimeDisplay: "R$ 2.740",
-      lifetimeValue: 2740,
+      // 16 meses de Smart (jun/2025 → out/2026) × R$ 329 + 3 extras × R$ 480 = R$ 6.704
+      lifetimeDisplay: "R$ 6.704",
+      lifetimeValue: 6704,
     },
     history: [
       { dateDisplay: "06/10/2026", service: "Smart quinzenal", unit: "Jardins", nps: 9 },
@@ -657,6 +673,8 @@ export type PulseItem = {
   detail: string;
   kind: "operacional" | "atendimento" | "pendente" | "comercial";
   highlight?: boolean;
+  /** Quando preenchido, o nome do cliente no title linka pra ficha. */
+  customerId?: string;
 };
 
 export function todayPulse(now = SIM_CLOCK.nowMinutes): PulseItem[] {
@@ -685,6 +703,7 @@ export function todayPulse(now = SIM_CLOCK.nowMinutes): PulseItem[] {
           ? "pendente"
           : "atendimento",
         highlight: liveStatus === "Em andamento",
+        customerId: c.id,
       };
     }),
   ];
@@ -719,6 +738,9 @@ export const NEXT_RECOMMENDED_ACTION = {
   rationale:
     "3 avulsos em 90 dias a R$ 480 · NPS 10 · perfil VIP. Priority mantém a cadência mensal e dobra o serviço premium entregue",
 };
+
+/** Maior oportunidade de ticket incremental na base — contexto comercial, não a ação do dia. */
+export const BIGGEST_OPPORTUNITY_ID = "andre-pellegrino";
 
 /* ========== VERIFICAÇÃO DE CONSISTÊNCIA ========== */
 
@@ -787,10 +809,20 @@ export function assertDataConsistency(): string[] {
         `Customer ${c.id}: projection argumenta "revenue_gain" mas delta=${delta} não é ganho`
       );
     }
-    if (o.projection.argument === "client_saving" && delta >= 0) {
+    if (o.projection.argument === "retention" && delta >= 0) {
       issues.push(
-        `Customer ${c.id}: projection argumenta "client_saving" mas delta=${delta} não é economia`
+        `Customer ${c.id}: projection argumenta "retention" mas delta=${delta} é não-negativo (use revenue_gain ou predictability)`
       );
+    }
+
+    // Lifetime declarado deve ser plausível com histórico/plano.
+    if (c.plan) {
+      const monthly = PLAN_CATALOG[c.plan.key].priceMonthly;
+      if (c.stats.lifetimeValue < monthly * 3) {
+        issues.push(
+          `Customer ${c.id}: lifetime R$ ${c.stats.lifetimeValue} < 3 meses de plano (R$ ${monthly * 3})`
+        );
+      }
     }
   }
 

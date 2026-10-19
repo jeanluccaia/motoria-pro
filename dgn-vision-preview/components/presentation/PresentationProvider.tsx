@@ -20,6 +20,7 @@ type Ctx = {
   currentScene: Scene | null;
   currentHighlight: string | null;
   skinOverride: "second-brand" | null;
+  panelPosition: "bottom-right" | "top-right";
   start: () => void;
   stop: () => void;
   next: () => void;
@@ -184,6 +185,26 @@ export function PresentationProvider({
   const currentScene = active ? SCENES[stepIndex] ?? null : null;
   const currentHighlight = currentScene?.highlight ?? null;
   const skinOverride = currentScene?.skinOverride ?? null;
+  const panelPosition = currentScene?.panelPosition ?? "bottom-right";
+
+  // Cena 5 (estado-oferta): injeta oferta demonstrativa no localStorage.
+  // Snapshot/restore do start/stop garante que isso não contamina o estado normal.
+  useEffect(() => {
+    if (!active || !currentScene) return;
+    if (currentScene.id === "estado-oferta") {
+      const demoOffer = {
+        "roberta-vinciguerra": {
+          customerId: "roberta-vinciguerra",
+          kind: "new_subscription",
+          planKey: "priority",
+          status: "prepared",
+          updatedAt: new Date().toISOString(),
+        },
+      };
+      window.localStorage.setItem(OFFER_KEY, JSON.stringify(demoOffer));
+      window.dispatchEvent(new CustomEvent("dgn-offers-changed"));
+    }
+  }, [active, currentScene]);
 
   const value = useMemo<Ctx>(
     () => ({
@@ -193,13 +214,14 @@ export function PresentationProvider({
       currentScene,
       currentHighlight,
       skinOverride,
+      panelPosition,
       start,
       stop,
       next,
       prev,
       goTo,
     }),
-    [active, stepIndex, totalSteps, currentScene, currentHighlight, skinOverride, start, stop, next, prev, goTo]
+    [active, stepIndex, totalSteps, currentScene, currentHighlight, skinOverride, panelPosition, start, stop, next, prev, goTo]
   );
 
   return (

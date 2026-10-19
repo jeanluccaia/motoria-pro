@@ -39,22 +39,20 @@ export function OpportunityCard({ customer }: { customer: Customer }) {
           className={`mt-5 rounded-xl p-4 border ${
             p.argument === "revenue_gain"
               ? "border-accent-emerald/20 bg-accent-emerald/[0.05]"
-              : p.argument === "client_saving"
-              ? "border-accent-emerald/20 bg-accent-emerald/[0.05]"
+              : p.argument === "retention"
+              ? "border-gold-400/20 bg-gold-400/[0.05]"
               : "border-gold-400/20 bg-gold-400/[0.05]"
           }`}
         >
           <p
             className={`text-[11px] uppercase tracking-wider ${
-              p.argument === "revenue_gain" || p.argument === "client_saving"
-                ? "text-accent-emerald"
-                : "text-gold-300"
+              p.argument === "revenue_gain" ? "text-accent-emerald" : "text-gold-300"
             }`}
           >
             {p.argument === "revenue_gain"
-              ? "Projeção ilustrativa de receita"
-              : p.argument === "client_saving"
-              ? "Projeção ilustrativa de economia para o cliente"
+              ? "Projeção ilustrativa de receita incremental"
+              : p.argument === "retention"
+              ? "Projeção ilustrativa — argumento é retenção, não aumento de receita"
               : "Projeção ilustrativa de previsibilidade"}
           </p>
           <p className="mt-1 text-xl lg:text-[22px] font-semibold text-white leading-tight">
@@ -79,12 +77,14 @@ export function OpportunityCard({ customer }: { customer: Customer }) {
           </p>
         </div>
 
-        {state && state.status !== "none" ? (
+        {state && state.status !== "none" && (
           <div className="mt-5 flex items-start gap-2 p-3 rounded-xl border border-accent-emerald/20 bg-accent-emerald/[0.05]">
             <span className="w-2 h-2 rounded-full bg-accent-emerald mt-1.5 shrink-0" />
             <div className="text-xs text-ink-100 leading-snug">
               <strong className="text-white">
-                {state.status === "prepared" ? "Oferta preparada" : STATUS_LABEL[state.status]}
+                {state.status === "prepared"
+                  ? "Oferta preparada · aguardando envio"
+                  : STATUS_LABEL[state.status]}
               </strong>
               {" — "}
               atualizada em{" "}
@@ -96,19 +96,9 @@ export function OpportunityCard({ customer }: { customer: Customer }) {
               })}
             </div>
           </div>
-        ) : (
-          <p className="mt-5 text-[13px] text-ink-200">
-            A ação <span className="text-white font-medium">{ctaLabel(o.kind)}</span>{" "}
-            está no topo da ficha.
-          </p>
         )}
       </div>
     </div>
   );
 }
 
-function ctaLabel(kind: Customer["opportunity"]["kind"]) {
-  if (kind === "corporate") return "Apresentar Corporate Care";
-  if (kind === "upgrade") return "Oferecer upgrade";
-  return "Oferecer assinatura";
-}

@@ -8,6 +8,12 @@ export type Scene = {
   highlight?: string;
   /** Flag para cena SaaS que troca o skin da marca. */
   skinOverride?: "second-brand";
+  /**
+   * Posicionamento do painel narrativo:
+   *   "bottom-right" (default) — canto direito inferior
+   *   "top-right" — canto direito superior (usar quando houver modal centralizado, pra não cobrir CTA)
+   */
+  panelPosition?: "bottom-right" | "top-right";
 };
 
 /**
@@ -20,17 +26,17 @@ export const SCENES: Scene[] = [
     id: "overview",
     title: "O dia inteiro em uma tela",
     caption:
-      "O Command Center resume a operação, prioriza a próxima ação e evita que o empresário navegue entre sistemas",
+      "Operação, agenda e oportunidades em um só painel. O empresário não navega entre sistemas pra entender o que importa agora",
     takeaway:
-      "Operação ao vivo + oportunidades priorizadas, sem precisar abrir outro sistema",
+      "Atendimentos de hoje, slots ocupados, assinantes ativos e receita recorrente, tudo visível em segundos",
     route: "/",
-    highlight: "overview-next-action",
+    highlight: "overview-operation",
   },
   {
     id: "opportunity",
     title: "Inteligência comercial em ação",
     caption:
-      "A plataforma monitora o comportamento de cada cliente e sugere a próxima oferta com justificativa — sinal, não palpite",
+      "A plataforma observa o comportamento de cada cliente e sugere a próxima oferta com justificativa comercial — sinal, não palpite",
     takeaway:
       "Roberta: 3 avulsos em 90 dias · NPS 10 · perfil VIP → recomenda Priority",
     route: "/",
@@ -52,6 +58,7 @@ export const SCENES: Scene[] = [
       "Três planos canônicos. A escolha prepara a conversa — nenhum contrato ou cobrança criada neste momento",
     takeaway: "Essential · Smart · Priority — Priority é o recomendado",
     route: "/clientes/roberta-vinciguerra?present=offer",
+    panelPosition: "top-right",
   },
   {
     id: "estado-oferta",
