@@ -67,7 +67,7 @@ export function BrandSkinOverlay() {
               Bom dia, Rafa
             </h1>
             <p className="mt-3 text-ink-100 text-[16px]">
-              3 atendimentos hoje · 1 em andamento · 2 oportunidades priorizadas
+              3 atendimentos hoje · 1 em andamento · 5 oportunidades priorizadas
             </p>
           </div>
         </section>

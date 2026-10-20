@@ -11,6 +11,7 @@ import {
   heroSummary,
   operationBreakdown,
   prospectCustomers,
+  retentionCustomers,
   todayPulse,
   upsellCustomers,
   type Customer,
@@ -202,7 +203,11 @@ export default function VisaoGeralPage() {
           <MetricCard
             label="Oportunidades"
             value={CUSTOMERS.length}
-            delta={`${prospectCustomers.length} nova${prospectCustomers.length === 1 ? "" : "s"} · ${upsellCustomers.length} upsell${upsellCustomers.length === 1 ? "" : "s"}`}
+            delta={[
+              prospectCustomers.length > 0 && `${prospectCustomers.length} nova${prospectCustomers.length === 1 ? "" : "s"}`,
+              upsellCustomers.length > 0 && `${upsellCustomers.length} upsell${upsellCustomers.length === 1 ? "" : "s"}`,
+              retentionCustomers.length > 0 && `${retentionCustomers.length} retenção${retentionCustomers.length === 1 ? "" : "ões"}`,
+            ].filter(Boolean).join(" · ")}
             tone="gold"
             icon={<IconSpark />}
             compact
@@ -246,7 +251,7 @@ export default function VisaoGeralPage() {
             <>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-[11px] uppercase tracking-wider text-gold-300 font-medium">
-                  Abrir assinatura
+                  Nova assinatura
                 </span>
                 <span className="h-px flex-1 bg-white/5" />
                 <span className="text-[11px] text-ink-400">
@@ -255,7 +260,7 @@ export default function VisaoGeralPage() {
               </div>
               <ul className="space-y-2 mb-4">
                 {prospectCustomers.map((c) => (
-                  <OpportunityRow key={c.id} customer={c} />
+                  <OpportunityRow key={c.id} customer={c} variant="prospect" />
                 ))}
               </ul>
             </>
@@ -265,16 +270,35 @@ export default function VisaoGeralPage() {
             <>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-[11px] uppercase tracking-wider text-accent-emerald font-medium">
-                  Upsell · assinante ativo
+                  Upsell · receita incremental
                 </span>
                 <span className="h-px flex-1 bg-white/5" />
                 <span className="text-[11px] text-ink-400">
                   {upsellCustomers.length}
                 </span>
               </div>
-              <ul className="space-y-2">
+              <ul className="space-y-2 mb-4">
                 {upsellCustomers.map((c) => (
                   <OpportunityRow key={c.id} customer={c} variant="upsell" />
+                ))}
+              </ul>
+            </>
+          )}
+
+          {retentionCustomers.length > 0 && (
+            <>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[11px] uppercase tracking-wider text-accent-amber font-medium">
+                  Retenção · fidelização
+                </span>
+                <span className="h-px flex-1 bg-white/5" />
+                <span className="text-[11px] text-ink-400">
+                  {retentionCustomers.length}
+                </span>
+              </div>
+              <ul className="space-y-2">
+                {retentionCustomers.map((c) => (
+                  <OpportunityRow key={c.id} customer={c} variant="retention" />
                 ))}
               </ul>
             </>
@@ -297,8 +321,14 @@ function OpportunityRow({
   variant = "prospect",
 }: {
   customer: Customer;
-  variant?: "prospect" | "upsell";
+  variant?: "prospect" | "upsell" | "retention";
 }) {
+  const deltaColor =
+    variant === "upsell"
+      ? "text-accent-emerald"
+      : variant === "retention"
+      ? "text-accent-amber"
+      : "text-gold-300";
   return (
     <li>
       <Link
@@ -308,27 +338,21 @@ function OpportunityRow({
         <div className="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-ink-700 to-ink-850 border border-white/10 flex items-center justify-center text-xs font-semibold text-ink-100">
           {customer.avatarInitials}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-sm text-white font-medium truncate">
+        <div className="flex-1 min-w-0 space-y-1">
+          <div className="flex items-start gap-2 flex-wrap">
+            <p className="text-sm text-white font-medium break-words">
               {customer.name}
             </p>
             {customer.tier === "Fundador" && (
-              <span className="pill bg-gold-400/10 text-gold-300 border border-gold-400/20">
+              <span className="pill bg-gold-400/10 text-gold-300 border border-gold-400/20 shrink-0">
                 Fundador
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-xs text-ink-200 truncate">
+          <p className="text-xs text-ink-200 leading-snug break-words">
             {customer.opportunity.title}
           </p>
-          <p
-            className={`mt-1 text-[11px] uppercase tracking-wider ${
-              customer.opportunity.projection.argument === "revenue_gain"
-                ? "text-accent-emerald"
-                : "text-gold-300"
-            }`}
-          >
+          <p className={`text-[11px] uppercase tracking-wider leading-snug ${deltaColor}`}>
             {customer.opportunity.projection.deltaDisplay}
           </p>
         </div>

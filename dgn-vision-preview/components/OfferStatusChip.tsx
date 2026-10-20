@@ -1,7 +1,7 @@
 "use client";
 
 import { useOfferState, STATUS_LABEL } from "@/lib/offerStore";
-import { PLAN_CATALOG } from "@/lib/data";
+import { PLAN_CATALOG, formatDemoDateTime } from "@/lib/data";
 
 export function OfferStatusChip({ customerId }: { customerId: string }) {
   const state = useOfferState(customerId);
@@ -18,7 +18,7 @@ export function OfferStatusChip({ customerId }: { customerId: string }) {
   return (
     <span
       className={`pill ${tone} backdrop-blur-sm`}
-      title={`Atualizado em ${new Date(state.updatedAt).toLocaleString("pt-BR")}`}
+      title={`Atualizado em ${formatDemoDateTime(state.updatedAt)}`}
     >
       <span className="w-1.5 h-1.5 rounded-full bg-current" />
       {planName

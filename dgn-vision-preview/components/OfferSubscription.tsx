@@ -6,6 +6,7 @@ import { IconArrow, IconCheck } from "@/components/Icons";
 import {
   PLAN_CATALOG,
   PLANS_ARRAY,
+  demoNow,
   type Customer,
   type PlanKey,
 } from "@/lib/data";
@@ -82,7 +83,7 @@ export function OfferSubscription({
         customerId: customer.id,
         kind,
         status: "prepared",
-        updatedAt: new Date().toISOString(),
+        updatedAt: demoNow(),
       });
     } else if (selected) {
       setOffer({
@@ -90,7 +91,7 @@ export function OfferSubscription({
         kind,
         planKey: selected,
         status: "prepared",
-        updatedAt: new Date().toISOString(),
+        updatedAt: demoNow(),
       });
     }
     setStage("confirmation");
@@ -200,7 +201,7 @@ function PlanOffer({
           )}
           <p className="mt-2 text-ink-200 max-w-xl">
             Nenhum contrato é criado aqui. A escolha prepara a conversa com o
-            cliente — você pode acompanhar o estado da oferta na ficha dele.
+            cliente — você pode acompanhar o estado da oferta na ficha
           </p>
         </div>
         <button onClick={onCancel} className="btn-subtle" aria-label="Fechar">

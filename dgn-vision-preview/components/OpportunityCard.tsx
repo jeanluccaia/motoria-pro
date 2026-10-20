@@ -2,7 +2,7 @@
 
 import { useOfferState, STATUS_LABEL } from "@/lib/offerStore";
 import { IconSpark } from "@/components/Icons";
-import type { Customer } from "@/lib/data";
+import { formatDemoDateTime, type Customer } from "@/lib/data";
 
 export function OpportunityCard({ customer }: { customer: Customer }) {
   const state = useOfferState(customer.id);
@@ -87,13 +87,7 @@ export function OpportunityCard({ customer }: { customer: Customer }) {
                   : STATUS_LABEL[state.status]}
               </strong>
               {" — "}
-              atualizada em{" "}
-              {new Date(state.updatedAt).toLocaleString("pt-BR", {
-                day: "2-digit",
-                month: "2-digit",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              atualizada em {formatDemoDateTime(state.updatedAt)}
             </div>
           </div>
         )}

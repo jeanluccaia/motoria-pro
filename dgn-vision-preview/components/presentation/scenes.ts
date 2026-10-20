@@ -11,9 +11,10 @@ export type Scene = {
   /**
    * Posicionamento do painel narrativo:
    *   "bottom-right" (default) — canto direito inferior
-   *   "top-right" — canto direito superior (usar quando houver modal centralizado, pra não cobrir CTA)
+   *   "top-right" — canto direito superior (usar quando houver modal centralizado ou KPI de receita no canto)
+   *   "bottom-left" — canto esquerdo inferior (quando bottom-right conflita com conteúdo)
    */
-  panelPosition?: "bottom-right" | "top-right";
+  panelPosition?: "bottom-right" | "top-right" | "bottom-left";
 };
 
 /**
@@ -31,6 +32,8 @@ export const SCENES: Scene[] = [
       "Atendimentos de hoje, slots ocupados, assinantes ativos e receita recorrente, tudo visível em segundos",
     route: "/",
     highlight: "overview-operation",
+    // bottom-left libera o canto direito onde fica o card de Receita recorrente
+    panelPosition: "bottom-left",
   },
   {
     id: "opportunity",
@@ -50,6 +53,8 @@ export const SCENES: Scene[] = [
     takeaway: "Perfil demonstrativo da Roberta aberto",
     route: "/clientes/roberta-vinciguerra",
     highlight: "customer-hero",
+    // top-right libera o inferior onde ficam os indicadores do perfil
+    panelPosition: "top-right",
   },
   {
     id: "oferta",

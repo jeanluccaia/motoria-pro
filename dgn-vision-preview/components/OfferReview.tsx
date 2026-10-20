@@ -5,6 +5,9 @@ import clsx from "clsx";
 import {
   PLAN_CATALOG,
   SIM_CLOCK,
+  demoNow,
+  formatDemoDateTime,
+  vehicleByCustomer,
   type Customer,
 } from "@/lib/data";
 import {
@@ -58,9 +61,11 @@ export function OfferReview({
 
   if (!open || !state) return null;
 
+  const vehicle = vehicleByCustomer(customer.id);
+  const vehicleLabel = vehicle ? `${vehicle.make} ${vehicle.model}` : "seu veículo";
   const whatsappMessage = isCorporate
-    ? `Olá, ${customer.firstName}. Preparei uma proposta Corporate Care para a frota do Grupo Pellegrino. São 3 veículos corporativos integrados ao mesmo contrato, com NF-e consolidada e gerente dedicado. Quando puder, agendamos uma apresentação sem compromisso.`
-    : `Olá, ${customer.firstName}. Preparei uma proposta DGN ${plan.name} para o seu ${customer.name.split(" ")[0]} — ${plan.priceDisplay}/mês com ${plan.included[0].toLowerCase()}. Posso te enviar o detalhamento aqui?`;
+    ? `Olá, ${customer.firstName}! Preparamos uma proposta exclusiva do DGN Corporate Care para a frota do Grupo Pellegrino. São 3 veículos corporativos integrados ao mesmo contrato empresarial, com NF-e consolidada e gerente dedicado. Quando puder, agendamos uma apresentação sem compromisso.`
+    : `Olá, ${customer.firstName}! Preparamos uma proposta exclusiva do DGN ${plan.name} para o seu ${vehicleLabel}. ${plan.priceDisplay}/mês com ${plan.included[0].toLowerCase()}. Posso te enviar o detalhamento aqui?`;
 
   function updateStatus(nextStatus: OfferStatus) {
     setOffer({
@@ -68,7 +73,8 @@ export function OfferReview({
       kind: state!.kind,
       planKey: state!.planKey,
       status: nextStatus,
-      updatedAt: new Date().toISOString(),
+      // Relógio demo — nunca misturar com hora real na apresentação
+      updatedAt: demoNow(),
     });
   }
 
@@ -76,7 +82,7 @@ export function OfferReview({
     try {
       await navigator.clipboard.writeText(whatsappMessage);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
+      setTimeout(() => setCopied(false), 2800);
     } catch {
       setCopied(false);
     }
@@ -182,7 +188,7 @@ export function OfferReview({
             {stages[currentIndex]?.description}
           </p>
           <p className="mt-1 text-[11px] text-ink-400">
-            Atualizado em {new Date(state.updatedAt).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+            Atualizado em {formatDemoDateTime(state.updatedAt)}
           </p>
         </div>
 

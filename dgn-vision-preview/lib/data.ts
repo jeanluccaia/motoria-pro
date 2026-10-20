@@ -29,6 +29,80 @@ export const SIM_CLOCK = {
   display: "Quinta · 09:12",
 };
 
+/* ========== FORMATAÇÃO DE DATAS (fonte única) ========== */
+
+const WEEKDAY_FULL = [
+  "Domingo",
+  "Segunda-feira",
+  "Terça-feira",
+  "Quarta-feira",
+  "Quinta-feira",
+  "Sexta-feira",
+  "Sábado",
+] as const;
+
+const WEEKDAY_SHORT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"] as const;
+
+export type DemoDateFormat = {
+  iso: string;
+  weekdayFull: string;
+  weekdayShort: string;
+  shortDisplay: string;
+  longDisplay: string;
+};
+
+/**
+ * Formata uma data ISO (YYYY-MM-DD) usando o calendário real.
+ * Todos os weekdays mostrados na UI DEVEM passar por aqui — não escrever
+ * "Quarta" ou "Segunda" direto nos dados.
+ */
+export function formatDemoDate(iso: string): DemoDateFormat {
+  // UTC parse evita off-by-one de timezone
+  const d = new Date(`${iso}T12:00:00Z`);
+  const w = d.getUTCDay();
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const monthLong = d.toLocaleDateString("pt-BR", { month: "long", timeZone: "UTC" });
+  const year = d.getUTCFullYear();
+  const weekdayFull = WEEKDAY_FULL[w];
+  const weekdayShort = WEEKDAY_SHORT[w];
+  return {
+    iso,
+    weekdayFull,
+    weekdayShort,
+    shortDisplay: `${weekdayShort} · ${day}/${month}`,
+    longDisplay: `${weekdayFull} · ${d.getUTCDate()} de ${monthLong} de ${year}`,
+  };
+}
+
+/**
+ * Timestamp ISO baseado em DEMO_DATE + SIM_CLOCK. Use este em vez de new Date()
+ * ao registrar updatedAt em entidades demonstrativas — garante que o relógio real
+ * nunca aparece ao lado do relógio demo.
+ */
+export function demoNow(): string {
+  return `${DEMO_DATE.iso}T${SIM_CLOCK.nowHHMM}:00-03:00`;
+}
+
+/** Helper curto para `nextVisitText`: "DD/MM (weekday)". */
+export function formatNextVisit(iso: string): string {
+  const f = formatDemoDate(iso);
+  const [, mm, dd] = iso.split("-");
+  return `${dd}/${mm} (${f.weekdayFull.toLowerCase()})`;
+}
+
+/**
+ * Formata um ISO/updatedAt pra "dd/mm, HH:MM" preservando que é relógio demo.
+ */
+export function formatDemoDateTime(iso: string): string {
+  const d = new Date(iso);
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${day}/${month}, ${hh}:${mm}`;
+}
+
 export const DEMO_UNIT = {
   name: "Unidade Jardins",
   slug: "jardins",
@@ -416,7 +490,8 @@ export const CUSTOMERS: Customer[] = [
       label: "Priority",
       priceDisplay: "R$ 596",
       cycle: "Mensal · desde março de 2024",
-      nextVisitText: "Próxima visita incluída · 03/11 (segunda-feira)",
+      // Derivado via formatDemoDate — nunca escrever weekday manualmente
+      nextVisitText: `Próxima visita incluída · ${formatNextVisit("2026-11-03")}`,
     },
     opportunity: {
       kind: "corporate",
@@ -477,7 +552,8 @@ export const CUSTOMERS: Customer[] = [
       label: "Smart",
       priceDisplay: "R$ 329",
       cycle: "Mensal · desde junho de 2025",
-      nextVisitText: "Próxima visita incluída · 29/10 (quinta-feira)",
+      // Smart quinzenal — última 06/10 (seg), próxima quinzenal real = 03/11 (terça)
+      nextVisitText: `Próxima visita incluída · ${formatNextVisit("2026-11-03")}`,
     },
     opportunity: {
       kind: "upgrade",
@@ -521,9 +597,15 @@ export const customerById = (id: string) =>
 export const prospectCustomers = CUSTOMERS.filter(
   (c) => c.opportunity.kind === "new_subscription"
 );
+/** Upsells = oportunidades com ganho real de receita (revenue_gain). */
 export const upsellCustomers = CUSTOMERS.filter(
   (c) =>
-    c.opportunity.kind === "upgrade" || c.opportunity.kind === "corporate"
+    (c.opportunity.kind === "upgrade" || c.opportunity.kind === "corporate") &&
+    c.opportunity.projection.argument === "revenue_gain"
+);
+/** Retenções = oportunidades em que o argumento é fidelização/LTV (delta negativo). */
+export const retentionCustomers = CUSTOMERS.filter(
+  (c) => c.opportunity.projection.argument === "retention"
 );
 
 /* ========== AGENDA DO DIA ========== */
@@ -534,7 +616,7 @@ export const APPOINTMENTS: Appointment[] = [
     customerId: "andre-pellegrino",
     vehicleId: "veh-andre-01",
     dateIso: DEMO_DATE.iso,
-    weekday: "Quarta",
+    weekday: "Quinta",
     dateDisplay: "22/10",
     time: "08:30",
     durationMin: 60,
@@ -547,7 +629,7 @@ export const APPOINTMENTS: Appointment[] = [
     customerId: "roberta-vinciguerra",
     vehicleId: "veh-roberta-01",
     dateIso: DEMO_DATE.iso,
-    weekday: "Quarta",
+    weekday: "Quinta",
     dateDisplay: "22/10",
     time: "09:30",
     durationMin: 90,
@@ -560,7 +642,7 @@ export const APPOINTMENTS: Appointment[] = [
     customerId: "camila-arantes",
     vehicleId: "veh-camila-01",
     dateIso: DEMO_DATE.iso,
-    weekday: "Quarta",
+    weekday: "Quinta",
     dateDisplay: "22/10",
     time: "11:15",
     durationMin: 60,
@@ -573,7 +655,7 @@ export const APPOINTMENTS: Appointment[] = [
     customerId: "andre-pellegrino",
     vehicleId: "veh-andre-01",
     dateIso: DEMO_DATE.iso,
-    weekday: "Quarta",
+    weekday: "Quinta",
     dateDisplay: "22/10",
     time: "14:00",
     durationMin: 60,

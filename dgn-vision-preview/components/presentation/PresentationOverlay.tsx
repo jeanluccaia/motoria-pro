@@ -10,17 +10,20 @@ import { SCENES } from "./scenes";
  * No mobile, reserva padding-bottom no body para evitar oclusão.
  */
 export function PresentationOverlay() {
-  const { active, stepIndex, totalSteps, currentScene, panelPosition, next, prev, stop, goTo } =
+  const { active, stepIndex, totalSteps, currentScene, panelPosition, skinOverride, next, prev, stop, goTo } =
     usePresentation();
   if (!active || !currentScene) return null;
+  const dotsHidden = skinOverride === "second-brand";
 
   const isLast = stepIndex === totalSteps - 1;
   const progress = ((stepIndex + 1) / totalSteps) * 100;
 
-  // top-right fica abaixo da barra de dots (que está em top-5), bottom-right é o default
+  // top-right fica abaixo da barra de dots (que está em top-5), bottom-left libera o canto direito
   const panelPos =
     panelPosition === "top-right"
       ? "top-20 right-4 left-4 lg:left-auto lg:right-6 lg:top-20"
+      : panelPosition === "bottom-left"
+      ? "bottom-4 right-4 left-4 lg:right-auto lg:left-6 lg:bottom-6"
       : "bottom-4 right-4 left-4 lg:left-auto lg:right-6 lg:bottom-6";
 
   return (
@@ -41,8 +44,12 @@ export function PresentationOverlay() {
         />
       </div>
 
-      {/* Dots indicando etapa */}
-      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-1.5 pointer-events-auto bg-ink-900/80 backdrop-blur-md border border-white/5 rounded-full px-3 py-2 shadow-glass">
+      {/* Dots indicando etapa — ocultos na cena SaaS pra não cobrir o banner teal */}
+      <div
+        className={`fixed top-5 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-1.5 pointer-events-auto bg-ink-900/80 backdrop-blur-md border border-white/5 rounded-full px-3 py-2 shadow-glass transition-opacity ${
+          dotsHidden ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
+      >
         {SCENES.map((s, i) => (
           <button
             key={s.id}

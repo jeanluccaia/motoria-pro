@@ -262,7 +262,7 @@ export default async function ClientePage({
                       {h.dateDisplay}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[15px] text-white truncate">
+                      <p className="text-[15px] text-white break-words">
                         {h.service}
                       </p>
                       <p className="text-xs text-ink-300 mt-0.5">

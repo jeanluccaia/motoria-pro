@@ -11,7 +11,7 @@ import {
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SCENES, type Scene } from "./scenes";
-import { assertDataConsistency } from "@/lib/data";
+import { assertDataConsistency, demoNow } from "@/lib/data";
 
 type Ctx = {
   active: boolean;
@@ -20,7 +20,7 @@ type Ctx = {
   currentScene: Scene | null;
   currentHighlight: string | null;
   skinOverride: "second-brand" | null;
-  panelPosition: "bottom-right" | "top-right";
+  panelPosition: "bottom-right" | "top-right" | "bottom-left";
   start: () => void;
   stop: () => void;
   next: () => void;
@@ -187,23 +187,28 @@ export function PresentationProvider({
   const skinOverride = currentScene?.skinOverride ?? null;
   const panelPosition = currentScene?.panelPosition ?? "bottom-right";
 
-  // Cena 5 (estado-oferta): injeta oferta demonstrativa no localStorage.
+  // Cena 5 (estado-oferta) e 6 (saas): injeta oferta demonstrativa no localStorage.
+  // Nas cenas 1-4 limpa, para não antecipar o resultado quando o usuário volta.
   // Snapshot/restore do start/stop garante que isso não contamina o estado normal.
   useEffect(() => {
     if (!active || !currentScene) return;
-    if (currentScene.id === "estado-oferta") {
+    const showPrepared =
+      currentScene.id === "estado-oferta" || currentScene.id === "saas";
+    if (showPrepared) {
       const demoOffer = {
         "roberta-vinciguerra": {
           customerId: "roberta-vinciguerra",
           kind: "new_subscription",
           planKey: "priority",
           status: "prepared",
-          updatedAt: new Date().toISOString(),
+          updatedAt: demoNow(),
         },
       };
       window.localStorage.setItem(OFFER_KEY, JSON.stringify(demoOffer));
-      window.dispatchEvent(new CustomEvent("dgn-offers-changed"));
+    } else {
+      window.localStorage.removeItem(OFFER_KEY);
     }
+    window.dispatchEvent(new CustomEvent("dgn-offers-changed"));
   }, [active, currentScene]);
 
   const value = useMemo<Ctx>(
