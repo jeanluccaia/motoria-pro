@@ -17,6 +17,7 @@ import {
   CalendarCheck2,
   AlertTriangle,
   ChevronRight,
+  ChevronLeft,
   ChevronDown,
   MessageSquare,
   Mail,
@@ -32,7 +33,7 @@ import {
   PRIORITY_LABELS,
   PRIORITY_ORDER,
 } from "@/lib/crm/labels";
-import { formatDateTime } from "@/lib/crm/dates";
+import { formatLastContactShort } from "@/lib/crm/dates";
 import { formatPhoneForDisplay } from "@/lib/crm/phone";
 import {
   calculateLeadIntelligence,
@@ -44,7 +45,6 @@ import {
   getLeadPresentation,
   groupOrderedLeads,
   countsFromBuckets,
-  LEAD_GROUP_LABELS,
   LEAD_GROUP_ORDER,
   type LeadGroup,
   type LeadPresentation,
@@ -65,6 +65,11 @@ type Props = {
   leads: FranchiseLead[];
   activities: FranchiseLeadActivity[];
   role: Role;
+  // ISO string fixo vindo do servidor. Usado para que SSR e CSR renderizem a
+  // mesma inteligência (dueLabel, tierLabel etc.) e não haja hydration
+  // mismatch — a divergência de datas quebrava React dev mode com
+  // `String.prototype.repeat` ao formatar o diff.
+  nowIso: string;
 };
 
 type AlertFilter =
@@ -79,14 +84,33 @@ type EnrichedEntry = {
   presentation: LeadPresentation;
 };
 
-export function LeadsView({ leads, activities, role }: Props) {
+// Chip de filtro "Todos" = agrega todas as faixas. Os demais mapeiam 1:1
+// para os buckets operacionais que já existem na camada de apresentação.
+type GroupFilter = "all" | LeadGroup;
+
+const GROUP_FILTER_ORDER: GroupFilter[] = ["all", ...LEAD_GROUP_ORDER];
+
+const GROUP_FILTER_LABELS: Record<GroupFilter, string> = {
+  all: "Todos",
+  act_now: "Precisam de ação",
+  reactivate: "Reativar",
+  awaiting: "Aguardando",
+  history: "Histórico",
+};
+
+const PAGE_SIZE = 10;
+
+export function LeadsView({ leads, activities, role, nowIso }: Props) {
   const canCreate = role === "admin" || role === "marketing";
+
+  const now = useMemo(() => new Date(nowIso), [nowIso]);
 
   const [search, setSearch] = useState("");
   const [stageFilter, setStageFilter] = useState<"" | FranchiseLeadStage>("");
   const [priorityFilter, setPriorityFilter] = useState<"" | FranchiseLeadPriority>("");
   const [alertFilter, setAlertFilter] = useState<AlertFilter>("none");
-  const [activeTab, setActiveTab] = useState<LeadGroup>("act_now");
+  const [groupFilter, setGroupFilter] = useState<GroupFilter>("all");
+  const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
@@ -102,7 +126,6 @@ export function LeadsView({ leads, activities, role }: Props) {
 
   // Ordem canônica vinda da inteligência. A UI NUNCA reordena.
   const enriched: EnrichedEntry[] = useMemo(() => {
-    const now = new Date();
     const base = leads.map((lead) => ({
       lead,
       intel: calculateLeadIntelligence(
@@ -116,14 +139,26 @@ export function LeadsView({ leads, activities, role }: Props) {
       ...e,
       presentation: getLeadPresentation(e.lead, e.intel),
     }));
-  }, [leads, activitiesByLead]);
+  }, [leads, activitiesByLead, now]);
 
   const buckets = useMemo(() => groupOrderedLeads(enriched), [enriched]);
   const counts = useMemo(() => countsFromBuckets(buckets), [buckets]);
 
+  // Lista totalmente plana, histórico sempre no fim. Mantém a ordem interna
+  // de cada bucket — sortByOperationalPriority já fez o trabalho fino.
+  const flatOrdered: EnrichedEntry[] = useMemo(
+    () => [
+      ...buckets.act_now,
+      ...buckets.reactivate,
+      ...buckets.awaiting,
+      ...buckets.history,
+    ],
+    [buckets],
+  );
+
   const alerts = useMemo(
-    () => computeAlerts(leads, activitiesByLead, new Date()),
-    [leads, activitiesByLead],
+    () => computeAlerts(leads, activitiesByLead, now),
+    [leads, activitiesByLead, now],
   );
 
   const kpis = useMemo(() => {
@@ -159,11 +194,13 @@ export function LeadsView({ leads, activities, role }: Props) {
     [selectedLeadId, enriched],
   );
 
-  const visibleInTab = useMemo(() => {
-    const bucket = buckets[activeTab];
+  // Aplicação dos filtros: group chip → alertFilter → stage/priority → busca.
+  // Mantém a ordenação original — paginação acontece depois.
+  const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const qDigits = q.replace(/\D+/g, "");
-    return bucket.filter(({ lead, intel, presentation }) => {
+    return flatOrdered.filter(({ lead, intel, presentation }) => {
+      if (groupFilter !== "all" && presentation.group !== groupFilter) return false;
       if (stageFilter && lead.pipeline_stage !== stageFilter) return false;
       if (priorityFilter && lead.priority !== priorityFilter) return false;
 
@@ -189,11 +226,25 @@ export function LeadsView({ leads, activities, role }: Props) {
       if (lead.email && lead.email.toLowerCase().includes(q)) return true;
       return false;
     });
-  }, [buckets, activeTab, search, stageFilter, priorityFilter, alertFilter]);
+  }, [flatOrdered, groupFilter, stageFilter, priorityFilter, alertFilter, search]);
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageEntries = useMemo(
+    () => filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [filtered, safePage],
+  );
+
+  // Mantém "Quem chamar agora" com os primeiros act_now mesmo quando o usuário
+  // filtrar outros grupos — é um bloco de contexto, não parte da listagem.
   const actNowList = buckets.act_now;
   const topEntry = actNowList[0] ?? null;
   const upcomingEntries = actNowList.slice(1, 4);
+
+  // Qualquer mudança de filtro ou busca volta para a página 1.
+  function resetPage() {
+    setPage(1);
+  }
 
   return (
     <div className="space-y-5">
@@ -207,13 +258,15 @@ export function LeadsView({ leads, activities, role }: Props) {
         active={alertFilter}
         onPick={(k) => {
           setAlertFilter((prev) => (prev === k ? "none" : k));
-          setActiveTab(k === "withoutReturn" ? "reactivate" : "act_now");
+          if (k === "withoutReturn") setGroupFilter("reactivate");
+          else setGroupFilter("act_now");
+          resetPage();
         }}
       />
       <KpiOverview kpis={kpis} />
 
       {topEntry ? (
-        <NextActionBlock
+        <QuemChamarAgoraBlock
           top={topEntry}
           upcoming={upcomingEntries}
           onOpen={(id) => setSelectedLeadId(id)}
@@ -221,7 +274,15 @@ export function LeadsView({ leads, activities, role }: Props) {
       ) : null}
 
       <section className="rounded-xl border border-border/80 bg-card/70">
-        <TabsBar activeTab={activeTab} counts={counts} onChange={setActiveTab} />
+        <FilterChipsBar
+          active={groupFilter}
+          counts={counts}
+          totalAll={flatOrdered.length}
+          onChange={(g) => {
+            setGroupFilter(g);
+            resetPage();
+          }}
+        />
 
         <div className="flex flex-col gap-3 border-t border-border/60 p-3 sm:flex-row sm:items-center sm:p-4">
           <div className="relative flex-1">
@@ -229,7 +290,10 @@ export function LeadsView({ leads, activities, role }: Props) {
             <Input
               type="search"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                resetPage();
+              }}
               placeholder="Buscar por nome ou telefone"
               className="pl-9"
               aria-label="Buscar leads"
@@ -241,7 +305,10 @@ export function LeadsView({ leads, activities, role }: Props) {
               <span className="sr-only">Etapa</span>
               <select
                 value={stageFilter}
-                onChange={(e) => setStageFilter(e.target.value as "" | FranchiseLeadStage)}
+                onChange={(e) => {
+                  setStageFilter(e.target.value as "" | FranchiseLeadStage);
+                  resetPage();
+                }}
                 className="h-10 rounded-md border border-input bg-lf-graphite px-3 text-sm text-foreground lf-focus"
                 aria-label="Filtrar por etapa"
               >
@@ -257,7 +324,10 @@ export function LeadsView({ leads, activities, role }: Props) {
               <span className="sr-only">Prioridade</span>
               <select
                 value={priorityFilter}
-                onChange={(e) => setPriorityFilter(e.target.value as "" | FranchiseLeadPriority)}
+                onChange={(e) => {
+                  setPriorityFilter(e.target.value as "" | FranchiseLeadPriority);
+                  resetPage();
+                }}
                 className="h-10 rounded-md border border-input bg-lf-graphite px-3 text-sm text-foreground lf-focus"
                 aria-label="Filtrar por prioridade"
               >
@@ -284,7 +354,10 @@ export function LeadsView({ leads, activities, role }: Props) {
             Mostrando leads filtrados por “{alertFilterLabel(alertFilter)}”.
             <button
               type="button"
-              onClick={() => setAlertFilter("none")}
+              onClick={() => {
+                setAlertFilter("none");
+                resetPage();
+              }}
               className="font-semibold text-lf-volt hover:underline"
             >
               Limpar filtro
@@ -292,13 +365,13 @@ export function LeadsView({ leads, activities, role }: Props) {
           </p>
         ) : null}
 
-        {visibleInTab.length === 0 ? (
+        {filtered.length === 0 ? (
           <EmptyState
-            title={leads.length === 0 ? "Nenhum lead cadastrado" : "Nenhum lead nesta aba"}
+            title={leads.length === 0 ? "Nenhum lead cadastrado" : "Nenhum lead com esses filtros"}
             description={
               leads.length === 0
                 ? "Clique em “Adicionar lead” para começar."
-                : "Ajuste a busca ou troque de aba."
+                : "Ajuste a busca ou troque o filtro."
             }
             icon={<Users className="size-6" aria-hidden />}
             className="rounded-none border-x-0 border-b-0 border-t border-border/60 bg-transparent py-10"
@@ -319,17 +392,19 @@ export function LeadsView({ leads, activities, role }: Props) {
                   <tr>
                     <th className="w-14 px-3 py-3 font-medium">#</th>
                     <th className="px-3 py-3 font-medium">Nome</th>
-                    <th className="w-[36%] px-3 py-3 font-medium">Próxima ação</th>
                     <th className="w-44 px-3 py-3 font-medium">Situação</th>
+                    <th className="w-32 px-3 py-3 font-medium">Última conversa</th>
+                    <th className="w-[28%] px-3 py-3 font-medium">Próxima ação</th>
                     <th className="w-56 px-3 py-3 font-medium">Ação</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {visibleInTab.map((entry, idx) => (
+                  {pageEntries.map((entry, idx) => (
                     <LeadRow
                       key={entry.lead.id}
                       entry={entry}
-                      position={activeTab === "act_now" ? idx + 1 : null}
+                      position={(safePage - 1) * PAGE_SIZE + idx + 1}
+                      now={now}
                       onOpen={() => setSelectedLeadId(entry.lead.id)}
                     />
                   ))}
@@ -339,16 +414,25 @@ export function LeadsView({ leads, activities, role }: Props) {
 
             {/* Cards em telas pequenas */}
             <ul className="space-y-3 border-t border-border/60 p-3 md:hidden">
-              {visibleInTab.map((entry, idx) => (
+              {pageEntries.map((entry, idx) => (
                 <li key={entry.lead.id}>
                   <LeadMobileCard
                     entry={entry}
-                    position={activeTab === "act_now" ? idx + 1 : null}
+                    position={(safePage - 1) * PAGE_SIZE + idx + 1}
+                    now={now}
                     onOpen={() => setSelectedLeadId(entry.lead.id)}
                   />
                 </li>
               ))}
             </ul>
+
+            <PaginationBar
+              page={safePage}
+              totalPages={totalPages}
+              totalItems={filtered.length}
+              pageSize={PAGE_SIZE}
+              onChange={setPage}
+            />
           </>
         )}
       </section>
@@ -537,10 +621,10 @@ function KpiOverview({ kpis }: { kpis: { total: number; highPriority: number; sc
 }
 
 // ------------------------------------------------------------------
-// Próxima ação
+// Quem chamar agora (destaque dos primeiros act_now)
 // ------------------------------------------------------------------
 
-function NextActionBlock({
+function QuemChamarAgoraBlock({
   top,
   upcoming,
   onOpen,
@@ -550,9 +634,9 @@ function NextActionBlock({
   onOpen: (id: string) => void;
 }) {
   return (
-    <section aria-label="Próxima ação" className="space-y-2">
+    <section aria-label="Quem chamar agora" className="space-y-2">
       <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-lf-muted">
-        Próxima ação
+        Quem chamar agora
       </h2>
       <PrimaryCard entry={top} onOpen={onOpen} />
       {upcoming.length > 0 ? (
@@ -655,6 +739,122 @@ function PositionBadge({ n, prominent }: { n: number; prominent?: boolean }) {
     >
       {label}
     </span>
+  );
+}
+
+// ------------------------------------------------------------------
+// Chips de filtro por grupo (substitui as abas)
+// ------------------------------------------------------------------
+
+function FilterChipsBar({
+  active,
+  counts,
+  totalAll,
+  onChange,
+}: {
+  active: GroupFilter;
+  counts: Record<LeadGroup, number>;
+  totalAll: number;
+  onChange: (g: GroupFilter) => void;
+}) {
+  function countFor(key: GroupFilter): number {
+    if (key === "all") return totalAll;
+    return counts[key];
+  }
+
+  return (
+    <div
+      role="tablist"
+      aria-label="Filtrar leads por grupo"
+      className="flex flex-wrap items-center gap-2 border-b border-border/60 p-3 sm:p-4"
+    >
+      {GROUP_FILTER_ORDER.map((g) => {
+        const isActive = g === active;
+        return (
+          <button
+            key={g}
+            role="tab"
+            type="button"
+            aria-selected={isActive}
+            onClick={() => onChange(g)}
+            className={cn(
+              "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors lf-focus",
+              isActive
+                ? "border-lf-volt bg-lf-volt text-black"
+                : "border-border/60 bg-lf-graphite/60 text-foreground hover:bg-lf-graphite",
+            )}
+          >
+            <span>{GROUP_FILTER_LABELS[g]}</span>
+            <span
+              className={cn(
+                "inline-flex min-w-6 items-center justify-center rounded px-1.5 py-0.5 text-[11px] font-semibold tabular-nums",
+                isActive ? "bg-black/20 text-black" : "bg-background/60 text-lf-muted",
+              )}
+            >
+              {countFor(g)}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------
+// Paginação
+// ------------------------------------------------------------------
+
+function PaginationBar({
+  page,
+  totalPages,
+  totalItems,
+  pageSize,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  totalItems: number;
+  pageSize: number;
+  onChange: (p: number) => void;
+}) {
+  const from = (page - 1) * pageSize + 1;
+  const to = Math.min(page * pageSize, totalItems);
+  const hasPrev = page > 1;
+  const hasNext = page < totalPages;
+  return (
+    <div className="flex flex-col items-center justify-between gap-2 border-t border-border/60 px-3 py-3 sm:flex-row sm:px-4">
+      <p className="text-xs text-lf-muted">
+        Mostrando <span className="font-semibold text-foreground">{from}–{to}</span> de{" "}
+        <span className="font-semibold text-foreground">{totalItems}</span> leads
+      </p>
+      <div className="flex items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => onChange(page - 1)}
+          disabled={!hasPrev}
+          className="gap-1"
+        >
+          <ChevronLeft className="size-4" aria-hidden />
+          Anterior
+        </Button>
+        <span className="min-w-20 text-center text-sm tabular-nums text-foreground">
+          Página {page} de {totalPages}
+        </span>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => onChange(page + 1)}
+          disabled={!hasNext}
+          className="gap-1"
+        >
+          Próxima
+          <ChevronRight className="size-4" aria-hidden />
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -798,9 +998,6 @@ function ActionButtons({
       </Button>
     );
 
-  // WhatsApp secundário só faz sentido quando o CTA primário NÃO é um
-  // redirecionamento para completar o cadastro — a resolução por canal já
-  // garante waHref=null nesses casos, mas deixamos explícito.
   const secondary =
     action.intent === "default" &&
     presentation.phone.canUseWhatsAppSecondary &&
@@ -827,72 +1024,22 @@ function ActionButtons({
 }
 
 // ------------------------------------------------------------------
-// Abas
-// ------------------------------------------------------------------
-
-function TabsBar({
-  activeTab,
-  counts,
-  onChange,
-}: {
-  activeTab: LeadGroup;
-  counts: Record<LeadGroup, number>;
-  onChange: (g: LeadGroup) => void;
-}) {
-  return (
-    <div
-      role="tablist"
-      aria-label="Grupos de leads"
-      className="grid grid-cols-4 gap-1 border-b border-border/60 px-2 pt-2 sm:flex sm:items-center sm:gap-2"
-    >
-      {LEAD_GROUP_ORDER.map((g) => {
-        const isActive = g === activeTab;
-        return (
-          <button
-            key={g}
-            role="tab"
-            type="button"
-            aria-selected={isActive}
-            onClick={() => onChange(g)}
-            className={cn(
-              "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-t-md border-b-2 px-2 py-1 text-xs font-semibold leading-tight transition-colors lf-focus sm:min-h-11 sm:flex-row sm:gap-2 sm:px-3 sm:py-2 sm:text-sm",
-              isActive
-                ? "border-lf-volt text-foreground"
-                : "border-transparent text-lf-muted hover:text-foreground",
-            )}
-          >
-            <span className="text-center">{LEAD_GROUP_LABELS[g]}</span>
-            <span
-              className={cn(
-                "inline-flex min-w-6 items-center justify-center rounded px-1.5 py-0.5 text-[11px] font-semibold tabular-nums",
-                isActive
-                  ? "bg-lf-volt text-black"
-                  : "bg-lf-graphite/80 text-lf-muted",
-              )}
-            >
-              {counts[g]}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-// ------------------------------------------------------------------
 // Linha da tabela (desktop)
 // ------------------------------------------------------------------
 
 function LeadRow({
   entry,
   position,
+  now,
   onOpen,
 }: {
   entry: EnrichedEntry;
-  position: number | null;
+  position: number;
+  now: Date;
   onOpen: () => void;
 }) {
   const { lead, presentation } = entry;
+  const lastContact = formatLastContactShort(lead.last_contact_at, now);
   return (
     <tr
       className={cn(
@@ -911,7 +1058,7 @@ function LeadRow({
       aria-label={`Abrir lead ${lead.full_name}`}
     >
       <td className="px-3 py-3 align-top text-xs font-semibold tabular-nums text-lf-muted">
-        {position != null ? positionShort(position) : "—"}
+        {position}º
       </td>
       <td className="px-3 py-3 align-top">
         <div className="flex flex-col">
@@ -922,6 +1069,10 @@ function LeadRow({
         </div>
       </td>
       <td className="px-3 py-3 align-top">
+        <StatusChip presentation={presentation} />
+      </td>
+      <td className="px-3 py-3 align-top text-xs text-lf-muted">{lastContact}</td>
+      <td className="px-3 py-3 align-top">
         <p className="text-sm font-medium text-foreground">{presentation.action.label}</p>
         <p className="mt-1 line-clamp-2 text-xs text-lf-muted">
           <span className="font-semibold uppercase tracking-wide">Motivo:</span>{" "}
@@ -929,17 +1080,10 @@ function LeadRow({
         </p>
       </td>
       <td className="px-3 py-3 align-top">
-        <StatusChip presentation={presentation} />
-      </td>
-      <td className="px-3 py-3 align-top">
         <ActionButtons entry={entry} onOpen={() => onOpen()} />
       </td>
     </tr>
   );
-}
-
-function positionShort(n: number): string {
-  return `${n}º`;
 }
 
 // ------------------------------------------------------------------
@@ -949,13 +1093,16 @@ function positionShort(n: number): string {
 function LeadMobileCard({
   entry,
   position,
+  now,
   onOpen,
 }: {
   entry: EnrichedEntry;
-  position: number | null;
+  position: number;
+  now: Date;
   onOpen: () => void;
 }) {
   const { lead, presentation } = entry;
+  const lastContact = formatLastContactShort(lead.last_contact_at, now);
   return (
     <article className="rounded-xl border border-border/80 bg-card/70 p-4">
       <button
@@ -964,7 +1111,9 @@ function LeadMobileCard({
         className="block w-full text-left lf-focus"
       >
         <div className="flex items-start gap-3">
-          {position != null ? <PositionBadge n={position} /> : null}
+          <span className="inline-flex min-w-10 shrink-0 items-center justify-center rounded-md bg-lf-graphite px-2 py-1 text-[11px] font-semibold tabular-nums text-lf-muted">
+            {position}º
+          </span>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className="truncate text-base font-medium text-foreground">
@@ -979,12 +1128,10 @@ function LeadMobileCard({
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <StatusChip presentation={presentation} />
-          {lead.next_contact_at ? (
-            <span className="inline-flex items-center gap-1 text-[11px] text-lf-muted">
-              <CalendarClock className="size-3" aria-hidden />
-              {formatDateTime(lead.next_contact_at)}
-            </span>
-          ) : null}
+          <span className="inline-flex items-center gap-1 text-[11px] text-lf-muted">
+            <CalendarClock className="size-3" aria-hidden />
+            Última conversa: {lastContact}
+          </span>
         </div>
 
         <p className="mt-3 text-sm font-medium text-foreground">

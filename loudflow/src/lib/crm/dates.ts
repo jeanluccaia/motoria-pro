@@ -53,6 +53,33 @@ export function formatDate(iso: string | null): string {
   return dateFmt.format(new Date(iso));
 }
 
+// Rótulo curto de "última conversa" em pt-BR, pensado para operador leigo.
+// Usa `now` fornecido pelo caller (não `new Date()` interno) para evitar
+// divergência entre render servidor e cliente — a UI deve passar um `now`
+// estável. Retorna "—" quando não há data.
+export function formatLastContactShort(
+  iso: string | null,
+  now: Date,
+): string {
+  if (!iso) return "—";
+  const nowYmd = dateOnlyFmt.format(now);
+  const targetYmd = dateOnlyFmt.format(new Date(iso));
+  const [ny, nm, nd] = nowYmd.split("-").map(Number);
+  const [ty, tm, td] = targetYmd.split("-").map(Number);
+  const diffDays = Math.round(
+    (Date.UTC(ny, nm - 1, nd) - Date.UTC(ty, tm - 1, td)) / 86_400_000,
+  );
+  if (diffDays <= 0) return "hoje";
+  if (diffDays === 1) return "ontem";
+  if (diffDays < 30) return `há ${diffDays} dias`;
+  if (diffDays < 365) {
+    const months = Math.floor(diffDays / 30);
+    return months === 1 ? "há 1 mês" : `há ${months} meses`;
+  }
+  const years = Math.floor(diffDays / 365);
+  return years === 1 ? "há 1 ano" : `há ${years} anos`;
+}
+
 // Converte "2026-10-07 15:30" interpretado como BRT para ISO UTC.
 // Diferente de localInputToUtcIso em lib/tasks: aqui aceitamos tanto o
 // formato de <input type="datetime-local"> quanto um "YYYY-MM-DD" puro

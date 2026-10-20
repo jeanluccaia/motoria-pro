@@ -52,6 +52,7 @@ export default async function CrmFranquiasPage() {
         leads={leads}
         activities={activities}
         role={session.role}
+        nowIso={new Date().toISOString()}
       />
     </>
   );
