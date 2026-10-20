@@ -322,6 +322,109 @@ test.describe("Apresentação — CTA curto do botão primário", () => {
   });
 });
 
+test.describe("Apresentação — resolução do CTA primário por canal", () => {
+  // Cenário 1: telefone válido → mantém comportamento anterior (ligação ou WhatsApp).
+  test("telefone válido mantém a ação da inteligência (ligar/WhatsApp)", () => {
+    const lead = makeLead({
+      pipeline_stage: "qualified",
+      priority: "high",
+      next_contact_at: brtDate(NOW_BRT_YMD, "16:00"),
+      last_contact_at: daysFromNow(-1),
+      last_conversation_status: "Ficou de marcar uma visita à unidade com a sócia",
+    });
+    const { intel, presentation } = present(lead);
+    expect(intel.suggestedAction).toBe("call_now");
+    expect(presentation.action.intent).toBe("default");
+    expect(presentation.action.href).toBeNull();
+    expect(presentation.action.buttonLabel).toBe("Ligar agora");
+    expect(presentation.action.primary).toBe(true);
+    expect(presentation.phone.canUseWhatsAppSecondary).toBe(true);
+  });
+
+  // Cenário 2: telefone incompleto → "Conferir telefone" com intent open_edit,
+  // nunca ligação, nunca WhatsApp.
+  test("telefone incompleto → 'Conferir telefone', abre edição, sem WhatsApp", () => {
+    const lead = makeLead({
+      phone: "+55 83 9648-8258",
+      phone_normalized: null,
+      pipeline_stage: "in_conversation",
+      next_contact_at: daysFromNow(-3),
+      last_contact_at: daysFromNow(-5),
+    });
+    const { presentation } = present(lead);
+    expect(presentation.action.buttonLabel).toBe("Conferir telefone");
+    expect(presentation.action.intent).toBe("open_edit");
+    expect(presentation.action.href).toBeNull();
+    expect(presentation.action.primary).toBe(true);
+    expect(presentation.phone.canUseWhatsAppSecondary).toBe(false);
+    expect(presentation.phone.waHref).toBeNull();
+  });
+
+  // Cenário 3: sem telefone + com email → "Enviar e-mail" (mailto:).
+  // Reproduz o caso real da Vanessa Barros Rodrigues no seed.
+  test("sem telefone + email → 'Enviar e-mail' com mailto:", () => {
+    const lead = makeLead({
+      full_name: "Vanessa Barros Rodrigues",
+      phone: null,
+      phone_normalized: null,
+      email: "vanessabarros.rodrigues02@gmail.com",
+      pipeline_stage: "qualified",
+      priority: "high",
+      next_contact_at: daysFromNow(-3),
+      last_contact_at: daysFromNow(-1),
+      last_conversation_status:
+        "Na reunião com Diego, conversaram sobre formar sociedade",
+      next_action: "Perguntar se criaram o grupo e avançaram na sociedade",
+    });
+    const { presentation } = present(lead);
+    expect(presentation.action.buttonLabel).toBe("Enviar e-mail");
+    expect(presentation.action.intent).toBe("mailto");
+    expect(presentation.action.href).toBe(
+      "mailto:vanessabarros.rodrigues02@gmail.com",
+    );
+    expect(presentation.action.primary).toBe(true);
+    expect(presentation.action.buttonLabel).not.toMatch(/ligar/i);
+    expect(presentation.phone.canUseWhatsAppSecondary).toBe(false);
+    expect(presentation.phone.waHref).toBeNull();
+  });
+
+  // Cenário 4: sem telefone + sem email → "Adicionar contato", abre edição.
+  test("sem telefone + sem email → 'Adicionar contato', abre edição", () => {
+    const lead = makeLead({
+      phone: null,
+      phone_normalized: null,
+      email: null,
+      pipeline_stage: "qualified",
+      priority: "high",
+      next_contact_at: daysFromNow(-2),
+      last_contact_at: daysFromNow(-1),
+    });
+    const { presentation } = present(lead);
+    expect(presentation.action.buttonLabel).toBe("Adicionar contato");
+    expect(presentation.action.intent).toBe("open_edit");
+    expect(presentation.action.href).toBeNull();
+    expect(presentation.action.primary).toBe(true);
+    expect(presentation.phone.canUseWhatsAppSecondary).toBe(false);
+    expect(presentation.phone.waHref).toBeNull();
+  });
+
+  test("em awaiting/history nunca entramos no override — permanece sem ação primária", () => {
+    const awaiting = makeLead({
+      phone: null,
+      phone_normalized: null,
+      email: null,
+      pipeline_stage: "qualified",
+      priority: "high",
+      next_contact_at: daysFromNow(5),
+      last_contact_at: daysFromNow(-1),
+    });
+    const { presentation } = present(awaiting);
+    expect(presentation.group).toBe("awaiting");
+    expect(presentation.action.primary).toBe(false);
+    expect(presentation.action.intent).toBe("default");
+  });
+});
+
 test.describe("Apresentação — reason e statusLabel", () => {
   test("reason usa o primeiro motivo da inteligência quando existe", () => {
     const lead = makeLead({

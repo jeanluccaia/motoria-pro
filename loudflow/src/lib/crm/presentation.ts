@@ -164,6 +164,13 @@ export function shortActionLabel(action: SuggestedAction): string {
 // Tipo principal de apresentação
 // ------------------------------------------------------------------
 
+// Como o CTA primário deve se comportar — resolvido na camada de apresentação
+// a partir do canal disponível (telefone válido/incompleto/missing + email).
+//   "default"   → abre o fluxo canônico (dialog de detalhe / registrar contato)
+//   "mailto"    → é um link mailto: para o email cadastrado
+//   "open_edit" → leva à edição do cadastro (completar telefone ou contato)
+export type ActionIntent = "default" | "mailto" | "open_edit";
+
 export type LeadPresentation = {
   group: LeadGroup;
   groupLabel: string;
@@ -180,7 +187,9 @@ export type LeadPresentation = {
   statusIcon: IconKey;
   statusTone: Tone;
 
-  // Ação principal — vem exclusivamente de intelligence.
+  // Ação principal — vem de intelligence, com override da camada de
+  // apresentação quando o canal cadastrado (telefone válido / incompleto /
+  // ausente + email) exige outro CTA. Ver resolvePrimaryAction.
   action: {
     kind: SuggestedAction;
     // Instrução LONGA (vinda do operador via lead.next_action ou do label
@@ -192,6 +201,10 @@ export type LeadPresentation = {
     // Mostra ou não um botão de ação principal clicável.
     // Awaiting / deprioritize / terminal não têm ação primária.
     primary: boolean;
+    // Como o CTA deve agir (abre dialog, mailto, abre edição).
+    intent: ActionIntent;
+    // Href para intents "mailto" (null nos demais).
+    href: string | null;
   };
 
   dueLabel: string | null;
@@ -230,9 +243,17 @@ export function getLeadPresentation(
   const primaryIsWhatsApp = isWhatsAppPrimary(intel.suggestedAction) && Boolean(waHref);
   const canUseWhatsAppSecondary = Boolean(waHref) && !isWhatsAppPrimary(intel.suggestedAction);
 
-  const showPrimaryAction =
+  const defaultShowPrimary =
     group === "act_now" ||
     (group === "reactivate" && state !== "incomplete" && state !== "missing");
+
+  const resolved = resolvePrimaryAction({
+    lead,
+    intel,
+    group,
+    phoneState: state,
+    defaultShowPrimary,
+  });
 
   const reason = pickShortReason(intel);
   const statusLabel = buildStatusLabel(intel);
@@ -255,12 +276,7 @@ export function getLeadPresentation(
     statusIcon: TIER_ICON[intel.operationalTier],
     statusTone: TIER_TONE[intel.operationalTier],
 
-    action: {
-      kind: intel.suggestedAction,
-      label: intel.suggestedActionLabel,
-      buttonLabel: shortActionLabel(intel.suggestedAction),
-      primary: showPrimaryAction,
-    },
+    action: resolved,
 
     dueLabel: intel.dueLabel,
 
@@ -277,6 +293,72 @@ export function getLeadPresentation(
 
     historyBadge,
   };
+}
+
+// Resolve o CTA primário em função do canal disponível. Não altera tier,
+// score nem ordenação — apenas o rótulo, o intent e a visibilidade do botão.
+// Regras (ver especificação de UX):
+//   - telefone válido      → mantém a ação sugerida pela inteligência
+//   - telefone incompleto  → "Conferir telefone" (abre edição)
+//   - sem telefone + email → "Enviar e-mail" (mailto:)
+//   - sem telefone + sem email → "Adicionar contato" (abre edição)
+// Só aplica override em grupos que operacionalmente têm CTA (act_now, reactivate).
+// Em awaiting/history preserva o comportamento atual (sem ação primária).
+function resolvePrimaryAction(args: {
+  lead: FranchiseLead;
+  intel: LeadIntelligence;
+  group: LeadGroup;
+  phoneState: PhoneState;
+  defaultShowPrimary: boolean;
+}): LeadPresentation["action"] {
+  const { lead, intel, group, phoneState: state, defaultShowPrimary } = args;
+
+  const defaultAction = {
+    kind: intel.suggestedAction,
+    label: intel.suggestedActionLabel,
+    buttonLabel: shortActionLabel(intel.suggestedAction),
+    primary: defaultShowPrimary,
+    intent: "default" as ActionIntent,
+    href: null as string | null,
+  };
+
+  const isActionableGroup = group === "act_now" || group === "reactivate";
+  if (!isActionableGroup) return defaultAction;
+
+  if (state === "incomplete") {
+    return {
+      kind: "validate_phone",
+      label: "Conferir o telefone antes de qualquer tentativa de contato.",
+      buttonLabel: "Conferir telefone",
+      primary: true,
+      intent: "open_edit",
+      href: null,
+    };
+  }
+
+  if (state === "missing") {
+    const email = lead.email?.trim();
+    if (email && email.length > 0) {
+      return {
+        kind: intel.suggestedAction,
+        label: `Enviar email para ${email}.`,
+        buttonLabel: "Enviar e-mail",
+        primary: true,
+        intent: "mailto",
+        href: `mailto:${email}`,
+      };
+    }
+    return {
+      kind: intel.suggestedAction,
+      label: "Lead sem telefone e sem email — adicione um contato para seguir.",
+      buttonLabel: "Adicionar contato",
+      primary: true,
+      intent: "open_edit",
+      href: null,
+    };
+  }
+
+  return defaultAction;
 }
 
 // Primeiro motivo da inteligência tende a ser a frase mais operacional.

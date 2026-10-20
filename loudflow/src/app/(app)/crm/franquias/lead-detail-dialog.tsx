@@ -16,6 +16,7 @@ import {
   Archive,
   CheckCircle,
   AlertTriangle,
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -178,7 +179,13 @@ export function LeadDetailDialog({
                 <SectionTitle>Próxima ação</SectionTitle>
                 <PrimaryActionBar
                   presentation={presentation}
-                  onPrimary={() => setMode(mapSuggestedActionToMode(intel.suggestedAction))}
+                  onPrimary={() => {
+                    if (presentation.action.intent === "open_edit") {
+                      setEditing(true);
+                      return;
+                    }
+                    setMode(mapSuggestedActionToMode(intel.suggestedAction));
+                  }}
                 />
                 {presentation.action.primary ? (
                   <ActionShortcuts mode={mode} setMode={setMode} />
@@ -431,21 +438,43 @@ function PrimaryActionBar({
     );
   }
 
+  const { action } = presentation;
+  const buttonIcon =
+    action.intent === "mailto" ? (
+      <Mail className="size-4" aria-hidden />
+    ) : action.intent === "open_edit" ? (
+      <Pencil className="size-4" aria-hidden />
+    ) : (
+      iconFor(presentation.statusIcon, "size-4")
+    );
+
   return (
     <div className="space-y-2">
       <p className="text-sm font-medium text-foreground">
-        {presentation.action.label}
+        {action.label}
       </p>
       <div className="flex flex-wrap items-stretch gap-2 sm:items-center">
-        <Button
-          type="button"
-          onClick={onPrimary}
-          className="min-h-14 w-full gap-2 whitespace-nowrap px-4 text-sm sm:min-h-12 sm:w-auto"
-        >
-          {iconFor(presentation.statusIcon, "size-4")}
-          <span>{presentation.action.buttonLabel}</span>
-        </Button>
-        {presentation.phone.canUseWhatsAppSecondary && presentation.phone.waHref ? (
+        {action.intent === "mailto" && action.href ? (
+          <a
+            href={action.href}
+            className="inline-flex min-h-14 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md bg-lf-volt px-4 text-sm font-semibold text-black hover:bg-lf-volt/90 lf-focus sm:min-h-12 sm:w-auto"
+          >
+            {buttonIcon}
+            <span>{action.buttonLabel}</span>
+          </a>
+        ) : (
+          <Button
+            type="button"
+            onClick={onPrimary}
+            className="min-h-14 w-full gap-2 whitespace-nowrap px-4 text-sm sm:min-h-12 sm:w-auto"
+          >
+            {buttonIcon}
+            <span>{action.buttonLabel}</span>
+          </Button>
+        )}
+        {action.intent === "default" &&
+        presentation.phone.canUseWhatsAppSecondary &&
+        presentation.phone.waHref ? (
           <a
             href={presentation.phone.waHref}
             target="_blank"

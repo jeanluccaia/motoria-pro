@@ -19,6 +19,8 @@ import {
   ChevronRight,
   ChevronDown,
   MessageSquare,
+  Mail,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -747,9 +749,10 @@ function ActionButtons({
   onOpen: (id: string) => void;
 }) {
   const { lead, presentation } = entry;
+  const { action } = presentation;
 
   // Aguardando / histórico: sem ação primária clicável.
-  if (!presentation.action.primary) {
+  if (!action.primary) {
     return (
       <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-lf-muted">
         <Pause className="size-3.5" aria-hidden />
@@ -758,34 +761,62 @@ function ActionButtons({
     );
   }
 
-  const primary = (
-    <Button
-      type="button"
-      size="sm"
-      onClick={(e) => {
-        e.stopPropagation();
-        onOpen(lead.id);
-      }}
-      className="min-h-14 w-full gap-2 whitespace-nowrap px-4 text-sm sm:min-h-12 sm:w-auto"
-    >
-      {iconFor(presentation.statusIcon, "size-4")}
-      <span>{presentation.action.buttonLabel}</span>
-    </Button>
-  );
+  const buttonClasses =
+    "inline-flex min-h-14 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md bg-lf-volt px-4 text-sm font-semibold text-black hover:bg-lf-volt/90 lf-focus sm:min-h-12 sm:w-auto";
+  const buttonIcon =
+    action.intent === "mailto" ? (
+      <Mail className="size-4" aria-hidden />
+    ) : action.intent === "open_edit" ? (
+      <Pencil className="size-4" aria-hidden />
+    ) : (
+      iconFor(presentation.statusIcon, "size-4")
+    );
 
-  const secondary = presentation.phone.canUseWhatsAppSecondary && presentation.phone.waHref ? (
-    <a
-      href={presentation.phone.waHref}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={(e) => e.stopPropagation()}
-      className="inline-flex min-h-12 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-emerald-500/50 bg-emerald-500/15 px-3 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 lf-focus"
-      aria-label="Abrir conversa no WhatsApp"
-    >
-      <MessageSquare className="size-4" aria-hidden />
-      WhatsApp
-    </a>
-  ) : null;
+  const primary =
+    action.intent === "mailto" && action.href ? (
+      <a
+        href={action.href}
+        onClick={(e) => e.stopPropagation()}
+        className={buttonClasses}
+        aria-label={`Enviar email para ${lead.full_name}`}
+      >
+        {buttonIcon}
+        <span>{action.buttonLabel}</span>
+      </a>
+    ) : (
+      <Button
+        type="button"
+        size="sm"
+        onClick={(e) => {
+          e.stopPropagation();
+          onOpen(lead.id);
+        }}
+        className="min-h-14 w-full gap-2 whitespace-nowrap px-4 text-sm sm:min-h-12 sm:w-auto"
+      >
+        {buttonIcon}
+        <span>{action.buttonLabel}</span>
+      </Button>
+    );
+
+  // WhatsApp secundário só faz sentido quando o CTA primário NÃO é um
+  // redirecionamento para completar o cadastro — a resolução por canal já
+  // garante waHref=null nesses casos, mas deixamos explícito.
+  const secondary =
+    action.intent === "default" &&
+    presentation.phone.canUseWhatsAppSecondary &&
+    presentation.phone.waHref ? (
+      <a
+        href={presentation.phone.waHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => e.stopPropagation()}
+        className="inline-flex min-h-12 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-emerald-500/50 bg-emerald-500/15 px-3 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 lf-focus"
+        aria-label="Abrir conversa no WhatsApp"
+      >
+        <MessageSquare className="size-4" aria-hidden />
+        WhatsApp
+      </a>
+    ) : null;
 
   return (
     <div className="flex flex-wrap items-stretch gap-2 sm:items-center">
