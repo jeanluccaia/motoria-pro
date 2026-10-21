@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Home, ListChecks, LineChart, Settings, Users } from "lucide-react";
+import { Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/lib/supabase/types";
 import loudfitLockup from "@/../public/brand/loudfit-lockup.png";
@@ -16,11 +16,12 @@ type NavItem = {
   disabled?: boolean;
 };
 
+// Fase atual: Loud Flow operacional só para o CRM de Franquias da franqueadora.
+// Tarefas / Resultados / Início / módulos de unidade permanecem no código
+// mas ficam fora da navegação até serem recolocados. Admins mantêm acesso
+// a Configurações para gestão de usuários e permissões.
 const nav: NavItem[] = [
-  { href: "/", label: "Início", icon: Home },
-  { href: "/tarefas", label: "Tarefas", icon: ListChecks },
-  { href: "/crm/franquias", label: "CRM", icon: Users, roles: ["admin", "marketing", "partner"] },
-  { href: "/resultados", label: "Resultados", icon: LineChart },
+  { href: "/crm/franquias", label: "CRM de Franquias", icon: Users, roles: ["admin", "marketing", "partner"] },
   { href: "/config", label: "Configurações", icon: Settings, roles: ["admin"] },
 ];
 

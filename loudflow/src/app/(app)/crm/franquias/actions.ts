@@ -6,6 +6,7 @@
 //   createLead:            admin, marketing
 //   updateLead:            admin, marketing  (cadastro completo)
 //   registerContact:       admin, marketing, partner
+//   markResponseReceived:  admin, marketing, partner
 //   changeStage:           admin, marketing, partner
 //   scheduleNextContact:   admin, marketing, partner
 //   deleteLead:            admin
@@ -294,7 +295,7 @@ export async function registerContact(formData: FormData): Promise<Result> {
   // Confirma escopo + lê etapa atual (para auditar mudanças).
   const { data: current, error: readErr } = await supabase
     .from("franchise_leads")
-    .select("id, pipeline_stage")
+    .select("id, pipeline_stage, sla_contact_attempts")
     .eq("id", leadId)
     .eq("organization_id", session.organizationId)
     .maybeSingle();
@@ -304,6 +305,12 @@ export async function registerContact(formData: FormData): Promise<Result> {
   const updates: Partial<FranchiseLead> = {
     last_contact_at: occurredAt,
     last_conversation_status: conversationStatus,
+    // SLA: cada contato registrado incrementa o contador até o lead
+    // responder. Quando o cron SLA arquiva (temp ou final) ou quando o
+    // sócio marca "lead respondeu" (markResponseReceived), o contador é
+    // zerado — então essa soma reflete sempre "contatos desde a última
+    // resposta". Ver [[src/lib/crm/sla.ts]].
+    sla_contact_attempts: (current.sla_contact_attempts ?? 0) + 1,
   };
   if (nextAction !== null) updates.next_action = nextAction;
   if (nextContactAt !== null) updates.next_contact_at = nextContactAt;
@@ -345,6 +352,69 @@ export async function registerContact(formData: FormData): Promise<Result> {
 
   revalidatePath("/crm/franquias");
   return { ok: true, message: "Contato registrado." };
+}
+
+// SLA: marca que o lead respondeu. Zera o contador de tentativas e sai
+// do loop (o cron SLA ignora leads com sla_response_received_at setado).
+// Também encerra qualquer "retry round" em andamento. Usado pelo botão
+// "Lead respondeu" no card do lead. Não altera pipeline_stage — o próximo
+// contato real é quem move o lead para in_conversation/qualified/etc.
+export async function markResponseReceived(formData: FormData): Promise<Result> {
+  const session = await requireSession();
+  if (!WRITE_ROLES.includes(session.role)) {
+    return { ok: false, message: "Seu perfil não pode marcar respostas." };
+  }
+
+  const leadId = String(formData.get("lead_id") ?? "");
+  if (!leadId) return { ok: false, message: "Lead inválido." };
+
+  const summary = parseOptionalText(formData.get("summary")) ?? "Lead respondeu.";
+  const occurredAt =
+    brtInputToUtcIso(String(formData.get("occurred_at") ?? "")) ??
+    new Date().toISOString();
+
+  const supabase = await createSupabaseServerClient();
+
+  // Confirma escopo.
+  const { data: current, error: readErr } = await supabase
+    .from("franchise_leads")
+    .select("id")
+    .eq("id", leadId)
+    .eq("organization_id", session.organizationId)
+    .maybeSingle();
+  if (readErr) return { ok: false, message: readErr.message };
+  if (!current) return { ok: false, message: "Lead não encontrado." };
+
+  const { error: updErr } = await supabase
+    .from("franchise_leads")
+    .update({
+      sla_response_received_at: occurredAt,
+      sla_contact_attempts: 0,
+      // Fecha retry em andamento se houver.
+      sla_last_retry_at: null,
+      last_contact_at: occurredAt,
+      last_conversation_status: summary,
+    })
+    .eq("id", leadId)
+    .eq("organization_id", session.organizationId);
+  if (updErr) return { ok: false, message: updErr.message };
+
+  const { error: actErr } = await supabase
+    .from("franchise_lead_activities")
+    .insert({
+      organization_id: session.organizationId,
+      lead_id: leadId,
+      activity_type: "note" as FranchiseLeadActivityType,
+      summary: `Lead respondeu: ${summary}`,
+      occurred_at: occurredAt,
+      created_by: session.userId,
+    });
+  if (actErr) return { ok: false, message: actErr.message };
+
+  await audit("franchise_lead.response_received", leadId, {});
+
+  revalidatePath("/crm/franquias");
+  return { ok: true, message: "Resposta registrada." };
 }
 
 // Mudança rápida de etapa sem passar pelo formulário completo. Usado pelo

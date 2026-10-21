@@ -78,6 +78,11 @@ function makeLead(overrides: Partial<FranchiseLead> = {}): FranchiseLead {
     created_by: null,
     created_at: "2026-10-01T15:00:00.000Z",
     updated_at: "2026-10-01T15:00:00.000Z",
+    sla_contact_attempts: 0,
+    sla_response_received_at: null,
+    sla_archive_type: null,
+    sla_archived_at: null,
+    sla_last_retry_at: null,
     ...overrides,
   };
 }
