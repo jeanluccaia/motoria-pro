@@ -15,7 +15,9 @@
 /test-results
 /playwright-report
 /screenshots
-/screenshots-crm
+/screenshots-crm*
+/screenshots-polish*
+/screenshots-prod*
 
 # next.js
 /.next/
@@ -43,6 +45,7 @@ yarn-error.log*
 # tooling local (nunca commitar)
 .mcp.json
 .nextdev*.log
+.next-*.log
 
 # typescript
 *.tsbuildinfo

@@ -13,26 +13,20 @@ import {
   Archive,
   CheckCircle,
   Users,
-  Flame,
   CalendarCheck2,
   AlertTriangle,
   ChevronRight,
   ChevronLeft,
-  ChevronDown,
   MessageSquare,
   Mail,
   Pencil,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/shell/states";
 import { cn } from "@/lib/utils";
-import {
-  STAGE_LABELS,
-  STAGE_ORDER,
-  PRIORITY_LABELS,
-  PRIORITY_ORDER,
-} from "@/lib/crm/labels";
+import { STAGE_LABELS, STAGE_ORDER } from "@/lib/crm/labels";
 import { formatLastContactShort } from "@/lib/crm/dates";
 import { formatPhoneForDisplay } from "@/lib/crm/phone";
 import {
@@ -57,7 +51,6 @@ import type {
   FranchiseLead,
   FranchiseLeadActivity,
   FranchiseLeadStage,
-  FranchiseLeadPriority,
   Role,
 } from "@/lib/supabase/types";
 
@@ -74,7 +67,7 @@ type Props = {
 
 type AlertFilter =
   | "none"
-  | "overdueContacts"
+  | "actionsForToday"
   | "withoutReturn"
   | "phonesToConfirm";
 
@@ -107,7 +100,6 @@ export function LeadsView({ leads, activities, role, nowIso }: Props) {
 
   const [search, setSearch] = useState("");
   const [stageFilter, setStageFilter] = useState<"" | FranchiseLeadStage>("");
-  const [priorityFilter, setPriorityFilter] = useState<"" | FranchiseLeadPriority>("");
   const [alertFilter, setAlertFilter] = useState<AlertFilter>("none");
   const [groupFilter, setGroupFilter] = useState<GroupFilter>("all");
   const [page, setPage] = useState(1);
@@ -161,22 +153,25 @@ export function LeadsView({ leads, activities, role, nowIso }: Props) {
     [leads, activitiesByLead, now],
   );
 
-  const kpis = useMemo(() => {
-    let total = 0;
-    let highPriority = 0;
-    let scheduled = 0;
-    for (const l of leads) {
-      total += 1;
+  // "Ações para hoje" = tiers respond_now + call_today (todos pedem ação já).
+  // "Total ativos" exclui histórico (lost/won/disqualified) e "Não priorizar".
+  // "Reuniões em andamento" = pipeline_stage=meeting_scheduled não terminal.
+  const indicators = useMemo(() => {
+    let actionsForToday = 0;
+    let activeTotal = 0;
+    let meetingsInProgress = 0;
+    for (const e of enriched) {
+      const tier = e.intel.operationalTier;
+      if (tier === "respond_now" || tier === "call_today") actionsForToday += 1;
+      if (tier !== "terminal" && tier !== "deprioritize") activeTotal += 1;
       if (
-        l.priority === "high" &&
-        l.pipeline_stage !== "lost" &&
-        l.pipeline_stage !== "won"
+        e.lead.pipeline_stage === "meeting_scheduled" &&
+        tier !== "terminal"
       )
-        highPriority += 1;
-      if (l.pipeline_stage === "meeting_scheduled") scheduled += 1;
+        meetingsInProgress += 1;
     }
-    return { total, highPriority, scheduled };
-  }, [leads]);
+    return { actionsForToday, activeTotal, meetingsInProgress };
+  }, [enriched]);
 
   const selectedLead = useMemo(
     () => (selectedLeadId ? leads.find((l) => l.id === selectedLeadId) ?? null : null),
@@ -202,12 +197,10 @@ export function LeadsView({ leads, activities, role, nowIso }: Props) {
     return flatOrdered.filter(({ lead, intel, presentation }) => {
       if (groupFilter !== "all" && presentation.group !== groupFilter) return false;
       if (stageFilter && lead.pipeline_stage !== stageFilter) return false;
-      if (priorityFilter && lead.priority !== priorityFilter) return false;
-
       if (alertFilter !== "none") {
-        if (alertFilter === "overdueContacts") {
-          if (presentation.group !== "act_now") return false;
-          if (!(intel.dueLabel && /atrasado|reunião há/i.test(intel.dueLabel))) return false;
+        if (alertFilter === "actionsForToday") {
+          const t = intel.operationalTier;
+          if (t !== "respond_now" && t !== "call_today") return false;
         }
         if (alertFilter === "withoutReturn") {
           if (presentation.group !== "reactivate") return false;
@@ -226,7 +219,7 @@ export function LeadsView({ leads, activities, role, nowIso }: Props) {
       if (lead.email && lead.email.toLowerCase().includes(q)) return true;
       return false;
     });
-  }, [flatOrdered, groupFilter, stageFilter, priorityFilter, alertFilter, search]);
+  }, [flatOrdered, groupFilter, stageFilter, alertFilter, search]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -235,11 +228,18 @@ export function LeadsView({ leads, activities, role, nowIso }: Props) {
     [filtered, safePage],
   );
 
-  // Mantém "Quem chamar agora" com os primeiros act_now mesmo quando o usuário
-  // filtrar outros grupos — é um bloco de contexto, não parte da listagem.
-  const actNowList = buckets.act_now;
-  const topEntry = actNowList[0] ?? null;
-  const upcomingEntries = actNowList.slice(1, 4);
+  // "Recomendação de hoje" — só surfaça o que realmente é commercial-hot.
+  // Regra operacional atual: APENAS o tier respond_now entra no bloco
+  // (reunião realizada aguardando decisão, novo lead atrasado no SLA,
+  // qualificado sem próximo passo, meeting_scheduled passada sem resultado).
+  // call_today / follow_up / verify_phone aparecem APENAS na lista geral
+  // para não transformar o bloco em alarme falso.
+  const recommendedList = useMemo(
+    () => enriched.filter((e) => e.intel.operationalTier === "respond_now"),
+    [enriched],
+  );
+  const topEntry = recommendedList[0] ?? null;
+  const upcomingEntries = recommendedList.slice(1, 3);
 
   // Qualquer mudança de filtro ou busca volta para a página 1.
   function resetPage() {
@@ -248,12 +248,14 @@ export function LeadsView({ leads, activities, role, nowIso }: Props) {
 
   return (
     <div className="space-y-5">
-      <HeaderBar count={counts.act_now} />
+      <HeaderBar activeCount={indicators.activeTotal} />
       <IndicatorsRow
-        alerts={{
-          overdueContacts: alerts.overdueContacts,
+        values={{
+          actionsForToday: indicators.actionsForToday,
           withoutReturn: alerts.withoutReturn,
           phonesToConfirm: alerts.phonesToConfirm,
+          activeTotal: indicators.activeTotal,
+          meetingsInProgress: indicators.meetingsInProgress,
         }}
         active={alertFilter}
         onPick={(k) => {
@@ -263,15 +265,12 @@ export function LeadsView({ leads, activities, role, nowIso }: Props) {
           resetPage();
         }}
       />
-      <KpiOverview kpis={kpis} />
 
-      {topEntry ? (
-        <QuemChamarAgoraBlock
-          top={topEntry}
-          upcoming={upcomingEntries}
-          onOpen={(id) => setSelectedLeadId(id)}
-        />
-      ) : null}
+      <RecommendationBlock
+        top={topEntry}
+        upcoming={upcomingEntries}
+        onOpen={(id) => setSelectedLeadId(id)}
+      />
 
       <section className="rounded-xl border border-border/80 bg-card/70">
         <FilterChipsBar
@@ -300,46 +299,25 @@ export function LeadsView({ leads, activities, role, nowIso }: Props) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
-            <label className="flex min-w-40 flex-col gap-1">
-              <span className="sr-only">Etapa</span>
-              <select
-                value={stageFilter}
-                onChange={(e) => {
-                  setStageFilter(e.target.value as "" | FranchiseLeadStage);
-                  resetPage();
-                }}
-                className="h-10 rounded-md border border-input bg-lf-graphite px-3 text-sm text-foreground lf-focus"
-                aria-label="Filtrar por etapa"
-              >
-                <option value="">Todas as etapas</option>
-                {STAGE_ORDER.map((s) => (
-                  <option key={s} value={s}>
-                    {STAGE_LABELS[s]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex min-w-36 flex-col gap-1">
-              <span className="sr-only">Prioridade</span>
-              <select
-                value={priorityFilter}
-                onChange={(e) => {
-                  setPriorityFilter(e.target.value as "" | FranchiseLeadPriority);
-                  resetPage();
-                }}
-                className="h-10 rounded-md border border-input bg-lf-graphite px-3 text-sm text-foreground lf-focus"
-                aria-label="Filtrar por prioridade"
-              >
-                <option value="">Toda prioridade</option>
-                {PRIORITY_ORDER.map((p) => (
-                  <option key={p} value={p}>
-                    {PRIORITY_LABELS[p]}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
+          <label className="flex min-w-40 flex-col gap-1">
+            <span className="sr-only">Etapa</span>
+            <select
+              value={stageFilter}
+              onChange={(e) => {
+                setStageFilter(e.target.value as "" | FranchiseLeadStage);
+                resetPage();
+              }}
+              className="h-10 rounded-md border border-input bg-lf-graphite px-3 text-sm text-foreground lf-focus"
+              aria-label="Filtrar por etapa"
+            >
+              <option value="">Todas as etapas</option>
+              {STAGE_ORDER.map((s) => (
+                <option key={s} value={s}>
+                  {STAGE_LABELS[s]}
+                </option>
+              ))}
+            </select>
+          </label>
 
           {canCreate ? (
             <Button type="button" onClick={() => setCreating(true)} className="gap-2" size="lg">
@@ -390,7 +368,6 @@ export function LeadsView({ leads, activities, role, nowIso }: Props) {
               <table className="w-full table-fixed border-collapse text-sm">
                 <thead className="bg-lf-graphite text-left text-xs uppercase tracking-wide text-lf-muted">
                   <tr>
-                    <th className="w-14 px-3 py-3 font-medium">#</th>
                     <th className="px-3 py-3 font-medium">Nome</th>
                     <th className="w-44 px-3 py-3 font-medium">Situação</th>
                     <th className="w-32 px-3 py-3 font-medium">Última conversa</th>
@@ -399,11 +376,10 @@ export function LeadsView({ leads, activities, role, nowIso }: Props) {
                   </tr>
                 </thead>
                 <tbody>
-                  {pageEntries.map((entry, idx) => (
+                  {pageEntries.map((entry) => (
                     <LeadRow
                       key={entry.lead.id}
                       entry={entry}
-                      position={(safePage - 1) * PAGE_SIZE + idx + 1}
                       now={now}
                       onOpen={() => setSelectedLeadId(entry.lead.id)}
                     />
@@ -414,11 +390,10 @@ export function LeadsView({ leads, activities, role, nowIso }: Props) {
 
             {/* Cards em telas pequenas */}
             <ul className="space-y-3 border-t border-border/60 p-3 md:hidden">
-              {pageEntries.map((entry, idx) => (
+              {pageEntries.map((entry) => (
                 <li key={entry.lead.id}>
                   <LeadMobileCard
                     entry={entry}
-                    position={(safePage - 1) * PAGE_SIZE + idx + 1}
                     now={now}
                     onOpen={() => setSelectedLeadId(entry.lead.id)}
                   />
@@ -461,18 +436,18 @@ export function LeadsView({ leads, activities, role, nowIso }: Props) {
 // Header
 // ------------------------------------------------------------------
 
-function HeaderBar({ count }: { count: number }) {
+function HeaderBar({ activeCount }: { activeCount: number }) {
   return (
     <header className="flex flex-col gap-1">
       <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-lf-muted">
         CRM · Franquias
       </span>
       <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-        {count === 0
-          ? "Nenhuma ação pendente agora"
-          : count === 1
-            ? "1 pessoa precisa de ação agora"
-            : `${count} pessoas precisam de ação agora`}
+        {activeCount === 0
+          ? "Nenhum lead ativo no momento"
+          : activeCount === 1
+            ? "1 lead ativo"
+            : `${activeCount} leads ativos`}
       </h1>
     </header>
   );
@@ -482,74 +457,88 @@ function HeaderBar({ count }: { count: number }) {
 // Indicadores "Para agir hoje"
 // ------------------------------------------------------------------
 
+type IndicatorKey = AlertFilter | "activeTotal" | "meetingsInProgress";
+
 function IndicatorsRow({
-  alerts,
+  values,
   active,
   onPick,
 }: {
-  alerts: { overdueContacts: number; withoutReturn: number; phonesToConfirm: number };
+  values: {
+    actionsForToday: number;
+    withoutReturn: number;
+    phonesToConfirm: number;
+    activeTotal: number;
+    meetingsInProgress: number;
+  };
   active: AlertFilter;
   onPick: (f: AlertFilter) => void;
 }) {
-  const items: {
-    key: AlertFilter;
+  type Item = {
+    key: IndicatorKey;
     label: string;
     description: string;
     value: number;
     icon: React.ReactNode;
-  }[] = [
+    filterable: boolean;
+  };
+  const items: Item[] = [
     {
-      key: "overdueContacts",
-      label: "Ações atrasadas",
-      description: "Reuniões vencidas e contatos no vermelho",
-      value: alerts.overdueContacts,
+      key: "actionsForToday",
+      label: "Ações para hoje",
+      description: "Leads esperando ação hoje",
+      value: values.actionsForToday,
       icon: <AlertTriangle className="size-4" aria-hidden />,
+      filterable: true,
     },
     {
       key: "withoutReturn",
       label: "Sem retorno",
-      description: "Leads sem resposta aguardando reativação",
-      value: alerts.withoutReturn,
+      description: "Para reativar quando houver tempo",
+      value: values.withoutReturn,
       icon: <MessageCircleDashed className="size-4" aria-hidden />,
+      filterable: true,
     },
     {
       key: "phonesToConfirm",
       label: "Telefones a conferir",
-      description: "Número incompleto — não enviar WhatsApp",
-      value: alerts.phonesToConfirm,
+      description: "Cadastro precisa ser revisado",
+      value: values.phonesToConfirm,
       icon: <PhoneOff className="size-4" aria-hidden />,
+      filterable: true,
+    },
+    {
+      key: "activeTotal",
+      label: "Total ativos",
+      description: "Leads em qualquer etapa comercial",
+      value: values.activeTotal,
+      icon: <Users className="size-4" aria-hidden />,
+      filterable: false,
+    },
+    {
+      key: "meetingsInProgress",
+      label: "Reuniões em andamento",
+      description: "Agendadas e aguardando desfecho",
+      value: values.meetingsInProgress,
+      icon: <CalendarCheck2 className="size-4" aria-hidden />,
+      filterable: false,
     },
   ];
 
   return (
-    <section aria-label="Para agir hoje" className="space-y-2">
+    <section aria-label="Indicadores" className="space-y-2">
       <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-lf-muted">
-        Para agir hoje
+        Indicadores
       </h2>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         {items.map((item) => {
-          const isActive = active === item.key;
-          const isEmpty = item.value === 0;
-          return (
-            <button
-              key={item.key}
-              type="button"
-              aria-pressed={isActive}
-              onClick={() => onPick(item.key)}
-              className={cn(
-                "flex items-center gap-3 rounded-lg border bg-card/70 px-3 py-3 text-left transition-colors lf-focus",
-                isActive
-                  ? "border-lf-volt bg-lf-volt/10"
-                  : isEmpty
-                    ? "border-border/60 hover:bg-card"
-                    : "border-rose-500/40 hover:bg-rose-500/5",
-              )}
-            >
+          const isActive = item.filterable && (active as string) === item.key;
+          const content = (
+            <>
               <span
                 className={cn(
                   "inline-flex size-9 shrink-0 items-center justify-center rounded-md",
-                  isEmpty ? "bg-lf-graphite/80 text-lf-muted" : "bg-rose-500/15 text-rose-200",
-                  isActive ? "bg-lf-volt/20 text-lf-volt" : null,
+                  isActive ? "bg-lf-volt/20 text-lf-volt" : "bg-lf-graphite/80 text-lf-muted",
                 )}
               >
                 {item.icon}
@@ -563,6 +552,36 @@ function IndicatorsRow({
                 </div>
                 <p className="truncate text-xs text-lf-muted">{item.description}</p>
               </div>
+            </>
+          );
+          const base =
+            "flex items-center gap-3 rounded-lg border bg-card/70 px-3 py-3 text-left transition-colors";
+          if (!item.filterable) {
+            return (
+              <div
+                key={item.key}
+                className={cn(base, "border-border/60")}
+                aria-label={`${item.label}: ${item.value}`}
+              >
+                {content}
+              </div>
+            );
+          }
+          return (
+            <button
+              key={item.key}
+              type="button"
+              aria-pressed={isActive}
+              onClick={() => onPick(item.key as AlertFilter)}
+              className={cn(
+                base,
+                "lf-focus",
+                isActive
+                  ? "border-lf-volt bg-lf-volt/10"
+                  : "border-border/60 hover:bg-card",
+              )}
+            >
+              {content}
             </button>
           );
         })}
@@ -572,87 +591,55 @@ function IndicatorsRow({
 }
 
 // ------------------------------------------------------------------
-// Visão geral (compacta no desktop; recolhida no mobile)
-// ------------------------------------------------------------------
-
-function KpiOverview({ kpis }: { kpis: { total: number; highPriority: number; scheduled: number } }) {
-  const items: { label: string; value: number; icon: React.ReactNode }[] = [
-    { label: "Total de leads", value: kpis.total, icon: <Users className="size-3.5" aria-hidden /> },
-    { label: "Prioridade alta", value: kpis.highPriority, icon: <Flame className="size-3.5" aria-hidden /> },
-    { label: "Reuniões", value: kpis.scheduled, icon: <CalendarCheck2 className="size-3.5" aria-hidden /> },
-  ];
-
-  return (
-    <>
-      <div className="hidden items-center gap-5 text-xs text-lf-muted md:flex">
-        <span className="font-semibold uppercase tracking-[0.14em]">Visão geral</span>
-        {items.map((it) => (
-          <span key={it.label} className="inline-flex items-center gap-1.5">
-            {it.icon}
-            <span>{it.label}</span>
-            <span className="font-semibold tabular-nums text-foreground">{it.value}</span>
-          </span>
-        ))}
-      </div>
-      <details className="md:hidden">
-        <summary className="flex cursor-pointer items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-lf-muted">
-          Visão geral
-          <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" aria-hidden />
-        </summary>
-        <div className="mt-2 grid grid-cols-3 gap-2">
-          {items.map((it) => (
-            <div
-              key={it.label}
-              className="rounded-md border border-border/60 bg-card/60 px-3 py-2 text-center"
-            >
-              <div className="flex items-center justify-center gap-1 text-[10px] uppercase tracking-wide text-lf-muted">
-                {it.icon}
-                <span>{it.label}</span>
-              </div>
-              <div className="mt-1 text-lg font-semibold tabular-nums text-foreground">
-                {it.value}
-              </div>
-            </div>
-          ))}
-        </div>
-      </details>
-    </>
-  );
-}
-
-// ------------------------------------------------------------------
 // Quem chamar agora (destaque dos primeiros act_now)
 // ------------------------------------------------------------------
 
-function QuemChamarAgoraBlock({
+function RecommendationBlock({
   top,
   upcoming,
   onOpen,
 }: {
-  top: EnrichedEntry;
+  top: EnrichedEntry | null;
   upcoming: EnrichedEntry[];
   onOpen: (id: string) => void;
 }) {
   return (
-    <section aria-label="Quem chamar agora" className="space-y-2">
-      <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-lf-muted">
-        Quem chamar agora
-      </h2>
-      <PrimaryCard entry={top} onOpen={onOpen} />
-      {upcoming.length > 0 ? (
-        <ol className="divide-y divide-border/60 overflow-hidden rounded-lg border border-border/60 bg-card/50">
-          {upcoming.map((entry, idx) => (
-            <li key={entry.lead.id}>
-              <UpcomingItem position={idx + 2} entry={entry} onOpen={onOpen} />
-            </li>
-          ))}
-        </ol>
-      ) : null}
+    <section aria-label="Recomendação de hoje" className="space-y-2">
+      <div className="flex flex-col gap-0.5">
+        <h2 className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-lf-muted">
+          <Sparkles className="size-3.5" aria-hidden />
+          Recomendação de hoje
+        </h2>
+        {top ? (
+          <p className="text-xs text-lf-muted">
+            O sistema encontrou estes contatos com maior chance de avanço agora.
+          </p>
+        ) : null}
+      </div>
+
+      {top ? (
+        <>
+          <RecommendedPrimaryCard entry={top} onOpen={onOpen} />
+          {upcoming.length > 0 ? (
+            <ol className="divide-y divide-border/60 overflow-hidden rounded-lg border border-border/60 bg-card/50">
+              {upcoming.map((entry) => (
+                <li key={entry.lead.id}>
+                  <RecommendedListItem entry={entry} onOpen={onOpen} />
+                </li>
+              ))}
+            </ol>
+          ) : null}
+        </>
+      ) : (
+        <div className="rounded-xl border border-border/60 bg-card/60 px-4 py-5 text-sm text-lf-muted">
+          Nenhum contato urgente no momento.
+        </div>
+      )}
     </section>
   );
 }
 
-function PrimaryCard({
+function RecommendedPrimaryCard({
   entry,
   onOpen,
 }: {
@@ -662,23 +649,20 @@ function PrimaryCard({
   const { lead, presentation } = entry;
   return (
     <article className="relative overflow-hidden rounded-xl border border-lf-volt/50 bg-lf-graphite/80 p-4 sm:p-5">
-      <div className="flex flex-wrap items-start gap-3">
-        <PositionBadge n={1} prominent />
-        <div className="min-w-0 flex-1 space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-base font-semibold tracking-tight text-foreground sm:text-lg">
-              {lead.full_name}
-            </h3>
-            <StatusChip presentation={presentation} />
-          </div>
-          <p className="text-base font-medium text-foreground">
-            {presentation.action.label}
-          </p>
-          <p className="text-xs text-lf-muted">
-            <span className="font-semibold uppercase tracking-wide">Motivo:</span>{" "}
-            {presentation.reason}
-          </p>
+      <div className="min-w-0 space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="text-base font-semibold tracking-tight text-foreground sm:text-lg">
+            {lead.full_name}
+          </h3>
+          <StatusChip presentation={presentation} />
         </div>
+        <p className="text-base font-medium text-foreground">
+          {presentation.action.label}
+        </p>
+        <p className="text-xs text-lf-muted">
+          <span className="font-semibold uppercase tracking-wide">Motivo:</span>{" "}
+          {presentation.reason}
+        </p>
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -695,12 +679,10 @@ function PrimaryCard({
   );
 }
 
-function UpcomingItem({
-  position,
+function RecommendedListItem({
   entry,
   onOpen,
 }: {
-  position: number;
   entry: EnrichedEntry;
   onOpen: (id: string) => void;
 }) {
@@ -711,7 +693,6 @@ function UpcomingItem({
       onClick={() => onOpen(lead.id)}
       className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-lf-graphite/50 lf-focus"
     >
-      <PositionBadge n={position} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="truncate text-sm font-medium text-foreground">
@@ -723,22 +704,6 @@ function UpcomingItem({
       </div>
       <ChevronRight className="size-4 shrink-0 text-lf-muted" aria-hidden />
     </button>
-  );
-}
-
-function PositionBadge({ n, prominent }: { n: number; prominent?: boolean }) {
-  const label =
-    n === 1 ? "1º da fila" : n === 2 ? "2º" : n === 3 ? "3º" : n === 4 ? "4º" : `${n}º`;
-  return (
-    <span
-      className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-md bg-lf-volt px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-black",
-        prominent ? "min-w-20 py-1.5 text-xs" : "min-w-14",
-      )}
-      aria-label={`Posição ${label} na fila`}
-    >
-      {label}
-    </span>
   );
 }
 
@@ -1029,12 +994,10 @@ function ActionButtons({
 
 function LeadRow({
   entry,
-  position,
   now,
   onOpen,
 }: {
   entry: EnrichedEntry;
-  position: number;
   now: Date;
   onOpen: () => void;
 }) {
@@ -1042,10 +1005,7 @@ function LeadRow({
   const lastContact = formatLastContactShort(lead.last_contact_at, now);
   return (
     <tr
-      className={cn(
-        "cursor-pointer border-t border-border/60 transition-colors hover:bg-lf-graphite/60",
-        presentation.statusTone === "critical" ? "border-l-4 border-l-rose-500/60" : null,
-      )}
+      className="cursor-pointer border-t border-border/60 transition-colors hover:bg-lf-graphite/60"
       onClick={onOpen}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -1057,9 +1017,6 @@ function LeadRow({
       role="button"
       aria-label={`Abrir lead ${lead.full_name}`}
     >
-      <td className="px-3 py-3 align-top text-xs font-semibold tabular-nums text-lf-muted">
-        {position}º
-      </td>
       <td className="px-3 py-3 align-top">
         <div className="flex flex-col">
           <span className="truncate font-medium text-foreground">{lead.full_name}</span>
@@ -1092,12 +1049,10 @@ function LeadRow({
 
 function LeadMobileCard({
   entry,
-  position,
   now,
   onOpen,
 }: {
   entry: EnrichedEntry;
-  position: number;
   now: Date;
   onOpen: () => void;
 }) {
@@ -1110,20 +1065,13 @@ function LeadMobileCard({
         onClick={onOpen}
         className="block w-full text-left lf-focus"
       >
-        <div className="flex items-start gap-3">
-          <span className="inline-flex min-w-10 shrink-0 items-center justify-center rounded-md bg-lf-graphite px-2 py-1 text-[11px] font-semibold tabular-nums text-lf-muted">
-            {position}º
+        <div className="min-w-0">
+          <span className="truncate text-base font-medium text-foreground">
+            {lead.full_name}
           </span>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="truncate text-base font-medium text-foreground">
-                {lead.full_name}
-              </span>
-            </div>
-            <p className="mt-0.5 truncate text-xs text-lf-muted">
-              {formatPhoneForDisplay(lead.phone) || (lead.email ? lead.email : "Sem contato")}
-            </p>
-          </div>
+          <p className="mt-0.5 truncate text-xs text-lf-muted">
+            {formatPhoneForDisplay(lead.phone) || (lead.email ? lead.email : "Sem contato")}
+          </p>
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -1156,8 +1104,8 @@ function LeadMobileCard({
 
 function alertFilterLabel(k: AlertFilter): string {
   switch (k) {
-    case "overdueContacts":
-      return "Ações atrasadas";
+    case "actionsForToday":
+      return "Ações para hoje";
     case "withoutReturn":
       return "Sem retorno";
     case "phonesToConfirm":

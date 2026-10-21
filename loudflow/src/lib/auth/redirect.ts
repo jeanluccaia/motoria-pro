@@ -4,9 +4,9 @@
 // e rejeitamos padrões que o navegador interpretaria como URL externa
 // mesmo depois de encaixar em uma base.
 
-// Rota autenticada default pós-login. Escolhida por ser a página
-// inicial útil do app (painel de resultados).
-export const DEFAULT_NEXT = "/resultados";
+// Rota autenticada default pós-login. Nesta fase o Loud Flow é
+// exclusivo do CRM de Franquias — todo mundo cai direto na lista.
+export const DEFAULT_NEXT = "/crm/franquias";
 
 // Sanitiza o candidato a `next`. Retorna o fallback quando o valor é
 // vazio, ausente, ou pode ser interpretado como URL externa.

@@ -13,8 +13,11 @@ export default async function CrmFranquiasPage() {
   const session = await requireSession();
 
   // Operador do CRM: admin, marketing e partner. Unit manager fica fora.
+  // Enquanto o Loud Flow é só CRM da Franqueadora, roles sem acesso são
+  // reencaminhadas pro login — não voltamos para "/" pra não cair em loop
+  // com o redirect da home.
   const canOpen = session.role === "admin" || session.role === "marketing" || session.role === "partner";
-  if (!canOpen) redirect("/");
+  if (!canOpen) redirect("/login");
 
   const supabase = await createSupabaseServerClient();
 

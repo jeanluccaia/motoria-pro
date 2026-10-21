@@ -37,7 +37,6 @@ import {
   PRIORITY_LABELS,
   SOURCE_LABELS,
   stageBadgeClass,
-  priorityBadgeClass,
 } from "@/lib/crm/labels";
 import { formatDateTime, utcIsoToBrtInput, brtInputToUtcIso } from "@/lib/crm/dates";
 import { formatPhoneForDisplay } from "@/lib/crm/phone";
@@ -125,15 +124,6 @@ export function LeadDetailDialog({
                 )}
               >
                 {STAGE_LABELS[lead.pipeline_stage]}
-              </Badge>
-              <Badge
-                variant="outline"
-                className={cn(
-                  "normal-case tracking-normal",
-                  priorityBadgeClass(lead.priority),
-                )}
-              >
-                Prioridade {PRIORITY_LABELS[lead.priority].toLowerCase()}
               </Badge>
             </DialogTitle>
             <DialogDescription className="text-xs">
@@ -292,6 +282,10 @@ export function LeadDetailDialog({
                   value={lead.investment_range ?? "—"}
                 />
                 <Field label="Prazo para iniciar" value={lead.start_timeline ?? "—"} />
+                <Field
+                  label="Marcação manual"
+                  value={PRIORITY_LABELS[lead.priority]}
+                />
                 {lead.pipeline_stage === "lost" ? (
                   <Field label="Motivo da perda" value={lead.lost_reason ?? "—"} />
                 ) : null}

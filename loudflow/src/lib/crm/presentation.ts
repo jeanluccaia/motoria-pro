@@ -92,13 +92,17 @@ export const TIER_ICON: Record<OperationalTier, IconKey> = {
 // Não introduzimos novos tokens globais.
 export type Tone = "critical" | "warn" | "info" | "muted" | "ok";
 
+// Apenas respond_now (vermelho) e call_today (amarelo) comunicam urgência.
+// Todo o resto é cinza para não transformar a lista inteira em alerta —
+// verify_phone/awaiting/reactivate/follow_up são situações objetivas que
+// não devem roubar a atenção do bloco "Recomendação de hoje".
 export const TIER_TONE: Record<OperationalTier, Tone> = {
   respond_now: "critical",
   call_today: "warn",
-  follow_up: "info",
-  verify_phone: "warn",
+  follow_up: "muted",
+  verify_phone: "muted",
   reactivate: "muted",
-  awaiting: "info",
+  awaiting: "muted",
   deprioritize: "muted",
   terminal: "muted",
 };

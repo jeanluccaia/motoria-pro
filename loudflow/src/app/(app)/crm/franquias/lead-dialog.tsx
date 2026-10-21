@@ -155,40 +155,22 @@ export function LeadDialog(props: Props) {
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="grid gap-1.5">
-                <Label htmlFor="lead-stage">Etapa</Label>
-                <select
-                  id="lead-stage"
-                  name="pipeline_stage"
-                  value={stage}
-                  onChange={(e) => setStage(e.target.value as typeof stage)}
-                  disabled={pending}
-                  className="h-10 rounded-md border border-input bg-lf-graphite px-3 text-sm text-foreground lf-focus"
-                >
-                  {STAGE_ORDER.map((s) => (
-                    <option key={s} value={s}>
-                      {STAGE_LABELS[s]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="lead-priority">Prioridade</Label>
-                <select
-                  id="lead-priority"
-                  name="priority"
-                  defaultValue={lead?.priority ?? "normal"}
-                  disabled={pending}
-                  className="h-10 rounded-md border border-input bg-lf-graphite px-3 text-sm text-foreground lf-focus"
-                >
-                  {PRIORITY_ORDER.map((p) => (
-                    <option key={p} value={p}>
-                      {PRIORITY_LABELS[p]}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="lead-stage">Etapa</Label>
+              <select
+                id="lead-stage"
+                name="pipeline_stage"
+                value={stage}
+                onChange={(e) => setStage(e.target.value as typeof stage)}
+                disabled={pending}
+                className="h-10 rounded-md border border-input bg-lf-graphite px-3 text-sm text-foreground lf-focus"
+              >
+                {STAGE_ORDER.map((s) => (
+                  <option key={s} value={s}>
+                    {STAGE_LABELS[s]}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
@@ -230,7 +212,16 @@ export function LeadDialog(props: Props) {
 
             <details
               className="rounded-md border border-border/80 bg-lf-graphite/40 p-3"
-              open={moreOpen || Boolean(lead?.investment_range || lead?.start_timeline || lead?.whatsapp_label || lead?.notes)}
+              open={
+                moreOpen ||
+                Boolean(
+                  lead?.investment_range ||
+                    lead?.start_timeline ||
+                    lead?.whatsapp_label ||
+                    lead?.notes ||
+                    (lead?.priority && lead.priority !== "normal"),
+                )
+              }
               onToggle={(e) => setMoreOpen((e.target as HTMLDetailsElement).open)}
             >
               <summary className="cursor-pointer select-none text-sm font-medium text-foreground">
@@ -280,6 +271,25 @@ export function LeadDialog(props: Props) {
                     disabled={pending}
                     className="min-h-24 w-full rounded-md border border-input bg-lf-graphite px-3 py-2 text-sm text-foreground placeholder:text-lf-muted lf-focus disabled:cursor-not-allowed disabled:opacity-50"
                   />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="lead-priority">Marcação manual</Label>
+                  <select
+                    id="lead-priority"
+                    name="priority"
+                    defaultValue={lead?.priority ?? "normal"}
+                    disabled={pending}
+                    className="h-10 rounded-md border border-input bg-lf-graphite px-3 text-sm text-foreground lf-focus"
+                  >
+                    {PRIORITY_ORDER.map((p) => (
+                      <option key={p} value={p}>
+                        {PRIORITY_LABELS[p]}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-lf-muted">
+                    Marca interna só para ordenar entre leads de mesma situação. Não altera urgência comercial.
+                  </p>
                 </div>
               </div>
             </details>
