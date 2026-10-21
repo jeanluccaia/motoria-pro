@@ -3,5 +3,11 @@
   "framework": "nextjs",
   "buildCommand": "next build",
   "installCommand": "npm ci",
-  "outputDirectory": null
+  "outputDirectory": null,
+  "crons": [
+    {
+      "path": "/api/cron/crm-sla-tick",
+      "schedule": "0 6 * * *"
+    }
+  ]
 }

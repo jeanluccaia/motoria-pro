@@ -51,7 +51,8 @@ import {
   type Tone,
 } from "@/lib/crm/presentation";
 import { LeadDialog } from "./lead-dialog";
-import { registerContact, scheduleNextContact, changeStage } from "./actions";
+import { registerContact, scheduleNextContact, changeStage, markResponseReceived } from "./actions";
+import { computeSlaState, slaBadgeLabel, type SlaState } from "@/lib/crm/sla";
 import type {
   FranchiseLead,
   FranchiseLeadActivity,
@@ -95,6 +96,8 @@ export function LeadDetailDialog({
   }, [intelligence, lead, activities]);
 
   const presentation = useMemo(() => getLeadPresentation(lead, intel), [lead, intel]);
+  const slaState = useMemo(() => computeSlaState(lead, new Date()), [lead]);
+  const slaLabel = slaBadgeLabel(slaState);
 
   const sortedActivities = useMemo(
     () => [...activities].sort((a, b) => b.occurred_at.localeCompare(a.occurred_at)),
@@ -150,6 +153,11 @@ export function LeadDetailDialog({
             <section aria-label="Situação atual" className="space-y-2">
               <SectionTitle>Situação atual</SectionTitle>
               <StatusChipRow presentation={presentation} />
+              {slaLabel ? (
+                <p className="inline-flex items-center gap-1.5 rounded border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-amber-200">
+                  <AlertTriangle className="size-3" aria-hidden /> {slaLabel}
+                </p>
+              ) : null}
               <p className="text-sm text-foreground/90">{presentation.reason}</p>
               {intel.reasons.length > 1 ? (
                 <ul className="space-y-1 text-xs text-lf-muted">
@@ -178,7 +186,12 @@ export function LeadDetailDialog({
                   }}
                 />
                 {presentation.action.primary ? (
-                  <ActionShortcuts mode={mode} setMode={setMode} />
+                  <ActionShortcuts
+                    mode={mode}
+                    setMode={setMode}
+                    lead={lead}
+                    slaState={slaState}
+                  />
                 ) : null}
                 {mode === "contact" ? (
                   <RegisterContactForm lead={lead} onDone={() => setMode("none")} />
@@ -198,7 +211,13 @@ export function LeadDetailDialog({
                 {presentation.historyBadge === "deprioritize"
                   ? "Lead marcado como Não priorizar — não é candidato à franquia."
                   : "Lead encerrado — apenas no histórico."}
-                <ActionShortcuts mode={mode} setMode={setMode} compact />
+                <ActionShortcuts
+                  mode={mode}
+                  setMode={setMode}
+                  lead={lead}
+                  slaState={slaState}
+                  compact
+                />
                 {mode === "contact" ? (
                   <RegisterContactForm lead={lead} onDone={() => setMode("none")} />
                 ) : null}
@@ -487,41 +506,82 @@ function PrimaryActionBar({
 function ActionShortcuts({
   mode,
   setMode,
+  lead,
+  slaState,
   compact,
 }: {
   mode: ActionMode;
   setMode: (m: ActionMode) => void;
+  lead: FranchiseLead;
+  slaState: SlaState;
   compact?: boolean;
 }) {
+  const [pendingResp, startResp] = useTransition();
+  const [respError, setRespError] = useState<string | null>(null);
+  // "Lead respondeu" só aparece quando faz sentido: lead ativo no loop SLA
+  // ou em retry. Já respondido / exempt / arquivado final ficam fora.
+  const canMarkResponse =
+    slaState.kind !== "responded" &&
+    slaState.kind !== "exempt" &&
+    slaState.kind !== "archived_final";
+
+  function onMarkResponse() {
+    setRespError(null);
+    const fd = new FormData();
+    fd.set("lead_id", lead.id);
+    startResp(async () => {
+      const r = await markResponseReceived(fd);
+      if (!r.ok) setRespError(r.message);
+    });
+  }
+
   return (
-    <div className={cn("flex flex-wrap gap-2", compact ? "mt-2" : null)}>
-      <Button
-        type="button"
-        size="sm"
-        variant="ghost"
-        onClick={() => setMode(mode === "contact" ? "none" : "contact")}
-        className="gap-2"
-      >
-        <PhoneCall className="size-4" aria-hidden /> Registrar contato
-      </Button>
-      <Button
-        type="button"
-        size="sm"
-        variant="ghost"
-        onClick={() => setMode(mode === "stage" ? "none" : "stage")}
-        className="gap-2"
-      >
-        <GitBranch className="size-4" aria-hidden /> Alterar etapa
-      </Button>
-      <Button
-        type="button"
-        size="sm"
-        variant="ghost"
-        onClick={() => setMode(mode === "schedule" ? "none" : "schedule")}
-        className="gap-2"
-      >
-        <CalendarPlus className="size-4" aria-hidden /> Agendar próximo contato
-      </Button>
+    <div className={cn("flex flex-col gap-2", compact ? "mt-2" : null)}>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          onClick={() => setMode(mode === "contact" ? "none" : "contact")}
+          className="gap-2"
+        >
+          <PhoneCall className="size-4" aria-hidden /> Registrar contato
+        </Button>
+        {canMarkResponse ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={onMarkResponse}
+            disabled={pendingResp}
+            className="gap-2 border border-emerald-500/40 text-emerald-200 hover:bg-emerald-500/15"
+            title="Marca que o lead respondeu — zera o SLA e tira do loop de 2 contatos."
+          >
+            <CheckCircle className="size-4" aria-hidden /> Lead respondeu
+          </Button>
+        ) : null}
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          onClick={() => setMode(mode === "stage" ? "none" : "stage")}
+          className="gap-2"
+        >
+          <GitBranch className="size-4" aria-hidden /> Alterar etapa
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          onClick={() => setMode(mode === "schedule" ? "none" : "schedule")}
+          className="gap-2"
+        >
+          <CalendarPlus className="size-4" aria-hidden /> Agendar próximo contato
+        </Button>
+      </div>
+      {respError ? (
+        <p className="text-xs text-rose-300">{respError}</p>
+      ) : null}
     </div>
   );
 }

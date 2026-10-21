@@ -37,14 +37,13 @@ import {
 } from "@/lib/crm/intelligence";
 import {
   getLeadPresentation,
-  groupOrderedLeads,
-  countsFromBuckets,
   LEAD_GROUP_ORDER,
   type LeadGroup,
   type LeadPresentation,
   type IconKey,
   type Tone,
 } from "@/lib/crm/presentation";
+import { computeSlaState, slaBadgeLabel, type SlaState } from "@/lib/crm/sla";
 import { LeadDialog } from "./lead-dialog";
 import { LeadDetailDialog } from "./lead-detail-dialog";
 import type {
@@ -75,6 +74,7 @@ type EnrichedEntry = {
   lead: FranchiseLead;
   intel: LeadIntelligence;
   presentation: LeadPresentation;
+  slaState: SlaState;
 };
 
 // Chip de filtro "Todos" = agrega todas as faixas. Os demais mapeiam 1:1
@@ -130,11 +130,32 @@ export function LeadsView({ leads, activities, role, nowIso }: Props) {
     return base.map((e) => ({
       ...e,
       presentation: getLeadPresentation(e.lead, e.intel),
+      slaState: computeSlaState(e.lead, now),
     }));
   }, [leads, activitiesByLead, now]);
 
-  const buckets = useMemo(() => groupOrderedLeads(enriched), [enriched]);
-  const counts = useMemo(() => countsFromBuckets(buckets), [buckets]);
+  // Agrupamento inline em vez de passar por groupOrderedLeads para preservar
+  // o slaState no EnrichedEntry (groupOrderedLeads retorna GroupedLead que
+  // perde campos extras). A ordem interna já veio de sortByOperationalPriority.
+  const buckets = useMemo((): Record<LeadGroup, EnrichedEntry[]> => {
+    const b: Record<LeadGroup, EnrichedEntry[]> = {
+      act_now: [],
+      reactivate: [],
+      awaiting: [],
+      history: [],
+    };
+    for (const e of enriched) b[e.presentation.group].push(e);
+    return b;
+  }, [enriched]);
+  const counts = useMemo(
+    (): Record<LeadGroup, number> => ({
+      act_now: buckets.act_now.length,
+      reactivate: buckets.reactivate.length,
+      awaiting: buckets.awaiting.length,
+      history: buckets.history.length,
+    }),
+    [buckets],
+  );
 
   // Lista totalmente plana, histórico sempre no fim. Mantém a ordem interna
   // de cada bucket — sortByOperationalPriority já fez o trabalho fino.
@@ -880,6 +901,41 @@ function toneClasses(tone: Tone, variant: "chip" | "card"): string {
   }
 }
 
+// Chip pequeno que mostra o estado do SLA do lead quando aplicável.
+// Transições automáticas (archive_*/retry) usam tom "warn" para destacar que
+// o cron vai agir; sinalizações (due_first_contact/due_second_contact) usam
+// tom "info"; estados finais/arquivamento usam "muted".
+function SlaBadge({ state }: { state: SlaState }) {
+  const label = slaBadgeLabel(state);
+  if (!label) return null;
+  let tone: Tone = "info";
+  if (
+    state.kind === "due_archive_temporary" ||
+    state.kind === "due_archive_final" ||
+    state.kind === "due_retry"
+  ) {
+    tone = "warn";
+  } else if (
+    state.kind === "archived_temporary_waiting_retry" ||
+    state.kind === "archived_final"
+  ) {
+    tone = "muted";
+  }
+  const classes = toneClasses(tone, "chip");
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+        classes,
+      )}
+      title={label}
+    >
+      <AlertTriangle className="size-3" aria-hidden />
+      <span className="normal-case">{label}</span>
+    </span>
+  );
+}
+
 function StatusChip({
   presentation,
   compact,
@@ -1030,7 +1086,10 @@ function LeadRow({
         </div>
       </td>
       <td className="px-3 py-3 align-top">
-        <StatusChip presentation={presentation} />
+        <div className="flex flex-wrap items-center gap-1.5">
+          <StatusChip presentation={presentation} />
+          <SlaBadge state={entry.slaState} />
+        </div>
       </td>
       <td className="px-3 py-3 align-top text-xs text-lf-muted">{lastContact}</td>
       <td className="px-3 py-3 align-top">
@@ -1080,6 +1139,7 @@ function LeadMobileCard({
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <StatusChip presentation={presentation} />
+          <SlaBadge state={entry.slaState} />
           <span className="inline-flex items-center gap-1 text-[11px] text-lf-muted">
             <CalendarClock className="size-3" aria-hidden />
             Última conversa: {lastContact}

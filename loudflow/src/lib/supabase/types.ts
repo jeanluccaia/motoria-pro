@@ -262,6 +262,11 @@ export type FranchiseLead = {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  sla_contact_attempts: number;
+  sla_response_received_at: string | null;
+  sla_archive_type: "temporary" | "final" | null;
+  sla_archived_at: string | null;
+  sla_last_retry_at: string | null;
 };
 
 export type FranchiseLeadActivity = {
