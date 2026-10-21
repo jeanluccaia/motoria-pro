@@ -228,14 +228,18 @@ export function LeadsView({ leads, activities, role, nowIso }: Props) {
     [filtered, safePage],
   );
 
-  // "Recomendação de hoje" — só surfaça o que realmente é commercial-hot.
-  // Regra operacional atual: APENAS o tier respond_now entra no bloco
-  // (reunião realizada aguardando decisão, novo lead atrasado no SLA,
-  // qualificado sem próximo passo, meeting_scheduled passada sem resultado).
-  // call_today / follow_up / verify_phone aparecem APENAS na lista geral
-  // para não transformar o bloco em alarme falso.
+  // "Recomendação de hoje" — só surfaça o que é urgente de verdade.
+  // Entram APENAS respond_now (crítico) e call_today (hoje). Follow-up,
+  // verify_phone, reactivate, awaiting etc. ficam na lista geral — não
+  // viram alarme. Cap de 3 porque é "para hoje", não um backlog; sem
+  // completar com leads não urgentes.
   const recommendedList = useMemo(
-    () => enriched.filter((e) => e.intel.operationalTier === "respond_now"),
+    () =>
+      enriched.filter(
+        (e) =>
+          e.intel.operationalTier === "respond_now" ||
+          e.intel.operationalTier === "call_today",
+      ),
     [enriched],
   );
   const topEntry = recommendedList[0] ?? null;
