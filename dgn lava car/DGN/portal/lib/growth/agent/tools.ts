@@ -28,6 +28,13 @@ import { prepareRenewalMessage } from "./skills/prepare-renewal-message.ts";
 import { prepareCustomerContact } from "./skills/prepare-customer-contact.ts";
 import { prepareCurationBrief } from "./skills/prepare-curation-brief.ts";
 import { prepareDailyAttackPlan } from "./skills/prepare-daily-attack-plan.ts";
+import { recordOpportunity } from "./skills/record-opportunity-skill.ts";
+import { recordAlert } from "./skills/record-alert-skill.ts";
+import {
+  recordCampaignDraft,
+  type RecordCampaignDraftPayload,
+} from "./skills/record-campaign-draft-skill.ts";
+import type { RecordActionPayload } from "./skills/record-action.ts";
 
 // -----------------------------------------------------------------------------
 // Tool set exposto ao LLM. Cada tool é um wrapper fino sobre uma skill do
@@ -35,8 +42,10 @@ import { prepareDailyAttackPlan } from "./skills/prepare-daily-attack-plan.ts";
 // permita alcance genérico ao banco. Nenhuma escreve. O LLM só pode escolher
 // entre elas.
 //
-// Modos permitidos: "read_only" (Fase 1) e "prepare_only" (Fase 2).
-// `write` é BANIDO — assertToolsAreRegistered() reprova qualquer outro modo.
+// Modos permitidos: "read_only" (Fase 1), "prepare_only" (Fase 2) e
+// "record_only" (Fundação Agent Core — grava recomendação em agent_actions /
+// agent_campaigns, nunca em crm_*). `write` é BANIDO — assertToolsAreRegistered()
+// reprova qualquer outro modo.
 // -----------------------------------------------------------------------------
 
 /** Nome canônico das tools — casa 1:1 com o registry. */
@@ -58,6 +67,10 @@ export const AGENT_TOOL_NAMES = [
   "prepare_customer_contact",
   "prepare_curation_brief",
   "prepare_daily_attack_plan",
+  // record-only (Fundação)
+  "record_opportunity",
+  "record_alert",
+  "record_campaign_draft",
 ] as const;
 
 export type AgentToolName = (typeof AGENT_TOOL_NAMES)[number];
@@ -83,6 +96,9 @@ export interface ToolInvocationAccumulator {
    * contadores). Vive só no server; nunca vai para o cliente.
    */
   portalReadiness: PortalReadinessSummary | null;
+  /** Payloads das skills record_only aplicadas nesta resposta. */
+  recordedActions: RecordActionPayload[];
+  recordedCampaignDrafts: RecordCampaignDraftPayload[];
 }
 
 function pushSkill<T>(acc: ToolInvocationAccumulator, name: AgentToolName, input: Record<string, unknown>, result: SkillResult<T>) {
@@ -495,6 +511,148 @@ export function buildAgentTools(ctx: AgentContext, acc: ToolInvocationAccumulato
         };
       },
     }),
+
+    // -------------------------------------------------------------------
+    // RECORD-ONLY (Fundação) — gravam recomendação em agent_actions /
+    // agent_campaigns com actor=dgn-agent fixo. Status inicial pending_review
+    // / draft. Nenhum envio, nenhuma mutação em crm_*.
+    // -------------------------------------------------------------------
+
+    record_opportunity: tool({
+      description:
+        "Registra oportunidade comercial detectada (upgrade / reativação / conversão) em agent_actions.kind='opportunity'. Status fixo pending_review — requer aprovação humana antes de qualquer execução. Aceita customerId (legacy_id) OU nameQuery; informe dedupeKey (ex.: 'upgrade_priority_30d') para evitar duplicata ativa do mesmo tema. Zero envio.",
+      inputSchema: recordActionInputSchema,
+      execute: async (input) => {
+        const ref = await resolveCustomerRef(ctx, acc, "record_opportunity", {
+          customerId: input.customerId,
+          nameQuery: input.nameQuery,
+        });
+        if (!ref.ok) return { status: "unavailable" as const, message: ref.message };
+        const result = await recordOpportunity(ctx, {
+          targetCustomerId: ref.id,
+          title: input.title,
+          reason: input.reason,
+          recommendation: input.recommendation,
+          nextStep: input.nextStep ?? null,
+          expectedBenefit: input.expectedBenefit ?? null,
+          dedupeKey: input.dedupeKey ?? null,
+          expiresAt: input.expiresAt ?? null,
+          payload: input.payload,
+          sourceRunId: input.sourceRunId ?? null,
+        });
+        pushSkill(acc, "record_opportunity", { customerId: ref.id, dedupeKey: input.dedupeKey ?? null }, result);
+        if (result.status !== "ok" || !result.data) {
+          return { status: result.status, message: result.message ?? null };
+        }
+        acc.recordedActions.push(result.data);
+        return recordActionToLLM(result.data);
+      },
+    }),
+
+    record_alert: tool({
+      description:
+        "Registra alerta operacional detectado (renovação próxima, convite sem resposta, dado faltando) em agent_actions.kind='alert'. Status fixo pending_review. Dedupe por kind+customer+dedupeKey evita repetir alerta ativo. Zero envio.",
+      inputSchema: recordActionInputSchema,
+      execute: async (input) => {
+        const ref = await resolveCustomerRef(ctx, acc, "record_alert", {
+          customerId: input.customerId,
+          nameQuery: input.nameQuery,
+        });
+        if (!ref.ok) return { status: "unavailable" as const, message: ref.message };
+        const result = await recordAlert(ctx, {
+          targetCustomerId: ref.id,
+          title: input.title,
+          reason: input.reason,
+          recommendation: input.recommendation,
+          nextStep: input.nextStep ?? null,
+          expectedBenefit: input.expectedBenefit ?? null,
+          dedupeKey: input.dedupeKey ?? null,
+          expiresAt: input.expiresAt ?? null,
+          payload: input.payload,
+          sourceRunId: input.sourceRunId ?? null,
+        });
+        pushSkill(acc, "record_alert", { customerId: ref.id, dedupeKey: input.dedupeKey ?? null }, result);
+        if (result.status !== "ok" || !result.data) {
+          return { status: result.status, message: result.message ?? null };
+        }
+        acc.recordedActions.push(result.data);
+        return recordActionToLLM(result.data);
+      },
+    }),
+
+    record_campaign_draft: tool({
+      description:
+        "Registra rascunho de campanha (name/objective/audienceRules/draftMessage) em agent_campaigns.status='draft'. Para refinar um draft existente passe campaignId — campanhas approved/paused/archived são imutáveis por esta tool. Zero envio, zero ativação.",
+      inputSchema: z.object({
+        campaignId: z.string().min(1).optional().describe("UUID do draft existente para refinar. Omita para criar novo."),
+        name: z.string().min(1).max(200),
+        objective: z.string().min(1).max(1000),
+        draftMessage: z.string().max(2000).optional().describe("Mensagem rascunho — nunca enviada automaticamente."),
+        suggestedChannel: z.enum(["whatsapp", "email", "sms"]).optional(),
+        estimatedAudience: z.number().int().nonnegative().optional(),
+        audienceRules: z.record(z.string(), z.unknown()).optional().describe("Regras de audiência livres (jsonb)."),
+      }),
+      execute: async (input) => {
+        const result = await recordCampaignDraft(ctx, {
+          campaignId: input.campaignId ?? null,
+          name: input.name,
+          objective: input.objective,
+          draftMessage: input.draftMessage ?? null,
+          suggestedChannel: input.suggestedChannel ?? null,
+          estimatedAudience: input.estimatedAudience ?? null,
+          audienceRules: input.audienceRules ?? {},
+        });
+        pushSkill(acc, "record_campaign_draft", { campaignId: input.campaignId ?? null }, result);
+        if (!result.data) {
+          return { status: result.status, message: result.message ?? null };
+        }
+        acc.recordedCampaignDrafts.push(result.data);
+        return {
+          status: result.status,
+          resultCode: result.data.resultCode,
+          campaignId: result.data.campaignId,
+          campaignStatus: result.data.status,
+          message: result.message ?? null,
+        };
+      },
+    }),
+  };
+}
+
+/**
+ * Schema compartilhado por record_opportunity e record_alert. Mantido fora
+ * do buildAgentTools para evitar reconstrução a cada chamada e para que
+ * `assertToolsAreRegistered` enxergue o shape via toJSON do zod.
+ */
+const recordActionInputSchema = z
+  .object({
+    customerId: z.string().min(1).optional(),
+    nameQuery: z.string().min(2).optional(),
+    title: z.string().min(1).max(200),
+    reason: z.string().min(1).max(1000),
+    recommendation: z.string().min(1).max(1000),
+    nextStep: z.string().max(500).optional(),
+    expectedBenefit: z.string().max(500).optional(),
+    dedupeKey: z.string().min(1).max(200).optional()
+      .describe("Chave estável por cliente — ex.: 'upgrade_priority_30d'. Mesma key + cliente + kind não cria duplicata ativa."),
+    expiresAt: z.string().datetime().optional()
+      .describe("ISO datetime — a ação expira sozinha se não revisada até lá."),
+    payload: z.record(z.string(), z.unknown()).optional().describe("Metadata livre (jsonb)."),
+    sourceRunId: z.string().min(1).max(200).optional(),
+  })
+  .refine((v) => Boolean(v.customerId || v.nameQuery), {
+    message: "Informe customerId ou nameQuery.",
+  });
+
+function recordActionToLLM(payload: RecordActionPayload) {
+  return {
+    status: "ok" as const,
+    resultCode: payload.resultCode,
+    actionId: payload.actionId,
+    existingActionId: payload.existingActionId,
+    kind: payload.kind,
+    customerId: payload.resolvedCustomerId,
+    actionStatus: payload.status,
   };
 }
 
@@ -534,7 +692,7 @@ function preparedToLLM(prepared: PreparedMessage) {
  * (read_only ou prepare_only). Nenhuma tool pode ser `write` — nem existe
  * caminho de código para isso. Usado pelo teste.
  */
-const ALLOWED_MODES: readonly SkillMode[] = ["read_only", "prepare_only"] as const;
+const ALLOWED_MODES: readonly SkillMode[] = ["read_only", "prepare_only", "record_only"] as const;
 
 export function assertToolsAreRegistered() {
   for (const name of AGENT_TOOL_NAMES) {
@@ -568,5 +726,7 @@ export function createAccumulator(): ToolInvocationAccumulator {
     invocations: [],
     portalReadiness: null,
     prepareCalls: 0,
+    recordedActions: [],
+    recordedCampaignDrafts: [],
   };
 }

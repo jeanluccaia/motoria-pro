@@ -19,10 +19,19 @@ import {
 //    prova barata que reprova alguém adicionando side-effect sem sinalizar.
 // -----------------------------------------------------------------------------
 
-test("registry rejeita mode write — só read_only ou prepare_only", () => {
-  assert.ok(isNoWriteRegistry(), "registry deve conter apenas read_only ou prepare_only");
+test("registry rejeita mode write — só read_only, prepare_only ou record_only", () => {
+  assert.ok(isNoWriteRegistry(), "registry deve conter apenas read_only, prepare_only ou record_only");
   const modes = new Set(AGENT_SKILL_REGISTRY.map((s) => s.mode));
   assert.ok(!modes.has("write" as never), "mode write BANIDO");
+});
+
+test("Fundação — 3 skills record_only registradas", () => {
+  const recordOnly = getSkillsByMode("record_only").map((s) => s.name);
+  const expected = ["record_opportunity", "record_alert", "record_campaign_draft"];
+  for (const name of expected) {
+    assert.ok(recordOnly.includes(name), `skill record_only faltando: ${name}`);
+  }
+  assert.equal(recordOnly.length, 3, "exatamente 3 skills record_only nesta fase");
 });
 
 test("Fase 1.5 + Portal readiness — 9 skills read_only registradas", () => {
@@ -56,6 +65,35 @@ test("Fase 2 — 6 skills prepare_only registradas", () => {
     "prepare_daily_attack_plan",
   ];
   for (const name of expected) assert.ok(prepareOnly.includes(name), `skill prepare_only faltando: ${name}`);
+});
+
+test("skills record_only só importam writers do Agent Core — nunca CRM/supabase direto", () => {
+  const files = [
+    "skills/record-action.ts",
+    "skills/record-opportunity-skill.ts",
+    "skills/record-alert-skill.ts",
+    "skills/record-campaign-draft-skill.ts",
+  ];
+  // record_only PODE importar agent-actions-write / agent-campaigns-write via
+  // o AgentWriter facade na AgentContext — mas NÃO pode importar camada de
+  // escrita de crm_* nem alcançar Supabase direto nem enviar comunicação.
+  const forbidden = [
+    "founder-curation-write",
+    "commercial-write",
+    "campaign-write",
+    "founder-curation-route",
+    "getSupabaseAdminClient",
+    "repositories",
+    "supabase.from",
+    "buildWhatsappUrl",
+    "fetch(",
+  ];
+  for (const file of files) {
+    const src = readFileSync(resolve(import.meta.dirname, file), "utf8");
+    for (const term of forbidden) {
+      assert.ok(!src.includes(term), `${file} contém termo proibido: ${term}`);
+    }
+  }
 });
 
 test("nenhum arquivo em skills/ importa camada de escrita do Growth", () => {

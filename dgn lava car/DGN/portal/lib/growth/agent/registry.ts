@@ -2,11 +2,17 @@ import type { SkillDefinition, SkillMode } from "./types.ts";
 
 // Registry declarativo das skills liberadas.
 //
-// Fase 1: mode "read_only" — lê fatos, devolve estruturas para a UI.
-// Fase 2: mode "prepare_only" — usa fatos autorizados para gerar CONTEÚDO
-// (mensagem, brief, plano) para revisão humana. NUNCA escreve, NUNCA envia.
+// Fase 1:    mode "read_only"    — lê fatos, devolve estruturas para a UI.
+// Fase 2:    mode "prepare_only" — usa fatos autorizados para gerar CONTEÚDO
+//                                  (mensagem, brief, plano) para revisão humana.
+//                                  NUNCA escreve, NUNCA envia.
+// Fundação:  mode "record_only"  — registra RECOMENDAÇÃO em agent_actions /
+//                                  agent_campaigns via RPCs SECURITY DEFINER
+//                                  (p_actor fixado como "dgn-agent"). Sempre
+//                                  cria em `pending_review`/`draft`. Zero
+//                                  mutação em crm_*, zero envio.
 //
-// `write` está BANIDO. Se alguém tentar adicionar uma skill com outro mode,
+// `write` continua BANIDO. Se alguém tentar adicionar uma skill com outro mode,
 // o TypeScript e o teste da suite reprovam.
 
 export const AGENT_SKILL_REGISTRY: readonly SkillDefinition[] = [
@@ -92,15 +98,45 @@ export const AGENT_SKILL_REGISTRY: readonly SkillDefinition[] = [
     mode: "prepare_only",
     description: "Combina Daily Briefing + Founder + Curadoria + Assinantes em plano ordenado. Pode preparar rascunhos inline até o hard cap (5 clientes).",
   },
+
+  // -----------------------------------------------------------------
+  // RECORD-ONLY (Fundação Agent Core) — grava recomendação em
+  // agent_actions / agent_campaigns. Nunca executa, nunca envia.
+  // Actor fixado como "dgn-agent"; promoção para approved/executed
+  // depende de endpoint autenticado (fora da fundação).
+  // -----------------------------------------------------------------
+  {
+    name: "record_opportunity",
+    mode: "record_only",
+    description: "Registra oportunidade comercial detectada pelo agente (upgrade/reativação/conversão). Grava em agent_actions.kind='opportunity' com status='pending_review'. Zero envio.",
+  },
+  {
+    name: "record_alert",
+    mode: "record_only",
+    description: "Registra alerta operacional detectado pelo agente (renovação próxima, convite sem resposta, dado faltando). Grava em agent_actions.kind='alert' com status='pending_review'. Zero envio.",
+  },
+  {
+    name: "record_campaign_draft",
+    mode: "record_only",
+    description: "Registra rascunho de campanha (nome, objetivo, audience_rules, draftMessage) em agent_campaigns.status='draft'. Para refinar um draft existente, informe campaignId. Zero envio.",
+  },
 ] as const;
 
 // -----------------------------------------------------------------
 // Guards
 // -----------------------------------------------------------------
 
-const ALLOWED_MODES: readonly SkillMode[] = ["read_only", "prepare_only"] as const;
+const ALLOWED_MODES: readonly SkillMode[] = ["read_only", "prepare_only", "record_only"] as const;
 
-/** Nenhuma skill pode ter mode fora da lista permitida. `write` é banido. */
+/**
+ * Nenhuma skill pode ter mode fora da lista permitida. `write` é banido.
+ *
+ * `record_only` é o único modo que chama RPC de mutação, e por contrato só
+ * grava em agent_actions/agent_campaigns (tabelas de governança, status
+ * `pending_review`/`draft`). Zero efeito operacional em crm_*. Toda promoção
+ * para approved/executed vive em RPC separada, acionada por endpoint
+ * autenticado — fora da superfície do agente.
+ */
 export function isNoWriteRegistry(registry: readonly SkillDefinition[] = AGENT_SKILL_REGISTRY): boolean {
   return registry.every((skill) => ALLOWED_MODES.includes(skill.mode));
 }

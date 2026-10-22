@@ -42,7 +42,7 @@ function makeCtx(customers: DgnCustomer[], now = Date.parse("2026-08-27T12:00:00
 // Segurança: tool set == read_only registry (nenhuma tool fora do escopo).
 // ---------------------------------------------------------------------------
 
-test("todas as tools expostas ao LLM têm skill correspondente (read_only ou prepare_only)", () => {
+test("todas as tools expostas ao LLM têm skill correspondente (read_only, prepare_only ou record_only)", () => {
   assertToolsAreRegistered();
   const acc = createAccumulator();
   const tools = buildAgentTools(makeCtx([]), acc);
@@ -53,7 +53,9 @@ test("todas as tools expostas ao LLM têm skill correspondente (read_only ou pre
     const registered = AGENT_SKILL_REGISTRY.find((s) => s.name === name);
     assert.ok(registered, `${name} não está no registry`);
     assert.ok(
-      registered.mode === "read_only" || registered.mode === "prepare_only",
+      registered.mode === "read_only" ||
+        registered.mode === "prepare_only" ||
+        registered.mode === "record_only",
       `${name} tem mode inválido: ${registered.mode}`,
     );
   }

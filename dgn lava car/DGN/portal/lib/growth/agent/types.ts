@@ -107,9 +107,15 @@ export interface NextActionSuggestion {
  *  - `prepare_only`: skill usa fatos já autorizados para produzir CONTEÚDO
  *    (mensagem, brief, plano). Nunca escreve no CRM, nunca envia WhatsApp,
  *    nunca chama RPC de mutação. É geração de texto para revisão humana.
- * Nenhum outro modo é permitido — `write` está BANIDO nesta fase.
+ *  - `record_only`: skill registra RECOMENDAÇÃO do agente em agent_actions /
+ *    agent_campaigns via RPCs SECURITY DEFINER (p_actor fixado como
+ *    "dgn-agent"). Cria APENAS registros em `pending_review` (ações) ou
+ *    `draft` (campanhas). Zero mutação em crm_*, zero envio de WhatsApp,
+ *    zero execução automática. A promoção para `approved` / `executed`
+ *    passa por operador autenticado em endpoint próprio (fora do agente).
+ * `write` continua BANIDO — nenhuma skill altera dados comerciais.
  */
-export type SkillMode = "read_only" | "prepare_only";
+export type SkillMode = "read_only" | "prepare_only" | "record_only";
 
 export interface SkillDefinition {
   name: string;
