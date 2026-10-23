@@ -259,7 +259,7 @@ function PulseOfTheDayCard({ pulse }: { pulse: PulseSummary }) {
         </div>
         {totalPending > 0 ? (
           <Link
-            href="/admin/growth/intelligence"
+            href="/admin/growth/intelligence/inbox"
             className="inline-flex min-h-11 items-center justify-center gap-1.5 self-start rounded-lg border border-white/10 bg-white/[0.04] px-4 text-sm font-medium text-white/90 transition hover:bg-white/[0.08]"
           >
             Revisar na Inbox
