@@ -9,7 +9,9 @@ import { getDailyBriefing } from "@/lib/growth/agent/skills/daily-briefing";
 import type { DailyBriefing } from "@/lib/growth/agent/types";
 import { getActiveInvitesCount } from "@/lib/growth/founder-metrics";
 import { getConfirmedFoundersCount } from "@/lib/growth/founder-metrics-server";
-import { AlertTriangle, ArrowRight, Sparkles } from "lucide-react";
+import { loadPulseSummary, type PulseSummary } from "@/lib/growth/db/pulse-summary";
+import type { AgentActionRow } from "@/lib/growth/db/agent-actions-write";
+import { AlertTriangle, ArrowRight, Sparkles, Activity, AlertCircle, Target, Megaphone, ClipboardList } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -85,7 +87,11 @@ async function loadBriefingSummary(): Promise<{ briefing: DailyBriefing | null; 
 }
 
 export default async function DgnAdminDashboardPage() {
-  const [m, briefingSummary] = await Promise.all([computeMetrics(), loadBriefingSummary()]);
+  const [m, briefingSummary, pulse] = await Promise.all([
+    computeMetrics(),
+    loadBriefingSummary(),
+    loadPulseSummary({ topN: 3 }),
+  ]);
 
   return (
     <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
@@ -139,6 +145,8 @@ export default async function DgnAdminDashboardPage() {
         </section>
 
         <IntelligenceCard briefing={briefingSummary.briefing} error={briefingSummary.error} />
+
+        <PulseOfTheDayCard pulse={pulse} />
 
         <p className="mt-6 text-[11px] text-white/40">
           Fonte:{" "}
@@ -197,6 +205,138 @@ function IntelligenceCard({ briefing, error }: { briefing: DailyBriefing | null;
         <ArrowRight size={14} />
       </Link>
     </section>
+  );
+}
+
+function PulseOfTheDayCard({ pulse }: { pulse: PulseSummary }) {
+  const { totalPending, counts, topActions, loadError } = pulse;
+
+  if (loadError) {
+    return (
+      <section
+        aria-labelledby="dashboard-pulse"
+        className="mt-4 flex flex-col gap-2 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 sm:p-5"
+        data-testid="dashboard-pulse"
+      >
+        <div className="flex items-center gap-2">
+          <Activity size={16} className="text-white/40" />
+          <p id="dashboard-pulse" className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/50">
+            Pulso do dia
+          </p>
+        </div>
+        <p className="text-sm text-white/60">Agent Core indisponível agora.</p>
+        <p className="text-[11px] text-white/40">{loadError}</p>
+      </section>
+    );
+  }
+
+  const headline =
+    totalPending === 0
+      ? "Nada pendente de revisão hoje."
+      : totalPending === 1
+        ? "1 ação do agente aguardando sua revisão."
+        : `${totalPending} ações do agente aguardando sua revisão.`;
+
+  return (
+    <section
+      aria-labelledby="dashboard-pulse"
+      className="mt-4 flex flex-col gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 sm:p-5"
+      data-testid="dashboard-pulse"
+    >
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.04] text-white/80">
+            <Activity size={18} />
+          </span>
+          <div>
+            <p id="dashboard-pulse" className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/60">
+              Pulso do dia
+            </p>
+            <p className="mt-1 text-sm text-white/90" data-testid="dashboard-pulse-headline">
+              {headline}
+            </p>
+          </div>
+        </div>
+        {totalPending > 0 ? (
+          <Link
+            href="/admin/growth/intelligence"
+            className="inline-flex min-h-11 items-center justify-center gap-1.5 self-start rounded-lg border border-white/10 bg-white/[0.04] px-4 text-sm font-medium text-white/90 transition hover:bg-white/[0.08]"
+          >
+            Revisar na Inbox
+            <ArrowRight size={14} />
+          </Link>
+        ) : null}
+      </div>
+
+      {totalPending > 0 ? (
+        <div className="flex flex-wrap gap-2" data-testid="dashboard-pulse-counts">
+          <KindChip icon={<AlertCircle size={12} />} label="Alertas" count={counts.alert} tone="warn" />
+          <KindChip icon={<Target size={12} />} label="Oportunidades" count={counts.opportunity} tone="gold" />
+          <KindChip icon={<ClipboardList size={12} />} label="Follow-ups" count={counts.followupTask} tone="neutral" />
+          <KindChip icon={<Megaphone size={12} />} label="Rascunhos" count={counts.campaignDraft} tone="neutral" />
+        </div>
+      ) : null}
+
+      {topActions.length > 0 ? (
+        <ul className="mt-1 flex flex-col divide-y divide-white/[0.04] rounded-lg border border-white/[0.04] bg-white/[0.01]" data-testid="dashboard-pulse-top">
+          {topActions.map((a) => (
+            <PulseActionRow key={a.id} action={a} />
+          ))}
+        </ul>
+      ) : null}
+    </section>
+  );
+}
+
+function KindChip({
+  icon,
+  label,
+  count,
+  tone,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  count: number;
+  tone: "neutral" | "gold" | "warn";
+}) {
+  if (count === 0) return null;
+  const toneClasses = {
+    neutral: "border-white/10 bg-white/[0.04] text-white/80",
+    gold: "border-[#C9A84C]/25 bg-[#C9A84C]/[0.06] text-[#E7C96A]",
+    warn: "border-amber-300/25 bg-amber-300/[0.04] text-amber-200",
+  }[tone];
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] uppercase tracking-[0.12em] ${toneClasses}`}>
+      {icon}
+      <span className="tabular-nums font-semibold">{count}</span>
+      <span>{label}</span>
+    </span>
+  );
+}
+
+function PulseActionRow({ action }: { action: AgentActionRow }) {
+  const kindLabel: Record<AgentActionRow["kind"], string> = {
+    alert: "Alerta",
+    opportunity: "Oportunidade",
+    followup_task: "Follow-up",
+    campaign_draft: "Campanha",
+  };
+  const kindTone: Record<AgentActionRow["kind"], string> = {
+    alert: "text-amber-200",
+    opportunity: "text-[#E7C96A]",
+    followup_task: "text-white/70",
+    campaign_draft: "text-white/70",
+  };
+  return (
+    <li className="flex flex-col gap-1 px-3 py-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+      <div className="min-w-0">
+        <p className={`text-[10px] font-semibold uppercase tracking-[0.14em] ${kindTone[action.kind]}`}>
+          {kindLabel[action.kind]}
+        </p>
+        <p className="mt-0.5 truncate text-sm text-white/90">{action.title}</p>
+        <p className="mt-0.5 line-clamp-2 text-xs text-white/55">{action.recommendation}</p>
+      </div>
+    </li>
   );
 }
 
