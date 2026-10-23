@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   Brain,
+  Building2,
   ClipboardCheck,
   Crown,
   LayoutDashboard,
@@ -26,6 +27,7 @@ const primaryNav: NavItem[] = [
   { href: "/admin/growth/curadoria", label: "Curadoria", icon: UserCheck },
   { href: "/admin/growth/founders-2026", label: "Founders", icon: Crown },
   { href: "/admin/growth/assinantes-detectados", label: "Assinantes", icon: ShieldCheck },
+  { href: "/admin/growth/empresas", label: "Empresas", icon: Building2, badge: "B2B" },
   { href: "/admin/growth/assinantes/reconciliar", label: "Reconciliar", icon: ClipboardCheck },
   { href: "/admin/growth/diagnosticos", label: "Diagnósticos", icon: Stethoscope, badge: "Preview" },
   { href: "/admin/growth/assistente", label: "Assistente DGN", icon: Sparkles },
