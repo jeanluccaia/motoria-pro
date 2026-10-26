@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import "@/components/growth/portal-ui.css";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import {
@@ -28,12 +29,15 @@ const primaryNav: NavItem[] = [
   { href: "/admin/growth/founders-2026", label: "Founders", icon: Crown },
   { href: "/admin/growth/assinantes-detectados", label: "Assinantes", icon: ShieldCheck },
   { href: "/admin/growth/empresas", label: "Empresas", icon: Building2, badge: "B2B" },
-  { href: "/admin/growth/assinantes/reconciliar", label: "Reconciliar", icon: ClipboardCheck },
-  { href: "/admin/growth/diagnosticos", label: "Diagnósticos", icon: Stethoscope, badge: "Preview" },
   { href: "/admin/growth/assistente", label: "Assistente DGN", icon: Sparkles },
 ];
 
 // Rotas que não devem ser envolvidas pelo shell (login, callbacks, etc).
+const systemNav: NavItem[] = [
+  { href: "/admin/growth/assinantes/reconciliar", label: "Reconciliação", icon: ClipboardCheck },
+  { href: "/admin/growth/diagnosticos", label: "Diagnósticos", icon: Stethoscope },
+];
+
 const CHROMELESS_PATHS = new Set(["/admin/growth/login"]);
 
 function isRouteActive(pathname: string, href: string): boolean {
@@ -104,7 +108,7 @@ export function DgnAdminShell({ children }: { children: ReactNode }) {
           <SidebarBody pathname={pathname} />
         </aside>
 
-        <main className="min-w-0 flex-1" data-testid="admin-shell-main">
+        <main className="dgn-content min-w-0 flex-1" data-testid="admin-shell-main">
           {children}
         </main>
       </div>
@@ -179,6 +183,14 @@ function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: 
         <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/40">
           Sistema
         </p>
+        <nav aria-label="Ferramentas do sistema" className="mb-2 flex flex-col gap-1">
+          {systemNav.map(({ href, label, icon: Icon }) => (
+            <Link key={href} href={href} onClick={onNavigate} aria-current={isRouteActive(pathname, href) ? "page" : undefined}
+              className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition ${isRouteActive(pathname, href) ? "bg-[#C9A84C]/12 text-[#E7C96A]" : "text-[#D1D5DB] hover:bg-white/[0.04] hover:text-white"}`}>
+              <Icon size={18} className="text-white/50" /><span>{label}</span>
+            </Link>
+          ))}
+        </nav>
         <form action="/admin/growth/logout" method="post" className="w-full">
           <button
             type="submit"

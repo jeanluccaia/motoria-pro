@@ -81,7 +81,7 @@ export function CompanyDetail({
   }
 
   return (
-    <div className="mt-6 flex flex-col gap-6">
+    <div className="dgn-fleet-sections mt-6">
       {company.contactEmail || company.contactPhone ? (
         <section className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-xs text-white/60">
           Contato:
@@ -90,7 +90,7 @@ export function CompanyDetail({
         </section>
       ) : null}
 
-      <section>
+      <section className="dgn-fleet-requests">
         <SectionHeader icon={<AlertCircle size={16} className="text-amber-200" />} title="Solicitações pendentes" count={pending.length} />
         {pending.length === 0 ? (
           <p className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-sm text-white/55">
@@ -157,7 +157,7 @@ export function CompanyDetail({
 
 function SectionHeader({ icon, title, count }: { icon: React.ReactNode; title: string; count: number }) {
   return (
-    <h2 className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/60">
+    <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-white/80">
       {icon}
       {title}
       <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 text-[10px] font-semibold tabular-nums text-white/70">

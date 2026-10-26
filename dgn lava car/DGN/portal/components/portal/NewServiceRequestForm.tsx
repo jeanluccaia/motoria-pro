@@ -51,7 +51,7 @@ export function NewServiceRequestForm({ vehicles }: { vehicles: FleetVehicleRow[
   }
 
   return (
-    <section className="mt-6 flex flex-col gap-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 sm:p-5">
+    <section className="mt-6 flex flex-col gap-5 rounded-xl border border-white/[0.08] bg-[#101010] p-4 sm:p-6">
       <label className="flex flex-col gap-1 text-xs text-white/60">
         <span>Veículo</span>
         <select
@@ -106,14 +106,14 @@ export function NewServiceRequestForm({ vehicles }: { vehicles: FleetVehicleRow[
         <textarea
           value={managerNotes}
           onChange={(e) => setManagerNotes(e.target.value)}
-          placeholder="Ex: entregar com o motorista; só manhã..."
+          placeholder="Ex.: entregar com o motorista pela manhã."
           className="min-h-20 rounded-lg border border-white/10 bg-white/[0.03] p-2 text-sm text-white placeholder:text-white/30 focus:border-[#C9A84C]/40 focus:outline-none"
         />
       </label>
 
       {typeof busy === "object" ? <p className="text-xs text-amber-200">{busy.error}</p> : null}
 
-      <div className="flex justify-end">
+      <div className="dgn-manager-request-actions flex justify-end">
         <button
           type="button"
           disabled={busy === "pending"}

@@ -87,8 +87,7 @@ export function AddSubscriberDialog({
                   Buscar cliente existente
                 </h2>
                 <p className="mt-1 text-[11px] text-white/50">
-                  Sem recadastro. Só clientes já na base. Selecione e siga direto para o
-                  formulário canônico de criação de assinatura.
+                  Selecione um cliente cadastrado para criar a assinatura.
                 </p>
               </div>
               <button
@@ -174,9 +173,8 @@ export function AddSubscriberDialog({
               </div>
             </div>
 
-            <footer className="border-t border-white/[0.06] px-5 py-3 text-[10px] uppercase tracking-[0.14em] text-white/40">
-              Zero cadastro novo. O próximo passo abre o formulário canônico com dedupe,
-              guarda PagBank e audit log.
+            <footer className="border-t border-white/[0.06] px-5 py-3 text-xs text-white/50">
+              Você revisará os dados antes de confirmar a assinatura.
             </footer>
           </div>
         </div>

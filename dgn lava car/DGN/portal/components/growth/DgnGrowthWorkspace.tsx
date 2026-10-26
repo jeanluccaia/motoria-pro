@@ -351,7 +351,7 @@ export function DgnGrowthWorkspace({
 
   const patchCustomer = (id: string, patch: Partial<CustomerDraft>) => {
     if (readOnly) {
-      setNotice("Persistência em implementação — nenhuma alteração foi salva.");
+      setNotice("A edição está indisponível neste ambiente. Nenhuma alteração foi salva.");
       window.setTimeout(() => setNotice(""), 3000);
       return;
     }
@@ -418,8 +418,8 @@ export function DgnGrowthWorkspace({
 
   return (
     <div className="min-h-full bg-[#080808] text-white">
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        {readOnly && (dataOrigin === "db" || process.env.NODE_ENV !== "production") ? <div className="mb-5 rounded-xl border border-[#C9A84C]/20 bg-[#C9A84C]/[0.06] px-4 py-3 text-xs text-[#E7C96A]">{dataOrigin === "db" ? "Dados comerciais e de curadoria podem ser editados. Dados operacionais e calculados permanecem protegidos." : "Fonte local somente leitura · mudanças não são salvas."}</div> : null}
+      <main className="dgn-page">
+        {readOnly && (dataOrigin === "db" || process.env.NODE_ENV !== "production") ? <div className="mb-5 rounded-xl border border-[#C9A84C]/20 bg-[#C9A84C]/[0.06] px-4 py-3 text-xs text-[#E7C96A]">{dataOrigin === "db" ? "Edição disponível para informações comerciais e curadoria." : "Dados locais · somente consulta."}</div> : null}
         {notice ? (
           <div className="fixed right-4 top-4 z-[70] rounded-xl border border-[#C9A84C]/30 bg-[#111111] px-4 py-3 text-sm font-semibold text-[#E7C96A] shadow-2xl">
             {notice}
@@ -600,8 +600,9 @@ function IntelligenceView({
 
   return (
     <>
-      {/* 4 KPIs principais */}
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <header className="mb-6"><h1>Clientes e oportunidades</h1></header>
+      {/* Indicadores existentes */}
+      <section className="dgn-workspace-metrics grid grid-cols-2 gap-3 lg:grid-cols-4">
         <MetricCard label="Base operacional" value={String(metrics.total)} icon={UserRound} />
         <MetricCard label="Aguardando curadoria" value={String(metrics.awaiting)} icon={Filter} />
         <MetricCard label="Alto score" value={String(metrics.highScore)} icon={BadgeCheck} />
@@ -619,14 +620,14 @@ function IntelligenceView({
         <div className="h-4 w-px bg-white/[0.08]" />
         <div className="flex items-center gap-2">
           <span className="text-[11px] uppercase tracking-[0.14em] text-[#7D7D7D]">
-            Base historica
+            Base histórica
           </span>
           <span className="font-semibold text-white/80">{metrics.historicalTotal} clientes</span>
         </div>
         <div className="h-4 w-px bg-white/[0.08]" />
         <div className="flex items-center gap-2">
           <span className="text-[11px] uppercase tracking-[0.14em] text-[#7D7D7D]">
-            Valor historico operacional
+            Valor histórico operacional
           </span>
           <span className="font-semibold text-white">{formatCurrency(metrics.totalHistorical)}</span>
         </div>
@@ -1065,7 +1066,7 @@ function CurationView({
   };
 
   return (
-    <section className="grid gap-4 lg:grid-cols-[22rem_1fr] lg:items-stretch lg:h-[calc(100dvh-10rem)]">
+    <section className="dgn-curation grid gap-4 lg:grid-cols-[minmax(260px,0.8fr)_minmax(0,1.7fr)] lg:items-stretch lg:h-[calc(100dvh-6rem)]">
       <div
         data-testid="curation-list"
         className={`flex flex-col rounded-2xl border border-white/[0.06] bg-[#101010] lg:overflow-hidden lg:block ${
@@ -1074,16 +1075,16 @@ function CurationView({
       >
         <div className="shrink-0 border-b border-white/[0.06] p-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
-            Curadoria DGN
+            Clientes
           </p>
-          <h2 className="mt-1 text-lg font-semibold text-white">Filtragem e ordenação</h2>
+          <h1 className="mt-1 font-semibold text-white">Curadoria</h1>
           <label className="mt-3 block">
             <span className="sr-only">Buscar cliente</span>
             <input
               type="search"
               value={query}
               onChange={(event) => onQuery(event.target.value)}
-              placeholder="Buscar por nome, iniciais (ex.: GL), placa ou telefone"
+              placeholder="Nome, placa ou telefone"
               className="h-10 w-full rounded-lg border border-white/[0.06] bg-[#151515] px-3 text-xs text-white outline-none focus:border-[#C9A84C]/50"
               autoComplete="off"
               spellCheck={false}
@@ -1270,7 +1271,7 @@ function CurationView({
 
       <div
         data-testid="curation-detail"
-        className={`rounded-2xl border border-white/[0.06] bg-[#101010] p-5 lg:overflow-y-auto lg:max-h-[calc(100dvh-10rem)] lg:block ${
+        className={`rounded-2xl border border-white/[0.06] bg-[#101010] p-5 lg:overflow-y-auto lg:max-h-[calc(100dvh-6rem)] lg:block ${
           mobileView === "detail" ? "block" : "hidden"
         }`}
       >
@@ -1286,12 +1287,11 @@ function CurationView({
         </button>
         {dataOrigin !== "db" ? (
           <div className="mb-4 rounded-xl border border-amber-400/30 bg-amber-400/[0.06] px-3 py-2 text-[11px] text-amber-200">
-            Curadoria em modo somente-leitura ({dataOrigin === "json-fallback" ? "fallback local" : "JSON local"}).
-            Para gerar convite Founder de verdade, o ambiente precisa estar com <span className="font-mono">DGN_GROWTH_DATA_SOURCE=db</span>.
+            Somente consulta. A criação de convites está indisponível neste ambiente.
           </div>
         ) : null}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
+        <div className="dgn-curation-profile-heading flex flex-col items-start justify-between gap-4 2xl:flex-row">
+          <div className="w-full flex-1 min-w-0">
             <CustomerSnapshot customer={selectedCustomer} />
           </div>
           <div className="flex shrink-0 flex-col items-stretch gap-2 sm:flex-row sm:items-center">
@@ -2633,7 +2633,7 @@ function FounderCurationEditor({
       return;
     }
     if (dbUnavailable && action !== "mark_sent") {
-      setNotice("Ambiente está lendo do JSON local. Nenhuma alteração seria persistida.");
+      setNotice("Somente consulta. Nenhuma alteração foi salva.");
       return;
     }
     // create_invite e save fazem bootstrap silencioso do crm_campaign_members.
@@ -2661,7 +2661,7 @@ function FounderCurationEditor({
         if (response.status === 409) throw new Error(result.error || "Os dados foram alterados em outra sessão. Recarregue a página.");
         throw new Error(result.error || "Não foi possível salvar as alterações.");
       }
-      setNotice(result.changed ? "Alterações salvas. Recarregando…" : "Nenhuma alteração; nada a auditar.");
+      setNotice(result.changed ? "Alterações salvas. Recarregando…" : "Nenhuma alteração para salvar.");
       if (result.changed) window.setTimeout(() => window.location.reload(), 500);
     } catch (error) { setNotice(error instanceof Error ? error.message : "Não foi possível salvar as alterações."); }
     finally { setSaving(false); }
@@ -2699,7 +2699,7 @@ function FounderCurationEditor({
     ? "Clique em um motivo (ou digite um com pelo menos 3 caracteres)."
     : "";
   const fastPathBlockReason = dbUnavailable
-    ? "Ambiente está lendo do JSON local. Ajuste DGN_GROWTH_DATA_SOURCE=db para gerar convite."
+    ? "A criação de convites está indisponível neste ambiente."
     : inviteBlockedByEligibility
     ? eligibility.operatorMessage ?? "Cliente não elegível para aquisição Founder."
     : fastPathMissing;
@@ -2778,7 +2778,7 @@ function FounderCurationEditor({
                 data-testid="convite-abrir-preview"
                 className="inline-flex min-h-11 items-center justify-center rounded-lg border border-white/15 px-3 text-xs font-semibold text-white/80 hover:text-white"
               >
-                Abrir preview
+                Visualizar convite
               </Link>
               <button
                 type="button"
@@ -3060,7 +3060,7 @@ function FounderCurationEditor({
         <ActionButton disabled={approveDisabled} onClick={() => act("approve")}>Aprovar seleção</ActionButton>
         <ActionButton disabled={createPageDisabled} onClick={() => act("create_page")}>Criar página Founder</ActionButton>
         <ActionButton disabled={!current?.publicLink} onClick={copyPublicLink}>Copiar link</ActionButton>
-        {customer.campaign.personalizedPagePath ? <Link href={`${customer.campaign.personalizedPagePath}?preview=1`} target="_blank" className="rounded-lg border border-white/[0.08] px-3 py-2 text-xs font-semibold">Abrir preview</Link> : null}
+        {customer.campaign.personalizedPagePath ? <Link href={`${customer.campaign.personalizedPagePath}?preview=1`} target="_blank" className="rounded-lg border border-white/[0.08] px-3 py-2 text-xs font-semibold">Visualizar convite</Link> : null}
         <ActionButton disabled={!current?.publicLink || Boolean(current?.inviteSentAt)} onClick={() => act("mark_sent")}>Marcar convite como enviado</ActionButton>
         <ActionButton disabled={!current?.publicLink || protectedFounder} onClick={() => act("revoke")}>Revogar link</ActionButton>
         <ActionButton disabled={!current?.publicLink || protectedFounder} onClick={() => act("replace")}>Revogar e gerar novo convite</ActionButton>
@@ -3268,7 +3268,7 @@ export function CommercialEditor({
       onSaved(customer.id, body.commercial);
       setResult({
         tone: "success",
-        message: body.changed ? "Alterações salvas." : "Nenhuma alteração; nada a auditar.",
+        message: body.changed ? "Alterações salvas." : "Nenhuma alteração para salvar.",
       });
     } catch (error) {
       const isAbort =
@@ -3302,9 +3302,9 @@ export function CommercialEditor({
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">Gestão comercial</p>
-          <p className="mt-1 text-xs text-[#777]">Responsável, prioridade, observação, próxima ação e data — persistidos e auditados.</p>
+          <p className="mt-1 text-xs text-[#777]">Defina o responsável e o próximo contato.</p>
         </div>
-        <span className="rounded-full border border-white/[0.08] px-2 py-1 text-[10px] text-[#888]">{enabled ? "DB" : "Somente leitura"}</span>
+        <span className="rounded-full border border-white/[0.08] px-2 py-1 text-[10px] text-[#888]">{enabled ? "Edição disponível" : "Somente consulta"}</span>
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <label>
@@ -3491,15 +3491,15 @@ export function PortalAccessEditor({ customerId, enabled }: { customerId: string
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]/80">Acesso ao Portal</p>
-          <p className="mt-1 text-xs text-[#777]">Provisiona Auth, cria vínculo, habilita o gate e dispara o magic link oficial para o e-mail do cliente.</p>
+          <p className="mt-1 text-xs text-[#777]">Libere o acesso e envie o link de entrada ao cliente.</p>
         </div>
-        <span className="rounded-full border border-white/[0.08] px-2 py-1 text-[10px] text-[#888]">{enabled ? "DB" : "Somente leitura"}</span>
+        <span className="rounded-full border border-white/[0.08] px-2 py-1 text-[10px] text-[#888]">{enabled ? "Edição disponível" : "Somente consulta"}</span>
       </div>
 
       {loading ? (
-        <p className="mt-4 text-xs text-[#666]">Carregando estado…</p>
+        <p className="mt-4 text-xs text-[#666]">Carregando acesso…</p>
       ) : !state ? (
-        <p className="mt-4 text-xs text-red-300">{result?.message ?? "Estado indisponível."}</p>
+        <p className="mt-4 text-xs text-red-300">{result?.message ?? "Não foi possível consultar o acesso."}</p>
       ) : renderPortalAccessBody({
           state,
           enabled,
@@ -3576,10 +3576,10 @@ function accessStatusBadgeClasses(status: PortalAccessStatusResult["status"]): s
 
 function formatBlockers(blockers: PortalAccessBlocker[]): string {
   const labels: Record<PortalAccessBlocker, string> = {
-    MISSING_ACTIVE_SUBSCRIPTION: "assinatura canônica",
+    MISSING_ACTIVE_SUBSCRIPTION: "assinatura ativa",
     MISSING_EMAIL: "e-mail",
-    MISSING_AUTH_LINK: "vínculo Auth",
-    PORTAL_GATE_DISABLED: "gate do Portal",
+    MISSING_AUTH_LINK: "conta de acesso",
+    PORTAL_GATE_DISABLED: "liberação do Portal",
   };
   return blockers.map((b) => labels[b] ?? b).join(", ");
 }
@@ -3749,7 +3749,7 @@ function renderPortalAccessBody(props: PortalAccessBodyProps) {
         )}
         {whatsappPreview && (
           <p className="text-[11px] text-emerald-300/80">
-            Convite registrado como <span className="font-mono">whatsapp_aberto</span> · template <span className="font-mono">{whatsappPreview.templateVersion}</span> · destino ****{whatsappPreview.destinationLast4}.
+            Convite aberto no WhatsApp para o telefone com final {whatsappPreview.destinationLast4}.
           </p>
         )}
       </div>
@@ -3817,9 +3817,9 @@ function CustomerSnapshot({ customer }: { customer: DgnCustomer }) {
   const founderSelectedLegacy = customer.campaign?.founderSelected && !!knownSubscriber;
 
   return (
-    <div className="rounded-2xl border border-[#C9A84C]/18 bg-[#121212] p-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-center gap-3">
+    <div className="dgn-customer-snapshot">
+      <div className="flex flex-col gap-4 2xl:flex-row 2xl:items-start 2xl:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
           <Avatar name={customer.name} size="lg" />
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -3850,10 +3850,10 @@ function CustomerSnapshot({ customer }: { customer: DgnCustomer }) {
       </div>
       {founderSelectedLegacy ? (
         <p className="mt-3 rounded-lg border border-amber-300/20 bg-amber-300/[0.03] px-3 py-2 text-xs text-amber-200/85">
-          Sinalização Founder ({customer.campaign?.founderStatus ?? "legado"}) é HISTÓRICO — cliente é assinante reconhecido; tratar como relacionamento/retenção.
+          Cliente já reconhecido como assinante. A seleção Founder é um registro histórico.
         </p>
       ) : null}
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-4 grid grid-cols-2 gap-3 2xl:grid-cols-4">
         <ProfileFact label="Atendimentos" value={String(customer.washCount)} compact />
         <ProfileFact label="Recorrência" value={customer.recurrence} compact />
         <ProfileFact label="Valor investido" value={formatCurrency(customer.historicalValue)} compact />

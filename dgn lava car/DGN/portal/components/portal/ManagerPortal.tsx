@@ -63,8 +63,8 @@ export function ManagerPortal({
   }
 
   return (
-    <div className="mt-6 flex flex-col gap-6">
-      <section>
+    <div className="dgn-fleet-sections mt-6">
+      <section className="dgn-fleet-requests">
         <SectionHeader icon={<AlertCircle size={16} className="text-amber-200" />} title="Solicitações em andamento" count={open.length} />
         {open.length === 0 ? (
           <p className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-sm text-white/55">
@@ -91,7 +91,7 @@ export function ManagerPortal({
         <SectionHeader icon={<Car size={16} className="text-white/60" />} title="Sua frota" count={vehicles.length} />
         {vehicles.length === 0 ? (
           <p className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-sm text-white/55">
-            Nenhum veículo cadastrado. O time DGN precisa cadastrar os veículos antes.
+            Nenhum veículo cadastrado. Fale com a equipe DGN para incluir sua frota.
           </p>
         ) : (
           <ul className="flex flex-col gap-2">
@@ -241,7 +241,7 @@ function OpenRequestCard({
           </div>
         </div>
       ) : (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="dgn-manager-request-actions mt-4 flex flex-wrap gap-2">
           {canAccept ? (
             <button
               type="button"

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import {
   ArrowLeft,
-  ShieldCheck,
   Calendar,
   Car,
   User,
@@ -73,7 +72,6 @@ function subscriptionStatusLabel(status: string | null | undefined): { label: st
 }
 
 function Section({
-  index,
   title,
   icon: Icon,
   children,
@@ -86,14 +84,13 @@ function Section({
   hint?: string;
 }) {
   return (
-    <section className="rounded-2xl border border-white/[0.06] bg-[#101010] p-5 sm:p-6">
+    <section className="dgn-customer-section">
       <header className="flex items-start gap-3 border-b border-white/[0.05] pb-3">
         <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/10 text-[#E7C96A]">
           <Icon size={16} />
         </span>
         <div className="flex flex-col">
-          <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-white/80">
-            <span className="text-white/40">{String(index).padStart(2, "0")} · </span>
+          <h2 className="text-sm font-semibold text-white/90">
             {title}
           </h2>
           {hint ? <p className="mt-1 text-xs text-white/45">{hint}</p> : null}
@@ -229,7 +226,7 @@ export function CustomerFullscreen({
               ) : null}
               {!editable && (
                 <span className="inline-flex h-fit items-center gap-1.5 rounded-full border border-amber-300/30 bg-amber-300/[0.06] px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-amber-200">
-                  Persistência não habilitada — leitura apenas
+                  Somente consulta
                 </span>
               )}
             </div>
@@ -252,7 +249,7 @@ export function CustomerFullscreen({
             index={1}
             title="Dados do cliente"
             icon={User}
-            hint="Contato canônico + gestão comercial. Alterações registradas em audit log."
+            hint="Contato e informações comerciais."
           >
             <div className="space-y-6">
               <ContactPhoneEditor
@@ -281,7 +278,7 @@ export function CustomerFullscreen({
             index={2}
             title="Gerenciar assinaturas"
             icon={Wallet}
-            hint="Cria, edita e cancela contratos manuais (Essential/Smart/Priority × Mensal/Fidelidade 6m/12m). Contratos PagBank ficam read-only — pagamento e vigência vêm pelo importer."
+            hint="Gerencie assinaturas manuais. Contratos PagBank estão disponíveis para consulta."
           >
             <div className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-2">
@@ -312,7 +309,7 @@ export function CustomerFullscreen({
             index={3}
             title="Veículos"
             icon={Car}
-            hint="Marca, modelo, placa e foto principal. Foto vive em bucket privado (signed URL 7 dias)."
+            hint="Dados e fotos dos veículos."
           >
             <VehiclesPhotoAndFieldsEditor
               key={`vehicles-${customer.id}`}
@@ -325,7 +322,7 @@ export function CustomerFullscreen({
             index={4}
             title="Rotina de atendimento"
             icon={Repeat}
-            hint="Frequência esperada derivada do plano. Override manual é evolução futura."
+            hint="Frequência prevista no plano vigente."
           >
             <div className="flex flex-col gap-3 rounded-xl border border-white/[0.05] bg-white/[0.02] p-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -346,7 +343,7 @@ export function CustomerFullscreen({
             index={5}
             title="Próximos atendimentos"
             icon={Calendar}
-            hint="Criar, editar (reagendar in-place) e cancelar. Toda edição é auditada e reflete imediatamente no Portal do assinante."
+            hint="Agende, reagende ou cancele atendimentos."
           >
             <AppointmentsEditor
               key={`appointments-${customer.id}`}
@@ -359,7 +356,7 @@ export function CustomerFullscreen({
             index={6}
             title="Histórico operacional"
             icon={History}
-            hint="Últimos eventos registrados (atendimentos, interações). Fonte: crm_interactions."
+            hint="Atendimentos e interações recentes."
           >
             {customer.attendanceHistory.length === 0 ? (
               <p className="text-sm text-white/45">Nenhum evento registrado ainda.</p>
@@ -381,7 +378,7 @@ export function CustomerFullscreen({
             index={7}
             title="Acesso ao Portal"
             icon={KeyRound}
-            hint="Liberar acesso, reenviar magic link ou desabilitar. Convite WhatsApp chega na Fatia 2c."
+            hint="Gerencie o acesso e envie o link de entrada."
           >
             <PortalAccessEditor
               key={`portal-${customer.id}`}
@@ -391,11 +388,7 @@ export function CustomerFullscreen({
           </Section>
         </main>
 
-        <footer className="mt-8 flex items-center gap-2 rounded-xl border border-white/[0.06] bg-[#101010] p-4 text-[11px] text-white/40">
-          <ShieldCheck size={14} className="shrink-0" />
-          Toda edição realizada aqui passa pelos endpoints canônicos do Batch 2 e é registrada em
-          audit log. Founders Nº001, Nº002, Nº003 permanecem preservados; Iara Nº004 aberta.
-        </footer>
+        <footer className="mt-6 text-xs text-white/45">As alterações ficam registradas no histórico.</footer>
       </div>
 
       <OfferPlansModal
@@ -403,7 +396,7 @@ export function CustomerFullscreen({
         onClose={() => setOfferOpen(false)}
         customerName={customer.name}
         disabled={!editable}
-        disabledReason="Persistência não habilitada neste ambiente — a oferta é apenas visual."
+        disabledReason="Oferta indisponível neste ambiente."
         onSelectPlan={(plan) => {
           setPreselectedPlan(plan);
           setAutoOpenFromOffer(true);

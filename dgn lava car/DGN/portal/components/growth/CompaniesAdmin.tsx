@@ -13,6 +13,14 @@ export function CompaniesAdmin({
   pendingByCompany: Record<string, number>;
 }) {
   const [showForm, setShowForm] = useState(false);
+  const [query, setQuery] = useState("");
+  const [pendingOnly, setPendingOnly] = useState(false);
+  const visibleCompanies = companies.filter(company => {
+    if (pendingOnly && !(pendingByCompany[company.id] > 0)) return false;
+    return [company.displayName, company.legalName, company.cnpj ?? ""].some(value =>
+      value.toLocaleLowerCase("pt-BR").includes(query.trim().toLocaleLowerCase("pt-BR")),
+    );
+  });
   const [form, setForm] = useState({
     legalName: "",
     displayName: "",
@@ -57,7 +65,7 @@ export function CompaniesAdmin({
           data-testid="btn-new-company"
         >
           <Plus size={14} />
-          Cadastrar nova empresa
+          Nova empresa
         </button>
       ) : (
         <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 sm:p-5">
@@ -98,8 +106,18 @@ export function CompaniesAdmin({
       )}
 
       {companies.length > 0 ? (
-        <ul className="flex flex-col gap-2" data-testid="companies-list">
-          {companies.map((c) => {
+        <>
+        <div className="dgn-toolbar !my-0">
+          <label className="min-w-0 flex-1"><span className="sr-only">Buscar empresa</span>
+            <input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar empresa ou CNPJ" className="w-full" />
+          </label>
+          <button type="button" className="dgn-link" aria-pressed={pendingOnly} onClick={() => setPendingOnly(!pendingOnly)}>
+            {pendingOnly ? "Exibindo pendentes" : "Com solicitações pendentes"}
+          </button>
+        </div>
+        <p className="text-xs text-white/50">{visibleCompanies.length} empresas</p>
+        <ul className="dgn-company-list flex flex-col" data-testid="companies-list">
+          {visibleCompanies.map((c) => {
             const pending = pendingByCompany[c.id] ?? 0;
             return (
               <li key={c.id} className="rounded-xl border border-white/[0.06] bg-white/[0.02] transition hover:bg-white/[0.04]">
@@ -116,7 +134,7 @@ export function CompaniesAdmin({
                   </div>
                   {pending > 0 ? (
                     <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/25 bg-amber-300/[0.06] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-200">
-                      {pending} aguardando
+                      {pending} pendentes
                     </span>
                   ) : null}
                   <ArrowRight size={16} className="shrink-0 text-white/40" />
@@ -125,6 +143,8 @@ export function CompaniesAdmin({
             );
           })}
         </ul>
+        {visibleCompanies.length === 0 ? <p className="py-8 text-center text-sm text-white/55">Nenhuma empresa encontrada. Revise a busca e os filtros.</p> : null}
+        </>
       ) : null}
     </section>
   );

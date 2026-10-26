@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import "@/components/growth/portal-ui.css";
 import {
   DGN_COMPANY_MANAGER_COOKIE,
   verifyManagerCookieValue,
@@ -48,18 +49,17 @@ export default async function EmpresaSolicitarPage() {
   if (state.kind === "no-session") redirect("/empresa");
 
   return (
-    <main className="min-h-screen bg-[#0b0b0d] px-4 py-6 text-white sm:px-6 sm:py-8 lg:px-8">
+    <main className="dgn-manager min-h-screen bg-[#0b0b0d] px-4 py-6 text-white sm:px-6 sm:py-8 lg:px-8">
       <div className="mx-auto max-w-2xl">
         <header className="flex flex-col gap-3 border-b border-white/[0.06] pb-6">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
             {state.company.displayName}
           </p>
           <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
-            Nova solicitação de serviço
+            Solicitar atendimento
           </h1>
           <p className="text-sm text-white/60">
-            A unidade DGN recebe seu pedido e responde confirmando a data ou propondo uma
-            alternativa.
+            Escolha o veículo, o serviço e a data de preferência.
           </p>
           <Link
             href="/empresa"
@@ -71,8 +71,7 @@ export default async function EmpresaSolicitarPage() {
 
         {state.vehicles.length === 0 ? (
           <p className="mt-6 rounded-xl border border-amber-300/20 bg-amber-300/[0.03] p-4 text-sm text-amber-200/90">
-            Sua empresa ainda não cadastrou veículos na frota. Peça para o time DGN cadastrar antes
-            de solicitar um serviço.
+            Cadastre os veículos com a equipe DGN para solicitar atendimento.
           </p>
         ) : (
           <NewServiceRequestForm vehicles={state.vehicles} />

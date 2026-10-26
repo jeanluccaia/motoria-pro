@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
+import "@/components/growth/portal-ui.css";
 import { Building2, LogOut, Plus } from "lucide-react";
 import {
   DGN_COMPANY_MANAGER_COOKIE,
@@ -85,24 +86,24 @@ export default async function EmpresaPortalPage({
       err === "invalid"
         ? [
             "Link inválido ou expirado",
-            "O link que você usou não bateu com a assinatura esperada. Pode ter sido reescrito pelo e-mail/WhatsApp ou revogado. Peça um novo link à equipe DGN.",
+            "Não foi possível validar seu acesso. Solicite um novo link à equipe DGN.",
           ]
         : err === "missing"
           ? [
               "Link incompleto",
-              "Este endereço precisa dos parâmetros de acesso (mgr e t). Peça para a equipe DGN enviar o link completo da sua empresa.",
+              "Solicite à equipe DGN o link completo de acesso à sua empresa.",
             ]
           : state.kind === "stale-manager"
             ? [
                 "Sessão não encontrada",
-                "Seu link é válido, mas o gestor que ele aponta não existe mais no sistema (ou os parâmetros foram adulterados). Peça um link novo à equipe DGN.",
+                "Seu acesso não está disponível. Solicite um novo link à equipe DGN.",
               ]
             : [
                 "Acesso restrito",
-                "Este portal é exclusivo para gestores de empresas contratantes DGN. Peça para a equipe DGN enviar seu link personalizado — ele traz os parâmetros de autenticação e abre direto na frota da sua empresa.",
+                "Acesse a frota da sua empresa pelo link enviado pela equipe DGN.",
               ];
     return (
-      <main className="min-h-screen bg-[#0b0b0d] px-4 py-10 text-white sm:py-16">
+      <main className="dgn-manager min-h-screen bg-[#0b0b0d] px-4 py-10 text-white sm:py-16">
         <div className="mx-auto flex max-w-md flex-col gap-6 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6 sm:p-8">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
@@ -124,17 +125,17 @@ export default async function EmpresaPortalPage({
 
   if (state.kind === "error") {
     return (
-      <main className="min-h-screen bg-[#0b0b0d] px-4 py-10 text-white">
+      <main className="dgn-manager min-h-screen bg-[#0b0b0d] px-4 py-10 text-white">
         <div className="mx-auto max-w-xl rounded-2xl border border-amber-300/20 bg-amber-300/[0.03] p-6">
           <h1 className="text-base font-semibold text-amber-200">Portal indisponível agora</h1>
-          <p className="mt-2 text-sm leading-relaxed text-amber-100/80">{state.message}</p>
+          <p className="mt-2 text-sm leading-relaxed text-amber-100/80">Tente novamente em instantes ou fale com a equipe DGN.</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#0b0b0d] px-4 py-6 text-white sm:px-6 sm:py-8 lg:px-8">
+    <main className="dgn-manager min-h-screen bg-[#0b0b0d] px-4 py-6 text-white sm:px-6 sm:py-8 lg:px-8">
       <div className="mx-auto max-w-4xl">
         <header className="flex flex-col gap-3 border-b border-white/[0.06] pb-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex items-start gap-3">
@@ -149,17 +150,17 @@ export default async function EmpresaPortalPage({
                 Olá, {state.manager.displayName.split(" ")[0]}
               </h1>
               <p className="mt-1 text-xs text-white/55">
-                Portal exclusivo da sua empresa — você vê só a frota de {state.company.displayName}.
+                Gestão de atendimentos da sua frota
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="dgn-manager-request-actions flex gap-2">
             <Link
               href="/empresa/solicitar"
               className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/[0.08] px-4 text-sm font-medium text-[#E7C96A] hover:bg-[#C9A84C]/[0.14]"
             >
               <Plus size={14} />
-              Nova solicitação
+              Solicitar atendimento
             </Link>
             <form action="/empresa/sair" method="post">
               <button

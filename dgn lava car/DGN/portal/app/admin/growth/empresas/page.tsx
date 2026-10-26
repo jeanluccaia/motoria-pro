@@ -37,27 +37,25 @@ export default async function EmpresasAdminPage() {
   const state = await loadState();
 
   return (
-    <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-      <div className="mx-auto max-w-5xl">
+    <div className="dgn-page">
+      <div>
         <header className="flex flex-col gap-3 border-b border-white/[0.06] pb-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
-              Frotas B2B
+              Gestão de frotas
             </p>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-              Empresas contratantes
+              Empresas
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">
-              Clientes corporativos com frota, gestores e solicitações de serviço.
-              Cada gestor acessa o portal da empresa pelo link assinado — zero acesso ao
-              CRM interno.
+              Frotas, gestores e solicitações de atendimento.
             </p>
           </div>
           <Link
             href="/admin/growth"
             className="inline-flex min-h-11 items-center self-start rounded-lg border border-white/10 bg-white/[0.04] px-4 text-sm font-medium text-white/80 transition hover:bg-white/[0.08]"
           >
-            Voltar ao Dashboard
+            Visão Geral
           </Link>
         </header>
 
@@ -66,10 +64,10 @@ export default async function EmpresasAdminPage() {
             <AlertTriangle size={18} className="mt-0.5 shrink-0" />
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-300">
-                Frotas B2B indisponível
+                Gestão de frotas indisponível
               </p>
               <p className="mt-1 leading-relaxed">
-                {state.message}
+                Não foi possível carregar as empresas. Tente novamente em instantes.
               </p>
             </div>
           </section>

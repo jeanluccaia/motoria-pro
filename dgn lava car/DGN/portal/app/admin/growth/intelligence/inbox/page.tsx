@@ -25,27 +25,25 @@ export default async function IntelligenceInboxPage() {
   const initial = await loadInitialState();
 
   return (
-    <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-      <div className="mx-auto max-w-5xl">
+    <div className="dgn-page">
+      <div>
         <header className="flex flex-col gap-3 border-b border-white/[0.06] pb-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
               Inteligência DGN
             </p>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-              Inbox de ações do agente
+              Ações para revisar
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">
-              Oportunidades, alertas, follow-ups e rascunhos de campanha propostos pelo agente DGN.
-              Cada ação precisa de revisão humana antes de qualquer execução em{" "}
-              <code className="text-white/80">crm_*</code>.
+              Revise as recomendações antes de aprovar ou registrar a execução.
             </p>
           </div>
           <Link
             href="/admin/growth"
             className="inline-flex min-h-11 items-center self-start rounded-lg border border-white/10 bg-white/[0.04] px-4 text-sm font-medium text-white/80 transition hover:bg-white/[0.08]"
           >
-            Voltar ao Dashboard
+            Visão Geral
           </Link>
         </header>
 
@@ -54,11 +52,10 @@ export default async function IntelligenceInboxPage() {
             <AlertTriangle size={18} className="mt-0.5 shrink-0" />
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-300">
-                Agent Core indisponível
+                Ações indisponíveis
               </p>
               <p className="mt-1 leading-relaxed">
                 Não foi possível carregar as ações do agente agora.
-                <span className="ml-1 text-amber-200/60">({initial.message})</span>
               </p>
             </div>
           </section>

@@ -66,12 +66,12 @@ export default async function EmpresaDetailPage({
   if (state.kind === "not-found") notFound();
 
   return (
-    <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-      <div className="mx-auto max-w-5xl">
+    <div className="dgn-page">
+      <div>
         <header className="flex flex-col gap-3 border-b border-white/[0.06] pb-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
-              Frotas B2B
+              Gestão de frotas
             </p>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
               {state.kind === "ok" ? state.company.displayName : "Empresa"}
@@ -98,7 +98,7 @@ export default async function EmpresaDetailPage({
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-300">
                 Falha ao carregar
               </p>
-              <p className="mt-1 leading-relaxed">{state.message}</p>
+              <p className="mt-1 leading-relaxed">Não foi possível carregar esta empresa. Tente novamente em instantes.</p>
             </div>
           </section>
         ) : (

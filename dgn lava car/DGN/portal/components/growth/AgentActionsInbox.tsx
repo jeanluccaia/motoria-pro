@@ -98,7 +98,7 @@ export function AgentActionsInbox({ initialActions }: { initialActions: AgentAct
   if (sorted.length === 0) {
     return (
       <section className="mt-6 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 text-sm text-white/60">
-        Nenhuma ação do agente aguardando revisão agora.
+        Nenhuma ação aguardando revisão.
       </section>
     );
   }
@@ -115,7 +115,7 @@ export function AgentActionsInbox({ initialActions }: { initialActions: AgentAct
         </div>
       ) : null}
 
-      <ul className="mt-6 flex flex-col gap-3" data-testid="agent-actions-inbox">
+      <ul className="dgn-inbox-list mt-6 flex flex-col" data-testid="agent-actions-inbox">
         {sorted.map((a) => (
           <ActionCard
             key={a.id}
@@ -146,7 +146,7 @@ export function AgentActionsInbox({ initialActions }: { initialActions: AgentAct
 const KIND_LABELS: Record<AgentActionRow["kind"], string> = {
   alert: "Alerta",
   opportunity: "Oportunidade",
-  followup_task: "Follow-up",
+  followup_task: "Acompanhamento",
   campaign_draft: "Campanha",
 };
 
@@ -179,13 +179,13 @@ function ActionCard({
       className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 sm:p-5"
       data-testid={`agent-action-${action.id}`}
     >
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="dgn-inbox-meta">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-white/80">
           <KindIcon kind={action.kind} />
           {KIND_LABELS[action.kind]}
         </span>
         <span className="text-[10px] uppercase tracking-[0.14em] text-white/40">
-          via {action.sourceTool}
+          Aguardando revisão
         </span>
       </div>
 
@@ -255,7 +255,7 @@ function ActionCard({
       ) : state.phase === "confirming-execute" ? (
         <div className="mt-4 flex flex-col gap-2">
           <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">
-            Referência de execução (opcional — ex: wa.me enviado, link, obs.)
+            Referência da execução (opcional)
           </label>
           <input
             type="text"
@@ -290,11 +290,11 @@ function ActionCard({
             type="button"
             disabled={isPending}
             onClick={() => onApprove("")}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/[0.08] px-3 text-sm font-medium text-[#E7C96A] transition hover:bg-[#C9A84C]/[0.14] disabled:opacity-40"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-[#C9A84C] bg-[#C9A84C] px-3 text-sm font-semibold text-[#111] transition hover:bg-[#dfbf63] disabled:opacity-40"
             data-testid="btn-approve"
           >
             {isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-            Aprovar
+            Aprovar ação
           </button>
           <button
             type="button"

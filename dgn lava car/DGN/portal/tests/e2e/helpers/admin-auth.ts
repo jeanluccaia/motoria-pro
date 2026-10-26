@@ -18,7 +18,7 @@ export async function loginAsAdmin(context: BrowserContext) {
   await page.goto("/admin/growth/login", { waitUntil: "domcontentloaded", timeout: 60_000 });
   await page.locator('input[name="password"]').fill(testAdminPassword());
   await Promise.all([
-    page.waitForURL(/\/admin\/growth(\/?|$)/, { timeout: 30_000 }),
+    page.waitForURL(/\/admin\/growth\/?(?:\?.*)?$/, { timeout: 30_000 }),
     page.locator('button[type="submit"]').click(),
   ]);
   // Sanity: se login falhou, a URL volta com ?error=invalid — falha aqui é bug,

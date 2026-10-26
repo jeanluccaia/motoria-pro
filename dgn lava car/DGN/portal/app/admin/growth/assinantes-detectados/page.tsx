@@ -66,23 +66,18 @@ function statusBadge(row: SubscribersCentralRow) {
   );
 }
 
-function StatCard({ label, value, tone }: { label: string; value: number; tone: "gold" | "neutral" | "warn" | "emerald" }) {
-  const toneClasses = {
-    gold:    "border-[#C9A84C]/30 bg-[#C9A84C]/[0.03] text-[#C9A84C]",
-    neutral: "border-white/10 bg-white/[0.02] text-white/80",
-    warn:    "border-amber-300/30 bg-amber-300/[0.03] text-amber-200",
-    emerald: "border-emerald-300/30 bg-emerald-300/[0.03] text-emerald-200",
-  }[tone];
+function StatCard({ label, value }: { label: string; value: number; tone: "gold" | "neutral" | "warn" | "emerald" }) {
   return (
-    <div className={`rounded-xl border p-4 ${toneClasses}`}>
-      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] opacity-70">{label}</p>
-      <p className="mt-3 text-3xl font-semibold">{value}</p>
+    <div className="dgn-stat">
+      <p className="dgn-stat-label">{label}</p>
+      <p className="dgn-stat-value">{value}</p>
     </div>
   );
 }
 
-function buildQuery(status: StatusFilter, plan: PlanFilter): string {
+function buildQuery(status: StatusFilter, plan: PlanFilter, query = ""): string {
   const params = new URLSearchParams();
+  if (query) params.set("q", query);
   if (status !== "all") params.set("status", status);
   if (plan !== "all")   params.set("plano", plan);
   const qs = params.toString();
@@ -95,6 +90,7 @@ export default async function AssinantesPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
+  const query = typeof params.q === "string" ? params.q.trim() : "";
   const status = parseStatus(params.status);
   const plan = parsePlan(params.plano);
 
@@ -125,28 +121,25 @@ export default async function AssinantesPage({
   const overdue      = allRows.filter((r) => r.status === "inadimplente").length;
 
   const rows = allRows.filter((row) => {
+    if (query && ![row.displayName, row.vehicleLabel, row.maskedPlate, row.planLabel].some(value => value.toLocaleLowerCase("pt-BR").includes(query.toLocaleLowerCase("pt-BR")))) return false;
     if (status !== "all" && row.status !== status) return false;
     if (plan !== "all" && row.planLabel !== plan) return false;
     return true;
   });
 
   return (
-    <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-      <div className="mx-auto max-w-6xl">
-        <header className="border-b border-white/[0.06] pb-8">
+    <div className="dgn-page">
+      <div>
+        <header className="border-b border-white/[0.06] pb-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
-                Central operacional
+                Relacionamento
               </p>
-              <h1 className="mt-3 max-w-3xl text-3xl font-semibold leading-[1.1] tracking-tight sm:text-4xl">
+              <h1 className="mt-2 font-semibold tracking-tight">
                 Assinantes
               </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#A7A7A7]">
-                Todos os assinantes ativos, detectados e pendentes de validação num só lugar. Clique
-                em um cliente para abrir o Profile 360 e editar telefone, e-mail, veículo, foto,
-                agendamentos e acesso ao Portal — sem sair da aba Assinantes.
-              </p>
+
             </div>
             <div className="shrink-0">
               <AddSubscriberDialog
@@ -154,7 +147,7 @@ export default async function AssinantesPage({
                 disabled={!dbConfigured}
                 disabledReason={
                   !dbConfigured
-                    ? "Habilite a persistência (3 vars Supabase) para criar assinatura manual."
+                    ? "Cadastro indisponível neste ambiente."
                     : undefined
                 }
               />
@@ -162,7 +155,7 @@ export default async function AssinantesPage({
           </div>
         </header>
 
-        <section className="mt-6 grid gap-3 sm:grid-cols-4">
+        <section className="dgn-stats" aria-label="Resumo de assinantes">
           <StatCard label="Assinantes ativos"          value={active}   tone="emerald" />
           <StatCard label="Detectados"                 value={detected} tone="gold" />
           <StatCard label="Pendentes de validação"     value={pending}  tone="neutral" />
@@ -174,27 +167,33 @@ export default async function AssinantesPage({
             <AlertTriangle size={18} className="mt-0.5 shrink-0" />
             <div>
               <p className="font-semibold uppercase tracking-wider text-[11px] text-amber-300">
-                Persistência ainda não habilitada
+                Somente consulta
               </p>
               <p className="mt-1 leading-relaxed">
-                Esta visão está sendo servida a partir do JSON legado + seed de assinantes. Nenhuma
-                alteração aqui persiste ainda. As 3 variáveis do Supabase (URL, ANON_KEY,
-                SERVICE_ROLE_KEY) precisam estar configuradas na Vercel antes das ações de
-                validação, kit e cartão ficarem disponíveis.
+                O cadastro e a edição de assinaturas estão indisponíveis neste ambiente.
               </p>
             </div>
           </div>
         )}
 
-        <section className="mt-6 flex flex-wrap items-center gap-2">
+        <form action="/admin/growth/assinantes-detectados" method="get" className="dgn-toolbar" role="search">
+          <label className="min-w-0 flex-1"><span className="sr-only">Buscar assinantes</span>
+            <input type="search" name="q" defaultValue={query} placeholder="Buscar nome, veículo ou plano" className="w-full" />
+          </label>
+          {status !== "all" ? <input type="hidden" name="status" value={status} /> : null}
+          {plan !== "all" ? <input type="hidden" name="plano" value={plan} /> : null}
+          <button type="submit" className="dgn-link">Buscar</button>
+          {query ? <Link href={`/admin/growth/assinantes-detectados${buildQuery(status, plan)}`} className="dgn-text-link">Limpar busca</Link> : null}
+        </form>
+        <section aria-label="Filtros de assinantes" className="mt-4 flex flex-wrap items-center gap-2">
           <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50">Status</span>
           {STATUS_FILTERS.map((filter) => {
             const isSelected = status === filter.key;
             return (
               <Link
                 key={`status-${filter.key}`}
-                href={`/admin/growth/assinantes-detectados${buildQuery(filter.key, plan)}`}
-                className={`inline-flex h-7 items-center rounded-full border px-3 text-[11px] font-medium transition ${
+                href={`/admin/growth/assinantes-detectados${buildQuery(filter.key, plan, query)}`}
+                className={`inline-flex min-h-10 items-center rounded-lg border px-3 text-xs font-medium transition ${
                   isSelected
                     ? "border-[#C9A84C]/40 bg-[#C9A84C]/10 text-[#E7C96A]"
                     : "border-white/10 bg-white/[0.02] text-white/70 hover:border-white/20"
@@ -210,8 +209,8 @@ export default async function AssinantesPage({
             return (
               <Link
                 key={`plan-${filter.key}`}
-                href={`/admin/growth/assinantes-detectados${buildQuery(status, filter.key)}`}
-                className={`inline-flex h-7 items-center rounded-full border px-3 text-[11px] font-medium transition ${
+                href={`/admin/growth/assinantes-detectados${buildQuery(status, filter.key, query)}`}
+                className={`inline-flex min-h-10 items-center rounded-lg border px-3 text-xs font-medium transition ${
                   isSelected
                     ? "border-[#C9A84C]/40 bg-[#C9A84C]/10 text-[#E7C96A]"
                     : "border-white/10 bg-white/[0.02] text-white/70 hover:border-white/20"
@@ -223,8 +222,9 @@ export default async function AssinantesPage({
           })}
         </section>
 
-        <section className="mt-6 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#101010]">
-          <table className="w-full text-left text-sm">
+        <p className="mt-5 mb-3 text-xs text-white/50">{rows.length} assinantes encontrados</p>
+        <section className="dgn-panel dgn-table-wrap">
+          <table className="dgn-table dgn-subscriber-table">
             <thead className="bg-white/[0.02] text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50">
               <tr>
                 <th className="px-5 py-3">Cliente</th>
@@ -249,7 +249,7 @@ export default async function AssinantesPage({
                     key={row.id}
                     className="border-t border-white/[0.04] transition hover:bg-white/[0.03]"
                   >
-                    <td className="px-5 py-4 align-top">
+                    <td data-label="Cliente" className="px-5 py-4 align-top">
                       <div className="flex flex-col gap-1">
                         <Link
                           href={`/admin/growth/customers/${encodeURIComponent(row.id)}`}
@@ -269,20 +269,20 @@ export default async function AssinantesPage({
                         )}
                       </div>
                     </td>
-                    <td className="px-5 py-4 align-top text-white/80">{row.planLabel}</td>
-                    <td className="px-5 py-4 align-top text-white/70">{formatDate(row.nextDueDate)}</td>
-                    <td className="px-5 py-4 align-top text-white/70">{row.paymentMethodLabel}</td>
-                    <td className="px-5 py-4 align-top text-white/70">
+                    <td data-label="Plano" className="px-5 py-4 align-top text-white/80">{row.planLabel}</td>
+                    <td data-label="Próxima cobrança" className="px-5 py-4 align-top text-white/70">{formatDate(row.nextDueDate)}</td>
+                    <td data-label="Pagamento" className="px-5 py-4 align-top text-white/70">{row.paymentMethodLabel}</td>
+                    <td data-label="Veículo" className="px-5 py-4 align-top text-white/70">
                       <div className="flex flex-col">
                         <span>{row.vehicleLabel}</span>
                         <span className="font-mono text-[11px] text-white/50">{row.maskedPlate}</span>
                       </div>
                     </td>
-                    <td className="px-5 py-4 align-top">{statusBadge(row)}</td>
+                    <td data-label="Status" className="px-5 py-4 align-top">{statusBadge(row)}</td>
                     <td className="px-5 py-4 align-top text-right">
                       <Link
                         href={`/admin/growth/customers/${encodeURIComponent(row.id)}`}
-                        className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium text-white/80 transition hover:border-[#C9A84C]/40 hover:text-[#E7C96A]"
+                        className="inline-flex min-h-10 items-center gap-1 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium text-white/80 transition hover:border-[#C9A84C]/40 hover:text-[#E7C96A]"
                       >
                         Abrir
                         <ArrowUpRight size={12} />
@@ -295,17 +295,7 @@ export default async function AssinantesPage({
           </table>
         </section>
 
-        <footer className="mt-8 rounded-xl border border-white/[0.06] bg-[#101010] p-5 text-xs text-white/50">
-          <p className="uppercase tracking-[0.16em] text-white/70">Nota operacional</p>
-          <p className="mt-2 leading-relaxed">
-            Ninguém desta fila é promovido para <em>ativo</em> sem confirmação humana. Os Founders
-            Nº001, Nº002 e Nº003 seguem preservados. A vaga Nº004 está reaberta — Iara aparece aqui
-            como assinante detectada, mas <strong>não</strong> como Founder confirmada.
-            Reconhecimento posterior exige decisão manual registrada em audit log. Alterações
-            financeiras que impactem contrato PagBank continuam exigindo confirmação explícita
-            (evolução prevista para Fase 2).
-          </p>
-        </footer>
+        <footer className="mt-6 text-xs text-white/50">Ativações e alterações de assinatura exigem confirmação.</footer>
       </div>
     </div>
   );

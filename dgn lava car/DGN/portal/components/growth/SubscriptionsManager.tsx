@@ -206,7 +206,7 @@ export function SubscriptionsManager({
     <div className="space-y-4">
       {!enabled && (
         <p className="rounded-xl border border-amber-300/30 bg-amber-300/[0.06] px-3 py-2 text-xs text-amber-200">
-          Persistência não habilitada — leitura apenas. Não é possível criar ou editar assinaturas neste ambiente.
+          Somente consulta. O cadastro e a edição de assinaturas estão indisponíveis neste ambiente.
         </p>
       )}
       {loading && <p className="text-xs text-white/50">Carregando assinaturas…</p>}
