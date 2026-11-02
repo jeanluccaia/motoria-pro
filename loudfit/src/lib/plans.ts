@@ -23,9 +23,9 @@ export interface Plan {
   checkoutUrl?: string | null
 }
 
-// Campanha de outubro/2026:
-//  • Trimestral entra como card destaque — 3 meses por R$ 99/mês (R$ 297
-//    no total, à vista ou em 3×), com camiseta Loud Fit de presente.
+// Campanha Black Friday/2026:
+//  • Trimestral entra como card destaque — Treine 3 meses, pague apenas 2:
+//    R$ 119,90/mês em 2 pagamentos (total R$ 239,80) para 3 meses de treino.
 //  • Mensal Recorrente mantém 1ª mensalidade promocional de R$ 69 e
 //    "sem fidelidade" como diferencial.
 //  • Power Plus continua como alternativa com fidelidade de 12 meses,
@@ -35,16 +35,15 @@ const standardPlans: Plan[] = [
   {
     slug: 'power-trimestral',
     name: 'Trimestral',
-    badge: 'MAIS VANTAJOSO',
-    price: 'R$ 99',
+    badge: 'BLACK FRIDAY',
+    price: 'R$ 119,90',
     period: '/mês',
-    description: 'Musculação, cardio e aulas coletivas',
+    description: 'Treine 3 meses, pague apenas 2',
     featured: true,
     tier: 'featured',
     commitment: 'Contratação única de 3 meses',
-    totalPrice: 'R$ 297 nos 3 meses',
-    paymentTerms: 'À vista ou em 3× de R$ 99',
-    giftLine: 'Ganhe uma camiseta Loud Fit',
+    totalPrice: 'R$ 239,80 em 2 pagamentos',
+    paymentTerms: 'Treine 3 meses · pague apenas 2× de R$ 119,90',
     checkoutUrl: null,
   },
   {
@@ -90,21 +89,21 @@ const standardPlans: Plan[] = [
 // Ipiranga mantém tabela de preços própria — confirmada nos dados existentes
 // (Power Plus R$ 179,90; Power R$ 199,90) e no override de campanha
 // (Mensal Recorrente R$ 189,00 documentado em `campaigns.ts`).
-// Trimestral Ipiranga: R$ 139/mês, total R$ 417 (à vista ou 3× R$ 139).
+// Trimestral Ipiranga Black Friday: R$ 169,90/mês × 2 pagamentos (total
+// R$ 339,80) para 3 meses de treino — "pague 2, treine 3".
 const ipirangaPlans: Plan[] = [
   {
     slug: 'power-trimestral',
     name: 'Trimestral',
-    badge: 'MAIS VANTAJOSO',
-    price: 'R$ 139',
+    badge: 'BLACK FRIDAY',
+    price: 'R$ 169,90',
     period: '/mês',
-    description: 'Musculação, cardio e aulas coletivas',
+    description: 'Treine 3 meses, pague apenas 2',
     featured: true,
     tier: 'featured',
     commitment: 'Contratação única de 3 meses',
-    totalPrice: 'R$ 417 nos 3 meses',
-    paymentTerms: 'À vista ou em 3× de R$ 139',
-    giftLine: 'Ganhe uma camiseta Loud Fit',
+    totalPrice: 'R$ 339,80 em 2 pagamentos',
+    paymentTerms: 'Treine 3 meses · pague apenas 2× de R$ 169,90',
     checkoutUrl: null,
   },
   {
@@ -173,7 +172,7 @@ export const planBenefits = networkBenefits
 
 /** Descrição curta do plano exibida no card. Reutilizada por Home e unidades. */
 export const planShortDescriptions: Record<string, string> = {
-  'power-trimestral': 'Musculação, cardio e aulas coletivas',
+  'power-trimestral': 'Treine 3 meses, pague apenas 2',
   'power-recorrente': 'Sem fidelidade • Cancele sem multa\nCobrança recorrente no cartão',
   'power-plus': 'A menor mensalidade da rede',
   'power': 'Sem compromisso',
@@ -182,11 +181,11 @@ export const planShortDescriptions: Record<string, string> = {
 /** Texto de condições exibido dentro do painel expansível de cada plano. */
 export const planConditions: Record<string, string[]> = {
   'power-trimestral': [
+    'Oferta Black Friday: treine 3 meses pagando apenas 2',
     'Contratação única do trimestre (3 meses)',
     'Não é mensalidade recorrente',
-    'À vista pode ser pago por qualquer forma de pagamento',
-    'Parcelamento em até 3× no cartão',
-    'Camiseta Loud Fit de presente na retirada',
+    'À vista ou em 2× no cartão',
+    'A 3ª mensalidade é bonificada pela Loud Fit',
   ],
   'power-recorrente': [
     'Sem fidelidade',

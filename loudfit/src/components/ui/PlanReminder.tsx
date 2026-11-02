@@ -8,22 +8,22 @@ interface PlanReminderProps {
 }
 
 const STANDARD_PRICES: Record<string, string> = {
-  'power-trimestral': 'R$ 99',
+  'power-trimestral': 'R$ 119,90',
   'power-recorrente': 'R$ 139,90',
   'power-plus': 'R$ 119,00',
   'power': 'R$ 149,00',
 }
 
 const IPIRANGA_PRICES: Record<string, string> = {
-  'power-trimestral': 'R$ 139',
+  'power-trimestral': 'R$ 169,90',
   'power-recorrente': 'R$ 189,00',
   'power-plus': 'R$ 179,90',
   'power': 'R$ 199,90',
 }
 
 const TRIMESTRAL_TOTAL: Record<'standard' | 'ipiranga', { total: string; installment: string }> = {
-  standard: { total: 'R$ 297', installment: '3× de R$ 99' },
-  ipiranga: { total: 'R$ 417', installment: '3× de R$ 139' },
+  standard: { total: 'R$ 239,80', installment: '2× de R$ 119,90' },
+  ipiranga: { total: 'R$ 339,80', installment: '2× de R$ 169,90' },
 }
 
 function PlanReminderInner({ isIpiranga }: PlanReminderProps) {
@@ -45,7 +45,7 @@ function PlanReminderInner({ isIpiranga }: PlanReminderProps) {
       <p className="mt-1 text-lg font-black text-gray-900">{planName}</p>
       {plano === 'power-trimestral' && monthlyPrice && (
         <p className="mt-1 text-sm text-gray-500">
-          3 meses de treino por {monthlyPrice}/mês — total {trimestral.total}. À vista ou em {trimestral.installment}. Camiseta Loud Fit de presente na retirada.
+          Black Friday: treine 3 meses e pague apenas 2 — {trimestral.installment} (total {trimestral.total}). A 3ª mensalidade é bonificada pela Loud Fit.
         </p>
       )}
       {plano === 'power-recorrente' && monthlyPrice && (

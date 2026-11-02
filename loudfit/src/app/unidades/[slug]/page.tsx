@@ -38,8 +38,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = slug === 'anchieta-sp'
     ? `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Fale direto com a equipe da unidade no WhatsApp para consultar planos e condições.`
     : slug === 'ipiranga'
-    ? `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Plano Trimestral: 3 meses de treino por R$ 139/mês (R$ 417 no total) com camiseta Loud Fit de presente.`
-    : `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Plano Trimestral: 3 meses de treino por R$ 99/mês (R$ 297 no total) com camiseta Loud Fit de presente.`
+    ? `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Black Friday Loud Fit: treine 3 meses e pague apenas 2 no Trimestral — 2× R$ 169,90 (total R$ 339,80).`
+    : `Academia ${name} em ${unit.bairro}, ${unit.cidade}. Black Friday Loud Fit: treine 3 meses e pague apenas 2 no Trimestral — 2× R$ 119,90 (total R$ 239,80).`
   return {
     title: { absolute: title },
     description,
@@ -157,8 +157,8 @@ export default async function UnitPage({ params }: Props) {
                   : unit.status === 'em_breve'
                   ? 'Unidade em inauguração.'
                   : isIpiranga
-                  ? 'Estrutura completa. Trimestral: 3 meses de treino por R$ 139/mês com camiseta Loud Fit de presente.'
-                  : 'Estrutura completa. Trimestral: 3 meses de treino por R$ 99/mês com camiseta Loud Fit de presente.'}
+                  ? 'Estrutura completa. Black Friday no Trimestral: treine 3 meses e pague apenas 2 — 2× R$ 169,90.'
+                  : 'Estrutura completa. Black Friday no Trimestral: treine 3 meses e pague apenas 2 — 2× R$ 119,90.'}
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 {isAnchieta && anchietaWhatsappHref && (
@@ -275,12 +275,12 @@ export default async function UnitPage({ params }: Props) {
                 </>
               ) : (
                 <>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lf-volt">Matrícula online</p>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lf-volt">Black Friday · Matrícula online</p>
                   <h2 className="mt-3 text-3xl font-black text-gray-900 leading-tight">
-                    {isIpiranga ? '3 meses por R$ 139/mês' : '3 meses por R$ 99/mês'}
+                    Treine 3 meses, pague apenas 2
                   </h2>
                   <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-gray-400">
-                    Trimestral · Camiseta Loud Fit de presente
+                    Trimestral · {isIpiranga ? '2× R$ 169,90 (total R$ 339,80)' : '2× R$ 119,90 (total R$ 239,80)'}
                   </p>
                   <p className="mt-3 text-sm leading-relaxed text-gray-500">
                     {isIpiranga && unit.status === 'em_breve' && hasCheckout
@@ -457,12 +457,13 @@ export default async function UnitPage({ params }: Props) {
             />
 
             <p className="mt-6 text-xs text-[#7A7267]">
-              Trimestral: contratação única de 3 meses com camiseta Loud Fit de presente na
-              retirada; à vista ou em até 3× no cartão. Mensal Recorrente tem 1ª mensalidade
-              por R$ 69 e segue mês a mês pelo valor cheio desta unidade a partir do segundo
-              mês, sem fidelidade e sem multa de cancelamento. Power Plus tem 1ª mensalidade
-              por R$ 9,90 e fidelidade de 12 meses; a partir do segundo mês, valor cheio da
-              unidade. O Power segue o valor cheio desde a primeira cobrança.
+              Trimestral Black Friday: contratação única de 3 meses pagando apenas 2
+              mensalidades; à vista ou em 2× no cartão — a 3ª mensalidade é bonificada pela
+              Loud Fit. Mensal Recorrente tem 1ª mensalidade por R$ 69 e segue mês a mês
+              pelo valor cheio desta unidade a partir do segundo mês, sem fidelidade e sem
+              multa de cancelamento. Power Plus tem 1ª mensalidade por R$ 9,90 e fidelidade
+              de 12 meses; a partir do segundo mês, valor cheio da unidade. O Power segue o
+              valor cheio desde a primeira cobrança.
             </p>
           </Section>
         )}

@@ -18,16 +18,16 @@
 
 import { readStoredConsent } from '@/lib/consent'
 
-// Bump para v2 na campanha de outubro/2026 — força o primeiro clique de
+// Bump para v3 na campanha Black Friday/2026 — força o primeiro clique de
 // cada usuário a disparar com o novo valor mesmo que a sessão ainda tenha
-// o dedup v1 setado durante a transição de campanhas.
-const DEDUP_KEY = 'lf_ipiranga_initiate_checkout_v2'
+// o dedup v2 setado durante a transição de campanhas.
+const DEDUP_KEY = 'lf_ipiranga_initiate_checkout_v3'
 
-// Campanha de outubro/2026: o Trimestral é a oferta destaque da Loud Fit.
-// Na unidade Ipiranga o Trimestral é R$ 139/mês (total R$ 417). O
-// InitiateCheckout usa o valor da primeira mensalidade em BRL.
+// Campanha Black Friday/2026: Trimestral Ipiranga é 2× R$ 169,90 para
+// 3 meses de treino (total R$ 339,80). O InitiateCheckout usa o valor
+// da primeira mensalidade em BRL.
 const IPIRANGA_INITIATE_CHECKOUT_PARAMS = {
-  value: 139,
+  value: 169.9,
   currency: 'BRL',
   content_ids: ['ipiranga-trimestral'],
   content_type: 'product',
@@ -58,7 +58,7 @@ function markFired() {
 
 /**
  * Dispara `InitiateCheckout` no Meta Pixel para a matrícula da Loud Fit
- * Ipiranga (Trimestral R$ 139/mês na campanha de outubro/2026).
+ * Ipiranga (Trimestral Black Friday — 2× R$ 169,90 para 3 meses).
  * Também empurra `initiate_checkout` no dataLayer para GTM.
  *
  * Idempotente por sessão SOMENTE quando o pixel foi de fato disparado —
@@ -94,7 +94,7 @@ export function dispatchIpirangaInitiateCheckout() {
       event: 'initiate_checkout',
       unit: 'ipiranga',
       plan: 'trimestral',
-      value: 139,
+      value: 169.9,
       currency: 'BRL',
     })
   }

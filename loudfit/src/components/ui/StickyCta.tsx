@@ -28,12 +28,11 @@ export function StickyCta() {
       ].join(' ')}
     >
       <p className="text-sm font-medium text-lf-muted">
-        3 meses de treino por{' '}
-        <strong className="text-lf-volt">R$ 99/mês</strong>
-        {' '}no Trimestral · válido até 31/10
+        <strong className="text-lf-volt">BLACK FRIDAY</strong>
+        {' '}· treine 3 meses e pague apenas 2 no Trimestral
       </p>
       <Button href="/unidades?plano=power-trimestral" variant="volt" size="md">
-        Comece agora
+        Aproveitar oferta
       </Button>
     </div>
   )
