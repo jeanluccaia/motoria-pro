@@ -45,17 +45,17 @@ export default async function EmpresasAdminPage() {
               Gestão de frotas
             </p>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-              Empresas
+              Frotas corporativas
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">
-              Frotas, gestores e solicitações de atendimento.
+              Empresas, veículos e solicitações de serviço.
             </p>
           </div>
           <Link
             href="/admin/growth"
             className="inline-flex min-h-11 items-center self-start rounded-lg border border-white/10 bg-white/[0.04] px-4 text-sm font-medium text-white/80 transition hover:bg-white/[0.08]"
           >
-            Visão Geral
+            Visão geral
           </Link>
         </header>
 
@@ -64,10 +64,10 @@ export default async function EmpresasAdminPage() {
             <AlertTriangle size={18} className="mt-0.5 shrink-0" />
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-300">
-                Gestão de frotas indisponível
+                Frotas indisponíveis
               </p>
               <p className="mt-1 leading-relaxed">
-                Não foi possível carregar as empresas. Tente novamente em instantes.
+                Não foi possível carregar as empresas. Tente novamente mais tarde.
               </p>
             </div>
           </section>
@@ -77,7 +77,7 @@ export default async function EmpresasAdminPage() {
               <Building2 size={18} />
             </span>
             <div>
-              <h2 className="text-base font-semibold text-white">Nenhuma empresa ainda</h2>
+              <h2 className="text-base font-semibold text-white">Nenhuma empresa cadastrada</h2>
               <p className="mt-1 text-sm text-white/60">
                 Comece cadastrando a primeira empresa contratante.
               </p>

@@ -84,13 +84,14 @@ function Section({
   hint?: string;
 }) {
   return (
-    <section className="dgn-customer-section">
+    <section id={`customer-section-${index}`} className="dgn-record-section scroll-mt-20 border border-white/[0.06] bg-[#101010] p-4 sm:p-5">
       <header className="flex items-start gap-3 border-b border-white/[0.05] pb-3">
         <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/10 text-[#E7C96A]">
           <Icon size={16} />
         </span>
         <div className="flex flex-col">
-          <h2 className="text-sm font-semibold text-white/90">
+          <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-white/80">
+
             {title}
           </h2>
           {hint ? <p className="mt-1 text-xs text-white/45">{hint}</p> : null}
@@ -126,7 +127,7 @@ function HeaderChip({ label, value, tone }: { label: string; value: string; tone
 
 function Fact({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
+    <div className="dgn-record-fact">
       <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">{label}</p>
       <p className="mt-1 text-sm text-white/85">{value}</p>
     </div>
@@ -193,13 +194,13 @@ export function CustomerFullscreen({
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
-                Ficha do assinante
+                Cliente · visão 360°
               </p>
               <h1 className="mt-2 text-2xl font-semibold leading-tight tracking-tight text-white sm:text-3xl">
                 {customer.name || "Sem nome"}
               </h1>
               <p className="mt-2 text-xs text-white/45">
-                ID operacional: <span className="font-mono text-white/60">{customer.id}</span>
+                Referência: <span className="font-mono text-white/60">{customer.id}</span>
               </p>
             </div>
             <div className="flex flex-col items-stretch gap-2 sm:items-end">
@@ -226,7 +227,7 @@ export function CustomerFullscreen({
               ) : null}
               {!editable && (
                 <span className="inline-flex h-fit items-center gap-1.5 rounded-full border border-amber-300/30 bg-amber-300/[0.06] px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-amber-200">
-                  Somente consulta
+                  Somente leitura
                 </span>
               )}
             </div>
@@ -244,12 +245,15 @@ export function CustomerFullscreen({
           </div>
         </header>
 
+        <nav aria-label="Seções da ficha do cliente" className="mt-5 flex flex-wrap gap-2 border-b border-white/[0.08] pb-3">
+          {[[1, "Dados"], [2, "Assinaturas"], [3, "Veículos"], [5, "Agenda"], [7, "Acesso"]].map(([index, label]) => <a key={index} href={`#customer-section-${index}`} className="dgn-button">{label}</a>)}
+        </nav>
         <main className="mt-6 space-y-5">
           <Section
             index={1}
             title="Dados do cliente"
             icon={User}
-            hint="Contato e informações comerciais."
+            hint="Contatos e acompanhamento comercial."
           >
             <div className="space-y-6">
               <ContactPhoneEditor
@@ -276,9 +280,9 @@ export function CustomerFullscreen({
 
           <Section
             index={2}
-            title="Gerenciar assinaturas"
+            title="Assinaturas"
             icon={Wallet}
-            hint="Gerencie assinaturas manuais. Contratos PagBank estão disponíveis para consulta."
+            hint="Contratos manuais podem ser editados. Cobranças PagBank são gerenciadas pelo provedor."
           >
             <div className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-2">
@@ -322,7 +326,7 @@ export function CustomerFullscreen({
             index={4}
             title="Rotina de atendimento"
             icon={Repeat}
-            hint="Frequência prevista no plano vigente."
+            hint=""
           >
             <div className="flex flex-col gap-3 rounded-xl border border-white/[0.05] bg-white/[0.02] p-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -343,7 +347,7 @@ export function CustomerFullscreen({
             index={5}
             title="Próximos atendimentos"
             icon={Calendar}
-            hint="Agende, reagende ou cancele atendimentos."
+            hint="Agendamentos e reagendamentos."
           >
             <AppointmentsEditor
               key={`appointments-${customer.id}`}
@@ -356,7 +360,7 @@ export function CustomerFullscreen({
             index={6}
             title="Histórico operacional"
             icon={History}
-            hint="Atendimentos e interações recentes."
+            hint=""
           >
             {customer.attendanceHistory.length === 0 ? (
               <p className="text-sm text-white/45">Nenhum evento registrado ainda.</p>
@@ -378,7 +382,7 @@ export function CustomerFullscreen({
             index={7}
             title="Acesso ao Portal"
             icon={KeyRound}
-            hint="Gerencie o acesso e envie o link de entrada."
+            hint="Liberação, convite e situação do acesso."
           >
             <PortalAccessEditor
               key={`portal-${customer.id}`}
@@ -388,7 +392,10 @@ export function CustomerFullscreen({
           </Section>
         </main>
 
-        <footer className="mt-6 text-xs text-white/45">As alterações ficam registradas no histórico.</footer>
+        <footer className="mt-8 flex items-center gap-2 rounded-xl border border-white/[0.06] bg-[#101010] p-4 text-[11px] text-white/40">
+          <ShieldCheck size={14} className="shrink-0" />
+          As alterações ficam registradas no histórico administrativo.
+        </footer>
       </div>
 
       <OfferPlansModal
@@ -396,7 +403,7 @@ export function CustomerFullscreen({
         onClose={() => setOfferOpen(false)}
         customerName={customer.name}
         disabled={!editable}
-        disabledReason="Oferta indisponível neste ambiente."
+        disabledReason="Edição indisponível neste ambiente."
         onSelectPlan={(plan) => {
           setPreselectedPlan(plan);
           setAutoOpenFromOffer(true);

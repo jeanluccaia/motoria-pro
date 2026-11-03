@@ -81,7 +81,8 @@ export function CompanyDetail({
   }
 
   return (
-    <div className="dgn-fleet-sections mt-6">
+    <div className="mt-6 flex flex-col gap-6">
+      <div className="dgn-company-summary"><div><strong>{vehicles.length}</strong> veículos</div><div><strong>{managers.length}</strong> gestores</div><div><strong>{pending.length}</strong> solicitações em aberto</div></div>
       {company.contactEmail || company.contactPhone ? (
         <section className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-xs text-white/60">
           Contato:
@@ -119,12 +120,12 @@ export function CompanyDetail({
       </section>
 
       <section>
-        <SectionHeader icon={<Users size={16} className="text-white/60" />} title="Gestores" count={managers.length} />
+        <SectionHeader icon={<Users size={16} className="text-white/60" />} title="Gestores e acesso" count={managers.length} />
         <ManagersBlock companyId={company.id} managers={managers} managerLinks={managerLinks} />
       </section>
 
       <section>
-        <SectionHeader icon={<Car size={16} className="text-white/60" />} title="Frota" count={vehicles.length} />
+        <SectionHeader icon={<Car size={16} className="text-white/60" />} title="Veículos vinculados" count={vehicles.length} />
         <VehiclesBlock companyId={company.id} vehicles={vehicles} />
       </section>
 
@@ -451,7 +452,7 @@ function RequestCard({
 
       <dl className="mt-3 grid gap-2 text-xs text-white/60 sm:grid-cols-2">
         <div>
-          <dt className="text-[10px] uppercase tracking-[0.12em] text-white/40">Data pedida</dt>
+          <dt className="text-[10px] uppercase tracking-[0.12em] text-white/40">Data solicitada</dt>
           <dd className="text-white/80">{formatDateTime(request.preferredDate1)}</dd>
         </div>
         {request.preferredDate2 ? (
@@ -468,7 +469,7 @@ function RequestCard({
         ) : null}
         {isCounter && request.scheduledAt ? (
           <div className="sm:col-span-2">
-            <dt className="text-[10px] uppercase tracking-[0.12em] text-amber-200">Você propôs</dt>
+            <dt className="text-[10px] uppercase tracking-[0.12em] text-amber-200">Data proposta</dt>
             <dd className="text-amber-100">{formatDateTime(request.scheduledAt)}</dd>
           </div>
         ) : null}

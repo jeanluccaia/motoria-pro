@@ -1,5 +1,7 @@
 "use client";
 
+import { ReportInput } from "./ReportInput";
+import * as Dialog from "@radix-ui/react-dialog";
 import { useCallback, useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, Info, X } from "lucide-react";
 import type {
@@ -41,17 +43,14 @@ const RESULT_STYLE: Record<ApplyResultCode, { label: string; tone: string }> = {
   FAILED:                       { label: "Falhou",               tone: "border-red-400/30 bg-red-400/[0.08] text-red-200" },
 };
 
-const SAMPLE = `nome,telefone,plano,situação,vigência
-`;
-
 const BADGE_STYLE: Record<ReconcileClassification, { label: string; tone: string }> = {
   ALREADY_CORRECT:         { label: "Correto",             tone: "border-emerald-300/30 bg-emerald-300/[0.06] text-emerald-200" },
-  PROMOTE_EXISTING:        { label: "Atualizar",            tone: "border-[#C9A84C]/40 bg-[#C9A84C]/10 text-[#E7C96A]" },
+  PROMOTE_EXISTING:        { label: "Ativar existente",            tone: "border-[#C9A84C]/40 bg-[#C9A84C]/10 text-[#E7C96A]" },
   CREATE_NEW:              { label: "Criar",               tone: "border-sky-300/30 bg-sky-300/[0.08] text-sky-200" },
   UPDATE_EXISTING_REVIEW:  { label: "Revisar",             tone: "border-white/20 bg-white/[0.04] text-white/80" },
   RENEWAL_PENDING:         { label: "Renovação pendente",  tone: "border-amber-300/30 bg-amber-300/[0.06] text-amber-200" },
   CUSTOMER_NOT_FOUND:      { label: "Não encontrado",      tone: "border-white/10 bg-white/[0.02] text-white/50" },
-  POSSIBLE_MATCH:          { label: "Mais de um cliente",       tone: "border-amber-400/30 bg-amber-400/[0.06] text-amber-200" },
+  POSSIBLE_MATCH:          { label: "Correspondência incerta",       tone: "border-amber-400/30 bg-amber-400/[0.06] text-amber-200" },
   CONFLICT:                { label: "Conflito",            tone: "border-red-400/30 bg-red-400/[0.08] text-red-200" },
 };
 
@@ -155,45 +154,29 @@ export function ReconcilerClient() {
   }, [selectedItems, text, analyze]);
 
   return (
-    <div className="mt-6 flex flex-col gap-5">
-      <ol className="dgn-step-list" aria-label="Etapas da reconciliação">
-        <li aria-current={!preview ? "step" : undefined}>Informar relatório</li>
-        <li aria-current={loading ? "step" : undefined}>Analisar dados</li>
-        <li aria-current={preview && !confirmOpen ? "step" : undefined}>Conferir divergências</li>
-        <li aria-current={confirmOpen ? "step" : undefined}>Revisar alterações</li>
+    <div className="flex flex-col gap-5">
+      <ol className="dgn-reconcile-steps" aria-label="Etapas da reconciliação">
+        <li aria-current={!preview ? "step" : undefined}><span>1</span> Selecionar relatório</li>
+        <li aria-current={preview && selectedCount === 0 ? "step" : undefined}><span>2</span> Analisar divergências</li>
+        <li aria-current={selectedCount > 0 ? "step" : undefined}><span>3</span> Revisar alterações</li>
       </ol>
-      <section className="dgn-panel dgn-reconcile-entry">
-        <div className="min-w-0">
-          <label htmlFor="reconcile-report" className="dgn-section-title">Dados do relatório</label>
-          <p id="reconcile-help" className="dgn-muted mt-2 mb-4">Cole os dados em CSV ou copie as linhas de uma planilha, incluindo os cabeçalhos.</p>
-          <textarea id="reconcile-report" aria-describedby="reconcile-help" value={text}
-            onChange={(event) => setText(event.target.value)} rows={6} placeholder={SAMPLE}
-            className="min-h-[152px] w-full resize-y rounded-lg border border-white/15 bg-[#090909] p-3 font-mono text-xs leading-relaxed text-white/85 outline-none placeholder:text-white/35 focus:border-[#C9A84C]/60" />
-        </div>
-        <aside className="flex flex-col items-start justify-between gap-5">
-          <div><h2 className="text-sm font-medium text-white/85">Antes de analisar</h2>
-            <p className="dgn-muted mt-2">Inclua nome, telefone, plano, situação e vigência, quando disponíveis.</p>
-            <p className="mt-3 text-xs leading-relaxed text-white/50">A análise não altera assinaturas.</p>
-          </div>
-          <button type="button" onClick={() => analyze()} disabled={loading || text.trim().length === 0}
-            className="dgn-button w-full">{loading ? "Analisando…" : "Analisar relatório"}</button>
-        </aside>
-      </section>
+      <ReportInput text={text} onChange={(value) => {
+        setText(value); setPreview(null); setSelected({}); setExpanded({});
+        setApplyResults(null); setConfirmOpen(false); setError(null);
+      }} onAnalyze={() => analyze()} loading={loading} disabled={applying} />
 
       {error && (
-        <div role="alert" className="flex items-start gap-3 rounded-xl border border-red-400/25 bg-red-400/[0.05] p-4 text-sm text-red-200">
-          <AlertTriangle size={16} className="mt-0.5" />
-          <span>{error}</span>
+        <div className="flex items-start gap-3 rounded-xl border border-red-400/25 bg-red-400/[0.05] p-4 text-sm text-red-200">
+          <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+          <span role="alert">{commercialText(error)}</span>
         </div>
       )}
 
       {preview && counts && (
         <>
           <section className="rounded-2xl border border-white/[0.06] bg-[#101010] p-5">
-            <p className="text-sm font-semibold text-white/85">Resultado da análise</p>
-            <p className="mt-1 text-sm text-white/85">
-              {preview.totalRows} {preview.totalRows === 1 ? "registro analisado" : "registros analisados"} · {counts.PROMOTE_EXISTING} {counts.PROMOTE_EXISTING === 1 ? "atualização possível" : "atualizações possíveis"} · {counts.CREATE_NEW} {counts.CREATE_NEW === 1 ? "nova assinatura possível" : "novas assinaturas possíveis"}
-            </p>
+            <h2 className="text-sm font-semibold">Resultado da análise</h2>
+            <p className="mt-1 text-sm text-white/85">{preview.totalRows} {preview.totalRows === 1 ? "linha analisada" : "linhas analisadas"}. Revise as divergências antes de selecionar alterações.</p>
             <div className="mt-4 flex flex-wrap gap-2">
               {(Object.keys(counts) as ReconcileClassification[]).filter(k => counts[k] > 0).map((k) => (
                 <span
@@ -212,7 +195,7 @@ export function ReconcilerClient() {
             )}
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <p className="text-[11px] text-white/45">
-                {preview.dataOrigin === "db" ? "Comparado com os cadastros atuais." : "Comparado com dados locais. Confirme na operação antes de atualizar."}
+                Fonte: {preview.dataOrigin === "db" ? "Base operacional" : preview.dataOrigin === "json-fallback" ? "Base local · fonte principal indisponível" : "Base local"}
               </p>
               <button
                 type="button"
@@ -220,21 +203,21 @@ export function ReconcilerClient() {
                 disabled={selectedCount === 0 || applying}
                 className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 text-sm font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Revisar alterações ({selectedCount})
+                Revisar seleção ({selectedCount})
               </button>
             </div>
           </section>
 
-          <section className="dgn-panel dgn-table-wrap" aria-label="Divergências por assinatura">
-            <table className="dgn-table dgn-reconcile-table">
+          <section className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#101010]">
+            <table className="dgn-reconcile-table text-left text-sm">
               <thead className="bg-white/[0.02] text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">
                 <tr>
-                  <th className="w-8 px-3 py-3"><span className="sr-only">Detalhes</span></th>
-                  <th className="w-8 px-3 py-3"><span className="sr-only">Selecionar</span></th>
-                  <th className="px-3 py-3">Nome no relatório</th>
+                  <th className="w-18 px-3 py-3"><span className="sr-only">Detalhes</span></th>
+                  <th className="w-18 px-3 py-3"><span className="sr-only">Selecionar</span></th>
+                  <th className="px-3 py-3">Cliente no relatório</th>
                   <th className="px-3 py-3">Cliente cadastrado</th>
                   <th className="px-3 py-3">Plano informado</th>
-                  <th className="px-3 py-3">Plano atual</th>
+                  <th className="px-3 py-3">Plano cadastrado</th>
                   <th className="px-3 py-3">Situação informada</th>
                   <th className="px-3 py-3">Classificação</th>
                 </tr>
@@ -279,9 +262,9 @@ function ApplyResultsPanel({ results }: { results: ApplyResponse }) {
         <p className="text-[11px] uppercase tracking-[0.14em] text-white/45">Resultado das alterações</p>
       </div>
       <p className="mt-1 text-sm text-white/85">
-        {counts.proceed} atualizadas · {counts.stale} análises desatualizadas · {counts.reviewExisting} para revisar · {counts.alreadyCorrect} já corretas · {counts.failed} falhas
+        {counts.proceed} aplicado(s) · {counts.stale} análise desatualizada · {counts.reviewExisting} assinatura equivalente para revisão · {counts.alreadyCorrect} já correto(s) · {counts.failed} falha(s)
       </p>
-      <p className="mt-1 text-xs text-white/50">Cada assinatura foi conferida novamente antes da alteração.</p>
+      <p className="mt-1 text-[11px] text-white/50">As linhas foram revalidadas antes da atualização. Cobranças PagBank não foram alteradas.</p>
       <ul className="mt-3 space-y-2">
         {results.results.map((r) => {
           const badge = RESULT_STYLE[r.resultCode];
@@ -292,10 +275,10 @@ function ApplyResultsPanel({ results }: { results: ApplyResponse }) {
                   {badge.label}
                 </span>
                 <span className="text-white/85">{r.input.name ?? `linha ${r.rowIndex + 1}`}</span>
-                <span className="text-white/40">→ {r.action === "PROMOTE_EXISTING" ? "Atualizar assinatura" : r.action === "CREATE_NEW" ? "Criar assinatura" : "Sem alteração"}</span>
+                <span className="text-white/40">→ {r.action === "PROMOTE_EXISTING" ? "Ativar assinatura existente" : r.action === "CREATE_NEW" ? "Criar assinatura manual" : "Sem alteração"}</span>
               </div>
-              {r.reason && <p className="text-xs text-white/60">{displayReason(r.reason)}</p>}
-              {r.error && <p className="text-[11px] text-red-300">{r.error}</p>}
+              {r.reason && <p className="text-[11px] text-white/60">{commercialText(r.reason)}</p>}
+              {r.error && <p className="text-[11px] text-red-300">{commercialText(r.error)}</p>}
               {(r.subscriptionId || r.existingSubscriptionId) && (
                 <p className="font-mono text-[10px] text-white/40">
                   {r.subscriptionId ? `Assinatura: ${r.subscriptionId}` : `Assinatura existente: ${r.existingSubscriptionId}`}
@@ -318,30 +301,30 @@ function ConfirmModal({
   onConfirm: () => void;
 }) {
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      role="dialog" aria-modal="true" aria-labelledby="reconcile-confirm-title"
-    >
-      <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0F0F0F] p-6">
+    <Dialog.Root open onOpenChange={open => { if (!open && !applying) onCancel(); }}>
+      <Dialog.Portal>
+        <div className="dgn-workspace">
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/70" />
+        <Dialog.Content aria-describedby="reconcile-confirm-description" className="fixed left-1/2 top-1/2 z-50 max-h-[90dvh] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-white/[0.08] bg-[#0F0F0F] p-6" onEscapeKeyDown={event => { if (applying) event.preventDefault(); }} onInteractOutside={event => { if (applying) event.preventDefault(); }}>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">Confirmar alterações</p>
-            <h2 id="reconcile-confirm-title" className="mt-1 text-lg font-semibold text-white">Atualizar {plan.total} {plan.total === 1 ? "assinatura" : "assinaturas"}?</h2>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">Revisão final</p>
+            <Dialog.Title asChild><h2 className="mt-1 text-lg font-semibold text-white">Confirmar {plan.total} {plan.total === 1 ? "alteração" : "alterações"}?</h2></Dialog.Title>
           </div>
-          <button type="button" onClick={onCancel} aria-label="Fechar" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-white/60 hover:text-white">
+          <button type="button" onClick={onCancel} disabled={applying} aria-label="Fechar" className="text-white/40 hover:text-white">
             <X size={18} />
           </button>
         </div>
         <ul className="mt-4 space-y-1 text-sm text-white/80">
-          <li>· {plan.promotes} {plan.promotes === 1 ? "assinatura existente será atualizada" : "assinaturas existentes serão atualizadas"}</li>
-          <li>· {plan.creates} {plan.creates === 1 ? "assinatura manual será criada" : "assinaturas manuais serão criadas"}</li>
+          {plan.promotes > 0 ? <li>· {plan.promotes} {plan.promotes === 1 ? "assinatura existente será ativada" : "assinaturas existentes serão ativadas"}</li> : null}
+          {plan.creates > 0 ? <li>· {plan.creates} {plan.creates === 1 ? "assinatura manual será criada" : "assinaturas manuais serão criadas"}</li> : null}
           <li>· nenhuma cobrança PagBank será modificada</li>
         </ul>
-        <p className="mt-3 text-[11px] text-white/50">
-          Cada assinatura será conferida novamente. Se os dados tiverem mudado desde a análise, a alteração será bloqueada para nova revisão.
+        <p id="reconcile-confirm-description" className="mt-3 text-[11px] text-white/50">
+          Cada linha será conferida novamente. Se os dados tiverem mudado desde a análise, a alteração será bloqueada para nova revisão.
         </p>
         <div className="mt-5 flex justify-end gap-2">
-          <button type="button" onClick={onCancel} className="min-h-11 rounded-lg border border-white/[0.08] bg-white/[0.02] px-4 py-2 text-sm font-semibold text-white/80">
+          <button type="button" onClick={onCancel} disabled={applying} className="rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2 text-sm font-semibold text-white/80">
             Cancelar
           </button>
           <button
@@ -351,8 +334,10 @@ function ConfirmModal({
             {applying ? "Atualizando…" : "Confirmar alterações"}
           </button>
         </div>
-      </div>
-    </div>
+        </Dialog.Content>
+        </div>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 
@@ -378,50 +363,53 @@ function ItemRow({
             type="button"
             onClick={onToggle}
             aria-expanded={isOpen}
-            aria-label={isOpen ? "Fechar detalhe" : "Abrir detalhe"}
-            className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-white/[0.06] text-white/60 hover:text-white"
+            aria-controls={`reconcile-detail-${item.rowIndex}`}
+            aria-label={`${isOpen ? "Fechar" : "Abrir"} detalhes de ${item.input.name ?? `linha ${item.rowIndex + 1}`}`}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-white/[0.06] text-white/60 hover:text-white"
           >
             {isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
           </button>
         </td>
         <td className="px-3 py-3 align-top">
+          <label className="inline-flex h-11 w-11 items-center justify-center">
           <input
             type="checkbox"
             checked={isSelected}
             onChange={onSelect}
             disabled={!item.applyEnabled}
-            aria-label={`Selecionar alteração para ${item.input.name ?? "esta assinatura"}`}
+            aria-label={`Selecionar alteração de ${item.input.name ?? `linha ${item.rowIndex + 1}`}`}
             className="h-4 w-4 disabled:cursor-not-allowed disabled:opacity-30"
           />
+          </label>
         </td>
-        <td data-label="Nome no relatório" className="px-3 py-3 align-top text-white/85">{item.input.name ?? <span className="text-white/40">—</span>}</td>
+        <td data-label="Cliente no relatório" className="px-3 py-3 align-top text-white/85">{item.input.name ?? <span className="text-white/40">—</span>}</td>
         <td data-label="Cliente cadastrado" className="px-3 py-3 align-top text-white/70">{item.customer.customerName ?? <span className="text-white/40">—</span>}</td>
         <td data-label="Plano informado" className="px-3 py-3 align-top text-white/70">{item.input.plan ?? "—"}</td>
-        <td data-label="Plano atual" className="px-3 py-3 align-top text-white/70">{item.facts.planCanonical ?? "—"}</td>
+        <td data-label="Plano cadastrado" className="px-3 py-3 align-top text-white/70">{item.facts.planCanonical ?? "—"}</td>
         <td data-label="Situação informada" className="px-3 py-3 align-top text-white/70">{item.input.status ?? "—"}</td>
-        <td data-label="Resultado" className="px-3 py-3 align-top">
+        <td className="px-3 py-3 align-top">
           <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${badge.tone}`}>
             {badge.label}
           </span>
         </td>
       </tr>
       {isOpen && (
-        <tr className="border-t border-white/[0.04] bg-white/[0.015]">
+        <tr id={`reconcile-detail-${item.rowIndex}`} className="border-t border-white/[0.04] bg-white/[0.015]">
           <td colSpan={8} className="px-6 py-4">
-            <p className="text-[11px] uppercase tracking-[0.14em] text-white/45">Motivo da classificação</p>
-            <p className="mt-1 text-sm text-white/85">{displayReason(item.reason)}</p>
-            <details className="mt-4"><summary className="min-h-10 cursor-pointer text-xs text-white/65">Dados usados na conferência</summary><div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <p className="text-[11px] uppercase tracking-[0.14em] text-white/45">Detalhes da divergência</p>
+            <p className="mt-1 text-sm text-white/85">{commercialText(item.reason)}</p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
               <FactList facts={{
-                "Telefone correspondente": item.facts.matchedByPhone,
-                "Placa correspondente": item.facts.matchedByPlate,
-                "Código de origem correspondente": item.facts.matchedByLegacyId,
-                "Nome correspondente": item.facts.matchedByName,
+                "Telefone corresponde": item.facts.matchedByPhone,
+                "Placa corresponde": item.facts.matchedByPlate,
+                "Referência anterior corresponde": item.facts.matchedByLegacyId,
+                "Nome corresponde": item.facts.matchedByName,
                 "Nome semelhante": item.facts.fuzzyName,
               }} />
               <FactList facts={{
-                "Código do cliente": item.customer.customerId ?? "—",
-                "Possíveis clientes": item.facts.ambiguousCandidates,
-                "Código da assinatura": item.facts.subscriptionMatch?.subscriptionId ?? "—",
+                "Referência do cliente": item.customer.customerId ?? "—",
+                "Correspondências incertas": item.facts.ambiguousCandidates,
+                "Referência da assinatura": item.facts.subscriptionMatch?.subscriptionId ?? "—",
                 "Vinculada ao PagBank": item.facts.subscriptionMatch?.providerLinked ?? false,
                 "Assinaturas encontradas": item.facts.subscriptionMatch?.candidatesCount ?? 0,
               }} />
@@ -429,18 +417,21 @@ function ItemRow({
             {(item.facts.divergingFields.length > 0 || item.facts.missingFields.length > 0) && (
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 {item.facts.divergingFields.length > 0 && (
-                  <p className="text-xs text-amber-200">Divergências: {item.facts.divergingFields.map(displayField).join(", ")}</p>
+                  <p className="text-[11px] text-amber-200">Divergências: {item.facts.divergingFields.map(commercialText).join(", ")}</p>
                 )}
                 {item.facts.missingFields.length > 0 && (
-                  <p className="text-xs text-amber-200">Campos ausentes: {item.facts.missingFields.map(displayField).join(", ")}</p>
+                  <p className="text-[11px] text-amber-200">Campos ausentes: {item.facts.missingFields.map(commercialText).join(", ")}</p>
                 )}
               </div>
             )}
             {item.proposed && (
               <div className="mt-3 rounded-lg border border-[#C9A84C]/20 bg-[#C9A84C]/[0.04] p-3 text-[11px] text-[#E7C96A]">
-                <p className="font-semibold text-[#E7C96A]">{item.proposed.kind === "CREATE_NEW" ? "Criar assinatura manual" : "Atualizar assinatura existente"}</p><details className="mt-2"><summary className="min-h-10 cursor-pointer text-white/60">Detalhes da alteração</summary>
-                  <ProposedSummary proposed={item.proposed} />
-                </details>
+                <p className="font-medium">{item.proposed.kind === "PROMOTE_EXISTING" ? "Ativar a assinatura existente" : "Criar uma assinatura manual"}</p>
+                <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {item.proposed.kind === "CREATE_NEW" ? <div><dt className="text-white/50">Plano</dt><dd>{item.proposed.plan}</dd></div> : null}
+                  <div><dt className="text-white/50">Vigência informada</dt><dd>{item.proposed.cycleEndsAtIso ? new Date(item.proposed.cycleEndsAtIso).toLocaleDateString("pt-BR") : "Não informada"}</dd></div>
+                  <div><dt className="text-white/50">Pagamento informado</dt><dd>{item.proposed.paymentStatus === "confirmed" ? "Confirmado no relatório" : "Não identificado"}</dd></div>
+                </dl>
               </div>
             )}
           </td>
@@ -479,9 +470,27 @@ function FactList({ facts }: { facts: Record<string, string | number | boolean> 
       {Object.entries(facts).map(([k, v]) => (
         <li key={k} className="flex justify-between gap-3">
           <span className="text-white/45">{k}</span>
-          <span className="max-w-[55%] break-all text-right text-white/80">{typeof v === "boolean" ? (v ? "Sim" : "Não") : v}</span>
+          <span className="font-mono text-white/80">{typeof v === "boolean" ? (v ? "Sim" : "Não") : v}</span>
         </li>
       ))}
     </ul>
   );
+}
+
+function commercialText(text: string): string {
+  const terms: Record<string, string> = {
+    "PROMOTE_EXISTING": "ativar assinatura existente", "CREATE_NEW": "criar assinatura manual",
+    "ALREADY_CORRECT": "sem divergência", "UPDATE_EXISTING_REVIEW": "revisar assinatura existente",
+    "CUSTOMER_NOT_FOUND": "cliente não encontrado", "POSSIBLE_MATCH": "correspondência incerta",
+    "RENEWAL_PENDING": "renovação pendente", "CONFLICT": "conflito",
+    "plan": "plano", "cycle_ends_at": "vigência", "paid_until": "vigência",
+    "payment_status": "situação do pagamento", "subscription_id": "assinatura",
+    "base canônica": "cadastros atuais", "snapshot canônico": "cadastros atuais",
+    "canônico": "cadastrado", "canônica": "cadastrada", "Customer": "Cliente",
+    "subscription": "assinatura", "preview": "análise", "apply": "atualização",
+    "write": "alteração", "phone": "telefone", "plate": "placa", "status": "situação",
+  };
+  let result = text;
+  for (const [term, label] of Object.entries(terms)) result = result.replace(new RegExp(`\\b${term}\\b`, "g"), label);
+  return result;
 }

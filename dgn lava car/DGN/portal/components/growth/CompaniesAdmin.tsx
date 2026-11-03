@@ -57,6 +57,7 @@ export function CompaniesAdmin({
 
   return (
     <section className="mt-6 flex flex-col gap-4">
+      {companies.length > 0 ? <div className="dgn-company-summary"><span><strong>{companies.length}</strong> empresas</span><span><strong>{Object.values(pendingByCompany).reduce((sum, n) => sum + n, 0)}</strong> solicitações em aberto</span></div> : null}
       {!showForm ? (
         <button
           type="button"
@@ -65,7 +66,7 @@ export function CompaniesAdmin({
           data-testid="btn-new-company"
         >
           <Plus size={14} />
-          Nova empresa
+          Cadastrar empresa
         </button>
       ) : (
         <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 sm:p-5">
@@ -106,26 +107,16 @@ export function CompaniesAdmin({
       )}
 
       {companies.length > 0 ? (
-        <>
-        <div className="dgn-toolbar !my-0">
-          <label className="min-w-0 flex-1"><span className="sr-only">Buscar empresa</span>
-            <input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar empresa ou CNPJ" className="w-full" />
-          </label>
-          <button type="button" className="dgn-link" aria-pressed={pendingOnly} onClick={() => setPendingOnly(!pendingOnly)}>
-            {pendingOnly ? "Exibindo pendentes" : "Com solicitações pendentes"}
-          </button>
-        </div>
-        <p className="text-xs text-white/50">{visibleCompanies.length} empresas</p>
-        <ul className="dgn-company-list flex flex-col" data-testid="companies-list">
-          {visibleCompanies.map((c) => {
+        <ul className="dgn-company-list" data-testid="companies-list">
+          {companies.map((c) => {
             const pending = pendingByCompany[c.id] ?? 0;
             return (
-              <li key={c.id} className="rounded-xl border border-white/[0.06] bg-white/[0.02] transition hover:bg-white/[0.04]">
-                <Link href={`/admin/growth/empresas/${c.id}`} className="flex items-center gap-3 p-4">
+              <li key={c.id} className="transition">
+                <Link href={`/admin/growth/empresas/${c.id}`} className="flex flex-wrap items-center gap-3 p-4">
                   <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.04] text-white/70">
                     <Building2 size={18} />
                   </span>
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 basis-40">
                     <p className="truncate text-sm font-medium text-white">{c.displayName}</p>
                     <p className="truncate text-xs text-white/55">
                       {c.legalName}
@@ -134,7 +125,7 @@ export function CompaniesAdmin({
                   </div>
                   {pending > 0 ? (
                     <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/25 bg-amber-300/[0.06] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-200">
-                      {pending} pendentes
+                      {pending} em aberto
                     </span>
                   ) : null}
                   <ArrowRight size={16} className="shrink-0 text-white/40" />

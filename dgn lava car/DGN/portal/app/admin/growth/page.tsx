@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { CommercialDashboard } from "@/components/growth/CommercialDashboard";
 import { loadGrowthData, readGrowthSnapshot } from "@/lib/growth/db/growth-reader";
 import { getSupabaseAdminClient } from "@/lib/growth/db/admin-client";
 import { KNOWN_SUBSCRIBERS_2026_08_16 } from "@/lib/growth/known-subscribers";
@@ -11,8 +11,6 @@ import { getActiveInvitesCount } from "@/lib/growth/founder-metrics";
 import { getConfirmedFoundersCount } from "@/lib/growth/founder-metrics-server";
 import { loadPulseSummary } from "@/lib/growth/db/pulse-summary";
 import { listServiceRequests } from "@/lib/growth/db/corporate-fleet-write";
-import type { AgentActionRow } from "@/lib/growth/db/agent-actions-write";
-import { AlertTriangle, ArrowRight, Sparkles, Activity, Megaphone, Building2, UserCheck, ShieldCheck } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -111,100 +109,13 @@ async function loadFleetPending(): Promise<FleetPending> {
 
 export default async function DgnAdminDashboardPage() {
   const [m, briefingSummary, pulse, fleetPending] = await Promise.all([
-    computeMetrics(), loadBriefingSummary(), loadPulseSummary({ topN: 3 }), loadFleetPending(),
+    computeMetrics(),
+    loadBriefingSummary(),
+    loadPulseSummary({ topN: 100 }),
+    loadFleetPending(),
   ]);
-  const commercialActions = pulse.topActions.filter(a => a.kind === "opportunity" || a.kind === "campaign_draft");
-  const operations = pulse.topActions.filter(a => a.kind === "alert" || a.kind === "followup_task");
-  const commercialCount = pulse.counts.opportunity + pulse.counts.campaignDraft;
-  const operationalCount = pulse.counts.alert + pulse.counts.followupTask;
 
-  return (
-    <div className="dgn-page dgn-dashboard">
-      <header className="dgn-page-header dgn-dashboard-header">
-        <h1>Visão Geral</h1>
-        <Link href="/admin/growth/assistente" className="dgn-link"><Sparkles size={15} /> Assistente</Link>
-      </header>
-
-      {m.loadError ? (
-        <div role="status" className="dgn-notice">
-          <AlertTriangle size={16} className="mt-0.5 shrink-0" />
-          Indicadores de assinantes, convites e curadoria indisponíveis no momento.
-        </div>
-      ) : null}
-
-      <section className="dgn-stats" aria-label="Indicadores comerciais" data-testid="dashboard-subscriptions">
-        <Metric label="Assinantes ativos" value={m.activeCustomers} testid="metric-active-subscribers"
-          hint={m.activeSubscriptions !== null ? `${m.activeSubscriptions} assinaturas ativas` : undefined} />
-        <Metric label="Founders confirmados" value={m.confirmedFounders} testid="metric-confirmed-founders" />
-        <Metric label="Convites em aberto" value={m.loadError ? null : m.activeInvites} testid="metric-active-invites" />
-        <Metric label="Aguardando curadoria" value={m.loadError ? null : m.awaitingCuration} testid="metric-awaiting-curation" />
-        <Metric label="Renovação pendente" value={m.pendingRenewal} testid="metric-pending-renewal" hint="Relatório de 16/08/2026" />
-      </section>
-
-      <div className="dgn-dashboard-work">
-        <section className="dgn-panel" aria-labelledby="dashboard-attention">
-          <div className="dgn-panel-heading">
-            <h2 id="dashboard-attention" className="dgn-section-title">Precisa da sua atenção</h2>
-            <Link href="/admin/growth/intelligence/inbox" className="dgn-text-link">Ver ações <ArrowRight size={14} /></Link>
-          </div>
-
-          <Task icon={<Sparkles size={18} />} title="Inteligência comercial"
-            detail={briefingSummary.error ? "Recomendações indisponíveis no momento." : `${briefingSummary.briefing?.totalOpportunities ?? 0} sinais identificados para análise.`}
-            href="/admin/growth/assistente" action="Ver prioridades" />
-
-          {!pulse.loadError && commercialCount > 0 ? (
-            <div data-testid="dashboard-campaigns">
-              <Task icon={<Megaphone size={18} />} title="Campanhas e oportunidades"
-                detail={`${pulse.counts.campaignDraft} campanhas aguardando aprovação · ${pulse.counts.opportunity} oportunidades para revisar`}
-                href="/admin/growth/intelligence/inbox" action="Revisar ações" />
-              {commercialActions.length ? <ul className="mx-6 mb-4 divide-y divide-white/[0.06]">{commercialActions.map(a => <ActionRow key={a.id} action={a} />)}</ul> : null}
-            </div>
-          ) : null}
-
-          {!m.loadError && m.awaitingCuration > 0 ? (
-            <Task icon={<UserCheck size={18} />} title="Clientes aguardando curadoria"
-              detail={`${m.awaitingCuration} clientes para avaliar.`} href="/admin/growth/curadoria" action="Abrir curadoria" />
-          ) : null}
-
-          {!fleetPending.error && fleetPending.total > 0 ? (
-            <div data-testid="dashboard-fleet">
-              <Task icon={<Building2 size={18} />} title="Solicitações de frotas"
-                detail={`${fleetPending.waitingUnit} aguardando a unidade · ${fleetPending.waitingManager} aguardando o gestor`}
-                href="/admin/growth/empresas" action="Ver solicitações" />
-            </div>
-          ) : null}
-
-          {!pulse.loadError && commercialCount === 0 && !m.loadError && m.awaitingCuration === 0 && !fleetPending.error && fleetPending.total === 0 ? (
-            <p className="dgn-muted px-6 py-5">Nenhuma campanha, curadoria ou solicitação aguardando revisão.</p>
-          ) : null}
-          {pulse.loadError ? <p className="dgn-muted px-6 py-4">A fila de ações está indisponível no momento.</p> : null}
-        </section>
-
-        <aside className="dgn-panel" aria-labelledby="dashboard-modules">
-          <div className="dgn-panel-heading"><h2 id="dashboard-modules" className="dgn-section-title">Acessos rápidos</h2></div>
-          <nav className="dgn-module-links" aria-label="Módulos comerciais">
-            <Link href="/admin/growth/assinantes-detectados"><span className="flex items-center gap-3"><ShieldCheck size={16} className="text-white/45" /> Assinantes</span><ArrowRight size={14} /></Link>
-            <Link href="/admin/growth/intelligence"><span className="flex items-center gap-3"><UserCheck size={16} className="text-white/45" /> Clientes e oportunidades</span><ArrowRight size={14} /></Link>
-            <Link href="/admin/growth/founders-2026"><span>Campanha Founders</span><ArrowRight size={14} /></Link>
-            <Link href="/admin/growth/empresas"><span className="flex items-center gap-3"><Building2 size={16} className="text-white/45" /> Gestão de frotas</span><ArrowRight size={14} /></Link>
-          </nav>
-        </aside>
-      </div>
-
-      <section className="dgn-operations" aria-labelledby="dashboard-pulse" data-testid="dashboard-pulse">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 id="dashboard-pulse" className="dgn-section-title flex items-center gap-2"><Activity size={15} className="text-white/45" /> Operação</h2>
-          <Link href="/admin/growth/intelligence/inbox" className="dgn-text-link">Abrir pendências <ArrowRight size={14} /></Link>
-        </div>
-        <p className="dgn-muted" data-testid="dashboard-pulse-headline">
-          {pulse.loadError ? "Pendências operacionais indisponíveis no momento." : `${operationalCount} pendências · ${pulse.counts.alert} alertas · ${pulse.counts.followupTask} acompanhamentos`}
-        </p>
-        {operations.length ? <ul data-testid="dashboard-pulse-top">{operations.map(a => <ActionRow key={a.id} action={a} />)}</ul> : null}
-        {fleetPending.error ? <p className="dgn-muted mt-3">Solicitações de frotas indisponíveis no momento.</p> : null}
-      </section>
-      {m.dataOrigin !== "db" && !m.loadError ? <p className="mt-6 text-xs text-white/50">Exibindo dados locais. Consulte a operação antes de decidir.</p> : null}
-    </div>
-  );
+  return <CommercialDashboard metrics={m} briefing={briefingSummary} pulse={pulse} fleet={fleetPending} />;
 }
 
 function Metric({ label, value, hint, testid }: { label: string; value: number | null; hint?: string; testid: string }) {

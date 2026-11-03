@@ -63,8 +63,9 @@ export function ManagerPortal({
   }
 
   return (
-    <div className="dgn-fleet-sections mt-6">
-      <section className="dgn-fleet-requests">
+    <div className="mt-6 flex flex-col gap-6">
+      <div className="dgn-company-summary"><span><strong>{open.length}</strong> solicitações em andamento</span><span><strong>{vehicles.length}</strong> veículos</span></div>
+      <section>
         <SectionHeader icon={<AlertCircle size={16} className="text-amber-200" />} title="Solicitações em andamento" count={open.length} />
         {open.length === 0 ? (
           <p className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-sm text-white/55">
@@ -91,7 +92,7 @@ export function ManagerPortal({
         <SectionHeader icon={<Car size={16} className="text-white/60" />} title="Sua frota" count={vehicles.length} />
         {vehicles.length === 0 ? (
           <p className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-sm text-white/55">
-            Nenhum veículo cadastrado. Fale com a equipe DGN para incluir sua frota.
+            Nenhum veículo cadastrado. Solicite o cadastro à equipe DGN.
           </p>
         ) : (
           <ul className="flex flex-col gap-2">
@@ -196,7 +197,7 @@ function OpenRequestCard({
 
       <dl className="mt-3 grid gap-2 text-xs text-white/60 sm:grid-cols-2">
         <div>
-          <dt className="text-[10px] uppercase tracking-[0.12em] text-white/40">Você pediu</dt>
+          <dt className="text-[10px] uppercase tracking-[0.12em] text-white/40">Data solicitada</dt>
           <dd className="text-white/80">{formatDateTime(request.preferredDate1)}</dd>
         </div>
         {request.preferredDate2 ? (
@@ -207,7 +208,7 @@ function OpenRequestCard({
         ) : null}
         {isCounter && request.scheduledAt ? (
           <div className="sm:col-span-2">
-            <dt className="text-[10px] uppercase tracking-[0.12em] text-amber-200">Unidade sugere</dt>
+            <dt className="text-[10px] uppercase tracking-[0.12em] text-amber-200">Data proposta</dt>
             <dd className="text-amber-100">{formatDateTime(request.scheduledAt)}</dd>
             {request.adminNotes ? <p className="mt-0.5 text-amber-100/80">{request.adminNotes}</p> : null}
           </div>
@@ -226,14 +227,14 @@ function OpenRequestCard({
             className="min-h-20 rounded-lg border border-white/10 bg-white/[0.03] p-2 text-sm text-white placeholder:text-white/30 focus:border-[#C9A84C]/40 focus:outline-none"
           />
           <div className="flex gap-2">
-            <button type="button" onClick={() => setCancelMode(false)} className="min-h-10 rounded-lg border border-white/10 px-3 text-sm text-white/70 hover:bg-white/[0.04]">
+            <button type="button" onClick={() => setCancelMode(false)} className="min-h-11 rounded-lg border border-white/10 px-3 text-sm text-white/70 hover:bg-white/[0.04]">
               Voltar
             </button>
             <button
               type="button"
               disabled={!reason.trim() || state === "pending"}
               onClick={() => onCancel(reason.trim())}
-              className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-amber-300/30 bg-amber-300/[0.08] px-3 text-sm font-medium text-amber-200 hover:bg-amber-300/[0.14] disabled:opacity-40"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-amber-300/30 bg-amber-300/[0.08] px-3 text-sm font-medium text-amber-200 hover:bg-amber-300/[0.14] disabled:opacity-40"
             >
               {state === "pending" ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
               Cancelar solicitação
@@ -247,7 +248,7 @@ function OpenRequestCard({
               type="button"
               disabled={state === "pending"}
               onClick={onAccept}
-              className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-emerald-300/30 bg-emerald-300/[0.08] px-3 text-sm font-medium text-emerald-200 hover:bg-emerald-300/[0.14] disabled:opacity-40"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-emerald-300/30 bg-emerald-300/[0.08] px-3 text-sm font-medium text-emerald-200 hover:bg-emerald-300/[0.14] disabled:opacity-40"
               data-testid="btn-accept-counter"
             >
               {state === "pending" ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
@@ -258,7 +259,7 @@ function OpenRequestCard({
             type="button"
             disabled={state === "pending"}
             onClick={() => setCancelMode(true)}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.02] px-3 text-sm font-medium text-white/80 hover:bg-white/[0.06] disabled:opacity-40"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.02] px-3 text-sm font-medium text-white/80 hover:bg-white/[0.06] disabled:opacity-40"
           >
             <X size={14} /> Cancelar
           </button>

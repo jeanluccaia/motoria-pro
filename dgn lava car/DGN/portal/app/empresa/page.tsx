@@ -86,21 +86,21 @@ export default async function EmpresaPortalPage({
       err === "invalid"
         ? [
             "Link inválido ou expirado",
-            "Não foi possível validar seu acesso. Solicite um novo link à equipe DGN.",
+            "Peça um novo link de acesso à equipe DGN.",
           ]
         : err === "missing"
           ? [
               "Link incompleto",
-              "Solicite à equipe DGN o link completo de acesso à sua empresa.",
+              "Abra o link completo enviado pela equipe DGN.",
             ]
           : state.kind === "stale-manager"
             ? [
                 "Sessão não encontrada",
-                "Seu acesso não está disponível. Solicite um novo link à equipe DGN.",
+                "Peça à equipe DGN para revisar seu acesso e enviar um novo link.",
               ]
             : [
                 "Acesso restrito",
-                "Acesse a frota da sua empresa pelo link enviado pela equipe DGN.",
+                "Acesse a frota e as solicitações da sua empresa pelo link enviado pela equipe DGN.",
               ];
     return (
       <main className="dgn-manager min-h-screen bg-[#0b0b0d] px-4 py-10 text-white sm:py-16">
@@ -116,7 +116,7 @@ export default async function EmpresaPortalPage({
             href="/"
             className="inline-flex min-h-11 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-4 text-sm font-medium text-white/80 hover:bg-white/[0.08]"
           >
-            Voltar para a página inicial
+            Página inicial
           </Link>
         </div>
       </main>
@@ -128,7 +128,7 @@ export default async function EmpresaPortalPage({
       <main className="dgn-manager min-h-screen bg-[#0b0b0d] px-4 py-10 text-white">
         <div className="mx-auto max-w-xl rounded-2xl border border-amber-300/20 bg-amber-300/[0.03] p-6">
           <h1 className="text-base font-semibold text-amber-200">Portal indisponível agora</h1>
-          <p className="mt-2 text-sm leading-relaxed text-amber-100/80">Tente novamente em instantes ou fale com a equipe DGN.</p>
+          <p className="mt-2 text-sm leading-relaxed text-amber-100/80">Não foi possível carregar a frota. Tente novamente mais tarde.</p>
         </div>
       </main>
     );
@@ -147,10 +147,10 @@ export default async function EmpresaPortalPage({
                 {state.company.displayName}
               </p>
               <h1 className="mt-1 text-xl font-semibold tracking-tight text-white sm:text-2xl">
-                Olá, {state.manager.displayName.split(" ")[0]}
+                Gestão da frota
               </h1>
               <p className="mt-1 text-xs text-white/55">
-                Gestão de atendimentos da sua frota
+                {state.manager.displayName} · Gestor da empresa
               </p>
             </div>
           </div>

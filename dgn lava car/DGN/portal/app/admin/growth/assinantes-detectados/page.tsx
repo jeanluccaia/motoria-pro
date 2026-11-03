@@ -66,11 +66,17 @@ function statusBadge(row: SubscribersCentralRow) {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number; tone: "gold" | "neutral" | "warn" | "emerald" }) {
+function StatCard({ label, value, tone }: { label: string; value: number; tone: "gold" | "neutral" | "warn" | "emerald" }) {
+  const toneClasses = {
+    gold:    " text-[#C9A84C]",
+    neutral: " text-white/80",
+    warn:    " text-amber-200",
+    emerald: " text-emerald-200",
+  }[tone];
   return (
-    <div className="dgn-stat">
-      <p className="dgn-stat-label">{label}</p>
-      <p className="dgn-stat-value">{value}</p>
+    <div className={`text-white/85 ${toneClasses}`}>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] opacity-70">{label}</p>
+      <p className="mt-3 text-3xl font-semibold">{value}</p>
     </div>
   );
 }
@@ -80,6 +86,7 @@ function buildQuery(status: StatusFilter, plan: PlanFilter, query = ""): string 
   if (query) params.set("q", query);
   if (status !== "all") params.set("status", status);
   if (plan !== "all")   params.set("plano", plan);
+  if (query) params.set("q", query);
   const qs = params.toString();
   return qs ? `?${qs}` : "";
 }
@@ -93,6 +100,8 @@ export default async function AssinantesPage({
   const query = typeof params.q === "string" ? params.q.trim() : "";
   const status = parseStatus(params.status);
   const plan = parsePlan(params.plano);
+  const query = typeof params.q === "string" ? params.q.trim() : "";
+  const searchTerm = query.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
   const env = readSupabaseEnv();
   const dbConfigured = Boolean(env.url && env.serviceRoleKey);
@@ -121,7 +130,7 @@ export default async function AssinantesPage({
   const overdue      = allRows.filter((r) => r.status === "inadimplente").length;
 
   const rows = allRows.filter((row) => {
-    if (query && ![row.displayName, row.vehicleLabel, row.maskedPlate, row.planLabel].some(value => value.toLocaleLowerCase("pt-BR").includes(query.toLocaleLowerCase("pt-BR")))) return false;
+    if (searchTerm && ![row.displayName, row.vehicleLabel, row.maskedPlate].join(" ").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes(searchTerm)) return false;
     if (status !== "all" && row.status !== status) return false;
     if (plan !== "all" && row.planLabel !== plan) return false;
     return true;
@@ -134,12 +143,14 @@ export default async function AssinantesPage({
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
-                Relacionamento
+                Gestão de assinaturas
               </p>
               <h1 className="mt-2 font-semibold tracking-tight">
                 Assinantes
               </h1>
-
+              <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#A7A7A7]">
+                Contratos, situação de pagamento e próximos vencimentos.
+              </p>
             </div>
             <div className="shrink-0">
               <AddSubscriberDialog
@@ -147,7 +158,7 @@ export default async function AssinantesPage({
                 disabled={!dbConfigured}
                 disabledReason={
                   !dbConfigured
-                    ? "Cadastro indisponível neste ambiente."
+                    ? "Cadastro de assinaturas indisponível neste ambiente."
                     : undefined
                 }
               />
@@ -155,7 +166,7 @@ export default async function AssinantesPage({
           </div>
         </header>
 
-        <section className="dgn-stats" aria-label="Resumo de assinantes">
+        <section className="dgn-subscriber-metrics mt-6">
           <StatCard label="Assinantes ativos"          value={active}   tone="emerald" />
           <StatCard label="Detectados"                 value={detected} tone="gold" />
           <StatCard label="Pendentes de validação"     value={pending}  tone="neutral" />
@@ -167,64 +178,62 @@ export default async function AssinantesPage({
             <AlertTriangle size={18} className="mt-0.5 shrink-0" />
             <div>
               <p className="font-semibold uppercase tracking-wider text-[11px] text-amber-300">
-                Somente consulta
+                Edição indisponível
               </p>
               <p className="mt-1 leading-relaxed">
-                O cadastro e a edição de assinaturas estão indisponíveis neste ambiente.
+                A consulta está disponível em modo de leitura. Não é possível salvar alterações neste ambiente.
               </p>
             </div>
           </div>
         )}
 
-        <form action="/admin/growth/assinantes-detectados" method="get" className="dgn-toolbar" role="search">
-          <label className="min-w-0 flex-1"><span className="sr-only">Buscar assinantes</span>
-            <input type="search" name="q" defaultValue={query} placeholder="Buscar nome, veículo ou plano" className="w-full" />
-          </label>
+        <form action="/admin/growth/assinantes-detectados" method="get" role="search" className="mt-6 flex flex-wrap gap-2">
           {status !== "all" ? <input type="hidden" name="status" value={status} /> : null}
           {plan !== "all" ? <input type="hidden" name="plano" value={plan} /> : null}
-          <button type="submit" className="dgn-link">Buscar</button>
-          {query ? <Link href={`/admin/growth/assinantes-detectados${buildQuery(status, plan)}`} className="dgn-text-link">Limpar busca</Link> : null}
+          <input type="search" name="q" defaultValue={query} aria-label="Buscar assinante" placeholder="Buscar cliente ou veículo" className="min-w-0 flex-1 rounded-lg border border-white/10 bg-[#101010] px-3 text-sm" />
+          <button type="submit" className="dgn-button">Buscar</button>
         </form>
-        <section aria-label="Filtros de assinantes" className="mt-4 flex flex-wrap items-center gap-2">
+        <section className="dgn-subscriber-filters mt-6" aria-label="Filtros de assinaturas"><div>
           <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50">Status</span>
           {STATUS_FILTERS.map((filter) => {
             const isSelected = status === filter.key;
             return (
               <Link
                 key={`status-${filter.key}`}
+                aria-current={isSelected ? "true" : undefined}
                 href={`/admin/growth/assinantes-detectados${buildQuery(filter.key, plan, query)}`}
-                className={`inline-flex min-h-10 items-center rounded-lg border px-3 text-xs font-medium transition ${
+                className={`inline-flex h-7 items-center rounded-full border px-3 text-[11px] font-medium transition ${
                   isSelected
                     ? "border-[#C9A84C]/40 bg-[#C9A84C]/10 text-[#E7C96A]"
-                    : "border-white/10 bg-white/[0.02] text-white/70 hover:border-white/20"
+                    : " text-white/70 hover:border-white/20"
                 }`}
               >
                 {filter.label}
               </Link>
             );
           })}
-          <span className="ml-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50">Plano</span>
+          </div><div><span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50">Plano</span>
           {PLAN_FILTERS.map((filter) => {
             const isSelected = plan === filter.key;
             return (
               <Link
                 key={`plan-${filter.key}`}
+                aria-current={isSelected ? "true" : undefined}
                 href={`/admin/growth/assinantes-detectados${buildQuery(status, filter.key, query)}`}
-                className={`inline-flex min-h-10 items-center rounded-lg border px-3 text-xs font-medium transition ${
+                className={`inline-flex h-7 items-center rounded-full border px-3 text-[11px] font-medium transition ${
                   isSelected
                     ? "border-[#C9A84C]/40 bg-[#C9A84C]/10 text-[#E7C96A]"
-                    : "border-white/10 bg-white/[0.02] text-white/70 hover:border-white/20"
+                    : " text-white/70 hover:border-white/20"
                 }`}
               >
                 {filter.label}
               </Link>
             );
           })}
-        </section>
+        </div></section>
 
-        <p className="mt-5 mb-3 text-xs text-white/50">{rows.length} assinantes encontrados</p>
-        <section className="dgn-panel dgn-table-wrap">
-          <table className="dgn-table dgn-subscriber-table">
+        <section className="dgn-subscriber-list mt-6 overflow-hidden rounded-xl border border-white/[0.06] bg-[#101010]">
+          <table className="dgn-subscriber-table w-full text-left text-sm">
             <thead className="bg-white/[0.02] text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50">
               <tr>
                 <th className="px-5 py-3">Cliente</th>
@@ -295,7 +304,7 @@ export default async function AssinantesPage({
           </table>
         </section>
 
-        <footer className="mt-6 text-xs text-white/50">Ativações e alterações de assinatura exigem confirmação.</footer>
+        <footer className="dgn-source">A ativação exige revisão. Cobranças PagBank são gerenciadas pelo provedor.</footer>
       </div>
     </div>
   );

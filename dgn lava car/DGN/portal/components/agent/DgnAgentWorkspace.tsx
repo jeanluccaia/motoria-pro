@@ -167,12 +167,12 @@ function BriefingSection({ briefing, disclosures }: { briefing: DailyBriefing | 
 
   return (
     <section aria-labelledby="briefing-heading">
-      <div className="flex items-baseline justify-between gap-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
         <div>
           <h2 id="briefing-heading" className="text-lg font-semibold text-white sm:text-xl">
-            {briefing.greeting}
+            Prioridades comerciais
           </h2>
-          <p className="mt-1 text-sm text-white/70">O que precisa da sua atenção hoje.</p>
+          <p className="mt-1 text-sm text-white/70">Recomendações para revisão.</p>
         </div>
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
           {briefing.headline}
@@ -181,11 +181,10 @@ function BriefingSection({ briefing, disclosures }: { briefing: DailyBriefing | 
 
       {briefing.cards.length === 0 ? (
         <div className="mt-4 rounded-2xl border border-white/[0.06] bg-[#101010] p-6 text-sm text-white/70">
-          Nenhuma ação prioritária identificada agora — nada está atrasado nem visualizado sem
-          resposta.
+          Nenhuma ação prioritária identificada agora.
         </div>
       ) : (
-        <ul className="mt-4 grid gap-3">
+        <ul className="dgn-briefing-list mt-4">
           {briefing.cards.map((card) => (
             <li key={card.id}>
               <AttentionCardView card={card} />
@@ -201,10 +200,10 @@ function BriefingSection({ briefing, disclosures }: { briefing: DailyBriefing | 
       <p className="mt-4 text-[11px] text-white/40">
         Fonte:{" "}
         {briefing.dataOrigin === "db"
-          ? "Supabase (operação em tempo real)"
+          ? "Base operacional"
           : briefing.dataOrigin === "json-fallback"
-            ? "JSON local (fallback temporário)"
-            : "JSON local"}
+            ? "Base local · fonte principal indisponível"
+            : "Base local"}
       </p>
     </section>
   );
@@ -229,13 +228,13 @@ function AttentionCardView({ card }: { card: AttentionCard }) {
   const prepareHref = attentionCardPrepareHref(card);
   return (
     <article className="flex flex-col gap-3 rounded-2xl border border-white/[0.06] bg-[#101010] p-4 sm:p-5">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#C9A84C]/12 text-[#C9A84C]">
             <Icon size={16} />
           </span>
           <div className="min-w-0">
-            <h3 className="truncate text-sm font-semibold text-white sm:text-base">{card.title}</h3>
+            <h3 className="break-words text-sm font-semibold text-white sm:text-base">{card.title}</h3>
             <p className="mt-1 text-sm leading-relaxed text-white/70">{card.reason}</p>
           </div>
         </div>
@@ -676,7 +675,7 @@ function BlockView({
 function SummaryBlock({ summary }: { summary: CustomerSummary }) {
   return (
     <article className="flex flex-col gap-3 rounded-2xl border border-white/[0.06] bg-[#101010] p-4 sm:p-5">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <h3 className="text-sm font-semibold text-white sm:text-base">{summary.name}</h3>
         {summary.score ? (
           <span className="inline-flex items-center rounded-full border border-[#C9A84C]/30 bg-[#C9A84C]/[0.08] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#E7C96A]">
@@ -919,7 +918,7 @@ function PreparedBriefCard({ brief }: { brief: PreparedCurationBrief }) {
       data-testid="prepared-brief-card"
       className="flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-[#0F0F0F] p-4 sm:p-5"
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
             Brief de curadoria
@@ -969,7 +968,7 @@ function AttackPlanCard({
       data-testid="attack-plan-card"
       className="flex flex-col gap-4 rounded-2xl border border-[#C9A84C]/30 bg-[#0F0D08] p-4 sm:p-5"
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
             Plano de ataque · {plan.greeting}

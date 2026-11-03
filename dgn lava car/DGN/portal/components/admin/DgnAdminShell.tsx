@@ -32,6 +32,11 @@ const primaryNav: NavItem[] = [
   { href: "/admin/growth/assistente", label: "Assistente DGN", icon: Sparkles },
 ];
 
+const systemNav: NavItem[] = [
+  { href: "/admin/growth/assinantes/reconciliar", label: "Reconciliação", icon: ClipboardCheck },
+  { href: "/admin/growth/diagnosticos", label: "Diagnósticos", icon: Stethoscope },
+];
+
 // Rotas que não devem ser envolvidas pelo shell (login, callbacks, etc).
 const systemNav: NavItem[] = [
   { href: "/admin/growth/assinantes/reconciliar", label: "Reconciliação", icon: ClipboardCheck },
@@ -152,8 +157,33 @@ function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: 
       <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/40">
         Principal
       </p>
-      <nav className="flex flex-col gap-1" data-testid="admin-shell-nav">
-        {primaryNav.map(({ href, label, icon: Icon, badge }) => {
+      <nav className="flex flex-col gap-1" aria-label="Principal" data-testid="admin-shell-nav">
+        <NavLinks items={primaryNav} pathname={pathname} onNavigate={onNavigate} />
+      </nav>
+
+      <div className="mt-auto pt-8">
+        <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/40">
+          Sistema
+        </p>
+        <nav className="mb-1 flex flex-col gap-1" aria-label="Ferramentas administrativas" data-testid="admin-shell-tools">
+          <NavLinks items={systemNav} pathname={pathname} onNavigate={onNavigate} />
+        </nav>
+        <form action="/admin/growth/logout" method="post" className="w-full">
+          <button
+            type="submit"
+            className="flex w-full min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-[#8A8A8A] transition hover:bg-red-500/10 hover:text-red-400"
+          >
+            <LogOut size={18} className="text-white/50" />
+            <span>Sair</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function NavLinks({ items, pathname, onNavigate }: { items: NavItem[]; pathname: string; onNavigate?: () => void }) {
+  return <>{items.map(({ href, label, icon: Icon, badge }) => {
           const active = isRouteActive(pathname, href);
           return (
             <Link
@@ -176,31 +206,5 @@ function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: 
               ) : null}
             </Link>
           );
-        })}
-      </nav>
-
-      <div className="mt-auto pt-8">
-        <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/40">
-          Sistema
-        </p>
-        <nav aria-label="Ferramentas do sistema" className="mb-2 flex flex-col gap-1">
-          {systemNav.map(({ href, label, icon: Icon }) => (
-            <Link key={href} href={href} onClick={onNavigate} aria-current={isRouteActive(pathname, href) ? "page" : undefined}
-              className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition ${isRouteActive(pathname, href) ? "bg-[#C9A84C]/12 text-[#E7C96A]" : "text-[#D1D5DB] hover:bg-white/[0.04] hover:text-white"}`}>
-              <Icon size={18} className="text-white/50" /><span>{label}</span>
-            </Link>
-          ))}
-        </nav>
-        <form action="/admin/growth/logout" method="post" className="w-full">
-          <button
-            type="submit"
-            className="flex w-full min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-[#8A8A8A] transition hover:bg-red-500/10 hover:text-red-400"
-          >
-            <LogOut size={18} className="text-white/50" />
-            <span>Sair</span>
-          </button>
-        </form>
-      </div>
-    </div>
-  );
+        })}</>;
 }

@@ -1,3 +1,4 @@
 export function GrowthDataError({ message }: { message: string }) {
-  return <main className="min-h-screen bg-[#080808] px-6 py-24 text-white"><div className="mx-auto max-w-xl rounded-2xl border border-red-400/20 bg-[#111] p-6"><p className="text-xs font-semibold uppercase tracking-widest text-red-300">DGN Growth · leitura indisponível</p><h1 className="mt-3 text-xl font-semibold">Não foi possível carregar a base administrativa.</h1><p className="mt-3 text-sm text-[#aaa]">{message}</p></div></main>;
+  void message;
+  return <main className="px-4 py-8 sm:px-8"><div className="mx-auto max-w-xl rounded-xl border border-white/10 bg-[#101010] p-6" role="status"><p className="text-xs text-white/50">DGN · Administração</p><h1 className="mt-2 font-semibold">Dados indisponíveis</h1><p className="mt-3 text-sm text-white/60">Não foi possível carregar os dados. Tente novamente mais tarde.</p><a href="/admin/growth" className="dgn-button mt-5">Voltar à visão geral</a></div></main>;
 }

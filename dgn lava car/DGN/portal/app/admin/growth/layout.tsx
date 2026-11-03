@@ -1,3 +1,4 @@
+import "@/components/growth/commercial.css";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { DgnAdminShell } from "@/components/admin/DgnAdminShell";
@@ -11,5 +12,5 @@ export const metadata: Metadata = {
 };
 
 export default function DgnAdminGrowthLayout({ children }: { children: ReactNode }) {
-  return <DgnAdminShell>{children}</DgnAdminShell>;
+  return <DgnAdminShell><div className="dgn-workspace">{children}</div></DgnAdminShell>;
 }

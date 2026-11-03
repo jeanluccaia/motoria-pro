@@ -47,9 +47,7 @@ export default async function DgnAssistentePage() {
             Assistente DGN
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">
-            Sua central de inteligência comercial. Analiso a operação da DGN e mostro onde sua
-            atenção pode gerar mais resultado — leitura, análise e recomendação; nunca executo
-            ação sozinho.
+            Recomendações e próximos contatos.
           </p>
         </header>
 
@@ -61,8 +59,7 @@ export default async function DgnAssistentePage() {
                 Não foi possível carregar a inteligência agora
               </p>
               <p className="mt-1 leading-relaxed">
-                A base do Growth não respondeu — nenhum card é exibido para não mostrar dado
-                fictício. <span className="text-amber-200/60">({outcome.loadError})</span>
+                Tente novamente mais tarde ou consulte os clientes.
               </p>
             </div>
           </div>

@@ -20,15 +20,14 @@ export default function DiagnosticosLandingPage() {
       <div className="mx-auto max-w-4xl">
         <header className="border-b border-white/[0.06] pb-8">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
-            Central operacional
+            Sistema · Ferramentas
           </p>
           <h1 className="mt-3 flex items-center gap-3 text-3xl font-semibold tracking-tight sm:text-4xl">
             <Stethoscope size={26} className="text-[#E7C96A]" />
             Diagnósticos
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#A7A7A7]">
-            Fluxo real de rascunho persistido no banco. Publicação, link opaco,
-            página pública e tracking chegam na Entrega 2.
+            Crie e retome avaliações dos veículos dos seus clientes.
           </p>
         </header>
 
@@ -46,8 +45,7 @@ export default function DiagnosticosLandingPage() {
                   Novo diagnóstico
                 </h2>
                 <p className="mt-1 text-sm text-white/60">
-                  Buscar cliente existente → escolher veículo → criar rascunho.
-                  Sem cadastro novo, sem fixture. Autosave server + retomada.
+                  Selecione um cliente e um veículo para iniciar a avaliação. O rascunho é salvo durante o preenchimento.
                 </p>
                 <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#E7C96A] transition group-hover:tracking-[0.24em]">
                   Começar →
@@ -66,14 +64,13 @@ export default function DiagnosticosLandingPage() {
               </span>
               <div>
                 <h2 className="text-lg font-semibold text-white">
-                  Preview mobile (cliente)
+                  Exemplo da avaliação
                 </h2>
                 <p className="mt-1 text-sm text-white/60">
-                  Como o cliente veria a página web compartilhável. Fixture
-                  ilustrativa; sem PDF, sem A4.
+                  Prévia ilustrativa da avaliação no celular, sem dados da sua operação.
                 </p>
                 <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#E7C96A] transition group-hover:tracking-[0.24em]">
-                  Ver preview →
+                  Ver exemplo →
                 </p>
               </div>
             </div>
@@ -86,7 +83,7 @@ export default function DiagnosticosLandingPage() {
             className="inline-flex items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-[11px] font-semibold text-white/60 hover:border-white/20"
           >
             <PenLine size={12} />
-            Formulário mock (fixture em memória — só pra referência UX)
+            Ver formulário de demonstração
           </Link>
         </section>
 
@@ -122,17 +119,7 @@ export default function DiagnosticosLandingPage() {
           </section>
         ) : null}
 
-        <footer className="mt-6 rounded-2xl border border-amber-300/20 bg-amber-300/[0.03] p-5 text-xs leading-relaxed text-amber-100/80">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-300">
-            Escopo desta entrega
-          </p>
-          <ul className="mt-3 list-inside list-disc space-y-1 text-amber-100/70">
-            <li>Rascunho real grava em <span className="font-mono">crm_diagnostics</span> via RPCs SECURITY DEFINER.</li>
-            <li>Autosave server + optimistic locking + Idempotency-Key + recuperação de buffer local.</li>
-            <li>Rota pública, versão imutável, snapshot e tracking ficam pra Entrega 2.</li>
-            <li>Preços de referência não são definitivos — o Digo valida antes de qualquer publicação real.</li>
-          </ul>
-        </footer>
+        <footer className="dgn-source">Rascunhos disponíveis para uso interno. O compartilhamento com o cliente ainda não está disponível.</footer>
       </div>
     </div>
   );

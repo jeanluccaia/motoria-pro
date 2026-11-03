@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
+  ArrowUpRight,
   ArrowRight,
   BadgeCheck,
   Banknote,
@@ -418,8 +419,8 @@ export function DgnGrowthWorkspace({
 
   return (
     <div className="min-h-full bg-[#080808] text-white">
-      <main className="dgn-page">
-        {readOnly && (dataOrigin === "db" || process.env.NODE_ENV !== "production") ? <div className="mb-5 rounded-xl border border-[#C9A84C]/20 bg-[#C9A84C]/[0.06] px-4 py-3 text-xs text-[#E7C96A]">{dataOrigin === "db" ? "Edição disponível para informações comerciais e curadoria." : "Dados locais · somente consulta."}</div> : null}
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        {readOnly && dataOrigin !== "db" ? <div className="mb-5 rounded-lg border border-white/10 px-4 py-3 text-xs text-white/60">Base local · somente leitura.</div> : null}
         {notice ? (
           <div className="fixed right-4 top-4 z-[70] rounded-xl border border-[#C9A84C]/30 bg-[#111111] px-4 py-3 text-sm font-semibold text-[#E7C96A] shadow-2xl">
             {notice}
@@ -600,9 +601,9 @@ function IntelligenceView({
 
   return (
     <>
-      <header className="mb-6"><h1>Clientes e oportunidades</h1></header>
-      {/* Indicadores existentes */}
-      <section className="dgn-workspace-metrics grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] pb-5"><div><p className="dgn-eyebrow">Inteligência comercial</p><h1 className="mt-1 font-semibold">Clientes</h1></div><Link href="/admin/growth/intelligence/inbox" className="dgn-button">Revisar oportunidades <ArrowUpRight size={14} /></Link></header>
+      {/* 4 KPIs principais */}
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label="Base operacional" value={String(metrics.total)} icon={UserRound} />
         <MetricCard label="Aguardando curadoria" value={String(metrics.awaiting)} icon={Filter} />
         <MetricCard label="Alto score" value={String(metrics.highScore)} icon={BadgeCheck} />
@@ -627,7 +628,7 @@ function IntelligenceView({
         <div className="h-4 w-px bg-white/[0.08]" />
         <div className="flex items-center gap-2">
           <span className="text-[11px] uppercase tracking-[0.14em] text-[#7D7D7D]">
-            Valor histórico operacional
+            Valor histórico
           </span>
           <span className="font-semibold text-white">{formatCurrency(metrics.totalHistorical)}</span>
         </div>
@@ -704,32 +705,33 @@ function FiltersBar({
 }) {
   return (
     <section className="mt-6 rounded-2xl border border-white/[0.06] bg-[#101010] p-4">
-      <div className="grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr_0.7fr]">
+      <div className="grid items-end gap-3 lg:grid-cols-[1.4fr_1fr_1fr_0.7fr]">
         <label className="relative">
           <Search
             size={16}
             className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#7D7D7D]"
           />
           <input
+            aria-label="Buscar clientes"
             value={query}
             onChange={(event) => onQuery(event.target.value)}
             placeholder="Buscar por nome, veículo, empresa ou telefone"
             className="h-11 w-full rounded-xl border border-white/[0.06] bg-white/[0.03] pl-9 pr-3 text-sm text-white outline-none placeholder:text-[#666] focus:border-[#C9A84C]/35"
           />
         </label>
-        <SelectField value={statusFilter} onChange={onStatusFilter}>
+        <SelectField label="Status comercial" value={statusFilter} onChange={onStatusFilter}>
           <option>Todos</option>
           {commercialStatuses.map((status) => (
             <option key={status}>{status}</option>
           ))}
         </SelectField>
-        <SelectField value={planFilter} onChange={onPlanFilter}>
+        <SelectField label="Plano recomendado" value={planFilter} onChange={onPlanFilter}>
           <option>Todos</option>
           {recommendedPlans.map((plan) => (
             <option key={plan}>{plan}</option>
           ))}
         </SelectField>
-        <SelectField value={scoreFilter} onChange={onScoreFilter}>
+        <SelectField label="Score DGN" value={scoreFilter} onChange={onScoreFilter}>
           <option>Todos</option>
           <option>90+</option>
           <option>80+</option>
@@ -762,17 +764,15 @@ function CustomersTable({
 }) {
   return (
     <section className="mt-5 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#101010]">
-      <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-4">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
-            DGN Intelligence
-          </p>
-          <h2 className="mt-1 text-lg font-semibold text-white">Base importada e priorizada</h2>
+
+          <h2 className="mt-1 text-lg font-semibold text-white">Carteira de clientes</h2>
         </div>
         <span className="text-xs text-[#7D7D7D]">{total} resultados · até 50 por página</span>
       </div>
-      {/* Mobile: cards verticais tocáveis (< lg) */}
-      <div className="block space-y-2 p-3 lg:hidden">
+      {/* Lista compacta quando a tabela não cabe ao lado do menu. */}
+      <div className="block space-y-2 p-3 xl:hidden">
         {customers.map((customer, index) => (
           <button
             key={`${filterKey}|${customer.id}`}
@@ -806,8 +806,8 @@ function CustomersTable({
         ) : null}
       </div>
 
-      {/* Desktop: tabela tradicional (>= lg) */}
-      <div className="hidden overflow-x-auto lg:block">
+      {/* Tabela completa em telas com espaço para todas as ações. */}
+      <div className="hidden overflow-x-auto xl:block">
         <table className="w-full min-w-[960px] border-collapse">
           <thead>
             <tr className="border-b border-white/[0.06] text-left">
@@ -1077,14 +1077,14 @@ function CurationView({
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
             Clientes
           </p>
-          <h1 className="mt-1 font-semibold text-white">Curadoria</h1>
+          <h2 className="mt-1 text-lg font-semibold text-white">Clientes para curadoria</h2>
           <label className="mt-3 block">
             <span className="sr-only">Buscar cliente</span>
             <input
               type="search"
               value={query}
               onChange={(event) => onQuery(event.target.value)}
-              placeholder="Nome, placa ou telefone"
+              placeholder="Buscar nome, placa ou telefone"
               className="h-10 w-full rounded-lg border border-white/[0.06] bg-[#151515] px-3 text-xs text-white outline-none focus:border-[#C9A84C]/50"
               autoComplete="off"
               spellCheck={false}
@@ -1287,7 +1287,7 @@ function CurationView({
         </button>
         {dataOrigin !== "db" ? (
           <div className="mb-4 rounded-xl border border-amber-400/30 bg-amber-400/[0.06] px-3 py-2 text-[11px] text-amber-200">
-            Somente consulta. A criação de convites está indisponível neste ambiente.
+            Curadoria em modo de leitura. A geração de convites está indisponível neste ambiente.
           </div>
         ) : null}
         <div className="dgn-curation-profile-heading flex flex-col items-start justify-between gap-4 2xl:flex-row">
@@ -1662,16 +1662,16 @@ function FoundersView({
     <>
       {/* HERO da campanha */}
       <section
-        className="relative overflow-hidden rounded-3xl border border-[#C9A84C]/25 p-6 sm:p-8"
+        className="dgn-campaign-header relative overflow-hidden border-b border-white/[0.08] pb-6"
         style={{
-          background: "linear-gradient(145deg,#1A1408 0%,#0B0B0B 65%,#0F0D06 100%)",
+          background: "transparent",
         }}
       >
         <div
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(circle at 85% 0%, rgba(201,168,76,0.18), transparent 40%)",
+              "none",
           }}
         />
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -1680,7 +1680,7 @@ function FoundersView({
               Founders 2026
             </p>
             <div className="mt-3 flex items-baseline gap-3">
-              <p className="gold-gradient-text text-5xl font-semibold leading-none tracking-tight sm:text-6xl">
+              <p className="text-4xl font-semibold leading-none tracking-tight text-white">
                 {campaignMetrics.confirmed}
               </p>
               <p className="text-2xl font-semibold text-white/60">/ 30</p>
@@ -1737,8 +1737,8 @@ function FoundersView({
       {/* FUNIL — snapshot atual, buckets MUTUAMENTE EXCLUSIVOS */}
       <section className="mt-4" data-testid="founders-pipeline-snapshot">
         <div className="mb-2 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">
-          <span>Pipeline atual · onde cada candidato está agora</span>
-          <span className="text-white/40">Cada cliente aparece em apenas 1 estágio</span>
+          <span>Etapas da campanha</span>
+          <span className="text-white/40">Situação atual</span>
         </div>
         <Funnel
           stages={[
@@ -2633,7 +2633,7 @@ function FounderCurationEditor({
       return;
     }
     if (dbUnavailable && action !== "mark_sent") {
-      setNotice("Somente consulta. Nenhuma alteração foi salva.");
+      setNotice("Edição indisponível neste ambiente.");
       return;
     }
     // create_invite e save fazem bootstrap silencioso do crm_campaign_members.
@@ -2699,7 +2699,7 @@ function FounderCurationEditor({
     ? "Clique em um motivo (ou digite um com pelo menos 3 caracteres)."
     : "";
   const fastPathBlockReason = dbUnavailable
-    ? "A criação de convites está indisponível neste ambiente."
+    ? "Geração de convites indisponível neste ambiente."
     : inviteBlockedByEligibility
     ? eligibility.operatorMessage ?? "Cliente não elegível para aquisição Founder."
     : fastPathMissing;
@@ -3576,7 +3576,7 @@ function accessStatusBadgeClasses(status: PortalAccessStatusResult["status"]): s
 
 function formatBlockers(blockers: PortalAccessBlocker[]): string {
   const labels: Record<PortalAccessBlocker, string> = {
-    MISSING_ACTIVE_SUBSCRIPTION: "assinatura ativa",
+    MISSING_ACTIVE_SUBSCRIPTION: "assinatura vigente",
     MISSING_EMAIL: "e-mail",
     MISSING_AUTH_LINK: "conta de acesso",
     PORTAL_GATE_DISABLED: "liberação do Portal",
@@ -3607,8 +3607,7 @@ function renderPortalAccessBody(props: PortalAccessBodyProps) {
           {portalStatus.label}
         </span>
         <p className="text-xs text-red-200">
-          Portal marcado como ativo mas <span className="font-semibold">não há assinatura vigente</span> em
-          {" "}<span className="font-mono">crm_subscriptions</span>. Reconcilie a assinatura antes de manter o acesso.
+          O Portal está ativo, mas <span className="font-semibold">não há assinatura vigente</span>. Revise a assinatura antes de manter o acesso.
         </p>
         {!confirmingDisable ? (
           <button type="button" disabled={!enabled || busy !== null} onClick={() => { setConfirmingDisable(true); setResult(null); }} className={ghostBtn}>
@@ -3638,7 +3637,7 @@ function renderPortalAccessBody(props: PortalAccessBodyProps) {
           {portalStatus.label}
         </span>
         <p className="text-xs text-[#B5A063]">
-          Cliente sem assinatura vigente em <span className="font-mono">crm_subscriptions</span>. Ative o Portal apenas após confirmar o contrato.
+          Cliente sem assinatura vigente. Ative o Portal após confirmar o contrato.
         </p>
       </div>
     );
@@ -3946,22 +3945,27 @@ function Avatar({ name, size = "md" }: { name: string; size?: "md" | "lg" }) {
 }
 
 function SelectField({
+  label,
   value,
   onChange,
   children,
 }: {
+  label?: string;
   value: string;
   onChange: (value: string) => void;
   children: ReactNode;
 }) {
   return (
-    <select
+    <label className="flex min-w-0 flex-col gap-1.5">
+      {label ? <span className="text-xs text-white/55">{label}</span> : null}
+    <select aria-label={label}
       value={value}
       onChange={(event) => onChange(event.target.value)}
       className="h-11 w-full rounded-xl border border-white/[0.06] bg-[#151515] px-3 text-sm text-white outline-none focus:border-[#C9A84C]/35"
     >
       {children}
     </select>
+    </label>
   );
 }
 

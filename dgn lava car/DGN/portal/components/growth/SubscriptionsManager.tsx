@@ -79,17 +79,17 @@ interface VehicleOption {
 }
 
 const cardCls =
-  "rounded-2xl border border-white/[0.06] bg-[#101010] p-4";
+  "rounded-lg border border-white/[0.08] bg-[#0c0c0d] p-4";
 const inputCls =
-  "mt-1 h-10 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 text-sm text-white outline-none focus:border-[#C9A84C]/40";
+  "mt-1 h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 text-sm text-white outline-none focus:border-[#C9A84C]/40";
 const labelCls =
   "text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50";
 const btnPrimary =
-  "inline-flex min-h-10 items-center justify-center rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 text-sm font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-40 hover:bg-[#C9A84C]/15";
+  "inline-flex min-h-11 items-center justify-center rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 text-sm font-semibold text-[#E7C96A] disabled:cursor-not-allowed disabled:opacity-40 hover:bg-[#C9A84C]/15";
 const btnSecondary =
-  "inline-flex min-h-10 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-sm text-white/80 disabled:opacity-40 hover:bg-white/[0.05]";
+  "inline-flex min-h-11 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 text-sm text-white/80 disabled:opacity-40 hover:bg-white/[0.05]";
 const btnDanger =
-  "inline-flex min-h-10 items-center justify-center rounded-xl border border-red-400/25 bg-red-400/10 px-4 text-sm font-semibold text-red-200 disabled:opacity-40 hover:bg-red-400/15";
+  "inline-flex min-h-11 items-center justify-center rounded-lg border border-red-400/25 bg-red-400/10 px-4 text-sm font-semibold text-red-200 disabled:opacity-40 hover:bg-red-400/15";
 
 function formatDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -205,19 +205,19 @@ export function SubscriptionsManager({
   return (
     <div className="space-y-4">
       {!enabled && (
-        <p className="rounded-xl border border-amber-300/30 bg-amber-300/[0.06] px-3 py-2 text-xs text-amber-200">
-          Somente consulta. O cadastro e a edição de assinaturas estão indisponíveis neste ambiente.
+        <p className="rounded-lg border border-amber-300/30 bg-amber-300/[0.06] px-3 py-2 text-xs text-amber-200">
+          Persistência não habilitada — leitura apenas. Não é possível criar ou editar assinaturas neste ambiente.
         </p>
       )}
       {loading && <p className="text-xs text-white/50">Carregando assinaturas…</p>}
       {error && (
-        <p className="rounded-xl border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs text-red-200">
+        <p className="rounded-lg border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs text-red-200">
           {error}
         </p>
       )}
 
       {!loading && rows.length === 0 && (
-        <p className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-sm text-white/60">
+        <p className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4 text-sm text-white/60">
           Este cliente ainda não tem nenhuma assinatura registrada.
         </p>
       )}
@@ -271,10 +271,9 @@ export function SubscriptionsManager({
       )}
 
       {pagBankRows.length > 0 && editableRows.length === 0 && (
-        <p className="mt-2 rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 py-2 text-[11px] text-white/50">
+        <p className="mt-2 rounded-lg border border-white/[0.05] bg-white/[0.02] px-3 py-2 text-[11px] text-white/50">
           <ShieldAlert size={12} className="mr-1 inline align-[-2px]" />
-          Todos os contratos deste cliente são PagBank recorrentes. Alterações financeiras vêm pelo importer oficial —
-          o editor manual não modifica cobrança nem vigência PagBank.
+          Contratos recorrentes PagBank. Cobrança e vigência são gerenciadas pelo provedor.
         </p>
       )}
     </div>
@@ -393,9 +392,7 @@ function SubscriptionCard({
       {row.pagBankLocked && (
         <p className="mt-3 rounded-lg border border-white/[0.05] bg-white/[0.02] px-3 py-2 text-[11px] text-white/60">
           <Lock size={11} className="mr-1 inline align-[-2px]" />
-          Contrato recorrente do PagBank. Plano, cobrança, próxima cobrança e vigência
-          financeira são controlados pelo provedor. Alterações passam pelo importer
-          oficial — não é possível editar por aqui.
+          Contrato PagBank: plano, cobrança e vigência são gerenciados pelo provedor.
         </p>
       )}
     </div>
@@ -439,7 +436,7 @@ function PaymentEvidenceBlock({ row }: { row: SubscriptionRow }) {
           : "border-white/[0.08] bg-white/[0.03] text-white/80";
 
   return (
-    <div className="mt-3 rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
+    <div className="mt-3 rounded-lg border border-white/[0.05] bg-white/[0.02] p-3">
       <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">
         Situação financeira
       </p>
@@ -490,7 +487,7 @@ function SubscriptionUsageBlock({ usage }: { usage: SubscriptionUsage }) {
       : "";
 
   return (
-    <div className="mt-3 rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
+    <div className="mt-3 rounded-lg border border-white/[0.05] bg-white/[0.02] p-3">
       <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">
         Uso do contrato
       </p>
@@ -676,13 +673,13 @@ function SubscriptionCreateForm({
       </div>
 
       {error && (
-        <p className="mt-3 rounded-xl border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs text-red-200">
+        <p className="mt-3 rounded-lg border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs text-red-200">
           {error}
         </p>
       )}
 
       {confirming ? (
-        <div className="mt-4 rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/5 p-3">
+        <div className="mt-4 rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/5 p-3">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#E7C96A]">
             Confirmar criação
           </p>
@@ -943,13 +940,13 @@ function SubscriptionEditForm({
       </div>
 
       {error && (
-        <p className="mt-3 rounded-xl border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs text-red-200">
+        <p className="mt-3 rounded-lg border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs text-red-200">
           {error}
         </p>
       )}
 
       {confirming ? (
-        <div className="mt-4 rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/5 p-3">
+        <div className="mt-4 rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/5 p-3">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#E7C96A]">
             Confirmar alterações
           </p>
@@ -1043,7 +1040,7 @@ function CancelSubscriptionButton({
   }
 
   return (
-    <div className="w-full rounded-xl border border-red-400/25 bg-red-400/10 p-3">
+    <div className="w-full rounded-lg border border-red-400/25 bg-red-400/10 p-3">
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-red-200">
         Cancelar contrato {row.plan} · {row.modality}
       </p>
@@ -1055,7 +1052,7 @@ function CancelSubscriptionButton({
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           placeholder="Ex.: Cliente pediu encerramento em 2026-09-21"
-          className="mt-1 h-10 w-full rounded-xl border border-red-400/25 bg-red-400/[0.06] px-3 text-sm text-white outline-none focus:border-red-300/40"
+          className="mt-1 h-10 w-full rounded-lg border border-red-400/25 bg-red-400/[0.06] px-3 text-sm text-white outline-none focus:border-red-300/40"
           maxLength={200}
         />
       </label>

@@ -31,7 +31,7 @@ type ActionBusy =
   | { phase: "pending" }
   | { phase: "error"; message: string };
 
-export function AgentActionsInbox({ initialActions }: { initialActions: AgentActionRow[] }) {
+export function AgentActionsInbox({ initialActions, emptyMessage = "Nenhuma recomendação aguardando revisão." }: { initialActions: AgentActionRow[]; emptyMessage?: string }) {
   const [actions, setActions] = useState<AgentActionRow[]>(initialActions);
   const [busy, setBusy] = useState<Record<string, ActionBusy>>({});
   const [toast, setToast] = useState<string | null>(null);
@@ -98,7 +98,7 @@ export function AgentActionsInbox({ initialActions }: { initialActions: AgentAct
   if (sorted.length === 0) {
     return (
       <section className="mt-6 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 text-sm text-white/60">
-        Nenhuma ação aguardando revisão.
+        {emptyMessage}
       </section>
     );
   }
@@ -115,7 +115,7 @@ export function AgentActionsInbox({ initialActions }: { initialActions: AgentAct
         </div>
       ) : null}
 
-      <ul className="dgn-inbox-list mt-6 flex flex-col" data-testid="agent-actions-inbox">
+      <ul className="dgn-inbox-list mt-6" data-testid="agent-actions-inbox">
         {sorted.map((a) => (
           <ActionCard
             key={a.id}
@@ -176,7 +176,8 @@ function ActionCard({
 
   return (
     <li
-      className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 sm:p-5"
+      className="dgn-inbox-action"
+      id={`action-${action.id}`}
       data-testid={`agent-action-${action.id}`}
     >
       <div className="dgn-inbox-meta">
@@ -184,9 +185,7 @@ function ActionCard({
           <KindIcon kind={action.kind} />
           {KIND_LABELS[action.kind]}
         </span>
-        <span className="text-[10px] uppercase tracking-[0.14em] text-white/40">
-          Aguardando revisão
-        </span>
+        <span className="text-xs text-white/45">{{ pending_review: "Revisão pendente", approved: "Aprovada · execução não registrada", executed: "Execução registrada", rejected: "Rejeitada", archived: "Arquivada" }[action.status]}</span>
       </div>
 
       <h3 className="mt-3 text-base font-semibold text-white">{action.title}</h3>
@@ -215,6 +214,9 @@ function ActionCard({
         ) : null}
       </dl>
 
+      {action.executionRef ? <p className="mt-3 text-xs text-white/60">Registro: {action.executionRef}</p> : null}
+      {action.reviewReason ? <p className="mt-2 text-xs text-white/60">Decisão: {action.reviewReason}</p> : null}
+
       {state.phase === "error" ? (
         <div className="mt-3 flex items-start gap-2 rounded-lg border border-amber-300/20 bg-amber-300/[0.03] p-2 text-xs text-amber-200">
           <AlertTriangle size={14} className="mt-0.5 shrink-0" />
@@ -222,12 +224,14 @@ function ActionCard({
         </div>
       ) : null}
 
-      {state.phase === "confirming-reject" ? (
+      {!["pending_review", "approved"].includes(action.status) ? null : state.phase === "confirming-reject" ? (
         <div className="mt-4 flex flex-col gap-2">
-          <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">
-            Motivo da rejeição (obrigatório)
+          <label htmlFor={`reject-${action.id}`} className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">
+            Motivo da rejeição
           </label>
           <textarea
+            id={`reject-${action.id}`}
+            required
             className="min-h-20 rounded-lg border border-white/10 bg-white/[0.03] p-2 text-sm text-white placeholder:text-white/30 focus:border-[#C9A84C]/40 focus:outline-none"
             value={state.reason}
             onChange={(e) => setPhase({ phase: "confirming-reject", reason: e.target.value })}
@@ -254,17 +258,18 @@ function ActionCard({
         </div>
       ) : state.phase === "confirming-execute" ? (
         <div className="mt-4 flex flex-col gap-2">
-          <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">
-            Referência da execução (opcional)
+          <label htmlFor={`execute-${action.id}`} className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">
+            Registro da execução (opcional)
           </label>
           <input
+            id={`execute-${action.id}`}
             type="text"
             className="min-h-10 rounded-lg border border-white/10 bg-white/[0.03] px-2 text-sm text-white placeholder:text-white/30 focus:border-[#C9A84C]/40 focus:outline-none"
             value={state.executionRef}
             onChange={(e) =>
               setPhase({ phase: "confirming-execute", executionRef: e.target.value })
             }
-            placeholder="wa.me/5519... enviado às 14h32"
+            placeholder="Link ou observação do contato realizado"
           />
           <div className="flex gap-2">
             <button
@@ -285,8 +290,8 @@ function ActionCard({
           </div>
         </div>
       ) : (
-        <div className="mt-4 flex flex-wrap gap-2" data-testid="action-buttons">
-          <button
+        <div className="mt-4 flex flex-col gap-3"><p className="text-xs text-white/45">Aprovar registra sua decisão. Registre a execução após realizar a ação.</p><div className="flex flex-wrap gap-2" data-testid="action-buttons">
+          {action.status === "pending_review" ? <><button
             type="button"
             disabled={isPending}
             onClick={() => onApprove("")}
@@ -306,6 +311,7 @@ function ActionCard({
             <X size={14} />
             Rejeitar
           </button>
+          </> : null}
           <button
             type="button"
             disabled={isPending}
@@ -314,9 +320,9 @@ function ActionCard({
             data-testid="btn-execute"
           >
             <Zap size={14} />
-            Marcar como executada
+            Registrar execução
           </button>
-        </div>
+        </div></div>
       )}
     </li>
   );

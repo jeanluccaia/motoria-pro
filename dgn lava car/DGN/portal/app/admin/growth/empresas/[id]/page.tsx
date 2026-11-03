@@ -98,7 +98,7 @@ export default async function EmpresaDetailPage({
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-300">
                 Falha ao carregar
               </p>
-              <p className="mt-1 leading-relaxed">Não foi possível carregar esta empresa. Tente novamente em instantes.</p>
+              <p className="mt-1 leading-relaxed">Não foi possível carregar a empresa. Tente novamente mais tarde.</p>
             </div>
           </section>
         ) : (
