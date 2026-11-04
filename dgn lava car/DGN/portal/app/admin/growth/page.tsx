@@ -117,26 +117,3 @@ export default async function DgnAdminDashboardPage() {
 
   return <CommercialDashboard metrics={m} briefing={briefingSummary} pulse={pulse} fleet={fleetPending} />;
 }
-
-function Metric({ label, value, hint, testid }: { label: string; value: number | null; hint?: string; testid: string }) {
-  return <div className="dgn-stat" data-testid={testid}>
-    <p className="dgn-stat-label">{label}</p>
-    <p className="dgn-stat-value" data-testid={`${testid}-value`}>{value === null ? "—" : value}</p>
-    {hint ? <p className="dgn-stat-hint">{hint}</p> : null}
-  </div>;
-}
-
-function Task({ icon, title, detail, href, action }: { icon: React.ReactNode; title: string; detail: string; href: string; action: string }) {
-  return <div className="dgn-task">
-    <span className="dgn-task-icon">{icon}</span>
-    <div><h3>{title}</h3><p>{detail}</p></div>
-    <Link href={href} className="dgn-text-link">{action}<ArrowRight size={13} /></Link>
-  </div>;
-}
-
-function ActionRow({ action }: { action: AgentActionRow }) {
-  return <li className="dgn-operation-row">
-    <div className="min-w-0"><span className="font-medium text-white/85">{action.title}</span><p>{action.recommendation}</p></div>
-    <Link href="/admin/growth/intelligence/inbox" aria-label={`Revisar: ${action.title}`} className="dgn-text-link"><ArrowRight size={15} /></Link>
-  </li>;
-}

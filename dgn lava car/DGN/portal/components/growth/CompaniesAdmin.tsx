@@ -107,8 +107,9 @@ export function CompaniesAdmin({
       )}
 
       {companies.length > 0 ? (
+        <>
         <ul className="dgn-company-list" data-testid="companies-list">
-          {companies.map((c) => {
+          {visibleCompanies.map((c) => {
             const pending = pendingByCompany[c.id] ?? 0;
             return (
               <li key={c.id} className="transition">

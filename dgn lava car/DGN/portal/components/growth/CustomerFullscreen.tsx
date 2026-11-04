@@ -13,6 +13,7 @@ import {
   History,
   Stethoscope,
   Sparkles,
+  ShieldCheck,
 } from "lucide-react";
 import type { DgnCustomer } from "@/lib/growth/dgn-growth-utils";
 import {
@@ -72,6 +73,7 @@ function subscriptionStatusLabel(status: string | null | undefined): { label: st
 }
 
 function Section({
+  index,
   title,
   icon: Icon,
   children,

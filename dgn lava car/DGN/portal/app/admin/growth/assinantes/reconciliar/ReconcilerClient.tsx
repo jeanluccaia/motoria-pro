@@ -413,7 +413,7 @@ function ItemRow({
                 "Vinculada ao PagBank": item.facts.subscriptionMatch?.providerLinked ?? false,
                 "Assinaturas encontradas": item.facts.subscriptionMatch?.candidatesCount ?? 0,
               }} />
-            </div></details>
+            </div>
             {(item.facts.divergingFields.length > 0 || item.facts.missingFields.length > 0) && (
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 {item.facts.divergingFields.length > 0 && (

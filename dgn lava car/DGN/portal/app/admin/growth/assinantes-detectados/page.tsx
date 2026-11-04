@@ -97,7 +97,6 @@ export default async function AssinantesPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const query = typeof params.q === "string" ? params.q.trim() : "";
   const status = parseStatus(params.status);
   const plan = parsePlan(params.plano);
   const query = typeof params.q === "string" ? params.q.trim() : "";

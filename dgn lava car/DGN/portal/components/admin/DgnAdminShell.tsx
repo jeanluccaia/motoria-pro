@@ -38,11 +38,6 @@ const systemNav: NavItem[] = [
 ];
 
 // Rotas que não devem ser envolvidas pelo shell (login, callbacks, etc).
-const systemNav: NavItem[] = [
-  { href: "/admin/growth/assinantes/reconciliar", label: "Reconciliação", icon: ClipboardCheck },
-  { href: "/admin/growth/diagnosticos", label: "Diagnósticos", icon: Stethoscope },
-];
-
 const CHROMELESS_PATHS = new Set(["/admin/growth/login"]);
 
 function isRouteActive(pathname: string, href: string): boolean {
