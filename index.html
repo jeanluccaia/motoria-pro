@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DGN Club | Lavagens por assinatura em Campinas</title>
+<meta name="description" content="Lavagens por assinatura em Campinas, com vaga programada. Descubra o plano certo para o seu carro nas unidades Santa Genebra e Botafogo.">
+<link rel="canonical" href="https://dgnclub.com/">
+<meta property="og:title" content="DGN Club | Lavagens por assinatura em Campinas">
+<meta property="og:description" content="Descubra o plano certo para o seu carro. Vaga programada em duas unidades.">
+<meta property="og:image" content="https://dgnclub.com/assets/dgn-fachada-premium.jpg">
+<meta name="theme-color" content="#0b0b0c">
+<link rel="icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/apple-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--ink:#0b0b0c;--ink2:#151517;--ink3:#222226;--gold:#c9a84c;--gold2:#e9cc78;--paper:#f1ede4;--mut:rgba(255,255,255,.64);--line:rgba(255,255,255,.14);--f:"Archivo",system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--ink);color:#fff;font-family:var(--f);font-size:17px;line-height:1.45;-webkit-font-smoothing:antialiased}
+body.lock{overflow:hidden}
+img{max-width:100%;display:block}
+a{color:inherit}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:3px solid var(--gold2);outline-offset:3px}
+.w{max-width:1100px;margin:0 auto;padding:0 20px}
+.d{font-style:italic;font-weight:900;font-stretch:122%;text-transform:uppercase;letter-spacing:-.012em;line-height:1;margin:0;text-wrap:balance}
+.g{color:var(--gold)}
+.eb{font-weight:700;font-stretch:112%;font-size:12.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:60px;padding:0 26px;border:0;border-radius:14px;background:linear-gradient(100deg,var(--gold),var(--gold2));color:#0b0b0c;font-style:italic;font-weight:900;font-stretch:120%;text-transform:uppercase;font-size:17px;text-decoration:none;transition:transform .12s}
+.btn:active{transform:scale(.97)}
+.btn svg{width:22px;height:22px}
+.ghost{background:transparent;color:#fff;border:2px solid var(--line)}
+.pill{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1.5px solid var(--line);border-radius:99px;font-weight:700;font-size:14px;text-decoration:none;white-space:nowrap}
+section{padding:72px 0}
+h2.d{font-size:clamp(32px,8vw,56px);margin-top:10px}
+h2:focus{outline:0}
+
+/* hero */
+.hero{position:relative;min-height:min(100svh,860px);display:flex;flex-direction:column;overflow:hidden;isolation:isolate}
+.hero .bg{position:absolute;inset:0 0 auto 0;height:64%;z-index:-2;background:url("assets/dgn-fachada-premium.jpg") 32% 0/cover;animation:kb 18s ease-out both}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(11,11,12,.7) 0,rgba(11,11,12,.05) 22%,rgba(11,11,12,.2) 38%,var(--ink) 63%)}
+@keyframes kb{from{transform:scale(1.14)}to{transform:scale(1)}}
+.top{display:flex;justify-content:space-between;align-items:center;padding-top:16px;padding-bottom:16px}
+.top img{height:42px}
+.hero>.w{width:100%}
+.hero .hi{margin-top:auto;padding-bottom:30px}
+.hero h1{font-size:clamp(40px,11vw,84px);margin:12px 0 22px}
+.cta{display:flex;flex-wrap:wrap;gap:10px}
+.cta .btn{flex:1 1 240px}
+.cta .ghost{flex:0 1 auto}
+.st{display:flex;gap:22px;margin:26px 0 0;padding:18px 0 0;border-top:1px solid var(--line)}
+.st b{display:block;font-style:italic;font-weight:900;font-stretch:122%;font-size:24px;color:var(--gold);line-height:1.1}
+.st span{font-size:12.5px;color:var(--mut)}
+
+/* passos */
+.steps{display:grid;gap:12px;margin-top:28px;counter-reset:s}
+.step{display:flex;align-items:center;gap:16px;padding:18px;border-radius:16px;background:var(--ink2)}
+.step::before{counter-increment:s;content:counter(s);font-style:italic;font-weight:900;font-stretch:122%;font-size:44px;line-height:1;color:var(--gold);width:44px;text-align:center}
+.step b{font-size:19px;display:block}
+.step span{color:var(--mut);font-size:15px}
+
+/* planos: bilhetes */
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;border-radius:14px;background:var(--ink2);margin:26px 0 14px}
+.seg button{min-height:46px;border:0;border-radius:10px;background:transparent;font-weight:700;font-size:15px;color:var(--mut)}
+.seg button[aria-selected=true]{background:#fff;color:#0b0b0c}
+.tks{display:grid;gap:10px}
+.tk{display:flex;align-items:stretch;width:100%;padding:0;text-align:left;border:2px solid transparent;border-radius:16px;background:var(--ink2);overflow:hidden;transition:transform .12s,border-color .15s}
+.tk:active{transform:scale(.985)}
+.tk .n{flex:none;width:92px;display:grid;place-items:center;align-content:center;background:var(--ink3);border-right:2px dashed rgba(255,255,255,.22);padding:14px 0}
+.tk .n b{font-style:italic;font-weight:900;font-stretch:122%;font-size:40px;line-height:1}
+.tk .n i{font-style:normal;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+.tk .m{flex:1;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.tk .m small{display:block;white-space:nowrap;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.tk .m strong{font-style:italic;font-weight:900;font-stretch:120%;text-transform:uppercase;font-size:20px}
+.tk .p{text-align:right;white-space:nowrap}
+.tk .p b{font-style:italic;font-weight:900;font-stretch:120%;font-size:26px;font-variant-numeric:tabular-nums}
+.tk .p span{display:block;font-size:12px;color:var(--mut)}
+.tk[aria-pressed=true]{border-color:var(--gold)}
+.tk[aria-pressed=true] .n{background:var(--gold);color:#0b0b0c;border-right-color:rgba(0,0,0,.35)}
+.tk[aria-pressed=true] .n i{color:#0b0b0c}
+.det{margin-top:12px;padding:20px;border-radius:16px;background:var(--paper);color:#0b0b0c}
+.det ul{margin:0 0 18px;padding:0;list-style:none;display:grid;gap:8px;font-size:15.5px}
+.det li{padding-left:24px;position:relative}
+.det li::before{content:"";position:absolute;left:0;top:.5em;width:13px;height:4px;background:#8a6a14;transform:skewX(-24deg)}
+.det .btn{width:100%;background:#0b0b0c;color:#fff}
+.fine{font-size:13.5px;color:var(--mut);margin:14px 0 0}
+.fine a{text-underline-offset:3px}
+
+/* atendimento */
+.modes{display:grid;gap:10px;margin-top:26px}
+.mode{position:relative;border-radius:16px;overflow:hidden;background:var(--ink2);padding:20px;display:flex;gap:14px;align-items:center;min-height:96px}
+.mode svg{flex:none;width:34px;height:34px;color:var(--gold)}
+.mode b{display:block;font-size:19px}
+.mode span{color:var(--mut);font-size:15px}
+.mode.ph{min-height:230px;align-items:flex-end;background:linear-gradient(180deg,rgba(11,11,12,0) 30%,rgba(11,11,12,.92)),url("assets/dgn-lounge-real.jpg") center/cover}
+
+/* unidades */
+.units{display:grid;gap:12px;margin-top:26px}
+.unit{border-radius:16px;overflow:hidden;background:var(--ink2)}
+.unit .im{aspect-ratio:16/9;background:url("assets/dgn-fachada-premium.jpg") 30% 40%/cover}
+.unit .im.b{display:grid;place-items:center;background:repeating-linear-gradient(-55deg,var(--ink3) 0 22px,var(--ink2) 22px 44px)}
+.unit .t{padding:18px 20px 20px}
+.unit h3{font-size:26px}
+.unit p{margin:6px 0 14px;color:var(--mut);font-size:15px}
+.unit .l{display:flex;flex-wrap:wrap;gap:8px}
+
+/* app */
+.app{display:grid;gap:26px;margin-top:26px;align-items:center}
+.phone{width:min(340px,100%);margin:0 auto;border:9px solid #26262a;border-radius:42px;background:#000;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.phone .ban{background:var(--gold);color:#0b0b0c;font-weight:800;font-size:11px;letter-spacing:.16em;text-transform:uppercase;text-align:center;padding:8px}
+.phone .sc{padding:16px 14px 18px;min-height:380px}
+.phone img{height:28px;margin:0 auto 12px}
+.pt{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:14px}
+.pt button{min-height:44px;border:0;border-radius:10px;background:var(--ink2);color:var(--mut);font-size:12px;font-weight:700}
+.pt button[aria-selected=true]{background:#fff;color:#0b0b0c}
+.pc{background:var(--ink2);border-radius:14px;padding:14px;margin-bottom:8px;font-size:15px}
+.pc small{display:block;font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.pc b{display:block}
+.pb{width:100%;min-height:46px;border:1.5px solid var(--gold);border-radius:10px;background:transparent;color:var(--gold);font-weight:800;margin-top:6px}
+.pb.on{background:var(--gold);color:#0b0b0c}
+.pg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ok{color:#9be29b;font-weight:700;font-size:14px;margin:10px 0 0}
+
+/* fim + rodapé */
+.end{text-align:center;background:radial-gradient(120% 90% at 50% 0,#2a2412 0,var(--ink) 60%)}
+.end .btn{margin-top:26px;width:min(420px,100%)}
+footer{border-top:1px solid var(--line);padding:30px 0 110px;font-size:14px;color:var(--mut)}
+footer nav{display:flex;flex-wrap:wrap;gap:8px 18px;margin:16px 0}
+footer img{height:34px}
+
+/* barra fixa */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:rgba(11,11,12,.9);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;gap:10px;transform:translateY(110%);transition:transform .25s}
+.bar.show{transform:none}
+.bar .btn{flex:1;min-height:54px}
+.bar .wa{flex:none;width:54px;min-height:54px;padding:0;border-radius:14px;background:#1f8f4e;color:#fff}
+
+/* quiz em tela cheia */
+.sheet{position:fixed;inset:0;z-index:50;background:var(--ink);display:none;flex-direction:column}
+.sheet.open{display:flex;animation:up .28s ease-out}
+@keyframes up{from{transform:translateY(24px);opacity:0}}
+.sh{display:flex;align-items:center;gap:14px;padding:14px 18px}
+.bays{display:flex;gap:5px;flex:1}
+.bays i{flex:1;height:7px;background:var(--line);transform:skewX(-24deg);transition:background .25s}
+.bays i.on{background:var(--gold)}
+.x{width:44px;height:44px;border:0;border-radius:12px;background:var(--ink2);font-size:22px;line-height:1}
+.sb{flex:1;overflow-y:auto;padding:14px 18px 22px;width:100%;max-width:560px;margin:0 auto}
+.sb>div{animation:in .25s ease-out}
+@keyframes in{from{transform:translateX(18px);opacity:0}}
+.q{font-size:clamp(30px,8.4vw,44px);margin:6px 0 20px}
+.hint{color:var(--mut);font-size:15px;margin:-10px 0 18px}
+.os{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.os.one{grid-template-columns:1fr}
+.o{display:flex;flex-direction:column;gap:10px;justify-content:flex-end;min-height:112px;padding:16px;text-align:left;border:2px solid transparent;border-radius:16px;background:var(--ink2);font-weight:700;font-size:18px;transition:transform .12s,border-color .15s}
+.os.one .o{min-height:76px;flex-direction:row;align-items:center;justify-content:flex-start}
+.o:active{transform:scale(.97)}
+.o svg{width:30px;height:30px;color:var(--gold)}
+.o small{display:block;font-weight:400;font-size:13.5px;color:var(--mut)}
+.o[aria-pressed=true]{border-color:var(--gold);background:#2a2412}
+.fld{display:block;margin-top:14px}
+.fld span{display:block;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.fld input,.fld textarea{width:100%;min-height:54px;padding:14px;border:1.5px solid var(--line);border-radius:14px;background:var(--ink2);font:inherit;color:#fff}
+.fld textarea{min-height:200px;resize:vertical}
+.sf{display:flex;gap:10px;padding:12px 18px calc(14px + env(safe-area-inset-bottom));width:100%;max-width:560px;margin:0 auto}
+.sf .btn{flex:1}
+.sf .ghost{flex:none}
+.btn[disabled]{opacity:.35}
+/* placa do resultado */
+.pl{border-radius:18px;overflow:hidden;background:var(--paper);color:#0b0b0c}
+.pl .hz{height:14px;background:repeating-linear-gradient(-55deg,var(--gold) 0 18px,#0b0b0c 18px 36px)}
+.pl .a{padding:20px}
+.pl .eb{color:#8a6a14}
+.pl h2{font-size:clamp(30px,8vw,40px);margin:8px 0 4px}
+.pl .pr{font-style:italic;font-weight:900;font-stretch:122%;font-size:52px;line-height:1;margin:12px 0 2px;font-variant-numeric:tabular-nums}
+.pl .pr small{display:block;font:500 14px var(--f);font-style:normal;color:#5d584e;margin-top:6px}
+.pl p{margin:0;color:#3c382f;font-size:15px}
+.pl ul{margin:14px 0 0;padding:0;list-style:none;display:grid;gap:7px;font-size:15px}
+.pl li{padding-left:22px;position:relative}
+.pl li::before{content:"";position:absolute;left:0;top:.5em;width:12px;height:4px;background:#8a6a14;transform:skewX(-24deg)}
+.pl .r{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 20px;border-top:2px dashed rgba(0,0,0,.22)}
+.pl .r small{display:block;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#5d584e}
+.pl .r button{min-height:40px;padding:0 14px;border:1.5px solid rgba(0,0,0,.3);border-radius:99px;background:transparent;color:#0b0b0c;font-weight:700;font-size:13.5px}
+.alt{display:grid;gap:8px;margin-top:14px}
+.alt button{min-height:56px;padding:0 16px;border:1.5px solid var(--line);border-radius:14px;background:transparent;text-align:left;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.alt span{color:var(--mut);font-weight:400;font-size:14px}
+
+@media(min-width:760px){
+.steps,.modes{grid-template-columns:repeat(3,1fr)}
+.mode.ph{grid-column:1/-1;min-height:300px}
+.units{grid-template-columns:1fr 1fr}
+.app{grid-template-columns:360px 1fr}
+.hero .bg{height:100%;background-position:30% 30%}
+.hero::before{background:linear-gradient(90deg,rgba(11,11,12,.92) 0,rgba(11,11,12,.6) 48%,rgba(11,11,12,.15) 100%),linear-gradient(180deg,rgba(11,11,12,.5) 0,rgba(11,11,12,0) 30%,var(--ink) 100%)}
+.hero .hi{padding-bottom:64px}
+.hero h1,.cta,.st{max-width:700px}
+.bar{display:none}
+footer{padding-bottom:40px}
+section{padding:96px 0}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header class="hero" id="topo">
+  <div class="bg" role="img" aria-label="Fachada da DGN Club Santa Genebra"></div>
+  <div class="w top">
+    <img src="assets/logo-dgn-clean.png" alt="DGN Club" width="137" height="42">
+    <a class="pill" href="https://app.dgnclub.com/entrar">Já sou assinante</a>
+  </div>
+  <div class="w hi">
+    <p class="eb">Lavagens por assinatura · Campinas</p>
+    <h1 class="d">Seu carro bem cuidado<br><span class="g">Sua rotina resolvida</span></h1>
+    <div class="cta">
+      <button class="btn" data-quiz>Descobrir meu plano <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <a class="btn ghost" href="#planos">Ver planos</a>
+    </div>
+    <div class="st">
+      <div><b>16.600+</b><span>atendimentos</span></div>
+      <div><b>5.0 ★</b><span>no Google</span></div>
+      <div><b>5 anos</b><span>em Campinas</span></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="w">
+    <p class="eb">Como funciona</p>
+    <h2 class="d">Três passos e pronto</h2>
+    <div class="steps">
+      <div class="step"><div><b>Escolha o plano</b><span>1, 2 ou 4 lavagens por mês</span></div></div>
+      <div class="step"><div><b>Programe sua vaga</b><span>Dia e horário reservados</span></div></div>
+      <div class="step"><div><b>Chegue e pronto</b><span>Sem fila, sem remarcar</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="planos" style="padding-top:0">
+  <div class="w">
+    <p class="eb">Planos mensais</p>
+    <h2 class="d">Quantas lavagens por mês?</h2>
+    <div class="seg" role="tablist" aria-label="Categoria do veículo" id="seg"></div>
+    <div class="tks" id="tks"></div>
+    <div class="det" id="det" aria-live="polite"></div>
+    <p class="fine">Prefere uma lavagem só? <a href="https://plataforma.4ucar.app.br/vitrine/dgnlavacar">Veja os serviços avulsos</a>. Tem frota? <a href="https://wa.me/5519978146936?text=Ol%C3%A1!%20Quero%20falar%20sobre%20um%20plano%20corporativo%20do%20DGN%20Club.">Fale sobre o plano corporativo</a>.</p>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="w">
+    <p class="eb">Atendimento</p>
+    <h2 class="d">Do seu jeito</h2>
+    <div class="modes">
+      <div class="mode ph"><div><b>Aguarde no Espaço DGN</b><span>WiFi, café e mesa para trabalhar</span></div></div>
+      <div class="mode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><div><b>Hora marcada</b><span>Sua vaga já está na agenda</span></div></div>
+      <div class="mode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l2-5a2 2 0 0 1 2-1h10a2 2 0 0 1 2 1l2 5v4h-3M3 13v4h3M3 13h18"/><circle cx="7.5" cy="17" r="1.6"/><circle cx="16.5" cy="17" r="1.6"/></svg><div><b>Deixe e busque</b><span>Volte quando for melhor</span></div></div>
+      <div class="mode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13M13 4l4 4-4 4M20 16H7M11 12l-4 4 4 4"/></svg><div><b>Leva e traz</b><span>Conforme região e rota</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="unidades" style="padding-top:0">
+  <div class="w">
+    <p class="eb">Duas unidades</p>
+    <h2 class="d">Escolha a mais prática</h2>
+    <div class="units">
+      <article class="unit"><div class="im"></div><div class="t"><h3 class="d">Santa Genebra</h3><p>Sede, com Espaço DGN para aguardar</p><div class="l"><a class="pill" data-ev="genebra" href="https://wa.me/5519978146936?text=Ol%C3%A1!%20Quero%20falar%20com%20a%20unidade%20DGN%20Santa%20Genebra.">Falar com a unidade</a></div></div></article>
+      <article class="unit"><div class="im b"><span class="d g" style="font-size:30px">Drive-in</span></div><div class="t"><h3 class="d">Botafogo</h3><p>Rua Culto à Ciência, 188, no Culto à Ciência Park</p><div class="l"><a class="pill" data-ev="botafogo" href="https://wa.me/5519978146936?text=Ol%C3%A1!%20Quero%20falar%20com%20a%20unidade%20DGN%20Botafogo.">Falar com a unidade</a><a class="pill" data-vit href="https://plataforma.4ucar.app.br/vitrine/dgnclubbotafogo">Ver vitrine</a></div></div></article>
+    </div>
+    <p class="fine">Assinante de Santa Genebra também pode usar a unidade Botafogo pelo mesmo plano.</p>
+  </div>
+</section>
+
+<section id="app" style="padding-top:0">
+  <div class="w">
+    <p class="eb">Portal do assinante</p>
+    <h2 class="d">Tudo pelo celular</h2>
+    <div class="app">
+      <div class="phone" id="phone" aria-label="Demonstração do portal com dados fictícios">
+        <div class="ban">Demonstração · dados fictícios</div>
+        <div class="sc"><img src="assets/logo-dgn-clean.png" alt=""><div class="pt" role="tablist" id="pt"></div><div id="ps"></div></div>
+      </div>
+      <div>
+        <p style="margin:0 0 18px;color:var(--mut)">Toque na prévia e veja como é agendar, reagendar e acompanhar seu plano.</p>
+        <a class="btn ghost" href="https://app.dgnclub.com/entrar">Acessar o portal</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="end">
+  <div class="w">
+    <h2 class="d" style="margin:0 auto;max-width:14ch">Carro sempre limpo<br><span class="g">Sem você pensar nisso</span></h2>
+    <button class="btn" data-quiz>Descobrir meu plano</button>
+  </div>
+</section>
+
+<footer>
+  <div class="w">
+    <img src="assets/logo-dgn-clean.png" alt="DGN Club">
+    <nav aria-label="Institucional"><a href="/faq">FAQ</a><a href="/contato">Contato</a><a href="/politica-de-assinatura">Política de assinatura</a><a href="/politica-de-privacidade">Privacidade</a><a href="/termos-de-uso">Termos de uso</a></nav>
+    <p>DGN Club · Santa Genebra e Botafogo · Campinas/SP<br>© 2026 DGN Club. Todos os direitos reservados. Powered by 4UCar.</p>
+  </div>
+</footer>
+
+<div class="bar" id="bar">
+  <button class="btn" data-quiz>Descobrir meu plano</button>
+  <a class="btn wa" aria-label="Falar no WhatsApp" data-ev="barra" href="https://wa.me/5519978146936?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20os%20planos%20do%20DGN%20Club."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3.2c-4.9 0-8.8 3.6-8.8 8.1 0 1.7.6 3.3 1.6 4.6L3.6 20.6l5-1.5c1 .4 2.2.6 3.4.6 4.9 0 8.8-3.6 8.8-8.2S16.9 3.2 12 3.2Z"/></svg></a>
+</div>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Descobrir meu plano">
+  <div class="sh"><div class="bays" id="bays" aria-hidden="true"></div><button class="x" id="x" aria-label="Fechar">×</button></div>
+  <div class="sb" id="sb" aria-live="polite"></div>
+  <div class="sf" id="sf"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var WA="5519978146936",CATS=["Hatch","Sedan","SUV","Picape"];
+var P={essential:{n:"Essential",q:"1",f:"1 lavagem por mês",p:[70,80,90,100],i:["1 Lavagem Padrão DGN por mês","Vaga programada","Prioridade sobre atendimentos avulsos","Histórico de cuidados"]},
+smart:{n:"Smart",q:"2",f:"2 lavagens por mês",p:[130,150,170,190],t:"Mais escolhido",i:["2 Lavagens Padrão DGN por mês, a cada 15 dias","Vaga programada","Prioridade elevada","Histórico e benefícios de assinante"]},
+priority:{n:"Priority",q:"4",f:"4 lavagens por mês",p:[210,240,270,300],i:["4 Lavagens Padrão DGN por mês, frequência semanal","Vaga fixa ou programada","Prioridade máxima na agenda e no leva e traz","Benefícios em serviços de Estética DGN"]}};
+var U={genebra:"Santa Genebra",botafogo:"Botafogo"},CV={aguardar:"Aguardar no local",deixar:"Deixar e buscar",levatraz:"Consultar leva e traz"};
+var IC={work:'<path d="M4 8h16v11H4zM9 8V5h6v3"/>',fam:'<circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M2.5 20c.5-4 2.6-6 5.5-6s5 2 5.5 6M14 20c.3-2.8 1.5-4.4 3.4-4.4 1.8 0 3 1.5 3.3 4.4"/>',app:'<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/>',occ:'<path d="M3 13l2-5a2 2 0 0 1 2-1h10a2 2 0 0 1 2 1l2 5v4H3z"/><circle cx="7.5" cy="17" r="1.6"/><circle cx="16.5" cy="17" r="1.6"/>',one:'<circle cx="12" cy="8" r="3.5"/><path d="M5 20c.6-4.2 3.2-6.5 7-6.500s6.4 2.3 7 6.5"/>',kid:'<circle cx="12" cy="9" r="5"/><path d="M10 9h.01M14 9h.01M10 11.500c1.2 1 2.8 1 4 0M7 20c1-3 2.8-4.5 5-4.500s4 1.5 5 4.5"/>',pet:'<circle cx="7" cy="9" r="1.8"/><circle cx="12" cy="6.5" r="1.8"/><circle cx="17" cy="9" r="1.8"/><path d="M12 12c-3 0-5 2.5-5 4.8 0 1.7 1.5 2.5 3 2 .7-.2 1.3-.4 2-.4s1.3.200 2 .400c1.5.500 3-.300 3-2 0-2.3-2-4.8-5-4.800z"/>'};
+function ic(k){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'+IC[k]+'</svg>';}
+function $(i){return document.getElementById(i);}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function wa(t){return "https://wa.me/"+WA+"?text="+encodeURIComponent(t);}
+window.dataLayer=window.dataLayer||[];
+function ev(e,p){var o={event:e};for(var k in p||{})o[k]=p[k];window.dataLayer.push(o);}
+
+/* ---- planos ---- */
+var cat=1,sel="smart";
+function plans(){
+$("seg").innerHTML=CATS.map(function(c,i){return '<button role="tab" aria-selected="'+(i===cat)+'" data-c="'+i+'">'+c+'</button>';}).join("");
+$("tks").innerHTML=Object.keys(P).map(function(k){var p=P[k];return '<button class="tk" aria-pressed="'+(k===sel)+'" data-k="'+k+'"><span class="n"><b>'+p.q+'×</b><i>por mês</i></span><span class="m"><span>'+(p.t?'<small>'+p.t+'</small>':'')+'<strong>'+p.n+'</strong></span><span class="p"><b>R$ '+p.p[cat]+'</b><span>/mês · '+CATS[cat]+'</span></span></span></button>';}).join("");
+var p=P[sel];
+$("det").innerHTML='<ul>'+p.i.map(function(x){return '<li>'+x+'</li>';}).join("")+'</ul><a class="btn" id="pw" href="'+wa("Olá! Quero o DGN "+p.n+" para "+CATS[cat]+" (R$ "+p.p[cat]+"/mês). Pode me ajudar?")+'">Quero o '+p.n+'</a>';
+$("pw").onclick=function(){ev("whatsapp_clique",{plano:sel,categoria:CATS[cat],origem:"planos"});};
+}
+$("seg").onclick=function(e){var b=e.target.closest("[data-c]");if(b){cat=+b.getAttribute("data-c");plans();}};
+$("tks").onclick=function(e){var b=e.target.closest("[data-k]");if(b){sel=b.getAttribute("data-k");plans();}};
+
+/* ---- quiz ---- */
+var KEY="dgn-quiz-v2",Z={s:0,uso:null,pass:[],freq:null,bairro:"",unit:null,conv:null,tempo:null,cat:null,modelo:"",done:false,msg:false,ov:null},S=JSON.parse(JSON.stringify(Z)),started=false;
+try{var sv=JSON.parse(localStorage.getItem(KEY)||"null");if(sv&&Array.isArray(sv.pass))for(var k in Z)if(k in sv)S[k]=sv[k];}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function rec(){if(S.ov)return S.ov;if(S.freq==="mensal")return "essential";if(S.freq==="quinzenal")return "smart";if(S.freq==="semanal")return "priority";if(S.uso==="aplicativo")return "priority";if(S.uso==="ocasional")return "essential";return "smart";}
+function why(){if(S.ov)return "Plano escolhido por você na comparação.";if(S.freq==="mensal")return "Você quer cuidar do carro uma vez por mês.";if(S.freq==="quinzenal")return "Você quer o carro limpo a cada 15 dias.";if(S.freq==="semanal")return "Você quer o carro limpo toda semana.";if(S.uso==="aplicativo")return "Quem roda com aplicativo precisa do carro sempre apresentável.";if(S.uso==="ocasional")return "Para uso ocasional, uma lavagem por mês mantém o carro em dia.";return "Para o dia a dia, a cada 15 dias é o equilíbrio.";}
+function care(){var c=[];if(S.pass.indexOf("criancas")>-1)c.push("Com crianças, pergunte à equipe sobre cuidados internos.");if(S.pass.indexOf("pets")>-1)c.push("Com pets, pergunte sobre remoção de pelos.");return c;}
+function uk(){return S.unit&&S.unit!=="tanto"?S.unit:"genebra";}
+function o(g,v,l,sm,icn,m){var on=m?S[g].indexOf(v)>-1:S[g]===v;return '<button class="o" data-g="'+g+'" data-v="'+v+'"'+(m?' data-m':'')+' aria-pressed="'+on+'">'+(icn?ic(icn):'')+'<span>'+l+(sm?'<small>'+sm+'</small>':'')+'</span></button>';}
+function msgText(){var p=P[rec()],c=+S.cat;return "Olá! Fiz o quiz no site do DGN Club e quero começar.\n\nVeículo: "+CATS[c]+(S.modelo?" ("+S.modelo+")":"")+"\nPlano sugerido: DGN "+p.n+", R$ "+p.p[c]+"/mês\nUnidade: "+U[uk()]+"\nAtendimento: "+CV[S.conv]+(S.conv==="aguardar"&&S.tempo?(S.tempo==="ate1h"?" (tenho até 1 hora)":" (tenho mais de 1 hora)"):"")+"\n\nPode me ajudar com os próximos passos?";}
+function draw(){
+var n=S.done?6:S.s+1,b="";for(var i=1;i<=6;i++)b+='<i class="'+(i<=n?"on":"")+'"></i>';$("bays").innerHTML=b;
+var h="",next=null,lab="Continuar";
+if(S.done){result();return;}
+if(S.s===0)h='<h2 class="d q" tabindex="-1">Como você usa o carro?</h2><div class="os">'+o("uso","trabalho","Trabalho",0,"work")+o("uso","familia","Família",0,"fam")+o("uso","aplicativo","Aplicativo",0,"app")+o("uso","ocasional","Ocasional",0,"occ")+'</div>';
+else if(S.s===1){h='<h2 class="d q" tabindex="-1">Quem anda com você?</h2><p class="hint">Pode marcar mais de um.</p><div class="os">'+o("pass","sozinho","Sozinho",0,"one",1)+o("pass","adultos","Adultos",0,"fam",1)+o("pass","criancas","Crianças",0,"kid",1)+o("pass","pets","Pets",0,"pet",1)+'</div>';next=S.pass.length>0;}
+else if(S.s===2)h='<h2 class="d q" tabindex="-1">Com que frequência?</h2><div class="os one">'+o("freq","mensal","Uma vez por mês")+o("freq","quinzenal","A cada 15 dias")+o("freq","semanal","Toda semana")+o("freq","orientacao","Preciso de orientação","A gente sugere pelo seu uso")+'</div>';
+else if(S.s===3){h='<h2 class="d q" tabindex="-1">Qual unidade?</h2><div class="os one">'+o("unit","genebra","Santa Genebra","Sede, com Espaço DGN")+o("unit","botafogo","Botafogo","Rua Culto à Ciência, 188")+o("unit","tanto","Tanto faz")+'</div><label class="fld"><span>Bairro ou CEP (opcional)</span><input id="bairro" autocomplete="postal-code" value="'+esc(S.bairro)+'"></label>';next=!!S.unit;}
+else if(S.s===4){h='<h2 class="d q" tabindex="-1">Como prefere?</h2><div class="os one">'+o("conv","aguardar","Aguardar no local","Com horário marcado")+o("conv","deixar","Deixar e buscar")+o("conv","levatraz","Consultar leva e traz","Conforme região e rota")+'</div>';if(S.conv==="aguardar")h+='<p class="hint" style="margin:18px 0 10px">Quanto tempo você tem?</p><div class="os">'+o("tempo","ate1h","Até 1 hora")+o("tempo","mais1h","Mais de 1 hora")+'</div>';next=!!S.conv&&(S.conv!=="aguardar"||!!S.tempo);}
+else{h='<h2 class="d q" tabindex="-1">Qual é o seu carro?</h2><div class="os">'+o("cat","0","Hatch")+o("cat","1","Sedan")+o("cat","2","SUV")+o("cat","3","Picape")+'</div><label class="fld"><span>Marca e modelo (opcional)</span><input id="modelo" value="'+esc(S.modelo)+'"></label>';next=S.cat!==null;lab="Ver meu plano";}
+$("sb").innerHTML="<div>"+h+"</div>";
+$("sf").innerHTML=(S.s>0?'<button class="btn ghost" data-a="back">Voltar</button>':'')+(next!==null?'<button class="btn" data-a="next"'+(next?'':' disabled')+'>'+lab+'</button>':'');
+}
+function result(){
+var k=rec(),p=P[k],c=+S.cat,u=uk(),h='<div><div class="pl"><div class="hz"></div><div class="a"><p class="eb">Sua vaga · '+esc(CATS[c])+(S.modelo?' · '+esc(S.modelo):'')+'</p><h2 class="d" tabindex="-1">Seu plano é o '+p.n+'</h2><p>'+why()+'</p><div class="pr">R$ '+p.p[c]+' <small>/mês · '+p.f+'</small></div><ul>'+p.i.map(function(x){return '<li>'+x+'</li>';}).join("")+'</ul>'+care().map(function(t){return '<p style="margin-top:10px">'+t+'</p>';}).join("")+'</div><div class="r"><div><small>Unidade</small><b>'+U[u]+'</b></div><button data-a="unit">Trocar</button></div><div class="r"><div><small>Atendimento</small><b>'+CV[S.conv]+'</b></div></div></div>';
+if(S.msg)h+='<label class="fld"><span>Revise sua mensagem</span><textarea id="msg">'+esc(msgText())+'</textarea></label>';
+else h+='<div class="alt">'+Object.keys(P).filter(function(x){return x!==k;}).map(function(x){return '<button data-a="ov" data-p="'+x+'">Comparar: '+P[x].n+'<span>R$ '+P[x].p[c]+'/mês · '+P[x].f+'</span></button>';}).join("")+'</div>';
+$("sb").innerHTML=h+"</div>";
+$("sf").innerHTML='<button class="btn ghost" data-a="back">Voltar</button>'+(S.msg?'<a class="btn" id="send" href="'+wa(msgText())+'">Enviar no WhatsApp</a>':'<button class="btn" data-a="msg">Quero começar</button>');
+var t=$("msg"),s=$("send");if(t&&s){t.oninput=function(){s.href=wa(t.value);};s.onclick=function(){ev("whatsapp_clique",{plano:k,unidade:u,origem:"quiz"});};}
+}
+function grab(){var b=$("bairro");if(b)S.bairro=b.value.trim();var m=$("modelo");if(m)S.modelo=m.value.trim();}
+function fwd(){ev("quiz_etapa",{etapa:S.s+1});if(S.s<5)S.s++;else{S.done=true;cat=+S.cat;sel=rec();plans();ev("quiz_concluido",{plano:rec(),categoria:CATS[+S.cat],unidade:uk()});}save();draw();foc();}
+function foc(){var q=$("sb").querySelector("h2");if(q)q.focus();$("sb").scrollTop=0;}
+function open(){$("sheet").classList.add("open");document.body.classList.add("lock");if(!started){started=true;ev("quiz_inicio");}draw();foc();}
+function close(){$("sheet").classList.remove("open");document.body.classList.remove("lock");if(!S.done)ev("quiz_abandono",{etapa:S.s+1});}
+document.querySelectorAll("[data-quiz]").forEach(function(b){b.onclick=open;});
+$("x").onclick=close;
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&$("sheet").classList.contains("open"))close();});
+$("sheet").onclick=function(e){
+var t=e.target.closest("button");if(!t)return;var g=t.getAttribute("data-g"),a=t.getAttribute("data-a");
+if(g){var v=t.getAttribute("data-v");
+if(t.hasAttribute("data-m")){var i=S[g].indexOf(v);if(i>-1)S[g].splice(i,1);else if(v==="sozinho")S[g]=["sozinho"];else{S[g]=S[g].filter(function(x){return x!=="sozinho";});S[g].push(v);}save();draw();return;}
+grab();S[g]=v;S.ov=null;if(g==="conv"&&v!=="aguardar")S.tempo=null;save();
+if(g==="uso"||g==="freq"||(g==="conv"&&v!=="aguardar")||g==="tempo"){draw();setTimeout(fwd,170);}else draw();return;}
+if(a==="next"){grab();fwd();}
+else if(a==="back"){grab();if(S.msg)S.msg=false;else if(S.done)S.done=false;else if(S.s>0)S.s--;save();draw();foc();}
+else if(a==="unit"){S.unit=uk()==="genebra"?"botafogo":"genebra";save();draw();}
+else if(a==="ov"){S.ov=t.getAttribute("data-p");save();draw();foc();}
+else if(a==="msg"){S.msg=true;save();draw();}
+};
+
+/* ---- demonstração ---- */
+var D={t:"prox",w:"Quinta, 19 nov · 10:00",r:false,m:false,q:null},T=[["prox","Próximo"],["hist","Histórico"],["cuid","Cuidados"],["orc","Orçamento"]];
+function demo(){
+$("pt").innerHTML=T.map(function(t){return '<button role="tab" aria-selected="'+(D.t===t[0])+'" data-t="'+t[0]+'">'+t[1]+'</button>';}).join("");
+var h="";
+if(D.t==="prox"){h='<div class="pc"><small>Próximo atendimento</small><b>'+D.w+'</b>Lavagem Padrão · Santa Genebra</div>'+(D.m?'<p class="ok">Reagendado (simulação)</p>':'')+(D.r?'<div class="pg">'+["Sexta, 20 nov · 08:30","Sexta, 20 nov · 14:00","Sábado, 21 nov · 09:00","Segunda, 23 nov · 10:00"].map(function(s){return '<button class="pb" data-s="'+s+'">'+s.replace(" · ","<br>")+'</button>';}).join("")+'</div>':'<button class="pb" data-r>Reagendar</button>');}
+else if(D.t==="hist")h=[["05 nov","Santa Genebra"],["22 out","Botafogo"],["08 out","Santa Genebra"]].map(function(r){return '<div class="pc"><small>'+r[0]+'</small><b>Lavagem Padrão</b>'+r[1]+'</div>';}).join("");
+else if(D.t==="cuid"){var c=care();if(!c.length)c=["Faça o quiz para ver sugestões para a sua rotina."];h=c.map(function(t){return '<div class="pc"><small>Sugestão</small>'+t+'</div>';}).join("");}
+else h=["Higienização interna","Cera manual","Vitrificação"].map(function(s){return '<button class="pb'+(D.q===s?" on":"")+'" data-q="'+s+'">'+s+'</button>';}).join("")+(D.q?'<p class="ok">Pedido simulado. No atendimento real, a equipe responde no WhatsApp.</p>':'');
+$("ps").innerHTML=h;
+}
+$("phone").onclick=function(e){var b=e.target.closest("button");if(!b)return;if(b.hasAttribute("data-t"))D.t=b.getAttribute("data-t");else if(b.hasAttribute("data-r")){D.r=true;D.m=false;}else if(b.hasAttribute("data-s")){D.w=b.getAttribute("data-s");D.r=false;D.m=true;}else if(b.hasAttribute("data-q"))D.q=b.getAttribute("data-q");demo();};
+
+/* ---- medição e barra ---- */
+document.querySelectorAll("[data-ev]").forEach(function(a){a.addEventListener("click",function(){ev("whatsapp_clique",{origem:a.getAttribute("data-ev")});});});
+document.querySelectorAll("[data-vit]").forEach(function(a){a.addEventListener("click",function(){ev("vitrine_acesso",{unidade:"botafogo"});});});
+function bar(){$("bar").classList.toggle("show",window.scrollY>window.innerHeight*.7);}
+window.addEventListener("scroll",bar,{passive:true});
+if(S.cat!==null)cat=+S.cat;if(S.done)sel=rec();
+plans();demo();bar();
+})();
+</script>
+</body>
+</html>

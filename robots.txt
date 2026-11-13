@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /area-vip
+Disallow: /membros-fundadores
+
+Sitemap: https://dgnclub.com/sitemap.xml

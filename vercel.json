@@ -1,0 +1,12 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "www.dgnclub.com" }],
+      "destination": "https://dgnclub.com/$1",
+      "permanent": true
+    }
+  ]
+}
